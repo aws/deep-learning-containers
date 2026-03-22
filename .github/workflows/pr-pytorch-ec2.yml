@@ -306,108 +306,108 @@ jobs:
 
   # ============================================================
   # Multi-GPU tests (need >=2 GPUs)
-  # TODO: Enable when multi-GPU CI runner fleet is available
   # ============================================================
-  # multi-gpu-test:
-  #   needs: [single-gpu-test]
-  #   if: success()
-  #   runs-on:
-  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:x86-g6-12xl-runner
-  #       buildspec-override:true
-  #   concurrency:
-  #     group: ${{ github.workflow }}-multi-gpu-${{ github.event.pull_request.number }}
-  #     cancel-in-progress: true
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v5
-  #
-  #     - name: ECR login
-  #       uses: ./.github/actions/ecr-authenticate
-  #       with:
-  #         aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #         aws-region: ${{ vars.AWS_REGION }}
-  #
-  #     - name: Run multi-GPU tests
-  #       run: |
-  #         IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
-  #         docker pull ${IMAGE}
-  #         CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
-  #           --entrypoint /bin/bash \
-  #           -v $(pwd):/workdir --workdir /workdir \
-  #           ${IMAGE} -c 'sleep infinity')
-  #
-  #         docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29500 \
-  #           /workdir/test/pytorch/multi_gpu/test_ddp.py
-  #         docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29501 \
-  #           /workdir/test/pytorch/multi_gpu/test_fsdp.py
-  #         docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29502 \
-  #           /workdir/test/pytorch/multi_gpu/test_deepspeed.py
-  #
-  #         docker kill ${CONTAINER_ID}
+  multi-gpu-test:
+    needs: [build-images, single-gpu-test]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6e12xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-multi-gpu-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Run multi-GPU tests
+        run: |
+          IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
+          docker pull ${IMAGE}
+          CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
+            --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} pip install pytest -q
+
+          docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29500 \
+            /workdir/test/pytorch/multi_gpu/test_ddp.py
+          docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29501 \
+            /workdir/test/pytorch/multi_gpu/test_fsdp.py
+          docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29502 \
+            /workdir/test/pytorch/multi_gpu/test_deepspeed.py
+
+          docker kill ${CONTAINER_ID}
 
   # ============================================================
   # Multi-node tests (need 2+ containers on Docker network)
-  # TODO: Enable when multi-node CI runner fleet is available
   # ============================================================
-  # multi-node-test:
-  #   needs: [multi-gpu-test]
-  #   if: success()
-  #   runs-on:
-  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:x86-g6-12xl-runner
-  #       buildspec-override:true
-  #   concurrency:
-  #     group: ${{ github.workflow }}-multi-node-${{ github.event.pull_request.number }}
-  #     cancel-in-progress: true
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v5
-  #
-  #     - name: ECR login
-  #       uses: ./.github/actions/ecr-authenticate
-  #       with:
-  #         aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #         aws-region: ${{ vars.AWS_REGION }}
-  #
-  #     - name: Run multi-node tests
-  #       run: |
-  #         IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
-  #         docker pull ${IMAGE}
-  #         docker network create testnet
-  #
-  #         NODE0=$(docker run -d --rm --gpus '"device=0"' --shm-size=2g \
-  #           --network=testnet --hostname=node0 --name=node0 \
-  #           --entrypoint /bin/bash \
-  #           -v $(pwd):/workdir --workdir /workdir \
-  #           ${IMAGE} -c 'sleep infinity')
-  #
-  #         NODE1=$(docker run -d --rm --gpus '"device=1"' --shm-size=2g \
-  #           --network=testnet --hostname=node1 --name=node1 \
-  #           --entrypoint /bin/bash \
-  #           -v $(pwd):/workdir --workdir /workdir \
-  #           ${IMAGE} -c 'sleep infinity')
-  #
-  #         # DDP multi-node
-  #         docker exec node0 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=0 \
-  #           --master_addr=node0 --master_port=29400 \
-  #           /workdir/test/pytorch/multi_node/test_multinode_ddp.py &
-  #         docker exec node1 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=1 \
-  #           --master_addr=node0 --master_port=29400 \
-  #           /workdir/test/pytorch/multi_node/test_multinode_ddp.py &
-  #         wait
-  #
-  #         # NCCL all_reduce
-  #         docker exec node0 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=0 \
-  #           --master_addr=node0 --master_port=29401 \
-  #           /workdir/test/pytorch/multi_node/test_nccl_efa.py &
-  #         docker exec node1 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=1 \
-  #           --master_addr=node0 --master_port=29401 \
-  #           /workdir/test/pytorch/multi_node/test_nccl_efa.py &
-  #         wait
-  #
-  #         docker kill node0 node1
-  #         docker network rm testnet
+  multi-node-test:
+    needs: [build-images, multi-gpu-test]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6e12xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-multi-node-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Run multi-node tests
+        run: |
+          IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
+          docker pull ${IMAGE}
+          docker network create testnet
+
+          NODE0=$(docker run -d --rm --gpus '"device=0"' --shm-size=2g \
+            --network=testnet --hostname=node0 --name=node0 \
+            --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+
+          NODE1=$(docker run -d --rm --gpus '"device=1"' --shm-size=2g \
+            --network=testnet --hostname=node1 --name=node1 \
+            --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+
+          # DDP multi-node
+          docker exec node0 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=0 \
+            --master_addr=node0 --master_port=29400 \
+            /workdir/test/pytorch/multi_node/test_multinode_ddp.py &
+          docker exec node1 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=1 \
+            --master_addr=node0 --master_port=29400 \
+            /workdir/test/pytorch/multi_node/test_multinode_ddp.py &
+          wait
+
+          # NCCL all_reduce
+          docker exec node0 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=0 \
+            --master_addr=node0 --master_port=29401 \
+            /workdir/test/pytorch/multi_node/test_nccl_efa.py &
+          docker exec node1 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=1 \
+            --master_addr=node0 --master_port=29401 \
+            /workdir/test/pytorch/multi_node/test_nccl_efa.py &
+          wait
+
+          docker kill node0 node1
+          docker network rm testnet
 
   # ============================================================
   # Integration tests (EFA, SageMaker, EKS)
