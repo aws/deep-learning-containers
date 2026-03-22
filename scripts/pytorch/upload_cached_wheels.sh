@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
-# upload_cached_wheels.sh — Extract built wheels from Docker builder stages and upload to S3.
+# upload_cached_wheels.sh — Extract built wheels from Docker wheel-export stage and upload to S3.
 #
 # Usage: upload_cached_wheels.sh <bucket> <cuda> <torch> <python> <image_uri> <pkg:ver> [...]
-#
-# Wheels are extracted from /tmp/built_wheels/ inside the builder stages.
-# The image must have been built with --target runtime (which includes builder stages in cache).
 set -euo pipefail
 
-BUCKET="$1"; CUDA="$2"; TORCH="$3"; PYTHON="$4"; IMAGE="$5"
+BUCKET="$1"; IMAGE="$5"
 shift 5
 
 if [ -z "${BUCKET}" ]; then
@@ -15,35 +12,38 @@ if [ -z "${BUCKET}" ]; then
   exit 0
 fi
 
-CUDA_SHORT=$(echo "${CUDA}" | cut -d. -f1,2 | tr -d '.')
-PY_TAG="cp$(echo "${PYTHON}" | tr -d '.')"
+# Build the wheel-export stage and extract to local dir
+EXPORT_DIR=$(mktemp -d)
+docker buildx build --progress=plain --target wheel-export --output "type=local,dest=${EXPORT_DIR}" \
+  -f docker/pytorch/Dockerfile . 2>/dev/null || {
+  echo "⚠️  wheel-export stage not available — extracting from runtime image"
+  CID=$(docker create "${IMAGE}" /bin/true)
+  docker cp "${CID}:/tmp/built_wheels/" "${EXPORT_DIR}/wheels/" 2>/dev/null || true
+  docker rm "${CID}" &>/dev/null || true
+}
 
 for spec in "$@"; do
   PKG="${spec%%:*}"
-  VER="${spec##*:}"
-  S3_KEY="wheels/${PKG}-${VER}-cu${CUDA_SHORT}-torch${TORCH}-${PY_TAG}.whl"
+  PKG_UNDER="${PKG//-/_}"
 
-  # Skip if already cached
-  if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
-    echo "✅ Already cached: ${PKG}==${VER}"
+  WHL=$(find "${EXPORT_DIR}" -name "${PKG_UNDER}*.whl" 2>/dev/null | head -1)
+  if [ -z "${WHL}" ]; then
+    echo "⚠️  No wheel found for ${PKG}"
     continue
   fi
 
-  # Extract wheel from the image's /tmp/built_wheels/
-  PKG_UNDER="${PKG//-/_}"
-  echo "📦 Extracting ${PKG}==${VER} wheel from image..."
-  CID=$(docker create "${IMAGE}" /bin/true)
-  docker cp "${CID}:/tmp/built_wheels/" /tmp/extract_wheels/ 2>/dev/null || true
-  docker rm "${CID}" &>/dev/null || true
+  FNAME=$(basename "${WHL}")
+  S3_KEY="wheels/${PKG_UNDER}/${FNAME}"
 
-  WHL=$(find /tmp/extract_wheels -name "${PKG_UNDER}*.whl" 2>/dev/null | head -1)
-  if [ -n "${WHL}" ]; then
-    echo "⬆️  Uploading $(basename "${WHL}") → s3://${BUCKET}/${S3_KEY}"
-    aws s3 cp "${WHL}" "s3://${BUCKET}/${S3_KEY}" \
-      && echo "✅ Uploaded ${PKG}==${VER}" \
-      || echo "⚠️  Upload failed (non-fatal)"
-  else
-    echo "⚠️  No wheel found for ${PKG}==${VER} in image"
+  if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
+    echo "✅ Already cached: ${S3_KEY}"
+    continue
   fi
-  rm -rf /tmp/extract_wheels
+
+  echo "⬆️  Uploading ${FNAME} → s3://${BUCKET}/${S3_KEY}"
+  aws s3 cp "${WHL}" "s3://${BUCKET}/${S3_KEY}" \
+    && echo "✅ Uploaded ${PKG}" \
+    || echo "⚠️  Upload failed (non-fatal)"
 done
+
+rm -rf "${EXPORT_DIR}"

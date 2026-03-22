@@ -4,6 +4,7 @@ set -ex
 
 # Reconfigure sshd to non-privileged port
 sed -i 's/^#\?Port .*/Port 2222/' /etc/ssh/sshd_config
+chmod 644 /etc/ssh/sshd_config
 
 # Generate SSH keys for mluser
 mkdir -p /home/mluser/.ssh && chmod 700 /home/mluser/.ssh
