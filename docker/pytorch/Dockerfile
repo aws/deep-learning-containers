@@ -59,7 +59,7 @@ ARG MAX_JOBS
 COPY docker/pytorch/wheels/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
   mkdir -p /tmp/built_wheels && \
-  WHL=$(find /tmp/wheels -name "flash_attn*.whl" 2>/dev/null | head -1) && \
+  WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \
   if [ -n "${WHL}" ]; then \
     echo "Installing cached flash-attn wheel: ${WHL}" && \
     uv pip install "${WHL}"; \
@@ -90,7 +90,7 @@ RUN cd /tmp \
 COPY docker/pytorch/wheels/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
   mkdir -p /tmp/built_wheels && \
-  WHL=$(find /tmp/wheels -name "transformer_engine*.whl" 2>/dev/null | head -1) && \
+  WHL=$(find /tmp/wheels -name "transformer*engine*.whl" 2>/dev/null | head -1) && \
   if [ -n "${WHL}" ]; then \
     echo "Installing cached transformer-engine wheel: ${WHL}" && \
     uv pip install "${WHL}"; \
