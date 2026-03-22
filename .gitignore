@@ -8,6 +8,9 @@ __pycache__
 .vscode
 .kiro/*
 !.kiro/steering/
+.kiro/steering/*
+!.kiro/steering/test.md
+!.kiro/steering/docs.md
 .gem-config
 
 # Generated docs
