@@ -182,7 +182,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
-  && bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
   && rm /tmp/setup_oss_compliance.sh
 
 # Security patch — run after all installers so every OS package is covered
