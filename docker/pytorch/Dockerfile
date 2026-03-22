@@ -3,7 +3,6 @@
 # Multi-stage build with parallel builder stages:
 #
 #   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
-#                  ├── builder-te           (torch + cuDNN + transformer-engine)
 #                  └── builder-oss          (OSS license generation — isolated)
 #   builder-gdrcopy ── (independent, parallel with all above)
 #
@@ -17,13 +16,11 @@
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────
 ARG CUDA_VERSION=12.9.1
-ARG CUDNN_VERSION=9.8.0.87
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.10.0
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG FLASH_ATTN_VERSION=2.8.3
-ARG TRANSFORMER_ENGINE_VERSION=2.3.0
 ARG GDRCOPY_VERSION=2.4.4
 ARG EFA_VERSION=1.47.0
 # Compiler parallelism cap per stage — prevents OOM when nproc > available RAM.
@@ -51,6 +48,10 @@ COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
+# transformer-engine requires torch at install time, so it can't go in pyproject.toml
+ARG TRANSFORMER_ENGINE_VERSION=2.3.0
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
+
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
 FROM builder-base AS builder-flash-attn
@@ -74,37 +75,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   fi
 
 
-# ── Stage: builder-te (parallel — needs torch + cuDNN headers) ──────────────
-FROM builder-base AS builder-te
-ARG CUDNN_VERSION
-ARG TRANSFORMER_ENGINE_VERSION
-ARG MAX_JOBS
-
-# cuDNN devel headers for transformer-engine compilation
-RUN cd /tmp \
-  && curl -sL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz | tar xJ \
-  && cp -a cudnn-*/include/* /usr/local/cuda/include/ \
-  && cp -a cudnn-*/lib/* /usr/local/cuda/lib64/ \
-  && rm -rf /tmp/cudnn-* \
-  && ldconfig
-
-# If a cached wheel exists in the build context, install it; otherwise build from source.
-# When building from source, the wheel is saved to /tmp/built_wheels/ for later S3 upload.
-COPY docker/pytorch/wheels/ /tmp/wheels/
-RUN --mount=type=cache,target=/root/.cache/uv \
-  mkdir -p /tmp/built_wheels && \
-  WHL=$(find /tmp/wheels -name "transformer*engine*.whl" 2>/dev/null | head -1) && \
-  if [ -n "${WHL}" ]; then \
-    echo "Installing cached transformer-engine wheel: ${WHL}" && \
-    uv pip install "${WHL}"; \
-  else \
-    echo "No cached wheel — building transformer-engine from source" && \
-    MAX_JOBS=${MAX_JOBS} pip wheel --no-deps --no-build-isolation \
-      --wheel-dir /tmp/built_wheels "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}" && \
-    uv pip install /tmp/built_wheels/transformer_engine*.whl; \
-  fi
-
-
 # ── Stage: builder-gdrcopy (parallel — independent of Python) ───────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-gdrcopy
 ARG GDRCOPY_VERSION
@@ -120,7 +90,6 @@ ARG CUDA_VERSION
 RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
 COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
-COPY --from=builder-te /opt/venv/lib /opt/venv/lib
 COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
@@ -158,10 +127,6 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
 # Python venv (base packages from builder-base, then overlay compiled packages)
 COPY --from=builder-base /opt/venv /opt/venv
 COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
-COPY --from=builder-te /opt/venv/lib /opt/venv/lib
-
-# cuDNN runtime libs (from builder-te where they were downloaded)
-COPY --from=builder-te /usr/local/cuda/lib64/libcudnn* /usr/local/cuda/lib64/
 
 # GDRCopy userspace lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
@@ -240,4 +205,3 @@ WORKDIR /home/mluser
 # ── Stage: wheel-export (CI-only — extracts built wheels for S3 cache upload) ─
 FROM scratch AS wheel-export
 COPY --from=builder-flash-attn /tmp/built_wheels/ /wheels/
-COPY --from=builder-te /tmp/built_wheels/ /wheels/

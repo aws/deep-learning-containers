@@ -120,7 +120,6 @@ jobs:
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
-            "transformer-engine:${TRANSFORMER_ENGINE_VERSION}"
         continue-on-error: true
 
       - name: Build runtime image
@@ -131,7 +130,6 @@ jobs:
 
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
-            --build-arg CUDNN_VERSION=${CUDNN_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
             --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
@@ -158,7 +156,6 @@ jobs:
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "${{ steps.build-runtime.outputs.image-uri }}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
-            "transformer-engine:${TRANSFORMER_ENGINE_VERSION}"
         continue-on-error: true
 
       - name: Build runtime-eks image
@@ -169,7 +166,6 @@ jobs:
 
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
-            --build-arg CUDNN_VERSION=${CUDNN_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
             --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
