@@ -122,7 +122,10 @@ COPY --from=builder-base /opt/venv /opt/venv
 COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 COPY --from=builder-te /opt/venv/lib /opt/venv/lib
 COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
-RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION}
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS /root/PYTHON_PACKAGES_LICENSES \
+    /root/LINUX_PACKAGES_LICENSES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    /root/BUILD_FROM_SOURCE_EKS_PACKAGES_LICENCES
 
 
 # ── Stage: runtime (EC2 / ECS / Batch / SageMaker) ──────────────────────────
