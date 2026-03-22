@@ -8,6 +8,8 @@
 #
 #   runtime ── runtime-eks
 #
+#   wheel-export (CI-only — scratch image with built wheels for S3 cache upload)
+#
 # All version defaults match versions.env. Workflows pass --build-arg after
 # sourcing versions.env so there is a single source of truth.
 # ============================================================================
@@ -137,16 +139,13 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip curl which findutils \
     util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} gcc gcc-c++ \
+  && dnf upgrade -y --security --releasever latest \
   && dnf clean all
 
 # Python venv (base packages from builder-base, then overlay compiled packages)
 COPY --from=builder-base /opt/venv /opt/venv
 COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 COPY --from=builder-te /opt/venv/lib /opt/venv/lib
-
-# Built wheels (for S3 cache upload — extracted by CI after build, not needed at runtime)
-COPY --from=builder-flash-attn /tmp/built_wheels/ /tmp/built_wheels/
-COPY --from=builder-te /tmp/built_wheels/ /tmp/built_wheels/
 
 # cuDNN runtime libs (from builder-te where they were downloaded)
 COPY --from=builder-te /usr/local/cuda/lib64/libcudnn* /usr/local/cuda/lib64/
@@ -199,3 +198,9 @@ RUN bash /tmp/configure_ssh_eks.sh && rm /tmp/configure_ssh_eks.sh
 EXPOSE 2222
 USER mluser
 WORKDIR /home/mluser
+
+
+# ── Stage: wheel-export (CI-only — extracts built wheels for S3 cache upload) ─
+FROM scratch AS wheel-export
+COPY --from=builder-flash-attn /tmp/built_wheels/ /wheels/
+COPY --from=builder-te /tmp/built_wheels/ /wheels/
