@@ -183,7 +183,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # PATH and LD_LIBRARY_PATH
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
-  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
+  LD_LIBRARY_PATH="/opt/venv/lib/python3.12/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
 EXPOSE 22
 WORKDIR /workspace
