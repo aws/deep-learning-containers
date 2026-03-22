@@ -15,18 +15,18 @@
 # ============================================================================
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.10.0
-ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=0
+ARG TRANSFORMER_ENGINE_VERSION=2.3.0
 ARG FLASH_ATTN_VERSION=2.8.3
 ARG GDRCOPY_VERSION=2.4.4
 ARG EFA_VERSION=1.47.0
 # Compiler parallelism cap per stage — prevents OOM when nproc > available RAM.
 # Default 8 is safe for 128GB builders; override with --build-arg MAX_JOBS=16.
 ARG MAX_JOBS=8
-ARG TRANSFORMER_ENGINE_VERSION=2.3.0
 
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
