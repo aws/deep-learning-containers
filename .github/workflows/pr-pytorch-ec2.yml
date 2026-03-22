@@ -112,6 +112,17 @@ jobs:
           echo "cuda-version=${CUDA_VERSION}" >> $GITHUB_OUTPUT
           echo "python-version=${PYTHON_VERSION}" >> $GITHUB_OUTPUT
 
+      - name: Fetch cached wheels
+        run: |
+          source docker/pytorch/versions.env
+          bash scripts/pytorch/fetch_cached_wheels.sh \
+            docker/pytorch/wheels \
+            "${{ vars.WHEEL_CACHE_BUCKET }}" \
+            "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
+            "flash-attn:${FLASH_ATTN_VERSION}" \
+            "transformer-engine:${TRANSFORMER_ENGINE_VERSION}"
+        continue-on-error: true
+
       - name: Build runtime image
         id: build-runtime
         run: |
@@ -138,6 +149,17 @@ jobs:
             -f docker/pytorch/Dockerfile .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+
+      - name: Upload built wheels to cache
+        run: |
+          source docker/pytorch/versions.env
+          bash scripts/pytorch/upload_cached_wheels.sh \
+            "${{ vars.WHEEL_CACHE_BUCKET }}" \
+            "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
+            "${{ steps.build-runtime.outputs.image-uri }}" \
+            "flash-attn:${FLASH_ATTN_VERSION}" \
+            "transformer-engine:${TRANSFORMER_ENGINE_VERSION}"
+        continue-on-error: true
 
       - name: Build runtime-eks image
         id: build-runtime-eks
