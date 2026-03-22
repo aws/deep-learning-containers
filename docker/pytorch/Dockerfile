@@ -61,7 +61,8 @@ ARG MAX_JOBS
 
 # If a cached wheel exists in the build context, install it; otherwise build from source.
 # When building from source, the wheel is saved to /tmp/built_wheels/ for later S3 upload.
-COPY docker/pytorch/wheels/ /tmp/wheels/
+# docker/pytorch/wheels/ is created by CI (fetch_cached_wheels.sh); may not exist locally.
+COPY docker/pytorch/pyproject.toml docker/pytorch/wheel[s]/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
   mkdir -p /tmp/built_wheels && \
   WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \
