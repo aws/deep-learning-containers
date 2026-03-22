@@ -139,8 +139,6 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip curl which findutils \
     util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} gcc gcc-c++ \
-  && dnf upgrade -y --security --releasever latest \
-  && dnf upgrade -y python3-urllib3 \
   && dnf clean all
 
 # Python venv (base packages from builder-base, then overlay compiled packages)
@@ -186,6 +184,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
   && rm /tmp/setup_oss_compliance.sh
+
+# Security patch — run after all installers so every OS package is covered
+RUN dnf upgrade -y --security --releasever 2023.10.20260202 && dnf clean all
 
 # Entrypoint
 COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
