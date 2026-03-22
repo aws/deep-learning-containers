@@ -3,7 +3,7 @@
 #
 # Usage: fetch_cached_wheels.sh <dest_dir> <bucket> <cuda> <torch> <python> <pkg:ver> [...]
 #
-# Cache key: s3://<bucket>/wheels/<pkg>-<ver>-cu<cuda_short>-torch<torch>-cp<py>.whl
+# Cache key: s3://<bucket>/wheels/<pkg_under>/<original_wheel_filename>
 # Missing wheels are silently skipped — the Dockerfile falls back to source build.
 set -euo pipefail
 
@@ -15,17 +15,16 @@ if [ -z "${BUCKET}" ]; then
   exit 0
 fi
 
-CUDA_SHORT=$(echo "${CUDA}" | cut -d. -f1,2 | tr -d '.')  # 12.9.1 → 129
-PY_TAG="cp$(echo "${PYTHON}" | tr -d '.')"                 # 3.12 → cp312
-
 mkdir -p "${DEST_DIR}"
 
 for spec in "$@"; do
   PKG="${spec%%:*}"
   VER="${spec##*:}"
-  KEY="wheels/${PKG}-${VER}-cu${CUDA_SHORT}-torch${TORCH}-${PY_TAG}.whl"
-  echo "⬇️  s3://${BUCKET}/${KEY} ..."
-  aws s3 cp "s3://${BUCKET}/${KEY}" "${DEST_DIR}/" 2>/dev/null \
+  PKG_UNDER="${PKG//-/_}"
+  PREFIX="wheels/${PKG_UNDER}/"
+  echo "⬇️  Looking for ${PKG}==${VER} in s3://${BUCKET}/${PREFIX} ..."
+  # Download any .whl matching the package name — preserves original filename
+  aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive --exclude "*" --include "*.whl" 2>/dev/null \
     && echo "✅ Cache hit: ${PKG}==${VER}" \
     || echo "⚠️  Cache miss: ${PKG}==${VER}"
 done
