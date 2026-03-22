@@ -182,8 +182,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && PATH="/opt/venv/bin:${PATH}" pip freeze >/tmp/pip_before.txt \
   && PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
-  && rm /tmp/setup_oss_compliance.sh
+  && PATH="/opt/venv/bin:${PATH}" pip freeze >/tmp/pip_after.txt \
+  && diff /tmp/pip_before.txt /tmp/pip_after.txt \
+  && rm /tmp/pip_before.txt /tmp/pip_after.txt /tmp/setup_oss_compliance.sh
 
 # Security patch — run after all installers so every OS package is covered
 RUN dnf upgrade -y --security --releasever latest && dnf clean all
