@@ -199,11 +199,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 RUN dnf upgrade -y --security --releasever latest && dnf clean all
 
 # OSS compliance (runs in isolated stage to avoid polluting the venv)
-COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
 COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
 COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
-COPY --from=builder-oss /root/BUILD_FROM_SOURCE_EKS_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_EKS_PACKAGES_LICENCES
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 # Entrypoint
