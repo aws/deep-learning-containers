@@ -49,9 +49,14 @@ COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
-# transformer-engine requires torch at build time, so it can't go in pyproject.toml
+# transformer-engine requires torch + cudnn.h at build time; point it to the
+# cudnn headers shipped inside the nvidia-cudnn-cu12 pip package.
 ARG TRANSFORMER_ENGINE_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
+RUN --mount=type=cache,target=/root/.cache/uv \
+  CUDNN_PATH=$(python -c "import nvidia.cudnn; import os; print(os.path.dirname(nvidia.cudnn.__file__))") && \
+  CUDNN_HOME=$(dirname "$CUDNN_PATH") && \
+  export CUDNN_HOME CUDNN_PATH && \
+  uv pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
 
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
