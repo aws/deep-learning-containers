@@ -122,10 +122,7 @@ COPY --from=builder-base /opt/venv /opt/venv
 COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 COPY --from=builder-te /opt/venv/lib /opt/venv/lib
 COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
-RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
-  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS /root/PYTHON_PACKAGES_LICENSES \
-    /root/LINUX_PACKAGES_LICENSES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-    /root/BUILD_FROM_SOURCE_EKS_PACKAGES_LICENCES
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION}
 
 
 # ── Stage: runtime (EC2 / ECS / Batch / SageMaker) ──────────────────────────
@@ -202,11 +199,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 RUN dnf upgrade -y --security --releasever latest && dnf clean all
 
 # OSS compliance (runs in isolated stage to avoid polluting the venv)
-COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
 COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
 COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
-COPY --from=builder-oss /root/BUILD_FROM_SOURCE_EKS_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_EKS_PACKAGES_LICENCES
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 # Entrypoint
