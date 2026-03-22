@@ -26,6 +26,7 @@ ARG EFA_VERSION=1.47.0
 # Compiler parallelism cap per stage — prevents OOM when nproc > available RAM.
 # Default 8 is safe for 128GB builders; override with --build-arg MAX_JOBS=16.
 ARG MAX_JOBS=8
+ARG TRANSFORMER_ENGINE_VERSION=2.3.0
 
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
@@ -48,9 +49,9 @@ COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
-# transformer-engine requires torch at install time, so it can't go in pyproject.toml
-ARG TRANSFORMER_ENGINE_VERSION=2.3.0
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
+# transformer-engine requires torch at build time, so it can't go in pyproject.toml
+ARG TRANSFORMER_ENGINE_VERSION
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
 
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
