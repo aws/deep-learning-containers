@@ -53,8 +53,8 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-ins
 # cudnn headers shipped inside the nvidia-cudnn-cu12 pip package.
 ARG TRANSFORMER_ENGINE_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv \
-  CUDNN_PATH=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
-  export CUDNN_HOME="${CUDNN_PATH%/*}" CUDNN_PATH && \
+  export CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
+  export CUDNN_PATH="$CUDNN_HOME" && \
   uv pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
 
 
