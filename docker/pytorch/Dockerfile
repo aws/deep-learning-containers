@@ -136,7 +136,10 @@ COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 
 # GDRCopy userspace lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
-RUN ldconfig
+# The cuda-runtime base image ships libcudart.so.12 but not the unversioned
+# symlink; NCCL OFI plugin dlopen()s "libcudart.so" and fails without it.
+RUN ln -sf /usr/local/cuda/lib64/libcudart.so.12 /usr/local/cuda/lib64/libcudart.so \
+  && ldconfig
 
 # EFA + OpenMPI
 COPY scripts/pytorch/install_efa.sh /tmp/install_efa.sh

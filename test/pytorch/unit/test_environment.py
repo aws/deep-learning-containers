@@ -89,3 +89,10 @@ class TestCuDNN:
 
     def test_cudnn_loadable(self):
         ctypes.CDLL("libcudnn.so.9")
+
+
+class TestCudaRuntime:
+    """Verify CUDA runtime library is loadable (required by NCCL OFI plugin)."""
+
+    def test_cudart_loadable(self):
+        ctypes.CDLL("libcudart.so")
