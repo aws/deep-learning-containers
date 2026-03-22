@@ -3,7 +3,8 @@
 # Multi-stage build with parallel builder stages:
 #
 #   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
-#                  └── builder-te           (torch + cuDNN + transformer-engine)
+#                  ├── builder-te           (torch + cuDNN + transformer-engine)
+#                  └── builder-oss          (OSS license generation — isolated)
 #   builder-gdrcopy ── (independent, parallel with all above)
 #
 #   runtime ── runtime-eks
@@ -168,10 +169,9 @@ RUN bash /tmp/configure_nccl.sh && rm /tmp/configure_nccl.sh
 # SageMaker BYOC paths
 RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 
-# Telemetry + OSS compliance
+# Telemetry
 COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="pytorch"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -181,15 +181,18 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
-  && PATH="/opt/venv/bin:${PATH}" pip freeze >/tmp/pip_before.txt \
-  && PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
-  && PATH="/opt/venv/bin:${PATH}" pip freeze >/tmp/pip_after.txt \
-  && diff /tmp/pip_before.txt /tmp/pip_after.txt \
-  && rm /tmp/pip_before.txt /tmp/pip_after.txt /tmp/setup_oss_compliance.sh
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc
 
 # Security patch — run after all installers so every OS package is covered
 RUN dnf upgrade -y --security --releasever latest && dnf clean all
+
+# OSS compliance (runs in isolated stage to avoid polluting the venv)
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_EKS_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_EKS_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 # Entrypoint
 COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
@@ -203,6 +206,18 @@ EXPOSE 22
 WORKDIR /workspace
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
+
+
+# ── Stage: builder-oss (generates license files without modifying runtime venv) ─
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
+ARG PYTHON_VERSION
+ARG CUDA_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=builder-base /opt/venv /opt/venv
+COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
+COPY --from=builder-te /opt/venv/lib /opt/venv/lib
+COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION}
 
 
 # ── Stage: runtime-eks ───────────────────────────────────────────────────────
