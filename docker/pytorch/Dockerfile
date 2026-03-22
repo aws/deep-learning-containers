@@ -15,11 +15,12 @@
 # ============================================================================
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.10.0
-ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=0
+ARG TRANSFORMER_ENGINE_VERSION=2.3.0
 ARG FLASH_ATTN_VERSION=2.8.3
 ARG GDRCOPY_VERSION=2.4.4
 ARG EFA_VERSION=1.47.0
@@ -48,9 +49,9 @@ COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
-# transformer-engine requires torch at install time, so it can't go in pyproject.toml
-ARG TRANSFORMER_ENGINE_VERSION=2.3.0
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
+# transformer-engine requires torch at build time, so it can't go in pyproject.toml
+ARG TRANSFORMER_ENGINE_VERSION
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
 
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
@@ -60,7 +61,8 @@ ARG MAX_JOBS
 
 # If a cached wheel exists in the build context, install it; otherwise build from source.
 # When building from source, the wheel is saved to /tmp/built_wheels/ for later S3 upload.
-COPY docker/pytorch/wheels/ /tmp/wheels/
+# docker/pytorch/wheels/ is created by CI (fetch_cached_wheels.sh); may not exist locally.
+COPY docker/pytorch/pyproject.toml docker/pytorch/wheel[s]/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
   mkdir -p /tmp/built_wheels && \
   WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \

@@ -115,6 +115,7 @@ jobs:
       - name: Fetch cached wheels
         run: |
           source docker/pytorch/versions.env
+          mkdir -p docker/pytorch/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
             docker/pytorch/wheels \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
