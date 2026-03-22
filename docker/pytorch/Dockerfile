@@ -186,7 +186,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/setup_oss_compliance.sh
 
 # Security patch — run after all installers so every OS package is covered
-RUN dnf upgrade -y --security --releasever 2023.10.20260202 && dnf clean all
+RUN dnf upgrade -y --security --releasever latest && dnf clean all
 
 # Entrypoint
 COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
