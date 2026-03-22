@@ -113,6 +113,18 @@ COPY scripts/pytorch/install_gdrcopy.sh /tmp/install_gdrcopy.sh
 RUN bash /tmp/install_gdrcopy.sh ${GDRCOPY_VERSION} && rm /tmp/install_gdrcopy.sh
 
 
+# ── Stage: builder-oss (generates license files without modifying runtime venv) ─
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
+ARG PYTHON_VERSION
+ARG CUDA_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=builder-base /opt/venv /opt/venv
+COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
+COPY --from=builder-te /opt/venv/lib /opt/venv/lib
+COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION}
+
+
 # ── Stage: runtime (EC2 / ECS / Batch / SageMaker) ──────────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 ARG CUDA_VERSION
@@ -206,18 +218,6 @@ EXPOSE 22
 WORKDIR /workspace
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
-
-
-# ── Stage: builder-oss (generates license files without modifying runtime venv) ─
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
-ARG PYTHON_VERSION
-ARG CUDA_VERSION
-RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
-COPY --from=builder-base /opt/venv /opt/venv
-COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
-COPY --from=builder-te /opt/venv/lib /opt/venv/lib
-COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
-RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION}
 
 
 # ── Stage: runtime-eks ───────────────────────────────────────────────────────
