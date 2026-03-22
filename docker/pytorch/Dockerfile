@@ -140,6 +140,7 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip curl which findutils \
     util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} gcc gcc-c++ \
   && dnf upgrade -y --security --releasever latest \
+  && dnf upgrade -y python3-urllib3 \
   && dnf clean all
 
 # Python venv (base packages from builder-base, then overlay compiled packages)
