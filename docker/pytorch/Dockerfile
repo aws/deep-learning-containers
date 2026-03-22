@@ -88,21 +88,10 @@ RUN cd /tmp \
   && rm -rf /tmp/cudnn-* \
   && ldconfig
 
-# If a cached wheel exists in the build context, install it; otherwise build from source.
-# When building from source, the wheel is saved to /tmp/built_wheels/ for later S3 upload.
-COPY docker/pytorch/wheels/ /tmp/wheels/
-RUN --mount=type=cache,target=/root/.cache/uv \
-  mkdir -p /tmp/built_wheels && \
-  WHL=$(find /tmp/wheels -name "transformer*engine*.whl" 2>/dev/null | head -1) && \
-  if [ -n "${WHL}" ]; then \
-    echo "Installing cached transformer-engine wheel: ${WHL}" && \
-    uv pip install "${WHL}"; \
-  else \
-    echo "No cached wheel — building transformer-engine from source" && \
-    MAX_JOBS=${MAX_JOBS} pip wheel --no-deps --no-build-isolation \
-      --wheel-dir /tmp/built_wheels "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}" && \
-    uv pip install /tmp/built_wheels/transformer_engine*.whl; \
-  fi
+# transformer-engine-cu12 is a pre-built binary downloaded from PyPI (no local compilation).
+# No wheel caching needed — install directly.
+RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/built_wheels \
+  && uv pip install "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
 
 
 # ── Stage: builder-gdrcopy (parallel — independent of Python) ───────────────
@@ -240,4 +229,3 @@ WORKDIR /home/mluser
 # ── Stage: wheel-export (CI-only — extracts built wheels for S3 cache upload) ─
 FROM scratch AS wheel-export
 COPY --from=builder-flash-attn /tmp/built_wheels/ /wheels/
-COPY --from=builder-te /tmp/built_wheels/ /wheels/
