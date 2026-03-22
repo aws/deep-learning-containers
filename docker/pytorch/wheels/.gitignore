@@ -1,0 +1,4 @@
+# Cached wheels are fetched from S3 at build time — never committed.
+*.whl
+!.gitkeep
+!.gitignore
