@@ -135,6 +135,7 @@ jobs:
             --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
             --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
             --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
+            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
             --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
             --build-arg EFA_VERSION=${EFA_VERSION} \
             --build-arg MAX_JOBS=${MAX_JOBS} \
@@ -170,6 +171,7 @@ jobs:
             --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
             --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
             --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
+            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
             --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
             --build-arg EFA_VERSION=${EFA_VERSION} \
             --build-arg MAX_JOBS=${MAX_JOBS} \

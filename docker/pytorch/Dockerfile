@@ -48,6 +48,10 @@ COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
+# transformer-engine requires torch at install time, so it can't go in pyproject.toml
+ARG TRANSFORMER_ENGINE_VERSION=2.3.0
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
+
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
 FROM builder-base AS builder-flash-attn
