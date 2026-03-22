@@ -7,6 +7,7 @@ dependencies = [
     "torchvision==0.25.0",
     "torchaudio==2.10.0",
     "deepspeed==0.16.7",
+    "transformer-engine[pytorch]==2.3.0",
     "boto3",
     "botocore",
     "pyyaml",

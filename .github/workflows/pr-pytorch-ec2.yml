@@ -130,13 +130,11 @@ jobs:
 
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
-            --build-arg CUDNN_VERSION=${CUDNN_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
             --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
             --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
             --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
-            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
             --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
             --build-arg EFA_VERSION=${EFA_VERSION} \
             --build-arg MAX_JOBS=${MAX_JOBS} \
@@ -167,13 +165,11 @@ jobs:
 
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
-            --build-arg CUDNN_VERSION=${CUDNN_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
             --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
             --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
             --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
-            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
             --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
             --build-arg EFA_VERSION=${EFA_VERSION} \
             --build-arg MAX_JOBS=${MAX_JOBS} \
