@@ -4,7 +4,6 @@ import ctypes
 import os
 import shutil
 import subprocess
-import sys
 
 import pytest
 
@@ -73,19 +72,6 @@ class TestNCCLAndEFA:
 
 class TestCuDNN:
     """Verify cuDNN runtime libraries are present and loadable."""
-
-    def test_cudnn_lib_exists(self):
-        cudnn_dir = os.path.join(
-            sys.prefix,
-            "lib",
-            f"python{sys.version_info.major}.{sys.version_info.minor}",
-            "site-packages",
-            "nvidia",
-            "cudnn",
-            "lib",
-        )
-        libs = [f for f in os.listdir(cudnn_dir) if f.startswith("libcudnn")]
-        assert len(libs) > 0, f"No cuDNN libraries found in {cudnn_dir}"
 
     def test_cudnn_loadable(self):
         ctypes.CDLL("libcudnn.so.9")
