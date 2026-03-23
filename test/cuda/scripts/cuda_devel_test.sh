@@ -143,6 +143,38 @@ if git clone --depth 1 --branch "${SAMPLES_TAG}" \
     echo "FAIL: simpleCUBLAS failed to compile"
     FAILED=1
   fi
+
+  # simpleCUFFT — tests cuFFT library (FFT on GPU)
+  echo "Building simpleCUFFT..."
+  BUILD_DIR="$SAMPLES_DIR/build/simpleCUFFT"
+  if cmake -B "$BUILD_DIR" -S "$SAMPLES_DIR/Samples/4_CUDA_Libraries/simpleCUFFT" >/dev/null 2>&1 \
+    && cmake --build "$BUILD_DIR" -j"$(nproc)" >/dev/null 2>&1; then
+    if "$BUILD_DIR/simpleCUFFT" >/dev/null 2>&1; then
+      echo "PASS: simpleCUFFT"
+    else
+      echo "FAIL: simpleCUFFT exited with error"
+      FAILED=1
+    fi
+  else
+    echo "FAIL: simpleCUFFT failed to compile"
+    FAILED=1
+  fi
+
+  # conjugateGradient — tests cuSPARSE library (sparse matrix solver)
+  echo "Building conjugateGradient..."
+  BUILD_DIR="$SAMPLES_DIR/build/conjugateGradient"
+  if cmake -B "$BUILD_DIR" -S "$SAMPLES_DIR/Samples/4_CUDA_Libraries/conjugateGradient" >/dev/null 2>&1 \
+    && cmake --build "$BUILD_DIR" -j"$(nproc)" >/dev/null 2>&1; then
+    if "$BUILD_DIR/conjugateGradient" >/dev/null 2>&1; then
+      echo "PASS: conjugateGradient"
+    else
+      echo "FAIL: conjugateGradient exited with error"
+      FAILED=1
+    fi
+  else
+    echo "FAIL: conjugateGradient failed to compile"
+    FAILED=1
+  fi
 else
   echo "FAIL: could not clone cuda-samples ${SAMPLES_TAG}"
   FAILED=1
