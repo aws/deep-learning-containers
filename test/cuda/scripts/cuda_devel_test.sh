@@ -107,6 +107,42 @@ if git clone --depth 1 --branch "${SAMPLES_TAG}" \
     echo "FAIL: vectorAdd failed to compile"
     FAILED=1
   fi
+
+  # matrixMul — tests CUDA kernel execution with shared memory
+  echo "Building matrixMul..."
+  BUILD_DIR="$SAMPLES_DIR/build/matrixMul"
+  if cmake -B "$BUILD_DIR" -S "$SAMPLES_DIR/Samples/0_Introduction/matrixMul" >/dev/null 2>&1 \
+    && cmake --build "$BUILD_DIR" -j"$(nproc)" >/dev/null 2>&1; then
+    OUTPUT=$("$BUILD_DIR/matrixMul" 2>&1)
+    if echo "$OUTPUT" | grep -q "Result = PASS"; then
+      echo "PASS: matrixMul"
+    else
+      echo "FAIL: matrixMul did not report PASS"
+      echo "$OUTPUT" | tail -5
+      FAILED=1
+    fi
+  else
+    echo "FAIL: matrixMul failed to compile"
+    FAILED=1
+  fi
+
+  # simpleCUBLAS — tests cuBLAS library linkage and GPU GEMM
+  echo "Building simpleCUBLAS..."
+  BUILD_DIR="$SAMPLES_DIR/build/simpleCUBLAS"
+  if cmake -B "$BUILD_DIR" -S "$SAMPLES_DIR/Samples/4_CUDA_Libraries/simpleCUBLAS" >/dev/null 2>&1 \
+    && cmake --build "$BUILD_DIR" -j"$(nproc)" >/dev/null 2>&1; then
+    OUTPUT=$("$BUILD_DIR/simpleCUBLAS" 2>&1)
+    if echo "$OUTPUT" | grep -q "test passed"; then
+      echo "PASS: simpleCUBLAS"
+    else
+      echo "FAIL: simpleCUBLAS did not report test passed"
+      echo "$OUTPUT" | tail -5
+      FAILED=1
+    fi
+  else
+    echo "FAIL: simpleCUBLAS failed to compile"
+    FAILED=1
+  fi
 else
   echo "FAIL: could not clone cuda-samples ${SAMPLES_TAG}"
   FAILED=1

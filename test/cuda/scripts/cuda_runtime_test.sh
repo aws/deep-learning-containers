@@ -49,4 +49,33 @@ else
   echo "PASS: nvcc not present (expected for runtime image)"
 fi
 
+# --- GPU compute: nvidia-smi query compute capability ---
+if nvidia-smi &>/dev/null; then
+  COMPUTE=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1)
+  if [ -n "$COMPUTE" ]; then
+    echo "PASS: GPU compute capability $COMPUTE"
+  else
+    echo "FAIL: could not query GPU compute capability"
+    FAILED=1
+  fi
+fi
+
+# --- GPU compute: cudaMalloc/cudaFree via CUDA runtime API ---
+if nvidia-smi &>/dev/null; then
+  if python3 -c "
+import ctypes
+cudart = ctypes.CDLL('libcudart.so.12')
+ptr = ctypes.c_void_p()
+rc = cudart.cudaMalloc(ctypes.byref(ptr), ctypes.c_size_t(1024))
+assert rc == 0, f'cudaMalloc failed with rc={rc}'
+rc = cudart.cudaFree(ptr)
+assert rc == 0, f'cudaFree failed with rc={rc}'
+" 2>/dev/null; then
+    echo "PASS: cudaMalloc/cudaFree succeeded"
+  else
+    echo "FAIL: cudaMalloc/cudaFree failed"
+    FAILED=1
+  fi
+fi
+
 exit $FAILED
