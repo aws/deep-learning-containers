@@ -8,8 +8,8 @@ on:
       - "docker/base/**"
       - "scripts/common/**"
       - "test/security/data/ecr_scan_allowlist/base/**"
-      - ".github/config/base-cu128.yml"
-      - ".github/workflows/pr-base-cu128.yml"
+      - ".github/config/base-v1.yml"
+      - ".github/workflows/pr-base-v1.yml"
       - "!docs/**"
 
 permissions:
@@ -18,8 +18,8 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/base-cu128.yml"
-  DOCKERFILE_PATH: "docker/base/cu128/amzn2023/Dockerfile"
+  CONFIG_FILE: ".github/config/base-v1.yml"
+  DOCKERFILE_PATH: "docker/base/v1/Dockerfile"
 
 jobs:
   gatekeeper:
@@ -111,7 +111,7 @@ jobs:
             build-change:
               - "docker/base/**"
               - "scripts/common/**"
-              - ".github/config/base-cu128.yml"
+              - ".github/config/base-v1.yml"
               - "test/security/data/ecr_scan_allowlist/base/**"
             sanity-test-change:
               - "test/sanity/**"

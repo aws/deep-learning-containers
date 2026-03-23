@@ -49,7 +49,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./docker/base/cu128/amzn2023/requirements.lock /tmp/requirements.lock
+COPY ./docker/base/v1/requirements.lock /tmp/requirements.lock
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock \
   && rm /tmp/requirements.lock
 
@@ -100,7 +100,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./docker/base/cu128/amzn2023/requirements.lock /tmp/requirements.lock
+COPY ./docker/base/v1/requirements.lock /tmp/requirements.lock
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock \
   && rm /tmp/requirements.lock
 
