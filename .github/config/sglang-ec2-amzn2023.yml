@@ -11,13 +11,13 @@ common:
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "sglang:0.5-gpu-py312-ec2"
+  prod_image: "sglang:0.5-gpu-py312-amzn2023-ec2"
   device_type: "gpu"
   contributor: "None"
 release:
-  release: true
+  release: false
   force_release: false
-  public_registry: true
-  private_registry: true
-  enable_soci: true
+  public_registry: false
+  private_registry: false
+  enable_soci: false
   environment: production
