@@ -68,9 +68,6 @@ WORKDIR /sgl-workspace
 # Clone sglang
 RUN git clone --depth=1 --branch v${SGL_VERSION} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang
 
-# Install scikit-build-core (needed for sglang source build)
-RUN uv pip install --system --no-cache scikit-build-core
-
 # Install sgl-kernel from pip (pre-built CUDA kernels)
 RUN uv pip install --system --no-cache sgl-kernel==${SGL_KERNEL_VERSION}
 
