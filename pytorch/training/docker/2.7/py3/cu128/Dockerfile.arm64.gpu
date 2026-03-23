@@ -206,7 +206,9 @@ RUN pip install --no-cache-dir \
     packaging \
     ninja \
     pybind11 \
-    "filelock>=3.20.1"
+    "filelock>=3.20.1" \
+    "grpcio>=1.78.1" \
+    typer-slim
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
