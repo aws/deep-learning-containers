@@ -1,25 +1,20 @@
-name: PR - vLLM EC2
+name: PR - vLLM SageMaker AMZN2023
 
 on:
-  # Direct execution on pull requests
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - "**vllm**"
       - "!docs/**"
-      - "!**amzn2023**"
 
 permissions:
   contents: read
   pull-requests: read
 
 env:
-  # CI environment configuration
   FORCE_COLOR: "1"
-
-  # Config file path
-  CONFIG_FILE: ".github/config/vllm-ec2.yml"
+  CONFIG_FILE: ".github/config/vllm-sagemaker-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -89,6 +84,7 @@ jobs:
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - name: Checkout DLC source
@@ -110,25 +106,26 @@ jobs:
         with:
           filters: |
             build-change:
-              - "docker/vllm/Dockerfile"
-              - "scripts/vllm/*"
-              - "scripts/common/install_efa.sh"
-              - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/common/start_cuda_compat.sh"
+              - "docker/vllm/Dockerfile.amzn2023"
+              - "scripts/vllm/**"
+              - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/config/vllm-ec2.yml"
+              - ".github/config/vllm-sagemaker-amzn2023.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            sagemaker-test-change:
+              - "test/vllm/sagemaker/**"
 
   build-image:
     needs: [check-changes, load-config]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
+        fleet:x86-vllm-build-runner
         buildspec-override:true
+    timeout-minutes: 720
     concurrency:
       group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -143,14 +140,14 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config.outputs.framework }}
-          target: vllm-ec2
-          base-image: vllm/vllm-openai:v${{ needs.load-config.outputs.framework-version }}
+          target: vllm-sagemaker-amzn2023
+          base-image: nvidia/cuda:12.9.1-devel-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
@@ -227,5 +224,17 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
       setup-script: scripts/vllm/vllm_test_setup.sh
-      example-test-script: scripts/vllm/vllm_ec2_examples_test.sh
+      example-test-script: scripts/vllm/vllm_sagemaker_examples_test.sh
     secrets: inherit
+
+  endpoint-test:
+    needs: [check-changes, build-image, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true')
+    concurrency:
+      group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/reusable-vllm-sagemaker-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
