@@ -1,0 +1,27 @@
+[project]
+name = "pytorch-dlc"
+version = "2.10.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "torch==2.10.0",
+    "torchvision==0.25.0",
+    "torchaudio==2.10.0",
+    "deepspeed==0.16.7",
+    "boto3",
+    "botocore",
+    "pyyaml",
+    "requests",
+    "packaging",
+]
+
+[tool.uv]
+
+[[tool.uv.index]]
+name = "pytorch-cu129"
+url = "https://download.pytorch.org/whl/cu129"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu129" }]
+torchvision = [{ index = "pytorch-cu129" }]
+torchaudio = [{ index = "pytorch-cu129" }]
