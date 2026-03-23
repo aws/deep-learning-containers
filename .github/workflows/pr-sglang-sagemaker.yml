@@ -8,6 +8,7 @@ on:
     paths:
       - "**sglang**"
       - "!docs/**"
+      - "!**amzn2023**"
 
 permissions:
   contents: read

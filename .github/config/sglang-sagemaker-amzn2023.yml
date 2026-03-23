@@ -1,12 +1,7 @@
-# SGLang AML2023 SageMaker Image Configuration
-# This file contains all configuration for building, testing, and releasing the SGLang AML2023 SageMaker image
-
-# Image identification
+# SGLang SageMaker AL2023 Image Configuration
 image:
-  name: "sglang-amzn2023-sagemaker"
-  description: "SGLang for SageMaker (Amazon Linux 2023)"
-
-# Build configuration
+  name: "sglang-sagemaker-amzn2023"
+  description: "SGLang for SageMaker on Amazon Linux 2023"
 common:
   framework: "sglang"
   framework_version: "0.5.9"
@@ -19,12 +14,10 @@ common:
   prod_image: "sglang:0.5-gpu-py312-amzn2023"
   device_type: "gpu"
   contributor: "None"
-
-# Release configuration
 release:
   release: true
   force_release: false
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: production  # gamma or production
+  environment: production
