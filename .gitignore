@@ -6,8 +6,12 @@ __pycache__
 .ruff_cache
 .pytest_cache
 .vscode
-.kiro
-.gem-config
+.kiro/*
+!.kiro/steering/
+.kiro/steering/*
+!.kiro/steering/test.md
+!.kiro/steering/docs.md
+.gem-config/*
 
 # Generated docs
 docs/index.md
