@@ -6,6 +6,9 @@
     {
         "vulnerability_id": "CVE-2026-33186",
         "reason": "sglang0.5.9 google.golang.org/grpc is a go package installed during build time but is not used in runtime."
+    },
+    {
+        "vulnerability_id": "CVE-2026-33055",
+        "reason": "sglang0.5.9 tar 0.4.44 is a RUST package bundled with uv binary, cannot be patched independently"
     }
-
 ]
