@@ -9,9 +9,17 @@ ARG CUDA_VERSION
 ARG SGL_VERSION=0.5.9
 ARG SGL_KERNEL_VERSION=0.3.21
 ARG FLASHINFER_VERSION=0.6.3
+ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
 ARG MOONCAKE_VERSION=0.3.9
 ARG GDRCOPY_VERSION=2.5.1
-ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
+ARG RUST_VERSION=1.90.0
+
+# CUDA / GPU
+ARG NCCL_VERSION=2.28.3
+ARG CUDNN_VERSION=9.16.0.29
+ARG TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3'
+
+# Build
 ARG BUILD_PARALLEL=8
 
 ENV CUDA_HOME=/usr/local/cuda \
@@ -76,7 +84,7 @@ RUN uv pip install --system --no-cache sgl-kernel==${SGL_KERNEL_VERSION}
 # We reinstall torch from the cu129 index after to match our CUDA 12.9 toolkit.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
-    && uv pip install --system --no-cache "torch==$(pip show torch | grep '^Version:' | cut -d' ' -f2)" --index-url https://download.pytorch.org/whl/cu129 --reinstall \
+    && uv pip install --system --no-cache "torch==$(pip show torch | grep '^Version:' | cut -d' ' -f2)" --index-url https://download.pytorch.org/whl/cu$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') --reinstall \
     && NVIDIA_LIBS=$(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
@@ -95,9 +103,9 @@ RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
   && sed -i 's/#define NUM_TIMEOUT_CYCLES 200000000000ull/#define NUM_TIMEOUT_CYCLES 2000000000000ull/' csrc/kernels/configs.cuh
 
 RUN cd /sgl-workspace/DeepEP \
-    && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-    && TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3' MAX_JOBS=${BUILD_PARALLEL} \
-       uv pip install --system --no-cache --no-build-isolation .
+  && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
+  && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
+    uv pip install --system --no-cache --no-build-isolation .
 
 # Mooncake: force-install because the 0.3.9 wheel declares manylinux_2_35 (glibc 2.35)
 # but AL2023 ships glibc 2.34. The wheel's actual native code only needs 2.34 symbols,
@@ -110,7 +118,7 @@ RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platf
 
 # sgl-model-gateway (Rust — patch source for crate API changes)
 RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-    && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.90.0 \
+    && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION} \
     && export PATH="/root/.cargo/bin:${PATH}" \
     && uv pip install --system --no-cache maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
@@ -125,8 +133,8 @@ RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
     && rm -rf /root/.cargo /root/.rustup target dist
 
 # Patch NCCL/cuDNN versions to match upstream
-RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==2.28.3 \
-  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==9.16.0.29
+RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
+  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION}
 
 # =============================================================================
 # Runtime stage: minimal production image
@@ -136,6 +144,8 @@ FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 ARG CUDA_VERSION
 ARG PYTHON=python3
 ARG EFA_VERSION=1.47.0
+ARG NCCL_VERSION=2.28.3
+ARG CUDNN_VERSION=9.16.0.29
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -236,8 +246,8 @@ RUN uv pip install --system --no-cache \
 
 # Re-pin NCCL/cuDNN/cuSparseLt after CVE patches (transitive deps may downgrade or remove them)
 # cuSparseLt installed without --no-deps in case it wasn't present from builder
-RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==2.28.3 \
-  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==9.16.0.29 \
+RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
+  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python3.12 -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
