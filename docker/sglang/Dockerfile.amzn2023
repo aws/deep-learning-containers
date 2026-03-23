@@ -264,7 +264,7 @@ RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 FROM runtime AS sglang-sagemaker
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --setopt=install_weak_deps=False && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
@@ -278,7 +278,7 @@ ENTRYPOINT ["/usr/bin/serve"]
 FROM runtime AS sglang-ec2
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --setopt=install_weak_deps=False && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
