@@ -150,7 +150,7 @@ ENV LANG=C.UTF-8 \
   PYTHONIOENCODING=UTF-8 \
   CUDA_HOME=/usr/local/cuda \
   DLC_CONTAINER_TYPE=general \
-  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  LD_LIBRARY_PATH="/usr/local/nvidia/pip-lib:/usr/local/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
@@ -205,7 +205,11 @@ COPY --from=builder /usr/local/lib64/python3.12/site-packages /usr/local/lib64/p
 # Register nvidia pip package lib dirs with the dynamic linker so that
 # libraries like libcusparseLt.so, libcupti.so, libnvshmem.so, etc. are
 # found at runtime. These come from pip nvidia-* packages (PyTorch deps).
-RUN python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
+# Create a single /usr/local/nvidia/pip-lib dir with symlinks so we can
+# add one static path to ENV LD_LIBRARY_PATH (needed for docker exec).
+RUN mkdir -p /usr/local/nvidia/pip-lib \
+    && python3.12 -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
+    && echo "/usr/local/nvidia/pip-lib" > /etc/ld.so.conf.d/nvidia-pip.conf \
     && ldconfig
 
 # Copy sglang workspace
@@ -234,7 +238,8 @@ RUN uv pip install --system --no-cache \
 RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==2.28.3 \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==9.16.0.29 \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
-  && python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
+  && rm -f /usr/local/nvidia/pip-lib/* \
+  && python3.12 -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig \
   && find / -name 'libcusparseLt.so*' 2>/dev/null || echo "WARNING: libcusparseLt.so not found anywhere"
 
@@ -269,6 +274,9 @@ FROM runtime AS sglang-sagemaker
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
+# dnf upgrade can reset python3 alternatives back to system 3.9
+RUN alternatives --set python3 /usr/bin/python3.12 \
+  && ln -sf /usr/bin/python3.12 /usr/bin/python
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
@@ -283,6 +291,9 @@ FROM runtime AS sglang-ec2
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
+# dnf upgrade can reset python3 alternatives back to system 3.9
+RUN alternatives --set python3 /usr/bin/python3.12 \
+  && ln -sf /usr/bin/python3.12 /usr/bin/python
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
