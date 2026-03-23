@@ -212,8 +212,12 @@ RUN mkdir -p /usr/local/nvidia/pip-lib \
     && echo "/usr/local/nvidia/pip-lib" > /etc/ld.so.conf.d/nvidia-pip.conf \
     && ldconfig
 
-# Copy sglang workspace
+# Copy sglang workspace (needed for editable pip install of sglang python package)
 COPY --from=builder /sgl-workspace /sgl-workspace
+# Remove build-time source/artifacts that trigger ECR CVEs (grpc go.mod, Cargo.lock, openssl build dir)
+RUN rm -rf /sgl-workspace/sglang/sgl-model-gateway \
+  /sgl-workspace/DeepEP \
+  /sgl-workspace/sglang/.git
 
 # Copy sglang-router binary
 COPY --from=builder /usr/local/bin/sglang-router /usr/local/bin/sglang-router
