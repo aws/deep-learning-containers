@@ -106,6 +106,11 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   # remove nvdisasm (cuobjdump is kept — required by deep_gemm JIT at runtime)
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
+# TODO: remove this code when issue is fixed:
+# issue introduced by https://github.com/vllm-project/vllm/pull/30784
+# until https://github.com/vllm-project/vllm/pull/32377 is merged
+RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf
+
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
 
