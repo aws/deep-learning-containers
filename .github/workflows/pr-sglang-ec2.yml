@@ -110,6 +110,7 @@ jobs:
         with:
           filters: |
             build-change:
+              - "docker/sglang/**"
               - "scripts/sglang/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
@@ -118,7 +119,6 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
-        # - "docker/sglang/**"
 
   build-image:
     needs: [check-changes, load-config]

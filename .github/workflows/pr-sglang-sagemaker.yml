@@ -111,6 +111,7 @@ jobs:
         with:
           filters: |
             build-change:
+              - "docker/sglang/**"
               - "scripts/sglang/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
@@ -121,7 +122,6 @@ jobs:
               - "test/telemetry/**"
             sagemaker-test-change:
               - "test/sglang/sagemaker/**"
-          # - "docker/sglang/**"
 
   build-image:
     needs: [check-changes, load-config]

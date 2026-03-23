@@ -7,6 +7,7 @@ __pycache__
 .pytest_cache
 .vscode
 .kiro
+.gem-config
 
 # Generated docs
 docs/index.md
@@ -14,4 +15,3 @@ docs/tutorials
 docs/releasenotes/*/
 docs/reference/available_images.md
 docs/reference/support_policy.md
-.gem-config/
