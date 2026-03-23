@@ -1,4 +1,4 @@
-name: PR - Base cu128
+name: PR - Base v1
 
 on:
   pull_request:
