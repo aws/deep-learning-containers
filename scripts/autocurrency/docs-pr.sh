@@ -128,6 +128,15 @@ if git ls-remote --exit-code --heads origin "${branch_name}" &>/dev/null; then
 fi
 
 # -----------------------------------------------------------------
+# Early exit: check if docs data file already exists
+# -----------------------------------------------------------------
+OUTPUT_FILE="${REPO_ROOT}/docs/src/data/${FRAMEWORK}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
+if [ -f "$OUTPUT_FILE" ]; then
+  echo "${FRAMEWORK}: Docs file '${OUTPUT_FILE}' already exists. Skipping."
+  exit 0
+fi
+
+# -----------------------------------------------------------------
 # Step 1: Pull image and extract package versions
 # -----------------------------------------------------------------
 echo ""
@@ -226,8 +235,7 @@ tag4=$(echo "$tags" | sed -n '4p')
 
 announcement=$(generate_announcement "$FRAMEWORK" "$VERSION" "$PLATFORM")
 
-output_dir="${REPO_ROOT}/docs/src/data/${FRAMEWORK}"
-OUTPUT_FILE="${output_dir}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
+output_dir="$(dirname "$OUTPUT_FILE")"
 mkdir -p "$output_dir"
 
 # Build packages section dynamically from tracker config
