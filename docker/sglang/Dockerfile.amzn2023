@@ -49,7 +49,7 @@ ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
-RUN uv pip install --system --no-cache-dir pip setuptools wheel pybind11 cmake
+RUN uv pip install --system --no-cache pip setuptools wheel pybind11 cmake
 
 # GDRCopy
 RUN mkdir -p /tmp/gdrcopy && cd /tmp \
@@ -69,17 +69,17 @@ WORKDIR /sgl-workspace
 RUN git clone --depth=1 --branch v${SGL_VERSION} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang
 
 # Install torch first (needed for sglang build)
-RUN uv pip install --system --no-cache-dir torch --extra-index-url https://download.pytorch.org/whl/cu129 \
-  && uv pip install --system --no-cache-dir scikit-build-core
+RUN uv pip install --system --no-cache torch --extra-index-url https://download.pytorch.org/whl/cu129 \
+  && uv pip install --system --no-cache scikit-build-core
 
 # Install sgl-kernel from pip (pre-built CUDA kernels)
-RUN uv pip install --system --no-cache-dir sgl-kernel==${SGL_KERNEL_VERSION}
+RUN uv pip install --system --no-cache sgl-kernel==${SGL_KERNEL_VERSION}
 
 # Install sglang from source + flashinfer
 # Pip nvidia-* packages (installed by torch) provide CUDA libs needed for imports.
 # We discover their lib paths dynamically for build steps that import torch.
 RUN cd sglang \
-    && uv pip install --system --no-cache-dir -e "python[all]" --extra-index-url https://download.pytorch.org/whl/cu129 \
+    && uv pip install --system --no-cache -e "python[all]" --extra-index-url https://download.pytorch.org/whl/cu129 \
     && NVIDIA_LIBS=$(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
@@ -100,10 +100,10 @@ RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
 RUN cd /sgl-workspace/DeepEP \
     && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
     && TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3' MAX_JOBS=${BUILD_PARALLEL} \
-       uv pip install --system --no-cache-dir --no-build-isolation .
+       uv pip install --system --no-cache --no-build-isolation .
 
 # Mooncake (0.3.9 wheel requires manylinux_2_35 but amzn2023 has glibc 2.34, force install)
-RUN uv pip install --system --no-cache-dir mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_35_x86_64 --only-binary :all: --target /tmp/mooncake \
+RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_35_x86_64 --only-binary :all: --target /tmp/mooncake \
     && cp -r /tmp/mooncake/* $(python3 -c "import site; print(site.getsitepackages()[0])") \
     && rm -rf /tmp/mooncake
 
@@ -111,21 +111,21 @@ RUN uv pip install --system --no-cache-dir mooncake-transfer-engine==${MOONCAKE_
 RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
     && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.90.0 \
     && export PATH="/root/.cargo/bin:${PATH}" \
-    && uv pip install --system --no-cache-dir maturin \
+    && uv pip install --system --no-cache maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
     && sed -i '/\.map_err(|e| format!("Failed to initialize WASM module manager/d' src/app_context.rs \
     && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close(); print('Patch 2 applied')" \
     && cd bindings/python \
     && ulimit -n 65536 && maturin build --release --features vendored-openssl --out dist \
-    && uv pip install --system --no-cache-dir --reinstall dist/*.whl \
+    && uv pip install --system --no-cache --reinstall dist/*.whl \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
     && cargo build --release --bin sgl-model-gateway --features vendored-openssl \
     && cp target/release/sgl-model-gateway /usr/local/bin/sglang-router \
     && rm -rf /root/.cargo /root/.rustup target dist
 
 # Patch NCCL/cuDNN versions to match upstream
-RUN uv pip install --system --no-cache-dir --reinstall nvidia-nccl-cu12==2.28.3 \
-  && uv pip install --system --no-cache-dir --reinstall nvidia-cudnn-cu12==9.16.0.29
+RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==2.28.3 \
+  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==9.16.0.29
 
 # =============================================================================
 # Runtime stage: minimal production image
@@ -217,19 +217,19 @@ COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
 RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 
 # DLC dependencies
-RUN uv pip install --system --no-cache-dir botocore
+RUN uv pip install --system --no-cache botocore
 
 # CVE patches
-RUN uv pip install --system --no-cache-dir \
+RUN uv pip install --system --no-cache \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32"
 
 # Re-pin NCCL/cuDNN/cuSparseLt after CVE patches (transitive deps may downgrade or remove them)
 # cuSparseLt installed without --no-deps in case it wasn't present from builder
-RUN uv pip install --system --no-cache-dir --reinstall nvidia-nccl-cu12==2.28.3 \
-  && uv pip install --system --no-cache-dir --reinstall nvidia-cudnn-cu12==9.16.0.29 \
-  && uv pip install --system --no-cache-dir --reinstall nvidia-cusparselt-cu12 \
+RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==2.28.3 \
+  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==9.16.0.29 \
+  && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
   && python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
   && ldconfig \
   && find / -name 'libcusparseLt.so*' 2>/dev/null || echo "WARNING: libcusparseLt.so not found anywhere"
