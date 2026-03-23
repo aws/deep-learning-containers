@@ -80,6 +80,7 @@ RUN uv pip install --system --no-cache sgl-kernel==${SGL_KERNEL_VERSION}
 # We discover their lib paths dynamically for build steps that import torch.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" --extra-index-url https://download.pytorch.org/whl/cu129 \
+    && uv pip install --system --no-cache torch --extra-index-url https://download.pytorch.org/whl/cu129 --reinstall \
     && NVIDIA_LIBS=$(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
