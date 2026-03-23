@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.17.1
+ARG BASE_IMAGE=vllm/vllm-openai:v0.18.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -42,6 +42,35 @@ RUN uv pip install --system \
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+
+# install kv_connectors for Hyperpod
+ARG INSTALL_KV_CONNECTORS="true"
+ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
+ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
+RUN CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
+  CUDA_VERSION_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
+  CUDA_HOME=/usr/local/cuda; \
+  BUILD_PKGS="libcusparse-dev-${CUDA_VERSION_DASH} \
+              libcublas-dev-${CUDA_VERSION_DASH} \
+              libcusolver-dev-${CUDA_VERSION_DASH}"; \
+  if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
+      if [ "$CUDA_MAJOR" -ge 13 ]; then \
+          uv pip install --system nixl-cu13; \
+      fi; \
+      uv pip install --system --no-build \
+        "lmcache==0.3.9post2" \
+        "nixl>=0.7.1,<0.10.0" \
+        "mooncake-transfer-engine>=0.3.8" || ( \
+          apt-get update -y && \
+          apt-get install -y --no-install-recommends ${BUILD_PKGS} && \
+          uv pip install --system --no-build-isolation \
+            "lmcache==0.3.9post2" \
+            "nixl>=0.7.1,<0.10.0" \
+            "mooncake-transfer-engine>=0.3.8" && \
+          apt-get purge -y ${BUILD_PKGS} && \
+          rm -rf /var/lib/apt/lists/* \
+      ); \
+  fi
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
