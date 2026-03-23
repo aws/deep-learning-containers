@@ -102,7 +102,11 @@ RUN cd /sgl-workspace/DeepEP \
     && TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3' MAX_JOBS=${BUILD_PARALLEL} \
        uv pip install --system --no-cache --no-build-isolation .
 
-# Mooncake (0.3.9 wheel requires manylinux_2_35 but amzn2023 has glibc 2.34, force install)
+# Mooncake: force-install because the 0.3.9 wheel declares manylinux_2_35 (glibc 2.35)
+# but AL2023 ships glibc 2.34. The wheel's actual native code only needs 2.34 symbols,
+# so the force-install works today. If a future mooncake version starts using glibc 2.35+
+# symbols, this will segfault at runtime — re-test after any MOONCAKE_VERSION bump.
+# Uses pip (not uv) because uv lacks --platform/--target flags.
 RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_35_x86_64 --only-binary :all: --target /tmp/mooncake \
     && cp -r /tmp/mooncake/* $(python3 -c "import site; print(site.getsitepackages()[0])") \
     && rm -rf /tmp/mooncake
