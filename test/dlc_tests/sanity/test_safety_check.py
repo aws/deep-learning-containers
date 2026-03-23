@@ -726,6 +726,10 @@ IGNORE_SAFETY_IDS = {
                 "51358",
                 # for scipy version 1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference
                 "62894",
+                # PyTorch MKLDNN pooling DoS (CVE-2025-2953) - cannot upgrade torch in 2.6 image
+                "78828",
+                # *Disputed* PyTorch ctc_loss DoS (CVE-2025-3730) - cannot upgrade torch in 2.6 image
+                "76769",
             ]
         },
         "inference-eia": {"py3": []},

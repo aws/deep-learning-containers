@@ -1,0 +1,4 @@
+{
+  "78828": "CVE-2025-2953 - PyTorch MKLDNN pooling DoS. Affected spec <2.7.1-rc1. Cannot upgrade torch in a 2.6 image.",
+  "76769": "CVE-2025-3730 - *Disputed* PyTorch ctc_loss DoS. Affected spec <2.8.0. Cannot upgrade torch in a 2.6 image."
+}
