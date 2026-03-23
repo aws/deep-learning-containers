@@ -269,6 +269,9 @@ FROM runtime AS sglang-sagemaker
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
+# dnf upgrade can reset python3 alternatives back to system 3.9
+RUN alternatives --set python3 /usr/bin/python3.12 \
+  && ln -sf /usr/bin/python3.12 /usr/bin/python
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
@@ -283,6 +286,9 @@ FROM runtime AS sglang-ec2
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
+# dnf upgrade can reset python3 alternatives back to system 3.9
+RUN alternatives --set python3 /usr/bin/python3.12 \
+  && ln -sf /usr/bin/python3.12 /usr/bin/python
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
