@@ -1,25 +1,20 @@
-name: PR - vLLM EC2
+name: PR - vLLM EC2 AMZN2023
 
 on:
-  # Direct execution on pull requests
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - "**vllm**"
       - "!docs/**"
-      - "!**amzn2023**"
 
 permissions:
   contents: read
   pull-requests: read
 
 env:
-  # CI environment configuration
   FORCE_COLOR: "1"
-
-  # Config file path
-  CONFIG_FILE: ".github/config/vllm-ec2.yml"
+  CONFIG_FILE: ".github/config/vllm-ec2-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -110,13 +105,11 @@ jobs:
         with:
           filters: |
             build-change:
-              - "docker/vllm/Dockerfile"
-              - "scripts/vllm/*"
-              - "scripts/common/install_efa.sh"
-              - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/common/start_cuda_compat.sh"
+              - "docker/vllm/Dockerfile.amzn2023"
+              - "scripts/vllm/**"
+              - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/config/vllm-ec2.yml"
+              - ".github/config/vllm-ec2-amzn2023.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -127,8 +120,9 @@ jobs:
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
+        fleet:x86-vllm-build-runner
         buildspec-override:true
+    timeout-minutes: 720
     concurrency:
       group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -143,14 +137,14 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config.outputs.framework }}
-          target: vllm-ec2
-          base-image: vllm/vllm-openai:v${{ needs.load-config.outputs.framework-version }}
+          target: vllm-ec2-amzn2023
+          base-image: nvidia/cuda:12.9.1-devel-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile
+          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
@@ -158,6 +152,7 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
+
 
   sanity-test:
     needs: [check-changes, build-image, load-config]
@@ -228,4 +223,17 @@ jobs:
       framework-version: ${{ needs.load-config.outputs.framework-version }}
       setup-script: scripts/vllm/vllm_test_setup.sh
       example-test-script: scripts/vllm/vllm_ec2_examples_test.sh
+    secrets: inherit
+
+  model-smoke-tests:
+    needs: [build-image, load-config]
+    if: success()
+    concurrency:
+      group: ${{ github.workflow }}-model-smoke-tests-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-vllm-model-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit

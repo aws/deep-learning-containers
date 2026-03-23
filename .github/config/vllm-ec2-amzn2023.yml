@@ -1,0 +1,30 @@
+# vLLM EC2 AL2023 Image Configuration
+# This file contains all configuration for building, testing, and releasing the vLLM EC2 AL2023 image
+
+# Image identification
+image:
+  name: "vllm-ec2-amzn2023"
+  description: "vLLM for EC2 instances (AL2023, built from source)"
+
+# Build configuration
+common:
+  framework: "vllm"
+  framework_version: "0.17.1"
+  job_type: "general"
+  python_version: "py312"
+  cuda_version: "cu129"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  prod_image: "vllm:0.17-gpu-py312-ec2"
+  device_type: "gpu"
+  contributor: "None"
+
+# Release configuration
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: production
