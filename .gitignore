@@ -11,7 +11,8 @@ __pycache__
 .kiro/steering/*
 !.kiro/steering/test.md
 !.kiro/steering/docs.md
-.gem-config
+# temporarily commenting this out so that we can delete it
+#.gem-config/*
 
 # Generated docs
 docs/index.md
