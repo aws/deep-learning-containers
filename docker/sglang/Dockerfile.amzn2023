@@ -68,18 +68,15 @@ WORKDIR /sgl-workspace
 # Clone sglang
 RUN git clone --depth=1 --branch v${SGL_VERSION} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang
 
-# Install torch first (needed for sglang build)
-RUN uv pip install --system --no-cache torch --extra-index-url https://download.pytorch.org/whl/cu129 \
-  && uv pip install --system --no-cache scikit-build-core
-
 # Install sgl-kernel from pip (pre-built CUDA kernels)
 RUN uv pip install --system --no-cache sgl-kernel==${SGL_KERNEL_VERSION}
 
 # Install sglang from source + flashinfer
-# Pip nvidia-* packages (installed by torch) provide CUDA libs needed for imports.
-# We discover their lib paths dynamically for build steps that import torch.
+# sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
+# We reinstall torch from the cu129 index after to match our CUDA 12.9 toolkit.
 RUN cd sglang \
-    && uv pip install --system --no-cache -e "python[all]" --extra-index-url https://download.pytorch.org/whl/cu129 \
+    && uv pip install --system --no-cache -e "python[all]" \
+    && uv pip install --system --no-cache "torch==$(pip show torch | grep '^Version:' | cut -d' ' -f2)" --index-url https://download.pytorch.org/whl/cu129 --reinstall \
     && NVIDIA_LIBS=$(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
