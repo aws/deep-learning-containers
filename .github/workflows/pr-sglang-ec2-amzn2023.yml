@@ -138,7 +138,7 @@ jobs:
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: sglang-ec2
-          base-image: ""
+          base-image: nvidia/cuda:12.9.1-devel-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
