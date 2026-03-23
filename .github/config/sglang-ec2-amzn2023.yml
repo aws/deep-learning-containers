@@ -20,4 +20,4 @@ release:
   public_registry: false
   private_registry: false
   enable_soci: false
-  environment: production
+  environment: gamma
