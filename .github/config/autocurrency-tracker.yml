@@ -23,6 +23,20 @@ frameworks:
       - path: "docker/vllm/Dockerfile"
         base_image_template: "vllm/vllm-openai:v{version}"
     version_detection: true
+    # Package definitions for docs data YAML generation (docs-pr.sh).
+    # pip entries: "name" is the pip package, "key" is the output key (defaults to name).
+    # system entries: extracted via framework-agnostic commands (nvcc, torch, fi_info, dpkg).
+    docs_packages:
+      pip:
+        - name: vllm
+        - name: torch
+          key: pytorch
+        - name: torchvision
+        - name: torchaudio
+      system:
+        - cuda
+        - nccl
+        - efa
 
   sglang:
     github_repo: "sgl-project/sglang"
@@ -36,3 +50,22 @@ frameworks:
       - path: "docker/sglang/Dockerfile"
         base_image_template: "lmsysorg/sglang:v{version}"
     version_detection: true
+    docs_packages:
+      pip:
+        - name: sglang
+        - name: sgl_kernel
+          key: sgl-kernel
+        - name: torch
+          key: pytorch
+        - name: torchvision
+        - name: torchaudio
+        - name: torchao
+        - name: transformers
+        - name: flashinfer-python
+          key: flashinfer
+      system:
+        - cuda
+        - cudnn
+        - nccl
+        - efa
+        - gdrcopy

@@ -307,6 +307,7 @@ for framework in ${FRAMEWORKS}; do
     if [[ "${slack_enabled}" == "true" ]]; then
       send_slack_notification \
         "${SLACK_WEBHOOK_URL:-}" \
+        "auto_currency" \
         "${framework}" \
         "${latest_version}" \
         "${pr_url}" || true

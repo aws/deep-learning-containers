@@ -633,6 +633,189 @@ test_e2e_full_update_pipeline() {
 }
 
 ###############################################################################
+# docs-pr.sh tests
+###############################################################################
+
+setup_docs_pr_sandbox() {
+  # Source docs-pr.sh helpers (guarded by BASH_SOURCE check, so main won't run)
+  source "${SANDBOX}/scripts/autocurrency/docs-pr.sh"
+}
+
+# --- get_display_name ---
+
+test_docs_pr_display_name_vllm() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "vLLM" "$(get_display_name "vllm")"
+}
+
+test_docs_pr_display_name_sglang() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "SGLang" "$(get_display_name "sglang")"
+}
+
+test_docs_pr_display_name_unknown() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "myframework" "$(get_display_name "myframework")"
+}
+
+# --- parse_major_minor ---
+
+test_docs_pr_parse_major_minor_three_part() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "0.17" "$(parse_major_minor "0.17.1")"
+}
+
+test_docs_pr_parse_major_minor_two_part() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "0.5" "$(parse_major_minor "0.5")"
+}
+
+test_docs_pr_parse_major_minor_four_part() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "2.9" "$(parse_major_minor "2.9.1.post1")"
+}
+
+# --- generate_tags ---
+
+test_docs_pr_tags_ec2() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  local tags
+  tags=$(generate_tags "0.17.1" "gpu" "py312" "cu129" "ubuntu22.04" "ec2")
+  local tag1 tag2 tag3 tag4
+  tag1=$(echo "$tags" | sed -n '1p')
+  tag2=$(echo "$tags" | sed -n '2p')
+  tag3=$(echo "$tags" | sed -n '3p')
+  tag4=$(echo "$tags" | sed -n '4p')
+  assert_eq "0.17.1-gpu-py312-cu129-ubuntu22.04-ec2" "$tag1" "ec2 tag1"
+  assert_eq "0.17-gpu-py312-cu129-ubuntu22.04-ec2-v1" "$tag2" "ec2 tag2"
+  assert_eq "0.17.1-gpu-py312-ec2" "$tag3" "ec2 tag3"
+  assert_eq "0.17-gpu-py312-ec2" "$tag4" "ec2 tag4"
+}
+
+test_docs_pr_tags_sagemaker() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  local tags
+  tags=$(generate_tags "0.17.1" "gpu" "py312" "cu129" "ubuntu22.04" "sagemaker")
+  local tag1 tag2 tag3 tag4
+  tag1=$(echo "$tags" | sed -n '1p')
+  tag2=$(echo "$tags" | sed -n '2p')
+  tag3=$(echo "$tags" | sed -n '3p')
+  tag4=$(echo "$tags" | sed -n '4p')
+  assert_eq "0.17.1-gpu-py312-cu129-ubuntu22.04-sagemaker" "$tag1" "sm tag1"
+  assert_eq "0.17-gpu-py312-cu129-ubuntu22.04-sagemaker-v1" "$tag2" "sm tag2"
+  assert_eq "0.17.1-gpu-py312" "$tag3" "sm tag3"
+  assert_eq "0.17-gpu-py312" "$tag4" "sm tag4"
+}
+
+test_docs_pr_tags_sglang_sagemaker() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  local tags
+  tags=$(generate_tags "0.5.9" "gpu" "py312" "cu129" "ubuntu24.04" "sagemaker")
+  local tag1 tag2 tag3 tag4
+  tag1=$(echo "$tags" | sed -n '1p')
+  tag2=$(echo "$tags" | sed -n '2p')
+  tag3=$(echo "$tags" | sed -n '3p')
+  tag4=$(echo "$tags" | sed -n '4p')
+  assert_eq "0.5.9-gpu-py312-cu129-ubuntu24.04-sagemaker" "$tag1" "sglang sm tag1"
+  assert_eq "0.5-gpu-py312-cu129-ubuntu24.04-sagemaker-v1" "$tag2" "sglang sm tag2"
+  assert_eq "0.5.9-gpu-py312" "$tag3" "sglang sm tag3"
+  assert_eq "0.5-gpu-py312" "$tag4" "sglang sm tag4"
+}
+
+test_docs_pr_tags_count_always_four() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  for plat in ec2 sagemaker; do
+    local count
+    count=$(generate_tags "1.2.3" "gpu" "py312" "cu129" "ubuntu22.04" "$plat" | wc -l | tr -d ' ')
+    assert_eq "4" "$count" "tag count for $plat"
+  done
+}
+
+test_docs_pr_tags_unknown_platform_empty() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  local count
+  count=$(generate_tags "1.0.0" "gpu" "py312" "cu129" "ubuntu22.04" "unknown" | wc -l | tr -d ' ')
+  # wc -l on empty string still returns 0 on some systems, or 1 with trailing newline
+  # Use -c to check for empty output instead
+  local output
+  output=$(generate_tags "1.0.0" "gpu" "py312" "cu129" "ubuntu22.04" "unknown")
+  assert_eq "" "$output" "unknown platform should produce empty output"
+}
+
+# --- generate_announcement ---
+
+test_docs_pr_announcement_ec2() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "Introduced vLLM 0.17.1 containers for EC2, ECS, EKS" \
+    "$(generate_announcement "vllm" "0.17.1" "ec2")"
+}
+
+test_docs_pr_announcement_sagemaker() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "Introduced vLLM 0.17.1 containers for SageMaker" \
+    "$(generate_announcement "vllm" "0.17.1" "sagemaker")"
+}
+
+test_docs_pr_announcement_sglang() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "Introduced SGLang 0.5.9 containers for SageMaker" \
+    "$(generate_announcement "sglang" "0.5.9" "sagemaker")"
+}
+
+# --- generate_branch_name ---
+
+test_docs_pr_branch_name() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "docs/auto-update-vllm-0.17.1-ec2" \
+    "$(generate_branch_name "vllm" "0.17.1" "ec2")"
+}
+
+test_docs_pr_branch_name_sagemaker() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "docs/auto-update-sglang-0.5.9-sagemaker" \
+    "$(generate_branch_name "sglang" "0.5.9" "sagemaker")"
+}
+
+# --- generate_pr_title ---
+
+test_docs_pr_title_ec2() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "docs: Add vLLM 0.17.1 EC2 image data" \
+    "$(generate_pr_title "vllm" "0.17.1" "ec2")"
+}
+
+test_docs_pr_title_sagemaker() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "docs: Add vLLM 0.17.1 SAGEMAKER image data" \
+    "$(generate_pr_title "vllm" "0.17.1" "sagemaker")"
+}
+
+test_docs_pr_title_sglang() {
+  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
+  setup_docs_pr_sandbox
+  assert_eq "docs: Add SGLang 0.5.9 SAGEMAKER image data" \
+    "$(generate_pr_title "sglang" "0.5.9" "sagemaker")"
+}
+
+###############################################################################
 # Run all tests
 ###############################################################################
 
@@ -680,6 +863,28 @@ echo ""
 echo "--- end-to-end ---"
 run_test "e2e: mock older current version triggers update" test_e2e_mock_older_current_version
 run_test "e2e: full update pipeline (config + Dockerfile)" test_e2e_full_update_pipeline
+
+echo ""
+echo "--- docs-pr.sh ---"
+run_test "get_display_name: vllm → vLLM"                    test_docs_pr_display_name_vllm
+run_test "get_display_name: sglang → SGLang"                 test_docs_pr_display_name_sglang
+run_test "get_display_name: unknown falls back to raw"       test_docs_pr_display_name_unknown
+run_test "parse_major_minor: three-part version"             test_docs_pr_parse_major_minor_three_part
+run_test "parse_major_minor: two-part version"               test_docs_pr_parse_major_minor_two_part
+run_test "parse_major_minor: four-part version"              test_docs_pr_parse_major_minor_four_part
+run_test "generate_tags: ec2 known config"                   test_docs_pr_tags_ec2
+run_test "generate_tags: sagemaker known config"             test_docs_pr_tags_sagemaker
+run_test "generate_tags: sglang sagemaker known config"      test_docs_pr_tags_sglang_sagemaker
+run_test "generate_tags: always produces 4 tags"             test_docs_pr_tags_count_always_four
+run_test "generate_tags: unknown platform → empty"           test_docs_pr_tags_unknown_platform_empty
+run_test "generate_announcement: ec2"                        test_docs_pr_announcement_ec2
+run_test "generate_announcement: sagemaker"                  test_docs_pr_announcement_sagemaker
+run_test "generate_announcement: sglang sagemaker"           test_docs_pr_announcement_sglang
+run_test "generate_branch_name: vllm ec2"                    test_docs_pr_branch_name
+run_test "generate_branch_name: sglang sagemaker"            test_docs_pr_branch_name_sagemaker
+run_test "generate_pr_title: vllm ec2"                       test_docs_pr_title_ec2
+run_test "generate_pr_title: vllm sagemaker"                 test_docs_pr_title_sagemaker
+run_test "generate_pr_title: sglang sagemaker"               test_docs_pr_title_sglang
 
 echo ""
 echo "============================================================"
