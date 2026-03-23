@@ -630,5 +630,101 @@
     {
         "vulnerability_id": "CVE-2025-27614",
         "reason": "git 2.47.1 from NVIDIA CUDA base image, AL2023 repos have 2.50.1"
+    },
+    {
+        "vulnerability_id": "CVE-2025-13151",
+        "reason": "libtasn1 0.0.5 installed, fix 0.0.6 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-13601",
+        "reason": "glib2 766 installed, fix 767 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-14087",
+        "reason": "glib2 766 installed, fix 769 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-15467",
+        "reason": "openssl-libs 0.0.1 installed, fix 0.0.4 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-15468",
+        "reason": "openssl-libs 0.0.1 installed, fix 0.0.5 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-49794",
+        "reason": "libxml2 0.0.11 installed, fix 0.0.12 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-49795",
+        "reason": "libxml2 0.0.11 installed, fix 0.0.12 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-49796",
+        "reason": "libxml2 0.0.11 installed, fix 0.0.12 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-58188",
+        "reason": "libcap 0.0.2 installed, fix 0.0.4 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-59375",
+        "reason": "expat 0.0.2 installed, fix 0.0.3 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68973",
+        "reason": "gnupg2-minimal 0.0.4 installed, fix 0.0.6 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-69421",
+        "reason": "openssl-libs 0.0.1 installed, fix 0.0.5 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-7425",
+        "reason": "libxml2 0.0.11 installed, fix 0.0.13 not yet in AL2023 repos"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38022",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38115",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38324",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38488",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39673",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39883",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39894",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-40292",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-40322",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68231",
+        "reason": "kernel-headers 6.12.35 from NVIDIA CUDA base image, AL2023 fix targets 6.1.x series"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24882",
+        "reason": "gnupg2-minimal 0.0.4 installed, fix 0.0.7 not yet in AL2023 repos"
     }
 ]
