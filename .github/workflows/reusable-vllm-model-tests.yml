@@ -68,11 +68,11 @@ jobs:
 
       - name: Download model from S3
         run: |
-          MODEL_DIR="${{ github.workspace }}/dlc-models/${{ matrix.name }}"
+          MODEL_DIR="/tmp/dlc-models/${{ matrix.name }}"
           mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "${{ github.workspace }}/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "${{ github.workspace }}/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "${{ github.workspace }}/dlc-models/${{ matrix.name }}.tar.gz"
+          aws s3 cp "${{ matrix.s3_path }}" "/tmp/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/tmp/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/tmp/dlc-models/${{ matrix.name }}.tar.gz"
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
@@ -83,7 +83,7 @@ jobs:
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
-            -v ${{ github.workspace }}/dlc-models:/models \
+            -v /tmp/dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
@@ -104,7 +104,7 @@ jobs:
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf ${{ github.workspace }}/dlc-models
+          rm -rf /tmp/dlc-models
 
   test-model-runner-scale-sets:
     name: test-model (${{ matrix.name }})
@@ -127,11 +127,11 @@ jobs:
 
       - name: Download model from S3
         run: |
-          MODEL_DIR="${{ github.workspace }}/dlc-models/${{ matrix.name }}"
+          MODEL_DIR="/tmp/dlc-models/${{ matrix.name }}"
           mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "${{ github.workspace }}/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "${{ github.workspace }}/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "${{ github.workspace }}/dlc-models/${{ matrix.name }}.tar.gz"
+          aws s3 cp "${{ matrix.s3_path }}" "/tmp/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/tmp/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/tmp/dlc-models/${{ matrix.name }}.tar.gz"
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
@@ -151,9 +151,9 @@ jobs:
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
-          docker cp ${{ github.workspace }}/dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
+          docker cp /tmp/dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
           docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
-          rm -rf ${{ github.workspace }}/dlc-models
+          rm -rf /tmp/dlc-models
 
       - name: Run model smoke test
         run: |
@@ -168,4 +168,4 @@ jobs:
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf ${{ github.workspace }}/dlc-models
+          rm -rf /tmp/dlc-models
