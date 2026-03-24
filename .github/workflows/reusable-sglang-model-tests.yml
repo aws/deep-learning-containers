@@ -1,4 +1,4 @@
-name: Reusable SGLang Model Smoke Tests
+name: Reusable SGLang Model Tests
 
 permissions:
   contents: read
@@ -91,10 +91,16 @@ jobs:
       - name: Copy scripts into container
         run: |
           docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
 
-      - name: Run model smoke test
+      - name: Run model test
         run: |
-          docker exec ${CONTAINER_ID} bash /models/sglang_model_smoke_test.sh \
+          if [ "${{ matrix.test_type }}" = "benchmark" ]; then
+            SCRIPT="sglang_benchmark_test.sh"
+          else
+            SCRIPT="sglang_model_smoke_test.sh"
+          fi
+          docker exec ${CONTAINER_ID} bash /models/${SCRIPT} \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
@@ -147,18 +153,23 @@ jobs:
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      # on runner scales sets, container run inside container cannot mount
-      # we need to copy models to the container
+      # on runner scale sets, containers cannot mount host volumes
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
           docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
           rm -rf /dlc-models
 
-      - name: Run model smoke test
+      - name: Run model test
         run: |
-          docker exec ${CONTAINER_ID} bash /models/sglang_model_smoke_test.sh \
+          if [ "${{ matrix.test_type }}" = "benchmark" ]; then
+            SCRIPT="sglang_benchmark_test.sh"
+          else
+            SCRIPT="sglang_model_smoke_test.sh"
+          fi
+          docker exec ${CONTAINER_ID} bash /models/${SCRIPT} \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
