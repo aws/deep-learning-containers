@@ -128,15 +128,3 @@ COPY ./scripts/llamacpp/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
-
-# ====================== sagemaker =========================================
-FROM base AS llamacpp-sagemaker
-
-ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --setopt=install_weak_deps=False \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
-
-COPY ./scripts/llamacpp/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
-RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
