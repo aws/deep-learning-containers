@@ -1,0 +1,37 @@
+# Version control
+.git/
+
+# IDE / editor
+.idea/
+.vscode/
+.DS_Store
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.ruff_cache/
+.pytest_cache/
+
+# AI / agent tooling
+.ai/
+.clinerules/
+.kiro/
+.gem-config/
+
+# Documentation (not COPY'd in any Dockerfile)
+docs/
+*.md
+!**/VERSIONS.md
+mkdocs.yaml
+
+# CI / GitHub config (not COPY'd in any Dockerfile)
+.github/actions/
+.github/config/
+.github/workflows/
+.github/*.yaml
+.github/*.md
+
+# Logs
+*.log
