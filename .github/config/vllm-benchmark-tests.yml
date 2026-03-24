@@ -1,0 +1,53 @@
+# vLLM Benchmark Test Configuration
+# Defines models and thresholds for benchmark validation.
+#
+# codebuild-fleet: Runs on CodeBuild fleet runners (single/multi GPU)
+# runner-scale-sets: Runs on self-hosted runner scale sets (multi-GPU)
+#
+# Fields:
+#   name           - model identifier (used in S3 path and results)
+#   s3_path        - S3 location of model tarball
+#   fleet          - CodeBuild fleet name
+#   extra_args     - passed to vllm bench (--tensor-parallel-size, --dtype, etc.)
+#   input_len      - benchmark input token length (default: 512)
+#   output_len     - benchmark output token length (default: 128)
+#   num_prompts    - number of prompts for throughput test (default: 64)
+#   batch_size     - batch size for latency test (default: 4)
+#   min_throughput - minimum output tokens/s to pass (default: 100)
+#   min_rps        - minimum requests/s to pass (default: 1)
+
+codebuild-fleet:
+  # Small model — single GPU baseline benchmark
+  - name: "gpt-oss-20b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
+    fleet: "x86-g6exl-runner"
+    extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+    input_len: 512
+    output_len: 128
+    num_prompts: 64
+    batch_size: 4
+    min_throughput: 100
+    min_rps: 1
+
+  # Large model — multi-GPU tensor parallel benchmark
+  - name: "llama-3.3-70b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
+    fleet: "x86-g6e12xl-runner"
+    extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+    input_len: 512
+    output_len: 128
+    num_prompts: 32
+    batch_size: 2
+    min_throughput: 200
+    min_rps: 1
+
+runner-scale-sets:
+  - name: "qwen3-32b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
+    extra_args: "--tensor-parallel-size 4 --max-model-len 8192"
+    input_len: 1024
+    output_len: 256
+    num_prompts: 32
+    batch_size: 2
+    min_throughput: 150
+    min_rps: 1

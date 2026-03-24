@@ -26,6 +26,8 @@ CUSTOMER_TYPE="${CUSTOMER_TYPE:-}"
 INFERENCE_TOOLKIT_VERSION="${INFERENCE_TOOLKIT_VERSION:-}"
 TORCHSERVE_VERSION="${TORCHSERVE_VERSION:-}"
 TRANSFORMERS_VERSION="${TRANSFORMERS_VERSION:-}"
+SCCACHE_BUCKET="${SCCACHE_BUCKET:-}"
+SCCACHE_REGION="${SCCACHE_REGION:-${AWS_REGION}}"
 
 # Resolve image URI
 CI_IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ci:${TAG_PR}"
@@ -107,6 +109,12 @@ if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
 fi
 
 # Complete the build command
+if [[ -n "${SCCACHE_BUCKET}" ]]; then
+  BUILD_CMD="${BUILD_CMD} \
+  --build-arg SCCACHE_BUCKET=\"${SCCACHE_BUCKET}\" \
+  --build-arg SCCACHE_REGION=\"${SCCACHE_REGION}\""
+fi
+
 BUILD_CMD="${BUILD_CMD} \
   --cache-to=type=inline \
   --cache-from=type=registry,ref=${CI_IMAGE_URI} \
