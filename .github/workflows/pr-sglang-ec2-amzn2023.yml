@@ -16,6 +16,7 @@ on:
       - ".github/workflows/reusable-sglang-model-tests.yml"
       - "test/sanity/**"
       - "test/telemetry/**"
+      - "test/sglang/scripts/**"
 
 permissions:
   contents: read
