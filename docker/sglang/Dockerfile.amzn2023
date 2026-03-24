@@ -185,11 +185,7 @@ RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
     gcc gcc-c++ make which hostname findutils \
   && dnf clean all && rm -rf /var/cache/dnf
 
-# Install EFA (must be before Python 3.12 becomes default — dnf needs system Python 3.9)
-COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
-RUN bash install_efa_amzn2023.sh ${EFA_VERSION} && rm install_efa_amzn2023.sh
-
-# Set Python 3.12 as default (after EFA install since dnf needs system Python)
+# Set Python 3.12 as default, preserve dnf's system python
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
   && alternatives --set python3 /usr/bin/python3.12 \
   && ln -sf /usr/bin/python3.12 /usr/bin/python \
@@ -255,10 +251,11 @@ RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERS
   && ldconfig \
   && find / -name 'libcusparseLt.so*' 2>/dev/null || echo "WARNING: libcusparseLt.so not found anywhere"
 
-# Telemetry and common scripts
+# Telemetry, common scripts, and OSS compliance
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 COPY ./scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
@@ -270,14 +267,26 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/start_cuda_compat.sh \
-  && rm /tmp/bash_telemetry.sh.template
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
+  && rm -rf /root/oss_compliance* \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /tmp/uv* \
+  && rm -rf /var/cache/dnf \
+  && rm -rf /root/.cache || true
 
-# OSS compliance
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
-
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
-RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
+# Install EFA (matching vLLM pattern: cuda-rhel9 repo, libnccl system libs, cleanup)
+COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
+  && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
+  && ldconfig \
+  && bash install_efa_amzn2023.sh ${EFA_VERSION} \
+  && rm install_efa_amzn2023.sh \
+  && dnf remove -y libnccl-devel \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # =============================================================================
 # SageMaker target
