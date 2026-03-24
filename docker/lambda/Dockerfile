@@ -124,6 +124,30 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   && find /var/lang -type f -name "*.pyo" -delete
 
 # ============================================================
+# OSS compliance builders (isolated — prevents dependency closure modification)
+# ============================================================
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-base-py3
+COPY --from=builder-base-py3 /var/lang /var/lang
+COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-cupy-py3
+COPY --from=builder-cupy-py3 /var/lang /var/lang
+COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-pytorch-py3
+COPY --from=builder-pytorch-py3 /var/lang /var/lang
+COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
+  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+# ============================================================
 # Runtime: Base Python 3.13 (CUDA + Python + RIC + RIE)
 # ============================================================
 FROM nvidia/cuda:12.9.1-runtime-amzn2023 as base-py3
@@ -147,7 +171,6 @@ ENV PATH="/var/lang/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -160,9 +183,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && bash /tmp/setup_oss_compliance.sh python3 \
-  && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+COPY --from=oss-base-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss-base-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss-base-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss-base-py3 /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss-base-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
@@ -191,7 +217,6 @@ ENV PATH="/var/lang/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -204,9 +229,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && bash /tmp/setup_oss_compliance.sh python3 \
-  && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+COPY --from=oss-cupy-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss-cupy-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss-cupy-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss-cupy-py3 /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss-cupy-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
@@ -241,7 +269,6 @@ ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -254,13 +281,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && bash /tmp/setup_oss_compliance.sh python3 \
-  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+COPY --from=oss-pytorch-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss-pytorch-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss-pytorch-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss-pytorch-py3 /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss-pytorch-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
