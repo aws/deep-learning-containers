@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Base image sanity checks (CPU only, no GPU required)
 # Usage: check_base_image.sh <python_version> <cuda_version>
-# Example: check_base_image.sh 3.12 12.9
+# Example: check_base_image.sh 3.13 12.9
 
 PYTHON_VERSION="${1:?Usage: check_base_image.sh <python_version> <cuda_version>}"
 CUDA_VERSION="${2:?Usage: check_base_image.sh <python_version> <cuda_version>}"

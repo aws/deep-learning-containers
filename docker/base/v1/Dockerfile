@@ -3,8 +3,8 @@
 # ============================================================
 FROM nvidia/cuda:12.9.1-base-amzn2023 AS python-builder
 
-ARG PYTHON_VERSION="3.12.10"
-ARG PYTHON_SHORT_VERSION="3.12"
+ARG PYTHON_VERSION="3.13.12"
+ARG PYTHON_SHORT_VERSION="3.13"
 
 RUN dnf install -y --setopt=install_weak_deps=False \
   gcc gcc-c++ make tar gzip wget \
@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/root/.cache/pip bash install_python.sh ${PYTHON_V
 # ============================================================
 FROM nvidia/cuda:12.9.1-runtime-amzn2023 AS runtime
 
-ARG PYTHON_SHORT_VERSION="3.12"
+ARG PYTHON_SHORT_VERSION="3.13"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -69,7 +69,7 @@ CMD ["/bin/bash"]
 # ============================================================
 FROM nvidia/cuda:12.9.1-devel-amzn2023 AS devel
 
-ARG PYTHON_SHORT_VERSION="3.12"
+ARG PYTHON_SHORT_VERSION="3.13"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

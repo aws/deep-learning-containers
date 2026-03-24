@@ -241,7 +241,7 @@ jobs:
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Run base image checks
-        run: docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh 3.12 12.9
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh 3.13 12.9
 
   # ============================================================
   # Security tests — run against both targets
