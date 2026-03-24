@@ -8,16 +8,16 @@
 
 codebuild-fleet:
   - name: "gpt-oss-20b"
-    s3_path: "s3://dlc-cicd-models/sglang_models/gpt-oss-20b.tar.gz"
+    s3_path: "s3://dlc-cicd-models/llm-models/gpt-oss-20b.tar.gz"
     fleet: "x86-g6exl-runner"
     extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
 
   - name: "llama-3.3-70b"
-    s3_path: "s3://dlc-cicd-models/sglang_models/llama-3.3-70b.tar.gz"
+    s3_path: "s3://dlc-cicd-models/llm-models/llama-3.3-70b.tar.gz"
     fleet: "x86-g6e12xl-runner"
     extra_args: "--tp 4 --context-length 4096"
 
 runner-scale-sets:
   - name: "qwen3-32b"
-    s3_path: "s3://dlc-cicd-models/sglang_models/qwen3-32b.tar.gz"
+    s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
     extra_args: "--tp 4 --context-length 8192 --trust-remote-code"
