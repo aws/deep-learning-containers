@@ -9,6 +9,7 @@ on:
       - "**vllm**"
       - "!docs/**"
       - "!**amzn2023**"
+      - "!.github/config/vllm-model-tests.yml"
 
 permissions:
   contents: read
