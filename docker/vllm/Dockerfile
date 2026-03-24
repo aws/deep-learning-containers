@@ -32,6 +32,7 @@ RUN uv pip install --system \
 
 # patch CVEs and sauron
 RUN uv pip install --system \
+  "cbor2>=5.9.0" \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
