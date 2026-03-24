@@ -1,0 +1,129 @@
+ARG CUDA_VERSION=12.9.1
+
+# =============================================================================
+# STAGE 1: builder — clone llama.cpp and compile from source
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
+
+RUN dnf install -y --setopt=install_weak_deps=False git cmake make gcc-c++ \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# ARG after dnf install so package layer stays cached across tag changes
+ARG LLAMA_CPP_VERSION
+ARG LLAMA_CPP_REPO=https://github.com/ggml-org/llama.cpp.git
+
+RUN test -n "${LLAMA_CPP_VERSION}" || { echo "LLAMA_CPP_VERSION is required"; exit 1; } \
+  && git clone --depth 1 --branch "${LLAMA_CPP_VERSION}" ${LLAMA_CPP_REPO} /tmp/llama.cpp
+
+# Link against CUDA stubs and ignore unresolved driver symbols —
+# the real libcuda.so.1 is provided by the host GPU driver at runtime
+RUN cd /tmp/llama.cpp \
+  && cmake -B build -DGGML_CUDA=ON -DGGML_NATIVE=OFF -DLLAMA_CURL=OFF \
+    -DCMAKE_EXE_LINKER_FLAGS="-L/usr/local/cuda/lib64/stubs -Wl,--allow-shlib-undefined" \
+    -DCMAKE_SHARED_LINKER_FLAGS="-L/usr/local/cuda/lib64/stubs" \
+  && cmake --build build --config Release -j$(nproc)
+
+# =============================================================================
+# STAGE 2: runtime — minimal image with llama-server binary
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+
+COPY --from=builder /tmp/llama.cpp/build/bin/llama-server /usr/local/bin/
+COPY --from=builder /tmp/llama.cpp/build/bin/*.so* /usr/local/lib/
+COPY --from=builder /tmp/llama.cpp/build/ggml/src/*.so* /usr/local/lib/
+
+RUN ldconfig
+
+ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/cuda/lib64
+WORKDIR /workspace
+
+# =============================================================================
+# STAGE 3: base — DLC overlay (telemetry, EFA, OSS compliance)
+# =============================================================================
+FROM runtime AS base
+
+ARG PYTHON="python3"
+ARG PYTHON_VERSION=3.12
+ARG CUDA_VERSION
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=general \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LD_LIBRARY_PATH="/opt/amazon/efa/lib64:/usr/local/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  PATH="/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
+
+WORKDIR /
+
+# Install Python and pip (needed for telemetry and botocore)
+RUN dnf install -y --setopt=install_weak_deps=False \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN pip${PYTHON_VERSION} install --no-cache-dir botocore
+
+# Copy telemetry scripts + template substitution
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
+  && ln -sf $(which python${PYTHON_VERSION}) /usr/bin/python \
+  && rm -rf /root/oss_compliance* \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /var/cache/dnf \
+  && rm -rf /root/.cache || true
+
+# EFA installation (libnccl required at install time for ofi-nccl plugin)
+COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
+ARG EFA_VERSION="1.47.0"
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
+  && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
+  && ldconfig \
+  && bash install_efa_amzn2023.sh ${EFA_VERSION} \
+  && rm install_efa_amzn2023.sh \
+  && dnf remove -y libnccl-devel \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# ====================== ec2 =========================================
+FROM base AS llamacpp-ec2
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+COPY ./scripts/llamacpp/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# ====================== sagemaker =========================================
+FROM base AS llamacpp-sagemaker
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+COPY ./scripts/llamacpp/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
