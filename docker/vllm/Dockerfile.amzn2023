@@ -236,7 +236,8 @@ RUN uv pip install --no-cache-dir botocore
 RUN uv pip install --no-cache-dir \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
-  "PyJWT>=2.12.0"
+  "PyJWT>=2.12.0" \
+  "cbor2>=5.9.0"
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
@@ -278,7 +279,7 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
 FROM base AS vllm-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --setopt=install_weak_deps=False \
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   # dnf needs system python 3.9
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
@@ -292,7 +293,7 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 FROM base AS vllm-sagemaker-amzn2023
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --setopt=install_weak_deps=False \
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   # dnf needs system python 3.9
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
