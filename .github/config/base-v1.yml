@@ -1,22 +1,22 @@
-# Base cu128 amzn2023 Image Configuration
+# Base cu129 amzn2023 Image Configuration
 # This file contains all configuration for building, testing, and releasing the base GPU image
 
 # Image identification
 image:
   name: "base-v1"
-  description: "Base GPU image with CUDA 12.8 and Python on amzn2023 (runtime and devel variants)"
+  description: "Base GPU image with CUDA 12.9 and Python on amzn2023 (runtime and devel variants)"
 
 # Build configuration
 common:
   framework: "base"
-  framework_version: "12.8.1"
+  framework_version: "12.9.1"
   job_type: "general"
   python_version: "py312"
-  cuda_version: "cu128"
+  cuda_version: "cu129"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "base:12.8-gpu-py312-amzn2023"
+  prod_image: "base:12.9-gpu-py312-amzn2023"
   device_type: "gpu"
   contributor: "None"
 

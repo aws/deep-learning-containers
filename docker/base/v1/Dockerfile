@@ -1,7 +1,7 @@
 # ============================================================
 # Python builder (compile from source on cuda-base)
 # ============================================================
-FROM nvidia/cuda:12.8.1-base-amzn2023 AS python-builder
+FROM nvidia/cuda:12.9.1-base-amzn2023 AS python-builder
 
 ARG PYTHON_VERSION="3.12.10"
 ARG PYTHON_SHORT_VERSION="3.12"
@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.cache/pip bash install_python.sh ${PYTHON_V
 # ============================================================
 # Runtime: CUDA runtime libs + Python
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 AS runtime
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 AS runtime
 
 ARG PYTHON_SHORT_VERSION="3.12"
 
@@ -67,7 +67,7 @@ CMD ["/bin/bash"]
 # ============================================================
 # Devel: CUDA devel libs + Python + build tools
 # ============================================================
-FROM nvidia/cuda:12.8.1-devel-amzn2023 AS devel
+FROM nvidia/cuda:12.9.1-devel-amzn2023 AS devel
 
 ARG PYTHON_SHORT_VERSION="3.12"
 
