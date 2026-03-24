@@ -6,7 +6,6 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "docker/sglang/Dockerfile.amzn2023"
-      - "scripts/sglang/amzn2023/**"
       - "scripts/sglang/dockerd_entrypoint.sh"
       - "scripts/sglang/sagemaker_entrypoint.sh"
       - "scripts/common/**"
@@ -116,7 +115,6 @@ jobs:
           filters: |
             build-change:
               - "docker/sglang/Dockerfile.amzn2023"
-              - "scripts/sglang/amzn2023/**"
               - "scripts/sglang/dockerd_entrypoint.sh"
               - "scripts/sglang/sagemaker_entrypoint.sh"
               - "scripts/common/**"
