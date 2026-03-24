@@ -18,25 +18,23 @@ RUN curl -Lo /usr/local/bin/aws-lambda-rie \
 # ============================================================
 # Shared builder base (CUDA runtime + uv)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as builder-base
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as builder-base
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip findutils \
-  && dnf clean all && rm -rf /var/cache/dnf \
-  && curl -LsSf https://astral.sh/uv/install.sh | sh \
-  && mv /root/.local/bin/uv /usr/local/bin/uv
+  && dnf clean all && rm -rf /var/cache/dnf
 
 # ============================================================
 # Shared builder base — devel (CUDA devel + uv + git)
 # ============================================================
-FROM nvidia/cuda:12.8.1-devel-amzn2023 as builder-base-devel
+FROM nvidia/cuda:12.9.1-devel-amzn2023 as builder-base-devel
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
-  && dnf clean all && rm -rf /var/cache/dnf \
-  && curl -LsSf https://astral.sh/uv/install.sh | sh \
-  && mv /root/.local/bin/uv /usr/local/bin/uv
+  && dnf clean all && rm -rf /var/cache/dnf
 
 # ============================================================
 # FFmpeg builder (compiled from source with NVENC/NVDEC GPU acceleration)
 # ============================================================
-FROM nvidia/cuda:12.8.1-devel-amzn2023 as ffmpeg-builder
+FROM nvidia/cuda:12.9.1-devel-amzn2023 as ffmpeg-builder
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar xz gcc gcc-c++ make pkgconfig nasm yasm git diffutils \
@@ -75,11 +73,13 @@ COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
-ENV PATH="/var/lang/bin:$PATH"
-COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
+ENV PATH="/var/lang/bin:$PATH" \
+  UV_PROJECT_ENVIRONMENT="/var/lang"
+RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
+COPY ./docker/lambda/base/pyproject.toml ./docker/lambda/base/uv.lock /tmp/build/
+WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
-  && uv pip check --python /var/lang/bin/python3.13 \
+  uv sync --frozen --no-dev --no-install-project \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && find /var/lang -type f -name "*.pyc" -delete \
   && find /var/lang -type f -name "*.pyo" -delete
@@ -92,11 +92,13 @@ COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
-ENV PATH="/var/lang/bin:$PATH"
-COPY ./docker/lambda/requirements-cupy.txt /tmp/requirements.txt
+ENV PATH="/var/lang/bin:$PATH" \
+  UV_PROJECT_ENVIRONMENT="/var/lang"
+RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
+COPY ./docker/lambda/cupy/pyproject.toml ./docker/lambda/cupy/uv.lock /tmp/build/
+WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
-  && uv pip check --python /var/lang/bin/python3.13 \
+  uv sync --frozen --no-dev --no-install-project \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && find /var/lang -type f -name "*.pyc" -delete \
   && find /var/lang -type f -name "*.pyo" -delete
@@ -109,22 +111,49 @@ COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
-ENV PATH="/var/lang/bin:$PATH"
-COPY ./docker/lambda/requirements-pytorch.txt /tmp/requirements.txt
+ENV PATH="/var/lang/bin:$PATH" \
+  UV_PROJECT_ENVIRONMENT="/var/lang"
+RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
+COPY ./docker/lambda/pytorch/pyproject.toml ./docker/lambda/pytorch/uv.lock /tmp/build/
+WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --index-strategy unsafe-best-match --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
-  && uv pip check --python /var/lang/bin/python3.13 \
+  uv sync --frozen --no-dev --no-install-project \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && (find /var/lang -type d -name tests -exec rm -rf {} + 2>/dev/null; true) \
   && find /var/lang -type f -name "*.pyc" -delete \
   && find /var/lang -type f -name "*.pyo" -delete
 
 # ============================================================
+# OSS compliance builders (isolated — prevents dependency closure modification)
+# ============================================================
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-base-py3
+COPY --from=builder-base-py3 /var/lang /var/lang
+COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-cupy-py3
+COPY --from=builder-cupy-py3 /var/lang /var/lang
+COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-pytorch-py3
+COPY --from=builder-pytorch-py3 /var/lang /var/lang
+COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
+  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+# ============================================================
 # Runtime: Base Python 3.13 (CUDA + Python + RIC + RIE)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as base-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
@@ -143,7 +172,6 @@ ENV PATH="/var/lang/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -156,9 +184,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && bash /tmp/setup_oss_compliance.sh python3 \
-  && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+COPY --from=oss-base-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss-base-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss-base-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss-base-py3 /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss-base-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
@@ -166,9 +197,10 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: CuPy Python 3.13 (base + CuPy, NumPy, SciPy)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as cupy-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as cupy-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
@@ -187,7 +219,6 @@ ENV PATH="/var/lang/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -200,9 +231,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && bash /tmp/setup_oss_compliance.sh python3 \
-  && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+COPY --from=oss-cupy-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss-cupy-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss-cupy-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss-cupy-py3 /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss-cupy-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
@@ -210,9 +244,10 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: PyTorch Python 3.13 (base + PyTorch, FFmpeg, SAM2)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as pytorch-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as pytorch-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest \
   && dnf install -y --setopt=install_weak_deps=False \
@@ -237,7 +272,6 @@ ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -250,13 +284,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && bash /tmp/setup_oss_compliance.sh python3 \
-  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+COPY --from=oss-pytorch-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss-pytorch-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss-pytorch-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss-pytorch-py3 /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss-pytorch-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
