@@ -1,0 +1,4 @@
+{
+  "78828": "Affected versions of the PyTorch package are vulnerable to Denial of Service (DoS) via torch.mkldnn_max_pool2d. Affected spec <2.7.1-rc1 (CVE-2025-2953). Cannot upgrade torch in a 2.7.0 container.",
+  "76769": "Disputed DoS vulnerability via torch.nn.functional.ctc_loss. Affected spec <2.8.0 (CVE-2025-3730). Cannot upgrade torch in a 2.7.0 container."
+}
