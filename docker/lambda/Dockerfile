@@ -153,6 +153,7 @@ RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
 FROM nvidia/cuda:12.9.1-runtime-amzn2023 as base-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
@@ -199,6 +200,7 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.9.1-runtime-amzn2023 as cupy-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
@@ -245,6 +247,7 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.9.1-runtime-amzn2023 as pytorch-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest \
   && dnf install -y --setopt=install_weak_deps=False \
