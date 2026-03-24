@@ -1,0 +1,36 @@
+# vLLM Model Smoke Test Configuration
+# Shared across all vLLM PR workflows
+#
+# codebuild-fleet: Runs on CodeBuild fleet runners (single GPU instances)
+# runner-scale-sets: Runs on self-hosted runner scale sets (multi-GPU instances)
+#
+# extra_args: passed directly to vllm serve (includes --tensor-parallel-size)
+
+codebuild-fleet:
+  - name: "gpt-oss-20b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
+    fleet: "x86-g6exl-runner"
+    extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+
+  - name: "llama-3.3-70b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
+    fleet: "x86-g6e12xl-runner"
+    extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+
+runner-scale-sets:
+  - name: "qwen3-32b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
+    extra_args: "--tensor-parallel-size 4 --max-model-len 8192"
+
+# upstream
+# facebook/opt-125m
+# meta-llama/Llama-3.2-1B-Instruct
+# Qwen/Qwen3-0.6B
+# fixie-ai/ultravox-v0_5-llama-3_2-1b
+# llava-hf/llava-1.5-7b-hf
+# microsoft/Phi-3.5-vision-instruct
+# openai/whisper-large-v3-turbo
+# jason9693/Qwen2.5-1.5B-apeach
+# intfloat/e5-small
+# BAAI/bge-reranker-v2-m3
+# meta-llama/Llama-3.1-8B-Instruct

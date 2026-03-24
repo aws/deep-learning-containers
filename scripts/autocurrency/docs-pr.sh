@@ -119,11 +119,28 @@ TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}
 IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
 
 # -----------------------------------------------------------------
+# Early exit: skip unsupported platforms
+# -----------------------------------------------------------------
+if [ "$PLATFORM" = "rayserve_ec2" ]; then
+  echo "${FRAMEWORK}: Platform '${PLATFORM}' is not supported for docs generation. Skipping."
+  exit 0
+fi
+
+# -----------------------------------------------------------------
 # Early exit: check if docs PR branch already exists
 # -----------------------------------------------------------------
 branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
 if git ls-remote --exit-code --heads origin "${branch_name}" &>/dev/null; then
   echo "${FRAMEWORK}: Branch '${branch_name}' already exists. PR likely in progress. Skipping."
+  exit 0
+fi
+
+# -----------------------------------------------------------------
+# Early exit: check if docs data file already exists
+# -----------------------------------------------------------------
+OUTPUT_FILE="${REPO_ROOT}/docs/src/data/${FRAMEWORK}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
+if [ -f "$OUTPUT_FILE" ]; then
+  echo "${FRAMEWORK}: Docs file '${OUTPUT_FILE}' already exists. Skipping."
   exit 0
 fi
 
@@ -226,8 +243,7 @@ tag4=$(echo "$tags" | sed -n '4p')
 
 announcement=$(generate_announcement "$FRAMEWORK" "$VERSION" "$PLATFORM")
 
-output_dir="${REPO_ROOT}/docs/src/data/${FRAMEWORK}"
-OUTPUT_FILE="${output_dir}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
+output_dir="$(dirname "$OUTPUT_FILE")"
 mkdir -p "$output_dir"
 
 # Build packages section dynamically from tracker config

@@ -59,7 +59,7 @@ jobs:
           docker exec ${CONTAINER_ID} test -f /usr/local/bin/deep_learning_container.py
           docker exec ${CONTAINER_ID} test -f /usr/local/bin/bash_telemetry.sh
           docker exec ${CONTAINER_ID} bash -c '! grep -q "{{" /usr/local/bin/bash_telemetry.sh'
-          docker exec ${CONTAINER_ID} grep -q 'bash_telemetry.sh' /etc/bash.bashrc
+          docker exec ${CONTAINER_ID} bash -c "grep -q 'bash_telemetry.sh' /etc/bash.bashrc 2>/dev/null || grep -q 'bash_telemetry.sh' /etc/bashrc"
           ACTUAL=$(docker exec ${CONTAINER_ID} printenv DLC_CONTAINER_TYPE)
           if [ "$ACTUAL" != "${{ inputs.container-type }}" ]; then
             echo "DLC_CONTAINER_TYPE expected '${{ inputs.container-type }}' but got '$ACTUAL'"
