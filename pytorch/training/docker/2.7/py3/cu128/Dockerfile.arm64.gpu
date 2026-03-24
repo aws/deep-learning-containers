@@ -207,7 +207,7 @@ RUN pip install --no-cache-dir \
     ninja \
     pybind11 \
     "filelock>=3.20.1" \
-    grpcio \
+    "grpcio==1.78.1" \
     typer-slim
 
 # Install PyTorch
