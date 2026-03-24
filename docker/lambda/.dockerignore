@@ -1,8 +1,0 @@
-.git/
-__pycache__/
-*.pyc
-venv/
-.venv
-*.md
-*.log
-requirements.lock
