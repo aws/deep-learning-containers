@@ -9,7 +9,7 @@
 smoke-test:
   codebuild-fleet:
     - name: "qwen3.5-9b"
-      s3_path: "s3://dlc-cicd-models/llm_models/gpt-oss-20b.tar.gz"
+      s3_path: "s3://dlc-cicd-models/llm-models/gpt-oss-20b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
@@ -18,7 +18,7 @@ smoke-test:
 benchmark:
   codebuild-fleet:
     - name: "gpt-oss-20b"
-      s3_path: "s3://dlc-cicd-models/llm_models/gpt-oss-20b.tar.gz"
+      s3_path: "s3://dlc-cicd-models/llm-models/gpt-oss-20b.tar.gz"
       fleet: "x86-g6exl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
       input_len: 512
@@ -29,7 +29,7 @@ benchmark:
       min_rps: 1
 
     - name: "llama-3.3-70b"
-      s3_path: "s3://dlc-cicd-models/llm_models/llama-3.3-70b.tar.gz"
+      s3_path: "s3://dlc-cicd-models/llm-models/llama-3.3-70b.tar.gz"
       fleet: "x86-g6e12xl-runner"
       extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
       input_len: 512
@@ -41,7 +41,7 @@ benchmark:
 
   runner-scale-sets:
     - name: "qwen3-32b"
-      s3_path: "s3://dlc-cicd-models/llm_models/qwen3-32b.tar.gz"
+      s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
       extra_args: "--tensor-parallel-size 4 --max-model-len 8192"
       input_len: 1024
       output_len: 256
