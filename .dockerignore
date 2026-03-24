@@ -23,7 +23,6 @@ __pycache__/
 # Documentation (not COPY'd in any Dockerfile)
 docs/
 *.md
-!**/VERSIONS.md
 mkdocs.yaml
 
 # CI / GitHub config (not COPY'd in any Dockerfile)
