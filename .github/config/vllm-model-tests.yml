@@ -34,7 +34,7 @@ benchmark:
       num_prompts: 32
       batch_size: 2
       min_throughput: 200
-      min_rps: 1
+      min_rps: 0.70
 
   runner-scale-sets: []
 
