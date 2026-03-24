@@ -52,9 +52,7 @@ class TestEntrypointContract(unittest.TestCase):
     """Category 2: Verify entrypoint structural correctness."""
 
     ENTRYPOINT_CANDIDATES = [
-        "/usr/local/bin/sagemaker_entrypoint.sh",
         "/usr/local/bin/dockerd_entrypoint.sh",
-        "/usr/bin/serve",
     ]
 
     def _find_entrypoint(self):
