@@ -1,23 +1,33 @@
-# SGLang Model Smoke Test Configuration
+# SGLang Model Test Configuration
 # Shared across all SGLang PR workflows
 #
-# codebuild-fleet: Runs on CodeBuild fleet runners (single GPU instances)
-# runner-scale-sets: Runs on self-hosted runner scale sets (multi-GPU instances)
-#
+# test_type: "smoke_test" runs completions validation, "benchmark" runs bench_serving
 # extra_args: passed directly to sglang.launch_server (includes --tp)
+#
+# codebuild-fleet: Runs on CodeBuild fleet runners
+# runner-scale-sets: Runs on self-hosted runner scale sets (multi-GPU)
 
 codebuild-fleet:
+  - name: "qwen3-0.6b"
+    s3_path: "s3://dlc-cicd-models/llm-models/qwen3-0.6b.tar.gz"
+    fleet: "x86-g6xl-runner"
+    test_type: "smoke_test"
+    extra_args: "--tp 1"
+
   - name: "gpt-oss-20b"
     s3_path: "s3://dlc-cicd-models/llm-models/gpt-oss-20b.tar.gz"
     fleet: "x86-g6exl-runner"
+    test_type: "benchmark"
     extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
 
   - name: "llama-3.3-70b"
     s3_path: "s3://dlc-cicd-models/llm-models/llama-3.3-70b.tar.gz"
     fleet: "x86-g6e12xl-runner"
+    test_type: "benchmark"
     extra_args: "--tp 4 --context-length 4096"
 
 runner-scale-sets:
   - name: "qwen3-32b"
     s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
+    test_type: "benchmark"
     extra_args: "--tp 4 --context-length 8192 --trust-remote-code"
