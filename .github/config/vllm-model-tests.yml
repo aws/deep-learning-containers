@@ -8,18 +8,18 @@
 
 codebuild-fleet:
   - name: "gpt-oss-20b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
+    s3_path: "s3://dlc-cicd-models/llm-models/gpt-oss-20b.tar.gz"
     fleet: "x86-g6exl-runner"
     extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
   - name: "llama-3.3-70b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
+    s3_path: "s3://dlc-cicd-models/llm-models/llama-3.3-70b.tar.gz"
     fleet: "x86-g6e12xl-runner"
     extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
 
 runner-scale-sets:
   - name: "qwen3-32b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
+    s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
     extra_args: "--tensor-parallel-size 4 --max-model-len 8192"
 
 # upstream
