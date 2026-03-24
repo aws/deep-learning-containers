@@ -3,3 +3,4 @@ self-hosted-runner:
     - gpu-standard-runners
     - gpu-efa-runners
     - gpu-p4d-runners
+    - buildspec-override:true
