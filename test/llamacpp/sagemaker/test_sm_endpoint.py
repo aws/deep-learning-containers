@@ -1,0 +1,142 @@
+"""Integration test for serving endpoint with llama.cpp DLC"""
+
+import json
+import logging
+from pprint import pformat
+
+import pytest
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
+from test_utils import clean_string, random_suffix_name, wait_for_status
+from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
+from test_utils.huggingface_helper import get_hf_token
+
+# To enable debugging, change logging.INFO to logging.DEBUG
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
+ENDPOINT_WAIT_PERIOD = 60
+ENDPOINT_WAIT_LENGTH = 30
+ENDPOINT_INSERVICE = "InService"
+
+
+def get_endpoint_status(sagemaker_client, endpoint_name):
+    response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
+    LOGGER.debug(f"Describe endpoint response: {pformat(response)}")
+    return response["EndpointStatus"]
+
+
+@pytest.fixture(scope="function")
+def model_id(request):
+    # Return the model_id given by the test parameter
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def instance_type(request):
+    # Return the instance_type given by the test parameter
+    return request.param
+
+
+@pytest.fixture(scope="function")
+def model_package(aws_session, image_uri, model_id):
+    sagemaker_client = aws_session.sagemaker
+    cleaned_id = clean_string(model_id.split("/")[1], "_./")
+    model_name = random_suffix_name(f"llamacpp-{cleaned_id}-model-package", 50)
+
+    LOGGER.debug(f"Using image: {image_uri}")
+    LOGGER.debug(f"Model ID: {model_id}")
+
+    try:
+        LOGGER.info(f"Creating SageMaker model: {model_name}...")
+        hf_token = get_hf_token(aws_session)
+        model = Model(
+            name=model_name,
+            image_uri=image_uri,
+            role=SAGEMAKER_ROLE,
+            predictor_cls=Predictor,
+            env={
+                "SM_LLAMACPP_MODEL": model_id,
+                "SM_LLAMACPP_N_GPU_LAYERS": "99",
+                "SM_LLAMACPP_CTX_SIZE": "4096",
+                "HF_TOKEN": hf_token,
+            },
+        )
+        LOGGER.info("Model created successfully")
+        yield model
+    finally:
+        LOGGER.info(f"Deleting model: {model_name}")
+        sagemaker_client.delete_model(ModelName=model_name)
+
+
+@pytest.fixture(scope="function")
+def model_endpoint(aws_session, model_package, instance_type):
+    sagemaker_client = aws_session.sagemaker
+    model = model_package
+    cleaned_instance = clean_string(instance_type, "_./")
+    endpoint_name = random_suffix_name(f"llamacpp-{cleaned_instance}-endpoint", 50)
+
+    LOGGER.debug(f"Using instance type: {instance_type}")
+
+    try:
+        LOGGER.info("Starting endpoint deployment (this may take 10-15 minutes)...")
+        predictor = model.deploy(
+            instance_type=instance_type,
+            initial_instance_count=1,
+            endpoint_name=endpoint_name,
+            inference_ami_version=INFERENCE_AMI_VERSION,
+            serializer=JSONSerializer(),
+            wait=True,
+        )
+        LOGGER.info("Endpoint deployment completed successfully")
+
+        LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status ...")
+        assert wait_for_status(
+            ENDPOINT_INSERVICE,
+            ENDPOINT_WAIT_PERIOD,
+            ENDPOINT_WAIT_LENGTH,
+            get_endpoint_status,
+            sagemaker_client,
+            endpoint_name,
+        )
+
+        yield predictor
+    finally:
+        LOGGER.info(f"Deleting endpoint: {endpoint_name}")
+        sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
+
+        LOGGER.info(f"Deleting endpoint configuration: {endpoint_name}")
+        sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+
+
+@pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
+@pytest.mark.parametrize("model_id", ["bartowski/Qwen3-0.6B-GGUF"], indirect=True)
+def test_llamacpp_sagemaker_endpoint(model_endpoint, model_id):
+    predictor = model_endpoint
+
+    prompt = "Write a python script to calculate square of n"
+    payload = {
+        "model": model_id,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 256,
+        "temperature": 0.01,
+    }
+    LOGGER.debug(f"Sending inference request with payload: {pformat(payload)}")
+
+    response = predictor.predict(payload)
+    LOGGER.info("Inference request invoked successfully")
+
+    if isinstance(response, bytes):
+        response = response.decode("utf-8")
+
+    if isinstance(response, str):
+        try:
+            response = json.loads(response)
+        except json.JSONDecodeError:
+            LOGGER.warning("Response is not valid JSON. Returning as string.")
+
+    assert response, "Model response is empty, failing endpoint test!"
+
+    LOGGER.info(f"Model response: {pformat(response)}")
+    LOGGER.info("Inference test successful!")
