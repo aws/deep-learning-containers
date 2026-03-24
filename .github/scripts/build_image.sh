@@ -113,6 +113,17 @@ if [[ -n "${SCCACHE_BUCKET}" ]]; then
   BUILD_CMD="${BUILD_CMD} \
   --build-arg SCCACHE_BUCKET=\"${SCCACHE_BUCKET}\" \
   --build-arg SCCACHE_REGION=\"${SCCACHE_REGION}\""
+
+  # Pass runner credentials so sccache can reach S3 inside the build container.
+  # Safe because the build stage is discarded in the multi-stage image.
+  if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]]; then
+    BUILD_CMD="${BUILD_CMD} \
+  --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID}\" \
+  --build-arg AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY}\" \
+  --build-arg AWS_SESSION_TOKEN=\"${AWS_SESSION_TOKEN:-}\""
+  else
+    echo "⚠️ No AWS credentials available for sccache — builds will compile from source"
+  fi
 fi
 
 BUILD_CMD="${BUILD_CMD} \

@@ -48,12 +48,20 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 
 # sccache — caches compiled objects in S3 so partial source changes only
 # recompile the affected files. Set SCCACHE_BUCKET at build time to enable.
+# AWS credentials are passed as build args — safe because this is a discarded
+# builder stage that never appears in the final multi-stage image.
 ARG SCCACHE_BUCKET=""
 ARG SCCACHE_REGION="us-west-2"
+ARG AWS_ACCESS_KEY_ID=""
+ARG AWS_SECRET_ACCESS_KEY=""
+ARG AWS_SESSION_TOKEN=""
 ENV SCCACHE_BUCKET=${SCCACHE_BUCKET}
 ENV SCCACHE_REGION=${SCCACHE_REGION}
 ENV SCCACHE_S3_USE_SSL=true
 ENV SCCACHE_S3_KEY_PREFIX=sccache/vllm
+ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+ENV AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
 RUN if [ -n "${SCCACHE_BUCKET}" ]; then \
   curl -L https://github.com/mozilla/sccache/releases/download/v0.9.1/sccache-v0.9.1-x86_64-unknown-linux-musl.tar.gz \
     | tar xz -C /usr/local/bin --strip-components=1 --wildcards '*/sccache' \
