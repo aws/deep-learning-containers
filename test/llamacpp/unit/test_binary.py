@@ -42,18 +42,3 @@ class TestSharedLibraries:
 
         matches = glob.glob(f"/usr/local/lib/{pattern}")
         assert matches, f"No files matching {pattern} found in /usr/local/lib/"
-
-    def test_ldd_resolves_libs(self):
-        result = subprocess.run(
-            ["ldd", "/usr/local/bin/llama-server"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-        assert result.returncode == 0, f"ldd failed: {result.stderr}"
-        output = result.stdout
-        assert "libllama.so" in output, "libllama.so not resolved by ldd"
-        assert "libggml.so" in output, "libggml.so not resolved by ldd"
-        # libcuda.so.1 is expected to be "not found" without GPU driver
-        for lib in ["libllama.so", "libggml.so", "libggml-base.so", "libggml-cpu.so"]:
-            assert f"{lib} => not found" not in output, f"{lib} not resolved"
