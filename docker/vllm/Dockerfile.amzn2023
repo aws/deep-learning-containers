@@ -168,17 +168,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   fi && rm -rf /tmp/ep_kernels
 
 # =============================================================================
-# STAGE: builder-oss — generates license files without modifying runtime venv
-# =============================================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
-ARG PYTHON_VERSION
-RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
-COPY --from=deps /opt/venv /opt/venv
-COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
-RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
-  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
-
-# =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
@@ -252,12 +241,12 @@ RUN uv pip install --no-cache-dir \
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
 
-# telemetry
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
@@ -267,20 +256,13 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python \
+  && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
   && rm -rf /tmp/uv* \
   && rm -rf /var/cache/dnf \
   && rm -rf /root/.cache || true
-
-# OSS compliance (runs in isolated stage to avoid polluting the venv)
-COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
-COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
-COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
-COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
-COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
-
-# install EFA
 
 COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 ARG EFA_VERSION="1.47.0"
