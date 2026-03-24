@@ -17,6 +17,17 @@ smoke-test:
 
 benchmark:
   codebuild-fleet:
+    - name: "gpt-oss-20b"
+      s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 100
+      min_rps: 1
+
     - name: "llama-3.3-70b"
       s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
       fleet: "x86-g6e12xl-runner"
@@ -28,7 +39,16 @@ benchmark:
       min_throughput: 200
       min_rps: 0.70
 
-  runner-scale-sets: []
+  runner-scale-sets:
+    - name: "qwen3-32b"
+      s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 8192"
+      input_len: 1024
+      output_len: 256
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 150
+      min_rps: 1
 
 # upstream
 # facebook/opt-125m
