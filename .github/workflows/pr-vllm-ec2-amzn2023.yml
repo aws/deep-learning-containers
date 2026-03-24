@@ -164,6 +164,7 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
+          sccache-bucket: ${{ vars.WHEEL_CACHE_BUCKET }}
 
 
   sanity-test:
