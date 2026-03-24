@@ -18,15 +18,12 @@ class TestLlamaServerBinary:
         assert os.access(self.LLAMA_SERVER, os.X_OK), f"{self.LLAMA_SERVER} is not executable"
 
     def test_help_returns_zero(self):
-        """Requires GPU runtime (libcuda.so.1). Skipped on CPU-only hosts."""
         result = subprocess.run(
             [self.LLAMA_SERVER, "--help"],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        if result.returncode == 127 and "libcuda" in result.stderr:
-            pytest.skip("libcuda.so.1 not available (no GPU driver)")
         assert result.returncode == 0, f"--help failed: {result.stderr}"
         assert "usage" in result.stdout.lower() or "llama" in result.stdout.lower(), (
             f"Unexpected --help output: {result.stdout[:200]}"

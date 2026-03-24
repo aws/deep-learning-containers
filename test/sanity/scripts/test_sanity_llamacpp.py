@@ -1,8 +1,8 @@
 """
-GPU-free sanity tests for llama.cpp DLC images.
+Sanity tests for llama.cpp DLC images.
 
-Run inside the container:
-    docker run --rm --entrypoint python3 <image> /tests/test_sanity_llamacpp.py
+Run inside the container with GPU:
+    docker run --rm --gpus all --entrypoint python3 <image> /tests/test_sanity_llamacpp.py
 
 Or with pytest:
     docker run --rm --entrypoint pytest <image> /tests/test_sanity_llamacpp.py -v
@@ -34,17 +34,13 @@ class TestBinaryHealth(unittest.TestCase):
         )
 
     def test_help_works(self):
-        """llama-server --help must return 0 and produce recognizable output.
-        Skipped when libcuda.so.1 is not available (no GPU driver).
-        """
+        """llama-server --help must return 0 and produce recognizable output."""
         result = subprocess.run(
             [self.LLAMA_SERVER, "--help"],
             capture_output=True,
             text=True,
             timeout=10,
         )
-        if result.returncode == 127 and "libcuda" in result.stderr:
-            self.skipTest("libcuda.so.1 not available (no GPU driver)")
         self.assertEqual(result.returncode, 0, f"--help failed: {result.stderr}")
         combined = (result.stdout + result.stderr).lower()
         self.assertTrue(
