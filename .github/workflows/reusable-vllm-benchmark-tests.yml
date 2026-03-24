@@ -1,4 +1,4 @@
-name: Reusable vLLM Model Smoke Tests
+name: Reusable vLLM Benchmark Tests
 
 permissions:
   contents: read
@@ -20,7 +20,7 @@ on:
         type: string
 
 jobs:
-  load-models:
+  load-benchmarks:
     runs-on: ubuntu-latest
     outputs:
       codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
@@ -29,30 +29,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Parse model config
+      - name: Parse benchmark config
         id: parse
         run: |
           python3 -c "
           import yaml, json
           with open('.github/config/vllm-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
-          st = cfg.get('smoke-test', {})
-          print('codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
-          print('runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
+          bm = cfg.get('benchmark', {})
+          print('codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
+          print('runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', [])))
           " > parsed.txt
           grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
           grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
           echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
           echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
 
-  test-model-codebuild-fleet:
-    name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix)[0] != null }}
-    needs: [load-models]
+  benchmark-codebuild-fleet:
+    name: benchmark (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix)[0] != null }}
+    needs: [load-benchmarks]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix) }}
+        include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ matrix.fleet }}
@@ -90,14 +90,34 @@ jobs:
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp scripts/vllm/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
 
-      - name: Run model smoke test
+      - name: Run benchmark
         run: |
-          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
-            "/models/${{ matrix.name }}" \
-            "${{ matrix.name }}" \
-            ${{ matrix.extra_args }}
+          docker exec \
+            -e MIN_THROUGHPUT_TOKENS_PER_SEC=${{ matrix.min_throughput || 100 }} \
+            -e MIN_REQUESTS_PER_SEC=${{ matrix.min_rps || 1 }} \
+            -e BENCHMARK_NUM_PROMPTS=${{ matrix.num_prompts || 64 }} \
+            -e BENCHMARK_INPUT_LEN=${{ matrix.input_len || 512 }} \
+            -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
+            -e BENCHMARK_BATCH_SIZE=${{ matrix.batch_size || 4 }} \
+            ${CONTAINER_ID} bash /models/vllm_benchmark_test.sh \
+              "/models/${{ matrix.name }}" \
+              "${{ matrix.name }}" \
+              ${{ matrix.extra_args }}
+
+      - name: Extract results
+        if: always()
+        run: |
+          docker cp ${CONTAINER_ID}:/tmp/benchmark_results/. ./benchmark_results/ 2>/dev/null || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.name }}
+          path: benchmark_results/
+          retention-days: 30
 
       - name: Cleanup
         if: always()
@@ -107,14 +127,14 @@ jobs:
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           rm -rf /dlc-models
 
-  test-model-runner-scale-sets:
-    name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
-    needs: [load-models]
+  benchmark-runner-scale-sets:
+    name: benchmark (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix)[0] != null }}
+    needs: [load-benchmarks]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
+        include: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix) }}
     runs-on: gpu-efa-runners
     steps:
       - name: Checkout code
@@ -147,21 +167,39 @@ jobs:
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      # on runner scales sets, container run inside container cannot mount
-      # we need to copy models to the container
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp scripts/vllm/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
           rm -rf /dlc-models
 
-      - name: Run model smoke test
+      - name: Run benchmark
         run: |
-          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
-            "/models/${{ matrix.name }}" \
-            "${{ matrix.name }}" \
-            ${{ matrix.extra_args }}
+          docker exec \
+            -e MIN_THROUGHPUT_TOKENS_PER_SEC=${{ matrix.min_throughput || 100 }} \
+            -e MIN_REQUESTS_PER_SEC=${{ matrix.min_rps || 1 }} \
+            -e BENCHMARK_NUM_PROMPTS=${{ matrix.num_prompts || 64 }} \
+            -e BENCHMARK_INPUT_LEN=${{ matrix.input_len || 512 }} \
+            -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
+            -e BENCHMARK_BATCH_SIZE=${{ matrix.batch_size || 4 }} \
+            ${CONTAINER_ID} bash /models/vllm_benchmark_test.sh \
+              "/models/${{ matrix.name }}" \
+              "${{ matrix.name }}" \
+              ${{ matrix.extra_args }}
+
+      - name: Extract results
+        if: always()
+        run: |
+          docker cp ${CONTAINER_ID}:/tmp/benchmark_results/. ./benchmark_results/ 2>/dev/null || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.name }}
+          path: benchmark_results/
+          retention-days: 30
 
       - name: Cleanup
         if: always()
