@@ -18,25 +18,23 @@ RUN curl -Lo /usr/local/bin/aws-lambda-rie \
 # ============================================================
 # Shared builder base (CUDA runtime + uv)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as builder-base
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as builder-base
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip findutils \
-  && dnf clean all && rm -rf /var/cache/dnf \
-  && curl -LsSf https://astral.sh/uv/install.sh | sh \
-  && mv /root/.local/bin/uv /usr/local/bin/uv
+  && dnf clean all && rm -rf /var/cache/dnf
 
 # ============================================================
 # Shared builder base — devel (CUDA devel + uv + git)
 # ============================================================
-FROM nvidia/cuda:12.8.1-devel-amzn2023 as builder-base-devel
+FROM nvidia/cuda:12.9.1-devel-amzn2023 as builder-base-devel
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
-  && dnf clean all && rm -rf /var/cache/dnf \
-  && curl -LsSf https://astral.sh/uv/install.sh | sh \
-  && mv /root/.local/bin/uv /usr/local/bin/uv
+  && dnf clean all && rm -rf /var/cache/dnf
 
 # ============================================================
 # FFmpeg builder (compiled from source with NVENC/NVDEC GPU acceleration)
 # ============================================================
-FROM nvidia/cuda:12.8.1-devel-amzn2023 as ffmpeg-builder
+FROM nvidia/cuda:12.9.1-devel-amzn2023 as ffmpeg-builder
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar xz gcc gcc-c++ make pkgconfig nasm yasm git diffutils \
@@ -75,11 +73,13 @@ COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
-ENV PATH="/var/lang/bin:$PATH"
-COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
+ENV PATH="/var/lang/bin:$PATH" \
+  UV_PROJECT_ENVIRONMENT="/var/lang"
+RUN uv venv /var/lang --python /var/lang/bin/python3.13
+COPY ./docker/lambda/base/pyproject.toml ./docker/lambda/base/uv.lock /tmp/build/
+WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
-  && uv pip check --python /var/lang/bin/python3.13 \
+  uv sync --frozen --no-dev --no-install-project \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && find /var/lang -type f -name "*.pyc" -delete \
   && find /var/lang -type f -name "*.pyo" -delete
@@ -92,11 +92,13 @@ COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
-ENV PATH="/var/lang/bin:$PATH"
-COPY ./docker/lambda/requirements-cupy.txt /tmp/requirements.txt
+ENV PATH="/var/lang/bin:$PATH" \
+  UV_PROJECT_ENVIRONMENT="/var/lang"
+RUN uv venv /var/lang --python /var/lang/bin/python3.13
+COPY ./docker/lambda/cupy/pyproject.toml ./docker/lambda/cupy/uv.lock /tmp/build/
+WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
-  && uv pip check --python /var/lang/bin/python3.13 \
+  uv sync --frozen --no-dev --no-install-project \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && find /var/lang -type f -name "*.pyc" -delete \
   && find /var/lang -type f -name "*.pyo" -delete
@@ -109,11 +111,13 @@ COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
-ENV PATH="/var/lang/bin:$PATH"
-COPY ./docker/lambda/requirements-pytorch.txt /tmp/requirements.txt
+ENV PATH="/var/lang/bin:$PATH" \
+  UV_PROJECT_ENVIRONMENT="/var/lang"
+RUN uv venv /var/lang --python /var/lang/bin/python3.13
+COPY ./docker/lambda/pytorch/pyproject.toml ./docker/lambda/pytorch/uv.lock /tmp/build/
+WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --index-strategy unsafe-best-match --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
-  && uv pip check --python /var/lang/bin/python3.13 \
+  uv sync --frozen --no-dev --no-install-project \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && (find /var/lang -type d -name tests -exec rm -rf {} + 2>/dev/null; true) \
   && find /var/lang -type f -name "*.pyc" -delete \
@@ -122,7 +126,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ============================================================
 # Runtime: Base Python 3.13 (CUDA + Python + RIC + RIE)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as base-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
@@ -166,7 +170,7 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: CuPy Python 3.13 (base + CuPy, NumPy, SciPy)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as cupy-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as cupy-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
@@ -210,7 +214,7 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: PyTorch Python 3.13 (base + PyTorch, FFmpeg, SAM2)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as pytorch-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as pytorch-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
