@@ -116,6 +116,10 @@ if [[ -n "${SCCACHE_BUCKET}" ]]; then
 
   # Pass runner credentials so sccache can reach S3 inside the build container.
   # Safe because the build stage is discarded in the multi-stage image.
+  # Resolve credentials from the SDK chain (IMDS, container credentials, env, etc.)
+  if [[ -z "${AWS_ACCESS_KEY_ID:-}" ]]; then
+    eval "$(aws configure export-credentials --format env 2>/dev/null || true)"
+  fi
   if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]]; then
     BUILD_CMD="${BUILD_CMD} \
   --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID}\" \
