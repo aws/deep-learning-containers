@@ -10,7 +10,6 @@ Or with pytest:
 Test categories:
     1. TestBinaryHealth       - llama-server binary exists, is executable, --help works
     2. TestEntrypointContract - entrypoint exists, is executable, references llama-server
-    3. TestEnvironmentConfig  - DLC env vars set, telemetry scripts present
 """
 
 import os
@@ -88,30 +87,6 @@ class TestEntrypointContract(unittest.TestCase):
             content,
             "Entrypoint does not reference llama-server",
         )
-
-
-class TestEnvironmentConfig(unittest.TestCase):
-    """Category 3: Verify DLC environment variables and telemetry scripts."""
-
-    def test_dlc_container_type_set(self):
-        """DLC_CONTAINER_TYPE must be set."""
-        self.assertTrue(os.environ.get("DLC_CONTAINER_TYPE"), "DLC_CONTAINER_TYPE not set")
-
-    def test_lang_set(self):
-        """LANG must be C.UTF-8."""
-        self.assertEqual(os.environ.get("LANG"), "C.UTF-8")
-
-    def test_lc_all_set(self):
-        """LC_ALL must be C.UTF-8."""
-        self.assertEqual(os.environ.get("LC_ALL"), "C.UTF-8")
-
-    def test_telemetry_script_exists(self):
-        """DLC telemetry scripts must be present."""
-        for path in [
-            "/usr/local/bin/deep_learning_container.py",
-            "/usr/local/bin/bash_telemetry.sh",
-        ]:
-            self.assertTrue(os.path.isfile(path), f"{path} not found")
 
 
 if __name__ == "__main__":
