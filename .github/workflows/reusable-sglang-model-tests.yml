@@ -45,7 +45,7 @@ jobs:
           echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
 
   test-model-codebuild-fleet:
-    name: test-model (${{ matrix.name }})
+    name: test-model-codebuild (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix)[0] != null }}
     needs: [load-models]
     strategy:
@@ -83,13 +83,14 @@ jobs:
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            --ipc=host --shm-size=10g \
             -v /dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/sglang/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
 
       - name: Run model smoke test
         run: |
@@ -107,7 +108,7 @@ jobs:
           rm -rf /dlc-models
 
   test-model-runner-scale-sets:
-    name: test-model (${{ matrix.name }})
+    name: test-model-runner-scale (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
     needs: [load-models]
     strategy:
@@ -152,7 +153,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp scripts/sglang/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
           rm -rf /dlc-models
 
       - name: Run model smoke test

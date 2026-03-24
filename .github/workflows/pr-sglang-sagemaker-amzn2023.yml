@@ -6,7 +6,6 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "docker/sglang/Dockerfile.amzn2023"
-      - "scripts/sglang/amzn2023/**"
       - "scripts/sglang/dockerd_entrypoint.sh"
       - "scripts/sglang/sagemaker_entrypoint.sh"
       - "scripts/common/**"
@@ -19,6 +18,7 @@ on:
       - "test/sanity/**"
       - "test/telemetry/**"
       - "test/sglang/sagemaker/**"
+      - "test/sglang/scripts/**"
 
 permissions:
   contents: read
@@ -119,12 +119,13 @@ jobs:
           filters: |
             build-change:
               - "docker/sglang/Dockerfile.amzn2023"
-              - "scripts/sglang/amzn2023/**"
               - "scripts/sglang/dockerd_entrypoint.sh"
               - "scripts/sglang/sagemaker_entrypoint.sh"
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - ".github/config/sglang-sagemaker-amzn2023.yml"
+              - ".github/config/sglang-model-tests.yml"
+              - "test/sglang/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
