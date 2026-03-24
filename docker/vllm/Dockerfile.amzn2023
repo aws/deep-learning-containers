@@ -197,6 +197,27 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     echo "No DeepEP wheels to install; skipping."; \
   fi && rm -rf /tmp/ep_kernels
 
+# Install KV connectors (lmcache, nixl) if requested
+ARG INSTALL_KV_CONNECTORS=false
+COPY --from=build /workspace/vllm/requirements/kv_connectors.txt /tmp/kv_connectors.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
+    CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
+    if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
+        if [ "$CUDA_MAJOR" -ge 13 ]; then \
+            uv pip install nixl-cu13; \
+        fi; \
+        uv pip install -r /tmp/kv_connectors.txt --no-build || ( \
+            dnf install -y --setopt=install_weak_deps=False \
+                libcusparse-devel-${CUDA_DASH} \
+                libcublas-devel-${CUDA_DASH} \
+                libcusolver-devel-${CUDA_DASH} \
+            && uv pip install -r /tmp/kv_connectors.txt --no-build-isolation \
+            && dnf remove -y libcusparse-devel-${CUDA_DASH} libcublas-devel-${CUDA_DASH} libcusolver-devel-${CUDA_DASH} \
+            && dnf clean all && rm -rf /var/cache/dnf \
+        ); \
+    fi
+
 # =============================================================================
 # STAGE: builder-oss — generates license files without modifying runtime venv
 # =============================================================================
