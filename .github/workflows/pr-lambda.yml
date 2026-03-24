@@ -149,7 +149,7 @@ jobs:
       framework: lambda
       framework-version: ""
       python-version: py3
-      cuda-version: cu128
+      cuda-version: cu129
       os-version: amzn2023
       customer-type: lambda
       arch-type: x86

@@ -18,7 +18,7 @@ RUN curl -Lo /usr/local/bin/aws-lambda-rie \
 # ============================================================
 # Shared builder base (CUDA runtime + uv)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as builder-base
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as builder-base
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip findutils \
   && dnf clean all && rm -rf /var/cache/dnf \
   && curl -LsSf https://astral.sh/uv/install.sh | sh \
@@ -27,7 +27,7 @@ RUN dnf install -y --setopt=install_weak_deps=False tar gzip findutils \
 # ============================================================
 # Shared builder base — devel (CUDA devel + uv + git)
 # ============================================================
-FROM nvidia/cuda:12.8.1-devel-amzn2023 as builder-base-devel
+FROM nvidia/cuda:12.9.1-devel-amzn2023 as builder-base-devel
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
   && dnf clean all && rm -rf /var/cache/dnf \
   && curl -LsSf https://astral.sh/uv/install.sh | sh \
@@ -36,7 +36,7 @@ RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
 # ============================================================
 # FFmpeg builder (compiled from source with NVENC/NVDEC GPU acceleration)
 # ============================================================
-FROM nvidia/cuda:12.8.1-devel-amzn2023 as ffmpeg-builder
+FROM nvidia/cuda:12.9.1-devel-amzn2023 as ffmpeg-builder
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar xz gcc gcc-c++ make pkgconfig nasm yasm git diffutils \
@@ -122,7 +122,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ============================================================
 # Runtime: Base Python 3.13 (CUDA + Python + RIC + RIE)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as base-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
@@ -166,7 +166,7 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: CuPy Python 3.13 (base + CuPy, NumPy, SciPy)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as cupy-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as cupy-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
@@ -210,7 +210,7 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: PyTorch Python 3.13 (base + PyTorch, FFmpeg, SAM2)
 # ============================================================
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 as pytorch-py3
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 as pytorch-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video

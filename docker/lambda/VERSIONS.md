@@ -17,7 +17,7 @@ Dependency-only updates (security patches, minor pip package bumps) increment th
 
 | Component    | Version                                           | All Images |
 | ------------ | ------------------------------------------------- | :--------: |
-| CUDA         | 12.8.1 (runtime)                                  |     ✓      |
+| CUDA         | 12.9.1 (runtime)                                  |     ✓      |
 | Python       | 3.13                                              |     ✓      |
 | Amazon Linux | 2023                                              |     ✓      |
 | Lambda RIC   | latest (from `public.ecr.aws/lambda/python:3.13`) |     ✓      |
