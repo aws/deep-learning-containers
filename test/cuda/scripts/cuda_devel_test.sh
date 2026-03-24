@@ -3,7 +3,7 @@ set -euo pipefail
 
 # CUDA devel sanity checks
 # Usage: cuda_devel_test.sh <cuda_version>
-# Example: cuda_devel_test.sh 12.8
+# Example: cuda_devel_test.sh 12.9
 
 CUDA_VERSION="${1:?Usage: cuda_devel_test.sh <cuda_version>}"
 FAILED=0
