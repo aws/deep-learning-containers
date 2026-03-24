@@ -16,4 +16,5 @@ dependencies = [
     "scipy==1.17.1",
     "setuptools==82.0.1",
     "urllib3==2.6.3",
+    "pytest==8.4.1",
 ]
