@@ -683,6 +683,10 @@ IGNORE_SAFETY_IDS = {
                 "71691",  # CVE-2024-37059
                 "71693",  # CVE-2024-37055
                 "71692",  # CVE-2024-37057
+                # torch DoS via torch.mkldnn_max_pool2d (CVE-2025-2953) - cannot upgrade torch in 2.7.0 container
+                "78828",
+                # torch DoS via torch.nn.functional.ctc_loss (CVE-2025-3730, disputed) - cannot upgrade torch in 2.7.0 container
+                "76769",
             ],
         },
         "training-neuron": {
