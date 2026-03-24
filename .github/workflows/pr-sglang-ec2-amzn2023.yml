@@ -122,6 +122,7 @@ jobs:
               - "scripts/telemetry/**"
               - ".github/config/sglang-ec2-amzn2023.yml"
               - ".github/config/sglang-model-tests.yml"
+              - "test/sglang/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

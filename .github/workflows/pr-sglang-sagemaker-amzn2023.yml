@@ -124,6 +124,8 @@ jobs:
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - ".github/config/sglang-sagemaker-amzn2023.yml"
+              - ".github/config/sglang-model-tests.yml"
+              - "test/sglang/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
