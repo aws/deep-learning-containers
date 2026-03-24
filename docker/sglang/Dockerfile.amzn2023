@@ -1,7 +1,7 @@
 ARG CUDA_VERSION=12.9.1
 
 # =============================================================================
-# Builder stage: compile sglang and all native dependencies from source
+# STAGE 0: builder — compile sglang and all native dependencies from source
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
 
@@ -137,7 +137,7 @@ RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERS
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION}
 
 # =============================================================================
-# Runtime stage: minimal production image
+# STAGE 1: runtime — minimal production image with DLC overlay
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 
@@ -231,10 +231,10 @@ COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
 # DeepEP IBGDA symlink
 RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 
-# DLC dependencies
+# Install DLC Python dependencies
 RUN uv pip install --system --no-cache botocore
 
-# CVE patches
+# Patch CVEs
 RUN uv pip install --system --no-cache \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
@@ -288,36 +288,30 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
-# =============================================================================
-# SageMaker target
-# =============================================================================
-FROM runtime AS sglang-sagemaker
+# ====================== ec2 =========================================
+FROM runtime AS sglang-ec2
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
-# dnf upgrade can reset python3 alternatives back to system 3.9
-RUN alternatives --set python3 /usr/bin/python3.12 \
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && alternatives --set python3 /usr/bin/python3.12 \
   && ln -sf /usr/bin/python3.12 /usr/bin/python
-RUN rm -rf /tmp/*
 
-COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
+COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]
 
-# =============================================================================
-# EC2 target
-# =============================================================================
-FROM runtime AS sglang-ec2
+# ====================== sagemaker =========================================
+FROM runtime AS sglang-sagemaker
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
-# dnf upgrade can reset python3 alternatives back to system 3.9
-RUN alternatives --set python3 /usr/bin/python3.12 \
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && alternatives --set python3 /usr/bin/python3.12 \
   && ln -sf /usr/bin/python3.12 /usr/bin/python
-RUN rm -rf /tmp/*
 
-COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
+COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]
