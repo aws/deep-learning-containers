@@ -8,7 +8,6 @@ REQUIRED_PACKAGES = [
     "awslambdaric",
     "boto3",
     "requests",
-    "pip_licenses",
 ]
 
 
