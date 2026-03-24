@@ -75,7 +75,7 @@ COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH" \
   UV_PROJECT_ENVIRONMENT="/var/lang"
-RUN uv venv /var/lang --python /var/lang/bin/python3.13
+RUN uv venv /var/lang --python /var/lang/bin/python3.13 --allow-existing
 COPY ./docker/lambda/base/pyproject.toml ./docker/lambda/base/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -94,7 +94,7 @@ COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH" \
   UV_PROJECT_ENVIRONMENT="/var/lang"
-RUN uv venv /var/lang --python /var/lang/bin/python3.13
+RUN uv venv /var/lang --python /var/lang/bin/python3.13 --allow-existing
 COPY ./docker/lambda/cupy/pyproject.toml ./docker/lambda/cupy/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -113,7 +113,7 @@ COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH" \
   UV_PROJECT_ENVIRONMENT="/var/lang"
-RUN uv venv /var/lang --python /var/lang/bin/python3.13
+RUN uv venv /var/lang --python /var/lang/bin/python3.13 --allow-existing
 COPY ./docker/lambda/pytorch/pyproject.toml ./docker/lambda/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv \
