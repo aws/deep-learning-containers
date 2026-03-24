@@ -168,3 +168,35 @@ release_images:
       force_release: False
       public_registry: True
       enable_soci: True
+
+  # PyTorch 2.10 Images
+  12:
+    framework: "pytorch"
+    version: "2.10.0"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: [ "py313" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu130"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+  13:
+    framework: "pytorch"
+    version: "2.10.0"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: [ "py313" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu130"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
