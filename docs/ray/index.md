@@ -28,8 +28,7 @@ Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ra
     docker pull {{ images.latest_ray_sagemaker_cpu }}
     ```
 
-!!! note
-    See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
+See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
 
 ## Packages
 
