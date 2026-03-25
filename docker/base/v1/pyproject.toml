@@ -1,0 +1,7 @@
+[project]
+name = "dlc-base-v1"
+version = "1.0.0"
+requires-python = "==3.13.*"
+dependencies = [
+    "requests",
+]
