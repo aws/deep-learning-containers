@@ -227,15 +227,12 @@ jobs:
           pip install .[test]
 
       - name: Run integration tests
+        env:
+          CI_IMAGE_URI: ${{ needs.build-image.outputs.ci-image }}
         run: |
-          CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
-          REGISTRY="${CI_IMAGE_URI%%/*}"
-          IMAGE_TAG="${CI_IMAGE_URI##*:}"
-          IMAGE_NAME="${CI_IMAGE_URI#*/}"
-          IMAGE_NAME="${IMAGE_NAME%%:*}"
           cd /tmp/xgboost-container
           pytest test/integration/local \
-            --docker-base-name "${REGISTRY}/${IMAGE_NAME}" \
-            --tag "${IMAGE_TAG}" \
+            --docker-base-name "${CI_IMAGE_URI%:*}" \
+            --tag "${CI_IMAGE_URI##*:}" \
             --py-version 3 \
             --framework-version ${FRAMEWORK_VERSION}
