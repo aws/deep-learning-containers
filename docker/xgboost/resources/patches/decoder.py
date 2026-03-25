@@ -12,31 +12,31 @@
 # language governing permissions and limitations under the License.
 """This module contains functionality for converting various types of
 files and objects to NumPy arrays."""
+
 from __future__ import absolute_import
 
 import json
 
 import numpy as np
 import scipy.sparse
-from six import BytesIO, StringIO
-
 from sagemaker_inference import content_types, errors
+from six import BytesIO, StringIO
 
 
 def _json_to_numpy(string_like, dtype=None):  # type: (str) -> np.array
     """Convert a JSON object to a numpy array.
 
-        Args:
-            string_like (str): JSON string.
-            dtype (dtype, optional):  Data type of the resulting array.
-                If None, the dtypes will be determined by the contents
-                of each column, individually. This argument can only be
-                used to 'upcast' the array.  For downcasting, use the
-                .astype(t) method.
+    Args:
+        string_like (str): JSON string.
+        dtype (dtype, optional):  Data type of the resulting array.
+            If None, the dtypes will be determined by the contents
+            of each column, individually. This argument can only be
+            used to 'upcast' the array.  For downcasting, use the
+            .astype(t) method.
 
-        Returns:
-            (np.array): numpy array
-        """
+    Returns:
+        (np.array): numpy array
+    """
     data = json.loads(string_like)
     return np.array(data, dtype=dtype)
 
@@ -46,61 +46,65 @@ def _csv_to_numpy(string_like, dtype=None):  # type: (str) -> np.array
 
     Args:
         string_like (str): CSV string.
-        dtype (dtype, optional):  Data type of the resulting array. If None,
-            the dtypes will be determined by the contents of each column,
-            individually. This argument can only be used to 'upcast' the array.
-            For downcasting, use the .astype(t) method.
+        dtype (dtype, optional):  Data type of the resulting array.
+            If None, the dtypes will be determined by the contents
+            of each column, individually. This argument can only be
+            used to 'upcast' the array.  For downcasting, use the
+            .astype(t) method.
 
     Returns:
         (np.array): numpy array
     """
-    stream = StringIO(string_like)
-    return np.genfromtxt(stream, dtype=dtype, delimiter=",")
+    try:
+        stream = StringIO(string_like)
+        return np.genfromtxt(stream, dtype=dtype, delimiter=",")
+    except ValueError:
+        raise errors.UnsupportedFormatError(content_types.CSV)
 
 
-def _npy_to_numpy(npy_array):  # type: (object) -> np.array
-    """Convert a NPY array into numpy.
+def _npy_to_numpy(string_like, dtype=None):  # type: (str) -> np.array
+    """Convert a NPY array to numpy.
 
     Args:
-        npy_array (npy array): to be converted to numpy array
+        string_like (obj): npy string.
 
     Returns:
-        (np.array): converted numpy array.
+        (np.array): numpy array
     """
-    stream = BytesIO(npy_array)
+    stream = BytesIO(string_like)
     return np.load(stream, allow_pickle=False)
 
 
-def _npz_to_sparse(npz_bytes):  # type: (object) -> scipy.sparse.spmatrix
-    """Convert .npz-formatted data to a sparse matrix.
+def _npz_to_sparse(string_like):
+    """Convert a NPZ array to a scipy sparse matrix.
 
     Args:
-        npz_bytes (object): Bytes encoding a sparse matrix in the .npz format.
+        string_like (obj): npz bytes.
 
     Returns:
-        (scipy.sparse.spmatrix): A sparse matrix.
+        (scipy.sparse.csr_matrix): scipy sparse matrix
     """
-    buffer = BytesIO(npz_bytes)
-    return scipy.sparse.load_npz(buffer)
+    stream = BytesIO(string_like)
+    return scipy.sparse.load_npz(stream)
 
 
 _decoder_map = {
-    content_types.NPY: _npy_to_numpy,
-    content_types.CSV: _csv_to_numpy,
     content_types.JSON: _json_to_numpy,
+    content_types.CSV: _csv_to_numpy,
+    content_types.NPY: _npy_to_numpy,
     content_types.NPZ: _npz_to_sparse,
 }
 
 
 def decode(obj, content_type):
-    """Decode an object that is encoded as one of the default content types.
+    """Decode an object ton a one of the default content types to a numpy array.
 
     Args:
         obj (object): to be decoded.
         content_type (str): content type to be used.
 
     Returns:
-        object: decoded object for prediction.
+        np.array: decoded object.
     """
     try:
         decoder = _decoder_map[content_type]
