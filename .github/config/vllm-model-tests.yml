@@ -56,7 +56,9 @@ benchmark:
     - name: "qwen3.5-35b-a3b-fp8"
       s3_path: "{s3_prefix}/qwen3.5-35b-a3b-fp8.tar.gz"
       fleet: "x86-g6exl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096"
+      # https://github.com/vllm-project/vllm/issues/35743 open bug for capturing CUDA graph fails
+      # workaround with --enforce-eager
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --enforce-eager"
       input_len: 512
       output_len: 128
       num_prompts: 64
