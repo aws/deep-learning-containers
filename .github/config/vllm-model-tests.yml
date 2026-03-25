@@ -50,10 +50,10 @@ benchmark:
       min_throughput: 200
       min_rps: 0.70
 
-  runner-scale-sets:
-    - name: "qwen3-32b"
-      s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
-      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --gpu-memory-utilization 0.85"
+    - name: "qwen3-coder-next-fp8"
+      s3_path: "s3://dlc-cicd-models/llm-models/qwen3-coder-next-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
       input_len: 512
       output_len: 256
       num_prompts: 32
@@ -61,8 +61,9 @@ benchmark:
       min_throughput: 150
       min_rps: 1
 
-    - name: "qwen3-coder-next-fp8"
-      s3_path: "s3://dlc-cicd-models/llm-models/qwen3-coder-next-fp8.tar.gz"
+  runner-scale-sets:
+    - name: "qwen3-32b"
+      s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
       extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --gpu-memory-utilization 0.85"
       input_len: 512
       output_len: 256
