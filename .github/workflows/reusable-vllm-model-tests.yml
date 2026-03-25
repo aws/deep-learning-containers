@@ -39,7 +39,7 @@ jobs:
           st = cfg.get('smoke-test', {})
           prefix = cfg.get('s3_prefix', '')
           for m in st.get('codebuild-fleet', []) + st.get('runner-scale-sets', []):
-              m['s3_path'] = m['s3_path'].replace('{s3_prefix}', prefix)
+              m['s3_path'] = prefix + '/' + m.pop('s3_model')
           print('codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
           print('runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
           " > parsed.txt
