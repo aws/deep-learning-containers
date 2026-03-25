@@ -53,6 +53,17 @@ benchmark:
       min_throughput: 400
       min_rps: 0.35
 
+    - name: "glm-4.7-flash"
+      s3_path: "{s3_prefix}/glm-4.7-flash.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 100
+      min_rps: 1
+
     - name: "qwen3.5-35b-a3b-fp8"
       s3_path: "{s3_prefix}/qwen3.5-35b-a3b-fp8.tar.gz"
       fleet: "x86-g6exl-runner"
