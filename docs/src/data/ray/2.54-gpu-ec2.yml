@@ -13,7 +13,6 @@ tags:
 announcements:
   - "Introduced Ray Serve 2.54 GPU containers for EC2, ECS, EKS"
   - "Built on Amazon Linux 2023 with Python 3.13"
-  - "FFmpeg 8.0.1 with NVENC/NVDEC GPU acceleration"
 
 packages:
   ray: "2.54.0"

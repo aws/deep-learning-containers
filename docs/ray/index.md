@@ -4,7 +4,7 @@ Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ra
 
 ## Pull Commands
 
-=== "EC2 / EKS / ECS"
+=== "EC2"
 
     ```bash
     docker pull {{ images.latest_ray_ec2_gpu }}
