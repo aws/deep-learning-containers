@@ -4,7 +4,7 @@
 #
 #   sqlite-builder ─── (compiles SQLite from source)
 #   wheel-builder ──── (builds sagemaker_xgboost_container wheel)
-#   base ──────────── (conda, MLIO, XGBoost, system deps, telemetry)
+#   base ──────────── (conda, MLIO, XGBoost, system deps)
 #   xgboost-sagemaker  (SageMaker serving layer on top of base)
 #
 # Build targets:
@@ -190,26 +190,6 @@ FROM base AS xgboost-sagemaker
 
 ARG SAGEMAKER_XGBOOST_VERSION
 ARG PYTHON_VERSION
-ARG FRAMEWORK
-ARG FRAMEWORK_VERSION
-ARG CONTAINER_TYPE
-
-# Telemetry
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
-    && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-       -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
-       -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
-       /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
-    && chmod +x /usr/local/bin/bash_telemetry.sh \
-    && rm /tmp/bash_telemetry.sh.template \
-    && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
-    && bash setup_oss_compliance.sh python3 && rm setup_oss_compliance.sh \
-    && rm -rf /root/oss_compliance* \
-    && rm -rf /tmp/tmp* \
-    && rm -rf /var/lib/apt/lists/*
 
 # Install smdebug
 RUN python3 -m pip install git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32
