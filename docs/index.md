@@ -11,7 +11,7 @@ hide:
 Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Containers provide optimized environments for training and serving models on
 Amazon SageMaker AI, Amazon EKS, and Amazon EC2 — with the latest frameworks, security patches, and AWS integrations built in.
 
-[Browse on ECR Public Gallery](https://gallery.ecr.aws/?searchTerm=deep+learning+containers) · [Get Started →](get_started/)
+[Get Started →](get_started/)
 
 * * *
 
