@@ -44,12 +44,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ── Stage: wheel-builder ───────────────────────────────────────────────────
 # Builds the sagemaker_xgboost_container wheel inside Docker so the build is
 # self-contained and does not depend on host-side `python3 setup.py bdist_wheel`.
+# Clones the source from GitHub since this DLC repo does not contain the
+# sagemaker-xgboost-container package source.
 FROM ubuntu:${UBUNTU_VERSION} AS wheel-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        python3 python3-pip python3-setuptools python3-wheel && \
+        python3 python3-pip python3-setuptools python3-wheel git ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
-COPY setup.py setup.cfg README.rst requirements.txt MANIFEST.in /build/
-COPY src/ /build/src/
+RUN git clone --depth 1 https://github.com/aws/sagemaker-xgboost-container.git /build
 WORKDIR /build
 RUN python3 setup.py bdist_wheel --universal
 
