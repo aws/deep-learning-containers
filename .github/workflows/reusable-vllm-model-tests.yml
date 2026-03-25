@@ -109,7 +109,7 @@ jobs:
 
   test-model-runner-scale-sets:
     name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
+    if: ${{ needs.load-models.outputs.runner-scale-sets-matrix != '[]' }}
     needs: [load-models]
     strategy:
       fail-fast: false
