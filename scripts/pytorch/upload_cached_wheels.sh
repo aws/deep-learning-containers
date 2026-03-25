@@ -32,8 +32,10 @@ for spec in "$@"; do
     continue
   fi
 
-  FNAME=$(basename "${WHL}")
-  S3_KEY="wheels/${CUDA}/${PKG_UNDER}/${FNAME}"
+  # Embed CUDA version in wheel filename: pkg-ver-cpXY-cpXY-plat.whl → pkg-ver-cuXYZ-cpXY-cpXY-plat.whl
+  ORIG_FNAME=$(basename "${WHL}")
+  FNAME="${ORIG_FNAME/-cp/-${CUDA}-cp}"
+  S3_KEY="wheels/${PKG_UNDER}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
     echo "✅ Already cached: ${S3_KEY}"
