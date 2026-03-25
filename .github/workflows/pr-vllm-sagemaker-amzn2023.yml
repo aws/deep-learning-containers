@@ -115,15 +115,15 @@ jobs:
         id: changes
         uses: dorny/paths-filter@v3
         with:
+        # - "scripts/vllm/amzn2023/**"
+        # - ".github/config/vllm-sagemaker-amzn2023.yml"
           filters: |
             build-change:
               - "docker/vllm/Dockerfile.amzn2023"
-              - "scripts/vllm/amzn2023/**"
               - "scripts/vllm/dockerd_entrypoint.sh"
               - "scripts/vllm/sagemaker_entrypoint.sh"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/config/vllm-sagemaker-amzn2023.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
