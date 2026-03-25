@@ -77,7 +77,7 @@ jobs:
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rm -rf "${SUBDIRS[0]}"
+            rmdir "${SUBDIRS[0]}"
           fi
 
       - name: Start container
@@ -136,7 +136,7 @@ jobs:
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rm -rf "${SUBDIRS[0]}"
+            rmdir "${SUBDIRS[0]}"
           fi
 
       - name: Start container
