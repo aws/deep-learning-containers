@@ -17,6 +17,7 @@ permissions:
 env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/sagemaker-xgboost.yml"
+  XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
 
 jobs:
   gatekeeper:
@@ -165,8 +166,11 @@ jobs:
       group: ${{ github.workflow }}-unit-tests-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
-      - name: Checkout code
+      - name: Checkout DLC source
         uses: actions/checkout@v5
+
+      - name: Clone sagemaker-xgboost-container (tests + source)
+        run: git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-container
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -178,6 +182,7 @@ jobs:
       - name: Build test image
         run: |
           CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
+          cd /tmp/xgboost-container
           printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
           docker build -t test-xgboost -f Dockerfile.test .
 
@@ -203,8 +208,11 @@ jobs:
     env:
       FRAMEWORK_VERSION: ${{ needs.load-config.outputs.framework-version }}
     steps:
-      - name: Checkout code
+      - name: Checkout DLC source
         uses: actions/checkout@v5
+
+      - name: Clone sagemaker-xgboost-container (tests + source)
+        run: git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-container
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -220,13 +228,12 @@ jobs:
 
       - name: Setup test environment
         run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test-requirements.txt
+          cd /tmp/xgboost-container
+          pip install .[test]
 
       - name: Run integration tests
         run: |
-          source .venv/bin/activate
+          cd /tmp/xgboost-container
           pytest test/integration/local \
             --docker-base-name preprod-xgboost-container \
             --tag ${FRAMEWORK_VERSION}-cpu-py3 \
