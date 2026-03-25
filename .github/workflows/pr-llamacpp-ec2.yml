@@ -120,6 +120,7 @@ jobs:
               - ".github/config/llamacpp-ec2.yml"
             sanity-test-change:
               - "test/sanity/**"
+              - "test/llamacpp/**"
             telemetry-test-change:
               - "test/telemetry/**"
 
@@ -184,6 +185,38 @@ jobs:
       device-type: ${{ needs.load-config.outputs.device-type }}
       contributor: ${{ needs.load-config.outputs.contributor }}
       container-type: ${{ needs.load-config.outputs.container-type }}
+
+  llamacpp-sanity-test:
+    needs: [check-changes, build-image, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-llamacpp-sanity-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+
+      - name: Run llamacpp sanity tests
+        env:
+          IMAGE: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+        run: |
+          docker run --rm --gpus all \
+            -v $(pwd)/test/llamacpp:/tests \
+            --entrypoint python3 ${IMAGE} \
+            /tests/sanity/test_sanity.py
 
   security-test:
     needs: [build-image, load-config]

@@ -6,14 +6,14 @@ ARG CUDA_VERSION=12.9.1
 FROM alpine/git AS source
 
 ARG LLAMA_CPP_REPO=https://github.com/ggml-org/llama.cpp.git
-ARG LLAMA_CPP_VERSION
+ARG FRAMEWORK_VERSION
 
-RUN test -n "${LLAMA_CPP_VERSION}" || { echo "LLAMA_CPP_VERSION is required"; exit 1; } \
-  && git clone --depth 1 --branch "${LLAMA_CPP_VERSION}" ${LLAMA_CPP_REPO} /src
+RUN test -n "${FRAMEWORK_VERSION}" || { echo "FRAMEWORK_VERSION is required"; exit 1; } \
+  && git clone --depth 1 --branch "${FRAMEWORK_VERSION}" ${LLAMA_CPP_REPO} /src
 
 # Generate source manifest
 RUN echo "llama.cpp AL2023 Image Source Manifest" >/src/SOURCE_MANIFEST \
-  && echo "Base: ${LLAMA_CPP_REPO} @ ${LLAMA_CPP_VERSION}" >>/src/SOURCE_MANIFEST \
+  && echo "Base: ${LLAMA_CPP_REPO} @ ${FRAMEWORK_VERSION}" >>/src/SOURCE_MANIFEST \
   && echo "HEAD: $(cd /src && git rev-parse HEAD)" >>/src/SOURCE_MANIFEST \
   && echo "Built: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >>/src/SOURCE_MANIFEST
 
