@@ -36,8 +36,12 @@ jobs:
           import yaml, json
           with open('.github/config/vllm-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
-          print('codebuild-fleet=' + json.dumps(cfg.get('codebuild-fleet', [])))
-          print('runner-scale-sets=' + json.dumps(cfg.get('runner-scale-sets', [])))
+          st = cfg.get('smoke-test', {})
+          prefix = cfg.get('s3_prefix', '')
+          for m in st.get('codebuild-fleet', []) + st.get('runner-scale-sets', []):
+              m['s3_path'] = prefix + '/' + m.pop('s3_model')
+          print('codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
+          print('runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
           " > parsed.txt
           grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
           grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
@@ -89,7 +93,7 @@ jobs:
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp scripts/vllm/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
 
       - name: Run model smoke test
         run: |
@@ -152,7 +156,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp scripts/vllm/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
           rm -rf /dlc-models
 
       - name: Run model smoke test

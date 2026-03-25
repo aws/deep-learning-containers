@@ -1,26 +1,169 @@
-# vLLM Model Smoke Test Configuration
-# Shared across all vLLM PR workflows
+# vLLM Model Test Configuration
+# Single config for all model-based test suites.
 #
-# codebuild-fleet: Runs on CodeBuild fleet runners (single GPU instances)
-# runner-scale-sets: Runs on self-hosted runner scale sets (multi-GPU instances)
+# smoke-test:  model serving + inference validation
+# benchmark:   throughput and latency with pass/fail thresholds
 #
-# extra_args: passed directly to vllm serve (includes --tensor-parallel-size)
+# Each section has codebuild-fleet and runner-scale-sets sub-keys.
+# Workflow parsers construct s3_path from s3_prefix + s3_model.
 
-codebuild-fleet:
-  - name: "gpt-oss-20b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
-    fleet: "x86-g6exl-runner"
-    extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+s3_prefix: "s3://dlc-cicd-models/llm-models"
 
-  - name: "llama-3.3-70b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
-    fleet: "x86-g6e12xl-runner"
-    extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+smoke-test:
+  codebuild-fleet:
+    - name: "qwen3.5-0.8b"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
-runner-scale-sets:
-  - name: "qwen3-32b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
-    extra_args: "--tensor-parallel-size 4 --max-model-len 8192"
+  runner-scale-sets: []
+
+benchmark:
+  codebuild-fleet:
+    - name: "gpt-oss-20b"
+      s3_model: "gpt-oss-20b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 6000
+      min_rps: 5
+
+    - name: "qwen3.5-9b"
+      s3_model: "gpt-oss-20b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 2000
+      min_rps: 1.5
+
+    - name: "llama-3.3-70b"
+      s3_model: "llama-3.3-70b.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 400
+      min_rps: 0.35
+
+    # https://github.com/vllm-project/vllm/issues/32637
+    # transformer version doesn't support this model
+    # https://github.com/vllm-project/vllm/issues/34098
+    # - name: "glm-4.7-flash"
+    #   s3_model: "glm-4.7-flash.tar.gz"
+    #   fleet: "x86-g6xl-runner"
+    #   extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+    #   input_len: 512
+    #   output_len: 128
+    #   num_prompts: 64
+    #   batch_size: 4
+    #   min_throughput: 100
+    #   min_rps: 1
+
+    - name: "qwen3.5-35b-a3b-fp8"
+      s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      # https://github.com/vllm-project/vllm/issues/35743 open bug for capturing CUDA graph fails
+      # workaround with --enforce-eager tp=1 fail while tp=4 success
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 400
+      min_rps: 0.35
+
+    - name: "qwen3.5-27b-fp8"
+      s3_model: "qwen3.5-27b-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 100
+      min_rps: 0.2
+
+    - name: "qwen3-coder-next-fp8"
+      s3_model: "qwen3-coder-next-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 256
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 280
+      min_rps: 0.25
+
+  runner-scale-sets:
+    - name: "qwen3-32b"
+      s3_model: "qwen3-32b.tar.gz"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --gpu-memory-utilization 0.85"
+      input_len: 512
+      output_len: 256
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 3400
+      min_rps: 3
+
+    - name: "gpt-oss-20b"
+      s3_model: "gpt-oss-20b.tar.gz"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 6000
+      min_rps: 5
+
+    - name: "qwen3.5-35b-a3b-fp8"
+      s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
+      # https://github.com/vllm-project/vllm/issues/35743 open bug for capturing CUDA graph fails
+      # workaround with --enforce-eager tp=1 fail while tp=4 success
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 400
+      min_rps: 0.35
+
+    - name: "qwen3.5-27b-fp8"
+      s3_model: "qwen3.5-27b-fp8.tar.gz"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 100
+      min_rps: 0.2
+
+    - name: "qwen3-coder-next-fp8"
+      s3_model: "qwen3-coder-next-fp8.tar.gz"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 256
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 280
+      min_rps: 0.25
+
+    - name: "llama-3.3-70b"
+      s3_model: "llama-3.3-70b.tar.gz"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 400
+      min_rps: 0.35
 
 # upstream
 # facebook/opt-125m
