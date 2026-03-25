@@ -78,7 +78,15 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip \
   && dnf clean all && rm -rf /var/cache/dnf
 
-RUN pip${PYTHON_VERSION} install --no-cache-dir botocore
+# Set Python 3.12 as default, preserve dnf's system python
+RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
+  && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
+  && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
+  && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf \
+  && python3 -m ensurepip --upgrade \
+  && python3 -m pip install --upgrade pip
+
+RUN pip install --no-cache-dir botocore
 
 # Copy telemetry scripts + template substitution
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -90,8 +98,6 @@ ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
-  && ln -sf $(which python${PYTHON_VERSION}) /usr/bin/python \
-  && ln -sf $(which python${PYTHON_VERSION}) /usr/bin/python3 \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
