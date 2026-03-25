@@ -221,7 +221,7 @@ jobs:
       framework-version: ${{ needs.load-config.outputs.framework-version }}
       container-type: ${{ needs.load-config.outputs.container-type }}
 
-  model-tests:
+  model-test:
     needs: [build-image, load-config]
     if: success()
     concurrency:
