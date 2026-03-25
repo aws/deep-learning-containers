@@ -52,10 +52,15 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-ins
 # transformer-engine requires torch + cudnn.h at build time; point it to the
 # cudnn headers shipped inside the nvidia-cudnn pip package.
 ARG TRANSFORMER_ENGINE_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv \
-  export CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
-  export CUDNN_PATH="$CUDNN_HOME" && \
-  uv pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
+RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
+  echo "CUDNN_HOME=$CUDNN_HOME" && \
+  ls -la ${CUDNN_HOME}/include/ && \
+  cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ && \
+  cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ && \
+  ls -la /usr/local/cuda/include/cudnn.h && \
+  ldconfig && \
+  export CUDNN_HOME CUDNN_PATH="$CUDNN_HOME" && \
+  pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
 
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
