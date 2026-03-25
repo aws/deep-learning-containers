@@ -90,6 +90,8 @@ ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && ln -sf $(which python${PYTHON_VERSION}) /usr/bin/python \
+  && ln -sf $(which python${PYTHON_VERSION}) /usr/bin/python3 \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -99,7 +101,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
-  && ln -sf $(which python${PYTHON_VERSION}) /usr/bin/python \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
   && rm -rf /var/cache/dnf \
