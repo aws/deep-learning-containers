@@ -117,35 +117,9 @@ jobs:
               - "docker/xgboost/**"
               - ".github/config/sagemaker-xgboost.yml"
 
-  resolve-image:
-    needs: [check-changes, load-config]
-    if: success()
-    runs-on: ubuntu-latest
-    outputs:
-      image-uri: ${{ steps.resolve.outputs.image-uri }}
-      image-exists: ${{ steps.resolve.outputs.image-exists }}
-    steps:
-      - name: Check if CI image exists in ECR
-        id: resolve
-        run: |
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${{ needs.load-config.outputs.ci-tag }}"
-          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
-
-          # Check if image already exists
-          if aws ecr describe-images \
-            --repository-name ci \
-            --image-ids imageTag="${{ needs.load-config.outputs.ci-tag }}" \
-            --region ${{ vars.AWS_REGION }} 2>/dev/null; then
-            echo "image-exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "image-exists=false" >> $GITHUB_OUTPUT
-          fi
-
   build-image:
-    needs: [check-changes, load-config, resolve-image]
-    if: |
-      needs.check-changes.outputs.build-change == 'true' &&
-      needs.resolve-image.outputs.image-exists != 'true'
+    needs: [check-changes, load-config]
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
@@ -181,10 +155,8 @@ jobs:
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
   unit-tests:
-    needs: [build-image, resolve-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.build-image.result == 'success' || needs.resolve-image.outputs.image-exists == 'true')
+    needs: [build-image, load-config]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -201,11 +173,11 @@ jobs:
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.resolve-image.outputs.image-uri }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
 
       - name: Build test image
         run: |
-          CI_IMAGE_URI="${{ needs.resolve-image.outputs.image-uri }}"
+          CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
           printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
           docker build -t test-xgboost -f Dockerfile.test .
 
@@ -219,10 +191,8 @@ jobs:
           docker run --rm test-xgboost sh -c 'flake8 setup.py src test'
 
   integration-tests:
-    needs: [build-image, resolve-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.build-image.result == 'success' || needs.resolve-image.outputs.image-exists == 'true')
+    needs: [build-image, load-config]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -241,11 +211,11 @@ jobs:
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.resolve-image.outputs.image-uri }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
 
       - name: Tag CI image for local tests
         run: |
-          docker tag ${{ needs.resolve-image.outputs.image-uri }} \
+          docker tag ${{ needs.build-image.outputs.ci-image }} \
             preprod-xgboost-container:${FRAMEWORK_VERSION}-cpu-py3
 
       - name: Setup test environment
