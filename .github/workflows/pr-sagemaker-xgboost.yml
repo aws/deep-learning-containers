@@ -144,3 +144,83 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
+
+  unit-tests:
+    needs: [build-image, load-config]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-unit-tests-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
+
+      - name: Build test image
+        run: |
+          CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
+          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
+          docker build -t test-xgboost -f Dockerfile.test .
+
+      - name: Run unit tests
+        run: |
+          docker run --rm test-xgboost sh -c \
+            'pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit'
+
+      - name: Run flake8
+        run: |
+          docker run --rm test-xgboost sh -c 'flake8 setup.py src test'
+
+  integration-tests:
+    needs: [build-image, load-config]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-integration-tests-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    env:
+      FRAMEWORK_VERSION: ${{ needs.load-config.outputs.framework-version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
+
+      - name: Tag CI image for local tests
+        run: |
+          docker pull ${{ needs.build-image.outputs.ci-image }}
+          docker tag ${{ needs.build-image.outputs.ci-image }} \
+            preprod-xgboost-container:${FRAMEWORK_VERSION}-cpu-py3
+
+      - name: Setup test environment
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test-requirements.txt
+
+      - name: Run integration tests
+        run: |
+          source .venv/bin/activate
+          pytest test/integration/local \
+            --docker-base-name preprod-xgboost-container \
+            --tag ${FRAMEWORK_VERSION}-cpu-py3 \
+            --py-version 3 \
+            --framework-version ${FRAMEWORK_VERSION}
