@@ -53,11 +53,10 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-ins
 # cudnn headers shipped inside the nvidia-cudnn pip package.
 ARG TRANSFORMER_ENGINE_VERSION
 RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
-  echo "CUDNN_HOME=$CUDNN_HOME" && \
-  ls -la ${CUDNN_HOME}/include/ && \
+  NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
   cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ && \
+  cp ${NCCL_HOME}/include/*.h /usr/local/cuda/include/ && \
   cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ && \
-  ls -la /usr/local/cuda/include/cudnn.h && \
   ldconfig && \
   export CUDNN_HOME CUDNN_PATH="$CUDNN_HOME" && \
   pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
@@ -141,9 +140,10 @@ COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 
 # GDRCopy userspace lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
-# The cuda-runtime base image ships libcudart.so.12 but not the unversioned
-# symlink; NCCL OFI plugin dlopen()s "libcudart.so" and fails without it.
-RUN ln -sf /usr/local/cuda/lib64/libcudart.so.12 /usr/local/cuda/lib64/libcudart.so \
+# The cuda-runtime base image ships the versioned libcudart but not the
+# unversioned symlink; NCCL OFI plugin dlopen()s "libcudart.so" and fails without it.
+RUN CUDART=$(ls /usr/local/cuda/lib64/libcudart.so.* | head -1) \
+  && ln -sf "$CUDART" /usr/local/cuda/lib64/libcudart.so \
   && ldconfig
 
 # EFA + OpenMPI
