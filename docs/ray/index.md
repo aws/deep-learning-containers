@@ -44,12 +44,11 @@ See [Support Policy](../reference/support_policy.md) for the full lifecycle poli
 
 ## Examples
 
-### Image Classification on EC2
+### EC2 Deployment
 
-Pull the GPU image, mount a model directory, and send an image for classification:
+Start the container with a model tarball extracted to a local directory and mounted at `/opt/ml/model`. The entrypoint auto-detects `config.yaml` in the model directory, or you can pass an explicit path or `module:app` import as a CLI argument.
 
 ```bash
-# Run the container with a model mounted at /opt/ml/model
 docker run -d --gpus all \
   --shm-size=2g \
   -p 8000:8000 \
@@ -59,27 +58,79 @@ docker run -d --gpus all \
 
 # Wait for Ray Serve to become healthy
 until curl -s http://localhost:8000/-/healthz | grep -q "OK"; do sleep 5; done
-
-# Send an image for classification
-curl -X POST http://localhost:8000/ \
-  -H "Content-Type: image/jpeg" \
-  --data-binary @image.jpg
 ```
 
-Response:
+For CPU models, use the CPU image and omit `--gpus all`:
+
+```bash
+docker run -d \
+  --shm-size=2g \
+  -p 8000:8000 \
+  -v /path/to/model:/opt/ml/model \
+  -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
+  {{ images.latest_ray_ec2_cpu }}
+```
+
+#### Sentiment Analysis (NLP)
+
+Send text for DistilBERT sentiment classification:
+
+```bash
+curl -X POST http://localhost:8000/ \
+  -H "Content-Type: application/json" \
+  -d '{"text": "This product is absolutely amazing!"}'
+```
+
+```json
+{
+  "predictions": [
+    {"label": "POSITIVE", "score": 0.9987}
+  ]
+}
+```
+
+#### Image Classification (CV)
+
+Send a JPEG image for DenseNet-121 top-5 classification:
+
+```bash
+curl -X POST http://localhost:8000/ \
+  -H "Content-Type: image/jpeg" \
+  --data-binary @kitten.jpg
+```
 
 ```json
 {
   "predictions": [
     {"class_id": 281, "class_name": "tabby", "probability": 0.5312},
-    {"class_id": 282, "class_name": "tiger_cat", "probability": 0.2198}
+    {"class_id": 282, "class_name": "tiger_cat", "probability": 0.2198},
+    {"class_id": 285, "class_name": "Egyptian_cat", "probability": 0.1065},
+    {"class_id": 287, "class_name": "lynx", "probability": 0.0742},
+    {"class_id": 283, "class_name": "Persian_cat", "probability": 0.0391}
   ]
 }
 ```
 
-### Tabular Inference on EC2
+#### Audio Transcription
 
-Deploy an Iris classification model and send JSON feature vectors:
+Send a WAV file for Wav2Vec2 speech-to-text (uses FFmpeg backend with GPU-accelerated decoding on GPU images):
+
+```bash
+curl -X POST http://localhost:8000/ \
+  -H "Content-Type: audio/wav" \
+  --data-binary @audio.wav
+```
+
+```json
+{
+  "transcription": "HELLO WORLD",
+  "audio_backend": "ffmpeg"
+}
+```
+
+#### Tabular Classification
+
+Send feature vectors for Iris species classification. Pass the config path explicitly as a CLI argument:
 
 ```bash
 docker run -d \
@@ -89,59 +140,99 @@ docker run -d \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
   {{ images.latest_ray_ec2_cpu }} \
   /opt/ml/model/config.yaml
+```
 
-# Wait for health check
-until curl -s http://localhost:8000/-/healthz | grep -q "OK"; do sleep 5; done
-
-# Send a prediction request
+```bash
 curl -X POST http://localhost:8000/ \
   -H "Content-Type: application/json" \
   -d '{"features": [5.1, 3.5, 1.4, 0.2]}'
 ```
 
-Response:
-
 ```json
 {
   "prediction": "setosa",
-  "confidence": 0.9847
+  "confidence": 0.9847,
+  "probabilities": {"setosa": 0.9847, "versicolor": 0.0112, "virginica": 0.0041}
 }
 ```
 
-### SageMaker Endpoint Deployment
+### SageMaker Deployment
 
-Deploy a Ray Serve model to a SageMaker real-time endpoint using the SageMaker Python SDK:
+Deploy a model to a SageMaker real-time endpoint using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/). Package your model as a `model.tar.gz` containing a `config.yaml` and model artifacts, upload to S3, then deploy:
 
 ```python
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
-from sagemaker.serializers import IdentitySerializer
-
-image_uri = "{{ images.latest_ray_sagemaker_gpu }}"
-model_data = "s3://my-bucket/models/cv-densenet/model.tar.gz"
+from sagemaker.serializers import JSONSerializer, IdentitySerializer
 
 model = Model(
-    image_uri=image_uri,
-    role="arn:aws:iam::<account_id>:role/SageMakerExecutionRole",
-    model_data=model_data,
+    image_uri="{{ images.latest_ray_sagemaker_gpu }}",
+    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
+    model_data="s3://<BUCKET>/models/nlp-sentiment/model.tar.gz",
     predictor_cls=Predictor,
 )
 
 predictor = model.deploy(
     instance_type="ml.g5.xlarge",
     initial_instance_count=1,
-    endpoint_name="ray-serve-densenet",
+    endpoint_name="ray-serve-nlp",
+    serializer=JSONSerializer(),
+    wait=True,
+)
+```
+
+#### Sentiment Analysis
+
+```python
+response = predictor.predict({"text": "I love this so much, best purchase ever!"})
+# {"predictions": [{"label": "POSITIVE", "score": 0.9991}]}
+```
+
+#### Image Classification
+
+```python
+predictor.serializer = IdentitySerializer(content_type="image/jpeg")
+with open("kitten.jpg", "rb") as f:
+    response = predictor.predict(f.read())
+# {"predictions": [{"class_id": 281, "class_name": "tabby", "probability": 0.5312}, ...]}
+```
+
+#### Audio Transcription
+
+```python
+predictor.serializer = IdentitySerializer(content_type="audio/wav")
+with open("audio.wav", "rb") as f:
+    response = predictor.predict(f.read())
+# {"transcription": "HELLO WORLD", "audio_backend": "ffmpeg"}
+```
+
+#### Tabular Classification
+
+For models using `SM_RAYSERVE_APP` to specify the app import path:
+
+```python
+model = Model(
+    image_uri="{{ images.latest_ray_sagemaker_cpu }}",
+    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
+    model_data="s3://<BUCKET>/models/tabular-iris/model.tar.gz",
+    predictor_cls=Predictor,
+)
+
+predictor = model.deploy(
+    instance_type="ml.m5.xlarge",
+    initial_instance_count=1,
+    endpoint_name="ray-serve-tabular",
+    serializer=JSONSerializer(),
     wait=True,
 )
 
-# Send an image for inference
-predictor.serializer = IdentitySerializer(content_type="image/jpeg")
-with open("image.jpg", "rb") as f:
-    response = predictor.predict(f.read())
+response = predictor.predict({"features": [6.3, 3.3, 6.0, 2.5]})
+# {"prediction": "virginica", "confidence": 0.9723, "probabilities": {"setosa": 0.0031, ...}}
+```
 
-print(response)
+#### Cleanup
 
-# Clean up
+```python
 predictor.delete_endpoint()
 ```
 
