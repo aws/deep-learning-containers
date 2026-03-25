@@ -69,7 +69,8 @@ def main():
         "available_images_only": lambda: generate_available_images(args.dry_run),
         "clone_tutorials": lambda: clone_git_repository(TUTORIALS_REPO, TUTORIALS_DIR),
         "release_notes_only": lambda: generate_release_notes(args.dry_run),
-        "index_only": lambda: generate_index(args.dry_run),
+        # "index_only": commented out — homepage is now hand-authored in docs/index.md
+        # "index_only": lambda: generate_index(args.dry_run),
     }
 
     for flag, action in actions.items():
