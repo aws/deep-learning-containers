@@ -19,23 +19,23 @@ Amazon SageMaker AI, Amazon EKS, and Amazon EC2 — with the latest frameworks, 
 
 - **LLM**
 
-  * * *
+    ---
 
-  Serving · Supported Models
+    Serving · Supported Models
 
-  Serve large language models with vLLM, SGLang, and llama.cpp.
+    Serve large language models with vLLM, SGLang, and llama.cpp.
 
-  [Explore LLM →](frameworks/llm.md)
+    [Explore LLM →](frameworks/llm.md)
 
 - **ML**
 
-  * * *
+    ---
 
-  Training · Serving
+    Training · Serving
 
-  Train with PyTorch and serve with Ray Serve.
+    Train with PyTorch and serve with Ray Serve.
 
-  [Explore ML →](frameworks/ml.md)
+    [Explore ML →](frameworks/ml.md)
 
 </div>
 
