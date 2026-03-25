@@ -199,7 +199,7 @@ jobs:
       framework: pytorch
       framework-version: ""
       python-version: py312
-      cuda-version: cu128
+      cuda-version: cu130
       os-version: amzn2023
       arch-type: x86
       device-type: gpu

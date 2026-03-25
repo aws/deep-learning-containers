@@ -1,5 +1,5 @@
 # ============================================================================
-# PyTorch DLC — Amazon Linux 2023 (CUDA 12.9)
+# PyTorch DLC — Amazon Linux 2023 (CUDA 13.0)
 # Multi-stage build with parallel builder stages:
 #
 #   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
@@ -17,10 +17,10 @@
 # ── Global ARGs (available to all stages) ───────────────────────────────────
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
-ARG CUDA_VERSION=12.9.1
+ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG TORCH_VERSION=2.10.0
-ARG TRANSFORMER_ENGINE_VERSION=2.3.0
+ARG TORCH_VERSION=2.11.0
+ARG TRANSFORMER_ENGINE_VERSION=2.13.0
 ARG FLASH_ATTN_VERSION=2.8.3
 ARG GDRCOPY_VERSION=2.4.4
 ARG EFA_VERSION=1.47.0
@@ -50,7 +50,7 @@ WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
 # transformer-engine requires torch + cudnn.h at build time; point it to the
-# cudnn headers shipped inside the nvidia-cudnn-cu12 pip package.
+# cudnn headers shipped inside the nvidia-cudnn pip package.
 ARG TRANSFORMER_ENGINE_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv \
   export CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
