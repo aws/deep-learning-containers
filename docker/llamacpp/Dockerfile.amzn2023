@@ -22,7 +22,7 @@ RUN echo "llama.cpp AL2023 Image Source Manifest" >/src/SOURCE_MANIFEST \
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
 
-RUN dnf install -y --setopt=install_weak_deps=False cmake make gcc-c++ \
+RUN dnf install -y --setopt=install_weak_deps=False git cmake make gcc-c++ \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=source /src/ /tmp/llama.cpp/
