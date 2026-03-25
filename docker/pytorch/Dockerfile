@@ -17,7 +17,7 @@
 # ── Global ARGs (available to all stages) ───────────────────────────────────
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
-ARG CUDA_VERSION=13.0.2
+ARG CUDA_VERSION=13.2.0
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.11.0
 ARG TRANSFORMER_ENGINE_VERSION=2.13.0
@@ -140,6 +140,10 @@ COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 
 # GDRCopy userspace lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
+# cuBLAS from devel image — the runtime image ships a minimal cuBLAS missing
+# symbols required by the prebuilt transformer-engine cu13 wheel.
+COPY --from=builder-base /usr/local/cuda/lib64/libcublas*.so* /usr/local/cuda/lib64/
+COPY --from=builder-base /usr/local/cuda/lib64/libcublas*.so* /usr/local/cuda/targets/x86_64-linux/lib/
 # The cuda-runtime base image ships the versioned libcudart but not the
 # unversioned symlink; NCCL OFI plugin dlopen()s "libcudart.so" and fails without it.
 RUN CUDART=$(ls /usr/local/cuda/lib64/libcudart.so.* | head -1) \
