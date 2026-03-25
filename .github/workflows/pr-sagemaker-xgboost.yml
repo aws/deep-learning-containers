@@ -111,10 +111,7 @@ jobs:
   build-image:
     needs: [check-changes, load-config]
     if: needs.check-changes.outputs.build-change == 'true'
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
-        buildspec-override:true
+    runs-on: gpu-standard-runners
     concurrency:
       group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
