@@ -57,6 +57,10 @@ jobs:
         fleet:${{ matrix.fleet }}
         buildspec-override:true
     steps:
+      - name: Cleanup stale containers
+        run: |
+          docker rm -f $(docker ps -aq) || true
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -123,6 +127,10 @@ jobs:
         include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
     runs-on: gpu-efa-runners
     steps:
+      - name: Cleanup stale containers
+        run: |
+          docker rm -f $(docker ps -aq --filter "label=runner=${RUNNER_NAME}") 2>/dev/null || true
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -150,6 +158,7 @@ jobs:
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
+            --label "runner=${RUNNER_NAME}" \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 

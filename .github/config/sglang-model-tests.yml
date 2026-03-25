@@ -30,4 +30,4 @@ runner-scale-sets:
   - name: "qwen3-32b"
     s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
     test_type: "benchmark"
-    extra_args: "--tp 4 --context-length 8192 --trust-remote-code"
+    extra_args: "--tp 8 --context-length 8192 --trust-remote-code"
