@@ -4,7 +4,7 @@
 # Usage: upload_cached_wheels.sh <bucket> <cuda> <torch> <python> <image_uri> <pkg:ver> [...]
 set -euo pipefail
 
-BUCKET="$1"; IMAGE="$5"
+BUCKET="$1"; CUDA="$2"; IMAGE="$5"
 shift 5
 
 if [ -z "${BUCKET}" ]; then
@@ -32,7 +32,9 @@ for spec in "$@"; do
     continue
   fi
 
-  FNAME=$(basename "${WHL}")
+  # Embed CUDA version in wheel filename: pkg-ver-cpXY-cpXY-plat.whl → pkg-ver-cuXYZ-cpXY-cpXY-plat.whl
+  ORIG_FNAME=$(basename "${WHL}")
+  FNAME="${ORIG_FNAME/-cp/-${CUDA}-cp}"
   S3_KEY="wheels/${PKG_UNDER}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then

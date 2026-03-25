@@ -1,5 +1,5 @@
 # ============================================================================
-# PyTorch DLC — Amazon Linux 2023 (CUDA 12.9)
+# PyTorch DLC — Amazon Linux 2023 (CUDA 13.0)
 # Multi-stage build with parallel builder stages:
 #
 #   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
@@ -17,10 +17,10 @@
 # ── Global ARGs (available to all stages) ───────────────────────────────────
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
-ARG CUDA_VERSION=12.9.1
+ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG TORCH_VERSION=2.10.0
-ARG TRANSFORMER_ENGINE_VERSION=2.3.0
+ARG TORCH_VERSION=2.11.0
+ARG TRANSFORMER_ENGINE_VERSION=2.13.0
 ARG FLASH_ATTN_VERSION=2.8.3
 ARG GDRCOPY_VERSION=2.4.4
 ARG EFA_VERSION=1.47.0
@@ -50,12 +50,16 @@ WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
 # transformer-engine requires torch + cudnn.h at build time; point it to the
-# cudnn headers shipped inside the nvidia-cudnn-cu12 pip package.
+# cudnn headers shipped inside the nvidia-cudnn pip package.
 ARG TRANSFORMER_ENGINE_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv \
-  export CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
-  export CUDNN_PATH="$CUDNN_HOME" && \
-  uv pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
+RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
+  NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
+  cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ && \
+  cp ${NCCL_HOME}/include/*.h /usr/local/cuda/include/ && \
+  cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ && \
+  ldconfig && \
+  export CUDNN_HOME CUDNN_PATH="$CUDNN_HOME" && \
+  pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
 
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
@@ -136,9 +140,10 @@ COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 
 # GDRCopy userspace lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
-# The cuda-runtime base image ships libcudart.so.12 but not the unversioned
-# symlink; NCCL OFI plugin dlopen()s "libcudart.so" and fails without it.
-RUN ln -sf /usr/local/cuda/lib64/libcudart.so.12 /usr/local/cuda/lib64/libcudart.so \
+# The cuda-runtime base image ships the versioned libcudart but not the
+# unversioned symlink; NCCL OFI plugin dlopen()s "libcudart.so" and fails without it.
+RUN CUDART=$(ls /usr/local/cuda/lib64/libcudart.so.* | head -1) \
+  && ln -sf "$CUDART" /usr/local/cuda/lib64/libcudart.so \
   && ldconfig
 
 # EFA + OpenMPI
