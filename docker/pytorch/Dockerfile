@@ -52,6 +52,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-ins
 # transformer-engine requires torch + cudnn.h at build time; point it to the
 # cudnn headers shipped inside the nvidia-cudnn pip package.
 ARG TRANSFORMER_ENGINE_VERSION
+COPY docker/pytorch/wheel[s]/ /tmp/wheels/
 RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
   NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
   cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ && \
@@ -59,7 +60,17 @@ RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])
   cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ && \
   ldconfig && \
   export CUDNN_HOME CUDNN_PATH="$CUDNN_HOME" && \
-  pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"
+  mkdir -p /tmp/built_wheels && \
+  TE_WHL=$(find /tmp/wheels -name "transformer_engine_torch*.whl" 2>/dev/null | head -1) && \
+  if [ -n "${TE_WHL}" ]; then \
+    echo "Installing cached TE torch wheel: ${TE_WHL}" && \
+    pip install "${TE_WHL}" && \
+    pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"; \
+  else \
+    echo "No cached TE torch wheel — building from source" && \
+    pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}" && \
+    cp /root/.cache/pip/wheels/*/transformer_engine_torch*.whl /tmp/built_wheels/ 2>/dev/null || true; \
+  fi
 
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
@@ -219,3 +230,4 @@ WORKDIR /home/mluser
 # ── Stage: wheel-export (CI-only — extracts built wheels for S3 cache upload) ─
 FROM scratch AS wheel-export
 COPY --from=builder-flash-attn /tmp/built_wheels/ /wheels/
+COPY --from=builder-base /tmp/built_wheels/ /wheels/
