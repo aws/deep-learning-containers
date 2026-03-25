@@ -10,7 +10,7 @@ __pycache__
 .gem-config
 
 # Generated docs
-docs/index.md
+# docs/index.md is now hand-authored (see TODO in docs/index.md)
 docs/tutorials
 docs/releasenotes/*/
 docs/reference/available_images.md
