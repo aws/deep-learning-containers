@@ -45,7 +45,7 @@ jobs:
           echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
 
   test-model-codebuild-fleet:
-    name: test-model-codebuild (${{ matrix.name }})
+    name: ${{ matrix.test_type }} (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix)[0] != null }}
     needs: [load-models]
     strategy:
@@ -114,7 +114,7 @@ jobs:
           rm -rf /dlc-models
 
   test-model-runner-scale-sets:
-    name: test-model-runner-scale (${{ matrix.name }})
+    name: ${{ matrix.test_type }} (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
     needs: [load-models]
     strategy:

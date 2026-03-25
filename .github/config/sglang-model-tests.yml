@@ -1,7 +1,7 @@
 # SGLang Model Test Configuration
 # Shared across all SGLang PR workflows
 #
-# test_type: "smoke_test" runs completions validation, "benchmark" runs bench_serving
+# test_type: "smoke-test" runs completions validation, "benchmark" runs bench_serving
 # extra_args: passed directly to sglang.launch_server (includes --tp)
 #
 # codebuild-fleet: Runs on CodeBuild fleet runners
@@ -11,7 +11,7 @@ codebuild-fleet:
   - name: "qwen3-0.6b"
     s3_path: "s3://dlc-cicd-models/llm-models/qwen3-0.6b.tar.gz"
     fleet: "x86-g6xl-runner"
-    test_type: "smoke_test"
+    test_type: "smoke-test"
     extra_args: "--tp 1"
 
   - name: "gpt-oss-20b"
