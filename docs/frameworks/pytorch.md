@@ -23,3 +23,7 @@ Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.
 ## Guides
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+## Release Notes
+
+See [PyTorch Release Notes](../releasenotes/pytorch/index.md) for the full changelog.

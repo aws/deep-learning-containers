@@ -27,3 +27,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia.
 ## Guides
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+## Release Notes
+
+See [SGLang Release Notes](../releasenotes/sglang/index.md) for the full changelog.
