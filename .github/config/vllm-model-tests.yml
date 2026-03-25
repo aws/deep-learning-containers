@@ -5,11 +5,14 @@
 # benchmark:   throughput and latency with pass/fail thresholds
 #
 # Each section has codebuild-fleet and runner-scale-sets sub-keys.
+# s3_path uses {s3_prefix} which is resolved by the workflow parser.
+
+s3_prefix: "s3://dlc-cicd-models/llm-models"
 
 smoke-test:
   codebuild-fleet:
     - name: "qwen3.5-0.8b"
-      s3_path: "s3://dlc-cicd-models/llm-models/qwen3.5-0.8b.tar.gz"
+      s3_path: "{s3_prefix}/qwen3.5-0.8b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
@@ -18,20 +21,42 @@ smoke-test:
 benchmark:
   codebuild-fleet:
     - name: "gpt-oss-20b"
-      s3_path: "s3://dlc-cicd-models/llm-models/gpt-oss-20b.tar.gz"
+      s3_path: "{s3_prefix}/gpt-oss-20b.tar.gz"
       fleet: "x86-g6exl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
       input_len: 512
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 100
-      min_rps: 1
+      min_throughput: 6000
+      min_rps: 5
 
     - name: "qwen3.5-9b"
-      s3_path: "s3://dlc-cicd-models/llm-models/gpt-oss-20b.tar.gz"
+      s3_path: "{s3_prefix}/gpt-oss-20b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 2000
+      min_rps: 1.5
+
+    - name: "llama-3.3-70b"
+      s3_path: "{s3_prefix}/llama-3.3-70b.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 400
+      min_rps: 0.35
+
+    - name: "qwen3.5-35b-a3b-fp8"
+      s3_path: "{s3_prefix}/qwen3.5-35b-a3b-fp8.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096"
       input_len: 512
       output_len: 128
       num_prompts: 64
@@ -39,19 +64,19 @@ benchmark:
       min_throughput: 100
       min_rps: 1
 
-    - name: "llama-3.3-70b"
-      s3_path: "s3://dlc-cicd-models/llm-models/llama-3.3-70b.tar.gz"
+    - name: "qwen3.5-27b-fp8"
+      s3_path: "{s3_prefix}/qwen3.5-27b-fp8.tar.gz"
       fleet: "x86-g6e12xl-runner"
       extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
       input_len: 512
       output_len: 128
       num_prompts: 32
       batch_size: 2
-      min_throughput: 200
-      min_rps: 0.70
+      min_throughput: 100
+      min_rps: 1
 
     - name: "qwen3-coder-next-fp8"
-      s3_path: "s3://dlc-cicd-models/llm-models/qwen3-coder-next-fp8.tar.gz"
+      s3_path: "{s3_prefix}/qwen3-coder-next-fp8.tar.gz"
       fleet: "x86-g6e12xl-runner"
       extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
       input_len: 512
@@ -63,14 +88,14 @@ benchmark:
 
   runner-scale-sets:
     - name: "qwen3-32b"
-      s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
+      s3_path: "{s3_prefix}/qwen3-32b.tar.gz"
       extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --gpu-memory-utilization 0.85"
       input_len: 512
       output_len: 256
       num_prompts: 32
       batch_size: 2
-      min_throughput: 150
-      min_rps: 1
+      min_throughput: 3400
+      min_rps: 3
 
 # upstream
 # facebook/opt-125m
