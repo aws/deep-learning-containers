@@ -7,59 +7,33 @@ Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ra
 === "EC2 / EKS / ECS — GPU"
 
     ```bash
-    # Authenticate with ECR
-    aws ecr get-login-password --region us-west-2 | docker login \
-      --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
-
-    # Pull the image
-    docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-ec2-cuda-v1.0.0
+    docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-ec2-cuda-v1.0.0
     ```
 
 === "EC2 / EKS / ECS — CPU"
 
     ```bash
-    aws ecr get-login-password --region us-west-2 | docker login \
-      --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
-
-    docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-ec2-cpu-v1.0.0
+    docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-ec2-cpu-v1.0.0
     ```
 
 === "SageMaker — GPU"
 
     ```bash
-    aws ecr get-login-password --region us-west-2 | docker login \
-      --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
-
-    docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-sagemaker-cuda-v1.0.0
+    docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-sagemaker-cuda-v1.0.0
     ```
 
 === "SageMaker — CPU"
 
     ```bash
-    aws ecr get-login-password --region us-west-2 | docker login \
-      --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
-
-    docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-sagemaker-cpu-v1.0.0
+    docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-sagemaker-cpu-v1.0.0
     ```
 
 !!! note "Image URIs are placeholders"
-    Final image URIs will be published when the images are released. See [Available Images](../reference/available_images.md) for all current image URIs.
+    Final image URIs will be published when the images are released. See [Available Images](../reference/available_images.md) for all current image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
 
-## Key Packages
+## Packages
 
-| Package | Version | Notes |
-| ------- | ------- | ----- |
-| Ray (Serve) | 2.54.0 | Core serving framework |
-| PyTorch | 2.10.0 | |
-| TorchVision | 0.25.0 | |
-| TorchAudio | 2.10.0 | |
-| Transformers | 5.2.0 | HuggingFace |
-| scikit-learn | 1.8.0 | |
-| NumPy | 2.4.2 | |
-| OpenCV | 4.13.0 | |
-| FFmpeg | 8.0.1 | GPU: NVENC/NVDEC hardware acceleration |
-| Python | 3.13 | |
-| CUDA | 12.9.1 | GPU variant only |
+For package versions included in each release, see the [Release Notes](../releasenotes/ray/index.md).
 
 ## Versioning Strategy
 
@@ -86,16 +60,13 @@ See [Support Policy](../reference/support_policy.md) for the full lifecycle poli
 Pull the GPU image, mount a model directory, and send an image for classification:
 
 ```bash
-# Pull the image
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-ec2-cuda-v1.0.0
-
 # Run the container with a model mounted at /opt/ml/model
 docker run -d --gpus all \
   --shm-size=2g \
   -p 8000:8000 \
   -v /path/to/model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-ec2-cuda-v1.0.0
+  <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-ec2-cuda-v1.0.0
 
 # Wait for Ray Serve to become healthy
 until curl -s http://localhost:8000/-/healthz | grep -q "OK"; do sleep 5; done
@@ -127,7 +98,7 @@ docker run -d \
   -p 8000:8000 \
   -v /path/to/tabular-model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-ec2-cpu-v1.0.0 \
+  <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-ec2-cpu-v1.0.0 \
   /opt/ml/model/config.yaml
 
 # Wait for health check
@@ -157,12 +128,12 @@ from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import IdentitySerializer
 
-image_uri = "763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-sagemaker-cuda-v1.0.0"
+image_uri = "<account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-sagemaker-cuda-v1.0.0"
 model_data = "s3://my-bucket/models/cv-densenet/model.tar.gz"
 
 model = Model(
     image_uri=image_uri,
-    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
+    role="arn:aws:iam::<account_id>:role/SageMakerExecutionRole",
     model_data=model_data,
     predictor_cls=Predictor,
 )
@@ -187,7 +158,7 @@ predictor.delete_endpoint()
 
 ## Release Notes
 
-See [Ray Serve Release Notes](../releasenotes/ray/index.md) for version history and changelogs.
+See [Ray Release Notes](../releasenotes/ray/index.md) for version history and changelogs.
 
 ## Resources
 
