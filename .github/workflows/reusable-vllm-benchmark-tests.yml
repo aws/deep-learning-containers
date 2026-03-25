@@ -211,3 +211,44 @@ jobs:
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           rm -rf /dlc-models
+
+  benchmark-report:
+    name: benchmark-report
+    if: always()
+    needs: [benchmark-codebuild-fleet, benchmark-runner-scale-sets]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all benchmark artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: benchmark-*
+          path: results/
+
+      - name: Generate report
+        run: |
+          python3 -c "
+          import json, glob, os
+
+          print('# vLLM Benchmark Report\n')
+
+          # Throughput results
+          print('## Throughput\n')
+          print('| Model | Requests | Elapsed (s) | Tokens/s | Requests/s |')
+          print('|-------|----------|-------------|----------|------------|')
+          for f in sorted(glob.glob('results/**/throughput_*.json', recursive=True)):
+              name = os.path.basename(f).replace('throughput_', '').replace('.json', '')
+              with open(f) as fh:
+                  r = json.load(fh)
+              print(f'| {name} | {r[\"num_requests\"]} | {r[\"elapsed_time\"]:.2f} | {r[\"tokens_per_second\"]:.2f} | {r[\"requests_per_second\"]:.2f} |')
+
+          # Latency results
+          print('\n## Latency\n')
+          print('| Model | Avg (s) | p50 (s) | p90 (s) | p99 (s) |')
+          print('|-------|---------|---------|---------|---------|')
+          for f in sorted(glob.glob('results/**/latency_*.json', recursive=True)):
+              name = os.path.basename(f).replace('latency_', '').replace('.json', '')
+              with open(f) as fh:
+                  r = json.load(fh)
+              p = r.get('percentiles', {})
+              print(f'| {name} | {r[\"avg_latency\"]:.4f} | {p.get(\"50\", 0):.4f} | {p.get(\"90\", 0):.4f} | {p.get(\"99\", 0):.4f} |')
+          " >> "$GITHUB_STEP_SUMMARY"
