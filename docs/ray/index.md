@@ -71,7 +71,7 @@ docker run -d \
   {{ images.latest_ray_ec2_cpu }}
 ```
 
-#### Sentiment Analysis (NLP)
+#### Sentiment Analysis
 
 Send text for DistilBERT sentiment classification:
 
@@ -89,7 +89,7 @@ curl -X POST http://localhost:8000/ \
 }
 ```
 
-#### Image Classification (CV)
+#### Image Classification
 
 Send a JPEG image for DenseNet-121 top-5 classification:
 
