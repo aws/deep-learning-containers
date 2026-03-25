@@ -37,6 +37,9 @@ jobs:
           with open('.github/config/vllm-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
           bm = cfg.get('benchmark', {})
+          prefix = cfg.get('s3_prefix', '')
+          for m in bm.get('codebuild-fleet', []) + bm.get('runner-scale-sets', []):
+              m['s3_path'] = m['s3_path'].replace('{s3_prefix}', prefix)
           print('codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
           print('runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', [])))
           " > parsed.txt
