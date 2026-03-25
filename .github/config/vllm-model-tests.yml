@@ -47,8 +47,8 @@ benchmark:
       output_len: 128
       num_prompts: 32
       batch_size: 2
-      min_throughput: 200
-      min_rps: 0.70
+      min_throughput: 400
+      min_rps: 0.35
 
     - name: "qwen3-coder-next-fp8"
       s3_path: "s3://dlc-cicd-models/llm-models/qwen3-coder-next-fp8.tar.gz"
