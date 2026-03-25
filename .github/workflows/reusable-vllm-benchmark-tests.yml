@@ -218,6 +218,9 @@ jobs:
     needs: [benchmark-codebuild-fleet, benchmark-runner-scale-sets]
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
       - name: Download all benchmark artifacts
         uses: actions/download-artifact@v4
         with:
@@ -227,28 +230,37 @@ jobs:
       - name: Generate report
         run: |
           python3 -c "
-          import json, glob, os
+          import json, glob, os, yaml
+
+          with open('.github/config/vllm-model-tests.yml') as f:
+              cfg = yaml.safe_load(f)
+          bm = cfg.get('benchmark', {})
+          runners = {}
+          for m in bm.get('codebuild-fleet', []):
+              runners[m['name']] = m.get('fleet', '')
+          for m in bm.get('runner-scale-sets', []):
+              runners[m['name']] = 'runner-scale-sets'
 
           print('# vLLM Benchmark Report\n')
 
-          # Throughput results
           print('## Throughput\n')
-          print('| Model | Requests | Elapsed (s) | Tokens/s | Requests/s |')
-          print('|-------|----------|-------------|----------|------------|')
+          print('| Model | Runner | Requests | Elapsed (s) | Tokens/s | Requests/s |')
+          print('|-------|--------|----------|-------------|----------|------------|')
           for f in sorted(glob.glob('results/**/throughput_*.json', recursive=True)):
               name = os.path.basename(f).replace('throughput_', '').replace('.json', '')
+              runner = runners.get(name, 'unknown')
               with open(f) as fh:
                   r = json.load(fh)
-              print(f'| {name} | {r[\"num_requests\"]} | {r[\"elapsed_time\"]:.2f} | {r[\"tokens_per_second\"]:.2f} | {r[\"requests_per_second\"]:.2f} |')
+              print(f'| {name} | {runner} | {r[\"num_requests\"]} | {r[\"elapsed_time\"]:.2f} | {r[\"tokens_per_second\"]:.2f} | {r[\"requests_per_second\"]:.2f} |')
 
-          # Latency results
           print('\n## Latency\n')
-          print('| Model | Avg (s) | p50 (s) | p90 (s) | p99 (s) |')
-          print('|-------|---------|---------|---------|---------|')
+          print('| Model | Runner | Avg (s) | p50 (s) | p90 (s) | p99 (s) |')
+          print('|-------|--------|---------|---------|---------|---------|')
           for f in sorted(glob.glob('results/**/latency_*.json', recursive=True)):
               name = os.path.basename(f).replace('latency_', '').replace('.json', '')
+              runner = runners.get(name, 'unknown')
               with open(f) as fh:
                   r = json.load(fh)
               p = r.get('percentiles', {})
-              print(f'| {name} | {r[\"avg_latency\"]:.4f} | {p.get(\"50\", 0):.4f} | {p.get(\"90\", 0):.4f} | {p.get(\"99\", 0):.4f} |')
+              print(f'| {name} | {runner} | {r[\"avg_latency\"]:.4f} | {p.get(\"50\", 0):.4f} | {p.get(\"90\", 0):.4f} | {p.get(\"99\", 0):.4f} |')
           " >> "$GITHUB_STEP_SUMMARY"
