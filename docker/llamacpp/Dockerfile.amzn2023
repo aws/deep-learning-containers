@@ -129,7 +129,7 @@ FROM base AS llamacpp-ec2
 
 ARG PYTHON_VERSION=3.12
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --setopt=install_weak_deps=False \
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python
