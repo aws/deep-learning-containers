@@ -1,23 +1,30 @@
-name: Reusable vLLM Benchmark Tests
+name: vLLM Benchmark Tests
 
 permissions:
   contents: read
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       image-uri:
-        description: "Image URI to test"
+        description: "Image URI to benchmark (ECR URI)"
         required: true
         type: string
       aws-account-id:
-        description: "AWS account ID for ECR authentication"
-        required: true
+        description: "AWS account ID for ECR auth (defaults to CI account)"
+        required: false
         type: string
+        default: ""
       aws-region:
-        description: "AWS region for ECR authentication"
-        required: true
+        description: "AWS region for ECR auth (defaults to repo var)"
+        required: false
         type: string
+        default: ""
+
+env:
+  IMAGE_URI: ${{ inputs.image-uri }}
+  ACCOUNT_ID: ${{ inputs.aws-account-id || vars.CI_AWS_ACCOUNT_ID }}
+  REGION: ${{ inputs.aws-region || vars.AWS_REGION }}
 
 jobs:
   load-benchmarks:
@@ -67,8 +74,22 @@ jobs:
       - name: ECR authenticate
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Pre-cleanup GPU state ==="
+          nvidia-smi
+          echo ""
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+          echo "=== Clearing GPU memory ==="
+          nvidia-smi --gpu-reset 2>/dev/null || true
+          echo ""
+          echo "=== Post-cleanup GPU state ==="
+          nvidia-smi
 
       - name: Download model from S3
         run: |
@@ -85,15 +106,15 @@ jobs:
 
       - name: Start container
         run: |
-          docker pull ${{ inputs.image-uri }}
+          docker pull ${{ env.IMAGE_URI }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             -v /dlc-models:/models \
-            ${{ inputs.image-uri }})
+            ${{ env.IMAGE_URI }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/amzn2023/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          docker cp scripts/vllm/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
 
       - name: Run benchmark
         run: |
@@ -127,7 +148,7 @@ jobs:
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          docker rmi ${{ env.IMAGE_URI }} 2>/dev/null || true
           rm -rf /dlc-models
 
   benchmark-runner-scale-sets:
@@ -146,8 +167,22 @@ jobs:
       - name: ECR authenticate
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Pre-cleanup GPU state ==="
+          nvidia-smi
+          echo ""
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+          echo "=== Clearing GPU memory ==="
+          nvidia-smi --gpu-reset 2>/dev/null || true
+          echo ""
+          echo "=== Post-cleanup GPU state ==="
+          nvidia-smi
 
       - name: Download model from S3
         run: |
@@ -164,17 +199,17 @@ jobs:
 
       - name: Start container
         run: |
-          docker pull ${{ inputs.image-uri }}
+          docker pull ${{ env.IMAGE_URI }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
-            ${{ inputs.image-uri }})
+            ${{ env.IMAGE_URI }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp scripts/vllm/amzn2023/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          docker cp scripts/vllm/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
           rm -rf /dlc-models
 
       - name: Run benchmark
@@ -209,7 +244,7 @@ jobs:
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          docker rmi ${{ env.IMAGE_URI }} 2>/dev/null || true
           rm -rf /dlc-models
 
   benchmark-report:
@@ -228,4 +263,4 @@ jobs:
           path: results/
 
       - name: Generate report
-        run: python3 scripts/vllm/amzn2023/benchmark_report.py results >> "$GITHUB_STEP_SUMMARY"
+        run: python3 scripts/vllm/benchmark/benchmark_report.py results >> "$GITHUB_STEP_SUMMARY"
