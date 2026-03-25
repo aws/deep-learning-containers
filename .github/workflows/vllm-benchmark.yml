@@ -1,0 +1,31 @@
+name: vLLM Benchmark Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-uri:
+        description: "Image URI to benchmark (ECR URI)"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR authentication"
+        required: false
+        type: string
+        default: ""
+      aws-region:
+        description: "AWS region for ECR authentication"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    uses: ./.github/workflows/reusable-vllm-benchmark-tests.yml
+    with:
+      image-uri: ${{ inputs.image-uri }}
+      aws-account-id: ${{ inputs.aws-account-id || vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ inputs.aws-region || vars.AWS_REGION }}
+    secrets: inherit
