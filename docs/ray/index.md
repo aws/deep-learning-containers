@@ -38,7 +38,7 @@ Version bumps follow these rules:
 
 | Version | GA Date | End of Patch |
 | ------- | ------- | ------------ |
-| Ray 2.54 | TBD | TBD |
+| Ray 2.54 | 2026-02-18 | 2027-02-18 |
 
 See [Support Policy](../reference/support_policy.md) for the full lifecycle policy.
 
