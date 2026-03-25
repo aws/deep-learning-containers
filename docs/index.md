@@ -3,43 +3,43 @@ hide:
   - navigation
   - toc
 ---
-
 <div align="center"> <img src="assets/logos/AWS_logo_RGB.svg#only-light" alt="AWS Logo" width="30%">
 <img src="assets/logos/AWS_logo_RGB_REV.svg#only-dark" alt="AWS Logo" width="30%"> </div>
 
 <h1 align="center">AWS Deep Learning Containers</h1>
 
-Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Containers provide optimized environments for training and serving models on Amazon SageMaker AI, Amazon EKS, and Amazon EC2 — with the latest frameworks, security patches, and AWS integrations built in.
+Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Containers provide optimized environments for training and serving models on
+Amazon SageMaker AI, Amazon EKS, and Amazon EC2 — with the latest frameworks, security patches, and AWS integrations built in.
 
 [Browse on ECR Public Gallery](https://gallery.ecr.aws/?searchTerm=deep+learning+containers) · [Get Started →](get_started/)
 
----
+* * *
 
 <div class="grid cards" markdown>
 
--   **LLM**
+- **LLM**
 
-    ---
+  * * *
 
-    Serving · Supported Models
+  Serving · Supported Models
 
-    Serve large language models with vLLM, SGLang, and llama.cpp.
+  Serve large language models with vLLM, SGLang, and llama.cpp.
 
-    [Explore LLM →](frameworks/llm.md)
+  [Explore LLM →](frameworks/llm.md)
 
--   **ML**
+- **ML**
 
-    ---
+  * * *
 
-    Training · Serving
+  Training · Serving
 
-    Train with PyTorch and serve with Ray Serve.
+  Train with PyTorch and serve with Ray Serve.
 
-    [Explore ML →](frameworks/ml.md)
+  [Explore ML →](frameworks/ml.md)
 
 </div>
 
----
+* * *
 
 ## What's New
 
@@ -63,7 +63,7 @@ Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Contai
   - PyTorch 2.6 Inference images will continue to receive security patches and updates through end of June 2026
   - For complete framework support timelines, see our [Support Policy](reference/support_policy.md)
 
----
+* * *
 
 ## Getting Help
 

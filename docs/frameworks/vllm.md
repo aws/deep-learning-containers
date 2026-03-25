@@ -6,26 +6,30 @@ High-throughput LLM serving engine optimized for GPU inference on AWS.
 
 === "EC2 / EKS / ECS"
 
-    ```bash
-    docker pull public.ecr.aws/deep-learning-containers/vllm:0.17-gpu-py312-ec2
-    ```
+````
+```bash
+docker pull public.ecr.aws/deep-learning-containers/vllm:0.17-gpu-py312-ec2
+```
 
-    Full tag: `public.ecr.aws/deep-learning-containers/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2`
+Full tag: `public.ecr.aws/deep-learning-containers/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2`
+````
 
 === "SageMaker"
 
-    ```bash
-    docker pull public.ecr.aws/deep-learning-containers/vllm:0.17-gpu-py312
-    ```
+````
+```bash
+docker pull public.ecr.aws/deep-learning-containers/vllm:0.17-gpu-py312
+```
 
-    Full tag: `public.ecr.aws/deep-learning-containers/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-sagemaker`
+Full tag: `public.ecr.aws/deep-learning-containers/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-sagemaker`
+````
 
 Browse all versions on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/vllm).
 
 ## Key Packages
 
 | Package | Version |
-|---------|---------|
+| --- | --- |
 | vLLM | 0.17.1 |
 | PyTorch | 2.10.0 |
 | CUDA | 12.9 |

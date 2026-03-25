@@ -15,7 +15,6 @@ from constants import TUTORIALS_DIR, TUTORIALS_REPO
 from generate import (
     generate_all,
     generate_available_images,
-    generate_index,
     generate_release_notes,
     generate_support_policy,
 )
