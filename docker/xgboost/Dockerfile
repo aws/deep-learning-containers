@@ -194,6 +194,9 @@ ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
 
+# Install uv for deterministic dependency resolution
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 # Telemetry
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
@@ -211,26 +214,26 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /tmp/tmp* \
   && rm -rf /var/lib/apt/lists/*
 
-# Install smdebug
-RUN python3 -m pip install git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32
+# Install all SageMaker serving dependencies via uv (lockfile-based, conflict-free)
+COPY docker/xgboost/pyproject.toml docker/xgboost/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv \
+  cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project --python /miniconda3/bin/python3 \
+  && rm -rf /tmp/deps
 
-# Install SageMaker serving dependencies
-COPY docker/xgboost/requirements.txt /requirements.txt
-RUN python3 -m pip install -r /requirements.txt && rm /requirements.txt
+# Install smdebug (excluded from uv lock — setup.py requires git-secrets at build time)
+RUN python3 -m pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32
 
 # Patch sagemaker-inference decoder.py (CWE-502 fix)
 COPY docker/xgboost/resources/patches/decoder.py /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
 
-# Additional patches
-RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2" \
-  && sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
-    /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_containers/_mapping.py
+# Patch collections.Mapping deprecation in sagemaker-containers
+RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
+  /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_containers/_mapping.py
 
-# Install sagemaker_xgboost_container wheel (built in wheel-builder stage)
+# Install sagemaker_xgboost_container wheel (built in wheel-builder stage, no-deps)
 COPY --from=wheel-builder /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl /tmp/
-RUN rm -rf /miniconda3/lib/python${PYTHON_VERSION}/site-packages/numpy-1.21.2.dist-info \
-  && python3 -m pip install --force-reinstall PyYAML==6.0.1 \
-  && python3 -m pip install --no-cache --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
+RUN python3 -m pip install --no-cache --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
   && python3 -m pip uninstall -y typing \
   && rm /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl
 
