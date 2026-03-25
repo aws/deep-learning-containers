@@ -70,6 +70,20 @@ jobs:
           aws-account-id: ${{ inputs.aws-account-id }}
           aws-region: ${{ inputs.aws-region }}
 
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Pre-cleanup GPU state ==="
+          nvidia-smi
+          echo ""
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+          echo "=== Clearing GPU memory ==="
+          nvidia-smi --gpu-reset 2>/dev/null || true
+          echo ""
+          echo "=== Post-cleanup GPU state ==="
+          nvidia-smi
+
       - name: Download model from S3
         run: |
           MODEL_DIR="/dlc-models/${{ matrix.name }}"
@@ -148,6 +162,20 @@ jobs:
         with:
           aws-account-id: ${{ inputs.aws-account-id }}
           aws-region: ${{ inputs.aws-region }}
+
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Pre-cleanup GPU state ==="
+          nvidia-smi
+          echo ""
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+          echo "=== Clearing GPU memory ==="
+          nvidia-smi --gpu-reset 2>/dev/null || true
+          echo ""
+          echo "=== Post-cleanup GPU state ==="
+          nvidia-smi
 
       - name: Download model from S3
         run: |
