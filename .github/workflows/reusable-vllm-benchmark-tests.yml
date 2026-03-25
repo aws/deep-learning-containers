@@ -90,7 +90,7 @@ jobs:
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          docker cp scripts/vllm/amzn2023/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
 
       - name: Run benchmark
         run: |
@@ -171,7 +171,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp scripts/vllm/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          docker cp scripts/vllm/amzn2023/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
           rm -rf /dlc-models
 
       - name: Run benchmark
