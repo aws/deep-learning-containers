@@ -21,9 +21,9 @@ Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Contai
 
     ---
 
-    Training · Serving · Supported Models
+    Serving · Supported Models
 
-    Serve and train large language models with vLLM, SGLang, and llama.cpp.
+    Serve large language models with vLLM, SGLang, and llama.cpp.
 
     [Explore LLM →](frameworks/llm.md)
 

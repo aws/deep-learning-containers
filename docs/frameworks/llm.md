@@ -2,17 +2,7 @@
 
 <!-- TODO: Fill in real content for LLM landing page -->
 
-Large Language Model containers for training and serving on AWS.
-
-## Training
-
-### Pre-training
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-### Fine-tuning
-
-Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Large Language Model containers for serving on AWS.
 
 ## Serving
 
