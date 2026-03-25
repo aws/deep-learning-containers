@@ -266,4 +266,3 @@ ENV SM_INPUT=/opt/ml/input \
   TEMP=/home/model-server/tmp
 
 EXPOSE 8080
-
