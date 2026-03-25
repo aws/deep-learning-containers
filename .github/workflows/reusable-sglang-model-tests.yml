@@ -57,6 +57,10 @@ jobs:
         fleet:${{ matrix.fleet }}
         buildspec-override:true
     steps:
+      - name: Cleanup stale containers
+        run: |
+          docker rm -f $(docker ps -aq) || true
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -123,6 +127,10 @@ jobs:
         include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
     runs-on: gpu-efa-runners
     steps:
+      - name: Cleanup stale containers
+        run: |
+          docker rm -f $(docker ps -aq) || true
+
       - name: Checkout code
         uses: actions/checkout@v5
 
