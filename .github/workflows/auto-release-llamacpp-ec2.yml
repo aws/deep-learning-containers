@@ -117,6 +117,35 @@ jobs:
       contributor: ${{ needs.load-config.outputs.contributor }}
       container-type: ${{ needs.load-config.outputs.container-type }}
 
+  llamacpp-sanity-test:
+    needs: [build-image, load-config]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-llamacpp-sanity-test-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
+
+      - name: Run llamacpp sanity tests
+        env:
+          IMAGE: ${{ needs.build-image.outputs.ci-image }}
+        run: |
+          docker run --rm --gpus all \
+            -v $(pwd)/test/llamacpp:/tests \
+            --entrypoint python3 ${IMAGE} \
+            /tests/sanity/test_sanity.py
+
   telemetry-test:
     needs: [build-image, load-config]
     concurrency:
@@ -144,7 +173,7 @@ jobs:
       framework-version: ${{ needs.load-config.outputs.framework-version }}
 
   generate-release-spec:
-    needs: [load-config, build-image, sanity-test, upstream-tests]
+    needs: [load-config, build-image, sanity-test, llamacpp-sanity-test, upstream-tests]
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-generate-release-spec-${{ github.event.pull_request.number || github.run_id }}
