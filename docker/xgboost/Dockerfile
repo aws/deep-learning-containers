@@ -216,8 +216,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 # Install all SageMaker serving dependencies via uv (lockfile-based, conflict-free)
 COPY docker/xgboost/pyproject.toml docker/xgboost/uv.lock /tmp/deps/
-RUN --mount=type=cache,target=/root/.cache/uv \
-  cd /tmp/deps \
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project --python /miniconda3/bin/python3 \
   && rm -rf /tmp/deps
 
