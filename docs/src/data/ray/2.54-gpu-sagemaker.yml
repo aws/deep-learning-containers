@@ -1,0 +1,28 @@
+framework: Ray Serve
+version: "2.54"
+accelerator: gpu
+python: py313
+cuda: cu129
+os: amzn2023
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "serve-ml-sagemaker-cuda-v1.0.0"
+
+announcements:
+  - "Introduced Ray Serve 2.54 GPU containers for SageMaker"
+  - "Built on Amazon Linux 2023 with Python 3.13"
+  - "FFmpeg 8.0.1 with NVENC/NVDEC GPU acceleration"
+
+packages:
+  ray: "2.54.0"
+  pytorch: "2.10.0"
+  torchvision: "0.25.0"
+  torchaudio: "2.10.0"
+  transformers: "5.2.0"
+  scikit_learn: "1.8.0"
+  numpy: "2.4.2"
+  opencv: "4.13.0.92"
+  ffmpeg: "8.0.1"
+  cuda: "12.9.1"

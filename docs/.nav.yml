@@ -4,9 +4,11 @@ nav:
     - get_started/index.md
     - Using Deep Learning Containers: get_started/using_dlcs.md
     - Release Notifications: get_started/release_notifications.md
+    - Ray Serve: ray/index.md
   - Release Notes:
     - releasenotes/index.md
     - Base: releasenotes/base/index.md
+    - Ray: releasenotes/ray/index.md
     - SGLang: releasenotes/sglang/index.md
     - vLLM: releasenotes/vllm/index.md
     - PyTorch: releasenotes/pytorch/index.md
