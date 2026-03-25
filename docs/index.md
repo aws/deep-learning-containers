@@ -31,9 +31,9 @@ Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Contai
 
     ---
 
-    Training · Serving · Processing
+    Training · Serving
 
-    Train with PyTorch, serve with Ray Serve, and process data at scale.
+    Train with PyTorch and serve with Ray Serve.
 
     [Explore ML →](frameworks/ml.md)
 

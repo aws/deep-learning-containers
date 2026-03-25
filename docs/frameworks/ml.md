@@ -15,7 +15,3 @@ Train models with [PyTorch](pytorch.md) containers optimized for AWS infrastruct
 ### Ray Serve
 
 Deploy models with [Ray Serve](ray.md) for scalable online inference.
-
-## Processing
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
