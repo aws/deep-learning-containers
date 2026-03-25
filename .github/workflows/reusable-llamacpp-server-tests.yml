@@ -1,4 +1,4 @@
-name: Reusable llama.cpp Upstream Tests
+name: Reusable llama.cpp Server Tests
 
 permissions:
   contents: read
