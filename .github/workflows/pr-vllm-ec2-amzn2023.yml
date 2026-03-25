@@ -253,7 +253,7 @@ jobs:
 
   benchmark-tests:
     needs: [build-image, load-config]
-    if: success()
+    if: success() && contains(github.event.pull_request.labels.*.name, 'run-benchmark')
     concurrency:
       group: ${{ github.workflow }}-benchmark-tests-${{ github.event.pull_request.number }}
       cancel-in-progress: true
