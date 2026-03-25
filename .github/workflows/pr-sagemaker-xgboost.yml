@@ -221,11 +221,6 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           image-uri: ${{ needs.build-image.outputs.ci-image }}
 
-      - name: Tag CI image for local tests
-        run: |
-          docker tag ${{ needs.build-image.outputs.ci-image }} \
-            preprod-xgboost-container:${FRAMEWORK_VERSION}-cpu-py3
-
       - name: Setup test environment
         run: |
           cd /tmp/xgboost-container
@@ -233,9 +228,14 @@ jobs:
 
       - name: Run integration tests
         run: |
+          CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
+          REGISTRY="${CI_IMAGE_URI%%/*}"
+          IMAGE_TAG="${CI_IMAGE_URI##*:}"
+          IMAGE_NAME="${CI_IMAGE_URI#*/}"
+          IMAGE_NAME="${IMAGE_NAME%%:*}"
           cd /tmp/xgboost-container
           pytest test/integration/local \
-            --docker-base-name preprod-xgboost-container \
-            --tag ${FRAMEWORK_VERSION}-cpu-py3 \
+            --docker-base-name "${REGISTRY}/${IMAGE_NAME}" \
+            --tag "${IMAGE_TAG}" \
             --py-version 3 \
             --framework-version ${FRAMEWORK_VERSION}
