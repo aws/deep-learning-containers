@@ -21,11 +21,10 @@ for spec in "$@"; do
   PKG="${spec%%:*}"
   VER="${spec##*:}"
   PKG_UNDER="${PKG//-/_}"
-  PREFIX="wheels/${PKG_UNDER}/"
+  PREFIX="wheels/${CUDA}/${PKG_UNDER}/"
   echo "⬇️  Looking for ${PKG}==${VER} (${CUDA}) in s3://${BUCKET}/${PREFIX} ..."
-  # Download wheel matching package name and CUDA version
-  aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive \
-    --exclude "*" --include "*-${CUDA}-*.whl" 2>/dev/null \
+  # Download wheel matching package name
+  aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive --exclude "*" --include "*.whl" 2>/dev/null \
     && echo "✅ Cache hit: ${PKG}==${VER}" \
     || echo "⚠️  Cache miss: ${PKG}==${VER}"
 done

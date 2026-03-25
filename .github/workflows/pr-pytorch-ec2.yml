@@ -121,6 +121,7 @@ jobs:
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
+            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
         continue-on-error: true
 
       - name: Build runtime image
@@ -157,6 +158,7 @@ jobs:
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "${{ steps.build-runtime.outputs.image-uri }}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
+            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
         continue-on-error: true
 
       - name: Build runtime-eks image
