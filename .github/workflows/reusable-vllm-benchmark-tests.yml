@@ -128,8 +128,8 @@ jobs:
           rm -rf /dlc-models
 
   benchmark-runner-scale-sets:
-    name: benchmark-rss (${{ matrix.name }})
-    if: ${{ needs.load-benchmarks.outputs.runner-scale-sets-matrix != '[]' }}
+    name: benchmark (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix)[0] != null }}
     needs: [load-benchmarks]
     strategy:
       fail-fast: false
