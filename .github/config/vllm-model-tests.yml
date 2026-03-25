@@ -69,8 +69,8 @@ benchmark:
       output_len: 256
       num_prompts: 32
       batch_size: 2
-      min_throughput: 150
-      min_rps: 1
+      min_throughput: 3400
+      min_rps: 3
 
 # upstream
 # facebook/opt-125m
