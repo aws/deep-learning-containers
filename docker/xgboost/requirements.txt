@@ -1,0 +1,34 @@
+Flask==1.1.1  # sagemaker-containers requires flask 1.1.1
+PyYAML==6.0.1
+Pillow==9.1.1
+boto3==1.17.52
+botocore==1.20.52
+cryptography==45.0.5
+dask[dataframe]==2024.11.2
+dask-cuda==24.12.00
+cuda-python==12.6.0
+gunicorn==23.0.0
+itsdangerous==2.0.1
+matplotlib==3.9.2
+multi-model-server==1.1.2
+numpy==2.1.0
+pandas==2.2.3
+# protobuf==5.27.0
+psutil==5.8.0  # sagemaker-containers requires psutil 5.6.7
+pynvml==11.4.1 # dask-cuda pynvml>=11.0.0,<12.0.0a0
+python-dateutil==2.8.2
+retrying==1.3.3
+requests==2.32.3
+sagemaker-containers==2.8.6.post2
+sagemaker-inference==1.5.5
+scipy==1.15.0
+scikit-learn==1.5.2
+urllib3==1.26.5
+wheel==0.45.1
+jinja2==2.11.3
+MarkupSafe==1.1.1
+Werkzeug==0.15.6
+certifi==2023.7.22
+gevent==23.9.1
+numba==0.61.0
+setuptools<81
