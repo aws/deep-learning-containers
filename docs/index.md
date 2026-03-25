@@ -1,4 +1,3 @@
-<!-- TODO: remove index.template.md and homepage generation logic from docs/src/main.py once this redesign is stable — note: generate_index() in docs/src/generate.py will overwrite docs/index.md if run -->
 ---
 hide:
   - navigation
@@ -12,8 +11,7 @@ hide:
 
 Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Containers provide optimized environments for training and serving models on Amazon SageMaker AI, Amazon EKS, and Amazon EC2 — with the latest frameworks, security patches, and AWS integrations built in.
 
-[:octicons-link-external-16: Browse on ECR Public Gallery](https://gallery.ecr.aws/?searchTerm=deep+learning+containers){ .md-button }
-[:octicons-rocket-16: Get Started](get_started/){ .md-button .md-button--primary }
+[Browse on ECR Public Gallery](https://gallery.ecr.aws/?searchTerm=deep+learning+containers) · [Get Started →](get_started/)
 
 ---
 
@@ -27,7 +25,7 @@ Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Contai
 
     Serve and train large language models with vLLM, SGLang, and llama.cpp.
 
-    [:octicons-arrow-right-24: Explore LLM](frameworks/llm.md)
+    [Explore LLM →](frameworks/llm.md)
 
 -   **ML**
 
@@ -37,7 +35,7 @@ Pre-built Docker images for running AI/ML workloads on AWS. Deep Learning Contai
 
     Train with PyTorch, serve with Ray Serve, and process data at scale.
 
-    [:octicons-arrow-right-24: Explore ML](frameworks/ml.md)
+    [Explore ML →](frameworks/ml.md)
 
 </div>
 
