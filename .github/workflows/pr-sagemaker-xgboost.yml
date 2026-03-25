@@ -189,11 +189,11 @@ jobs:
       - name: Run unit tests
         run: |
           docker run --rm test-xgboost sh -c \
-            'pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit'
+            'python3 -m pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit'
 
       - name: Run flake8
         run: |
-          docker run --rm test-xgboost sh -c 'flake8 setup.py src test'
+          docker run --rm test-xgboost sh -c 'python3 -m flake8 setup.py src test'
 
   integration-tests:
     needs: [build-image, load-config]
