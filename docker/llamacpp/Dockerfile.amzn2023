@@ -83,6 +83,7 @@ RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERS
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
   && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf \
+  && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/yum \
   && python3 -m ensurepip --upgrade \
   && python3 -m pip install --upgrade pip
 
