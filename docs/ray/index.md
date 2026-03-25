@@ -4,27 +4,17 @@ Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ra
 
 ## Pull Commands
 
-=== "EC2 / EKS / ECS — GPU"
+=== "EC2 / EKS / ECS"
 
     ```bash
     docker pull {{ images.latest_ray_ec2_gpu }}
-    ```
-
-=== "EC2 / EKS / ECS — CPU"
-
-    ```bash
     docker pull {{ images.latest_ray_ec2_cpu }}
     ```
 
-=== "SageMaker — GPU"
+=== "SageMaker"
 
     ```bash
     docker pull {{ images.latest_ray_sagemaker_gpu }}
-    ```
-
-=== "SageMaker — CPU"
-
-    ```bash
     docker pull {{ images.latest_ray_sagemaker_cpu }}
     ```
 
