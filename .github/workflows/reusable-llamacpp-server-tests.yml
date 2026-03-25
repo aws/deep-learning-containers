@@ -1,4 +1,4 @@
-name: Reusable llama.cpp Upstream Tests
+name: Reusable llama.cpp Server Tests
 
 permissions:
   contents: read
@@ -24,7 +24,7 @@ on:
         type: string
 
 jobs:
-  health-check-test:
+  smoke-test:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -40,27 +40,34 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
-      - name: Verify llama.cpp binary
+      - name: Verify llama-server binary
         env:
           IMAGE: ${{ inputs.image-uri }}
         run: |
-          # Verify the llama-server binary exists and runs
           docker run --rm --gpus all ${IMAGE} --help
 
-      - name: Run health check
+      - name: Verify llama-server with model
         env:
           IMAGE: ${{ inputs.image-uri }}
+          HF_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
         run: |
-          # Start llama-server with no model to verify /health endpoint
-          CONTAINER_ID=$(docker run -d --gpus all -p 8080:8080 ${IMAGE} \
-            --host 0.0.0.0 --port 8080)
+          # Download a tiny GGUF model for smoke test
+          mkdir -p /tmp/llamacpp-test
+          curl -sL -o /tmp/llamacpp-test/test.gguf \
+            "https://huggingface.co/ggml-org/models/resolve/main/tinyllamas/stories260K.gguf"
+
+          # Start server with the test model
+          CONTAINER_ID=$(docker run -d --gpus all -p 8080:8080 \
+            -v /tmp/llamacpp-test:/models \
+            ${IMAGE} \
+            --model /models/test.gguf --host 0.0.0.0 --port 8080)
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
 
-          # Wait for server to start
+          # Wait for health endpoint
           echo "Waiting for llama-server to start..."
           for i in $(seq 1 30); do
             if curl -sf http://localhost:8080/health > /dev/null 2>&1; then
-              echo "Server is healthy"
+              echo "Server is healthy after $((i * 2))s"
               break
             fi
             if [ $i -eq 30 ]; then
@@ -71,13 +78,14 @@ jobs:
             sleep 2
           done
 
-          # Verify health endpoint
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health)
-          echo "Health check returned HTTP ${HTTP_CODE}"
-          if [ "${HTTP_CODE}" -ne 200 ]; then
-            echo "Health check failed"
-            docker logs ${CONTAINER_ID}
-            exit 1
-          fi
+          # Send a completion request
+          RESPONSE=$(curl -sf http://localhost:8080/v1/chat/completions \
+            -H "Content-Type: application/json" \
+            -d '{"messages":[{"role":"user","content":"hello"}],"max_tokens":16}')
+          echo "Response: ${RESPONSE}"
+
+          # Verify we got a response with choices
+          echo "${RESPONSE}" | python3 -c "import sys,json; r=json.load(sys.stdin); assert r.get('choices'), 'No choices in response'"
+          echo "Inference test passed"
 
           docker stop ${CONTAINER_ID}
