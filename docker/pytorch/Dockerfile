@@ -140,10 +140,10 @@ COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 
 # GDRCopy userspace lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
-# cuBLAS from devel image — the runtime image ships a minimal cuBLAS missing
+# cuBLAS from newer devel image — the 13.0.x runtime/devel cuBLAS is missing
 # symbols required by the prebuilt transformer-engine cu13 wheel.
-COPY --from=builder-base /usr/local/cuda/lib64/libcublas*.so* /usr/local/cuda/lib64/
-COPY --from=builder-base /usr/local/cuda/lib64/libcublas*.so* /usr/local/cuda/targets/x86_64-linux/lib/
+COPY --from=nvidia/cuda:13.2.0-devel-amzn2023 /usr/local/cuda/lib64/libcublas*.so* /usr/local/cuda/lib64/
+COPY --from=nvidia/cuda:13.2.0-devel-amzn2023 /usr/local/cuda/lib64/libcublas*.so* /usr/local/cuda/targets/x86_64-linux/lib/
 # The cuda-runtime base image ships the versioned libcudart but not the
 # unversioned symlink; NCCL OFI plugin dlopen()s "libcudart.so" and fails without it.
 RUN CUDART=$(ls /usr/local/cuda/lib64/libcudart.so.* | head -1) \
