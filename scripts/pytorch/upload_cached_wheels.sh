@@ -4,7 +4,7 @@
 # Usage: upload_cached_wheels.sh <bucket> <cuda> <torch> <python> <image_uri> <pkg:ver> [...]
 set -euo pipefail
 
-BUCKET="$1"; IMAGE="$5"
+BUCKET="$1"; CUDA="$2"; IMAGE="$5"
 shift 5
 
 if [ -z "${BUCKET}" ]; then
@@ -33,7 +33,7 @@ for spec in "$@"; do
   fi
 
   FNAME=$(basename "${WHL}")
-  S3_KEY="wheels/${PKG_UNDER}/${FNAME}"
+  S3_KEY="wheels/${CUDA}/${PKG_UNDER}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
     echo "✅ Already cached: ${S3_KEY}"

@@ -21,7 +21,7 @@ for spec in "$@"; do
   PKG="${spec%%:*}"
   VER="${spec##*:}"
   PKG_UNDER="${PKG//-/_}"
-  PREFIX="wheels/${PKG_UNDER}/"
+  PREFIX="wheels/${CUDA}/${PKG_UNDER}/"
   echo "⬇️  Looking for ${PKG}==${VER} in s3://${BUCKET}/${PREFIX} ..."
   # Download any .whl matching the package name — preserves original filename
   aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive --exclude "*" --include "*.whl" 2>/dev/null \
