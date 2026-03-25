@@ -129,11 +129,10 @@ FROM base AS llamacpp-ec2
 
 ARG PYTHON_VERSION=3.12
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
-# dnf upgrade can reset python3 alternatives back to system 3.9
-RUN alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python
-RUN rm -rf /tmp/*
 
 COPY ./scripts/llamacpp/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
