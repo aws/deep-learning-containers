@@ -4,17 +4,29 @@ nav:
     - get_started/index.md
     - Using Deep Learning Containers: get_started/using_dlcs.md
     - Release Notifications: get_started/release_notifications.md
+  - Images:
+    - Available Images: reference/available_images.md
+    - LLM:
+      - Overview: frameworks/llm.md
+      - vLLM: frameworks/vllm.md
+      - SGLang: frameworks/sglang.md
+      - llama.cpp: frameworks/llamacpp.md
+    - ML:
+      - Overview: frameworks/ml.md
+      - Ray Serve: frameworks/ray.md
+      - PyTorch: frameworks/pytorch.md
+    - Base: frameworks/base.md
+  - Guides: tutorials
   - Release Notes:
     - releasenotes/index.md
     - Base: releasenotes/base/index.md
     - SGLang: releasenotes/sglang/index.md
     - vLLM: releasenotes/vllm/index.md
+    - Ray: releasenotes/ray/index.md
     - PyTorch: releasenotes/pytorch/index.md
     - Tensorflow: releasenotes/tensorflow/index.md
-  - Tutorials: tutorials
-  - Reference:
-    - reference/index.md
-    - Available Images: reference/available_images.md
+  - Lifecycle Policy:
+    - Versioning Policy: reference/versioning.md
     - Support Policy: reference/support_policy.md
   - Security:
     - security/index.md

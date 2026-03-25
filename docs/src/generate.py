@@ -428,7 +428,7 @@ def generate_all(dry_run: bool = False) -> None:
     """Generate all documentation files."""
     LOGGER.info("Loaded global config")
 
-    generate_index(dry_run)
+    # generate_index(dry_run)  # commented out — homepage is now hand-authored in docs/index.md
     generate_support_policy(dry_run)
     generate_available_images(dry_run)
     generate_release_notes(dry_run)
