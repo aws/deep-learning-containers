@@ -263,8 +263,13 @@ def check_public_registry(images: list[ImageConfig], repository: str) -> bool:
     return False
 
 
-def get_latest_image_uri(repo: str, platform: str) -> str:
+def get_latest_image_uri(repo: str, platform: str, accelerator: str = None) -> str:
     """Get the latest image URI for a repository and platform.
+
+    Args:
+        repo: Repository name (e.g., "ray", "vllm").
+        platform: Platform name (e.g., "ec2", "sagemaker").
+        accelerator: Optional accelerator filter (e.g., "gpu", "cpu").
 
     Raises:
         ValueError: If no image found for the repository and platform combination.
@@ -272,6 +277,8 @@ def get_latest_image_uri(repo: str, platform: str) -> str:
     images = load_repository_images(repo)
 
     matching = [img for img in images if img.get("platform") == platform]
+    if accelerator:
+        matching = [img for img in matching if img.get("accelerator") == accelerator]
     if not matching:
         raise ValueError(f"Image not found for {repo} with platform {platform}")
 

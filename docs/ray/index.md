@@ -7,29 +7,29 @@ Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ra
 === "EC2 / EKS / ECS — GPU"
 
     ```bash
-    docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-ec2-cuda-v1.0.0
+    docker pull {{ images.latest_ray_ec2_gpu }}
     ```
 
 === "EC2 / EKS / ECS — CPU"
 
     ```bash
-    docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-ec2-cpu-v1.0.0
+    docker pull {{ images.latest_ray_ec2_cpu }}
     ```
 
 === "SageMaker — GPU"
 
     ```bash
-    docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-sagemaker-cuda-v1.0.0
+    docker pull {{ images.latest_ray_sagemaker_gpu }}
     ```
 
 === "SageMaker — CPU"
 
     ```bash
-    docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-sagemaker-cpu-v1.0.0
+    docker pull {{ images.latest_ray_sagemaker_cpu }}
     ```
 
-!!! note "Image URIs are placeholders"
-    Final image URIs will be published when the images are released. See [Available Images](../reference/available_images.md) for all current image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
+!!! note
+    See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
 
 ## Packages
 
@@ -37,7 +37,7 @@ For package versions included in each release, see the [Release Notes](../releas
 
 ## Versioning Strategy
 
-Image tags follow the format `ray:serve-ml-<platform>-{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>` where `<platform>` is `ec2` or `sagemaker`.
+Image tags follow the format `ray:serve-ml-<platform>-{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`.
 
 Version bumps follow these rules:
 
@@ -66,7 +66,7 @@ docker run -d --gpus all \
   -p 8000:8000 \
   -v /path/to/model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-ec2-cuda-v1.0.0
+  {{ images.latest_ray_ec2_gpu }}
 
 # Wait for Ray Serve to become healthy
 until curl -s http://localhost:8000/-/healthz | grep -q "OK"; do sleep 5; done
@@ -98,7 +98,7 @@ docker run -d \
   -p 8000:8000 \
   -v /path/to/tabular-model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  <account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-ec2-cpu-v1.0.0 \
+  {{ images.latest_ray_ec2_cpu }} \
   /opt/ml/model/config.yaml
 
 # Wait for health check
@@ -128,7 +128,7 @@ from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import IdentitySerializer
 
-image_uri = "<account_id>.dkr.ecr.<region>.amazonaws.com/ray:serve-ml-sagemaker-cuda-v1.0.0"
+image_uri = "{{ images.latest_ray_sagemaker_gpu }}"
 model_data = "s3://my-bucket/models/cv-densenet/model.tar.gz"
 
 model = Model(
