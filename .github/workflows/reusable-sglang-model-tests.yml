@@ -81,17 +81,11 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
 
       - name: Download model from S3
-        run: |
-          MODEL_DIR="/dlc-models/${{ matrix.name }}"
-          mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
-          SUBDIRS=("${MODEL_DIR}"/*)
-          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
-          fi
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
 
       - name: Start container
         run: |
@@ -139,17 +133,11 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
 
       - name: Download model from S3
-        run: |
-          MODEL_DIR="/dlc-models/${{ matrix.name }}"
-          mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
-          SUBDIRS=("${MODEL_DIR}"/*)
-          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
-          fi
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
 
       - name: Start container
         run: |
@@ -215,20 +203,11 @@ jobs:
           df -h
 
       - name: Download model from S3
-        run: |
-          # Use a unique directory per job to avoid conflicts with parallel pods
-          JOB_DIR="/dlc-models/${{ github.run_id }}-${{ matrix.name }}"
-          MODEL_DIR="${JOB_DIR}/${{ matrix.name }}"
-          mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "${JOB_DIR}/${{ matrix.name }}.tar.gz"
-          tar xzf "${JOB_DIR}/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "${JOB_DIR}/${{ matrix.name }}.tar.gz"
-          SUBDIRS=("${MODEL_DIR}"/*)
-          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
-          fi
-          echo "JOB_DIR=${JOB_DIR}" >> $GITHUB_ENV
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
 
       - name: Start container
         run: |
@@ -244,9 +223,8 @@ jobs:
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
-          docker cp ${JOB_DIR}/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
+          docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
           docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
-          rm -rf ${JOB_DIR}
 
       - name: Run benchmark
         run: |
@@ -264,4 +242,3 @@ jobs:
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          rm -rf ${JOB_DIR}
