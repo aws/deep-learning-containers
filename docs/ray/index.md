@@ -42,11 +42,60 @@ Version bumps follow these rules:
 
 See [Support Policy](../reference/support_policy.md) for the full lifecycle policy.
 
+## Deployment Guide
+
+### Model Package Structure
+
+Package your model as a `model.tar.gz` with the following layout:
+
+```
+model.tar.gz/
+├── config.yaml              # Ray Serve application config
+├── deployment.py            # Your @serve.deployment class
+├── model_weights.pth        # Model weights (if applicable)
+└── code/
+    └── requirements.txt     # Runtime dependencies (optional, installed at startup)
+```
+
+The `config.yaml` references your deployment module:
+
+```yaml
+applications:
+  - name: my-app
+    route_prefix: /
+    import_path: deployment:app
+    deployments:
+      - name: MyDeployment
+        ray_actor_options:
+          num_gpus: 0
+```
+
+### Deployment Paths
+
+The entrypoint resolves the serve target in this priority order:
+
+| Method | Platform | How |
+| ------ | -------- | --- |
+| `config.yaml` (default) | EC2 + SageMaker | Place `config.yaml` at root of model package |
+| CLI argument | EC2 only | `docker run <image> deployment:app` |
+| Environment variable | SageMaker only | Set `SM_RAYSERVE_APP=deployment:app` |
+
+### EC2 Environment Variables
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `RAY_SERVE_HTTP_HOST` | `127.0.0.1` | Set to `0.0.0.0` to expose the endpoint outside the container |
+| `RAY_SERVE_HTTP_PORT` | `8000` | HTTP port for Ray Serve |
+
+### Runtime Dependencies
+
+Place a `code/requirements.txt` in your model package. It is installed automatically before the Ray cluster starts. On SageMaker, CodeArtifact is supported via the `CA_REPOSITORY_ARN` environment variable.
+
 ## Examples
 
 ### EC2 Deployment
 
-Start the container with a model tarball extracted to a local directory and mounted at `/opt/ml/model`. The entrypoint auto-detects `config.yaml` in the model directory, or you can pass an explicit path or `module:app` import as a CLI argument.
+Mount a model directory at `/opt/ml/model` and set `RAY_SERVE_HTTP_HOST=0.0.0.0` to expose the endpoint:
 
 ```bash
 docker run -d --gpus all \
@@ -54,6 +103,7 @@ docker run -d --gpus all \
   -p 8000:8000 \
   -v /path/to/model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
+  -e RAY_SERVE_HTTP_PORT=8000 \
   {{ images.latest_ray_ec2_gpu }}
 
 # Wait for Ray Serve to become healthy
@@ -73,7 +123,7 @@ docker run -d \
 
 #### Sentiment Analysis
 
-Send text for DistilBERT sentiment classification:
+Send text for [DistilBERT](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english) sentiment classification:
 
 ```bash
 curl -X POST http://localhost:8000/ \
@@ -91,7 +141,7 @@ curl -X POST http://localhost:8000/ \
 
 #### Image Classification
 
-Send a JPEG image for DenseNet-121 top-5 classification:
+Send a JPEG image for DenseNet-161 top-5 classification (ImageNet weights via torchvision):
 
 ```bash
 curl -X POST http://localhost:8000/ \
@@ -113,7 +163,7 @@ curl -X POST http://localhost:8000/ \
 
 #### Audio Transcription
 
-Send a WAV file for Wav2Vec2 speech-to-text (uses FFmpeg backend with GPU-accelerated decoding on GPU images):
+Send a WAV file for [Wav2Vec2](https://huggingface.co/facebook/wav2vec2-base-960h) speech-to-text (uses FFmpeg backend with GPU-accelerated decoding on GPU images):
 
 ```bash
 curl -X POST http://localhost:8000/ \
@@ -123,8 +173,7 @@ curl -X POST http://localhost:8000/ \
 
 ```json
 {
-  "transcription": "HELLO WORLD",
-  "audio_backend": "ffmpeg"
+  "transcription": "<transcription depends on audio input>"
 }
 ```
 
@@ -158,7 +207,7 @@ curl -X POST http://localhost:8000/ \
 
 ### SageMaker Deployment
 
-Deploy a model to a SageMaker real-time endpoint using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/). Package your model as a `model.tar.gz` containing a `config.yaml` and model artifacts, upload to S3, then deploy:
+Deploy a model to a SageMaker real-time endpoint using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/). The container runs Ray Serve internally on port 8000 and exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
 
 ```python
 from sagemaker.model import Model
@@ -203,7 +252,7 @@ with open("kitten.jpg", "rb") as f:
 predictor.serializer = IdentitySerializer(content_type="audio/wav")
 with open("audio.wav", "rb") as f:
     response = predictor.predict(f.read())
-# {"transcription": "HELLO WORLD", "audio_backend": "ffmpeg"}
+# {"transcription": "<transcription depends on audio input>"}
 ```
 
 #### Tabular Classification
@@ -216,6 +265,7 @@ model = Model(
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
     model_data="s3://<BUCKET>/models/tabular-iris/model.tar.gz",
     predictor_cls=Predictor,
+    env={"SM_RAYSERVE_APP": "deployment:app"},
 )
 
 predictor = model.deploy(
