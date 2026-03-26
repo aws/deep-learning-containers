@@ -245,9 +245,12 @@ jobs:
             ${{ matrix.extra_args }}
 
       - name: Cleanup
+        # Do NOT remove images (docker rmi) on shared runner-scale-sets nodes.
+        # Multiple pods share the same host Docker daemon, so removing an image
+        # could affect a parallel job's container. Image cleanup is handled by
+        # the Docker cleanup DaemonSet instead.
         if: always()
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           rm -rf /dlc-models
