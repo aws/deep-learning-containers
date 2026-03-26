@@ -1403,7 +1403,10 @@
                 "78688": "Transformers version upgrade needs to be handled in a separate image",
                 "78828": "Pytorch version upgrade needs to be handled in a separate image",
                 "79595": "Transformers version upgrade needs to be handled in a separate image",
-                "79596": "Transformers version upgrade needs to be handled in a separate image"
+                "79596": "Transformers version upgrade needs to be handled in a separate image",
+                "72086": "*Disputed* Gradio CVE about a user attacking himself - supplier disputes this as not a real vulnerability",
+                "89485": "onnx <=1.20.1 improper trust verification in onnx.hub.load() - no patched version available yet",
+                "88445": "sagemaker <3.4.0 RCE via eval() in search_hub() - major version upgrade to 3.x would break compatibility"
             }
         },
         "inference": {

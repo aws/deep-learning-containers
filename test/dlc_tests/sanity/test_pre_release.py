@@ -700,6 +700,13 @@ def test_pip_check(image):
                 r"skops \d+(\.\d+)* requires prettytable, which is not installed\."
             )
 
+    if "pytorch" in image and "huggingface" in image:
+        # sagemaker 2.x requires protobuf<6.32, but we pin protobuf>=6.33.5 for CVE-2026-0994.
+        # Upgrading sagemaker to 3.x would break compatibility. Allowing this mismatch.
+        allowed_exceptions.append(
+            r"sagemaker \d+(\.\d+)* has requirement protobuf<\d+(\.\d+)*,>=\d+(\.\d+)*, but you have protobuf \d+(\.\d+)*\.$"
+        )
+
     if "pytorch" in image and "trcomp" in image:
         allowed_exceptions.extend(
             [

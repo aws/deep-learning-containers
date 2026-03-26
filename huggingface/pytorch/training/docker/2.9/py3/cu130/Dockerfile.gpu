@@ -61,7 +61,7 @@ RUN pip install --upgrade pip \
     pyarrow \
     cryptography \
     pyopenssl \
-    Pillow \
+    "Pillow>=11.0.0,<12.0.0" \
     wheel \
     setuptools \
     "s3fs==2025.9.0" \
@@ -70,7 +70,13 @@ RUN pip install --upgrade pip \
     "numpy<2" \
     "shap<0.50.0" \
     "urllib3>=2.5.0" \
-    "protobuf>=6.33.5"
+    "protobuf>=6.33.5" \
+    "awscli>=1.44.38" \
+    "boto3>=1.42.45" \
+    "fonttools>=4.62.0" \
+    "pyasn1>=0.6.3" \
+    "requests>=2.33.0" \
+    "tornado>=6.5.5"
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training"
 
