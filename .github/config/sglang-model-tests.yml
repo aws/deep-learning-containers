@@ -52,8 +52,8 @@ benchmark:
 
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tp 1 --context-length 4096"
+      fleet: "x86-g512xl-runner"
+      extra_args: "--tp 4 --context-length 4096"
       input_len: 512
       output_len: 128
       num_prompts: 64
