@@ -108,17 +108,12 @@ RUN conda config --system --set channel_priority strict \
   && conda clean -afy
 
 # MLIO (awslabs/ml-io) is no longer built from source — the project is
-# unmaintained (last release 2020) and its C++ dependencies (AWS SDK 1.7,
-# fmt 6.0, pybind11 2.4) fail to compile with modern CMake/GCC on Ubuntu 22.04.
-# MLIO was used for SageMaker Pipe mode and RecordIO Protobuf format.
-# Pipe mode is deprecated; file-based data loading (CSV, Parquet, LibSVM)
-# works without MLIO. The sagemaker_xgboost_container source imports mlio
-# at module level — a stub is installed to make those imports succeed and
-# raise a clear error only if pipe mode is actually used at runtime.
-RUN mkdir -p /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ \
-  && printf 'class _Stub:\n    def __getattr__(self, name):\n        raise RuntimeError(\n            "mlio is not available in this image. "\n            "SageMaker Pipe mode and RecordIO Protobuf format are not supported. "\n            "Use File mode with CSV, Parquet, or LibSVM format instead."\n        )\n_stub = _Stub()\ndef __getattr__(name):\n    return _stub\n' > /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/__init__.py \
-  && printf 'from mlio import __getattr__\n' > /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
-  && cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
+# unmaintained (last release 2020) and its C++ dependencies fail to compile
+# with modern CMake/GCC on Ubuntu 22.04. A stub module is installed so that
+# imports succeed but raises a clear error if pipe mode is used at runtime.
+COPY docker/xgboost/resources/mlio_stub/ \
+  /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/
+RUN cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
     /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/arrow.py \
   && cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
     /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/numpy.py \
