@@ -288,6 +288,9 @@ docker run -d --gpus all \
 
 until curl -sf http://localhost:8000/-/healthz > /dev/null; do sleep 5; done
 
+# Download a test image
+curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg
+
 curl -X POST http://localhost:8000/ \
   -H "Content-Type: image/jpeg" \
   --data-binary @kitten.jpg
