@@ -9,7 +9,7 @@ Serve quantized models to reduce GPU memory usage and increase throughput.
 ### FP8
 
 ```bash
-docker run --gpus all -p 8000:8000 <image_uri> \
+docker run --gpus all -p 8000:8000 public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model neuralmagic/Meta-Llama-3.1-8B-Instruct-FP8 \
   --quantization fp8
 ```
@@ -17,7 +17,7 @@ docker run --gpus all -p 8000:8000 <image_uri> \
 ### AWQ
 
 ```bash
-docker run --gpus all -p 8000:8000 <image_uri> \
+docker run --gpus all -p 8000:8000 public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model TheBloke/Llama-2-7B-Chat-AWQ \
   --quantization awq
 ```
@@ -25,7 +25,7 @@ docker run --gpus all -p 8000:8000 <image_uri> \
 ### GPTQ
 
 ```bash
-docker run --gpus all -p 8000:8000 <image_uri> \
+docker run --gpus all -p 8000:8000 public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model TheBloke/Llama-2-7B-Chat-GPTQ \
   --quantization gptq
 ```
@@ -37,7 +37,7 @@ For all supported quantization methods, see the [vLLM quantization documentation
 Serve multiple LoRA adapters on a single base model:
 
 ```bash
-docker run --gpus all -p 8000:8000 <image_uri> \
+docker run --gpus all -p 8000:8000 public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model meta-llama/Llama-3.1-8B-Instruct \
   --enable-lora \
   --lora-modules my-adapter=s3://<bucket>/my-lora-adapter
@@ -116,7 +116,7 @@ curl http://localhost:8000/v1/chat/completions \
 Accelerate generation using a smaller draft model:
 
 ```bash
-docker run --gpus all -p 8000:8000 <image_uri> \
+docker run --gpus all -p 8000:8000 public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model meta-llama/Llama-3.1-70B-Instruct \
   --speculative-model meta-llama/Llama-3.2-1B-Instruct \
   --num-speculative-tokens 5 \

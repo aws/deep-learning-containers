@@ -53,11 +53,21 @@ The version follows 3-part semantic versioning (`MAJOR.MINOR.PATCH`):
 !!! tip "Recommendation" Use the **full version tag** (`server-cuda-v1.0.0`) in production for reproducibility. Use the **minor tag**
 (`server-cuda-v1.0`) in development to automatically pick up security patches.
 
-## ECR Repository
+## Pulling Images
 
-The new-format images are published to the existing `vllm` ECR repository, coexisting with legacy-format images.
+vLLM {{ dlc_short }} images are available from both the {{ ecr_public }} and private {{ ecr }} registries.
 
-### Forming the Image URI
+### {{ ecr_public }} (Recommended)
+
+The simplest way to pull images — no authentication required:
+
+```bash
+docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda-v1.0.0
+```
+
+### Private {{ ecr }}
+
+For use within {{ aws }} accounts. Requires authentication and uses a region-specific URI:
 
 ```
 <account_id>.dkr.ecr.<region>.amazonaws.com/vllm:<tag>
@@ -65,18 +75,43 @@ The new-format images are published to the existing `vllm` ECR repository, coexi
 
 See [Region Availability](../reference/available_images.md#region-availability) for account IDs per region.
 
-### Example
+```bash
+# Authenticate
+aws ecr get-login-password --region us-west-2 | \
+  docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
 
+# Pull
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1.0.0
+```
+
+### Examples
+
+=== "{{ ecr_public }}"
+
+````
 ```bash
 # Pinned to exact version
-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1.0.0
+docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda-v1.0.0
 
 # Latest patch in v1.0 series
-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1.0
+docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda-v1.0
 
 # Latest v1 release
-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1
+docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda-v1
 ```
+````
+
+=== "Private {{ ecr }}"
+
+````
+```bash
+# US West (Oregon)
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1.0.0
+
+# EU (Ireland)
+docker pull 763104351884.dkr.ecr.eu-west-1.amazonaws.com/vllm:server-cuda-v1.0.0
+```
+````
 
 ## Legacy Tags
 

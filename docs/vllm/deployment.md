@@ -9,7 +9,7 @@ Deploy vLLM {{ dlc_short }} images across {{ aws }} compute platforms.
 ```bash
 docker run --gpus all -p 8000:8000 \
   -e HF_TOKEN=<your_hf_token> \
-  {{ images.latest_vllm_ec2 }} \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model meta-llama/Llama-3.1-8B-Instruct \
   --host 0.0.0.0 --port 8000
 ```
@@ -21,7 +21,7 @@ For models that require multiple GPUs (e.g., 70B+ parameter models):
 ```bash
 docker run --gpus all --ipc=host -p 8000:8000 \
   -e HF_TOKEN=<your_hf_token> \
-  {{ images.latest_vllm_ec2 }} \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model meta-llama/Llama-3.1-70B-Instruct \
   --tensor-parallel-size 8 \
   --host 0.0.0.0 --port 8000
@@ -108,7 +108,7 @@ sagemaker.create_endpoint(
   "containerDefinitions": [
     {
       "name": "vllm",
-      "image": "<account_id>.dkr.ecr.<region>.amazonaws.com/vllm:<tag>",
+      "image": "public.ecr.aws/deep-learning-containers/vllm:server-cuda",
       "command": [
         "--model", "meta-llama/Llama-3.1-8B-Instruct",
         "--host", "0.0.0.0",
@@ -136,7 +136,7 @@ metadata:
 spec:
   containers:
     - name: vllm
-      image: <account_id>.dkr.ecr.<region>.amazonaws.com/vllm:<tag>
+      image: public.ecr.aws/deep-learning-containers/vllm:server-cuda
       args:
         - "--model"
         - "meta-llama/Llama-3.1-8B-Instruct"
@@ -166,7 +166,7 @@ docker run --gpus all --ipc=host --network=host \
   --privileged \
   -e HF_TOKEN=<your_hf_token> \
   -e NCCL_DEBUG=INFO \
-  {{ images.latest_vllm_ec2 }} \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model meta-llama/Llama-3.1-405B-Instruct \
   --tensor-parallel-size 8 \
   --pipeline-parallel-size 2 \

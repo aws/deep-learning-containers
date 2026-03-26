@@ -37,7 +37,7 @@ Many models require accepting a license on Hugging Face. Set the `HF_TOKEN` envi
 ```bash
 docker run --gpus all -p 8000:8000 \
   -e HF_TOKEN=<your_hf_token> \
-  <image_uri> \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model meta-llama/Llama-3.1-8B-Instruct
 ```
 ````
@@ -60,7 +60,7 @@ env = {
 ```bash
 docker run --gpus all -p 8000:8000 \
   -e AWS_DEFAULT_REGION=us-west-2 \
-  <image_uri> \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model s3://<bucket>/<prefix>/my-model/
 ```
 
@@ -69,7 +69,7 @@ docker run --gpus all -p 8000:8000 \
 ```bash
 docker run --gpus all -p 8000:8000 \
   -v /local/models/my-model:/model \
-  <image_uri> \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model /model
 ```
 

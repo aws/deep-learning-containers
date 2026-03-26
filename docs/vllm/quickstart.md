@@ -10,32 +10,13 @@ Get a vLLM {{ dlc_short }} container running and serve your first model.
 
 ## Pull the Image
 
-### Authenticate with {{ ecr }}
+The easiest way to pull vLLM {{ dlc_short }} images is from the {{ ecr_public }} — no authentication required:
 
 ```bash
-aws ecr get-login-password --region us-west-2 | \
-  docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
+docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda
 ```
 
-### Pull the Latest vLLM Image
-
-=== "{{ ec2_short }}"
-
-````
-```bash
-docker pull {{ images.latest_vllm_ec2 }}
-```
-````
-
-=== "{{ sm_short }}"
-
-````
-```bash
-docker pull {{ images.latest_vllm_sagemaker }}
-```
-````
-
-For all available image tags, see [Available Images](../reference/available_images.md).
+For version pinning options, see [Versioning](versioning.md#pulling-images).
 
 ## Run on {{ ec2 }}
 
@@ -44,7 +25,7 @@ For all available image tags, see [Available Images](../reference/available_imag
 ```bash
 docker run --gpus all -p 8000:8000 \
   -e HF_TOKEN=<your_hf_token> \
-  {{ images.latest_vllm_ec2 }} \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model meta-llama/Llama-3.1-8B-Instruct \
   --host 0.0.0.0 \
   --port 8000
