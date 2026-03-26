@@ -244,6 +244,7 @@ jobs:
           . /tmp/xgboost-integ/.venv/bin/activate
           uv pip install .[test]
           uv pip install --upgrade boto3 botocore
+          uv pip install docker-compose
           sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
             .venv/lib/python3.11/site-packages/sagemaker_containers/_mapping.py
 
