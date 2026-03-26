@@ -113,14 +113,6 @@ jobs:
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
 
-      - name: Cleanup
-        if: always()
-        run: |
-          docker stop ${CONTAINER_ID} 2>/dev/null || true
-          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models
-
   # ---------------------------------------------------------------------------
   # Benchmarks: start server, run bench_serving, validate throughput/rps
   # ---------------------------------------------------------------------------
@@ -179,14 +171,6 @@ jobs:
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
 
-      - name: Cleanup
-        if: always()
-        run: |
-          docker stop ${CONTAINER_ID} 2>/dev/null || true
-          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models
-
   benchmark-runner-scale:
     name: benchmark / gpu-efa-runners (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets)[0] != null }}
@@ -208,58 +192,37 @@ jobs:
 
       - name: Download model from S3
         run: |
-          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          # Use a unique directory per job to avoid conflicts with parallel pods
+          JOB_DIR="/dlc-models/${{ github.run_id }}-${{ matrix.name }}"
+          MODEL_DIR="${JOB_DIR}/${{ matrix.name }}"
           mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          aws s3 cp "${{ matrix.s3_path }}" "${JOB_DIR}/${{ matrix.name }}.tar.gz"
+          tar xzf "${JOB_DIR}/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "${JOB_DIR}/${{ matrix.name }}.tar.gz"
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
             rmdir "${SUBDIRS[0]}"
           fi
-
-      - name: Diagnose - Pod GPU env
-        run: |
-          echo "NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-not set}"
-
-      - name: Diagnose - Pod nvidia-smi
-        run: |
-          nvidia-smi -L 2>/dev/null || echo "nvidia-smi not available in runner pod"
-
-      - name: Diagnose - Host Docker --gpus all
-        run: |
-          docker run --rm --gpus all nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
-
-      - name: Diagnose - Host Docker with pod NVIDIA_VISIBLE_DEVICES
-        run: |
-          docker run --rm --gpus all -e NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
-
-      - name: Diagnose - Host Docker with explicit device IDs
-        run: |
-          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader 2>/dev/null | paste -sd, || echo "")
-          echo "Pod GPU UUIDs: ${POD_GPUS}"
-          if [ -n "${POD_GPUS}" ]; then
-            docker run --rm --gpus "\"device=${POD_GPUS}\"" nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
-          else
-            echo "No pod GPUs detected, skipping"
-          fi
+          echo "JOB_DIR=${JOB_DIR}" >> $GITHUB_ENV
 
       - name: Start container
         run: |
+          # Get GPU UUIDs visible to this pod (k8s assigns a subset of host GPUs)
+          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
+          echo "Pod GPU UUIDs: ${POD_GPUS}"
           docker pull ${{ inputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --gpus "\"device=${POD_GPUS}\"" --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
-            -e NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
-          docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
+          docker cp ${JOB_DIR}/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
           docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
-          rm -rf /dlc-models
+          rm -rf ${JOB_DIR}
 
       - name: Run benchmark
         run: |
@@ -269,9 +232,12 @@ jobs:
             ${{ matrix.extra_args }}
 
       - name: Cleanup
+        # Do NOT remove images (docker rmi) on shared runner-scale-sets nodes.
+        # Multiple pods share the same host Docker daemon, so removing an image
+        # could affect a parallel job's container. Image cleanup is handled by
+        # the Docker cleanup DaemonSet instead.
         if: always()
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models
+          rm -rf ${JOB_DIR}
