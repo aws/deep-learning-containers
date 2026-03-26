@@ -36,9 +36,9 @@ Version bumps follow these rules:
 
 ## Support Policy
 
-| Version | DLC Version | GA Date | End of Patch |
-| ------- | ----------- | ------- | ------------ |
-| Ray 2.54 | v1.0.0 | 2026-02-18 | 2027-02-18 |
+| DLC Version | Ray | Python | CUDA | GA Date | End of Patch |
+| ----------- | --- | ------ | ---- | ------- | ------------ |
+| v1.0.0 | 2.54.0 | 3.13 | 12.9.1 | 2026-02-18 | 2027-02-18 |
 
 See [Support Policy](../reference/support_policy.md) for the full lifecycle policy.
 
