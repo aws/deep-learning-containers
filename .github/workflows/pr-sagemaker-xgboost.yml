@@ -140,7 +140,7 @@ jobs:
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: xgboost-sagemaker
-          base-image: nvidia/cuda:12.6.3-base-ubuntu22.04
+          base-image: nvidia/cuda:12.6.3-base-ubuntu20.04
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -184,7 +184,7 @@ jobs:
         run: |
           CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
           cd /tmp/xgboost-unit
-          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN apt-get update && apt-get install -y --no-install-recommends libjpeg-dev zlib1g-dev && rm -rf /var/lib/apt/lists/*\nRUN python3 -m pip install .[test]" > Dockerfile.test
+          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
           docker build -t test-xgboost -f Dockerfile.test .
 
       - name: Run unit tests
@@ -240,13 +240,13 @@ jobs:
       - name: Setup test environment
         run: |
           cd /tmp/xgboost-integ
-          uv venv /tmp/xgboost-integ/.venv --python 3.11
+          uv venv /tmp/xgboost-integ/.venv --python 3.10
           . /tmp/xgboost-integ/.venv/bin/activate
           uv pip install .[test]
           uv pip install --upgrade boto3 botocore
           uv pip install docker-compose
           sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
-            .venv/lib/python3.11/site-packages/sagemaker_containers/_mapping.py
+            .venv/lib/python3.10/site-packages/sagemaker_containers/_mapping.py
 
       - name: Run integration tests
         env:
