@@ -114,6 +114,15 @@ if [[ -n "${SCCACHE_BUCKET}" ]]; then
   --network=host \
   --build-arg SCCACHE_BUCKET=\"${SCCACHE_BUCKET}\" \
   --build-arg SCCACHE_REGION=\"${SCCACHE_REGION}\""
+
+  # Forward credential endpoint so sccache inside Docker can authenticate.
+  # CodeBuild sets AWS_CONTAINER_CREDENTIALS_FULL_URI (127.0.0.1);
+  # --network=host makes it reachable from inside the build.
+  if [[ -n "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]]; then
+    BUILD_CMD="${BUILD_CMD} \
+  --build-arg AWS_CONTAINER_CREDENTIALS_FULL_URI=\"${AWS_CONTAINER_CREDENTIALS_FULL_URI}\" \
+  --build-arg AWS_CONTAINER_AUTHORIZATION_TOKEN=\"${AWS_CONTAINER_AUTHORIZATION_TOKEN:-}\""
+  fi
 fi
 
 BUILD_CMD="${BUILD_CMD} \
