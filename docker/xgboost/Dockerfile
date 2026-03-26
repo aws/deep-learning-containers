@@ -110,6 +110,7 @@ RUN conda config --system --set auto_update_conda false \
     python=${PYTHON_VERSION} \
     requests=2.32.3 \
     openssl=3.6.1 \
+    "libcurl>=8.19.0" \
     pyarrow=${PYARROW_VERSION} \
   && conda clean -afy
 
@@ -126,6 +127,7 @@ RUN git clone -b v1.65.4 https://github.com/grpc/grpc.git \
   && rm -rf /etc/apt/sources.list.d/nodesource.list \
     /etc/apt/keyrings/nodesource.gpg \
     /etc/apt/sources.list.d/kitware.list \
+    /usr/lib/node_modules \
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
   && cd /tmp \
   && git clone --branch v${MLIO_VERSION} https://github.com/awslabs/ml-io.git mlio \
@@ -199,7 +201,7 @@ RUN python3 -m pip install --no-cache-dir -r /requirements.txt && rm /requiremen
 COPY docker/xgboost/resources/patches/decoder.py /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
 
 # Security patches
-RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2" "idna>=3.7"
+RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2" "idna>=3.7" "setuptools>=80.9.0,<81"
 
 # Patch collections.Mapping deprecation in sagemaker-containers
 RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
