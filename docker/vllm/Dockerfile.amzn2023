@@ -48,18 +48,13 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 
 # sccache — caches compiled objects in S3 so partial source changes only
 # recompile the affected files. Set SCCACHE_BUCKET at build time to enable.
-# Build with --network=host on CodeBuild so sccache can reach the credential
-# endpoint at 127.0.0.1 (AWS_CONTAINER_CREDENTIALS_FULL_URI).
+# On EC2 fleet runners, sccache uses IMDSv2 for credentials via --network=host.
 ARG SCCACHE_BUCKET=""
 ARG SCCACHE_REGION="us-west-2"
-ARG AWS_CONTAINER_CREDENTIALS_FULL_URI=""
-ARG AWS_CONTAINER_AUTHORIZATION_TOKEN=""
 ENV SCCACHE_BUCKET=${SCCACHE_BUCKET} \
   SCCACHE_REGION=${SCCACHE_REGION} \
   SCCACHE_S3_USE_SSL=true \
-  SCCACHE_S3_KEY_PREFIX=sccache/vllm \
-  AWS_CONTAINER_CREDENTIALS_FULL_URI=${AWS_CONTAINER_CREDENTIALS_FULL_URI} \
-  AWS_CONTAINER_AUTHORIZATION_TOKEN=${AWS_CONTAINER_AUTHORIZATION_TOKEN}
+  SCCACHE_S3_KEY_PREFIX=sccache/vllm
 RUN if [ -n "${SCCACHE_BUCKET}" ]; then \
   curl -L https://github.com/mozilla/sccache/releases/download/v0.9.1/sccache-v0.9.1-x86_64-unknown-linux-musl.tar.gz \
     | tar xz -C /usr/local/bin --strip-components=1 --wildcards '*/sccache' \
@@ -101,9 +96,10 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
 # When sccache is available, use it as the compiler launcher so unchanged
 # object files are fetched from S3 instead of being recompiled.
-ENV CMAKE_C_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}"
-ENV CMAKE_CXX_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}"
-ENV CMAKE_CUDA_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}"
+ENV CMAKE_C_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}" \
+  CMAKE_CXX_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}" \
+  CMAKE_CUDA_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}" \
+  SCCACHE_IDLE_TIMEOUT=0
 
 RUN --mount=type=cache,target=/root/.cache/uv \
   python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
