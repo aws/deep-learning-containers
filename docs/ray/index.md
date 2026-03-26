@@ -128,7 +128,7 @@ docker run -d --gpus all \
   {{ images.latest_ray_ec2_gpu }}
 
 # Wait for Ray Serve to become healthy
-until curl -s http://localhost:8000/-/healthz | grep -q "OK"; do sleep 5; done
+until curl -sf http://localhost:8000/-/healthz > /dev/null; do sleep 5; done
 ```
 
 For CPU models, use the CPU image and omit `--gpus all`:
