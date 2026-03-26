@@ -99,4 +99,4 @@ print(json.loads(response))
 
 - [Configuration](configuration.md) — Tune engine arguments and environment variables
 - [Deployment](deployment.md) — Multi-GPU, multi-node, and production setups
-- [Features](features.md) — Enable quantization, LoRA, structured outputs
+- [Benchmarks](benchmarks.md) — Performance numbers on {{ aws }} GPU instances

@@ -36,7 +36,7 @@ Each vLLM {{ dlc_short }} image ships with:
 - [Configuration](configuration.md) — Environment variables and server arguments
 - [Deployment](deployment.md) — Deploy on {{ ec2 }}, {{ ecs }}, {{ eks }}, or {{ sagemaker }}
 - [Supported Models](supported_models.md) — Models tested with the {{ dlc_short }} images
-- [Features](features.md) — Quantization, LoRA, structured outputs, and more
+- [Benchmarks](benchmarks.md) — Performance numbers on {{ aws }} GPU instances
 - [Releases](releases.md) — Release history and release notes
 - [Versioning](versioning.md) — Simplified tag format and how to pick the right image
 - [Support Policy](support_policy.md) — GA/EOP lifecycle and patching
