@@ -28,6 +28,11 @@ on:
         required: false
         type: string
         default: 'default-runner'
+      publish-only:
+        description: 'If true, only publish images (skip release info, notifications, docs PR)'
+        required: false
+        type: boolean
+        default: false
     outputs:
       run-identifier:
         description: 'Unique identifier for this release run'
@@ -189,7 +194,7 @@ jobs:
   step2-generate-info:
     needs: [step1-publish-images]
     environment: ${{ inputs.environment }}
-    if: needs.step1-publish-images.outputs.images-published == '1'
+    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
@@ -257,7 +262,7 @@ jobs:
   step3-publish-notifications:
     needs: [step1-publish-images, step2-generate-info]
     environment: ${{ inputs.environment }}
-    if: needs.step1-publish-images.outputs.images-published == '1'
+    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
@@ -295,7 +300,7 @@ jobs:
 
   step4-docs-pr:
     needs: [step1-publish-images, step3-publish-notifications]
-    if: needs.step1-publish-images.outputs.images-published == '1'
+    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
     runs-on: ubuntu-latest
     steps:
       - name: Decode the GitHub App Private Key
