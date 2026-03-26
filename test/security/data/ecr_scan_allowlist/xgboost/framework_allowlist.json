@@ -11,22 +11,32 @@
     },
     {
         "vulnerability_id": "CVE-2026-25990",
-        "reason": "Pillow pinned to 9.1.1 — matching upstream sagemaker-xgboost-container requirements.txt. Out-of-bounds write when loading crafted PSD images; low risk as PSD loading is not part of the XGBoost inference/training path.",
+        "reason": "Pillow pinned to 9.1.1 matching upstream sagemaker-xgboost-container. Out-of-bounds write when loading crafted PSD images; low risk as PSD loading is not part of the XGBoost inference/training path.",
         "review_by": "2026-06-26"
     },
     {
         "vulnerability_id": "CVE-2026-21441",
-        "reason": "urllib3 pinned to 1.26.5 — required by botocore 1.20.52 (transitive from sagemaker-containers). Streaming API vulnerability; low risk in SageMaker container environment.",
+        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52 (transitive from sagemaker-containers). Streaming API vulnerability; low risk in SageMaker container environment connecting only to trusted AWS endpoints.",
         "review_by": "2026-06-26"
     },
     {
         "vulnerability_id": "CVE-2025-66418",
-        "reason": "urllib3 pinned to 1.26.5 — required by botocore 1.20.52. Unbounded decompression chain; low risk as container only connects to trusted AWS endpoints.",
+        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Unbounded decompression chain; low risk as container only connects to trusted AWS endpoints.",
         "review_by": "2026-06-26"
     },
     {
         "vulnerability_id": "CVE-2025-66471",
-        "reason": "urllib3 pinned to 1.26.5 — required by botocore 1.20.52. Streaming API compressed data handling; low risk as container only connects to trusted AWS endpoints.",
+        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Streaming API compressed data handling; low risk as container only connects to trusted AWS endpoints.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-27516",
+        "reason": "Jinja2 pinned to 2.11.3 — required by sagemaker-containers 2.8.6.post2 which depends on Flask 1.1.1. Upgrading Jinja2 to 3.1.6 breaks the Flask/sagemaker-containers stack. Sandbox escape via |attr filter; low risk as templates are not user-controlled in SageMaker serving.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-30749",
+        "reason": "openjdk-8 8u452 — Ubuntu 20.04 APT has not yet published the 8u462 update. Oracle Java SE 2D component vulnerability. Will auto-resolve when Ubuntu publishes the update and apt-get upgrade picks it up.",
         "review_by": "2026-06-26"
     }
 ]
