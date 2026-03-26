@@ -114,15 +114,6 @@ if [[ -n "${SCCACHE_BUCKET}" ]]; then
   --network=host \
   --build-arg SCCACHE_BUCKET=\"${SCCACHE_BUCKET}\" \
   --build-arg SCCACHE_REGION=\"${SCCACHE_REGION}\""
-
-  # Pass container credential endpoint so sccache can auto-refresh IAM
-  # credentials via the metadata service (CodeBuild/ECS task role).
-  if [[ -n "${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-}" ]]; then
-    BUILD_CMD="${BUILD_CMD} \
-  --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=\"${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI}\""
-  else
-    echo "⚠️ AWS_CONTAINER_CREDENTIALS_RELATIVE_URI not set — sccache may not have S3 access"
-  fi
 fi
 
 BUILD_CMD="${BUILD_CMD} \

@@ -48,17 +48,14 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 
 # sccache — caches compiled objects in S3 so partial source changes only
 # recompile the affected files. Set SCCACHE_BUCKET at build time to enable.
-# Build with --network=host on CodeBuild so sccache can reach the container
-# credential endpoint (AWS_CONTAINER_CREDENTIALS_RELATIVE_URI) for auto-
-# refreshing IAM credentials that won't expire during long builds.
+# Build with --network=host on CodeBuild so sccache can reach credentials
+# via the instance metadata service or container credential endpoint.
 ARG SCCACHE_BUCKET=""
 ARG SCCACHE_REGION="us-west-2"
-ARG AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=""
 ENV SCCACHE_BUCKET=${SCCACHE_BUCKET}
 ENV SCCACHE_REGION=${SCCACHE_REGION}
 ENV SCCACHE_S3_USE_SSL=true
 ENV SCCACHE_S3_KEY_PREFIX=sccache/vllm
-ENV AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI}
 RUN if [ -n "${SCCACHE_BUCKET}" ]; then \
   curl -L https://github.com/mozilla/sccache/releases/download/v0.9.1/sccache-v0.9.1-x86_64-unknown-linux-musl.tar.gz \
     | tar xz -C /usr/local/bin --strip-components=1 --wildcards '*/sccache' \
