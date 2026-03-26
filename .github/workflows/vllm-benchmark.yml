@@ -56,7 +56,7 @@ jobs:
           echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
 
   benchmark-codebuild-fleet:
-    name: benchmark (${{ matrix.name }})
+    name: benchmark (${{ matrix.name }} / ${{ matrix.fleet }})
     if: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix)[0] != null }}
     needs: [load-benchmarks]
     strategy:
@@ -128,7 +128,7 @@ jobs:
             ${CONTAINER_ID} bash /models/vllm_benchmark_test.sh \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
-              "codebuild" \
+              "${{ matrix.fleet }}" \
               ${{ matrix.extra_args }}
 
       - name: Extract results
@@ -140,7 +140,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-${{ matrix.name }}-codebuild
+          name: benchmark-${{ matrix.name }}-${{ matrix.fleet }}
           path: benchmark_results/
           retention-days: 30
 
@@ -153,11 +153,12 @@ jobs:
           rm -rf /dlc-models
 
   benchmark-runner-scale-sets:
-    name: benchmark (${{ matrix.name }})
+    name: benchmark (${{ matrix.name }} / gpu-efa-runners)
     if: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix)[0] != null }}
     needs: [load-benchmarks]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix) }}
     runs-on: gpu-efa-runners
@@ -225,7 +226,7 @@ jobs:
             ${CONTAINER_ID} bash /models/vllm_benchmark_test.sh \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
-              "runner" \
+              "gpu-efa-runners" \
               ${{ matrix.extra_args }}
 
       - name: Extract results
@@ -237,7 +238,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-${{ matrix.name }}-runner
+          name: benchmark-${{ matrix.name }}-gpu-efa-runners
           path: benchmark_results/
           retention-days: 30
 
