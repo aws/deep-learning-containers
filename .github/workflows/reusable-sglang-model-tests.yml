@@ -219,38 +219,14 @@ jobs:
             rmdir "${SUBDIRS[0]}"
           fi
 
-      - name: Diagnose - Pod GPU env
-        run: |
-          echo "NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-not set}"
-
-      - name: Diagnose - Pod nvidia-smi
-        run: |
-          nvidia-smi -L 2>/dev/null || echo "nvidia-smi not available in runner pod"
-
-      - name: Diagnose - Host Docker --gpus all
-        run: |
-          docker run --rm --gpus all nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
-
-      - name: Diagnose - Host Docker with pod NVIDIA_VISIBLE_DEVICES
-        run: |
-          docker run --rm --gpus all -e NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
-
-      - name: Diagnose - Host Docker with explicit device IDs
-        run: |
-          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader 2>/dev/null | paste -sd, || echo "")
-          echo "Pod GPU UUIDs: ${POD_GPUS}"
-          if [ -n "${POD_GPUS}" ]; then
-            docker run --rm --gpus "\"device=${POD_GPUS}\"" nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
-          else
-            echo "No pod GPUs detected, skipping"
-          fi
-
       - name: Start container
         run: |
+          # Get GPU device IDs visible to this pod (k8s NVIDIA device plugin assigns a subset)
+          GPU_IDS=$(nvidia-smi --query-gpu=index --format=csv,noheader | paste -sd,)
+          echo "Pod GPU device IDs: ${GPU_IDS}"
           docker pull ${{ inputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --gpus "\"device=${GPU_IDS}\"" --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
-            -e NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
