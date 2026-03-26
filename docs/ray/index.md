@@ -108,13 +108,6 @@ The entrypoint resolves the serve target in this priority order:
 | `RAY_SERVE_HTTP_HOST` | `127.0.0.1` | Set to `0.0.0.0` to expose the endpoint outside the container |
 | `RAY_SERVE_HTTP_PORT` | `8000` | HTTP port for Ray Serve |
 
-### SageMaker Environment Variables (Optional)
-
-| Variable | Default | Description |
-| -------- | ------- | ----------- |
-| `SM_RAYSERVE_APP` | — | `module:app` import path; only needed when no `config.yaml` is present |
-| `CA_REPOSITORY_ARN` | — | CodeArtifact repository ARN for authenticated `code/requirements.txt` installation |
-
 ### Runtime Dependencies
 
 Place a `code/requirements.txt` in your model package. It is installed automatically before the Ray cluster starts. On SageMaker, CodeArtifact is supported via the `CA_REPOSITORY_ARN` environment variable.
