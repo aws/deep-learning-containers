@@ -23,8 +23,10 @@ jobs:
   load-models:
     runs-on: ubuntu-latest
     outputs:
-      codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
-      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
+      smoke-codebuild-fleet: ${{ steps.parse.outputs.smoke-codebuild-fleet }}
+      smoke-runner-scale-sets: ${{ steps.parse.outputs.smoke-runner-scale-sets }}
+      bench-codebuild-fleet: ${{ steps.parse.outputs.bench-codebuild-fleet }}
+      bench-runner-scale-sets: ${{ steps.parse.outputs.bench-runner-scale-sets }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -36,31 +38,41 @@ jobs:
           import yaml, json
           with open('.github/config/sglang-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
-          print('codebuild-fleet=' + json.dumps(cfg.get('codebuild-fleet', [])))
-          print('runner-scale-sets=' + json.dumps(cfg.get('runner-scale-sets', [])))
+          prefix = cfg.get('s3_prefix', '')
+          def resolve(section):
+              s = cfg.get(section, {})
+              for key in ('codebuild-fleet', 'runner-scale-sets'):
+                  for m in s.get(key, []):
+                      m['s3_path'] = prefix + '/' + m.pop('s3_model')
+              return s
+          st = resolve('smoke-test')
+          bm = resolve('benchmark')
+          print('smoke-codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
+          print('smoke-runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
+          print('bench-codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
+          print('bench-runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', [])))
           " > parsed.txt
-          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
-          grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
-          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
-          echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
+          for key in smoke-codebuild-fleet smoke-runner-scale-sets bench-codebuild-fleet bench-runner-scale-sets; do
+            val=$(grep "^${key}=" parsed.txt | sed "s/^${key}=//")
+            echo "${key}=${val}" >> $GITHUB_OUTPUT
+          done
 
-  test-model-codebuild-fleet:
-    name: ${{ matrix.test_type }} (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix)[0] != null }}
+  # ---------------------------------------------------------------------------
+  # Smoke tests: start server, health check, send completion, validate response
+  # ---------------------------------------------------------------------------
+  smoke-test-codebuild:
+    name: smoke-test (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.smoke-codebuild-fleet)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix) }}
+        include: ${{ fromJson(needs.load-models.outputs.smoke-codebuild-fleet) }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ matrix.fleet }}
         buildspec-override:true
     steps:
-      - name: Cleanup stale containers
-        run: |
-          docker rm -f $(docker ps -aq) || true
-
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -95,16 +107,10 @@ jobs:
       - name: Copy scripts into container
         run: |
           docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
-          docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
 
-      - name: Run model test
+      - name: Run smoke test
         run: |
-          if [ "${{ matrix.test_type }}" = "benchmark" ]; then
-            SCRIPT="sglang_benchmark_test.sh"
-          else
-            SCRIPT="sglang_model_smoke_test.sh"
-          fi
-          docker exec ${CONTAINER_ID} bash /models/${SCRIPT} \
+          docker exec ${CONTAINER_ID} bash /models/sglang_model_smoke_test.sh \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
@@ -117,14 +123,14 @@ jobs:
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           rm -rf /dlc-models
 
-  test-model-runner-scale-sets:
-    name: ${{ matrix.test_type }} (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
+  smoke-test-runner-scale:
+    name: smoke-test (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.smoke-runner-scale-sets)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
+        include: ${{ fromJson(needs.load-models.outputs.smoke-runner-scale-sets) }}
     runs-on: gpu-efa-runners
     steps:
       - name: Checkout code
@@ -157,23 +163,144 @@ jobs:
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      # on runner scale sets, containers cannot mount host volumes
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
           docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          rm -rf /dlc-models
+
+      - name: Run smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /models/sglang_model_smoke_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.name }}" \
+            ${{ matrix.extra_args }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          rm -rf /dlc-models
+
+  # ---------------------------------------------------------------------------
+  # Benchmarks: start server, run bench_serving, validate throughput/rps
+  # ---------------------------------------------------------------------------
+  benchmark-codebuild:
+    name: benchmark (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.bench-codebuild-fleet)[0] != null }}
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.bench-codebuild-fleet) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          mkdir -p "${MODEL_DIR}"
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
+      - name: Start container
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            --ipc=host --shm-size=10g \
+            -v /dlc-models:/models \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy scripts into container
+        run: |
+          docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
+
+      - name: Run benchmark
+        run: |
+          docker exec ${CONTAINER_ID} bash /models/sglang_benchmark_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.name }}" \
+            ${{ matrix.extra_args }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          rm -rf /dlc-models
+
+  benchmark-runner-scale:
+    name: benchmark (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets)[0] != null }}
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets) }}
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          mkdir -p "${MODEL_DIR}"
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
+      - name: Start container
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            --ipc=host --shm-size=10g \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy files into container
+        run: |
+          docker exec ${CONTAINER_ID} mkdir -p /models
+          docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
           docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
           rm -rf /dlc-models
 
-      - name: Run model test
+      - name: Run benchmark
         run: |
-          if [ "${{ matrix.test_type }}" = "benchmark" ]; then
-            SCRIPT="sglang_benchmark_test.sh"
-          else
-            SCRIPT="sglang_model_smoke_test.sh"
-          fi
-          docker exec ${CONTAINER_ID} bash /models/${SCRIPT} \
+          docker exec ${CONTAINER_ID} bash /models/sglang_benchmark_test.sh \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
