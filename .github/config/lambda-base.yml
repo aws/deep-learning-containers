@@ -1,0 +1,29 @@
+# Lambda Base CUDA Image Configuration
+# This file contains all configuration for building, testing, and releasing the Lambda base image
+
+# Image identification
+image:
+  name: "lambda-base"
+  description: "Lambda base GPU image with CUDA and Python"
+
+# Build configuration
+common:
+  framework: "lambda"
+  framework_version: "12.9.1"
+  job_type: "general"
+  python_version: "py313"
+  cuda_version: "cu129"
+  os_version: "amzn2023"
+  arch_type: "x86"
+  container_type: "base-cuda"
+  build_target: "base-py3"
+  ci_tag: "gpu-base-py3"
+
+# Release configuration
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: production
