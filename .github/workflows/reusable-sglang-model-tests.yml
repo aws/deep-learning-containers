@@ -24,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       smoke-codebuild-fleet: ${{ steps.parse.outputs.smoke-codebuild-fleet }}
-      smoke-runner-scale-sets: ${{ steps.parse.outputs.smoke-runner-scale-sets }}
       bench-codebuild-fleet: ${{ steps.parse.outputs.bench-codebuild-fleet }}
       bench-runner-scale-sets: ${{ steps.parse.outputs.bench-runner-scale-sets }}
     steps:
@@ -48,11 +47,10 @@ jobs:
           st = resolve('smoke-test')
           bm = resolve('benchmark')
           print('smoke-codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
-          print('smoke-runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
           print('bench-codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
           print('bench-runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', [])))
           " > parsed.txt
-          for key in smoke-codebuild-fleet smoke-runner-scale-sets bench-codebuild-fleet bench-runner-scale-sets; do
+          for key in smoke-codebuild-fleet bench-codebuild-fleet bench-runner-scale-sets; do
             val=$(grep "^${key}=" parsed.txt | sed "s/^${key}=//")
             echo "${key}=${val}" >> $GITHUB_OUTPUT
           done
@@ -107,68 +105,6 @@ jobs:
       - name: Copy scripts into container
         run: |
           docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
-
-      - name: Run smoke test
-        run: |
-          docker exec ${CONTAINER_ID} bash /models/sglang_model_smoke_test.sh \
-            "/models/${{ matrix.name }}" \
-            "${{ matrix.name }}" \
-            ${{ matrix.extra_args }}
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker stop ${CONTAINER_ID} 2>/dev/null || true
-          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models
-
-  smoke-test-runner-scale:
-    name: smoke-test / gpu-efa-runners (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.smoke-runner-scale-sets)[0] != null }}
-    needs: [load-models]
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.load-models.outputs.smoke-runner-scale-sets) }}
-    runs-on: gpu-efa-runners
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: ECR authenticate
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-
-      - name: Download model from S3
-        run: |
-          MODEL_DIR="/dlc-models/${{ matrix.name }}"
-          mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
-          SUBDIRS=("${MODEL_DIR}"/*)
-          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
-          fi
-
-      - name: Start container
-        run: |
-          docker pull ${{ inputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
-            --ipc=host --shm-size=10g \
-            ${{ inputs.image-uri }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      - name: Copy files into container
-        run: |
-          docker exec ${CONTAINER_ID} mkdir -p /models
-          docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
-          rm -rf /dlc-models
 
       - name: Run smoke test
         run: |
