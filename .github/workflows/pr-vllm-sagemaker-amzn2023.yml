@@ -133,44 +133,44 @@ jobs:
             sagemaker-test-change:
               - "test/vllm/sagemaker/**"
 
-  build-image:
-    needs: [check-changes, load-config]
-    if: needs.check-changes.outputs.build-change == 'true'
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
-        buildspec-override:true
-    timeout-minutes: 720
-    concurrency:
-      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    outputs:
-      ci-image: ${{ steps.build.outputs.image-uri }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
+  # build-image:
+  #   needs: [check-changes, load-config]
+  #   if: needs.check-changes.outputs.build-change == 'true'
+  #   runs-on:
+  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+  #       fleet:x86-vllm-build-runner
+  #       buildspec-override:true
+  #   timeout-minutes: 720
+  #   concurrency:
+  #     group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
+  #     cancel-in-progress: true
+  #   outputs:
+  #     ci-image: ${{ steps.build.outputs.image-uri }}
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v5
 
-      - name: Build image
-        id: build
-        uses: ./.github/actions/build-image
-        with:
-          framework: ${{ needs.load-config.outputs.framework }}
-          target: vllm-sagemaker-amzn2023
-          base-image: nvidia/cuda:12.9.1-devel-amzn2023
-          framework-version: ${{ needs.load-config.outputs.framework-version }}
-          container-type: ${{ needs.load-config.outputs.container-type }}
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
-          arch-type: ${{ needs.load-config.outputs.arch-type }}
-          device-type: ${{ needs.load-config.outputs.device-type }}
-          cuda-version: ${{ needs.load-config.outputs.cuda-version }}
-          python-version: ${{ needs.load-config.outputs.python-version }}
-          os-version: ${{ needs.load-config.outputs.os-version }}
-          contributor: ${{ needs.load-config.outputs.contributor }}
-          customer-type: ${{ needs.load-config.outputs.customer-type }}
-          sccache-bucket: ${{ vars.WHEEL_CACHE_BUCKET }}
+  #     - name: Build image
+  #       id: build
+  #       uses: ./.github/actions/build-image
+  #       with:
+  #         framework: ${{ needs.load-config.outputs.framework }}
+  #         target: vllm-sagemaker-amzn2023
+  #         base-image: nvidia/cuda:12.9.1-devel-amzn2023
+  #         framework-version: ${{ needs.load-config.outputs.framework-version }}
+  #         container-type: ${{ needs.load-config.outputs.container-type }}
+  #         aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+  #         aws-region: ${{ vars.AWS_REGION }}
+  #         tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
+  #         dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
+  #         arch-type: ${{ needs.load-config.outputs.arch-type }}
+  #         device-type: ${{ needs.load-config.outputs.device-type }}
+  #         cuda-version: ${{ needs.load-config.outputs.cuda-version }}
+  #         python-version: ${{ needs.load-config.outputs.python-version }}
+  #         os-version: ${{ needs.load-config.outputs.os-version }}
+  #         contributor: ${{ needs.load-config.outputs.contributor }}
+  #         customer-type: ${{ needs.load-config.outputs.customer-type }}
+  #         sccache-bucket: ${{ vars.WHEEL_CACHE_BUCKET }}
 
   # sanity-test:
   #   needs: [check-changes, build-image, load-config]
