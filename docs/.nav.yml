@@ -18,6 +18,7 @@ nav:
     - Deployment: vllm/deployment.md
     - Supported Models: vllm/supported_models.md
     - Features: vllm/features.md
+    - Releases: vllm/releases.md
     - Versioning: vllm/versioning.md
     - Support Policy: vllm/support_policy.md
   - Tutorials: tutorials

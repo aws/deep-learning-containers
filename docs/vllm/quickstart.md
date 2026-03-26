@@ -10,13 +10,26 @@ Get a vLLM {{ dlc_short }} container running and serve your first model.
 
 ## Pull the Image
 
-The easiest way to pull vLLM {{ dlc_short }} images is from the {{ ecr_public }} — no authentication required:
+### {{ ecr_public }} (Recommended)
+
+No authentication required:
 
 ```bash
 docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda
 ```
 
-For version pinning options, see [Versioning](versioning.md#pulling-images).
+### Private {{ ecr }}
+
+Requires authentication, uses a region-specific URI:
+
+```bash
+aws ecr get-login-password --region us-west-2 | \
+  docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
+
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda
+```
+
+For version pinning options (e.g., `server-cuda-v1.0.0`), see [Versioning](versioning.md).
 
 ## Run on {{ ec2 }}
 

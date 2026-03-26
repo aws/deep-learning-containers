@@ -13,7 +13,7 @@ The vLLM {{ dlc_short }} images are **curated builds** — not direct repackages
 ## Simplified Tag Format
 
 vLLM {{ dlc_short }} images use a simplified tagging format. Details like Python version, CUDA version, and OS type are documented in release
-materials (release notes, changelogs, available images tables) rather than encoded in the tag.
+materials ([Releases](releases.md), [Available Images](../reference/available_images.md)) rather than encoded in the tag.
 
 The tag format is:
 
@@ -37,9 +37,6 @@ When a platform-specific variant exists (e.g., for Bedrock), the platform is ins
 | Base | `server-bedrock-cuda` |
 | Full version | `server-bedrock-cuda-v1.0.0` |
 
-!!! info Detailed package versions (Python, CUDA, cuDNN, NCCL, etc.) are listed in the [Release Notes](../releasenotes/vllm/index.md) and
-[Available Images](../reference/available_images.md) tables for each release.
-
 ## Semantic Versioning
 
 The version follows 3-part semantic versioning (`MAJOR.MINOR.PATCH`):
@@ -53,65 +50,21 @@ The version follows 3-part semantic versioning (`MAJOR.MINOR.PATCH`):
 !!! tip "Recommendation" Use the **full version tag** (`server-cuda-v1.0.0`) in production for reproducibility. Use the **minor tag**
 (`server-cuda-v1.0`) in development to automatically pick up security patches.
 
-## Pulling Images
-
-vLLM {{ dlc_short }} images are available from both the {{ ecr_public }} and private {{ ecr }} registries.
+## Image URI Format
 
 ### {{ ecr_public }} (Recommended)
 
-The simplest way to pull images — no authentication required:
-
-```bash
-docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda-v1.0.0
+```
+public.ecr.aws/deep-learning-containers/vllm:<tag>
 ```
 
 ### Private {{ ecr }}
-
-For use within {{ aws }} accounts. Requires authentication and uses a region-specific URI:
 
 ```
 <account_id>.dkr.ecr.<region>.amazonaws.com/vllm:<tag>
 ```
 
 See [Region Availability](../reference/available_images.md#region-availability) for account IDs per region.
-
-```bash
-# Authenticate
-aws ecr get-login-password --region us-west-2 | \
-  docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
-
-# Pull
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1.0.0
-```
-
-### Examples
-
-=== "{{ ecr_public }}"
-
-````
-```bash
-# Pinned to exact version
-docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda-v1.0.0
-
-# Latest patch in v1.0 series
-docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda-v1.0
-
-# Latest v1 release
-docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda-v1
-```
-````
-
-=== "Private {{ ecr }}"
-
-````
-```bash
-# US West (Oregon)
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1.0.0
-
-# EU (Ireland)
-docker pull 763104351884.dkr.ecr.eu-west-1.amazonaws.com/vllm:server-cuda-v1.0.0
-```
-````
 
 ## Legacy Tags
 
