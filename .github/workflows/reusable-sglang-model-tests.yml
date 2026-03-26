@@ -124,7 +124,7 @@ jobs:
           rm -rf /dlc-models
 
   smoke-test-runner-scale:
-    name: smoke-test / runner-scale-sets (${{ matrix.name }})
+    name: smoke-test / gpu-efa-runners (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.smoke-runner-scale-sets)[0] != null }}
     needs: [load-models]
     strategy:
@@ -252,7 +252,7 @@ jobs:
           rm -rf /dlc-models
 
   benchmark-runner-scale:
-    name: benchmark / runner-scale-sets (${{ matrix.name }})
+    name: benchmark / gpu-efa-runners (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets)[0] != null }}
     needs: [load-models]
     strategy:
