@@ -571,7 +571,6 @@ result = json.loads(response)  # predictor.predict() returns raw bytes
 ```
 
 GPU deploys require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 12.9 images. CPU deploys do not need this. See [ProductionVariant API reference](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html) for valid values.
-```
 
 When done, delete the endpoint to stop incurring costs:
 
