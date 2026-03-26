@@ -536,6 +536,8 @@ aws s3 cp /tmp/nlp-model.tar.gz s3://<BUCKET>/models/nlp-sentiment/model.tar.gz
 ```
 
 ```python
+import json
+
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
@@ -554,6 +556,7 @@ predictor = Model(
 )
 
 response = predictor.predict({"text": "I love this so much, best purchase ever!"})
+result = json.loads(response)  # predictor.predict() returns raw bytes
 # {"predictions": [{"label": "POSITIVE", "score": 0.9991}]}
 ```
 
