@@ -80,6 +80,8 @@ benchmark:
       min_throughput: 400
       min_rps: 0.35
 
+# A100 is compute capability 8.0 — FP8 requires 8.9+ (H100/L40S).
+# The Marlin fallback uses significantly more memory.
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
       fleet: "x86-g6e12xl-runner"
@@ -137,7 +139,8 @@ benchmark:
 
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
-      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      # A100 lacks native FP8 — vLLM dequantizes to BF16 at load, doubling weight memory
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --enforce-eager"
       input_len: 512
       output_len: 128
       num_prompts: 64
