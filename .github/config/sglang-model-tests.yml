@@ -1,33 +1,148 @@
 # SGLang Model Test Configuration
-# Shared across all SGLang PR workflows
+# Single config for all model-based test suites.
 #
-# test_type: "smoke-test" runs completions validation, "benchmark" runs bench_serving
-# extra_args: passed directly to sglang.launch_server (includes --tp)
+# smoke-test:  model serving + inference validation
+# benchmark:   throughput and latency with pass/fail thresholds
 #
-# codebuild-fleet: Runs on CodeBuild fleet runners
-# runner-scale-sets: Runs on self-hosted runner scale sets (multi-GPU)
+# Each section has codebuild-fleet and runner-scale-sets sub-keys.
+# Workflow parsers construct s3_path from s3_prefix + s3_model.
 
-codebuild-fleet:
-  - name: "qwen3-0.6b"
-    s3_path: "s3://dlc-cicd-models/llm-models/qwen3-0.6b.tar.gz"
-    fleet: "x86-g6xl-runner"
-    test_type: "smoke-test"
-    extra_args: "--tp 1"
+s3_prefix: "s3://dlc-cicd-models/llm-models"
 
-  - name: "gpt-oss-20b"
-    s3_path: "s3://dlc-cicd-models/llm-models/gpt-oss-20b.tar.gz"
-    fleet: "x86-g6exl-runner"
-    test_type: "benchmark"
-    extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
+smoke-test:
+  codebuild-fleet:
+    - name: "qwen3.5-0.8b"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
 
-  - name: "llama-3.3-70b"
-    s3_path: "s3://dlc-cicd-models/llm-models/llama-3.3-70b.tar.gz"
-    fleet: "x86-g6e12xl-runner"
-    test_type: "benchmark"
-    extra_args: "--tp 4 --context-length 4096"
+  runner-scale-sets: []
 
-runner-scale-sets:
-  - name: "qwen3-32b"
-    s3_path: "s3://dlc-cicd-models/llm-models/qwen3-32b.tar.gz"
-    test_type: "benchmark"
-    extra_args: "--tp 8 --context-length 8192 --trust-remote-code"
+benchmark:
+  codebuild-fleet:
+    - name: "gpt-oss-20b"
+      s3_model: "gpt-oss-20b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 6000
+      min_rps: 5
+
+    - name: "qwen3.5-9b"
+      s3_model: "gpt-oss-20b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 2000
+      min_rps: 1.5
+
+    - name: "llama-3.3-70b"
+      s3_model: "llama-3.3-70b.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 400
+      min_rps: 0.35
+
+    - name: "qwen3.5-35b-a3b-fp8"
+      s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 400
+      min_rps: 0.35
+
+    - name: "qwen3.5-27b-fp8"
+      s3_model: "qwen3.5-27b-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 100
+      min_rps: 0.2
+
+    - name: "qwen3-coder-next-fp8"
+      s3_model: "qwen3-coder-next-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 256
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 280
+      min_rps: 0.25
+
+  runner-scale-sets:
+    - name: "qwen3-32b"
+      s3_model: "qwen3-32b.tar.gz"
+      extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
+      input_len: 512
+      output_len: 256
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 3400
+      min_rps: 3
+
+    - name: "gpt-oss-20b"
+      s3_model: "gpt-oss-20b.tar.gz"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 6000
+      min_rps: 5
+
+    - name: "qwen3.5-35b-a3b-fp8"
+      s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 400
+      min_rps: 0.35
+
+    - name: "qwen3.5-27b-fp8"
+      s3_model: "qwen3.5-27b-fp8.tar.gz"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 100
+      min_rps: 0.2
+
+    - name: "qwen3-coder-next-fp8"
+      s3_model: "qwen3-coder-next-fp8.tar.gz"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 256
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 280
+      min_rps: 0.25
+
+    - name: "llama-3.3-70b"
+      s3_model: "llama-3.3-70b.tar.gz"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 400
+      min_rps: 0.35
