@@ -219,11 +219,24 @@ jobs:
             rmdir "${SUBDIRS[0]}"
           fi
 
+      - name: Diagnose GPU visibility
+        run: |
+          echo "=== Pod-level GPU visibility ==="
+          echo "NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-not set}"
+          nvidia-smi -L 2>/dev/null || echo "nvidia-smi not available in runner pod"
+          echo ""
+          echo "=== Host Docker GPU visibility (--gpus all) ==="
+          docker run --rm --gpus all nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
+          echo ""
+          echo "=== Host Docker GPU visibility (NVIDIA_VISIBLE_DEVICES passthrough) ==="
+          docker run --rm --gpus all -e NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
+
       - name: Start container
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
+            -e NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
