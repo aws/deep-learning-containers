@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # sagemaker-xgboost-container package source.
 FROM ubuntu:${UBUNTU_VERSION} AS wheel-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  python3 python3-pip python3-setuptools python3-wheel git ca-certificates \
+  python3 python3-pip python3-setuptools python3-wheel python3-venv git ca-certificates \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/aws/sagemaker-xgboost-container.git /build
 WORKDIR /build
