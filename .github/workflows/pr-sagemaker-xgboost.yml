@@ -155,7 +155,7 @@ jobs:
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
-  unit-tests:
+  unit-test:
     needs: [build-image, load-config]
     if: success()
     runs-on:
@@ -163,7 +163,7 @@ jobs:
         fleet:default-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-unit-tests-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-unit-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -195,7 +195,7 @@ jobs:
         run: |
           docker run --rm test-xgboost sh -c 'python3 -m flake8 setup.py src test'
 
-  integration-tests:
+  integration-test:
     needs: [build-image, load-config]
     if: success()
     runs-on:
@@ -203,7 +203,7 @@ jobs:
         fleet:default-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-integration-tests-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-integration-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     env:
       FRAMEWORK_VERSION: ${{ needs.load-config.outputs.framework-version }}
