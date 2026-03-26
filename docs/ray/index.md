@@ -590,9 +590,30 @@ response = predictor.predict({"features": [6.3, 3.3, 6.0, 2.5]})
 # {"prediction": "virginica", "confidence": 0.9723, "probabilities": {"setosa": 0.0031, ...}}
 ```
 
-#### Direct App Import (No config.yaml)
+#### Cleanup
 
-For models that define a Ray Serve app directly in Python without a `config.yaml`, use the `SM_RAYSERVE_APP` environment variable to specify the `module:app` import path:
+```python
+predictor.delete_endpoint()
+```
+
+### Direct App Import (No config.yaml)
+
+For models that define a Ray Serve app directly in Python without a `config.yaml`, pass the `module:app` import path directly.
+
+On EC2, pass it as a CLI argument:
+
+```bash
+docker run -d --gpus all \
+  --shm-size=2g \
+  -p 8000:8000 \
+  -v /path/to/model:/opt/ml/model \
+  -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
+  -e RAYSERVE_NUM_GPUS=1 \
+  {{ images.latest_ray_ec2_gpu }} \
+  deployment:app
+```
+
+On SageMaker, set the `SM_RAYSERVE_APP` environment variable:
 
 ```python
 model = Model(
@@ -611,7 +632,7 @@ predictor = model.deploy(
 )
 ```
 
-`RAYSERVE_NUM_GPUS` is a custom environment variable read by the deployment code to set GPU allocation per replica at import time. It is only needed when using `SM_RAYSERVE_APP` without a `config.yaml` — when using `config.yaml`, set `num_gpus` directly under `ray_actor_options` instead. The deployment code reads it like this:
+Without a `config.yaml`, there is no `ray_actor_options` to set `num_gpus`. Instead, the deployment code reads `RAYSERVE_NUM_GPUS` at import time:
 
 ```python
 import os
@@ -622,12 +643,6 @@ num_gpus = int(os.environ.get("RAYSERVE_NUM_GPUS", "0"))
 @serve.deployment(ray_actor_options={"num_gpus": num_gpus})
 class MyDeployment:
     ...
-```
-
-#### Cleanup
-
-```python
-predictor.delete_endpoint()
 ```
 
 ## Release Notes
