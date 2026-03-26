@@ -11,6 +11,16 @@ nav:
     - vLLM: releasenotes/vllm/index.md
     - PyTorch: releasenotes/pytorch/index.md
     - Tensorflow: releasenotes/tensorflow/index.md
+  - vLLM:
+    - vllm/index.md
+    - Quickstart: vllm/quickstart.md
+    - Configuration: vllm/configuration.md
+    - Deployment: vllm/deployment.md
+    - Supported Models: vllm/supported_models.md
+    - Benchmarks: vllm/benchmarks.md
+    - Releases: vllm/releases.md
+    - Versioning: vllm/versioning.md
+    - Support Policy: vllm/support_policy.md
   - Tutorials: tutorials
   - Reference:
     - reference/index.md
