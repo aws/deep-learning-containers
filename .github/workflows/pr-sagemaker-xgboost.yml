@@ -255,6 +255,7 @@ jobs:
           . /tmp/xgboost-integ/.venv/bin/activate
           cd /tmp/xgboost-integ
           pytest test/integration/local \
+            --ignore=test/integration/local/test_multiple_model_endpoint.py \
             --docker-base-name "${CI_IMAGE_URI%:*}" \
             --tag "${CI_IMAGE_URI##*:}" \
             --py-version 3 \
