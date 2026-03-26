@@ -70,6 +70,8 @@ applications:
           num_gpus: 1
 ```
 
+Set `num_gpus: 1` for GPU images or `num_gpus: 0` for CPU images.
+
 ### Deployment Paths
 
 The entrypoint resolves the serve target in this priority order:
