@@ -61,7 +61,7 @@ jobs:
   # Smoke tests: start server, health check, send completion, validate response
   # ---------------------------------------------------------------------------
   smoke-test-codebuild:
-    name: smoke-test (${{ matrix.name }})
+    name: smoke-test / ${{ matrix.fleet }} (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.smoke-codebuild-fleet)[0] != null }}
     needs: [load-models]
     strategy:
@@ -124,7 +124,7 @@ jobs:
           rm -rf /dlc-models
 
   smoke-test-runner-scale:
-    name: smoke-test (${{ matrix.name }})
+    name: smoke-test / runner-scale-sets (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.smoke-runner-scale-sets)[0] != null }}
     needs: [load-models]
     strategy:
@@ -189,7 +189,7 @@ jobs:
   # Benchmarks: start server, run bench_serving, validate throughput/rps
   # ---------------------------------------------------------------------------
   benchmark-codebuild:
-    name: benchmark (${{ matrix.name }})
+    name: benchmark / ${{ matrix.fleet }} (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.bench-codebuild-fleet)[0] != null }}
     needs: [load-models]
     strategy:
@@ -252,7 +252,7 @@ jobs:
           rm -rf /dlc-models
 
   benchmark-runner-scale:
-    name: benchmark (${{ matrix.name }})
+    name: benchmark / runner-scale-sets (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets)[0] != null }}
     needs: [load-models]
     strategy:
