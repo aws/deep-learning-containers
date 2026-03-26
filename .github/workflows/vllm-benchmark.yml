@@ -128,6 +128,7 @@ jobs:
             ${CONTAINER_ID} bash /models/vllm_benchmark_test.sh \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
+              "codebuild" \
               ${{ matrix.extra_args }}
 
       - name: Extract results
@@ -139,7 +140,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-${{ matrix.name }}
+          name: benchmark-${{ matrix.name }}-codebuild
           path: benchmark_results/
           retention-days: 30
 
@@ -224,6 +225,7 @@ jobs:
             ${CONTAINER_ID} bash /models/vllm_benchmark_test.sh \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
+              "runner" \
               ${{ matrix.extra_args }}
 
       - name: Extract results
@@ -235,7 +237,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-${{ matrix.name }}
+          name: benchmark-${{ matrix.name }}-runner
           path: benchmark_results/
           retention-days: 30
 
