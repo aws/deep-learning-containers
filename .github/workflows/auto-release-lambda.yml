@@ -5,6 +5,14 @@ on:
     # Runs at 10:00 AM PST/PDT on Monday and Wednesday
     - cron: '00 17 * * 1,3'
 
+  # PR triggers for testing (gamma release)
+  pull_request:
+    paths:
+      - "docker/lambda/**"
+      - ".github/workflows/auto-release-lambda.yml"
+      - ".github/config/lambda-*.yml"
+      - "!docs/**"
+
   # Manual trigger
   workflow_dispatch:
 
