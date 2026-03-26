@@ -520,65 +520,120 @@ curl -X POST http://localhost:8000/ \
 
 ### SageMaker Deployment
 
-Deploy a model to a SageMaker real-time endpoint using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The model tarball is automatically downloaded from S3 and extracted to `/opt/ml/model/` before the container starts. The container runs Ray Serve internally on port 8000 and exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
+To deploy on SageMaker, package your model directory as a tarball, upload to S3, and deploy using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The tarball is automatically downloaded and extracted to `/opt/ml/model/` before the container starts. The container runs Ray Serve internally on port 8000 and exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
+
+!!! warning
+    SageMaker endpoint deployment takes several minutes and incurs costs for the running instance. Remember to delete endpoints when done.
+
+#### Sentiment Analysis
+
+Package the model directory from the EC2 example, upload to S3, and deploy end-to-end:
+
+```bash
+# Package and upload
+cd nlp-model
+tar czf /tmp/nlp-model.tar.gz .
+aws s3 cp /tmp/nlp-model.tar.gz s3://<BUCKET>/models/nlp-sentiment/model.tar.gz
+```
 
 ```python
+import boto3
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer, IdentitySerializer
+from sagemaker.serializers import JSONSerializer
 
-model = Model(
+predictor = Model(
     image_uri="{{ images.latest_ray_sagemaker_gpu }}",
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
     model_data="s3://<BUCKET>/models/nlp-sentiment/model.tar.gz",
     predictor_cls=Predictor,
-)
-
-predictor = model.deploy(
+).deploy(
     instance_type="ml.g5.xlarge",
     initial_instance_count=1,
     endpoint_name="ray-serve-nlp",
     serializer=JSONSerializer(),
     wait=True,
 )
-```
 
-#### Sentiment Analysis
-
-```python
 response = predictor.predict({"text": "I love this so much, best purchase ever!"})
 # {"predictions": [{"label": "POSITIVE", "score": 0.9991}]}
+
+predictor.delete_endpoint()
 ```
 
 #### Image Classification
 
+Requires its own `model.tar.gz` from the `cv-model/` directory:
+
 ```python
-predictor.serializer = IdentitySerializer(content_type="image/jpeg")
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import IdentitySerializer
+
+predictor = Model(
+    image_uri="{{ images.latest_ray_sagemaker_gpu }}",
+    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
+    model_data="s3://<BUCKET>/models/cv-densenet/model.tar.gz",
+    predictor_cls=Predictor,
+).deploy(
+    instance_type="ml.g5.xlarge",
+    initial_instance_count=1,
+    endpoint_name="ray-serve-densenet",
+    serializer=IdentitySerializer(content_type="image/jpeg"),
+    wait=True,
+)
+
 with open("kitten.jpg", "rb") as f:
     response = predictor.predict(f.read())
 # {"predictions": [{"class_id": 281, "class_name": "tabby", "probability": 0.5312}, ...]}
+
+predictor.delete_endpoint()
 ```
 
 #### Audio Transcription
 
+Requires its own `model.tar.gz` from the `audio-model/` directory:
+
 ```python
-predictor.serializer = IdentitySerializer(content_type="audio/wav")
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import IdentitySerializer
+
+predictor = Model(
+    image_uri="{{ images.latest_ray_sagemaker_gpu }}",
+    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
+    model_data="s3://<BUCKET>/models/audio-ffmpeg/model.tar.gz",
+    predictor_cls=Predictor,
+).deploy(
+    instance_type="ml.g5.xlarge",
+    initial_instance_count=1,
+    endpoint_name="ray-serve-audio",
+    serializer=IdentitySerializer(content_type="audio/wav"),
+    wait=True,
+)
+
 with open("audio.wav", "rb") as f:
     response = predictor.predict(f.read())
 # {"transcription": "<transcription depends on audio input>"}
+
+predictor.delete_endpoint()
 ```
 
 #### Tabular Classification
 
+Requires its own `model.tar.gz` from the `tabular-model/` directory (CPU instance):
+
 ```python
-model = Model(
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
+
+predictor = Model(
     image_uri="{{ images.latest_ray_sagemaker_cpu }}",
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
     model_data="s3://<BUCKET>/models/tabular-iris/model.tar.gz",
     predictor_cls=Predictor,
-)
-
-predictor = model.deploy(
+).deploy(
     instance_type="ml.m5.xlarge",
     initial_instance_count=1,
     endpoint_name="ray-serve-tabular",
@@ -588,11 +643,7 @@ predictor = model.deploy(
 
 response = predictor.predict({"features": [6.3, 3.3, 6.0, 2.5]})
 # {"prediction": "virginica", "confidence": 0.9723, "probabilities": {"setosa": 0.0031, ...}}
-```
 
-#### Cleanup
-
-```python
 predictor.delete_endpoint()
 ```
 
