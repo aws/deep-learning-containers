@@ -4,7 +4,7 @@
 #
 #   sqlite-builder ─── (compiles SQLite from source)
 #   wheel-builder ──── (builds sagemaker_xgboost_container wheel)
-#   base ──────────── (miniforge, MLIO, XGBoost, system deps, telemetry)
+#   base ──────────── (miniforge, XGBoost, system deps, telemetry)
 #   xgboost-sagemaker  (SageMaker serving layer on top of base)
 #
 # Build targets:
@@ -23,7 +23,6 @@ ARG MINIFORGE_VERSION=26.1.1-3
 ARG MINIFORGE_CHECKSUM=b25b828b702df4dd2a6d24d4eb56cfa912471dd8e3342cde2c3d86fe3dc2d870
 ARG PYTHON_VERSION=3.12
 ARG PYARROW_VERSION=22.0.0
-ARG MLIO_VERSION=0.9.0
 ARG XGBOOST_VERSION=3.0.5
 ARG SAGEMAKER_XGBOOST_VERSION=3.0-5
 
@@ -59,7 +58,6 @@ ARG MINIFORGE_VERSION
 ARG MINIFORGE_CHECKSUM
 ARG PYTHON_VERSION
 ARG PYARROW_VERSION
-ARG MLIO_VERSION
 ARG XGBOOST_VERSION
 
 LABEL maintainer="Amazon AI"
@@ -82,27 +80,11 @@ RUN apt-key del 7fa2af80 \
     build-essential curl git jq libatlas-base-dev expat nginx \
     openjdk-11-jdk-headless unzip wget apparmor linux-libc-dev \
     libxml2 libgstreamer1.0-0 libglib2.0-0 \
-  # MLIO build deps (CMake from Kitware)
-  && apt-get -y install --no-install-recommends \
     apt-transport-https ca-certificates gnupg software-properties-common \
-  && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
-  | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
-  && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' \
-  | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
-  && apt-get update && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
-  && apt-get install -y --no-install-recommends \
-    autoconf automake cmake cmake-data doxygen kitware-archive-keyring \
-    libcurl4-openssl-dev libssl-dev libtool ninja-build \
-    python3-dev python3-pip zlib1g-dev libxml2 zstd libsqlite3-0 \
+    libcurl4-openssl-dev libssl-dev \
+    python3-dev python3-pip zlib1g-dev zstd libsqlite3-0 \
   && python3 -m pip install --upgrade "pip<=25.2" \
   && python3 -m pip install --upgrade certifi \
-  # Node.js (needed for grpc examples / OSS compliance)
-  && mkdir -p /etc/apt/keyrings \
-  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-  | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
-  | tee /etc/apt/sources.list.d/nodesource.list \
-  && apt-get update && apt-get install -y nodejs && npm install -g npm@latest \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Miniforge (conda-forge by default, no Anaconda license required)
@@ -125,38 +107,23 @@ RUN conda config --system --set channel_priority strict \
     pyarrow=${PYARROW_VERSION} \
   && conda clean -afy
 
-# Build MLIO from source with Arrow integration
-RUN git clone -b v1.65.4 https://github.com/grpc/grpc.git \
-  && LIBGRPC_DIR=$(find /miniforge3/pkgs -name "libgrpc-*" -type d | head -n 1) \
-  && mkdir -p ${LIBGRPC_DIR}/info/test/examples \
-  && cp -r grpc/examples/* ${LIBGRPC_DIR}/info/test/examples/ \
-  && cd ${LIBGRPC_DIR}/info/test/examples/node \
-  && npm cache clean --force \
-  && npm install minimist@latest protobufjs@latest \
-  && apt-get purge -y nodejs npm && apt-get autoremove -y \
-  && rm -rf /etc/apt/sources.list.d/nodesource.list \
-    /etc/apt/keyrings/nodesource.gpg \
-    /etc/apt/sources.list.d/kitware.list \
-  && apt-get clean && rm -rf /var/lib/apt/lists/* \
-  && cd /tmp \
-  && git clone --branch v${MLIO_VERSION} https://github.com/awslabs/ml-io.git mlio \
-  && cd mlio \
-  && sed -i 's/find_package(Arrow 14.0.1 REQUIRED/find_package(Arrow 22.0.0 REQUIRED/g' CMakeLists.txt \
-  && sed -i 's/pyarrow==14.0.1/pyarrow==22.0.0/g' src/mlio-py/setup.py \
-  && sed -i 's/CMAKE_ARGS/CMAKE_ARGS\n        -DCMAKE_POLICY_VERSION_MINIMUM=3.5/g' third-party/CMakeLists.txt \
-  && build-tools/build-dependency build/third-party all \
-  && mkdir -p build/release && cd build/release \
-  && cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_PREFIX_PATH="$(pwd)/../third-party" ../.. \
-  && cmake --build . && cmake --build . --target install \
-  && cmake -DMLIO_INCLUDE_PYTHON_EXTENSION=ON -DPYTHON_EXECUTABLE="/miniforge3/bin/python3" \
-    -DMLIO_INCLUDE_ARROW_INTEGRATION=ON ../.. \
-  && cmake --build . --target mlio-py && cmake --build . --target mlio-arrow \
-  && cd ../../src/mlio-py \
-  && python3 setup.py bdist_wheel \
-  && python3 -m pip install --upgrade pip==25.2 \
-  && python3 -m pip install dist/*.whl \
-  && cp -r /tmp/mlio/build/third-party/lib/libtbb* /usr/local/lib/ \
-  && ldconfig && rm -rf /tmp/mlio
+# MLIO (awslabs/ml-io) is no longer built from source — the project is
+# unmaintained (last release 2020) and its C++ dependencies (AWS SDK 1.7,
+# fmt 6.0, pybind11 2.4) fail to compile with modern CMake/GCC on Ubuntu 22.04.
+# MLIO was used for SageMaker Pipe mode and RecordIO Protobuf format.
+# Pipe mode is deprecated; file-based data loading (CSV, Parquet, LibSVM)
+# works without MLIO. The sagemaker_xgboost_container source imports mlio
+# at module level — a stub is installed to make those imports succeed and
+# raise a clear error only if pipe mode is actually used at runtime.
+RUN mkdir -p /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ \
+  && printf 'class _Stub:\n    def __getattr__(self, name):\n        raise RuntimeError(\n            "mlio is not available in this image. "\n            "SageMaker Pipe mode and RecordIO Protobuf format are not supported. "\n            "Use File mode with CSV, Parquet, or LibSVM format instead."\n        )\n_stub = _Stub()\ndef __getattr__(name):\n    return _stub\n' > /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/__init__.py \
+  && printf 'from mlio import __getattr__\n' > /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
+  && cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
+    /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/arrow.py \
+  && cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
+    /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/numpy.py \
+  && cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
+    /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/scipy.py
 
 # Copy compiled SQLite from builder stage
 COPY --from=sqlite-builder /usr/local/bin/sqlite3 /usr/local/bin/sqlite3
