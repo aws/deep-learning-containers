@@ -307,7 +307,7 @@ curl -X POST http://localhost:8000/ \
 
 #### Audio Transcription
 
-Transcribe speech using [Wav2Vec2](https://huggingface.co/facebook/wav2vec2-base-960h) with FFmpeg backend (GPU-accelerated decoding on GPU images). Weights download automatically on first startup.
+Transcribe speech using [Wav2Vec2](https://huggingface.co/facebook/wav2vec2-base-960h) with FFmpeg backend. Weights download automatically on first startup.
 
 Create the model package:
 
