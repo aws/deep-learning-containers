@@ -286,10 +286,10 @@ docker run -d --gpus all \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
   {{ images.latest_ray_ec2_gpu }}
 
-until curl -sf http://localhost:8000/-/healthz > /dev/null; do sleep 5; done
-
-# Download a test image
+# Download test image while container starts up
 curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg
+
+until curl -sf http://localhost:8000/-/healthz > /dev/null; do sleep 5; done
 
 curl -X POST http://localhost:8000/ \
   -H "Content-Type: image/jpeg" \
