@@ -97,7 +97,7 @@ The entrypoint resolves the serve target in this priority order:
 
 | Method | Platform | How |
 | ------ | -------- | --- |
-| `config.yaml` (default) | EC2 + SageMaker | The entrypoint looks for `/opt/ml/model/config.yaml`. On EC2, mount your model directory at `/opt/ml/model`. On SageMaker, place `config.yaml` at the root of your `model.tar.gz` — it is extracted to `/opt/ml/model/` automatically. |
+| `config.yaml` (default) | EC2 + SageMaker | Must be at `/opt/ml/model/config.yaml` — mount the directory (EC2) or place at tarball root (SageMaker) |
 | CLI argument | EC2 only | `docker run <image> deployment:app` |
 | Environment variable | SageMaker only | Set `SM_RAYSERVE_APP=deployment:app` |
 
