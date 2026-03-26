@@ -121,6 +121,7 @@ RUN git clone -b v1.65.4 https://github.com/grpc/grpc.git \
   && cd ${LIBGRPC_DIR}/info/test/examples/node \
   && npm cache clean --force \
   && npm install minimist@latest protobufjs@latest \
+  && rm -rf /grpc \
   && apt-get purge -y nodejs npm && apt-get autoremove -y \
   && rm -rf /etc/apt/sources.list.d/nodesource.list \
     /etc/apt/keyrings/nodesource.gpg \
@@ -198,7 +199,7 @@ RUN python3 -m pip install --no-cache-dir -r /requirements.txt && rm /requiremen
 COPY docker/xgboost/resources/patches/decoder.py /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
 
 # Security patches
-RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2"
+RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2" "idna>=3.7"
 
 # Patch collections.Mapping deprecation in sagemaker-containers
 RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
