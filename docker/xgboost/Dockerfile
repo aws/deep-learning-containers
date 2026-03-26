@@ -101,7 +101,7 @@ RUN conda config --system --set channel_priority strict \
   && conda install -y \
     python=${PYTHON_VERSION} \
     requests=2.32.3 \
-    openssl=3.6.2 \
+    "openssl>=3.6.1" \
     pyarrow=${PYARROW_VERSION} \
   && conda clean -afy
 
