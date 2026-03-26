@@ -241,6 +241,7 @@ jobs:
           uv venv /tmp/xgboost-integ/.venv --python 3.12
           . /tmp/xgboost-integ/.venv/bin/activate
           uv pip install .[test]
+          uv pip install --upgrade boto3 botocore
 
       - name: Run integration tests
         env:
