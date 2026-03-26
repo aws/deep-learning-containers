@@ -113,14 +113,6 @@ jobs:
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
 
-      - name: Cleanup
-        if: always()
-        run: |
-          docker stop ${CONTAINER_ID} 2>/dev/null || true
-          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models
-
   # ---------------------------------------------------------------------------
   # Benchmarks: start server, run bench_serving, validate throughput/rps
   # ---------------------------------------------------------------------------
@@ -178,14 +170,6 @@ jobs:
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker stop ${CONTAINER_ID} 2>/dev/null || true
-          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models
 
   benchmark-runner-scale:
     name: benchmark / gpu-efa-runners (${{ matrix.name }})
