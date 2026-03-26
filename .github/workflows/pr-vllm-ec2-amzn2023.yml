@@ -148,16 +148,26 @@ jobs:
         if: vars.WHEEL_CACHE_BUCKET != ''
         shell: bash
         run: |
+          eval "$(aws configure export-credentials --format env 2>/dev/null || true)"
           DOCKER_BUILDKIT=1 docker build --no-cache --network=host \
             --build-arg SCCACHE_BUCKET="${{ vars.WHEEL_CACHE_BUCKET }}" \
+            --build-arg AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID" \
+            --build-arg AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY" \
+            --build-arg AWS_SESSION_TOKEN="${AWS_SESSION_TOKEN:-}" \
             -f - . <<'EOF'
           FROM amazonlinux:2023
           RUN dnf install -y --allowerasing gcc gcc-c++ curl tar gzip && dnf clean all
           ARG SCCACHE_BUCKET
           ARG SCCACHE_REGION=us-west-2
+          ARG AWS_ACCESS_KEY_ID
+          ARG AWS_SECRET_ACCESS_KEY
+          ARG AWS_SESSION_TOKEN
           ENV SCCACHE_BUCKET=${SCCACHE_BUCKET} SCCACHE_REGION=${SCCACHE_REGION} \
               SCCACHE_S3_USE_SSL=true SCCACHE_S3_KEY_PREFIX=sccache/smoke-test \
-              SCCACHE_IDLE_TIMEOUT=0
+              SCCACHE_IDLE_TIMEOUT=0 \
+              AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
+              AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+              AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
           RUN curl -sL https://github.com/mozilla/sccache/releases/download/v0.9.1/sccache-v0.9.1-x86_64-unknown-linux-musl.tar.gz \
                 | tar xz -C /usr/local/bin --strip-components=1 --wildcards '*/sccache'
           RUN echo 'int main(){}' > /tmp/t.c \
