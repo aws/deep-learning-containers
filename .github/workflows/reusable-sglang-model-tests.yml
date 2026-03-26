@@ -219,17 +219,31 @@ jobs:
             rmdir "${SUBDIRS[0]}"
           fi
 
-      - name: Diagnose GPU visibility
+      - name: Diagnose - Pod GPU env
         run: |
-          echo "=== Pod-level GPU visibility ==="
           echo "NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-not set}"
+
+      - name: Diagnose - Pod nvidia-smi
+        run: |
           nvidia-smi -L 2>/dev/null || echo "nvidia-smi not available in runner pod"
-          echo ""
-          echo "=== Host Docker GPU visibility (--gpus all) ==="
+
+      - name: Diagnose - Host Docker --gpus all
+        run: |
           docker run --rm --gpus all nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
-          echo ""
-          echo "=== Host Docker GPU visibility (NVIDIA_VISIBLE_DEVICES passthrough) ==="
+
+      - name: Diagnose - Host Docker with pod NVIDIA_VISIBLE_DEVICES
+        run: |
           docker run --rm --gpus all -e NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES:-all} nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
+
+      - name: Diagnose - Host Docker with explicit device IDs
+        run: |
+          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader 2>/dev/null | paste -sd, || echo "")
+          echo "Pod GPU UUIDs: ${POD_GPUS}"
+          if [ -n "${POD_GPUS}" ]; then
+            docker run --rm --gpus "\"device=${POD_GPUS}\"" nvidia/cuda:12.9.1-base-ubuntu24.04 nvidia-smi -L
+          else
+            echo "No pod GPUs detected, skipping"
+          fi
 
       - name: Start container
         run: |
