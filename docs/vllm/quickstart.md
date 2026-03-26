@@ -23,7 +23,7 @@ aws ecr get-login-password --region us-west-2 | \
 
 ````
 ```bash
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2
+docker pull {{ images.latest_vllm_ec2 }}
 ```
 ````
 
@@ -43,13 +43,14 @@ For all available image tags, see [Available Images](../reference/available_imag
 
 ```bash
 docker run --gpus all -p 8000:8000 \
-  763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2 \
+  -e HF_TOKEN=<your_hf_token> \
+  {{ images.latest_vllm_ec2 }} \
   --model meta-llama/Llama-3.1-8B-Instruct \
   --host 0.0.0.0 \
   --port 8000
 ```
 
-!!! note For gated models like Llama, set `--env HF_TOKEN=<your_token>` in the `docker run` command.
+!!! note For gated models like Llama, set `-e HF_TOKEN=<your_token>` in the `docker run` command.
 
 ### Send a Request
 

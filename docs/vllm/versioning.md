@@ -1,44 +1,42 @@
 # Versioning
 
-Understand the vLLM {{ dlc_short }} image tag format and how to select the right image.
+Understand the vLLM {{ dlc_short }} image versioning and simplified tag format.
 
-## Image Tag Format
+## Build Philosophy
 
-vLLM {{ dlc_short }} image tags follow this pattern:
+The vLLM {{ dlc_short }} images are **curated builds** — not direct repackages of upstream vLLM releases. Each image:
+
+- Starts from a chosen base reference in the vLLM repository (a specific commit, release candidate, or branch point)
+- Applies targeted patches from upstream PRs, forks, and community contributions
+- Is validated against a selected suite of model-serving use cases relevant to {{ aws }} customers
+
+The version number (e.g., `0.17.1`) indicates the upstream vLLM version the build is based on, but the image may include additional fixes and features
+not yet in that upstream release.
+
+## Simplified Tag Format
+
+vLLM {{ dlc_short }} images use a simplified tagging format. Details like Python version, CUDA version, and OS type are documented in release
+materials (release notes, changelogs, available images tables) rather than encoded in the tag.
 
 ```
-<vllm_version>-gpu-<python>-<cuda>-<os>-<platform>
+<vllm_version>-gpu-<platform>
 ```
 
 | Component | Description | Example |
 | --- | --- | --- |
-| `vllm_version` | Upstream vLLM release version | `0.17.1` |
-| `gpu` | Accelerator type (always `gpu` for vLLM) | `gpu` |
-| `python` | Python version | `py312` |
-| `cuda` | CUDA toolkit version | `cu129` |
-| `os` | Operating system | `ubuntu22.04` |
+| `vllm_version` | Base upstream vLLM version | `0.17.1` |
+| `gpu` | Accelerator type | `gpu` |
 | `platform` | Target {{ aws }} platform | `ec2` or `sagemaker` |
 
 ### Example Tags
 
 | Tag | Platform |
 | --- | --- |
-| `0.17.1-gpu-py312-cu129-ubuntu22.04-ec2` | {{ ec2_short }}, {{ ecs_short }}, {{ eks_short }} |
-| `0.17.1-gpu-py312-cu129-ubuntu22.04-sagemaker` | {{ sm_short }} |
+| `0.17.1-gpu-ec2` | {{ ec2_short }}, {{ ecs_short }}, {{ eks_short }} |
+| `0.17.1-gpu-sagemaker` | {{ sm_short }} |
 
-## Tag Aliases
-
-Each image has multiple tags for convenience:
-
-| Tag Type | Example | Description |
-| --- | --- | --- |
-| Full | `0.17.1-gpu-py312-cu129-ubuntu22.04-ec2` | Pinned to exact version |
-| Short | `0.17.1-gpu-py312-ec2` | Omits CUDA and OS |
-| Minor | `0.17-gpu-py312-cu129-ubuntu22.04-ec2-v1` | Tracks latest patch in minor series |
-| Minor short | `0.17-gpu-py312-ec2` | Shortest minor alias |
-
-!!! tip "Recommendation" Use the **full tag** in production for reproducibility. Use **minor aliases** in development to automatically pick up patch
-releases.
+!!! info Detailed package versions (Python, CUDA, cuDNN, NCCL, etc.) are listed in the [Release Notes](../releasenotes/vllm/index.md) and
+[Available Images](../reference/available_images.md) tables for each release.
 
 ## Platform Selection
 
@@ -74,8 +72,8 @@ See [Region Availability](../reference/available_images.md#region-availability) 
 
 ```bash
 # US West (Oregon)
-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2
+763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-ec2
 
 # EU (Ireland)
-763104351884.dkr.ecr.eu-west-1.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2
+763104351884.dkr.ecr.eu-west-1.amazonaws.com/vllm:0.17.1-gpu-ec2
 ```

@@ -17,6 +17,14 @@ Each vLLM {{ dlc_short }} version is supported from its GA date until its EOP da
 - Bug fixes for container-level issues
 - Compatibility updates for {{ aws }} services
 
+## How Patches Are Delivered
+
+Because vLLM {{ dlc_short }} images are curated builds, patching follows a different model than upstream:
+
+- When regressions or vulnerabilities are identified, we troubleshoot and contribute fixes upstream or apply local patches
+- Patches are delivered as new image builds — we do not wait for upstream releases
+- The simplified tag (e.g., `0.17.1-gpu-ec2`) may be updated to point to a newly patched build
+
 ## Current Support Status
 
 For the current GA and EOP dates of all vLLM {{ dlc_short }} versions, see the [Framework Support Policy](../reference/support_policy.md) page.
@@ -27,14 +35,13 @@ For all available image tags and versions, see [Available Images](../reference/a
 
 We recommend upgrading to the latest supported vLLM {{ dlc_short }} version to benefit from:
 
-- Performance improvements in newer vLLM releases
-- Expanded model support
+- Performance improvements and new model support from upstream and curated patches
 - Latest security patches
 - Updated CUDA, PyTorch, and NCCL versions
 
 ### Upgrade Steps
 
-1. Review the [Version History](versioning.md#version-history) for changes between versions
+1. Review the [Version History](versioning.md#version-history) and [Release Notes](../releasenotes/vllm/index.md) for changes between versions
 2. Update your image tag to the new version
 3. Test with your model and workload before deploying to production
 
@@ -48,13 +55,3 @@ After a vLLM {{ dlc_short }} version reaches its EOP date:
 - Container images remain available on {{ ecr }} and the {{ ecr_public }}
 - No further security patches or bug fixes will be provided
 - We recommend migrating to a supported version
-
-## Patching Policy
-
-Within a supported version's lifecycle:
-
-- **Security patches** are applied as new image builds with the same version tag
-- **Minor alias tags** (e.g., `0.17-gpu-py312-ec2`) are updated to point to the latest patched build
-- **Full version tags** (e.g., `0.17.1-gpu-py312-cu129-ubuntu22.04-ec2`) remain immutable
-
-!!! tip Use minor alias tags in non-production environments to automatically receive patches. Pin full version tags in production for stability.

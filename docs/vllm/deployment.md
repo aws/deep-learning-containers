@@ -9,7 +9,7 @@ Deploy vLLM {{ dlc_short }} images across {{ aws }} compute platforms.
 ```bash
 docker run --gpus all -p 8000:8000 \
   -e HF_TOKEN=<your_hf_token> \
-  763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2 \
+  {{ images.latest_vllm_ec2 }} \
   --model meta-llama/Llama-3.1-8B-Instruct \
   --host 0.0.0.0 --port 8000
 ```
@@ -21,7 +21,7 @@ For models that require multiple GPUs (e.g., 70B+ parameter models):
 ```bash
 docker run --gpus all --ipc=host -p 8000:8000 \
   -e HF_TOKEN=<your_hf_token> \
-  763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2 \
+  {{ images.latest_vllm_ec2 }} \
   --model meta-llama/Llama-3.1-70B-Instruct \
   --tensor-parallel-size 8 \
   --host 0.0.0.0 --port 8000
@@ -108,7 +108,7 @@ sagemaker.create_endpoint(
   "containerDefinitions": [
     {
       "name": "vllm",
-      "image": "763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2",
+      "image": "<account_id>.dkr.ecr.<region>.amazonaws.com/vllm:<tag>",
       "command": [
         "--model", "meta-llama/Llama-3.1-8B-Instruct",
         "--host", "0.0.0.0",
@@ -136,7 +136,7 @@ metadata:
 spec:
   containers:
     - name: vllm
-      image: 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2
+      image: <account_id>.dkr.ecr.<region>.amazonaws.com/vllm:<tag>
       args:
         - "--model"
         - "meta-llama/Llama-3.1-8B-Instruct"
@@ -162,12 +162,11 @@ spec:
 For models that exceed the memory of a single instance, use pipeline parallelism across nodes with EFA networking:
 
 ```bash
-# On each node, run with the same model and distributed config
 docker run --gpus all --ipc=host --network=host \
   --privileged \
   -e HF_TOKEN=<your_hf_token> \
   -e NCCL_DEBUG=INFO \
-  763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-py312-cu129-ubuntu22.04-ec2 \
+  {{ images.latest_vllm_ec2 }} \
   --model meta-llama/Llama-3.1-405B-Instruct \
   --tensor-parallel-size 8 \
   --pipeline-parallel-size 2 \

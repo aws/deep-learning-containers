@@ -1,7 +1,17 @@
 # vLLM on {{ dlc_long }}
 
 {{ dlc_long }} provide pre-built, optimized Docker images for running [vLLM](https://docs.vllm.ai/) inference workloads on {{ aws }} infrastructure.
-These images are tested, patched, and maintained by {{ aws }}, so you can focus on serving models rather than managing dependencies.
+
+## How We Build
+
+The vLLM {{ dlc_short }} images are **curated builds**, not simple repackages of upstream releases:
+
+- **Built from a chosen base reference** — a specific commit, release candidate, or point in the vLLM repository history — with targeted patches
+  applied from upstream PRs, forks, and community contributions for new model support, bug fixes, and performance improvements.
+- **Opinionated testing** — validated against a selected suite of model-serving use cases relevant to {{ aws }} customers, rather than relying solely
+  on upstream's broader test suite.
+- **Faster access with higher confidence** — delivers the latest advancements while maintaining reliability for real-world workloads. When regressions
+  are caught, we troubleshoot and contribute fixes upstream or apply local patches rather than waiting for upstream releases.
 
 ## What's Included
 
@@ -27,7 +37,7 @@ Each vLLM {{ dlc_short }} image ships with:
 - [Deployment](deployment.md) — Deploy on {{ ec2 }}, {{ ecs }}, {{ eks }}, or {{ sagemaker }}
 - [Supported Models](supported_models.md) — Models tested with the {{ dlc_short }} images
 - [Features](features.md) — Quantization, LoRA, structured outputs, and more
-- [Versioning](versioning.md) — Image tag format and how to pick the right image
+- [Versioning](versioning.md) — Simplified tag format and how to pick the right image
 - [Support Policy](support_policy.md) — GA/EOP lifecycle and patching
 
 ## Upstream Documentation
