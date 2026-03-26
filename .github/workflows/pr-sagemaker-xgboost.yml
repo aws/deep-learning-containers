@@ -183,7 +183,7 @@ jobs:
         run: |
           CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
           cd /tmp/xgboost-unit
-          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
+          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN apt-get update && apt-get install -y --no-install-recommends libjpeg-dev zlib1g-dev && rm -rf /var/lib/apt/lists/*\nRUN python3 -m pip install .[test]" > Dockerfile.test
           docker build -t test-xgboost -f Dockerfile.test .
 
       - name: Run unit tests
