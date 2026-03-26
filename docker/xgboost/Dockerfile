@@ -1,5 +1,5 @@
 # ============================================================================
-# XGBoost DLC — Ubuntu 20.04 (CUDA 12.6)
+# XGBoost DLC — Ubuntu 22.04 (CUDA 12.6)
 # Multi-stage build:
 #
 #   sqlite-builder ─── (compiles SQLite from source)
@@ -17,13 +17,13 @@
 # ============================================================================
 
 # ── Global ARGs ─────────────────────────────────────────────────────────────
-ARG UBUNTU_VERSION=20.04
+ARG UBUNTU_VERSION=22.04
 ARG CUDA_VERSION=12.6.3
 ARG MINICONDA_VERSION=25.9.1
-ARG CONDA_CHECKSUM=04a8b03d8b0ec062d923e592201a6fd88b7247c309ef8848afb25c424c40ac39
-ARG CONDA_PY_VERSION=310
+ARG CONDA_CHECKSUM=a0def9c732d94b156529ef7db8edd6e1862cee784a27a4961870dca86e89fba4
+ARG CONDA_PY_VERSION=312
 ARG CONDA_PKG_VERSION=25.9.1
-ARG PYTHON_VERSION=3.10
+ARG PYTHON_VERSION=3.12
 ARG PYARROW_VERSION=22.0.0
 ARG MLIO_VERSION=0.9.0
 ARG XGBOOST_VERSION=3.0.5
@@ -79,27 +79,25 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # System dependencies
 RUN apt-key del 7fa2af80 \
   && apt-get update && apt-get install -y --no-install-recommends wget \
-  && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.0-1_all.deb \
-  && dpkg -i cuda-keyring_1.0-1_all.deb \
+  && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
+  && dpkg -i cuda-keyring_1.1-1_all.deb \
   && apt-get update && apt-get -y upgrade \
   && apt-get -y install --no-install-recommends \
     build-essential curl git jq libatlas-base-dev expat nginx \
-    openjdk-8-jdk-headless unzip wget apparmor linux-libc-dev \
+    openjdk-11-jdk-headless unzip wget apparmor linux-libc-dev \
     libxml2 libgstreamer1.0-0 libglib2.0-0 \
   # MLIO build deps (CMake from Kitware)
-  && wget http://es.archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi7_3.3-4_amd64.deb \
-  && dpkg -i libffi7_3.3-4_amd64.deb \
   && apt-get -y install --no-install-recommends \
     apt-transport-https ca-certificates gnupg software-properties-common \
   && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
   | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
-  && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' \
+  && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' \
   | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
   && apt-get update && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
   && apt-get install -y --no-install-recommends \
     autoconf automake cmake cmake-data doxygen kitware-archive-keyring \
     libcurl4-openssl-dev libssl-dev libtool ninja-build \
-    python3-dev python3-distutils python3-pip zlib1g-dev libxml2 zstd libsqlite3-0 \
+    python3-dev python3-pip zlib1g-dev libxml2 zstd libsqlite3-0 \
   && python3 -m pip install --upgrade "pip<=25.2" \
   && python3 -m pip install --upgrade certifi \
   # Node.js (needed for grpc examples / OSS compliance)
@@ -163,7 +161,6 @@ RUN git clone -b v1.65.4 https://github.com/grpc/grpc.git \
   && cmake --build . --target mlio-py && cmake --build . --target mlio-arrow \
   && cd ../../src/mlio-py \
   && python3 setup.py bdist_wheel \
-  && python3 -m pip install typing \
   && python3 -m pip install --upgrade pip==25.2 \
   && python3 -m pip install dist/*.whl \
   && cp -r /tmp/mlio/build/third-party/lib/libtbb* /usr/local/lib/ \
@@ -234,7 +231,6 @@ RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
 # Install sagemaker_xgboost_container wheel (built in wheel-builder stage, no-deps)
 COPY --from=wheel-builder /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl /tmp/
 RUN python3 -m pip install --no-cache --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
-  && python3 -m pip uninstall -y typing \
   && rm /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl
 
 # MMS setup
