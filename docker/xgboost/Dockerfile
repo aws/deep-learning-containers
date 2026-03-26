@@ -181,7 +181,7 @@ RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
 
 # Install sagemaker_xgboost_container wheel (built in wheel-builder stage, no-deps)
 COPY --from=wheel-builder /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl /tmp/
-RUN python3 -m pip install --no-cache --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
+RUN python3 -m pip install --no-cache-dir --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
   && rm /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl
 
 # MMS setup
