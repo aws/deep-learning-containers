@@ -21,7 +21,7 @@ ARG UBUNTU_VERSION=22.04
 ARG CUDA_VERSION=12.6.3
 ARG MINIFORGE_VERSION=26.1.1-3
 ARG MINIFORGE_CHECKSUM=b25b828b702df4dd2a6d24d4eb56cfa912471dd8e3342cde2c3d86fe3dc2d870
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.11
 ARG PYARROW_VERSION=22.0.0
 ARG XGBOOST_VERSION=3.0.5
 ARG SAGEMAKER_XGBOOST_VERSION=3.0-5
@@ -172,12 +172,7 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && rm -rf /tmp/deps
 
 # Install smdebug (excluded from uv lock — setup.py requires git-secrets at build time)
-# Patch distutils.util.strtobool removal in Python 3.12
-RUN python3 -m pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32 \
-  && SMDEBUG_DIR=/miniforge3/lib/python${PYTHON_VERSION}/site-packages/smdebug \
-  && sed -i 's/from distutils.util import strtobool/def strtobool(val):\n    val = val.lower()\n    if val in ("y", "yes", "t", "true", "on", "1"): return 1\n    elif val in ("n", "no", "f", "false", "off", "0"): return 0\n    else: raise ValueError(f"invalid truth value {val!r}")/g' \
-    ${SMDEBUG_DIR}/core/config_validator.py \
-    ${SMDEBUG_DIR}/profiler/utils.py
+RUN python3 -m pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32
 
 # Patch sagemaker-inference decoder.py (CWE-502 fix)
 COPY docker/xgboost/resources/patches/decoder.py /miniforge3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
