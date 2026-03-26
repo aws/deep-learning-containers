@@ -115,28 +115,13 @@ if [[ -n "${SCCACHE_BUCKET}" ]]; then
   --build-arg SCCACHE_BUCKET=\"${SCCACHE_BUCKET}\" \
   --build-arg SCCACHE_REGION=\"${SCCACHE_REGION}\""
 
-  # Prefer container credential endpoint (auto-refreshes, no expiry issues).
-  # Available on CodeBuild, ECS, and any environment with an IAM task role.
+  # Pass container credential endpoint so sccache can auto-refresh IAM
+  # credentials via the metadata service (CodeBuild/ECS task role).
   if [[ -n "${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-}" ]]; then
     BUILD_CMD="${BUILD_CMD} \
   --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=\"${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI}\""
-  elif [[ -n "${AWS_CONTAINER_CREDENTIALS_FULL_URI:-}" ]]; then
-    BUILD_CMD="${BUILD_CMD} \
-  --build-arg AWS_CONTAINER_CREDENTIALS_FULL_URI=\"${AWS_CONTAINER_CREDENTIALS_FULL_URI}\" \
-  --build-arg AWS_CONTAINER_AUTHORIZATION_TOKEN=\"${AWS_CONTAINER_AUTHORIZATION_TOKEN:-}\""
   else
-    # Fallback: snapshot static credentials (may expire during long builds)
-    if [[ -z "${AWS_ACCESS_KEY_ID:-}" ]]; then
-      eval "$(aws configure export-credentials --format env 2>/dev/null || true)"
-    fi
-    if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]]; then
-      BUILD_CMD="${BUILD_CMD} \
-  --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID}\" \
-  --build-arg AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY}\" \
-  --build-arg AWS_SESSION_TOKEN=\"${AWS_SESSION_TOKEN:-}\""
-    else
-      echo "⚠️ No AWS credentials available for sccache — builds will compile from source"
-    fi
+    echo "⚠️ AWS_CONTAINER_CREDENTIALS_RELATIVE_URI not set — sccache may not have S3 access"
   fi
 fi
 
