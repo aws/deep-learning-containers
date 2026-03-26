@@ -49,7 +49,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/aws/sagemaker-xgboost-container.git /build
 WORKDIR /build
-RUN python3 setup.py bdist_wheel --universal
+RUN pip3 install --no-cache-dir build && python3 -m build --wheel --outdir dist/
 
 # ── Stage: base ─────────────────────────────────────────────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION} AS base
@@ -82,7 +82,7 @@ RUN apt-key del 7fa2af80 \
     libxml2 libgstreamer1.0-0 libglib2.0-0 \
     apt-transport-https ca-certificates gnupg software-properties-common \
     libcurl4-openssl-dev libssl-dev \
-    python3-dev python3-pip zlib1g-dev zstd libsqlite3-0 \
+    python3-dev zlib1g-dev zstd libsqlite3-0 \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Miniforge (conda-forge by default, no Anaconda license required)
@@ -101,7 +101,7 @@ RUN conda config --system --set channel_priority strict \
   && conda install -y \
     python=${PYTHON_VERSION} \
     requests=2.32.3 \
-    openssl=3.6.1 \
+    openssl=3.6.2 \
     pyarrow=${PYARROW_VERSION} \
   && conda clean -afy
 
@@ -180,9 +180,9 @@ RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
   /miniforge3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_containers/_mapping.py
 
 # Install sagemaker_xgboost_container wheel (built in wheel-builder stage, no-deps)
-COPY --from=wheel-builder /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl /tmp/
-RUN python3 -m pip install --no-cache --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
-  && rm /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl
+COPY --from=wheel-builder /build/dist/ /tmp/wheel/
+RUN python3 -m pip install --no-cache-dir --no-deps /tmp/wheel/sagemaker_xgboost_container-*.whl \
+  && rm -rf /tmp/wheel
 
 # MMS setup
 RUN useradd -m model-server \
