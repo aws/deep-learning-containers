@@ -348,5 +348,10 @@
         "vulnerability_id": "CVE-2022-45198",
         "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
         "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-39689",
+        "reason": "certifi pinned to 2023.7.22 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
     }
 ]

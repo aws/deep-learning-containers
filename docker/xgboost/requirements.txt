@@ -1,6 +1,6 @@
 boto3==1.17.52
 botocore==1.20.52
-certifi==2025.4.26
+certifi==2023.7.22
 cryptography==45.0.5
 cuda-python==12.6.0
 dask-cuda==24.12.00
