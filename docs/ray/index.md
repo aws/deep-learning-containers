@@ -97,9 +97,9 @@ The entrypoint resolves the serve target in this priority order:
 
 | Method | Platform | How |
 | ------ | -------- | --- |
-| `config.yaml` (default) | EC2 + SageMaker | Must be at `/opt/ml/model/config.yaml` — mount the directory (EC2) or place at tarball root (SageMaker) |
-| CLI argument | EC2 only | `docker run <image> deployment:app` |
-| Environment variable | SageMaker only | Set `SM_RAYSERVE_APP=deployment:app` |
+| CLI argument | EC2 only | `docker run <image> deployment:app` — overrides `config.yaml` if both exist |
+| `config.yaml` | EC2 + SageMaker | Must be at `/opt/ml/model/config.yaml` — mount the directory (EC2) or place at tarball root (SageMaker). Default when no CLI arg is provided. |
+| Environment variable | SageMaker only | Set `SM_RAYSERVE_APP=deployment:app` — used only when no `config.yaml` is present |
 
 ### EC2 Environment Variables
 
@@ -600,6 +600,9 @@ docker run -d --gpus all \
 On SageMaker, set the `SM_RAYSERVE_APP` environment variable. Package your model directory the same way as the sentiment example (tarball uploaded to S3), but omit `config.yaml`. The `deployment.py` must be at the tarball root — `SM_RAYSERVE_APP=deployment:app` resolves the module from `/opt/ml/model/`.
 
 ```python
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+
 model = Model(
     image_uri="{{ images.latest_ray_sagemaker_gpu }}",
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
