@@ -208,8 +208,7 @@ docker run -d \
   -p 8000:8000 \
   -v /path/to/tabular-model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  {{ images.latest_ray_ec2_cpu }} \
-  /opt/ml/model/config.yaml
+  {{ images.latest_ray_ec2_cpu }}
 ```
 
 ```bash
