@@ -7,7 +7,7 @@ ARG PYTHON_VERSION=3.12
 FROM alpine/git AS source
 
 ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
-ARG VLLM_VERSION=0.17.1
+ARG VLLM_VERSION=0.18.0
 ARG VLLM_REF=v${VLLM_VERSION}
 
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src
@@ -48,27 +48,17 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 
 # sccache — caches compiled objects in S3 so partial source changes only
 # recompile the affected files. Set SCCACHE_BUCKET at build time to enable.
-# When built with --network=host on CodeBuild/ECS, sccache auto-refreshes
-# credentials via the container credential endpoint (AWS_CONTAINER_CREDENTIALS_*).
-# Falls back to static credentials (AWS_ACCESS_KEY_ID) if provided.
+# Build with --network=host on CodeBuild so sccache can reach the container
+# credential endpoint (AWS_CONTAINER_CREDENTIALS_RELATIVE_URI) for auto-
+# refreshing IAM credentials that won't expire during long builds.
 ARG SCCACHE_BUCKET=""
 ARG SCCACHE_REGION="us-west-2"
-ARG AWS_ACCESS_KEY_ID=""
-ARG AWS_SECRET_ACCESS_KEY=""
-ARG AWS_SESSION_TOKEN=""
 ARG AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=""
-ARG AWS_CONTAINER_CREDENTIALS_FULL_URI=""
-ARG AWS_CONTAINER_AUTHORIZATION_TOKEN=""
 ENV SCCACHE_BUCKET=${SCCACHE_BUCKET}
 ENV SCCACHE_REGION=${SCCACHE_REGION}
 ENV SCCACHE_S3_USE_SSL=true
 ENV SCCACHE_S3_KEY_PREFIX=sccache/vllm
-ENV AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-ENV AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-ENV AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
 ENV AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI}
-ENV AWS_CONTAINER_CREDENTIALS_FULL_URI=${AWS_CONTAINER_CREDENTIALS_FULL_URI}
-ENV AWS_CONTAINER_AUTHORIZATION_TOKEN=${AWS_CONTAINER_AUTHORIZATION_TOKEN}
 RUN if [ -n "${SCCACHE_BUCKET}" ]; then \
   curl -L https://github.com/mozilla/sccache/releases/download/v0.9.1/sccache-v0.9.1-x86_64-unknown-linux-musl.tar.gz \
     | tar xz -C /usr/local/bin --strip-components=1 --wildcards '*/sccache' \
@@ -100,12 +90,12 @@ ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 ARG max_jobs=32
 ENV MAX_JOBS=${max_jobs}
 
-ARG nvcc_threads=2
+ARG nvcc_threads=16
 ENV NVCC_THREADS=${nvcc_threads}
 
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
-ARG VLLM_VERSION=0.17.1
+ARG VLLM_VERSION=0.18.0
 ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
 # When sccache is available, use it as the compiler launcher so unchanged
@@ -205,8 +195,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   fi && rm -rf /tmp/ep_kernels
 
 # Install KV connectors (lmcache, nixl) if requested
-ARG INSTALL_KV_CONNECTORS=false
-COPY --from=build /workspace/vllm/requirements/kv_connectors.txt /tmp/kv_connectors.txt
+ARG INSTALL_KV_CONNECTORS=true
+COPY --from=source /src/requirements/kv_connectors.txt /tmp/kv_connectors.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
     CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
     CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
