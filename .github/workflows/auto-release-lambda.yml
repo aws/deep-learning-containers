@@ -69,7 +69,7 @@ jobs:
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-${{ github.run_id }}
+      group: ${{ github.workflow }}-build-${{ matrix.target.name }}-${{ github.run_id }}
       cancel-in-progress: true
     strategy:
       fail-fast: false
