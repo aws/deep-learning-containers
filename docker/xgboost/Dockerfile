@@ -22,7 +22,6 @@ ARG CUDA_VERSION=12.6.3
 ARG MINIFORGE_VERSION=26.1.1-3
 ARG MINIFORGE_CHECKSUM=b25b828b702df4dd2a6d24d4eb56cfa912471dd8e3342cde2c3d86fe3dc2d870
 ARG PYTHON_VERSION=3.11
-ARG PYARROW_VERSION=22.0.0
 ARG XGBOOST_VERSION=3.0.5
 ARG SAGEMAKER_XGBOOST_VERSION=3.0-5
 
@@ -57,7 +56,6 @@ FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION} AS base
 ARG MINIFORGE_VERSION
 ARG MINIFORGE_CHECKSUM
 ARG PYTHON_VERSION
-ARG PYARROW_VERSION
 ARG XGBOOST_VERSION
 
 LABEL maintainer="Amazon AI"
@@ -71,8 +69,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONIOENCODING=utf-8
 
 # System dependencies
-RUN apt-key del 7fa2af80 \
-  && apt-get update && apt-get install -y --no-install-recommends wget \
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
   && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
   && dpkg -i cuda-keyring_1.1-1_all.deb \
   && apt-get update && apt-get -y upgrade \
@@ -101,8 +98,7 @@ RUN conda config --system --set channel_priority strict \
   && conda install -y \
     python=${PYTHON_VERSION} \
     requests=2.32.3 \
-    openssl=3.6.2 \
-    pyarrow=${PYARROW_VERSION} \
+    "openssl>=3.6.1" \
   && conda clean -afy
 
 # MLIO (awslabs/ml-io) is no longer built from source — the project is
@@ -128,7 +124,7 @@ RUN sqlite3 --version
 
 # Install XGBoost
 RUN python3 -m pip install --no-cache-dir -I \
-  xgboost==${XGBOOST_VERSION} numpy==2.1.0 pyarrow==22.0.0 pandas==2.2.3
+  xgboost==${XGBOOST_VERSION} numpy==2.1.0 pandas==2.2.3
 
 # Starting from XGBoost 2.1.0, the PyPI package won't bundle with nccl
 ENV LD_LIBRARY_PATH=/miniforge3/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:$LD_LIBRARY_PATH
