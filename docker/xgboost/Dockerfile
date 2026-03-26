@@ -4,7 +4,7 @@
 #
 #   sqlite-builder ─── (compiles SQLite from source)
 #   wheel-builder ──── (builds sagemaker_xgboost_container wheel)
-#   base ──────────── (conda, MLIO, XGBoost, system deps, telemetry)
+#   base ──────────── (miniforge, MLIO, XGBoost, system deps, telemetry)
 #   xgboost-sagemaker  (SageMaker serving layer on top of base)
 #
 # Build targets:
@@ -19,10 +19,8 @@
 # ── Global ARGs ─────────────────────────────────────────────────────────────
 ARG UBUNTU_VERSION=22.04
 ARG CUDA_VERSION=12.6.3
-ARG MINICONDA_VERSION=25.9.1
-ARG CONDA_CHECKSUM=a0def9c732d94b156529ef7db8edd6e1862cee784a27a4961870dca86e89fba4
-ARG CONDA_PY_VERSION=312
-ARG CONDA_PKG_VERSION=25.9.1
+ARG MINIFORGE_VERSION=26.1.1-3
+ARG MINIFORGE_CHECKSUM=b25b828b702df4dd2a6d24d4eb56cfa912471dd8e3342cde2c3d86fe3dc2d870
 ARG PYTHON_VERSION=3.12
 ARG PYARROW_VERSION=22.0.0
 ARG MLIO_VERSION=0.9.0
@@ -57,10 +55,8 @@ RUN python3 setup.py bdist_wheel --universal
 # ── Stage: base ─────────────────────────────────────────────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION} AS base
 
-ARG MINICONDA_VERSION
-ARG CONDA_CHECKSUM
-ARG CONDA_PY_VERSION
-ARG CONDA_PKG_VERSION
+ARG MINIFORGE_VERSION
+ARG MINIFORGE_CHECKSUM
 ARG PYTHON_VERSION
 ARG PYARROW_VERSION
 ARG MLIO_VERSION
@@ -109,34 +105,29 @@ RUN apt-key del 7fa2af80 \
   && apt-get update && apt-get install -y nodejs && npm install -g npm@latest \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install conda
-RUN cd /tmp \
-  && curl -L --output /tmp/Miniconda3.sh \
-    https://repo.anaconda.com/miniconda/Miniconda3-py${CONDA_PY_VERSION}_${MINICONDA_VERSION}-1-Linux-x86_64.sh \
-  && echo "${CONDA_CHECKSUM} /tmp/Miniconda3.sh" | sha256sum -c - \
-  && bash /tmp/Miniconda3.sh -bfp /miniconda3 \
-  && rm /tmp/Miniconda3.sh
+# Install Miniforge (conda-forge by default, no Anaconda license required)
+RUN curl -L --output /tmp/Miniforge3.sh \
+    https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh \
+  && echo "${MINIFORGE_CHECKSUM} /tmp/Miniforge3.sh" | sha256sum -c - \
+  && bash /tmp/Miniforge3.sh -bfp /miniforge3 \
+  && rm /tmp/Miniforge3.sh
 
-ENV PATH=/miniconda3/bin:${PATH}
+ENV PATH=/miniforge3/bin:${PATH}
 
 # Conda packages
-RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
-  && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r \
-  && conda config --system --set channel_priority strict \
+RUN conda config --system --set channel_priority strict \
   && conda config --system --set auto_update_conda false \
   && conda config --system --set show_channel_urls true \
-  && conda install -y -c conda-forge \
+  && conda install -y \
     python=${PYTHON_VERSION} \
     requests=2.32.3 \
     openssl=3.6.1 \
-    conda=${CONDA_PKG_VERSION} \
     pyarrow=${PYARROW_VERSION} \
-    --solver=libmamba \
   && conda clean -afy
 
 # Build MLIO from source with Arrow integration
 RUN git clone -b v1.65.4 https://github.com/grpc/grpc.git \
-  && LIBGRPC_DIR=$(find /miniconda3/pkgs -name "libgrpc-*" -type d | head -n 1) \
+  && LIBGRPC_DIR=$(find /miniforge3/pkgs -name "libgrpc-*" -type d | head -n 1) \
   && mkdir -p ${LIBGRPC_DIR}/info/test/examples \
   && cp -r grpc/examples/* ${LIBGRPC_DIR}/info/test/examples/ \
   && cd ${LIBGRPC_DIR}/info/test/examples/node \
@@ -152,12 +143,12 @@ RUN git clone -b v1.65.4 https://github.com/grpc/grpc.git \
   && cd mlio \
   && sed -i 's/find_package(Arrow 14.0.1 REQUIRED/find_package(Arrow 22.0.0 REQUIRED/g' CMakeLists.txt \
   && sed -i 's/pyarrow==14.0.1/pyarrow==22.0.0/g' src/mlio-py/setup.py \
-  && sed -i 's/-DBUILD_MOCK=OFF/-DBUILD_MOCK=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5/g' third-party/CMakeLists.txt \
+  && sed -i 's/CMAKE_ARGS/CMAKE_ARGS\n        -DCMAKE_POLICY_VERSION_MINIMUM=3.5/g' third-party/CMakeLists.txt \
   && build-tools/build-dependency build/third-party all \
   && mkdir -p build/release && cd build/release \
   && cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_PREFIX_PATH="$(pwd)/../third-party" ../.. \
   && cmake --build . && cmake --build . --target install \
-  && cmake -DMLIO_INCLUDE_PYTHON_EXTENSION=ON -DPYTHON_EXECUTABLE="/miniconda3/bin/python3" \
+  && cmake -DMLIO_INCLUDE_PYTHON_EXTENSION=ON -DPYTHON_EXECUTABLE="/miniforge3/bin/python3" \
     -DMLIO_INCLUDE_ARROW_INTEGRATION=ON ../.. \
   && cmake --build . --target mlio-py && cmake --build . --target mlio-arrow \
   && cd ../../src/mlio-py \
@@ -181,7 +172,7 @@ RUN python3 -m pip install --no-cache -I \
   xgboost==${XGBOOST_VERSION} numpy==2.1.0 pyarrow==22.0.0 pandas==2.2.3
 
 # Starting from XGBoost 2.1.0, the PyPI package won't bundle with nccl
-ENV LD_LIBRARY_PATH=/miniconda3/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/miniforge3/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:$LD_LIBRARY_PATH
 
 # ── Stage: xgboost-sagemaker ───────────────────────────────────────────────
 FROM base AS xgboost-sagemaker
@@ -213,21 +204,26 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/lib/apt/lists/*
 
 # Install all SageMaker serving dependencies via uv (lockfile-based, conflict-free)
-ENV UV_PROJECT_ENVIRONMENT=/miniconda3
+ENV UV_PROJECT_ENVIRONMENT=/miniforge3
 COPY docker/xgboost/pyproject.toml docker/xgboost/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
-  && uv sync --frozen --no-dev --no-install-project --inexact --python /miniconda3/bin/python3 \
+  && uv sync --frozen --no-dev --no-install-project --inexact --python /miniforge3/bin/python3 \
   && rm -rf /tmp/deps
 
 # Install smdebug (excluded from uv lock — setup.py requires git-secrets at build time)
-RUN python3 -m pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32
+# Patch distutils.util.strtobool removal in Python 3.12
+RUN python3 -m pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32 \
+  && SMDEBUG_DIR=/miniforge3/lib/python${PYTHON_VERSION}/site-packages/smdebug \
+  && sed -i 's/from distutils.util import strtobool/def strtobool(val):\n    val = val.lower()\n    if val in ("y", "yes", "t", "true", "on", "1"): return 1\n    elif val in ("n", "no", "f", "false", "off", "0"): return 0\n    else: raise ValueError(f"invalid truth value {val!r}")/g' \
+    ${SMDEBUG_DIR}/core/config_validator.py \
+    ${SMDEBUG_DIR}/profiler/utils.py
 
 # Patch sagemaker-inference decoder.py (CWE-502 fix)
-COPY docker/xgboost/resources/patches/decoder.py /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
+COPY docker/xgboost/resources/patches/decoder.py /miniforge3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
 
 # Patch collections.Mapping deprecation in sagemaker-containers
 RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
-  /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_containers/_mapping.py
+  /miniforge3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_containers/_mapping.py
 
 # Install sagemaker_xgboost_container wheel (built in wheel-builder stage, no-deps)
 COPY --from=wheel-builder /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl /tmp/
