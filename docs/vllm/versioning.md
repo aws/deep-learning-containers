@@ -10,57 +10,54 @@ The vLLM {{ dlc_short }} images are **curated builds** — not direct repackages
 - Applies targeted patches from upstream PRs, forks, and community contributions
 - Is validated against a selected suite of model-serving use cases relevant to {{ aws }} customers
 
-The version number (e.g., `0.17.1`) indicates the upstream vLLM version the build is based on, but the image may include additional fixes and features
-not yet in that upstream release.
-
 ## Simplified Tag Format
 
 vLLM {{ dlc_short }} images use a simplified tagging format. Details like Python version, CUDA version, and OS type are documented in release
 materials (release notes, changelogs, available images tables) rather than encoded in the tag.
 
+The tag format is:
+
 ```
-<vllm_version>-gpu-<platform>
+server-cuda
 ```
 
-| Component | Description | Example |
+With versioned variants:
+
+| Tag | Example | Description |
 | --- | --- | --- |
-| `vllm_version` | Base upstream vLLM version | `0.17.1` |
-| `gpu` | Accelerator type | `gpu` |
-| `platform` | Target {{ aws }} platform | `ec2` or `sagemaker` |
+| Base | `server-cuda` | Latest release (rolling) |
+| Full version | `server-cuda-v1.0.0` | Pinned to exact release |
+| Minor | `server-cuda-v1.0` | Latest patch in v1.0.x series |
+| Major | `server-cuda-v1` | Latest release in v1.x.x series |
 
-### Example Tags
+When a platform-specific variant exists (e.g., for Bedrock), the platform is inserted between `server` and `cuda`:
 
-| Tag | Platform |
+| Tag | Example |
 | --- | --- |
-| `0.17.1-gpu-ec2` | {{ ec2_short }}, {{ ecs_short }}, {{ eks_short }} |
-| `0.17.1-gpu-sagemaker` | {{ sm_short }} |
+| Base | `server-bedrock-cuda` |
+| Full version | `server-bedrock-cuda-v1.0.0` |
 
 !!! info Detailed package versions (Python, CUDA, cuDNN, NCCL, etc.) are listed in the [Release Notes](../releasenotes/vllm/index.md) and
 [Available Images](../reference/available_images.md) tables for each release.
 
-## Platform Selection
+## Semantic Versioning
 
-| Platform Tag | Use With |
+The version follows 3-part semantic versioning (`MAJOR.MINOR.PATCH`):
+
+| Increment | When |
 | --- | --- |
-| `ec2` | {{ ec2 }}, {{ ecs }}, {{ eks }}, or any Docker environment |
-| `sagemaker` | {{ sagemaker }} inference endpoints only |
+| **MAJOR** | CUDA/Python breaking changes, removed model support, breaking server features |
+| **MINOR** | CUDA/Python updates, new features, new model support, bug fixes |
+| **PATCH** | Security patches, backwards-compatible bug fixes |
 
-The `sagemaker` images include the {{ sm_short }} inference toolkit and entrypoint. The `ec2` images run the vLLM server directly.
+!!! tip "Recommendation" Use the **full version tag** (`server-cuda-v1.0.0`) in production for reproducibility. Use the **minor tag**
+(`server-cuda-v1.0`) in development to automatically pick up security patches.
 
-## Version History
+## ECR Repository
 
-| vLLM Version | PyTorch | CUDA | Key Changes |
-| --- | --- | --- | --- |
-| 0.17.1 | 2.10.0 | 12.9 | Latest release |
-| 0.17.0 | 2.10.0 | 12.9 | PyTorch 2.10 upgrade |
-| 0.16.0 | 2.9.1 | 12.9 | EFA 1.47.0 |
-| 0.15.1 | 2.9.1 | 12.9 | — |
-| 0.14.0 | 2.9.1 | 12.9.1 | FlashInfer 0.5.3 |
-| 0.13.0 | 2.9.0 | 12.9.1 | Initial Python 3.12 support |
+The new-format images are published to the existing `vllm` ECR repository, coexisting with legacy-format images.
 
-For the full list of available images and tags, see [Available Images](../reference/available_images.md).
-
-## Forming the Image URI
+### Forming the Image URI
 
 ```
 <account_id>.dkr.ecr.<region>.amazonaws.com/vllm:<tag>
@@ -71,9 +68,22 @@ See [Region Availability](../reference/available_images.md#region-availability) 
 ### Example
 
 ```bash
-# US West (Oregon)
-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.17.1-gpu-ec2
+# Pinned to exact version
+763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1.0.0
 
-# EU (Ireland)
-763104351884.dkr.ecr.eu-west-1.amazonaws.com/vllm:0.17.1-gpu-ec2
+# Latest patch in v1.0 series
+763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1.0
+
+# Latest v1 release
+763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda-v1
 ```
+
+## Legacy Tags
+
+Older vLLM {{ dlc_short }} images used a verbose tag format that encoded Python, CUDA, and OS versions:
+
+```
+0.17.1-gpu-py312-cu129-ubuntu22.04-ec2
+```
+
+These legacy images remain available. The new `server-cuda` format coexists alongside them in the same `vllm` ECR repository.

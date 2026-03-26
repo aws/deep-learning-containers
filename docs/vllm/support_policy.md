@@ -23,7 +23,8 @@ Because vLLM {{ dlc_short }} images are curated builds, patching follows a diffe
 
 - When regressions or vulnerabilities are identified, we troubleshoot and contribute fixes upstream or apply local patches
 - Patches are delivered as new image builds — we do not wait for upstream releases
-- The simplified tag (e.g., `0.17.1-gpu-ec2`) may be updated to point to a newly patched build
+- Security patches increment the **PATCH** version (e.g., `v1.0.0` → `v1.0.1`)
+- The minor tag (e.g., `server-cuda-v1.0`) automatically points to the latest patch release
 
 ## Current Support Status
 
