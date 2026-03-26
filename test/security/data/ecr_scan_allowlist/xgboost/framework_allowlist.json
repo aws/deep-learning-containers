@@ -328,5 +328,25 @@
         "vulnerability_id": "CVE-2026-25990",
         "reason": "Pillow pinned to 9.1.1 \u2014 upstream sagemaker-xgboost-container enforces exact version at runtime. PSD loading not in XGBoost inference/training path.",
         "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-50447",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-44271",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-4863",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2022-45198",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
     }
 ]
