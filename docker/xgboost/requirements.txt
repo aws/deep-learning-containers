@@ -16,7 +16,7 @@ multi-model-server==1.1.2
 numba==0.61.0
 numpy==2.1.0
 pandas==2.2.3
-Pillow==10.4.0
+Pillow==9.1.1
 psutil==5.8.0
 pynvml==11.4.1
 python-dateutil==2.8.2
