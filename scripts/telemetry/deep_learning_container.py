@@ -265,6 +265,9 @@ def parse_args():
         pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, args.framework_version)
         if pt_fw_version_match:
             args.framework_version = pt_fw_version_match.group(1)
+    # llamacpp uses build number format (e.g., b5460)
+    if args.framework == "llamacpp":
+        fw_version_pattern = r"b\d+"
     if args.framework_version:
         assert re.fullmatch(fw_version_pattern, args.framework_version), (
             f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
