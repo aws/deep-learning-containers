@@ -520,14 +520,14 @@ curl -X POST http://localhost:8000/ \
 
 ### SageMaker Deployment
 
-To deploy on SageMaker, package your model directory as a tarball, upload to S3, and deploy using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The tarball is automatically downloaded and extracted to `/opt/ml/model/` before the container starts. The container runs Ray Serve internally on port 8000 and exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
+To deploy on SageMaker, package your model directory as a tarball, upload to S3, and deploy using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The tarball is automatically downloaded and extracted to `/opt/ml/model/` before the container starts. The container exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
 
 !!! warning
     SageMaker endpoint deployment takes several minutes and incurs costs for the running instance. Remember to delete endpoints when done.
 
 #### Sentiment Analysis
 
-Package the model directory from the EC2 example, upload to S3, and deploy end-to-end:
+Package the model directory from the EC2 example, upload to S3, and deploy:
 
 ```bash
 # Package and upload
