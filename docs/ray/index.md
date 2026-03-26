@@ -70,7 +70,7 @@ applications:
           num_gpus: 1
 ```
 
-Set `num_gpus: 1` for GPU images or `num_gpus: 0` for CPU images.
+Set `num_gpus` to the number of GPUs allocated per replica (`0` for CPU-only deployments).
 
 ### Deployment Paths
 
