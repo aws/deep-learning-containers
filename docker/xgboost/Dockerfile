@@ -45,11 +45,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # sagemaker-xgboost-container package source.
 FROM ubuntu:${UBUNTU_VERSION} AS wheel-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  python3 python3-pip python3-setuptools python3-wheel python3-venv git ca-certificates \
+  python3 python3-pip python3-setuptools python3-wheel git ca-certificates \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/aws/sagemaker-xgboost-container.git /build
 WORKDIR /build
-RUN pip3 install --no-cache-dir build && python3 -m build --wheel --outdir dist/
+RUN python3 setup.py bdist_wheel --universal
 
 # ── Stage: base ─────────────────────────────────────────────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION} AS base
@@ -180,9 +180,9 @@ RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
   /miniforge3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_containers/_mapping.py
 
 # Install sagemaker_xgboost_container wheel (built in wheel-builder stage, no-deps)
-COPY --from=wheel-builder /build/dist/ /tmp/wheel/
-RUN python3 -m pip install --no-cache-dir --no-deps /tmp/wheel/sagemaker_xgboost_container-*.whl \
-  && rm -rf /tmp/wheel
+COPY --from=wheel-builder /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl /tmp/
+RUN python3 -m pip install --no-cache-dir --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
+  && rm /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl
 
 # MMS setup
 RUN useradd -m model-server \
