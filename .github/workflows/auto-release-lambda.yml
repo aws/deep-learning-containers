@@ -78,10 +78,6 @@ jobs:
           - { name: base-py3, tag: gpu-base-py3 }
           - { name: cupy-py3, tag: gpu-cupy-py3 }
           - { name: pytorch-py3, tag: gpu-pytorch-py3 }
-    outputs:
-      base-image: ${{ steps.set-output.outputs.base-image }}
-      cupy-image: ${{ steps.set-output.outputs.cupy-image }}
-      pytorch-image: ${{ steps.set-output.outputs.pytorch-image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -109,14 +105,6 @@ jobs:
             --push \
             --target ${{ matrix.target.name }} \
             -f ${{ env.DOCKERFILE_PATH }} .
-
-          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
-
-      - name: Set variant output
-        id: set-output
-        run: |
-          VARIANT=$(echo "${{ matrix.target.name }}" | sed 's/-py3//')
-          echo "${VARIANT}-image=${{ steps.build.outputs.image-uri }}" >> $GITHUB_OUTPUT
 
   # ============================================================
   # Sanity tests
