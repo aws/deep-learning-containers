@@ -197,8 +197,21 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
         buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: base-py3
+            tag: gpu-base-py3
+            tests: /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_base.py
+          - name: cupy-py3
+            tag: gpu-cupy-py3
+            tests: /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py
+          - name: pytorch-py3
+            tag: gpu-pytorch-py3
+            tests: /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_environment_pytorch.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py
     concurrency:
-      group: ${{ github.workflow }}-validate-${{ github.run_id }}
+      group: ${{ github.workflow }}-validate-${{ matrix.target.name }}-${{ github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout code
@@ -210,23 +223,11 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Validate base-py3
+      - name: Validate ${{ matrix.target.name }}
         run: |
-          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-base-py3-${{ github.run_id }}"
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-${{ github.run_id }}"
           docker pull ${IMAGE}
-          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_base.py -v
-
-      - name: Validate cupy-py3
-        run: |
-          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-cupy-py3-${{ github.run_id }}"
-          docker pull ${IMAGE}
-          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py -v
-
-      - name: Validate pytorch-py3
-        run: |
-          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-py3-${{ github.run_id }}"
-          docker pull ${IMAGE}
-          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_environment_pytorch.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py -v
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest ${{ matrix.target.tests }} -v
 
   # ============================================================
   # Release — base
