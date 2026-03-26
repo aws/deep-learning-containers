@@ -97,9 +97,9 @@ The entrypoint resolves the serve target in this priority order:
 
 | Method | Platform | How |
 | ------ | -------- | --- |
-| CLI argument | EC2 only | `docker run <image> deployment:app` — overrides `config.yaml` if both exist |
-| `config.yaml` | EC2 + SageMaker | Must be at `/opt/ml/model/config.yaml` — mount the directory (EC2) or place at tarball root (SageMaker). Default when no CLI arg is provided. |
-| Environment variable | SageMaker only | Set `SM_RAYSERVE_APP=deployment:app` — used only when no `config.yaml` is present |
+| CLI argument | EC2 only | `docker run <image> deployment:app` — overrides `config.yaml` |
+| `config.yaml` | EC2 + SageMaker | Auto-detected at `/opt/ml/model/config.yaml` |
+| `SM_RAYSERVE_APP` env var | SageMaker only | Fallback when no `config.yaml` is present |
 
 ### EC2 Environment Variables
 
