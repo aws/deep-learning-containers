@@ -460,7 +460,7 @@ class IrisClassifier:
 
         self.model = IrisModel()
         self.model.load_state_dict(
-            torch.load(os.path.join(model_dir, "iris_model.pth"), map_location=self.device, weights_only=True)
+            torch.load(os.path.join(model_dir, "iris_model.pth"), map_location=self.device)
         )
         self.model.to(self.device)
         self.model.eval()
