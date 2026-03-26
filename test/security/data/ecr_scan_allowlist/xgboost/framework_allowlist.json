@@ -1,0 +1,32 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-0994",
+        "reason": "protobuf pinned to >=3.20.0,<=3.20.3 — required by sagemaker-containers 2.8.6.post2. Upgrading to protobuf 6.x breaks the serving stack. DoS via json_format.ParseDict() with nested Any messages; low risk in SageMaker inference where protobuf input is not user-controlled.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-2673",
+        "reason": "openssl 3.6.1 installed via conda-forge; 3.6.2 not yet available on conda-forge. TLS 1.3 key exchange group negotiation issue; low risk as SageMaker containers are not public-facing TLS servers.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25990",
+        "reason": "Pillow pinned to 9.1.1 — matching upstream sagemaker-xgboost-container requirements.txt. Out-of-bounds write when loading crafted PSD images; low risk as PSD loading is not part of the XGBoost inference/training path.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21441",
+        "reason": "urllib3 pinned to 1.26.5 — required by botocore 1.20.52 (transitive from sagemaker-containers). Streaming API vulnerability; low risk in SageMaker container environment.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66418",
+        "reason": "urllib3 pinned to 1.26.5 — required by botocore 1.20.52. Unbounded decompression chain; low risk as container only connects to trusted AWS endpoints.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66471",
+        "reason": "urllib3 pinned to 1.26.5 — required by botocore 1.20.52. Streaming API compressed data handling; low risk as container only connects to trusted AWS endpoints.",
+        "review_by": "2026-06-26"
+    }
+]
