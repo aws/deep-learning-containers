@@ -596,7 +596,7 @@ response = predictor.predict({"features": [6.3, 3.3, 6.0, 2.5]})
 predictor.delete_endpoint()
 ```
 
-### Direct App Import (No config.yaml)
+### Direct App Import
 
 For models that define a Ray Serve app directly in Python without a `config.yaml`, pass the `module:app` import path directly.
 
