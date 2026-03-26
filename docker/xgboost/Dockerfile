@@ -83,8 +83,6 @@ RUN apt-key del 7fa2af80 \
     apt-transport-https ca-certificates gnupg software-properties-common \
     libcurl4-openssl-dev libssl-dev \
     python3-dev python3-pip zlib1g-dev zstd libsqlite3-0 \
-  && python3 -m pip install --upgrade "pip<=25.2" \
-  && python3 -m pip install --upgrade certifi \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Miniforge (conda-forge by default, no Anaconda license required)
@@ -129,7 +127,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN sqlite3 --version
 
 # Install XGBoost
-RUN python3 -m pip install --no-cache -I \
+RUN python3 -m pip install --no-cache-dir -I \
   xgboost==${XGBOOST_VERSION} numpy==2.1.0 pyarrow==22.0.0 pandas==2.2.3
 
 # Starting from XGBoost 2.1.0, the PyPI package won't bundle with nccl
