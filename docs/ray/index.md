@@ -259,15 +259,12 @@ with open("audio.wav", "rb") as f:
 
 #### Tabular Classification
 
-For models using `SM_RAYSERVE_APP` to specify the app import path:
-
 ```python
 model = Model(
     image_uri="{{ images.latest_ray_sagemaker_cpu }}",
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
     model_data="s3://<BUCKET>/models/tabular-iris/model.tar.gz",
     predictor_cls=Predictor,
-    env={"SM_RAYSERVE_APP": "deployment:app"},
 )
 
 predictor = model.deploy(
@@ -280,6 +277,27 @@ predictor = model.deploy(
 
 response = predictor.predict({"features": [6.3, 3.3, 6.0, 2.5]})
 # {"prediction": "virginica", "confidence": 0.9723, "probabilities": {"setosa": 0.0031, ...}}
+```
+
+#### Direct App Import (No config.yaml)
+
+For models that define a Ray Serve app directly in Python without a `config.yaml`, use the `SM_RAYSERVE_APP` environment variable to specify the `module:app` import path:
+
+```python
+model = Model(
+    image_uri="{{ images.latest_ray_sagemaker_gpu }}",
+    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
+    model_data="s3://<BUCKET>/models/mnist/model.tar.gz",
+    predictor_cls=Predictor,
+    env={"SM_RAYSERVE_APP": "deployment:app", "RAYSERVE_NUM_GPUS": "1"},
+)
+
+predictor = model.deploy(
+    instance_type="ml.g5.xlarge",
+    initial_instance_count=1,
+    endpoint_name="ray-serve-mnist",
+    wait=True,
+)
 ```
 
 #### Cleanup
