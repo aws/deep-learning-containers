@@ -268,6 +268,7 @@ jobs:
       environment: ${{ fromJson(needs.load-config-base.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
+      publish-only: true
     secrets: inherit
 
   # ============================================================
@@ -309,6 +310,7 @@ jobs:
       environment: ${{ fromJson(needs.load-config-cupy.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
+      publish-only: true
     secrets: inherit
 
   # ============================================================
@@ -350,4 +352,5 @@ jobs:
       environment: ${{ fromJson(needs.load-config-pytorch.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
+      publish-only: true
     secrets: inherit
