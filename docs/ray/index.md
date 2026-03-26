@@ -530,14 +530,12 @@ To deploy on SageMaker, package your model directory as a tarball, upload to S3,
 Package the model directory from the EC2 example, upload to S3, and deploy:
 
 ```bash
-# Package and upload
 cd nlp-model
 tar czf /tmp/nlp-model.tar.gz .
 aws s3 cp /tmp/nlp-model.tar.gz s3://<BUCKET>/models/nlp-sentiment/model.tar.gz
 ```
 
 ```python
-import boto3
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
@@ -561,91 +559,7 @@ response = predictor.predict({"text": "I love this so much, best purchase ever!"
 predictor.delete_endpoint()
 ```
 
-#### Image Classification
-
-Requires its own `model.tar.gz` from the `cv-model/` directory:
-
-```python
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import IdentitySerializer
-
-predictor = Model(
-    image_uri="{{ images.latest_ray_sagemaker_gpu }}",
-    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
-    model_data="s3://<BUCKET>/models/cv-densenet/model.tar.gz",
-    predictor_cls=Predictor,
-).deploy(
-    instance_type="ml.g5.xlarge",
-    initial_instance_count=1,
-    endpoint_name="ray-serve-densenet",
-    serializer=IdentitySerializer(content_type="image/jpeg"),
-    wait=True,
-)
-
-with open("kitten.jpg", "rb") as f:
-    response = predictor.predict(f.read())
-# {"predictions": [{"class_id": 281, "class_name": "tabby", "probability": 0.5312}, ...]}
-
-predictor.delete_endpoint()
-```
-
-#### Audio Transcription
-
-Requires its own `model.tar.gz` from the `audio-model/` directory:
-
-```python
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import IdentitySerializer
-
-predictor = Model(
-    image_uri="{{ images.latest_ray_sagemaker_gpu }}",
-    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
-    model_data="s3://<BUCKET>/models/audio-ffmpeg/model.tar.gz",
-    predictor_cls=Predictor,
-).deploy(
-    instance_type="ml.g5.xlarge",
-    initial_instance_count=1,
-    endpoint_name="ray-serve-audio",
-    serializer=IdentitySerializer(content_type="audio/wav"),
-    wait=True,
-)
-
-with open("audio.wav", "rb") as f:
-    response = predictor.predict(f.read())
-# {"transcription": "<transcription depends on audio input>"}
-
-predictor.delete_endpoint()
-```
-
-#### Tabular Classification
-
-Requires its own `model.tar.gz` from the `tabular-model/` directory (CPU instance):
-
-```python
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
-
-predictor = Model(
-    image_uri="{{ images.latest_ray_sagemaker_cpu }}",
-    role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
-    model_data="s3://<BUCKET>/models/tabular-iris/model.tar.gz",
-    predictor_cls=Predictor,
-).deploy(
-    instance_type="ml.m5.xlarge",
-    initial_instance_count=1,
-    endpoint_name="ray-serve-tabular",
-    serializer=JSONSerializer(),
-    wait=True,
-)
-
-response = predictor.predict({"features": [6.3, 3.3, 6.0, 2.5]})
-# {"prediction": "virginica", "confidence": 0.9723, "probabilities": {"setosa": 0.0031, ...}}
-
-predictor.delete_endpoint()
-```
+The other EC2 examples (image classification, audio, tabular) deploy the same way — package the model directory as a tarball, upload to S3, and use the same SDK pattern. Use `IdentitySerializer` for binary inputs (images, audio) and the CPU image (`serve-ml-sagemaker-cpu`) for CPU-only models like tabular.
 
 ### Direct App Import
 
