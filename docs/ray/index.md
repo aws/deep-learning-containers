@@ -209,7 +209,7 @@ curl -X POST http://localhost:8000/ \
 
 ### SageMaker Deployment
 
-Deploy a model to a SageMaker real-time endpoint using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/). The container runs Ray Serve internally on port 8000 and exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
+Deploy a model to a SageMaker real-time endpoint using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The container runs Ray Serve internally on port 8000 and exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
 
 ```python
 from sagemaker.model import Model
