@@ -1,34 +1,30 @@
 # ============================================================================
-# XGBoost DLC — Ubuntu 22.04 (CUDA 12.6)
+# XGBoost DLC — Ubuntu 20.04 / Python 3.10 (CUDA 12.6)
 # Multi-stage build:
 #
 #   sqlite-builder ─── (compiles SQLite from source)
 #   wheel-builder ──── (builds sagemaker_xgboost_container wheel)
-#   base ──────────── (miniforge, XGBoost, system deps, telemetry)
+#   base ──────────── (miniforge, MLIO, XGBoost, system deps)
 #   xgboost-sagemaker  (SageMaker serving layer on top of base)
 #
-# Build targets:
-#   --target base              → base image only
-#   --target xgboost-sagemaker → full SageMaker image (default)
-#
-# Works with both:
-#   - GitHub Actions (DLC main branch PR workflow)
-#   - CodePipeline / CodeBuild (existing buildspec)
+# Based on: github.com/aws/sagemaker-xgboost-container/docker/3.0-5
 # ============================================================================
 
 # ── Global ARGs ─────────────────────────────────────────────────────────────
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=20.04
 ARG CUDA_VERSION=12.6.3
-ARG MINIFORGE_VERSION=26.1.1-3
-ARG MINIFORGE_CHECKSUM=b25b828b702df4dd2a6d24d4eb56cfa912471dd8e3342cde2c3d86fe3dc2d870
-ARG PYTHON_VERSION=3.11
+ARG MINIFORGE_VERSION=25.9.1-0
+ARG CONDA_CHECKSUM=07f64c1d908ae036e9f6a81f97704899311c0ae677d83980d664b9781d4cc5fc
+ARG PYTHON_VERSION=3.10
+ARG PYARROW_VERSION=22.0.0
+ARG MLIO_VERSION=0.9.0
 ARG XGBOOST_VERSION=3.0.5
 ARG SAGEMAKER_XGBOOST_VERSION=3.0-5
 
 # ── Stage: sqlite-builder ───────────────────────────────────────────────────
 FROM ubuntu:${UBUNTU_VERSION} AS sqlite-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  build-essential wget ca-certificates \
+    build-essential wget ca-certificates \
   && cd /tmp \
   && wget https://www.sqlite.org/2025/sqlite-autoconf-3500200.tar.gz \
   && tar xzf sqlite-autoconf-3500200.tar.gz \
@@ -38,13 +34,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ── Stage: wheel-builder ───────────────────────────────────────────────────
-# Builds the sagemaker_xgboost_container wheel inside Docker so the build is
-# self-contained and does not depend on host-side `python3 setup.py bdist_wheel`.
-# Clones the source from GitHub since this DLC repo does not contain the
-# sagemaker-xgboost-container package source.
 FROM ubuntu:${UBUNTU_VERSION} AS wheel-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  python3 python3-pip python3-setuptools python3-wheel git ca-certificates \
+    python3 python3-pip python3-setuptools python3-wheel git ca-certificates \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/aws/sagemaker-xgboost-container.git /build
 WORKDIR /build
@@ -54,8 +46,10 @@ RUN python3 setup.py bdist_wheel --universal
 FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION} AS base
 
 ARG MINIFORGE_VERSION
-ARG MINIFORGE_CHECKSUM
+ARG CONDA_CHECKSUM
 ARG PYTHON_VERSION
+ARG PYARROW_VERSION
+ARG MLIO_VERSION
 ARG XGBOOST_VERSION
 
 LABEL maintainer="Amazon AI"
@@ -69,49 +63,88 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONIOENCODING=utf-8
 
 # System dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends wget \
-  && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb \
-  && dpkg -i cuda-keyring_1.1-1_all.deb \
+RUN apt-key del 7fa2af80 \
+  && apt-get update && apt-get install -y --no-install-recommends wget \
+  && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.0-1_all.deb \
+  && dpkg -i cuda-keyring_1.0-1_all.deb \
   && apt-get update && apt-get -y upgrade \
   && apt-get -y install --no-install-recommends \
     build-essential curl git jq libatlas-base-dev expat nginx \
-    openjdk-11-jdk-headless unzip wget apparmor linux-libc-dev \
+    openjdk-8-jdk-headless unzip wget apparmor linux-libc-dev \
     libxml2 libgstreamer1.0-0 libglib2.0-0 \
+  && wget http://es.archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi7_3.3-4_amd64.deb \
+  && dpkg -i libffi7_3.3-4_amd64.deb \
+  && apt-get -y install --no-install-recommends \
     apt-transport-https ca-certificates gnupg software-properties-common \
-    libcurl4-openssl-dev libssl-dev \
-    python3-dev zlib1g-dev zstd libsqlite3-0 \
+  && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
+    | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
+  && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' \
+    | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+  && apt-get update && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
+  && apt-get install -y --no-install-recommends \
+    autoconf automake cmake cmake-data doxygen kitware-archive-keyring \
+    libcurl4-openssl-dev libssl-dev libtool ninja-build \
+    python3-dev python3-distutils python3-pip zlib1g-dev libxml2 zstd libsqlite3-0 \
+  && python3 -m pip install --upgrade "pip<=25.2" \
+  && python3 -m pip install --upgrade certifi \
+  && mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
+    | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
+    | tee /etc/apt/sources.list.d/nodesource.list \
+  && apt-get update && apt-get install -y nodejs && npm install -g npm@latest \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Miniforge (conda-forge by default, no Anaconda license required)
 RUN curl -L --output /tmp/Miniforge3.sh \
-  https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh \
-  && echo "${MINIFORGE_CHECKSUM} /tmp/Miniforge3.sh" | sha256sum -c - \
-  && bash /tmp/Miniforge3.sh -bfp /miniforge3 \
+    https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh \
+  && echo "${CONDA_CHECKSUM} /tmp/Miniforge3.sh" | sha256sum -c - \
+  && bash /tmp/Miniforge3.sh -bfp /miniconda3 \
   && rm /tmp/Miniforge3.sh
 
-ENV PATH=/miniforge3/bin:${PATH}
+ENV PATH=/miniconda3/bin:${PATH}
 
 # Conda packages
-RUN conda config --system --set channel_priority strict \
-  && conda config --system --set auto_update_conda false \
-  && conda config --system --set show_channel_urls true \
-  && conda install -y \
+RUN conda config --system --set auto_update_conda false \
+  && conda install -y --solver=libmamba \
     python=${PYTHON_VERSION} \
     requests=2.32.3 \
-    "openssl>=3.6.1" \
+    openssl=3.6.1 \
+    pyarrow=${PYARROW_VERSION} \
   && conda clean -afy
 
-# MLIO (awslabs/ml-io) is no longer built from source — the project is
-# unmaintained (last release 2020) and its C++ dependencies fail to compile
-# with modern CMake/GCC on Ubuntu 22.04. A stub module is installed so that
-# imports succeed but raises a clear error if pipe mode is used at runtime.
-COPY docker/xgboost/resources/mlio_stub/ /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/
-RUN cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
-  /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/arrow.py \
-  && cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
-    /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/numpy.py \
-  && cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
-    /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/scipy.py
+# Build MLIO from source with Arrow integration
+RUN git clone -b v1.65.4 https://github.com/grpc/grpc.git \
+  && LIBGRPC_DIR=$(find /miniconda3/pkgs -name "libgrpc-*" -type d | head -n 1) \
+  && mkdir -p ${LIBGRPC_DIR}/info/test/examples \
+  && cp -r grpc/examples/* ${LIBGRPC_DIR}/info/test/examples/ \
+  && cd ${LIBGRPC_DIR}/info/test/examples/node \
+  && npm cache clean --force \
+  && npm install minimist@latest protobufjs@latest \
+  && apt-get purge -y nodejs npm && apt-get autoremove -y \
+  && rm -rf /etc/apt/sources.list.d/nodesource.list \
+    /etc/apt/keyrings/nodesource.gpg \
+    /etc/apt/sources.list.d/kitware.list \
+  && apt-get clean && rm -rf /var/lib/apt/lists/* \
+  && cd /tmp \
+  && git clone --branch v${MLIO_VERSION} https://github.com/awslabs/ml-io.git mlio \
+  && cd mlio \
+  && sed -i 's/find_package(Arrow 14.0.1 REQUIRED/find_package(Arrow 22.0.0 REQUIRED/g' CMakeLists.txt \
+  && sed -i 's/pyarrow==14.0.1/pyarrow==22.0.0/g' src/mlio-py/setup.py \
+  && build-tools/build-dependency build/third-party all \
+  && mkdir -p build/release && cd build/release \
+  && cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_PREFIX_PATH="$(pwd)/../third-party" ../.. \
+  && cmake --build . && cmake --build . --target install \
+  && cmake -DMLIO_INCLUDE_PYTHON_EXTENSION=ON -DPYTHON_EXECUTABLE="/miniconda3/bin/python3" \
+    -DMLIO_INCLUDE_ARROW_INTEGRATION=ON ../.. \
+  && cmake --build . --target mlio-py && cmake --build . --target mlio-arrow \
+  && cd ../../src/mlio-py \
+  && python3 setup.py bdist_wheel \
+  && python3 -m pip install typing \
+  && python3 -m pip install --upgrade pip==25.2 \
+  && python3 -m pip install dist/*.whl \
+  && cp -r /tmp/mlio/build/third-party/lib/libtbb* /usr/local/lib/ \
+  && ldconfig && rm -rf /tmp/mlio
 
 # Copy compiled SQLite from builder stage
 COPY --from=sqlite-builder /usr/local/bin/sqlite3 /usr/local/bin/sqlite3
@@ -123,11 +156,10 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN sqlite3 --version
 
 # Install XGBoost
-RUN python3 -m pip install --no-cache-dir -I \
-  xgboost==${XGBOOST_VERSION} numpy==2.1.0 pandas==2.2.3
+RUN python3 -m pip install --no-cache -I \
+  xgboost==${XGBOOST_VERSION} numpy==2.1.0 pyarrow==22.0.0 pandas==2.2.3
 
-# Starting from XGBoost 2.1.0, the PyPI package won't bundle with nccl
-ENV LD_LIBRARY_PATH=/miniforge3/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/miniconda3/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:$LD_LIBRARY_PATH
 
 # ── Stage: xgboost-sagemaker ───────────────────────────────────────────────
 FROM base AS xgboost-sagemaker
@@ -137,9 +169,6 @@ ARG PYTHON_VERSION
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
-
-# Install uv for deterministic dependency resolution
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Telemetry
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -158,26 +187,28 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /tmp/tmp* \
   && rm -rf /var/lib/apt/lists/*
 
-# Install all SageMaker serving dependencies via uv (lockfile-based, conflict-free)
-ENV UV_PROJECT_ENVIRONMENT=/miniforge3
-COPY docker/xgboost/pyproject.toml docker/xgboost/uv.lock /tmp/deps/
-RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
-  && uv sync --frozen --no-dev --no-install-project --inexact --python /miniforge3/bin/python3 \
-  && rm -rf /tmp/deps
-
-# Install smdebug (excluded from uv lock — setup.py requires git-secrets at build time)
+# Install smdebug
 RUN python3 -m pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32
 
+# Install serving dependencies from requirements.txt
+COPY docker/xgboost/requirements.txt /requirements.txt
+RUN python3 -m pip install --no-cache-dir -r /requirements.txt && rm /requirements.txt
+
 # Patch sagemaker-inference decoder.py (CWE-502 fix)
-COPY docker/xgboost/resources/patches/decoder.py /miniforge3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
+COPY docker/xgboost/resources/patches/decoder.py /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
+
+# Security patches
+RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2"
 
 # Patch collections.Mapping deprecation in sagemaker-containers
 RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
-  /miniforge3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_containers/_mapping.py
+  /miniconda3/lib/python${PYTHON_VERSION}/site-packages/sagemaker_containers/_mapping.py
 
-# Install sagemaker_xgboost_container wheel (built in wheel-builder stage, no-deps)
+# Install sagemaker_xgboost_container wheel
 COPY --from=wheel-builder /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl /tmp/
-RUN python3 -m pip install --no-cache-dir --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
+RUN python3 -m pip install --force-reinstall PyYAML==6.0.1 \
+  && python3 -m pip install --no-cache --no-deps /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl \
+  && python3 -m pip uninstall -y typing \
   && rm /tmp/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl
 
 # MMS setup
