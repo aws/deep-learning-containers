@@ -107,7 +107,7 @@ RUN apt-key del 7fa2af80 \
 
 # Install Miniforge (conda-forge by default, no Anaconda license required)
 RUN curl -L --output /tmp/Miniforge3.sh \
-    https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh \
+  https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh \
   && echo "${MINIFORGE_CHECKSUM} /tmp/Miniforge3.sh" | sha256sum -c - \
   && bash /tmp/Miniforge3.sh -bfp /miniforge3 \
   && rm /tmp/Miniforge3.sh
