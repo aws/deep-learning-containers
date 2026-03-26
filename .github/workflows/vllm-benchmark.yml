@@ -56,7 +56,7 @@ jobs:
           echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
 
   benchmark-codebuild-fleet:
-    name: benchmark (${{ matrix.name }})
+    name: benchmark (${{ matrix.name }} / ${{ matrix.fleet }})
     if: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix)[0] != null }}
     needs: [load-benchmarks]
     strategy:
@@ -153,7 +153,7 @@ jobs:
           rm -rf /dlc-models
 
   benchmark-runner-scale-sets:
-    name: benchmark (${{ matrix.name }})
+    name: benchmark (${{ matrix.name }} / gpu-efa-runners)
     if: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix)[0] != null }}
     needs: [load-benchmarks]
     strategy:
