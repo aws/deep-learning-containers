@@ -555,7 +555,11 @@ predictor = Model(
 
 response = predictor.predict({"text": "I love this so much, best purchase ever!"})
 # {"predictions": [{"label": "POSITIVE", "score": 0.9991}]}
+```
 
+When done, delete the endpoint to stop incurring costs:
+
+```python
 predictor.delete_endpoint()
 ```
 
