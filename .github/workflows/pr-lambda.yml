@@ -149,7 +149,7 @@ jobs:
       framework: lambda
       framework-version: ""
       python-version: py3
-      cuda-version: cu128
+      cuda-version: cu129
       os-version: amzn2023
       customer-type: lambda
       arch-type: x86
@@ -233,18 +233,18 @@ jobs:
         run: |
           IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-base-py3-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
-          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_base.py
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_base.py -v
 
       - name: Validate cupy-py3
         run: |
           IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-cupy-py3-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
-          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_cupy.py
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py -v
 
       - name: Validate pytorch-py3
         run: |
           IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-py3-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
-          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_pytorch.py
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_environment_pytorch.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py -v
 
 
