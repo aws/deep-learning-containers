@@ -523,6 +523,12 @@ curl -X POST http://localhost:8000/ \
 
 ### SageMaker Deployment
 
+Install the SageMaker Python SDK v2 (v3 drops the `Model`, `Predictor`, and `Serializer` APIs used below):
+
+```bash
+pip install 'sagemaker>=2,<3'
+```
+
 To deploy on SageMaker, package your model directory as a tarball, upload to S3, and deploy using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The tarball is automatically downloaded and extracted to `/opt/ml/model/` before the container starts. The container exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
 
 !!! warning
@@ -555,12 +561,16 @@ predictor = Model(
     initial_instance_count=1,
     endpoint_name="ray-serve-nlp",
     serializer=JSONSerializer(),
+    inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
     wait=True,
 )
 
 response = predictor.predict({"text": "I love this so much, best purchase ever!"})
 result = json.loads(response)  # predictor.predict() returns raw bytes
 # {"predictions": [{"label": "POSITIVE", "score": 0.9991}]}
+```
+
+GPU deploys require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 12.9 images. CPU deploys do not need this. See [ProductionVariant API reference](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html) for valid values.
 ```
 
 When done, delete the endpoint to stop incurring costs:
@@ -603,6 +613,7 @@ predictor = model.deploy(
     instance_type="ml.g5.xlarge",
     initial_instance_count=1,
     endpoint_name="ray-serve-mnist",
+    inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
     wait=True,
 )
 ```
