@@ -24,7 +24,7 @@ ARG SAGEMAKER_XGBOOST_VERSION=3.0-5
 # ── Stage: sqlite-builder ───────────────────────────────────────────────────
 FROM ubuntu:${UBUNTU_VERSION} AS sqlite-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential wget ca-certificates \
+  build-essential wget ca-certificates \
   && cd /tmp \
   && wget https://www.sqlite.org/2025/sqlite-autoconf-3500200.tar.gz \
   && tar xzf sqlite-autoconf-3500200.tar.gz \
@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ── Stage: wheel-builder ───────────────────────────────────────────────────
 FROM ubuntu:${UBUNTU_VERSION} AS wheel-builder
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-setuptools python3-wheel git ca-certificates \
+  python3 python3-pip python3-setuptools python3-wheel git ca-certificates \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN git clone --depth 1 https://github.com/aws/sagemaker-xgboost-container.git /build
 WORKDIR /build
@@ -77,9 +77,9 @@ RUN apt-key del 7fa2af80 \
   && apt-get -y install --no-install-recommends \
     apt-transport-https ca-certificates gnupg software-properties-common \
   && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null \
-    | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
+  | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null \
   && echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' \
-    | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
+  | tee /etc/apt/sources.list.d/kitware.list >/dev/null \
   && apt-get update && rm /usr/share/keyrings/kitware-archive-keyring.gpg \
   && apt-get install -y --no-install-recommends \
     autoconf automake cmake cmake-data doxygen kitware-archive-keyring \
@@ -89,15 +89,15 @@ RUN apt-key del 7fa2af80 \
   && python3 -m pip install --upgrade certifi \
   && mkdir -p /etc/apt/keyrings \
   && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key \
-    | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
   && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
-    | tee /etc/apt/sources.list.d/nodesource.list \
+  | tee /etc/apt/sources.list.d/nodesource.list \
   && apt-get update && apt-get install -y nodejs && npm install -g npm@latest \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Miniforge (conda-forge by default, no Anaconda license required)
 RUN curl -L --output /tmp/Miniforge3.sh \
-    https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh \
+  https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh \
   && echo "${CONDA_CHECKSUM} /tmp/Miniforge3.sh" | sha256sum -c - \
   && bash /tmp/Miniforge3.sh -bfp /miniconda3 \
   && rm /tmp/Miniforge3.sh
