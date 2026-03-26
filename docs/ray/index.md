@@ -597,7 +597,7 @@ docker run -d --gpus all \
   deployment:app
 ```
 
-On SageMaker, set the `SM_RAYSERVE_APP` environment variable:
+On SageMaker, set the `SM_RAYSERVE_APP` environment variable. Package your model directory the same way as the sentiment example (tarball uploaded to S3), but omit `config.yaml`. The `deployment.py` must be at the tarball root — `SM_RAYSERVE_APP=deployment:app` resolves the module from `/opt/ml/model/`.
 
 ```python
 model = Model(
