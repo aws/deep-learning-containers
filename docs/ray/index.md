@@ -72,6 +72,25 @@ applications:
 
 Set `num_gpus` to the number of GPUs allocated per replica (`0` for CPU-only deployments).
 
+The `import_path` follows the format `module:variable` — `deployment` refers to `deployment.py` in the model package, and `app` is the bound deployment defined at the bottom of that file:
+
+```python
+# deployment.py
+from ray import serve
+
+@serve.deployment(num_replicas=1)
+class MyDeployment:
+    def __init__(self):
+        # Load model weights, initialize pipeline, etc.
+        ...
+
+    async def __call__(self, request):
+        # Handle inference request
+        ...
+
+app = MyDeployment.bind()
+```
+
 ### Deployment Paths
 
 The entrypoint resolves the serve target in this priority order:
@@ -209,7 +228,7 @@ curl -X POST http://localhost:8000/ \
 
 ### SageMaker Deployment
 
-Deploy a model to a SageMaker real-time endpoint using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The container runs Ray Serve internally on port 8000 and exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
+Deploy a model to a SageMaker real-time endpoint using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The model tarball is automatically downloaded from S3 and extracted to `/opt/ml/model/` before the container starts. The container runs Ray Serve internally on port 8000 and exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
 
 ```python
 from sagemaker.model import Model
