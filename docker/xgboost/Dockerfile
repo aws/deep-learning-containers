@@ -218,7 +218,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 ENV UV_PROJECT_ENVIRONMENT=/miniconda3
 COPY docker/xgboost/pyproject.toml docker/xgboost/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
-  && uv sync --frozen --no-dev --no-install-project --python /miniconda3/bin/python3 \
+  && uv sync --frozen --no-dev --no-install-project --inexact --python /miniconda3/bin/python3 \
   && rm -rf /tmp/deps
 
 # Install smdebug (excluded from uv lock — setup.py requires git-secrets at build time)
