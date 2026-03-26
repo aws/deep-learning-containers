@@ -116,7 +116,7 @@ Place a `code/requirements.txt` in your model package. It is installed automatic
 
 ### EC2 Deployment
 
-Each example below includes the full model package files so you can copy-paste and run immediately. Create a directory, save the files, mount it at `/opt/ml/model`, and start the container.
+Each example below includes the full model package files. The first three download weights automatically on startup. The tabular example requires pre-trained weights — substitute your own trained model.
 
 #### Sentiment Analysis
 
@@ -216,6 +216,9 @@ applications:
         ray_actor_options:
           num_gpus: 1
 ```
+
+!!! note
+    The `autoscaling_config` in `deployment.py` sets `max_replicas: 2`. Each replica requests 1 GPU, so this configuration requires a multi-GPU instance. On single-GPU instances, reduce `max_replicas` to 1.
 
 Save `cv-model/deployment.py`:
 
@@ -405,65 +408,12 @@ curl -X POST http://localhost:8000/ \
 
 #### Tabular Classification
 
-Classify Iris species from feature vectors using a small PyTorch neural network. This example requires trained model weights — run the training script below first to generate them.
+Classify Iris species from feature vectors using a small PyTorch neural network. This example requires pre-trained weights (`iris_model.pth` and `norm_params.json`) in the model directory — substitute your own trained model.
 
 Create the model package:
 
 ```bash
 mkdir -p tabular-model
-```
-
-Save `tabular-model/train.py` and run it to generate weights:
-
-```python
-"""Train a small Iris classifier and save weights for Ray Serve deployment."""
-import json
-
-import torch
-import torch.nn as nn
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-
-
-class IrisModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.fc1 = nn.Linear(4, 16)
-        self.fc2 = nn.Linear(16, 8)
-        self.fc3 = nn.Linear(8, 3)
-        self.relu = nn.ReLU()
-
-    def forward(self, x):
-        return self.fc3(self.relu(self.fc2(self.relu(self.fc1(x)))))
-
-
-iris = load_iris()
-X = torch.tensor(iris.data, dtype=torch.float32)
-y = torch.tensor(iris.target, dtype=torch.long)
-mean, std = X.mean(0), X.std(0)
-X_norm = (X - mean) / std
-
-model = IrisModel()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-loss_fn = nn.CrossEntropyLoss()
-
-for epoch in range(200):
-    loss = loss_fn(model(X_norm), y)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
-torch.save(model.state_dict(), "tabular-model/iris_model.pth")
-json.dump(
-    {"mean": mean.tolist(), "std": std.tolist(), "class_names": iris.target_names.tolist()},
-    open("tabular-model/norm_params.json", "w"),
-)
-print(f"Training complete. Loss: {loss.item():.4f}")
-```
-
-```bash
-pip install scikit-learn torch
-python tabular-model/train.py
 ```
 
 Save `tabular-model/config.yaml`:
@@ -510,7 +460,7 @@ class IrisClassifier:
 
         self.model = IrisModel()
         self.model.load_state_dict(
-            torch.load(os.path.join(model_dir, "iris_model.pth"), map_location=self.device)
+            torch.load(os.path.join(model_dir, "iris_model.pth"), map_location=self.device, weights_only=True)
         )
         self.model.to(self.device)
         self.model.eval()
@@ -661,7 +611,18 @@ predictor = model.deploy(
 )
 ```
 
-`RAYSERVE_NUM_GPUS` is a custom environment variable read by the deployment code to set GPU allocation per replica at import time. It is only needed when using `SM_RAYSERVE_APP` without a `config.yaml` — when using `config.yaml`, set `num_gpus` directly under `ray_actor_options` instead.
+`RAYSERVE_NUM_GPUS` is a custom environment variable read by the deployment code to set GPU allocation per replica at import time. It is only needed when using `SM_RAYSERVE_APP` without a `config.yaml` — when using `config.yaml`, set `num_gpus` directly under `ray_actor_options` instead. The deployment code reads it like this:
+
+```python
+import os
+from ray import serve
+
+num_gpus = int(os.environ.get("RAYSERVE_NUM_GPUS", "0"))
+
+@serve.deployment(ray_actor_options={"num_gpus": num_gpus})
+class MyDeployment:
+    ...
+```
 
 #### Cleanup
 
