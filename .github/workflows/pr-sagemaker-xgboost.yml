@@ -238,7 +238,7 @@ jobs:
       - name: Setup test environment
         run: |
           cd /tmp/xgboost-integ
-          uv venv /tmp/xgboost-integ/.venv --python 3.12
+          uv venv /tmp/xgboost-integ/.venv --python 3.11
           . /tmp/xgboost-integ/.venv/bin/activate
           uv pip install .[test]
           uv pip install --upgrade boto3 botocore
