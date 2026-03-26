@@ -140,7 +140,7 @@ jobs:
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: xgboost-sagemaker
-          base-image: nvidia/cuda:12.6.3-base-ubuntu20.04
+          base-image: nvidia/cuda:12.6.3-base-ubuntu22.04
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
