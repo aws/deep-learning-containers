@@ -319,6 +319,8 @@ predictor = model.deploy(
 )
 ```
 
+`RAYSERVE_NUM_GPUS` is a custom environment variable read by the deployment code to set GPU allocation per replica at import time. It is only needed when using `SM_RAYSERVE_APP` without a `config.yaml` — when using `config.yaml`, set `num_gpus` directly under `ray_actor_options` instead.
+
 #### Cleanup
 
 ```python
