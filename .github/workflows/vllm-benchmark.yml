@@ -3,10 +3,6 @@ name: vLLM Benchmark Tests
 permissions:
   contents: read
 
-concurrency:
-  group: vllm-benchmark-runner-scale-sets
-  cancel-in-progress: false
-
 on:
   workflow_dispatch:
     inputs:
