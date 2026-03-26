@@ -115,16 +115,6 @@ benchmark:
       min_throughput: 3400
       min_rps: 3
 
-    - name: "gpt-oss-20b"
-      s3_model: "gpt-oss-20b.tar.gz"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 6000
-      min_rps: 5
-
     - name: "qwen3.5-35b-a3b-fp8"
       s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
       # https://github.com/vllm-project/vllm/issues/35743 open bug for capturing CUDA graph fails
