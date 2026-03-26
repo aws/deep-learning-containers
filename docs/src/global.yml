@@ -62,6 +62,7 @@ display_names:
 
   # Repositories
   base: "Base"
+  ray: "Ray"
   sglang: "SGLang"
   vllm: "vLLM"
   vllm-arm64: "vLLM ARM64"
@@ -117,6 +118,10 @@ display_names:
   neuronx_sdk: "NeuronX SDK"
   openmpi: "OpenMPI"
   sagemaker_pytorch_inference: "SageMaker PyTorch Inference Toolkit"
+  ffmpeg: "FFmpeg"
+  opencv: "OpenCV"
+  scikit_learn: "scikit-learn"
+  numpy: "NumPy"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation
@@ -156,6 +161,7 @@ framework_groups:
 # =============================================================================
 table_order:
   - base
+  - ray
   - sglang
   - vllm
   - vllm-arm64
