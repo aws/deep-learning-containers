@@ -80,6 +80,8 @@ benchmark:
       min_throughput: 400
       min_rps: 0.35
 
+# A100 is compute capability 8.0 — FP8 requires 8.9+ (H100/L40S).
+# The Marlin fallback uses significantly more memory.
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
       fleet: "x86-g6e12xl-runner"
