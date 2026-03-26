@@ -190,7 +190,7 @@ jobs:
       - name: Run unit tests
         run: |
           docker run --rm test-xgboost sh -c \
-            'python3 -m pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit --deselect test/unit/test_distributed.py::test_rabit_run_all_hosts_run'
+            'python3 -m pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit'
 
       - name: Run flake8
         run: |
