@@ -152,6 +152,7 @@ RUN git clone -b v1.65.4 https://github.com/grpc/grpc.git \
   && cd mlio \
   && sed -i 's/find_package(Arrow 14.0.1 REQUIRED/find_package(Arrow 22.0.0 REQUIRED/g' CMakeLists.txt \
   && sed -i 's/pyarrow==14.0.1/pyarrow==22.0.0/g' src/mlio-py/setup.py \
+  && sed -i 's/-DBUILD_MOCK=OFF/-DBUILD_MOCK=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5/g' third-party/CMakeLists.txt \
   && build-tools/build-dependency build/third-party all \
   && mkdir -p build/release && cd build/release \
   && cmake -GNinja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_PREFIX_PATH="$(pwd)/../third-party" ../.. \
