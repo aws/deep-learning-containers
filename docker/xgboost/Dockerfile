@@ -111,8 +111,7 @@ RUN conda config --system --set channel_priority strict \
 # unmaintained (last release 2020) and its C++ dependencies fail to compile
 # with modern CMake/GCC on Ubuntu 22.04. A stub module is installed so that
 # imports succeed but raises a clear error if pipe mode is used at runtime.
-COPY docker/xgboost/resources/mlio_stub/ \
-  /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/
+COPY docker/xgboost/resources/mlio_stub/ /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/
 RUN cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
     /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/arrow.py \
   && cp /miniforge3/lib/python${PYTHON_VERSION}/site-packages/mlio/integ/__init__.py \
