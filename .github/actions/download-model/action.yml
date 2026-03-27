@@ -6,7 +6,12 @@ description: >
   shared instances. Evicts unused cached models (smallest first) if disk
   space is below threshold. Checks ETag to skip re-downloads.
 
-  See evict_models.py and download_model.py for implementation details.
+  Lock design:
+    .lock-<model>          shared lock held for job lifetime (prevents eviction)
+    .download-lock-<model> exclusive lock during download (serializes downloads)
+
+  The shared lock is acquired BEFORE the download so there is no gap
+  where the model could be evicted between download and usage.
 
 inputs:
   s3-path:
@@ -34,7 +39,7 @@ outputs:
     value: ${{ steps.download.outputs.model-dir }}
   lock-pid:
     description: PID of the background lock holder (caller should kill on cleanup)
-    value: ${{ steps.lock.outputs.lock-pid }}
+    value: ${{ steps.download.outputs.lock-pid }}
 
 runs:
   using: composite
@@ -46,37 +51,32 @@ runs:
           --cache-dir "${{ inputs.cache-dir }}" \
           --min-free-gb "${{ inputs.min-free-gb }}"
 
-    - name: Download model
+    - name: Acquire lock and download model
       id: download
       shell: bash
       run: |
         CACHE_DIR="${{ inputs.cache-dir }}"
         MODEL_NAME="${{ inputs.model-name }}"
         LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
+        DOWNLOAD_LOCK="${CACHE_DIR}/.download-lock-${MODEL_NAME}"
         mkdir -p "${CACHE_DIR}"
 
-        # Exclusive lock serializes concurrent downloads of the same model.
-        # Released immediately after download completes.
-        flock -x "${LOCK_FILE}" python3 ${{ github.action_path }}/download_model.py \
+        # 1. Acquire shared lock FIRST — prevents eviction for the entire
+        #    job lifetime (download + usage). Multiple jobs can hold shared
+        #    locks on the same model simultaneously.
+        #    Uses 6h timeout as safety net (matches DaemonSet cleanup window).
+        #    Caller's cleanup step MUST kill this PID to release promptly.
+        flock --shared "${LOCK_FILE}" sleep 21600 &
+        LOCK_PID=$!
+        echo "Acquired shared lock on ${MODEL_NAME} (PID: ${LOCK_PID})"
+        echo "lock-pid=${LOCK_PID}" >> $GITHUB_OUTPUT
+
+        # 2. Exclusive download lock serializes concurrent downloads of the
+        #    same model. Uses a SEPARATE lock file from the usage lock so
+        #    the exclusive lock doesn't conflict with shared usage locks.
+        flock -x "${DOWNLOAD_LOCK}" python3 ${{ github.action_path }}/download_model.py \
           --s3-path "${{ inputs.s3-path }}" \
           --model-name "${MODEL_NAME}" \
           --cache-dir "${CACHE_DIR}"
 
         echo "model-dir=${CACHE_DIR}/${MODEL_NAME}" >> $GITHUB_OUTPUT
-
-    - name: Acquire model lock
-      id: lock
-      shell: bash
-      run: |
-        CACHE_DIR="${{ inputs.cache-dir }}"
-        MODEL_NAME="${{ inputs.model-name }}"
-        LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
-
-        # Hold a shared lock for the job's lifetime. Prevents eviction of
-        # this model by a parallel job. Multiple shared locks can coexist.
-        # Uses 6h timeout (matches DaemonSet cleanup window) as safety net.
-        # Caller's cleanup step MUST kill this PID to release promptly.
-        flock --shared "${LOCK_FILE}" sleep 21600 &
-        LOCK_PID=$!
-        echo "Acquired shared lock on ${MODEL_NAME} (PID: ${LOCK_PID})"
-        echo "lock-pid=${LOCK_PID}" >> $GITHUB_OUTPUT
