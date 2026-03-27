@@ -30,7 +30,7 @@ Image tags follow the format `ray:serve-ml-<platform>-{cpu|cuda}-v<MAJOR>.<MINOR
 
 Version bumps follow these rules:
 
-- **MAJOR** — CUDA, Python, or Ray minor version bump (e.g. Ray 2.54 → 2.55, Python 3.13 → 3.14, CUDA 12.9 → 13.0).
+- **MAJOR** — CUDA, Python, or Ray minor version bump or backwards-incompatible changes.
 - **MINOR** — CUDA, Python, or Ray patch version bump and backwards-compatible dependency updates or bug fixes.
 - **PATCH** — Security patches and backwards-compatible bug fixes that do not change dependency versions.
 
@@ -111,7 +111,7 @@ The entrypoint resolves the serve target in this priority order:
 
 ### Runtime Dependencies
 
-Place a `code/requirements.txt` in your model package. It is installed automatically before the Ray cluster starts. On SageMaker, CodeArtifact is supported via the `CA_REPOSITORY_ARN` environment variable.
+Place a `code/requirements.txt` in your model package. It is installed automatically before the Ray cluster starts. On SageMaker, [CodeArtifact](https://aws.amazon.com/codeartifact/) is supported via the `CA_REPOSITORY_ARN` environment variable.
 
 ## Examples
 
