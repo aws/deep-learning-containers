@@ -1,0 +1,3 @@
+logging:
+  distributed.comm.tcp: warning
+  distributed.nanny: critical
