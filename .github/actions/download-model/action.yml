@@ -89,3 +89,10 @@ runs:
         '
 
         echo "model-dir=${CACHE_DIR}/${MODEL_NAME}" >> $GITHUB_OUTPUT
+
+        # Log state after download
+        echo "Post-download state:"
+        ls -la ${CACHE_DIR}/.lock-* ${CACHE_DIR}/.download-lock-* ${CACHE_DIR}/.etag-* 2>/dev/null \
+          || echo "No lock/etag files"
+        ls -d ${CACHE_DIR}/${MODEL_NAME}/ 2>/dev/null && echo "Model dir exists" || echo "Model dir missing"
+        df -h "${CACHE_DIR}" 2>/dev/null || true
