@@ -3,16 +3,10 @@ name: Download Model
 description: >
   Download a model from S3 with local caching and lifecycle management.
   Uses flock (kernel-level advisory locks) for safe concurrent access on
-  shared instances: shared locks mark models as "in use", exclusive locks
-  gate eviction. Before downloading, evicts unused cached models (smallest
-  first) if disk space is below threshold. Checks ETag to detect S3
-  updates and re-downloads only when the model has changed.
+  shared instances. Evicts unused cached models (smallest first) if disk
+  space is below threshold. Checks ETag to skip re-downloads.
 
-  Lock behavior: flock locks are tied to file descriptors, not files.
-  They are automatically released when the holding process dies (crash,
-  kill, OOM, pod eviction). No orphaned locks are possible. The .lock-*
-  files on disk are just flock targets — their existence does not imply
-  a lock is held.
+  See evict_models.py and download_model.py for implementation details.
 
 inputs:
   s3-path:
@@ -45,144 +39,31 @@ outputs:
 runs:
   using: composite
   steps:
-    # -------------------------------------------------------------------------
-    # Step 1: Evict unused cached models if disk space is below threshold.
-    # Evicts smallest models first — they're cheapest to re-download.
-    # Uses flock --exclusive --nonblock to test if a model is in use:
-    #   - Success: no process holds a shared lock → safe to delete
-    #   - Failure: another job is using it → skip
-    # On exclusive-instance runners (codebuild fleet), the flock check is
-    # harmless — no other process will hold a lock.
-    # -------------------------------------------------------------------------
     - name: Evict unused models if disk is low
       shell: bash
       run: |
-        CACHE_DIR="${{ inputs.cache-dir }}"
-        MIN_FREE_GB="${{ inputs.min-free-gb }}"
-        mkdir -p "${CACHE_DIR}"
+        python3 ${{ github.action_path }}/evict_models.py \
+          --cache-dir "${{ inputs.cache-dir }}" \
+          --min-free-gb "${{ inputs.min-free-gb }}"
 
-        free_gb() {
-          df --output=avail -BG "${CACHE_DIR}" | tail -1 | tr -d ' G'
-        }
-
-        CURRENT_FREE=$(free_gb)
-        echo "Disk free: ${CURRENT_FREE}G (threshold: ${MIN_FREE_GB}G)"
-
-        if [ "${CURRENT_FREE}" -ge "${MIN_FREE_GB}" ]; then
-          echo "Sufficient disk space. No eviction needed."
-          exit 0
-        fi
-
-        echo "Disk space low. Evicting unused models (smallest first)..."
-
-        # Build list of model dirs sorted by size (smallest first)
-        MODELS_BY_SIZE=$(
-          for d in "${CACHE_DIR}"/*/; do
-            [ -d "$d" ] || continue
-            size=$(du -s "$d" 2>/dev/null | cut -f1)
-            echo "${size} ${d}"
-          done | sort -n
-        )
-
-        echo "${MODELS_BY_SIZE}" | while read -r size model_dir; do
-          [ -z "${model_dir}" ] && continue
-          model_name=$(basename "${model_dir}")
-          lock_file="${CACHE_DIR}/.lock-${model_name}"
-          size_gb=$(( size / 1048576 ))
-
-          # Try exclusive lock (nonblock). Succeeds only if no shared lock held.
-          if flock --exclusive --nonblock "${lock_file}" true 2>/dev/null; then
-            echo "Evicting: ${model_name} (~${size_gb}G)"
-            rm -rf "${model_dir}"
-            rm -f "${CACHE_DIR}/.etag-${model_name}"
-
-            CURRENT_FREE=$(free_gb)
-            echo "Disk free: ${CURRENT_FREE}G"
-            if [ "${CURRENT_FREE}" -ge "${MIN_FREE_GB}" ]; then
-              echo "Sufficient disk space restored."
-              break
-            fi
-          else
-            echo "Skipping: ${model_name} (in use)"
-          fi
-        done
-
-    # -------------------------------------------------------------------------
-    # Step 2: Download the model with exclusive lock (serializes concurrent
-    # downloads of the same model on shared instances). ETag check skips
-    # download if the cached model matches S3.
-    # -------------------------------------------------------------------------
-    - name: Download model with cache check
+    - name: Download model
       id: download
       shell: bash
       run: |
         CACHE_DIR="${{ inputs.cache-dir }}"
         MODEL_NAME="${{ inputs.model-name }}"
-        S3_PATH="${{ inputs.s3-path }}"
-        MODEL_DIR="${CACHE_DIR}/${MODEL_NAME}"
         LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
-
-        echo "model-dir=${MODEL_DIR}" >> $GITHUB_OUTPUT
         mkdir -p "${CACHE_DIR}"
 
-        flock -x "${LOCK_FILE}" bash -c '
-          S3_PATH="'"${S3_PATH}"'"
-          MODEL_DIR="'"${MODEL_DIR}"'"
-          MODEL_NAME="'"${MODEL_NAME}"'"
-          CACHE_DIR="'"${CACHE_DIR}"'"
-          ETAG_FILE="${CACHE_DIR}/.etag-${MODEL_NAME}"
+        # Exclusive lock serializes concurrent downloads of the same model.
+        # Released immediately after download completes.
+        flock -x "${LOCK_FILE}" python3 ${{ github.action_path }}/download_model.py \
+          --s3-path "${{ inputs.s3-path }}" \
+          --model-name "${MODEL_NAME}" \
+          --cache-dir "${CACHE_DIR}"
 
-          S3_ETAG=$(aws s3api head-object --bucket "$(echo ${S3_PATH} | cut -d/ -f3)" \
-            --key "$(echo ${S3_PATH} | cut -d/ -f4-)" \
-            --query ETag --output text 2>/dev/null || echo "")
-          echo "S3 ETag: ${S3_ETAG}"
+        echo "model-dir=${CACHE_DIR}/${MODEL_NAME}" >> $GITHUB_OUTPUT
 
-          if [ -d "${MODEL_DIR}" ] && [ -f "${ETAG_FILE}" ]; then
-            CACHED_ETAG=$(cat "${ETAG_FILE}")
-            echo "Cached ETag: ${CACHED_ETAG}"
-            if [ "${S3_ETAG}" = "${CACHED_ETAG}" ]; then
-              echo "Model '"'"'${MODEL_NAME}'"'"' is cached and up to date."
-              exit 0
-            fi
-            echo "Model '"'"'${MODEL_NAME}'"'"' is stale. Re-downloading."
-            rm -rf "${MODEL_DIR}"
-          fi
-
-          echo "Downloading ${MODEL_NAME} from ${S3_PATH}..."
-          mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${S3_PATH}" "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
-          echo "Extracting ${MODEL_NAME} (this may take several minutes)..."
-          tar xzf "${CACHE_DIR}/${MODEL_NAME}.tar.gz" -C "${MODEL_DIR}" --checkpoint=2000000 --checkpoint-action=dot
-          echo ""
-          echo "Extraction complete."
-          rm -f "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
-
-          SUBDIRS=("${MODEL_DIR}"/*)
-          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
-          fi
-
-          # ETag written last — incomplete download/extract won't have an ETag,
-          # so next run will re-download.
-          echo "${S3_ETAG}" > "${ETAG_FILE}"
-          echo "Model '"'"'${MODEL_NAME}'"'"' downloaded and cached."
-        '
-
-    # -------------------------------------------------------------------------
-    # Step 3: Hold a shared lock for the job's lifetime. This prevents the
-    # eviction step (in a parallel job on the same host) from deleting a
-    # model that's in use. Multiple jobs can hold shared locks on the same
-    # model simultaneously — eviction requires an exclusive lock which will
-    # fail if any shared lock is held.
-    #
-    # Uses sleep 21600 (6h) instead of sleep infinity as a safety timeout
-    # matching the Docker cleanup DaemonSet window. If a job runs longer
-    # than 6 hours, the lock releases and the model becomes evictable.
-    #
-    # The caller's cleanup step MUST kill this PID to release the lock
-    # promptly: kill ${{ steps.model.outputs.lock-pid }}
-    # -------------------------------------------------------------------------
     - name: Acquire model lock
       id: lock
       shell: bash
@@ -191,6 +72,10 @@ runs:
         MODEL_NAME="${{ inputs.model-name }}"
         LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
 
+        # Hold a shared lock for the job's lifetime. Prevents eviction of
+        # this model by a parallel job. Multiple shared locks can coexist.
+        # Uses 6h timeout (matches DaemonSet cleanup window) as safety net.
+        # Caller's cleanup step MUST kill this PID to release promptly.
         flock --shared "${LOCK_FILE}" sleep 21600 &
         LOCK_PID=$!
         echo "Acquired shared lock on ${MODEL_NAME} (PID: ${LOCK_PID})"
