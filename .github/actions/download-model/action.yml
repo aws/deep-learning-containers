@@ -1,8 +1,10 @@
 name: Download Model
 
 description: >
-  Download a model from S3 with local caching. Uses flock for safe concurrent
-  access when multiple pods share the same host filesystem. Checks ETag to
+  Download a model from S3 with local caching and lifecycle management.
+  Uses flock for safe concurrent access: shared locks mark models as
+  "in use", exclusive locks are used for eviction. Before downloading,
+  evicts unused cached models if disk space is low. Checks ETag to
   detect S3 updates and re-downloads only when the model has changed.
 
 inputs:
@@ -16,15 +18,71 @@ inputs:
     description: Base directory for cached models
     required: false
     default: /dlc-models
+  min-free-gb:
+    description: Minimum free disk space (GB) before evicting unused models
+    required: false
+    default: "150"
 
 outputs:
   model-dir:
     description: Path to the extracted model directory
     value: ${{ steps.download.outputs.model-dir }}
+  lock-pid:
+    description: PID of the background lock holder (caller should kill on cleanup)
+    value: ${{ steps.lock.outputs.lock-pid }}
 
 runs:
   using: composite
   steps:
+    # Evict unused cached models if disk space is below threshold.
+    # Uses flock --exclusive --nonblock to test if a model is in use.
+    # If the exclusive lock succeeds, no job holds a shared lock on it,
+    # so it's safe to delete.
+    - name: Evict unused models if disk is low
+      shell: bash
+      run: |
+        CACHE_DIR="${{ inputs.cache-dir }}"
+        MIN_FREE_GB="${{ inputs.min-free-gb }}"
+        mkdir -p "${CACHE_DIR}"
+
+        free_gb() {
+          df --output=avail -BG "${CACHE_DIR}" | tail -1 | tr -d ' G'
+        }
+
+        CURRENT_FREE=$(free_gb)
+        echo "Disk free: ${CURRENT_FREE}G (threshold: ${MIN_FREE_GB}G)"
+
+        if [ "${CURRENT_FREE}" -ge "${MIN_FREE_GB}" ]; then
+          echo "Sufficient disk space. No eviction needed."
+          exit 0
+        fi
+
+        echo "Disk space low. Evicting unused models..."
+        for model_dir in "${CACHE_DIR}"/*/; do
+          [ -d "${model_dir}" ] || continue
+          model_name=$(basename "${model_dir}")
+          lock_file="${CACHE_DIR}/.lock-${model_name}"
+
+          # Try exclusive lock (nonblock). If it succeeds, model is not in use.
+          if flock --exclusive --nonblock "${lock_file}" true 2>/dev/null; then
+            echo "Evicting unused model: ${model_name}"
+            rm -rf "${model_dir}"
+            rm -f "${CACHE_DIR}/.etag-${model_name}"
+            rm -f "${lock_file}"
+
+            CURRENT_FREE=$(free_gb)
+            echo "Disk free after eviction: ${CURRENT_FREE}G"
+            if [ "${CURRENT_FREE}" -ge "${MIN_FREE_GB}" ]; then
+              echo "Sufficient disk space restored."
+              break
+            fi
+          else
+            echo "Skipping ${model_name} (in use by another job)"
+          fi
+        done
+
+    # Download the model (with exclusive lock to prevent concurrent downloads
+    # of the same model).
     - name: Download model with cache check
       id: download
       shell: bash
@@ -38,9 +96,10 @@ runs:
         echo "model-dir=${MODEL_DIR}" >> $GITHUB_OUTPUT
         mkdir -p "${CACHE_DIR}"
 
-        # Per-model lock prevents race conditions when multiple pods share the
-        # same host filesystem. Different models use different lock files so
-        # they don't block each other.
+        # Per-model exclusive lock for download/extract (blocks concurrent
+        # downloads of the same model, does not block shared lock holders
+        # reading the model — but we only take exclusive here during the
+        # download phase, then release it).
         flock -x "${LOCK_FILE}" bash -c '
           S3_PATH="'"${S3_PATH}"'"
           MODEL_DIR="'"${MODEL_DIR}"'"
@@ -48,13 +107,11 @@ runs:
           CACHE_DIR="'"${CACHE_DIR}"'"
           ETAG_FILE="${CACHE_DIR}/.etag-${MODEL_NAME}"
 
-          # Get the current S3 ETag
           S3_ETAG=$(aws s3api head-object --bucket "$(echo ${S3_PATH} | cut -d/ -f3)" \
             --key "$(echo ${S3_PATH} | cut -d/ -f4-)" \
             --query ETag --output text 2>/dev/null || echo "")
           echo "S3 ETag: ${S3_ETAG}"
 
-          # Check if cached model exists and ETag matches
           if [ -d "${MODEL_DIR}" ] && [ -f "${ETAG_FILE}" ]; then
             CACHED_ETAG=$(cat "${ETAG_FILE}")
             echo "Cached ETag: ${CACHED_ETAG}"
@@ -66,7 +123,6 @@ runs:
             rm -rf "${MODEL_DIR}"
           fi
 
-          # Download and extract
           echo "Downloading ${MODEL_NAME} from ${S3_PATH}..."
           mkdir -p "${MODEL_DIR}"
           aws s3 cp "${S3_PATH}" "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
@@ -76,14 +132,30 @@ runs:
           echo "Extraction complete."
           rm -f "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
 
-          # Flatten if tarball contains a single subdirectory
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
             rmdir "${SUBDIRS[0]}"
           fi
 
-          # Save ETag — written last so a crash before this triggers re-download
           echo "${S3_ETAG}" > "${ETAG_FILE}"
           echo "Model '"'"'${MODEL_NAME}'"'"' downloaded and cached."
         '
+
+    # Hold a shared lock on the model for the lifetime of this job.
+    # This prevents the eviction step (in a parallel job) from deleting
+    # a model that's currently in use. The background process holds the
+    # lock until killed in the workflow cleanup step.
+    - name: Acquire model lock
+      id: lock
+      shell: bash
+      run: |
+        CACHE_DIR="${{ inputs.cache-dir }}"
+        MODEL_NAME="${{ inputs.model-name }}"
+        LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
+
+        # Start a background process that holds a shared lock
+        flock --shared "${LOCK_FILE}" sleep infinity &
+        LOCK_PID=$!
+        echo "Acquired shared lock on ${MODEL_NAME} (PID: ${LOCK_PID})"
+        echo "lock-pid=${LOCK_PID}" >> $GITHUB_OUTPUT

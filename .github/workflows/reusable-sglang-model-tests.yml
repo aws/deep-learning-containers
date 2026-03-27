@@ -214,7 +214,10 @@ jobs:
         # Multiple pods share the same host Docker daemon, so removing an image
         # could affect a parallel job's container. Image cleanup is handled by
         # the Docker cleanup DaemonSet instead.
+        # Kill the lock holder to release the shared lock on the model, allowing
+        # future eviction if disk space is needed.
         if: always()
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
