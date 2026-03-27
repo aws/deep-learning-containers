@@ -707,7 +707,6 @@ def test_pip_check(image):
             r"sagemaker \d+(\.\d+)* has requirement protobuf<\d+(\.\d+)*,>=\d+(\.\d+)*, but you have protobuf \d+(\.\d+)*\.$"
         )
 
-
     if "pytorch" in image and "trcomp" in image:
         allowed_exceptions.extend(
             [
