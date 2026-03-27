@@ -10,6 +10,7 @@
 # codebuild-fleet runners:
 #   x86-g6xl-runner   = g6.xlarge   (1x L4 24GB)
 #   x86-g6exl-runner  = g6e.xlarge  (1x L40S 48GB)
+#   x86-g6e12xl-runner = g6e.12xlarge (4x L40S 192GB)
 #   x86-g612xl-runner = g6.12xlarge (4x L4 96GB)
 #   x86-g512xl-runner = g5.12xlarge (4x A10G 96GB)
 # runner-scale-sets:
@@ -41,7 +42,7 @@ benchmark:
 
     - name: "qwen3.5-9b"
       s3_model: "qwen3.5-9b.tar.gz"
-      fleet: "x86-g6xl-runner"
+      fleet: "x86-g6exl-runner"
       extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
       input_len: 512
       output_len: 128
@@ -74,7 +75,7 @@ benchmark:
 
     - name: "qwen3-coder-next-fp8"
       s3_model: "qwen3-coder-next-fp8.tar.gz"
-      fleet: "x86-g612xl-runner"
+      fleet: "x86-g6e12xl-runner"
       extra_args: "--tp 4 --context-length 4096"
       input_len: 512
       output_len: 256
@@ -84,15 +85,15 @@ benchmark:
       min_rps: 0.25
 
   runner-scale-sets:
-    # - name: "llama-3.3-70b"
-    #   s3_model: "llama-3.3-70b.tar.gz"
-    #   extra_args: "--tp 4 --context-length 4096"
-    #   input_len: 512
-    #   output_len: 128
-    #   num_prompts: 32
-    #   batch_size: 2
-    #   min_throughput: 400
-    #   min_rps: 0.35
+    - name: "llama-3.3-70b"
+      s3_model: "llama-3.3-70b.tar.gz"
+      extra_args: "--tp 4 --context-length 4096"
+      input_len: 512
+      output_len: 128
+      num_prompts: 32
+      batch_size: 2
+      min_throughput: 400
+      min_rps: 0.35
 
     - name: "qwen3-32b"
       s3_model: "qwen3-32b.tar.gz"
