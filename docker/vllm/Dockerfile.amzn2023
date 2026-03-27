@@ -46,27 +46,6 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
-# sccache — caches compiled objects in S3 so partial source changes only
-# recompile the affected files. Set SCCACHE_BUCKET at build time to enable.
-# Credentials are snapshotted from the CodeBuild IAM role at build time.
-ARG SCCACHE_BUCKET=""
-ARG SCCACHE_REGION="us-west-2"
-ARG AWS_ACCESS_KEY_ID=""
-ARG AWS_SECRET_ACCESS_KEY=""
-ARG AWS_SESSION_TOKEN=""
-ENV SCCACHE_BUCKET=${SCCACHE_BUCKET} \
-  SCCACHE_REGION=${SCCACHE_REGION} \
-  SCCACHE_S3_USE_SSL=true \
-  SCCACHE_S3_KEY_PREFIX=sccache/vllm \
-  AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} \
-  AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
-  AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
-RUN if [ -n "${SCCACHE_BUCKET}" ]; then \
-  curl -L https://github.com/mozilla/sccache/releases/download/v0.9.1/sccache-v0.9.1-x86_64-unknown-linux-musl.tar.gz \
-    | tar xz -C /usr/local/bin --strip-components=1 --wildcards '*/sccache' \
-  && sccache --version; \
-  fi
-
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 ENV VIRTUAL_ENV="/opt/venv"
@@ -92,7 +71,7 @@ ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 ARG max_jobs=32
 ENV MAX_JOBS=${max_jobs}
 
-ARG nvcc_threads=16
+ARG nvcc_threads=2
 ENV NVCC_THREADS=${nvcc_threads}
 
 ENV VLLM_TARGET_DEVICE=cuda
@@ -100,16 +79,7 @@ ARG VLLM_REF
 ARG VLLM_VERSION=0.18.0
 ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
-# When sccache is available, use it as the compiler launcher so unchanged
-# object files are fetched from S3 instead of being recompiled.
-ENV CMAKE_C_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}" \
-  CMAKE_CXX_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}" \
-  CMAKE_CUDA_COMPILER_LAUNCHER="${SCCACHE_BUCKET:+sccache}" \
-  SCCACHE_IDLE_TIMEOUT=0
-
-RUN --mount=type=cache,target=/root/.cache/uv \
-  python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
-  && if [ -n "${SCCACHE_BUCKET}" ]; then sccache --show-stats; fi
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
 
 # Build DeepGEMM wheel
 ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03

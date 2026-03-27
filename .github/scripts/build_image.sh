@@ -26,8 +26,6 @@ CUSTOMER_TYPE="${CUSTOMER_TYPE:-}"
 INFERENCE_TOOLKIT_VERSION="${INFERENCE_TOOLKIT_VERSION:-}"
 TORCHSERVE_VERSION="${TORCHSERVE_VERSION:-}"
 TRANSFORMERS_VERSION="${TRANSFORMERS_VERSION:-}"
-SCCACHE_BUCKET="${SCCACHE_BUCKET:-}"
-SCCACHE_REGION="${SCCACHE_REGION:-${AWS_REGION}}"
 
 # Resolve image URI
 CI_IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ci:${TAG_PR}"
@@ -109,26 +107,6 @@ if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
 fi
 
 # Complete the build command
-if [[ -n "${SCCACHE_BUCKET}" ]]; then
-  BUILD_CMD="${BUILD_CMD} \
-  --network=host \
-  --build-arg SCCACHE_BUCKET=\"${SCCACHE_BUCKET}\" \
-  --build-arg SCCACHE_REGION=\"${SCCACHE_REGION}\""
-
-  # Snapshot current credentials for sccache S3 access inside Docker build.
-  # On CodeBuild, these are fetched from the container credential endpoint
-  # and are valid for the duration of the build.
-  eval "$(aws configure export-credentials --format env 2>/dev/null || true)"
-  if [[ -n "${AWS_ACCESS_KEY_ID:-}" ]]; then
-    BUILD_CMD="${BUILD_CMD} \
-  --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID}\" \
-  --build-arg AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY}\" \
-  --build-arg AWS_SESSION_TOKEN=\"${AWS_SESSION_TOKEN:-}\""
-  else
-    echo "⚠️ No AWS credentials available for sccache — builds will compile from source"
-  fi
-fi
-
 BUILD_CMD="${BUILD_CMD} \
   --cache-to=type=inline \
   --cache-from=type=registry,ref=${CI_IMAGE_URI} \

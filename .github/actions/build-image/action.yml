@@ -69,10 +69,6 @@ inputs:
     description: 'Transformers library version (e.g., 4.28.1)'
     required: false
     default: ''
-  sccache-bucket:
-    description: 'S3 bucket for sccache compiler cache (empty to disable)'
-    required: false
-    default: ''
 
 outputs:
   image-uri:
@@ -124,4 +120,3 @@ runs:
         INFERENCE_TOOLKIT_VERSION: ${{ inputs.inference-toolkit-version }}
         TORCHSERVE_VERSION: ${{ inputs.torchserve-version }}
         TRANSFORMERS_VERSION: ${{ inputs.transformers-version }}
-        SCCACHE_BUCKET: ${{ inputs.sccache-bucket }}
