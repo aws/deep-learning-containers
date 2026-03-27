@@ -294,7 +294,7 @@ jobs:
   # Generate release spec
   # ============================================================
   generate-release-spec:
-    needs: [load-config, build-ray-ec2-gpu-image, sanity-test, security-test, telemetry-test]
+    needs: [load-config, build-ray-ec2-gpu-image, ray-ec2-gpu-ffmpeg-test, ray-ec2-gpu-serve-test, sanity-test, security-test, telemetry-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
