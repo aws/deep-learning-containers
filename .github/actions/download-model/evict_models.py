@@ -6,9 +6,12 @@ holds a shared lock on it, so it's safe to delete.
 """
 
 import argparse
+import logging
 import os
 import shutil
 import subprocess
+
+logger = logging.getLogger(__name__)
 
 
 def get_free_gb(path: str) -> int:
@@ -44,36 +47,37 @@ def evict_models(cache_dir: str, min_free_gb: int) -> None:
     os.makedirs(cache_dir, exist_ok=True)
 
     free_gb = get_free_gb(cache_dir)
-    print(f"Disk free: {free_gb}G (threshold: {min_free_gb}G)")
+    logger.info("Disk free: %dG (threshold: %dG)", free_gb, min_free_gb)
 
     if free_gb >= min_free_gb:
-        print("Sufficient disk space. No eviction needed.")
+        logger.info("Sufficient disk space. No eviction needed.")
         return
 
-    print("Disk space low. Evicting unused models (smallest first)...")
+    logger.info("Disk space low. Evicting unused models (smallest first)...")
     for size_bytes, model_name in get_cached_models(cache_dir):
         size_gb = size_bytes // (1024**3)
 
         if is_model_in_use(cache_dir, model_name):
-            print(f"Skipping: {model_name} (~{size_gb}G, in use)")
+            logger.info("Skipping: %s (~%dG, in use)", model_name, size_gb)
             continue
 
-        print(f"Evicting: {model_name} (~{size_gb}G)")
+        logger.info("Evicting: %s (~%dG)", model_name, size_gb)
         shutil.rmtree(os.path.join(cache_dir, model_name), ignore_errors=True)
         etag_file = os.path.join(cache_dir, f".etag-{model_name}")
         if os.path.exists(etag_file):
             os.remove(etag_file)
 
         free_gb = get_free_gb(cache_dir)
-        print(f"Disk free: {free_gb}G")
+        logger.info("Disk free: %dG", free_gb)
         if free_gb >= min_free_gb:
-            print("Sufficient disk space restored.")
+            logger.info("Sufficient disk space restored.")
             return
 
-    print(f"Warning: could not free enough space. Current: {get_free_gb(cache_dir)}G")
+    logger.warning("Could not free enough space. Current: %dG", get_free_gb(cache_dir))
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description="Evict unused cached models")
     parser.add_argument("--cache-dir", required=True)
     parser.add_argument("--min-free-gb", type=int, required=True)

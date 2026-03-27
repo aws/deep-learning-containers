@@ -7,9 +7,12 @@ interrupted download won't leave a stale cache marker.
 """
 
 import argparse
+import logging
 import os
 import shutil
 import subprocess
+
+logger = logging.getLogger(__name__)
 
 
 def get_s3_etag(s3_path: str) -> str:
@@ -41,7 +44,7 @@ def is_cached(model_dir: str, etag_file: str, s3_etag: str) -> bool:
     if not os.path.isdir(model_dir) or not os.path.isfile(etag_file):
         return False
     cached_etag = open(etag_file).read().strip()
-    print(f"Cached ETag: {cached_etag}")
+    logger.info("Cached ETag: %s", cached_etag)
     return cached_etag == s3_etag
 
 
@@ -49,15 +52,15 @@ def download_and_extract(s3_path: str, model_name: str, cache_dir: str, model_di
     """Download tarball from S3 and extract to model_dir."""
     tarball = os.path.join(cache_dir, f"{model_name}.tar.gz")
 
-    print(f"Downloading {model_name} from {s3_path}...")
+    logger.info("Downloading %s from %s...", model_name, s3_path)
     subprocess.run(["aws", "s3", "cp", s3_path, tarball], check=True)
 
-    print(f"Extracting {model_name} (this may take several minutes)...")
+    logger.info("Extracting %s (this may take several minutes)...", model_name)
     subprocess.run(
         ["tar", "xzf", tarball, "-C", model_dir, "--checkpoint=2000000", "--checkpoint-action=dot"],
         check=True,
     )
-    print("\nExtraction complete.")
+    logger.info("Extraction complete.")
     os.remove(tarball)
 
     # Flatten if tarball contains a single subdirectory
@@ -76,14 +79,14 @@ def download_model(s3_path: str, model_name: str, cache_dir: str) -> str:
     os.makedirs(cache_dir, exist_ok=True)
 
     s3_etag = get_s3_etag(s3_path)
-    print(f"S3 ETag: {s3_etag}")
+    logger.info("S3 ETag: %s", s3_etag)
 
     if is_cached(model_dir, etag_file, s3_etag):
-        print(f"Model '{model_name}' is cached and up to date.")
+        logger.info("Model '%s' is cached and up to date.", model_name)
         return model_dir
 
     if os.path.isdir(model_dir):
-        print(f"Model '{model_name}' is stale. Re-downloading.")
+        logger.info("Model '%s' is stale. Re-downloading.", model_name)
         shutil.rmtree(model_dir)
 
     os.makedirs(model_dir, exist_ok=True)
@@ -93,18 +96,18 @@ def download_model(s3_path: str, model_name: str, cache_dir: str) -> str:
     # so next run will re-download.
     with open(etag_file, "w") as f:
         f.write(s3_etag)
-    print(f"Model '{model_name}' downloaded and cached.")
+    logger.info("Model '%s' downloaded and cached.", model_name)
     return model_dir
 
 
 def main():
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     parser = argparse.ArgumentParser(description="Download model from S3 with caching")
     parser.add_argument("--s3-path", required=True)
     parser.add_argument("--model-name", required=True)
     parser.add_argument("--cache-dir", required=True)
     args = parser.parse_args()
-
-    _ = download_model(args.s3_path, args.model_name, args.cache_dir)
+    download_model(args.s3_path, args.model_name, args.cache_dir)
 
 
 if __name__ == "__main__":
