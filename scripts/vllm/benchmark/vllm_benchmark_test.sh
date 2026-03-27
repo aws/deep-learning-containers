@@ -5,7 +5,7 @@ set -euo pipefail
 # Runs throughput and latency benchmarks using vllm's built-in bench CLI,
 # then validates results meet minimum thresholds.
 #
-# Usage: vllm_benchmark_test.sh <model_dir> <model_name> [extra_vllm_args...]
+# Usage: vllm_benchmark_test.sh <model_dir> <model_name> <runner_type> [extra_vllm_args...]
 #
 # Environment variables (optional):
 # MIN_THROUGHPUT_TOKENS_PER_SEC - minimum output tokens/s (default: 100)
@@ -16,10 +16,13 @@ set -euo pipefail
 # BENCHMARK_BATCH_SIZE - batch size for latency test (default: 4)
 # BENCHMARK_LATENCY_ITERS - iterations for latency test (default: 10)
 
-MODEL_DIR="${1:?Usage: $0 <model_dir> <model_name> [extra_vllm_args...]}"
-MODEL_NAME="${2:?Usage: $0 <model_dir> <model_name> [extra_vllm_args...]}"
-shift 2
+MODEL_DIR="${1:?Usage: $0 <model_dir> <model_name> <runner_type> [extra_vllm_args...]}"
+MODEL_NAME="${2:?Usage: $0 <model_dir> <model_name> <runner_type> [extra_vllm_args...]}"
+RUNNER_TYPE="${3:?Usage: $0 <model_dir> <model_name> <runner_type> [extra_vllm_args...]}"
+shift 3
 EXTRA_ARGS="$*"
+
+ARTIFACT_PREFIX="${MODEL_NAME}_${RUNNER_TYPE}"
 
 RESULTS_DIR="/tmp/benchmark_results"
 mkdir -p "${RESULTS_DIR}"
@@ -46,17 +49,17 @@ vllm bench throughput \
   --input-len "${INPUT_LEN}" \
   --output-len "${OUTPUT_LEN}" \
   --num-prompts "${NUM_PROMPTS}" \
-  --output-json "${RESULTS_DIR}/throughput_${MODEL_NAME}.json" \
+  --output-json "${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json" \
   ${EXTRA_ARGS}
 
 echo ""
 echo "=== Throughput results ==="
-cat "${RESULTS_DIR}/throughput_${MODEL_NAME}.json"
+cat "${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
 
 # Validate throughput
 python3 -c "
 import json, sys
-with open('${RESULTS_DIR}/throughput_${MODEL_NAME}.json') as f:
+with open('${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json') as f:
     r = json.load(f)
 tps = r['tokens_per_second']
 rps = r['requests_per_second']
@@ -85,14 +88,14 @@ vllm bench latency \
   --batch-size "${BATCH_SIZE}" \
   --num-iters "${LATENCY_ITERS}" \
   --num-iters-warmup 3 \
-  --output-json "${RESULTS_DIR}/latency_${MODEL_NAME}.json" \
+  --output-json "${RESULTS_DIR}/latency_${ARTIFACT_PREFIX}.json" \
   ${EXTRA_ARGS}
 
 echo ""
 echo "=== Latency results ==="
 python3 -c "
 import json
-with open('${RESULTS_DIR}/latency_${MODEL_NAME}.json') as f:
+with open('${RESULTS_DIR}/latency_${ARTIFACT_PREFIX}.json') as f:
     r = json.load(f)
 print(f'Avg latency: {r[\"avg_latency\"]:.4f}s')
 for k, v in r.get('percentiles', {}).items():
