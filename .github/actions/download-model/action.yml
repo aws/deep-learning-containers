@@ -49,7 +49,7 @@ runs:
       run: |
         CACHE_DIR="${{ inputs.cache-dir }}"
         echo "=== hostname ==="
-        hostname
+        cat /etc/hostname 2>/dev/null || echo "unknown"
         echo ""
         echo "=== whoami ==="
         whoami
