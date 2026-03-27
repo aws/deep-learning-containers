@@ -22,7 +22,7 @@ Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ra
     docker pull {{ images.latest_ray_sagemaker_cpu }}
     ```
 
-Default images are tested on EC2 instances and compatible with ECS and EKS. See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
+Default images are tested on EC2 instances. See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
 
 ## Packages
 
