@@ -44,6 +44,37 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Debug - filesystem info
+      shell: bash
+      run: |
+        CACHE_DIR="${{ inputs.cache-dir }}"
+        echo "=== hostname ==="
+        hostname
+        echo ""
+        echo "=== whoami ==="
+        whoami
+        echo ""
+        echo "=== df -h (all) ==="
+        df -h
+        echo ""
+        echo "=== mount | grep dlc ==="
+        mount | grep dlc || echo "no dlc mounts"
+        echo ""
+        echo "=== ls -la ${CACHE_DIR}/ ==="
+        ls -la "${CACHE_DIR}/" 2>/dev/null || echo "${CACHE_DIR} does not exist"
+        echo ""
+        echo "=== ls -la ${CACHE_DIR}/.lock-* ${CACHE_DIR}/.download-lock-* ${CACHE_DIR}/.etag-* ==="
+        ls -la ${CACHE_DIR}/.lock-* ${CACHE_DIR}/.download-lock-* ${CACHE_DIR}/.etag-* 2>/dev/null || echo "no lock/etag files"
+        echo ""
+        echo "=== du -sh ${CACHE_DIR}/*/ ==="
+        du -sh ${CACHE_DIR}/*/ 2>/dev/null || echo "no model dirs"
+        echo ""
+        echo "=== stat ${CACHE_DIR} ==="
+        stat "${CACHE_DIR}" 2>/dev/null || echo "${CACHE_DIR} does not exist"
+        echo ""
+        echo "=== findmnt ${CACHE_DIR} ==="
+        findmnt "${CACHE_DIR}" 2>/dev/null || findmnt / 2>/dev/null || echo "findmnt not available"
+
     - name: Evict unused models if disk is low
       shell: bash
       run: |
@@ -61,22 +92,35 @@ runs:
         DOWNLOAD_LOCK="${CACHE_DIR}/.download-lock-${MODEL_NAME}"
         mkdir -p "${CACHE_DIR}"
 
-        # 1. Acquire shared lock FIRST — prevents eviction for the entire
-        #    job lifetime (download + usage). Multiple jobs can hold shared
-        #    locks on the same model simultaneously.
-        #    Uses 6h timeout as safety net (matches DaemonSet cleanup window).
-        #    Caller's cleanup step MUST kill this PID to release promptly.
+        # 1. Acquire shared lock FIRST
         flock --shared "${LOCK_FILE}" sleep 21600 &
         LOCK_PID=$!
         echo "Acquired shared lock on ${MODEL_NAME} (PID: ${LOCK_PID})"
         echo "lock-pid=${LOCK_PID}" >> $GITHUB_OUTPUT
 
-        # 2. Exclusive download lock serializes concurrent downloads of the
-        #    same model. Uses a SEPARATE lock file from the usage lock so
-        #    the exclusive lock doesn't conflict with shared usage locks.
-        flock -x "${DOWNLOAD_LOCK}" python3 ${{ github.action_path }}/download_model.py \
-          --s3-path "${{ inputs.s3-path }}" \
-          --model-name "${MODEL_NAME}" \
-          --cache-dir "${CACHE_DIR}"
+        # Debug: show lock state
+        echo "=== Debug: lock files after shared lock ==="
+        ls -la ${CACHE_DIR}/.lock-* ${CACHE_DIR}/.download-lock-* 2>/dev/null || echo "no lock files"
+        echo "=== Debug: flock holders ==="
+        flock --exclusive --nonblock "${LOCK_FILE}" echo "usage lock: NOT held (exclusive succeeded)" 2>/dev/null || echo "usage lock: held (exclusive blocked — shared lock active)"
+        flock --exclusive --nonblock "${DOWNLOAD_LOCK}" echo "download lock: NOT held" 2>/dev/null || echo "download lock: held by another process"
+
+        # 2. Exclusive download lock
+        echo "=== Debug: acquiring exclusive download lock ==="
+        echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%S)"
+        flock -x "${DOWNLOAD_LOCK}" bash -c '
+          echo "=== Debug: inside exclusive download lock ==="
+          echo "Timestamp: '"$(date -u +%Y-%m-%dT%H:%M:%S)"'"
+          python3 '"${{ github.action_path }}"'/download_model.py \
+            --s3-path "'"${{ inputs.s3-path }}"'" \
+            --model-name "'"${MODEL_NAME}"'" \
+            --cache-dir "'"${CACHE_DIR}"'"
+        '
 
         echo "model-dir=${CACHE_DIR}/${MODEL_NAME}" >> $GITHUB_OUTPUT
+
+        # Debug: show state after download
+        echo "=== Debug: state after download ==="
+        ls -la ${CACHE_DIR}/.etag-${MODEL_NAME} 2>/dev/null || echo "no etag file"
+        ls -d ${CACHE_DIR}/${MODEL_NAME}/ 2>/dev/null || echo "no model dir"
+        df -h "${CACHE_DIR}"
