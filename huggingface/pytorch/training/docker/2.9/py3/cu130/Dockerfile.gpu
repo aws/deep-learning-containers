@@ -61,7 +61,7 @@ RUN pip install --upgrade pip \
     pyarrow \
     cryptography \
     pyopenssl \
-    "Pillow>=11.0.0,<12.0.0" \
+    Pillow \
     wheel \
     setuptools \
     "s3fs==2025.9.0" \
