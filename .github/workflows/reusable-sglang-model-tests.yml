@@ -160,14 +160,14 @@ jobs:
             ${{ matrix.extra_args }}
 
   benchmark-runner-scale:
-    name: benchmark / gpu-p4d-runners (${{ matrix.name }})
+    name: benchmark / gpu-efa-runners (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets) }}
-    runs-on: gpu-p4d-runners
+    runs-on: gpu-efa-runners
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
