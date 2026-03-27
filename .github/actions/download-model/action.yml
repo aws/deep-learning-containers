@@ -1,9 +1,9 @@
 name: Download Model
 
 description: >
-  Download a model from S3 with local caching. Checks if the model already
-  exists on disk and whether the S3 object has been updated (via ETag).
-  Skips download if the cached model is current.
+  Download a model from S3 with local caching. Uses flock for safe concurrent
+  access when multiple pods share the same host filesystem. Checks ETag to
+  detect S3 updates and re-downloads only when the model has changed.
 
 inputs:
   s3-path:
@@ -33,42 +33,54 @@ runs:
         MODEL_NAME="${{ inputs.model-name }}"
         S3_PATH="${{ inputs.s3-path }}"
         MODEL_DIR="${CACHE_DIR}/${MODEL_NAME}"
-        ETAG_FILE="${CACHE_DIR}/.etag-${MODEL_NAME}"
+        LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
 
         echo "model-dir=${MODEL_DIR}" >> $GITHUB_OUTPUT
+        mkdir -p "${CACHE_DIR}"
 
-        # Get the current S3 ETag
-        S3_ETAG=$(aws s3api head-object --bucket "$(echo ${S3_PATH} | cut -d/ -f3)" \
-          --key "$(echo ${S3_PATH} | cut -d/ -f4-)" \
-          --query ETag --output text 2>/dev/null || echo "")
-        echo "S3 ETag: ${S3_ETAG}"
+        # Per-model lock prevents race conditions when multiple pods share the
+        # same host filesystem. Different models use different lock files so
+        # they don't block each other.
+        flock -x "${LOCK_FILE}" bash -c '
+          S3_PATH="'"${S3_PATH}"'"
+          MODEL_DIR="'"${MODEL_DIR}"'"
+          MODEL_NAME="'"${MODEL_NAME}"'"
+          CACHE_DIR="'"${CACHE_DIR}"'"
+          ETAG_FILE="${CACHE_DIR}/.etag-${MODEL_NAME}"
 
-        # Check if cached model exists and ETag matches
-        if [ -d "${MODEL_DIR}" ] && [ -f "${ETAG_FILE}" ]; then
-          CACHED_ETAG=$(cat "${ETAG_FILE}")
-          echo "Cached ETag: ${CACHED_ETAG}"
-          if [ "${S3_ETAG}" = "${CACHED_ETAG}" ]; then
-            echo "Model '${MODEL_NAME}' is cached and up to date. Skipping download."
-            exit 0
+          # Get the current S3 ETag
+          S3_ETAG=$(aws s3api head-object --bucket "$(echo ${S3_PATH} | cut -d/ -f3)" \
+            --key "$(echo ${S3_PATH} | cut -d/ -f4-)" \
+            --query ETag --output text 2>/dev/null || echo "")
+          echo "S3 ETag: ${S3_ETAG}"
+
+          # Check if cached model exists and ETag matches
+          if [ -d "${MODEL_DIR}" ] && [ -f "${ETAG_FILE}" ]; then
+            CACHED_ETAG=$(cat "${ETAG_FILE}")
+            echo "Cached ETag: ${CACHED_ETAG}"
+            if [ "${S3_ETAG}" = "${CACHED_ETAG}" ]; then
+              echo "Model '"'"'${MODEL_NAME}'"'"' is cached and up to date. Skipping download."
+              exit 0
+            fi
+            echo "Model '"'"'${MODEL_NAME}'"'"' is stale (ETag mismatch). Re-downloading."
+            rm -rf "${MODEL_DIR}"
           fi
-          echo "Model '${MODEL_NAME}' is stale (ETag mismatch). Re-downloading."
-          rm -rf "${MODEL_DIR}"
-        fi
 
-        # Download and extract
-        echo "Downloading ${MODEL_NAME} from ${S3_PATH}..."
-        mkdir -p "${MODEL_DIR}"
-        aws s3 cp "${S3_PATH}" "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
-        tar xzf "${CACHE_DIR}/${MODEL_NAME}.tar.gz" -C "${MODEL_DIR}"
-        rm -f "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
+          # Download and extract
+          echo "Downloading ${MODEL_NAME} from ${S3_PATH}..."
+          mkdir -p "${MODEL_DIR}"
+          aws s3 cp "${S3_PATH}" "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
+          tar xzf "${CACHE_DIR}/${MODEL_NAME}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
 
-        # Flatten if tarball contains a single subdirectory
-        SUBDIRS=("${MODEL_DIR}"/*)
-        if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-          mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-          rmdir "${SUBDIRS[0]}"
-        fi
+          # Flatten if tarball contains a single subdirectory
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
 
-        # Save ETag for future cache checks
-        echo "${S3_ETAG}" > "${ETAG_FILE}"
-        echo "Model '${MODEL_NAME}' downloaded and cached."
+          # Save ETag — written last so a crash before this triggers re-download
+          echo "${S3_ETAG}" > "${ETAG_FILE}"
+          echo "Model '"'"'${MODEL_NAME}'"'"' downloaded and cached."
+        '
