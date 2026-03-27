@@ -52,10 +52,11 @@ Package your model as a `model.tar.gz` with the following layout:
 model.tar.gz/
 ├── config.yaml              # Ray Serve application config
 ├── deployment.py            # Your @serve.deployment class
-├── model_weights.pth        # Model weights (if applicable)
 └── code/
     └── requirements.txt     # Runtime dependencies (optional, installed at startup)
 ```
+
+Model weights can optionally be placed at the tarball root alongside `config.yaml` and `deployment.py` (extracted to `/opt/ml/model/` at runtime) if your model doesn't download them at startup.
 
 The `config.yaml` references your deployment module:
 
