@@ -2,7 +2,7 @@
 
 Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) on AWS. Available in CPU and GPU variants, built on Amazon Linux 2023 with Python 3.13.
 
-## Announcements
+## Latest Announcements
 
 *No announcements at this time.*
 
