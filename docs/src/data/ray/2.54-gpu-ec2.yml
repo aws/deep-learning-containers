@@ -4,7 +4,7 @@ accelerator: gpu
 python: py313
 cuda: cu129
 os: amzn2023
-platform: ec2
+platform: default
 public_registry: true
 
 tags:

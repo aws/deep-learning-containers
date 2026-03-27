@@ -3,7 +3,7 @@ version: "2.54"
 accelerator: cpu
 python: py313
 os: amzn2023
-platform: ec2
+platform: default
 public_registry: true
 
 tags:
