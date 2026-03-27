@@ -1,0 +1,8 @@
+applications:
+  - name: densenet
+    route_prefix: /
+    import_path: deployment:app
+    deployments:
+      - name: DenseNetClassifier
+        ray_actor_options:
+          num_gpus: 1

@@ -1,0 +1,8 @@
+applications:
+  - name: iris
+    route_prefix: /
+    import_path: deployment:app
+    deployments:
+      - name: IrisClassifier
+        ray_actor_options:
+          num_gpus: 0
