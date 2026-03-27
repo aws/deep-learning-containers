@@ -61,14 +61,14 @@ RUN pip install --upgrade pip \
     pyarrow \
     cryptography \
     pyopenssl \
-    Pillow \
+    "Pillow>=11.0.0,<12.0.0" \
     wheel \
     setuptools \
     "s3fs==2025.9.0" \
     "werkzeug>=3.1.4" \
     "filelock>=3.20.1" \
     "numpy<2" \
-    "shap<0.50.0" \
+    "shap<0.47.0" \
     "urllib3>=2.5.0" \
     "protobuf>=6.33.5" \
     "awscli>=1.44.38" \

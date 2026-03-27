@@ -706,11 +706,7 @@ def test_pip_check(image):
         allowed_exceptions.append(
             r"sagemaker \d+(\.\d+)* has requirement protobuf<\d+(\.\d+)*,>=\d+(\.\d+)*, but you have protobuf \d+(\.\d+)*\.$"
         )
-        # trackio 0.15.0 requires pillow<12.0.0, but we upgrade Pillow for security patches.
-        # No newer trackio version available that supports Pillow 12+.
-        allowed_exceptions.append(
-            r"trackio \d+(\.\d+)* has requirement pillow<\d+(\.\d+)*, but you have pillow \d+(\.\d+)*\.$"
-        )
+
 
     if "pytorch" in image and "trcomp" in image:
         allowed_exceptions.extend(
