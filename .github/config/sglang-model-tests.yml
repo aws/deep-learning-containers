@@ -40,7 +40,7 @@ benchmark:
       min_rps: 5
 
     - name: "qwen3.5-9b"
-      s3_model: "gpt-oss-20b.tar.gz"
+      s3_model: "qwen3.5-9b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
       input_len: 512
