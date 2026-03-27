@@ -1,9 +1,12 @@
 name: Download Model
 
 description: >
-  Download a model from S3 with local caching. Uses flock for safe concurrent
-  access when multiple pods share the same host filesystem. Checks ETag to
-  detect S3 updates and re-downloads only when the model has changed.
+  Download a model from S3 with local caching and lifecycle management.
+  Uses flock (kernel-level advisory locks) for safe concurrent access on
+  shared instances. Evicts unused cached models (smallest first) if disk
+  space is below threshold. Checks ETag to skip re-downloads.
+
+  See evict_models.py and download_model.py for implementation details.
 
 inputs:
   s3-path:
@@ -16,74 +19,64 @@ inputs:
     description: Base directory for cached models
     required: false
     default: /dlc-models
+  min-free-gb:
+    description: >
+      Minimum free disk space (GB) required before downloading. If free
+      space is below this, unused models are evicted smallest-first.
+      Should be >= 2x the largest model tarball to accommodate both the
+      download and extraction.
+    required: false
+    default: "250"
 
 outputs:
   model-dir:
     description: Path to the extracted model directory
     value: ${{ steps.download.outputs.model-dir }}
+  lock-pid:
+    description: PID of the background lock holder (caller should kill on cleanup)
+    value: ${{ steps.lock.outputs.lock-pid }}
 
 runs:
   using: composite
   steps:
-    - name: Download model with cache check
+    - name: Evict unused models if disk is low
+      shell: bash
+      run: |
+        python3 ${{ github.action_path }}/evict_models.py \
+          --cache-dir "${{ inputs.cache-dir }}" \
+          --min-free-gb "${{ inputs.min-free-gb }}"
+
+    - name: Download model
       id: download
       shell: bash
       run: |
         CACHE_DIR="${{ inputs.cache-dir }}"
         MODEL_NAME="${{ inputs.model-name }}"
-        S3_PATH="${{ inputs.s3-path }}"
-        MODEL_DIR="${CACHE_DIR}/${MODEL_NAME}"
         LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
-
-        echo "model-dir=${MODEL_DIR}" >> $GITHUB_OUTPUT
         mkdir -p "${CACHE_DIR}"
 
-        # Per-model lock prevents race conditions when multiple pods share the
-        # same host filesystem. Different models use different lock files so
-        # they don't block each other.
-        flock -x "${LOCK_FILE}" bash -c '
-          S3_PATH="'"${S3_PATH}"'"
-          MODEL_DIR="'"${MODEL_DIR}"'"
-          MODEL_NAME="'"${MODEL_NAME}"'"
-          CACHE_DIR="'"${CACHE_DIR}"'"
-          ETAG_FILE="${CACHE_DIR}/.etag-${MODEL_NAME}"
+        # Exclusive lock serializes concurrent downloads of the same model.
+        # Released immediately after download completes.
+        flock -x "${LOCK_FILE}" python3 ${{ github.action_path }}/download_model.py \
+          --s3-path "${{ inputs.s3-path }}" \
+          --model-name "${MODEL_NAME}" \
+          --cache-dir "${CACHE_DIR}"
 
-          # Get the current S3 ETag
-          S3_ETAG=$(aws s3api head-object --bucket "$(echo ${S3_PATH} | cut -d/ -f3)" \
-            --key "$(echo ${S3_PATH} | cut -d/ -f4-)" \
-            --query ETag --output text 2>/dev/null || echo "")
-          echo "S3 ETag: ${S3_ETAG}"
+        echo "model-dir=${CACHE_DIR}/${MODEL_NAME}" >> $GITHUB_OUTPUT
 
-          # Check if cached model exists and ETag matches
-          if [ -d "${MODEL_DIR}" ] && [ -f "${ETAG_FILE}" ]; then
-            CACHED_ETAG=$(cat "${ETAG_FILE}")
-            echo "Cached ETag: ${CACHED_ETAG}"
-            if [ "${S3_ETAG}" = "${CACHED_ETAG}" ]; then
-              echo "Model '"'"'${MODEL_NAME}'"'"' is cached and up to date. Skipping download."
-              exit 0
-            fi
-            echo "Model '"'"'${MODEL_NAME}'"'"' is stale (ETag mismatch). Re-downloading."
-            rm -rf "${MODEL_DIR}"
-          fi
+    - name: Acquire model lock
+      id: lock
+      shell: bash
+      run: |
+        CACHE_DIR="${{ inputs.cache-dir }}"
+        MODEL_NAME="${{ inputs.model-name }}"
+        LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
 
-          # Download and extract
-          echo "Downloading ${MODEL_NAME} from ${S3_PATH}..."
-          mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${S3_PATH}" "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
-          echo "Extracting ${MODEL_NAME} (this may take several minutes)..."
-          tar xzf "${CACHE_DIR}/${MODEL_NAME}.tar.gz" -C "${MODEL_DIR}" --checkpoint=2000000 --checkpoint-action=dot
-          echo ""
-          echo "Extraction complete."
-          rm -f "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
-
-          # Flatten if tarball contains a single subdirectory
-          SUBDIRS=("${MODEL_DIR}"/*)
-          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
-          fi
-
-          # Save ETag — written last so a crash before this triggers re-download
-          echo "${S3_ETAG}" > "${ETAG_FILE}"
-          echo "Model '"'"'${MODEL_NAME}'"'"' downloaded and cached."
-        '
+        # Hold a shared lock for the job's lifetime. Prevents eviction of
+        # this model by a parallel job. Multiple shared locks can coexist.
+        # Uses 6h timeout (matches DaemonSet cleanup window) as safety net.
+        # Caller's cleanup step MUST kill this PID to release promptly.
+        flock --shared "${LOCK_FILE}" sleep 21600 &
+        LOCK_PID=$!
+        echo "Acquired shared lock on ${MODEL_NAME} (PID: ${LOCK_PID})"
+        echo "lock-pid=${LOCK_PID}" >> $GITHUB_OUTPUT
