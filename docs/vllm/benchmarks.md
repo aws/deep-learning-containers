@@ -4,56 +4,76 @@ Performance benchmarks for vLLM {{ dlc_short }} images on {{ aws }} GPU instance
 
 ## Methodology
 
-All benchmarks use the vLLM built-in benchmarking tools with the following defaults unless noted:
+All benchmarks use the vLLM built-in benchmarking tools (`vllm bench throughput` and `vllm bench latency`) with the following defaults unless noted:
 
-- **Input/output length:** 1024 input tokens, 512 output tokens
-- **Concurrency:** Saturated (max throughput)
-- **Quantization:** None (FP16/BF16) unless specified
-- **Warm-up:** 10 requests before measurement
+- **Dataset:** Random tokens
+- **Quantization:** None (BF16) unless specified
+- **Warm-up:** 3 iterations before measurement
 
-## Throughput by Instance Type
+## Throughput Results
 
-### Llama 3.1 8B Instruct
+Results from CI benchmark runs on {{ aws }} GPU instances.
 
-| Instance Type | GPUs | TP | Throughput (tok/s) | Median TTFT (ms) | Median TPOT (ms) |
-| --- | --- | --- | --- | --- | --- |
-| `g5.xlarge` | 1x A10G | 1 | TBD | TBD | TBD |
-| `g5.2xlarge` | 1x A10G | 1 | TBD | TBD | TBD |
-| `g6.xlarge` | 1x L4 | 1 | TBD | TBD | TBD |
+### CodeBuild Fleet
 
-### Llama 3.1 70B Instruct
+| Model | Instance | GPUs | TP | Input Len | Output Len | Prompts | Min Tokens/s | Min Rps |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| GPT-OSS 20B | g6e.xlarge (1x L40S) | 1 | 1 | 512 | 128 | 64 | 6000 | 5 |
+| Qwen 3.5 9B | g6.xlarge (1x L4) | 1 | 1 | 512 | 128 | 64 | 180 | 0.15 |
+| Llama 3.3 70B | g6e.12xlarge (4x L40S) | 4 | 4 | 512 | 128 | 32 | 400 | 0.35 |
+| Qwen 3.5 35B-A3B FP8 | g6e.12xlarge (4x L40S) | 4 | 4 | 512 | 128 | 64 | 400 | 0.35 |
+| Qwen 3.5 27B FP8 | g6e.12xlarge (4x L40S) | 4 | 4 | 512 | 128 | 64 | 100 | 0.2 |
+| Qwen 3 Coder Next FP8 | g6e.12xlarge (4x L40S) | 4 | 4 | 512 | 256 | 32 | 280 | 0.25 |
 
-| Instance Type | GPUs | TP | Throughput (tok/s) | Median TTFT (ms) | Median TPOT (ms) |
-| --- | --- | --- | --- | --- | --- |
-| `g5.12xlarge` | 4x A10G | 4 | TBD | TBD | TBD |
-| `p4d.24xlarge` | 8x A100 | 8 | TBD | TBD | TBD |
-| `p5.48xlarge` | 8x H100 | 8 | TBD | TBD | TBD |
+### Runner Scale Sets (A100)
+
+| Model | GPUs | TP | Input Len | Output Len | Prompts | Min Tokens/s | Min Rps |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Qwen 3 32B | 4x A100 40 GB | 4 | 512 | 256 | 32 | 3400 | 3 |
+| GPT-OSS 20B | 1x A100 40 GB | 1 | 512 | 128 | 64 | 6000 | 5 |
+| Qwen 3.5 35B-A3B FP8 | 4x A100 40 GB | 4 | 512 | 128 | 64 | 400 | 0.35 |
+| Qwen 3.5 27B FP8 | 4x A100 40 GB | 4 | 512 | 128 | 64 | 100 | 0.2 |
+| Qwen 3 Coder Next FP8 | 4x A100 40 GB | 4 | 512 | 256 | 32 | 280 | 0.25 |
+| Llama 3.3 70B | 4x A100 40 GB | 4 | 512 | 128 | 32 | 400 | 0.35 |
+
+!!! note FP8 models on A100 (compute capability 8.0) use Marlin dequantization fallback since native FP8 requires compute capability 8.9+ (H100/L40S).
+This increases memory usage and reduces throughput compared to L40S/H100.
 
 ## Glossary
 
 | Metric | Definition |
 | --- | --- |
-| **Throughput (tok/s)** | Total output tokens generated per second across all concurrent requests |
-| **TTFT** | Time to first token — latency from request submission to first token generated |
-| **TPOT** | Time per output token — average inter-token latency after the first token |
+| **Tokens/s** | Total output tokens generated per second across all concurrent requests |
+| **Rps** | Requests per second completed |
 | **TP** | Tensor parallelism degree (number of GPUs) |
+| **Min Tokens/s** | Minimum throughput threshold for CI pass |
+| **Min Rps** | Minimum requests/s threshold for CI pass |
 
 ## Running Your Own Benchmarks
 
-Use the vLLM built-in benchmark tool included in the {{ dlc_short }} image:
+Use the vLLM built-in benchmark tools included in the {{ dlc_short }} image:
 
 ```bash
-docker run --gpus all \
+docker run --gpus all -v /local/models:/models \
   public.ecr.aws/deep-learning-containers/vllm:server-cuda \
-  python -m vllm.entrypoints.openai.api_server \
-    --model meta-llama/Llama-3.1-8B-Instruct &
-
-# Run benchmark
-python -m vllm.benchmarks.benchmark_serving \
-  --model meta-llama/Llama-3.1-8B-Instruct \
-  --num-prompts 1000 \
-  --request-rate inf
+  vllm bench throughput \
+    --model /models/my-model \
+    --dataset-name random \
+    --random-input-len 512 \
+    --random-output-len 128 \
+    --num-prompts 64
 ```
 
-!!! note Benchmark results will be populated as new vLLM {{ dlc_short }} versions are released. Results are specific to the {{ dlc_short }} image and
-may differ from upstream vLLM benchmarks due to curated patches and dependency versions.
+```bash
+docker run --gpus all -v /local/models:/models \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
+  vllm bench latency \
+    --model /models/my-model \
+    --input-len 512 \
+    --output-len 128 \
+    --batch-size 4 \
+    --num-iters 10
+```
+
+!!! note Benchmark results reflect CI minimum thresholds and may vary based on instance configuration, model version, and vLLM version. Run your own
+benchmarks for production capacity planning.
