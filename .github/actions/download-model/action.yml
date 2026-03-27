@@ -70,7 +70,10 @@ runs:
           echo "Downloading ${MODEL_NAME} from ${S3_PATH}..."
           mkdir -p "${MODEL_DIR}"
           aws s3 cp "${S3_PATH}" "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
-          tar xzf "${CACHE_DIR}/${MODEL_NAME}.tar.gz" -C "${MODEL_DIR}"
+          echo "Extracting ${MODEL_NAME} (this may take several minutes)..."
+          tar xzf "${CACHE_DIR}/${MODEL_NAME}.tar.gz" -C "${MODEL_DIR}" --checkpoint=10000 --checkpoint-action=dot
+          echo ""
+          echo "Extraction complete."
           rm -f "${CACHE_DIR}/${MODEL_NAME}.tar.gz"
 
           # Flatten if tarball contains a single subdirectory
