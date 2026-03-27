@@ -21,8 +21,8 @@ All benchmarks use the vLLM built-in benchmarking tools with the following defau
 | --- | --- | --- | --- | --- | --- |
 | `g6.xlarge` | 1 | 1024 / 128 | 64 | 22.77 | 0.18 |
 
-!!! note "Eager mode" `--enforce-eager` is enabled due to a vLLM CUDA graph incompatibility with this model's hybrid architecture. Performance is
-significantly lower than expected.
+> **Note — Eager mode:** `--enforce-eager` is enabled due to a vLLM CUDA graph incompatibility with this model's hybrid architecture. Performance is
+> significantly lower than expected.
 
 ### GPT-OSS-20B
 
@@ -57,8 +57,8 @@ significantly lower than expected.
 | `p4d.24xlarge` | 4 | 1024 / 128 | 64 | 78.91 | 0.62 |
 | `g6e.12xlarge` | 4 | 1024 / 128 | 64 | 88.58 | 0.69 |
 
-!!! note "FP8 on A100" A100 GPUs lack native FP8 support (requires compute capability 8.9+). vLLM dequantizes to BF16 at load, doubling weight memory.
-The `p4d.24xlarge` result also uses `--enforce-eager`.
+> **Note — FP8 on A100:** A100 GPUs lack native FP8 support (requires compute capability 8.9+). vLLM dequantizes to BF16 at load, doubling weight
+> memory. The `p4d.24xlarge` result also uses `--enforce-eager`.
 
 ### Qwen3.5-35B-A3B (FP8)
 
@@ -130,8 +130,8 @@ The benchmarks above were produced using the
 [vllm_benchmark_test.sh](https://github.com/aws/deep-learning-containers/blob/main/scripts/vllm/benchmark/vllm_benchmark_test.sh) script included in
 this repository. It runs `vllm bench throughput` (offline, saturated) and `vllm bench latency` (fixed batch size) against a local model directory.
 
-!!! warning "Input length override" `vllm bench throughput` defaults to the `random` dataset when no `--dataset-path` is provided. The `random`
-dataset uses `--random-input-len` (default 1024) and ignores `--input-len`. Verify the actual input length in the benchmark log output.
+> **Warning — Input length override:** `vllm bench throughput` defaults to the `random` dataset when no `--dataset-path` is provided. The `random`
+> dataset uses `--random-input-len` (default 1024) and ignores `--input-len`. Verify the actual input length in the benchmark log output.
 
 To run a quick benchmark yourself:
 
@@ -156,5 +156,5 @@ docker run --gpus all \
     --num-iters 10
 ```
 
-!!! note Results are specific to the {{ dlc_short }} image and may differ from upstream vLLM benchmarks due to curated patches and dependency
-versions.
+> **Note:** Results are specific to the {{ dlc_short }} image and may differ from upstream vLLM benchmarks due to curated patches and dependency
+> versions.
