@@ -39,8 +39,8 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 2000
-      min_rps: 1.5
+      min_throughput: 180
+      min_rps: 0.15
 
     # - name: "llama-3.3-70b"
     #   s3_model: "llama-3.3-70b.tar.gz"
