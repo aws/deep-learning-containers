@@ -85,15 +85,17 @@ benchmark:
       min_rps: 0.25
 
   runner-scale-sets:
-    - name: "llama-3.3-70b"
-      s3_model: "llama-3.3-70b.tar.gz"
-      extra_args: "--tp 4 --context-length 4096 --disable-cuda-graph"
-      input_len: 512
-      output_len: 128
-      num_prompts: 32
-      batch_size: 2
-      min_throughput: 400
-      min_rps: 0.35
+    # llama-3.3-70b: OOM on 4x A100 40GB — weights use 32.92 GB/GPU leaving
+    # only 5 GB for KV cache. Needs 4x A100 80GB or 4x L40S 48GB.
+    # - name: "llama-3.3-70b"
+    #   s3_model: "llama-3.3-70b.tar.gz"
+    #   extra_args: "--tp 4 --context-length 4096 --disable-cuda-graph"
+    #   input_len: 512
+    #   output_len: 128
+    #   num_prompts: 32
+    #   batch_size: 2
+    #   min_throughput: 400
+    #   min_rps: 0.35
 
     - name: "qwen3-32b"
       s3_model: "qwen3-32b.tar.gz"
