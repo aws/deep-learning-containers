@@ -87,7 +87,7 @@ benchmark:
   runner-scale-sets:
     - name: "llama-3.3-70b"
       s3_model: "llama-3.3-70b.tar.gz"
-      extra_args: "--tp 4 --context-length 2048 --mem-fraction-static 0.50 --disable-cuda-graph"
+      extra_args: "--tp 4 --context-length 4096 --disable-cuda-graph"
       input_len: 512
       output_len: 128
       num_prompts: 32
