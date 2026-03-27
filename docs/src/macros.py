@@ -36,8 +36,8 @@ def define_env(env):
         "latest_pytorch_training_ec2": get_latest_image_uri("pytorch-training", "ec2"),
         "latest_vllm_sagemaker": get_latest_image_uri("vllm", "sagemaker"),
         "latest_sglang_sagemaker": get_latest_image_uri("sglang", "sagemaker"),
-        "latest_ray_ec2_gpu": _get_latest_ray_uri("ec2", "gpu"),
-        "latest_ray_ec2_cpu": _get_latest_ray_uri("ec2", "cpu"),
+        "latest_ray_default_gpu": _get_latest_ray_uri("ec2", "gpu"),
+        "latest_ray_default_cpu": _get_latest_ray_uri("ec2", "cpu"),
         "latest_ray_sagemaker_gpu": _get_latest_ray_uri("sagemaker", "gpu"),
         "latest_ray_sagemaker_cpu": _get_latest_ray_uri("sagemaker", "cpu"),
     }

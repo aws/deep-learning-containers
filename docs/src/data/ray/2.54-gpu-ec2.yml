@@ -8,7 +8,7 @@ platform: ec2
 public_registry: true
 
 tags:
-  - "serve-ml-ec2-cuda-v1.0.0"
+  - "serve-ml-cuda-v1.0.0"
 
 announcements:
   - "Introduced Ray Serve 2.54 GPU containers for EC2, ECS, EKS"

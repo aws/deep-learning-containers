@@ -7,7 +7,7 @@ platform: ec2
 public_registry: true
 
 tags:
-  - "serve-ml-ec2-cpu-v1.0.0"
+  - "serve-ml-cpu-v1.0.0"
 
 announcements:
   - "Introduced Ray Serve 2.54 CPU containers for EC2, ECS, EKS"

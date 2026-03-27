@@ -2,13 +2,17 @@
 
 Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) on AWS. Available in CPU and GPU variants, built on Amazon Linux 2023 with Python 3.13.
 
+## Announcements
+
+*No announcements at this time.*
+
 ## Pull Commands
 
-=== "EC2"
+=== "Default"
 
     ```bash
-    docker pull {{ images.latest_ray_ec2_gpu }}
-    docker pull {{ images.latest_ray_ec2_cpu }}
+    docker pull {{ images.latest_ray_default_gpu }}
+    docker pull {{ images.latest_ray_default_cpu }}
     ```
 
 === "SageMaker"
@@ -18,7 +22,7 @@ Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ra
     docker pull {{ images.latest_ray_sagemaker_cpu }}
     ```
 
-See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
+Default images are tested on EC2 instances and compatible with ECS and EKS. See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
 
 ## Packages
 
@@ -26,7 +30,7 @@ For package versions included in each release, see the [Release Notes](../releas
 
 ## Versioning Strategy
 
-Image tags follow the format `ray:serve-ml-<platform>-{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`.
+Image tags follow the format `ray:serve-ml-[<platform>-]{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`. The `<platform>` segment is omitted for default images and present for platform-specific images (e.g. `sagemaker`).
 
 Version bumps follow these rules:
 
@@ -178,7 +182,7 @@ docker run -d --gpus all \
   -p 8000:8000 \
   -v $(pwd)/nlp-model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  {{ images.latest_ray_ec2_gpu }}
+  {{ images.latest_ray_default_gpu }}
 
 until curl -sf http://localhost:8000/-/healthz > /dev/null; do sleep 5; done
 
@@ -285,7 +289,7 @@ docker run -d --gpus all \
   -p 8000:8000 \
   -v $(pwd)/cv-model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  {{ images.latest_ray_ec2_gpu }}
+  {{ images.latest_ray_default_gpu }}
 
 # Download test image while container starts up
 curl -O https://s3.amazonaws.com/model-server/inputs/kitten.jpg
@@ -395,7 +399,7 @@ docker run -d --gpus all \
   -p 8000:8000 \
   -v $(pwd)/audio-model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  {{ images.latest_ray_ec2_gpu }}
+  {{ images.latest_ray_default_gpu }}
 
 until curl -sf http://localhost:8000/-/healthz > /dev/null; do sleep 5; done
 
@@ -505,7 +509,7 @@ docker run -d \
   -p 8000:8000 \
   -v $(pwd)/tabular-model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
-  {{ images.latest_ray_ec2_cpu }}
+  {{ images.latest_ray_default_cpu }}
 
 until curl -sf http://localhost:8000/-/healthz > /dev/null; do sleep 5; done
 
@@ -594,7 +598,7 @@ docker run -d --gpus all \
   -v /path/to/model:/opt/ml/model \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
   -e RAYSERVE_NUM_GPUS=1 \
-  {{ images.latest_ray_ec2_gpu }} \
+  {{ images.latest_ray_default_gpu }} \
   deployment:app
 ```
 
