@@ -69,7 +69,8 @@ runs:
         echo "lock-pid=${LOCK_PID}" >> $GITHUB_OUTPUT
 
         # Log lock state
-        ls -la ${CACHE_DIR}/.lock-* ${CACHE_DIR}/.download-lock-* ${CACHE_DIR}/.etag-* 2>/dev/null || echo "No lock/etag files in ${CACHE_DIR}"
+        echo "Lock/etag files in ${CACHE_DIR}:"
+        ls -la ${CACHE_DIR}/.lock-* ${CACHE_DIR}/.download-lock-* ${CACHE_DIR}/.etag-* 2>&1 || true
         flock --exclusive --nonblock "${LOCK_FILE}" echo "Usage lock (.lock-${MODEL_NAME}): not held" 2>/dev/null \
           || echo "Usage lock (.lock-${MODEL_NAME}): held (shared lock active)"
         flock --exclusive --nonblock "${DOWNLOAD_LOCK}" echo "Download lock (.download-lock-${MODEL_NAME}): not held" 2>/dev/null \
