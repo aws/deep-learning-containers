@@ -178,30 +178,6 @@ jobs:
           aws-account-id: ${{ inputs.aws-account-id }}
           aws-region: ${{ inputs.aws-region }}
 
-      - name: Debug - Disk usage before cleanup
-        run: |
-          echo "=== df -h ==="
-          df -h
-          echo ""
-          echo "=== du -sh /dlc-models/* (if exists) ==="
-          du -sh /dlc-models/* 2>/dev/null || echo "no /dlc-models"
-          echo ""
-          echo "=== Docker disk usage ==="
-          docker system df
-          echo ""
-          echo "=== Large directories ==="
-          du -sh /tmp/* 2>/dev/null | sort -rh | head -10 || true
-
-      - name: Debug - Clean stale artifacts
-        run: |
-          echo "Removing any leftover model artifacts..."
-          rm -rf /dlc-models/*
-          echo "Pruning stopped containers..."
-          docker container prune -f
-          echo ""
-          echo "=== df -h after cleanup ==="
-          df -h
-
       - name: Download model from S3
         uses: ./.github/actions/download-model
         id: model
