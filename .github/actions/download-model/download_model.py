@@ -57,7 +57,7 @@ def download_and_extract(s3_path: str, model_name: str, cache_dir: str, model_di
 
     logger.info("Extracting %s (this may take several minutes)...", model_name)
     subprocess.run(
-        ["tar", "xzf", tarball, "-C", model_dir, "--checkpoint=2000000", "--checkpoint-action=dot"],
+        ["tar", "xzf", tarball, "-C", model_dir],
         check=True,
     )
     logger.info("Extraction complete.")
