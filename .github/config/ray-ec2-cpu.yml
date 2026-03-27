@@ -15,13 +15,14 @@ common:
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
+  container_type: "serve-ml"
   prod_image: "ray:2.54-cpu-py313-ec2"
   device_type: "cpu"
   contributor: "None"
 
 # Release configuration
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: true
   private_registry: true

@@ -1,0 +1,363 @@
+name: Auto Release - Ray
+
+on:
+  # schedule run must be on the default branch
+  schedule:
+    # Runs at 10:00 AM PST/PDT on Monday and Wednesday
+    - cron: '00 17 * * 1,3'
+
+  # Temporary PR trigger for gamma testing — remove after validation
+  pull_request:
+    paths:
+      - "**ray**"
+      - "!docs/**"
+
+  # Manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  # ============================================================
+  # Load configs for all 4 Ray image variants
+  # ============================================================
+  load-config-ec2-gpu:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/ray-ec2-gpu.yml
+
+  load-config-ec2-cpu:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/ray-ec2-cpu.yml
+
+  load-config-sagemaker-gpu:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/ray-sagemaker-gpu.yml
+
+  load-config-sagemaker-cpu:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/ray-sagemaker-cpu.yml
+
+  # ============================================================
+  # Build all 4 Ray images
+  # ============================================================
+  build-images:
+    needs: [load-config-ec2-gpu, load-config-ec2-cpu, load-config-sagemaker-gpu, load-config-sagemaker-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ matrix.target.name }}-${{ github.run_id }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: ray-ec2-gpu
+            tag: ray-gpu-ec2
+            base-image: "unused-ray-gpu-multistage"
+            dockerfile: docker/ray/Dockerfile.gpu
+            config-ref: ec2-gpu
+          - name: ray-ec2-cpu
+            tag: ray-cpu-ec2
+            base-image: "unused-ray-cpu-multistage"
+            dockerfile: docker/ray/Dockerfile.cpu
+            config-ref: ec2-cpu
+          - name: ray-sagemaker-gpu
+            tag: ray-gpu-sagemaker
+            base-image: "unused-ray-gpu-multistage"
+            dockerfile: docker/ray/Dockerfile.gpu
+            config-ref: sagemaker-gpu
+          - name: ray-sagemaker-cpu
+            tag: ray-cpu-sagemaker
+            base-image: "unused-ray-cpu-multistage"
+            dockerfile: docker/ray/Dockerfile.cpu
+            config-ref: sagemaker-cpu
+    outputs:
+      ec2-gpu-image: ${{ steps.set-output.outputs.ec2-gpu-image }}
+      ec2-cpu-image: ${{ steps.set-output.outputs.ec2-cpu-image }}
+      sagemaker-gpu-image: ${{ steps.set-output.outputs.sagemaker-gpu-image }}
+      sagemaker-cpu-image: ${{ steps.set-output.outputs.sagemaker-cpu-image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build ${{ matrix.target.name }}
+        id: build
+        run: |
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${{ matrix.target.tag }}-${{ github.run_id }}"
+          echo "Building ${CI_IMAGE_URI}"
+
+          docker buildx build --progress plain \
+            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --build-arg BASE_IMAGE="${{ matrix.target.base-image }}" \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target ${{ matrix.target.name }} \
+            -f ${{ matrix.target.dockerfile }} .
+
+          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+
+      - name: Set variant output
+        id: set-output
+        run: |
+          echo "${{ matrix.target.config-ref }}-image=${{ steps.build.outputs.image-uri }}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Sanity tests — all 4 variants
+  # ============================================================
+  sanity-test:
+    needs: [build-images, load-config-ec2-gpu]
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: ray-gpu-ec2 }
+          - { tag: ray-cpu-ec2 }
+          - { tag: ray-gpu-sagemaker }
+          - { tag: ray-cpu-sagemaker }
+    concurrency:
+      group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${{ matrix.target.tag }}-${{ github.run_id }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ray
+      framework-version: "2.54.0"
+      python-version: py313
+      cuda-version: cu129
+      os-version: amzn2023
+      customer-type: ec2
+      arch-type: x86
+      device-type: gpu
+      contributor: None
+      container-type: inference
+
+  # ============================================================
+  # Security tests — all 4 variants
+  # ============================================================
+  security-test:
+    needs: [build-images, load-config-ec2-gpu]
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: ray-gpu-ec2 }
+          - { tag: ray-cpu-ec2 }
+          - { tag: ray-gpu-sagemaker }
+          - { tag: ray-cpu-sagemaker }
+    concurrency:
+      group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${{ matrix.target.tag }}-${{ github.run_id }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ray
+      framework-version: "2.54.0"
+
+  # ============================================================
+  # Generate release specs
+  # ============================================================
+  generate-release-spec-ec2-gpu:
+    needs: [load-config-ec2-gpu, build-images, sanity-test, security-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-ec2-gpu.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-ec2-gpu.outputs.config }}
+
+  generate-release-spec-ec2-cpu:
+    needs: [load-config-ec2-cpu, build-images, sanity-test, security-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-ec2-cpu.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-ec2-cpu.outputs.config }}
+
+  generate-release-spec-sagemaker-gpu:
+    needs: [load-config-sagemaker-gpu, build-images, sanity-test, security-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-sagemaker-gpu.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-sagemaker-gpu.outputs.config }}
+
+  generate-release-spec-sagemaker-cpu:
+    needs: [load-config-sagemaker-cpu, build-images, sanity-test, security-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-sagemaker-cpu.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-sagemaker-cpu.outputs.config }}
+
+  # ============================================================
+  # Release — EC2 GPU
+  # ============================================================
+  release-ec2-gpu:
+    needs: [load-config-ec2-gpu, build-images, generate-release-spec-ec2-gpu]
+    if: needs.generate-release-spec-ec2-gpu.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-ec2-gpu-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:ray-gpu-ec2-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-ec2-gpu.outputs.release-spec }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-ec2-gpu.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — EC2 CPU
+  # ============================================================
+  release-ec2-cpu:
+    needs: [load-config-ec2-cpu, build-images, generate-release-spec-ec2-cpu]
+    if: needs.generate-release-spec-ec2-cpu.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-ec2-cpu-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:ray-cpu-ec2-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-ec2-cpu.outputs.release-spec }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-ec2-cpu.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — SageMaker GPU
+  # ============================================================
+  release-sagemaker-gpu:
+    needs: [load-config-sagemaker-gpu, build-images, generate-release-spec-sagemaker-gpu]
+    if: needs.generate-release-spec-sagemaker-gpu.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-sagemaker-gpu-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:ray-gpu-sagemaker-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-sagemaker-gpu.outputs.release-spec }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-sagemaker-gpu.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — SageMaker CPU
+  # ============================================================
+  release-sagemaker-cpu:
+    needs: [load-config-sagemaker-cpu, build-images, generate-release-spec-sagemaker-cpu]
+    if: needs.generate-release-spec-sagemaker-cpu.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-sagemaker-cpu-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:ray-cpu-sagemaker-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-sagemaker-cpu.outputs.release-spec }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-sagemaker-cpu.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: true
+    secrets: inherit
