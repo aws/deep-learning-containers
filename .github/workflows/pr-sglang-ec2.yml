@@ -1,9 +1,10 @@
 name: PR - SGLang EC2
 
 on:
-  # Direct execution on pull requests
+  # TEMPORARILY DISABLED — consuming instances while debugging amzn2023 model tests
+  # Restore 'branches: [main]' to re-enable
   pull_request:
-    branches: [main]
+    branches: [disabled-temporarily]
     types: [opened, reopened, synchronize]
     paths:
       - "**sglang**"
