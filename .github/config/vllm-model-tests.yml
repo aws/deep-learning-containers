@@ -104,7 +104,7 @@ benchmark:
 #       min_throughput: 280
 #       min_rps: 0.25
 
-  runner-scale-sets:
+  runner-scale-sets: []
     # - name: "qwen3-32b"
     #   s3_model: "qwen3-32b.tar.gz"
     #   extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --gpu-memory-utilization 0.85"
