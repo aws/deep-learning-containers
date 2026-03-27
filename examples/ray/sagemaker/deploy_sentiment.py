@@ -5,7 +5,7 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 
 predictor = Model(
-    image_uri="{{ images.latest_ray_sagemaker_gpu }}",
+    image_uri="763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-sagemaker-cuda",
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
     model_data="s3://<BUCKET>/models/nlp-sentiment/model.tar.gz",
     predictor_cls=Predictor,
