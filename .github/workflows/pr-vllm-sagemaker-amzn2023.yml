@@ -7,6 +7,7 @@ on:
     paths:
       - "docker/vllm/Dockerfile.amzn2023"
       - "scripts/vllm/amzn2023/**"
+      - "!scripts/vllm/amzn2023/vllm_model_smoke_test.sh"
       - "scripts/vllm/dockerd_entrypoint.sh"
       - "scripts/vllm/sagemaker_entrypoint.sh"
       - "scripts/common/**"
@@ -119,6 +120,7 @@ jobs:
             build-change:
               - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/vllm/amzn2023/**"
+              - "!scripts/vllm/amzn2023/vllm_model_smoke_test.sh"
               - "scripts/vllm/dockerd_entrypoint.sh"
               - "scripts/vllm/sagemaker_entrypoint.sh"
               - "scripts/common/**"

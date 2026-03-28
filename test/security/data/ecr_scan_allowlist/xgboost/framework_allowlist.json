@@ -1,0 +1,357 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-0994",
+        "reason": "protobuf pinned to 3.20.x \u2014 required by sagemaker-containers 2.8.6.post2. Cannot upgrade to 6.x.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-2673",
+        "reason": "openssl 3.6.1 via conda-forge; 3.6.2 not yet available. Will auto-resolve.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-27516",
+        "reason": "Jinja2 pinned to 2.11.3 by sagemaker-containers/Flask 1.1.1. Cannot upgrade without breaking serving stack.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-56326",
+        "reason": "Jinja2 pinned to 2.11.3 by sagemaker-containers/Flask 1.1.1. Cannot upgrade without breaking serving stack.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-30861",
+        "reason": "Flask pinned to 1.1.1 by sagemaker-containers 2.8.6.post2. Cannot upgrade.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2022-29361",
+        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-46136",
+        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-34069",
+        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-49767",
+        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-25577",
+        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21441",
+        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Cannot upgrade without breaking AWS SDK.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66418",
+        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Cannot upgrade without breaking AWS SDK.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66471",
+        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Cannot upgrade without breaking AWS SDK.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-43804",
+        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Cannot upgrade without breaking AWS SDK.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-30749",
+        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u462 update yet.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-50106",
+        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u462 update yet.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-53066",
+        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u472 update yet.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21945",
+        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u482 update yet.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21932",
+        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u482 update yet.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38000",
+        "reason": "linux-libc-dev 5.4.0 \u2014 Ubuntu 20.04 kernel header package. Build-time only, not in runtime image attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-37838",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-37752",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-52757",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2022-49698",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38352",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-37797",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39735",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-50073",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-21855",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-58093",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-22020",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38666",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-56664",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-21991",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-50047",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-37890",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-21780",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-35867",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-56640",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-53034",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-49950",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-37798",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-21993",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-50067",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38618",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-53168",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-37785",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-21726",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-38541",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38350",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-22035",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-52854",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-22079",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-47691",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-53218",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-56551",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2022-49390",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2022-49026",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-52975",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-22004",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-50061",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-21796",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2022-49267",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-21727",
+        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23949",
+        "reason": "jaraco.context vendored inside setuptools. setuptools upgrade to >=80.9.0 did not update the vendored copy. Low risk \u2014 tarball() not used in serving/training.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25990",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream sagemaker-xgboost-container enforces exact version at runtime. PSD loading not in XGBoost inference/training path.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-50447",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-44271",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2023-4863",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2022-45198",
+        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
+    },
+    {
+        "vulnerability_id": "CVE-2024-39689",
+        "reason": "certifi pinned to 2023.7.22 \u2014 upstream enforces exact version at runtime.",
+        "review_by": "2026-06-26"
+    }
+]
