@@ -76,7 +76,7 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 
 model = Model(
-    image_uri="{{ images.latest_vllm_sagemaker }}",
+    image_uri="763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda",
     role="arn:aws:iam::<account_id>:role/<role_name>",
     predictor_cls=Predictor,
     env={"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
@@ -109,7 +109,7 @@ from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 model = Model.create(
     model_name="vllm-model",
     primary_container=ContainerDefinition(
-        image="{{ images.latest_vllm_sagemaker }}",
+        image="763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda",
         environment={"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
     ),
     execution_role_arn="arn:aws:iam::<account_id>:role/<role_name>",
@@ -160,7 +160,7 @@ smrt = boto3.client("sagemaker-runtime")
 sm.create_model(
     ModelName="vllm-model",
     PrimaryContainer={
-        "Image": "{{ images.latest_vllm_sagemaker }}",
+        "Image": "763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda",
         "Environment": {"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
     },
     ExecutionRoleArn="arn:aws:iam::<account_id>:role/<role_name>",

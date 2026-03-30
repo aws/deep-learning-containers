@@ -48,7 +48,7 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 
 model = Model(
-    image_uri="{{ images.latest_vllm_sagemaker }}",
+    image_uri="763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda",
     role="arn:aws:iam::<account_id>:role/<role_name>",
     predictor_cls=Predictor,
     env={
@@ -77,7 +77,7 @@ sagemaker = boto3.client("sagemaker")
 sagemaker.create_model(
     ModelName="vllm-model",
     PrimaryContainer={
-        "Image": "{{ images.latest_vllm_sagemaker }}",
+        "Image": "763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda",
         "Environment": {
             "SM_VLLM_MODEL": "meta-llama/Llama-3.1-8B-Instruct",
             "HF_TOKEN": "<your_hf_token>",
