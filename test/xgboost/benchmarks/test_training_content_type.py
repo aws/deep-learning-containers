@@ -26,7 +26,11 @@ BASE_HP = {
         ("xgboost/libsvm/500000x1000", "text/libsvm", "File"),
         ("xgboost/csv/500000x1000", "text/csv", "File"),
         ("xgboost/csv/500000x1000", "text/csv", "Pipe"),
-        ("xgboost/recordio-protobuf/500000x1000", "application/x-recordio-protobuf", "File"),
+        (
+            "xgboost/recordio-protobuf/500000x1000",
+            "application/x-recordio-protobuf",
+            "File",
+        ),
         ("xgboost/parquet/500000x1000", "application/x-parquet", "File"),
     ],
     ids=[
@@ -37,7 +41,9 @@ BASE_HP = {
         "parquet-file",
     ],
 )
-def test_content_type(image_uri, role, benchmark_bucket, dataset_path, content_type, input_mode):
+def test_content_type(
+    image_uri, role, benchmark_bucket, dataset_path, content_type, input_mode
+):
     _, duration, desc = run_training_job(
         image_uri=image_uri,
         role=role,
