@@ -19,6 +19,7 @@ common:
   build_target: "ray-sagemaker-cpu"
   ci_tag: "ray-cpu-sagemaker"
   dockerfile: "docker/ray/Dockerfile.cpu"
+  base_image: "unused-ray-cpu-multistage"
   platform: "sagemaker"
   prod_image: "ray:2.54-cpu-py313"
   device_type: "cpu"

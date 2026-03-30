@@ -30,9 +30,20 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
       build-target: ${{ steps.parse.outputs.build-target }}
       ci-tag: ${{ steps.parse.outputs.ci-tag }}
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
     steps:
       - uses: actions/checkout@v5
       - id: load
@@ -42,17 +53,39 @@ jobs:
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.container_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "build-target=$(jq -r '.common.build_target' config.json)" >> $GITHUB_OUTPUT
           echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
           echo "dockerfile=$(jq -r '.common.dockerfile' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image' config.json)" >> $GITHUB_OUTPUT
 
   load-config-ec2-cpu:
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
       build-target: ${{ steps.parse.outputs.build-target }}
       ci-tag: ${{ steps.parse.outputs.ci-tag }}
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
     steps:
       - uses: actions/checkout@v5
       - id: load
@@ -62,17 +95,39 @@ jobs:
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.container_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "build-target=$(jq -r '.common.build_target' config.json)" >> $GITHUB_OUTPUT
           echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
           echo "dockerfile=$(jq -r '.common.dockerfile' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image' config.json)" >> $GITHUB_OUTPUT
 
   load-config-sagemaker-gpu:
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
       build-target: ${{ steps.parse.outputs.build-target }}
       ci-tag: ${{ steps.parse.outputs.ci-tag }}
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
     steps:
       - uses: actions/checkout@v5
       - id: load
@@ -82,17 +137,39 @@ jobs:
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.container_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "build-target=$(jq -r '.common.build_target' config.json)" >> $GITHUB_OUTPUT
           echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
           echo "dockerfile=$(jq -r '.common.dockerfile' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image' config.json)" >> $GITHUB_OUTPUT
 
   load-config-sagemaker-cpu:
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
       build-target: ${{ steps.parse.outputs.build-target }}
       ci-tag: ${{ steps.parse.outputs.ci-tag }}
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
     steps:
       - uses: actions/checkout@v5
       - id: load
@@ -102,9 +179,20 @@ jobs:
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.container_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "build-target=$(jq -r '.common.build_target' config.json)" >> $GITHUB_OUTPUT
           echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
           echo "dockerfile=$(jq -r '.common.dockerfile' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image' config.json)" >> $GITHUB_OUTPUT
 
   # ============================================================
   # Build all 4 Ray images
@@ -122,25 +210,26 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/buildkitd.sh
-      - uses: ./.github/actions/ecr-authenticate
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
         with:
+          framework: ${{ needs.load-config-ec2-gpu.outputs.framework }}
+          target: ${{ needs.load-config-ec2-gpu.outputs.build-target }}
+          base-image: ${{ needs.load-config-ec2-gpu.outputs.base-image }}
+          framework-version: ${{ needs.load-config-ec2-gpu.outputs.framework-version }}
+          container-type: ${{ needs.load-config-ec2-gpu.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-      - name: Build
-        id: build
-        run: |
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${{ needs.load-config-ec2-gpu.outputs.ci-tag }}-${{ github.run_id }}"
-          docker buildx build --progress plain \
-            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
-            --build-arg BASE_IMAGE="unused-ray-gpu-multistage" \
-            --cache-to=type=inline \
-            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-            --tag ${CI_IMAGE_URI} \
-            --push \
-            --target ${{ needs.load-config-ec2-gpu.outputs.build-target }} \
-            -f ${{ needs.load-config-ec2-gpu.outputs.dockerfile }} .
-          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+          tag-pr: ${{ needs.load-config-ec2-gpu.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-ec2-gpu.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-ec2-gpu.outputs.arch-type }}
+          device-type: ${{ needs.load-config-ec2-gpu.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-ec2-gpu.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-ec2-gpu.outputs.python-version }}
+          os-version: ${{ needs.load-config-ec2-gpu.outputs.os-version }}
+          contributor: ${{ needs.load-config-ec2-gpu.outputs.contributor }}
+          customer-type: ${{ needs.load-config-ec2-gpu.outputs.customer-type }}
 
   build-ec2-cpu:
     needs: [load-config-ec2-cpu]
@@ -155,25 +244,26 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/buildkitd.sh
-      - uses: ./.github/actions/ecr-authenticate
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
         with:
+          framework: ${{ needs.load-config-ec2-cpu.outputs.framework }}
+          target: ${{ needs.load-config-ec2-cpu.outputs.build-target }}
+          base-image: ${{ needs.load-config-ec2-cpu.outputs.base-image }}
+          framework-version: ${{ needs.load-config-ec2-cpu.outputs.framework-version }}
+          container-type: ${{ needs.load-config-ec2-cpu.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-      - name: Build
-        id: build
-        run: |
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${{ needs.load-config-ec2-cpu.outputs.ci-tag }}-${{ github.run_id }}"
-          docker buildx build --progress plain \
-            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
-            --build-arg BASE_IMAGE="unused-ray-cpu-multistage" \
-            --cache-to=type=inline \
-            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-            --tag ${CI_IMAGE_URI} \
-            --push \
-            --target ${{ needs.load-config-ec2-cpu.outputs.build-target }} \
-            -f ${{ needs.load-config-ec2-cpu.outputs.dockerfile }} .
-          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+          tag-pr: ${{ needs.load-config-ec2-cpu.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-ec2-cpu.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-ec2-cpu.outputs.arch-type }}
+          device-type: ${{ needs.load-config-ec2-cpu.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-ec2-cpu.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-ec2-cpu.outputs.python-version }}
+          os-version: ${{ needs.load-config-ec2-cpu.outputs.os-version }}
+          contributor: ${{ needs.load-config-ec2-cpu.outputs.contributor }}
+          customer-type: ${{ needs.load-config-ec2-cpu.outputs.customer-type }}
 
   build-sagemaker-gpu:
     needs: [load-config-sagemaker-gpu]
@@ -188,25 +278,26 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/buildkitd.sh
-      - uses: ./.github/actions/ecr-authenticate
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
         with:
+          framework: ${{ needs.load-config-sagemaker-gpu.outputs.framework }}
+          target: ${{ needs.load-config-sagemaker-gpu.outputs.build-target }}
+          base-image: ${{ needs.load-config-sagemaker-gpu.outputs.base-image }}
+          framework-version: ${{ needs.load-config-sagemaker-gpu.outputs.framework-version }}
+          container-type: ${{ needs.load-config-sagemaker-gpu.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-      - name: Build
-        id: build
-        run: |
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${{ needs.load-config-sagemaker-gpu.outputs.ci-tag }}-${{ github.run_id }}"
-          docker buildx build --progress plain \
-            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
-            --build-arg BASE_IMAGE="unused-ray-gpu-multistage" \
-            --cache-to=type=inline \
-            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-            --tag ${CI_IMAGE_URI} \
-            --push \
-            --target ${{ needs.load-config-sagemaker-gpu.outputs.build-target }} \
-            -f ${{ needs.load-config-sagemaker-gpu.outputs.dockerfile }} .
-          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+          tag-pr: ${{ needs.load-config-sagemaker-gpu.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-sagemaker-gpu.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-sagemaker-gpu.outputs.arch-type }}
+          device-type: ${{ needs.load-config-sagemaker-gpu.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-sagemaker-gpu.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-sagemaker-gpu.outputs.python-version }}
+          os-version: ${{ needs.load-config-sagemaker-gpu.outputs.os-version }}
+          contributor: ${{ needs.load-config-sagemaker-gpu.outputs.contributor }}
+          customer-type: ${{ needs.load-config-sagemaker-gpu.outputs.customer-type }}
 
   build-sagemaker-cpu:
     needs: [load-config-sagemaker-cpu]
@@ -221,25 +312,26 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/buildkitd.sh
-      - uses: ./.github/actions/ecr-authenticate
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
         with:
+          framework: ${{ needs.load-config-sagemaker-cpu.outputs.framework }}
+          target: ${{ needs.load-config-sagemaker-cpu.outputs.build-target }}
+          base-image: ${{ needs.load-config-sagemaker-cpu.outputs.base-image }}
+          framework-version: ${{ needs.load-config-sagemaker-cpu.outputs.framework-version }}
+          container-type: ${{ needs.load-config-sagemaker-cpu.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-      - name: Build
-        id: build
-        run: |
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${{ needs.load-config-sagemaker-cpu.outputs.ci-tag }}-${{ github.run_id }}"
-          docker buildx build --progress plain \
-            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
-            --build-arg BASE_IMAGE="unused-ray-cpu-multistage" \
-            --cache-to=type=inline \
-            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-            --tag ${CI_IMAGE_URI} \
-            --push \
-            --target ${{ needs.load-config-sagemaker-cpu.outputs.build-target }} \
-            -f ${{ needs.load-config-sagemaker-cpu.outputs.dockerfile }} .
-          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+          tag-pr: ${{ needs.load-config-sagemaker-cpu.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-sagemaker-cpu.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-sagemaker-cpu.outputs.arch-type }}
+          device-type: ${{ needs.load-config-sagemaker-cpu.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-sagemaker-cpu.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-sagemaker-cpu.outputs.python-version }}
+          os-version: ${{ needs.load-config-sagemaker-cpu.outputs.os-version }}
+          contributor: ${{ needs.load-config-sagemaker-cpu.outputs.contributor }}
+          customer-type: ${{ needs.load-config-sagemaker-cpu.outputs.customer-type }}
 
   # ============================================================
   # Sanity tests
