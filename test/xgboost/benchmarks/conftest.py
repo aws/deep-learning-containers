@@ -76,11 +76,14 @@ def run_training_job(
             s3_data=s3_uri(benchmark_bucket, train_s3_key), content_type=content_type
         ),
         "validation": TrainingInput(
-            s3_data=s3_uri(benchmark_bucket, validation_s3_key), content_type=content_type
+            s3_data=s3_uri(benchmark_bucket, validation_s3_key),
+            content_type=content_type,
         ),
     }
 
-    LOGGER.info(f"Starting benchmark job: {job_name} ({instance_count}x {instance_type})")
+    LOGGER.info(
+        f"Starting benchmark job: {job_name} ({instance_count}x {instance_type})"
+    )
     sm = boto3.client("sagemaker")
     start = time.time()
     try:
