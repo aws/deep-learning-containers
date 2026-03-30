@@ -1,7 +1,7 @@
 """Shared pytest configuration for XGBoost tests."""
 
 import pytest
-from test_utils.constants import XGBOOST_SAGEMAKER_ROLE
+from test_utils.constants import SAGEMAKER_ROLE
 
 
 def pytest_addoption(parser):
@@ -31,4 +31,4 @@ def region(request):
 
 @pytest.fixture(scope="session")
 def role():
-    return XGBOOST_SAGEMAKER_ROLE
+    return SAGEMAKER_ROLE
