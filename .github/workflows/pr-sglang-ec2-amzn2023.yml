@@ -12,7 +12,7 @@ on:
       - "scripts/telemetry/**"
       - ".github/config/sglang-ec2-amzn2023.yml"
       - ".github/workflows/pr-sglang-ec2-amzn2023.yml"
-      - "test/sanity/**"
+      # - "test/sanity/**"
       - "test/telemetry/**"
 
 permissions:

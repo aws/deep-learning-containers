@@ -12,7 +12,7 @@ on:
       - "scripts/telemetry/**"
       - ".github/config/sglang-sagemaker-amzn2023.yml"
       - ".github/workflows/pr-sglang-sagemaker-amzn2023.yml"
-      - "test/sanity/**"
+      # - "test/sanity/**"
       - "test/telemetry/**"
       - "test/sglang/sagemaker/**"
 

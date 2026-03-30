@@ -15,7 +15,7 @@ on:
       - ".github/workflows/pr-vllm-ec2-amzn2023.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - ".github/workflows/reusable-vllm-model-tests.yml"
-      - "test/sanity/**"
+      # - "test/sanity/**"
       - "test/telemetry/**"
 
 permissions:
