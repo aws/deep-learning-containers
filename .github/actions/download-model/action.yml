@@ -1,0 +1,98 @@
+name: Download Model
+
+description: >
+  Download a model from S3 with local caching and lifecycle management.
+  Uses flock (kernel-level advisory locks) for safe concurrent access on
+  shared instances. Evicts unused cached models (smallest first) if disk
+  space is below threshold. Checks ETag to skip re-downloads.
+
+  Lock design:
+    .lock-<model>          shared lock held for job lifetime (prevents eviction)
+    .download-lock-<model> exclusive lock during download (serializes downloads)
+
+  The shared lock is acquired BEFORE the download so there is no gap
+  where the model could be evicted between download and usage.
+
+inputs:
+  s3-path:
+    description: Full S3 path to the model tarball (e.g., s3://bucket/models/model.tar.gz)
+    required: true
+  model-name:
+    description: Model name used for the local directory (e.g., qwen3-32b)
+    required: true
+  cache-dir:
+    description: Base directory for cached models
+    required: false
+    default: /dlc-models
+  min-free-gb:
+    description: >
+      Minimum free disk space (GB) required before downloading. If free
+      space is below this, unused models are evicted smallest-first.
+      Should be >= 2x the largest model tarball to accommodate both the
+      download and extraction.
+    required: false
+    default: "250"
+
+outputs:
+  model-dir:
+    description: Path to the extracted model directory
+    value: ${{ steps.download.outputs.model-dir }}
+  lock-pid:
+    description: PID of the background lock holder (caller should kill on cleanup)
+    value: ${{ steps.download.outputs.lock-pid }}
+
+runs:
+  using: composite
+  steps:
+    - name: Evict unused models if disk is low
+      shell: bash
+      run: |
+        python3 ${{ github.action_path }}/evict_models.py \
+          --cache-dir "${{ inputs.cache-dir }}" \
+          --min-free-gb "${{ inputs.min-free-gb }}"
+
+    - name: Acquire lock and download model
+      id: download
+      shell: bash
+      run: |
+        CACHE_DIR="${{ inputs.cache-dir }}"
+        MODEL_NAME="${{ inputs.model-name }}"
+        LOCK_FILE="${CACHE_DIR}/.lock-${MODEL_NAME}"
+        DOWNLOAD_LOCK="${CACHE_DIR}/.download-lock-${MODEL_NAME}"
+        mkdir -p "${CACHE_DIR}"
+
+        # 1. Acquire shared lock FIRST — prevents eviction for the entire
+        #    job lifetime (download + usage).
+        flock --shared "${LOCK_FILE}" sleep 21600 &
+        LOCK_PID=$!
+        echo "Acquired shared lock on ${MODEL_NAME} (PID: ${LOCK_PID})"
+        echo "lock-pid=${LOCK_PID}" >> $GITHUB_OUTPUT
+
+        # Log lock state
+        echo "Lock/etag files in ${CACHE_DIR}:"
+        ls -la ${CACHE_DIR}/.lock-* ${CACHE_DIR}/.download-lock-* ${CACHE_DIR}/.etag-* 2>/dev/null \
+          || { echo "No lock/etag files found. Contents of ${CACHE_DIR}:"; ls -la ${CACHE_DIR}/ 2>/dev/null || echo "${CACHE_DIR} does not exist"; }
+        flock --exclusive --nonblock "${LOCK_FILE}" echo "Usage lock (.lock-${MODEL_NAME}): not held" 2>/dev/null \
+          || echo "Usage lock (.lock-${MODEL_NAME}): held (shared lock active)"
+        flock --exclusive --nonblock "${DOWNLOAD_LOCK}" echo "Download lock (.download-lock-${MODEL_NAME}): not held" 2>/dev/null \
+          || echo "Download lock (.download-lock-${MODEL_NAME}): held by another process"
+
+        # 2. Exclusive download lock — serializes concurrent downloads of the
+        #    same model. Uses a SEPARATE lock file from the usage lock.
+        echo "Acquiring exclusive download lock... $(date -u +%Y-%m-%dT%H:%M:%S)"
+        flock -x "${DOWNLOAD_LOCK}" bash -c '
+          echo "Exclusive download lock acquired. $(date -u +%Y-%m-%dT%H:%M:%S)"
+          python3 '"${{ github.action_path }}"'/download_model.py \
+            --s3-path "'"${{ inputs.s3-path }}"'" \
+            --model-name "'"${MODEL_NAME}"'" \
+            --cache-dir "'"${CACHE_DIR}"'"
+        '
+
+        echo "model-dir=${CACHE_DIR}/${MODEL_NAME}" >> $GITHUB_OUTPUT
+
+        # Log state after download
+        echo "Post-download state:"
+        ls -la ${CACHE_DIR}/.lock-* ${CACHE_DIR}/.download-lock-* ${CACHE_DIR}/.etag-* 2>/dev/null \
+          || echo "No lock/etag files"
+        ls -d ${CACHE_DIR}/${MODEL_NAME}/ 2>/dev/null && echo "Model dir exists" || echo "Model dir missing"
+        df -h "${CACHE_DIR}" 2>/dev/null || true
