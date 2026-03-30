@@ -122,8 +122,8 @@ for DIR in /etc /opt "$HOME"; do
   while IFS= read -r F; do
     echo "FAIL: Private key header found in $F"
     FAILED=1
-  done < <(grep -rlI -- '-----BEGIN.*PRIVATE KEY-----' "$DIR" \
-    --exclude-dir=ssl --exclude-dir=.ssh "${GREP_EXCLUDE[@]}" \
+  done < <(grep -rlI --exclude-dir=ssl --exclude-dir=.ssh "${GREP_EXCLUDE[@]}" \
+    -- '-----BEGIN.*PRIVATE KEY-----' "$DIR" \
     2>/dev/null || true)
 done
 
