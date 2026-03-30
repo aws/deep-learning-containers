@@ -13,10 +13,10 @@ on:
       - "scripts/common/**"
       - "scripts/telemetry/**"
       - ".github/config/vllm-sagemaker-amzn2023.yml"
-      # - ".github/workflows/pr-vllm-sagemaker-amzn2023.yml"
+      - ".github/workflows/pr-vllm-sagemaker-amzn2023.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - ".github/workflows/reusable-vllm-sagemaker-tests.yml"
-      # - "test/sanity/**"
+      - "test/sanity/**"
       - "test/telemetry/**"
       - "test/vllm/sagemaker/**"
 
