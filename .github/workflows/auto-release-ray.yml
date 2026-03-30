@@ -6,7 +6,7 @@ on:
     # Runs at 10:00 AM PST/PDT on Monday and Wednesday
     - cron: '00 17 * * 1,3'
 
-  # Temporary PR trigger for gamma testing — remove after validation
+  # Temporary PR trigger for gamma testing — remove after validation completes
   pull_request:
     paths:
       - "**ray**"
