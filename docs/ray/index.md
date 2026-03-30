@@ -1,6 +1,7 @@
 # Ray Serve Inference
 
-Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) on AWS. Available in CPU and GPU variants, built on Amazon Linux 2023 with Python 3.13.
+Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) on AWS. Available in CPU and GPU
+variants, built on Amazon Linux 2023 with Python 3.13.
 
 ## Latest Announcements
 
@@ -10,19 +11,24 @@ Pre-built Docker images for deploying ML models with [Ray Serve](https://docs.ra
 
 === "Default"
 
-    ```bash
-    docker pull {{ images.latest_ray_default_gpu }}
-    docker pull {{ images.latest_ray_default_cpu }}
-    ```
+````
+```bash
+docker pull {{ images.latest_ray_default_gpu }}
+docker pull {{ images.latest_ray_default_cpu }}
+```
+````
 
 === "SageMaker"
 
-    ```bash
-    docker pull {{ images.latest_ray_sagemaker_gpu }}
-    docker pull {{ images.latest_ray_sagemaker_cpu }}
-    ```
+````
+```bash
+docker pull {{ images.latest_ray_sagemaker_gpu }}
+docker pull {{ images.latest_ray_sagemaker_cpu }}
+```
+````
 
-Default images are tested on EC2 instances. See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication instructions.
+Default images are tested on EC2 instances. See [Available Images](../reference/available_images.md) for all image URIs and
+[Getting Started](../get_started/index.md) for authentication instructions.
 
 ## Packages
 
@@ -30,7 +36,8 @@ For package versions included in each release, see the [Release Notes](../releas
 
 ## Versioning Strategy
 
-Image tags follow the format `ray:serve-ml-[<platform>-]{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`. The `<platform>` segment is omitted for default images and present for platform-specific images (e.g. `sagemaker`).
+Image tags follow the format `ray:serve-ml-[<platform>-]{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`. The `<platform>` segment is omitted for default images
+and present for platform-specific images (e.g. `sagemaker`).
 
 Version bumps follow these rules:
 
@@ -41,7 +48,7 @@ Version bumps follow these rules:
 ## Support Policy
 
 | DLC Version | Ray | Python | CUDA | GA Date | End of Patch |
-| ----------- | --- | ------ | ---- | ------- | ------------ |
+| --- | --- | --- | --- | --- | --- |
 | v1.0.0 | 2.54.0 | 3.13 | 12.9.1 | 2026-02-18 | 2027-02-18 |
 
 See [Support Policy](../reference/support_policy.md) for the full lifecycle policy.
@@ -60,7 +67,8 @@ model.tar.gz/
     └── requirements.txt     # Runtime dependencies (optional, installed at startup)
 ```
 
-Model weights can optionally be placed at the tarball root alongside `config.yaml` and `deployment.py` (extracted to `/opt/ml/model/` at runtime) if your model doesn't download them at startup.
+Model weights can optionally be placed at the tarball root alongside `config.yaml` and `deployment.py` (extracted to `/opt/ml/model/` at runtime) if
+your model doesn't download them at startup.
 
 The `config.yaml` references your deployment module:
 
@@ -77,7 +85,8 @@ applications:
 
 Set `num_gpus` to the number of GPUs allocated per replica (`0` for CPU-only deployments).
 
-The `import_path` follows the format `module:variable` — `deployment` refers to `deployment.py` in the model package, and `app` is the bound deployment defined at the bottom of that file:
+The `import_path` follows the format `module:variable` — `deployment` refers to `deployment.py` in the model package, and `app` is the bound
+deployment defined at the bottom of that file:
 
 ```python
 # deployment.py
@@ -101,7 +110,7 @@ app = MyDeployment.bind()
 The entrypoint resolves the serve target in this priority order:
 
 | Method | Platform | How |
-| ------ | -------- | --- |
+| --- | --- | --- |
 | CLI argument | EC2 only | `docker run <image> deployment:app` — overrides `config.yaml` |
 | `config.yaml` | EC2 + SageMaker | Auto-detected at `/opt/ml/model/config.yaml` |
 | `SM_RAYSERVE_APP` env var | SageMaker only | Fallback when no `config.yaml` is present |
@@ -109,23 +118,26 @@ The entrypoint resolves the serve target in this priority order:
 ### EC2 Environment Variables
 
 | Variable | Default | Description |
-| -------- | ------- | ----------- |
+| --- | --- | --- |
 | `RAY_SERVE_HTTP_HOST` | `127.0.0.1` | Set to `0.0.0.0` to expose the endpoint outside the container |
 | `RAY_SERVE_HTTP_PORT` | `8000` | HTTP port for Ray Serve |
 
 ### Runtime Dependencies
 
-Place a `code/requirements.txt` in your model package. It is installed automatically before the Ray cluster starts. On SageMaker, [CodeArtifact](https://aws.amazon.com/codeartifact/) is supported via the `CA_REPOSITORY_ARN` environment variable.
+Place a `code/requirements.txt` in your model package. It is installed automatically before the Ray cluster starts. On SageMaker,
+[CodeArtifact](https://aws.amazon.com/codeartifact/) is supported via the `CA_REPOSITORY_ARN` environment variable.
 
 ## Examples
 
 ### EC2 Deployment
 
-Each example below includes the full model package files. The first three download weights automatically on startup. The tabular example requires pre-trained weights — substitute your own trained model.
+Each example below includes the full model package files. The first three download weights automatically on startup. The tabular example requires
+pre-trained weights — substitute your own trained model.
 
 #### Sentiment Analysis
 
-Classify text sentiment using [DistilBERT](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english). Model weights download automatically from HuggingFace on first startup.
+Classify text sentiment using [DistilBERT](https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english). Model weights download
+automatically from HuggingFace on first startup.
 
 Create the model package:
 
@@ -186,8 +198,8 @@ Save `cv-model/config.yaml`:
 --8<-- "examples/ray/cv-model/config.yaml"
 ```
 
-!!! note
-    The `autoscaling_config` in `deployment.py` sets `max_replicas: 2`. Each replica requests 1 GPU, so this configuration requires a multi-GPU instance. On single-GPU instances, reduce `max_replicas` to 1.
+!!! note The `autoscaling_config` in `deployment.py` sets `max_replicas: 2`. Each replica requests 1 GPU, so this configuration requires a multi-GPU
+instance. On single-GPU instances, reduce `max_replicas` to 1.
 
 Save `cv-model/deployment.py`:
 
@@ -229,7 +241,8 @@ curl -X POST http://localhost:8000/ \
 
 #### Audio Transcription
 
-Transcribe speech using [Wav2Vec2](https://huggingface.co/facebook/wav2vec2-base-960h) with FFmpeg backend. Weights download automatically on first startup.
+Transcribe speech using [Wav2Vec2](https://huggingface.co/facebook/wav2vec2-base-960h) with FFmpeg backend. Weights download automatically on first
+startup.
 
 Create the model package:
 
@@ -274,7 +287,8 @@ curl -X POST http://localhost:8000/ \
 
 #### Tabular Classification
 
-Classify Iris species from feature vectors using a small PyTorch neural network. This example requires pre-trained weights (`iris_model.pth` and `norm_params.json`) in the model directory — substitute your own trained model.
+Classify Iris species from feature vectors using a small PyTorch neural network. This example requires pre-trained weights (`iris_model.pth` and
+`norm_params.json`) in the model directory — substitute your own trained model.
 
 Create the model package:
 
@@ -327,10 +341,12 @@ Install the SageMaker Python SDK v2 (v3 drops the `Model`, `Predictor`, and `Ser
 pip install 'sagemaker>=2,<3'
 ```
 
-To deploy on SageMaker, package your model directory as a tarball, upload to S3, and deploy using the [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The tarball is automatically downloaded and extracted to `/opt/ml/model/` before the container starts. The container exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference) endpoints.
+To deploy on SageMaker, package your model directory as a tarball, upload to S3, and deploy using the
+[SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The tarball is automatically downloaded and extracted to `/opt/ml/model/` before the
+container starts. The container exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference)
+endpoints.
 
-!!! warning
-    SageMaker endpoint deployment takes several minutes and incurs costs for the running instance. Remember to delete endpoints when done.
+!!! warning SageMaker endpoint deployment takes several minutes and incurs costs for the running instance. Remember to delete endpoints when done.
 
 #### Sentiment Analysis
 
@@ -346,7 +362,9 @@ aws s3 cp /tmp/nlp-model.tar.gz s3://<BUCKET>/models/nlp-sentiment/model.tar.gz
 --8<-- "examples/ray/sagemaker/deploy_sentiment.py"
 ```
 
-GPU deploys require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 12.9 images. CPU deploys do not need this. See [ProductionVariant API reference](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html) for valid values.
+GPU deploys require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 12.9 images. CPU deploys do not
+need this. See [ProductionVariant API reference](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html) for valid
+values.
 
 When done, delete the endpoint to stop incurring costs:
 
@@ -354,7 +372,9 @@ When done, delete the endpoint to stop incurring costs:
 predictor.delete_endpoint()
 ```
 
-The other EC2 examples (image classification, audio, tabular) deploy the same way — package the model directory as a tarball, upload to S3, and use the same SDK pattern. Use `IdentitySerializer` for binary inputs (images, audio) and the CPU image (`serve-ml-sagemaker-cpu`) for CPU-only models like tabular.
+The other EC2 examples (image classification, audio, tabular) deploy the same way — package the model directory as a tarball, upload to S3, and use
+the same SDK pattern. Use `IdentitySerializer` for binary inputs (images, audio) and the CPU image (`serve-ml-sagemaker-cpu`) for CPU-only models like
+tabular.
 
 ### Direct App Import
 
@@ -373,7 +393,9 @@ docker run -d --gpus all \
   deployment:app
 ```
 
-On SageMaker, set the `SM_RAYSERVE_APP` environment variable. Package your model directory the same way as the sentiment example (tarball uploaded to S3), but omit `config.yaml`. The `deployment.py` must be at the tarball root — `SM_RAYSERVE_APP=deployment:app` resolves the module from `/opt/ml/model/`.
+On SageMaker, set the `SM_RAYSERVE_APP` environment variable. Package your model directory the same way as the sentiment example (tarball uploaded to
+S3), but omit `config.yaml`. The `deployment.py` must be at the tarball root — `SM_RAYSERVE_APP=deployment:app` resolves the module from
+`/opt/ml/model/`.
 
 ```python
 --8<-- "examples/ray/sagemaker/deploy_direct_app.py"

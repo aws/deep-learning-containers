@@ -18,7 +18,9 @@ def _get_latest_ray_uri(platform: str, accelerator: str) -> str:
         if img.get("platform") == platform and img.get("accelerator") == accelerator
     ]
     if not matching:
-        raise ValueError(f"Image not found for ray with platform={platform}, accelerator={accelerator}")
+        raise ValueError(
+            f"Image not found for ray with platform={platform}, accelerator={accelerator}"
+        )
     latest = sort_by_version(matching)[0]
     account = latest.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
     return build_ecr_uri(account, "ray", latest.display_tag, "us-west-2")
