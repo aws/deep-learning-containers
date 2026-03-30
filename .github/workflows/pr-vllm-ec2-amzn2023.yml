@@ -123,7 +123,7 @@ jobs:
               - "scripts/telemetry/**"
               - ".github/config/vllm-ec2-amzn2023.yml"
             sanity-test-change:
-              # - "test/sanity/**"
+              - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
 
