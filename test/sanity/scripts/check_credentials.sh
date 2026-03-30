@@ -117,14 +117,14 @@ for DIR in /etc /opt "$HOME"; do
 done
 
 # Scan for private key headers outside standard certificate paths
-# Exclude .ssh — EFA and distributed training scripts generate SSH keys at build time
-# for passwordless inter-container communication (see configure_ssh.sh, install_efa.sh)
+# Exclude .ssh and ssh — build scripts generate SSH user keys (.ssh/id_rsa) for
+# inter-container communication and host keys (/etc/ssh/ssh_host_*) for sshd
 for DIR in /etc /opt "$HOME"; do
   [ -d "$DIR" ] || continue
   while IFS= read -r F; do
     echo "FAIL: Private key header found in $F"
     FAILED=1
-  done < <(grep -rlI --exclude-dir=ssl --exclude-dir=.ssh "${GREP_EXCLUDE[@]}" \
+  done < <(grep -rlI --exclude-dir=ssl --exclude-dir=.ssh --exclude-dir=ssh "${GREP_EXCLUDE[@]}" \
     -- '-----BEGIN.*PRIVATE KEY-----' "$DIR" \
     2>/dev/null || true)
 done
