@@ -65,16 +65,30 @@ predictor = model.deploy(
     inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
     serializer=JSONSerializer(),
 )
+
+response = predictor.predict({
+    "model": "meta-llama/Llama-3.1-70B-Instruct",
+    "messages": [{"role": "user", "content": "What is deep learning?"}],
+    "max_tokens": 256,
+})
+print(response)
+
+# Cleanup when done
+predictor.delete_model()
+predictor.delete_endpoint(delete_endpoint_config=True)
 ```
 
 ### Using Boto3
 
 ```python
+import json
+
 import boto3
 
-sagemaker = boto3.client("sagemaker")
+sm = boto3.client("sagemaker")
+smrt = boto3.client("sagemaker-runtime")
 
-sagemaker.create_model(
+sm.create_model(
     ModelName="vllm-model",
     PrimaryContainer={
         "Image": "763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-sagemaker-cuda",
@@ -86,23 +100,41 @@ sagemaker.create_model(
     ExecutionRoleArn="arn:aws:iam::<account_id>:role/<role_name>",
 )
 
-sagemaker.create_endpoint_config(
-    EndpointConfigName="vllm-endpoint-config",
-    ProductionVariants=[
-        {
-            "VariantName": "default",
-            "ModelName": "vllm-model",
-            "InstanceType": "ml.g5.2xlarge",
-            "InitialInstanceCount": 1,
-            "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
-        }
-    ],
+sm.create_endpoint_config(
+    EndpointConfigName="vllm-config",
+    ProductionVariants=[{
+        "VariantName": "default",
+        "ModelName": "vllm-model",
+        "InstanceType": "ml.g5.2xlarge",
+        "InitialInstanceCount": 1,
+        "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
+    }],
 )
 
-sagemaker.create_endpoint(
+sm.create_endpoint(
     EndpointName="vllm-endpoint",
-    EndpointConfigName="vllm-endpoint-config",
+    EndpointConfigName="vllm-config",
 )
+
+# Wait for endpoint to be InService
+waiter = sm.get_waiter("endpoint_in_service")
+waiter.wait(EndpointName="vllm-endpoint")
+
+resp = smrt.invoke_endpoint(
+    EndpointName="vllm-endpoint",
+    ContentType="application/json",
+    Body=json.dumps({
+        "model": "meta-llama/Llama-3.1-8B-Instruct",
+        "messages": [{"role": "user", "content": "What is deep learning?"}],
+        "max_tokens": 256,
+    }),
+)
+print(json.loads(resp["Body"].read()))
+
+# Cleanup when done
+sm.delete_endpoint(EndpointName="vllm-endpoint")
+sm.delete_endpoint_config(EndpointConfigName="vllm-config")
+sm.delete_model(ModelName="vllm-model")
 ```
 
 ## {{ ecs }} / {{ eks }}
