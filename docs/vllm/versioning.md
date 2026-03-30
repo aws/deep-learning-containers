@@ -47,8 +47,8 @@ The version follows 3-part semantic versioning (`MAJOR.MINOR.PATCH`):
 | **MINOR** | CUDA/Python updates, new features, new model support, bug fixes |
 | **PATCH** | Security patches, backwards-compatible bug fixes |
 
-!!! tip "Recommendation" Use the **full version tag** (`server-cuda-v1.0.0`) in production for reproducibility. Use the **minor tag**
-(`server-cuda-v1.0`) in development to automatically pick up security patches.
+> **Tip — Recommendation:** Use the **full version tag** (`server-cuda-v1.0.0`) in production for reproducibility. Use the **minor tag**
+> (`server-cuda-v1.0`) in development to automatically pick up security patches.
 
 ## Image URI Format
 

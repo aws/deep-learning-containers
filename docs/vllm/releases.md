@@ -16,7 +16,7 @@ public.ecr.aws/deep-learning-containers/vllm:server-cuda
 | --- | --- | --- | --- | --- | --- |
 | v1.0.0 | TBD | 0.17.1+ | 2.10.0 | 12.9 | First release with simplified tag format |
 
-!!! note This table will be updated as new versions are released. Each entry links to its detailed release notes below.
+> **Note:** This table will be updated as new versions are released. Each entry links to its detailed release notes below.
 
 ## Release Notes
 

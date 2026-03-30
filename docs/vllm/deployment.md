@@ -27,7 +27,7 @@ docker run --gpus all --ipc=host -p 8000:8000 \
   --host 0.0.0.0 --port 8000
 ```
 
-!!! tip Use `--ipc=host` for multi-GPU setups to enable shared memory between processes.
+> **Tip:** Use `--ipc=host` for multi-GPU setups to enable shared memory between processes.
 
 ### Recommended Instance Types
 
@@ -44,20 +44,26 @@ docker run --gpus all --ipc=host -p 8000:8000 \
 
 ```python
 from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
 
 model = Model(
     image_uri="{{ images.latest_vllm_sagemaker }}",
     role="arn:aws:iam::<account_id>:role/<role_name>",
+    predictor_cls=Predictor,
     env={
         "SM_VLLM_MODEL": "meta-llama/Llama-3.1-70B-Instruct",
         "HF_TOKEN": "<your_hf_token>",
-        "SM_VLLM_ADDITIONAL_ARGS": "--tensor-parallel-size 8 --max-model-len 8192",
+        "SM_VLLM_TENSOR_PARALLEL_SIZE": "8",
+        "SM_VLLM_MAX_MODEL_LEN": "8192",
     },
 )
 
 predictor = model.deploy(
     instance_type="ml.p4d.24xlarge",
     initial_instance_count=1,
+    inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
+    serializer=JSONSerializer(),
 )
 ```
 
@@ -173,8 +179,8 @@ docker run --gpus all --ipc=host --network=host \
   --host 0.0.0.0 --port 8000
 ```
 
-!!! note Multi-node deployments require EFA-enabled instances (e.g., `p4d.24xlarge`, `p5.48xlarge`) and appropriate security group configuration for
-EFA traffic.
+> **Note:** Multi-node deployments require EFA-enabled instances (e.g., `p4d.24xlarge`, `p5.48xlarge`) and appropriate security group configuration
+> for EFA traffic.
 
 ## Health Checks
 
