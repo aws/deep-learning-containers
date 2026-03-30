@@ -81,13 +81,20 @@ def run_training_job(
     }
 
     LOGGER.info(f"Starting benchmark job: {job_name} ({instance_count}x {instance_type})")
+    sm = boto3.client("sagemaker")
     start = time.time()
-    estimator.fit(channels, job_name=job_name)
+    try:
+        estimator.fit(channels, job_name=job_name)
+    except Exception:
+        # Stop the training job if fit() fails (timeout, capacity, etc.)
+        try:
+            sm.stop_training_job(TrainingJobName=job_name)
+        except Exception:
+            pass
+        raise
     duration = time.time() - start
 
-    sm = boto3.client("sagemaker")
     desc = sm.describe_training_job(TrainingJobName=job_name)
-
     LOGGER.info(
         f"Job {job_name} completed in {duration:.0f}s — status: {desc['TrainingJobStatus']}"
     )
