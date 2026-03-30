@@ -1,6 +1,8 @@
 """Benchmark: content type / input mode.
 
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/benchmarks/benchmark_training_content_type.py
+Note: Pipe mode removed for recordio-protobuf and parquet as XGBoost
+algorithm mode does not reliably support pipe input for these formats.
 """
 
 import pytest
@@ -25,18 +27,14 @@ BASE_HP = {
         ("xgboost/csv/500000x1000", "text/csv", "File"),
         ("xgboost/csv/500000x1000", "text/csv", "Pipe"),
         ("xgboost/recordio-protobuf/500000x1000", "application/x-recordio-protobuf", "File"),
-        ("xgboost/recordio-protobuf/500000x1000", "application/x-recordio-protobuf", "Pipe"),
         ("xgboost/parquet/500000x1000", "application/x-parquet", "File"),
-        ("xgboost/parquet/500000x1000", "application/x-parquet", "Pipe"),
     ],
     ids=[
         "libsvm-file",
         "csv-file",
         "csv-pipe",
         "recordio-protobuf-file",
-        "recordio-protobuf-pipe",
         "parquet-file",
-        "parquet-pipe",
     ],
 )
 def test_content_type(image_uri, role, benchmark_bucket, dataset_path, content_type, input_mode):
