@@ -13,6 +13,9 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/03/26]** Released v0.18.0 [vLLM DLCs](https://gallery.ecr.aws/deep-learning-containers/vllm)
+  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.18-gpu-py312-ec2`
+  - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.18-gpu-py312`
 - **[2026/03/10]** Released v0.17.0 [vLLM DLCs](https://gallery.ecr.aws/deep-learning-containers/vllm)
   - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.17-gpu-py312-ec2`
   - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.17-gpu-py312`
