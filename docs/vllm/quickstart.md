@@ -72,10 +72,13 @@ curl http://localhost:8000/v1/chat/completions \
 
 ```python
 from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
 
 model = Model(
     image_uri="{{ images.latest_vllm_sagemaker }}",
     role="arn:aws:iam::<account_id>:role/<role_name>",
+    predictor_cls=Predictor,
     env={
         "SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     },
@@ -84,23 +87,20 @@ model = Model(
 predictor = model.deploy(
     instance_type="ml.g5.2xlarge",
     initial_instance_count=1,
+    inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
+    serializer=JSONSerializer(),
 )
 ```
 
 ### Send a Request
 
 ```python
-import json
-
-response = predictor.predict(
-    json.dumps({
-        "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-        "messages": [{"role": "user", "content": "What is deep learning?"}],
-        "max_tokens": 256,
-    }),
-    initial_args={"ContentType": "application/json"},
-)
-print(json.loads(response))
+response = predictor.predict({
+    "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+    "messages": [{"role": "user", "content": "What is deep learning?"}],
+    "max_tokens": 256,
+})
+print(response)
 ```
 
 ## Next Steps
