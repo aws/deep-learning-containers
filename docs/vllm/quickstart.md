@@ -44,7 +44,7 @@ docker run --gpus all -p 8000:8000 \
   --port 8000
 ```
 
-!!! note For gated models like Llama, set `-e HF_TOKEN=<your_token>` in the `docker run` command.
+> **Note:** For gated models like Llama, set `-e HF_TOKEN=<your_token>` in the `docker run` command.
 
 ### Send a Request
 

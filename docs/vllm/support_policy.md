@@ -46,8 +46,8 @@ We recommend upgrading to the latest supported vLLM {{ dlc_short }} version to b
 2. Update your image tag to the new version
 3. Test with your model and workload before deploying to production
 
-!!! warning vLLM does not guarantee API stability across minor versions. Review the [vLLM changelog](https://github.com/vllm-project/vllm/releases)
-for breaking changes before upgrading.
+> **Warning:** vLLM does not guarantee API stability across minor versions. Review the [vLLM changelog](https://github.com/vllm-project/vllm/releases)
+> for breaking changes before upgrading.
 
 ## End of Patch Availability
 

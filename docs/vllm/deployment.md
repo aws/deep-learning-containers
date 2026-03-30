@@ -27,7 +27,7 @@ docker run --gpus all --ipc=host -p 8000:8000 \
   --host 0.0.0.0 --port 8000
 ```
 
-!!! tip Use `--ipc=host` for multi-GPU setups to enable shared memory between processes.
+> **Tip:** Use `--ipc=host` for multi-GPU setups to enable shared memory between processes.
 
 ### Recommended Instance Types
 
@@ -173,8 +173,8 @@ docker run --gpus all --ipc=host --network=host \
   --host 0.0.0.0 --port 8000
 ```
 
-!!! note Multi-node deployments require EFA-enabled instances (e.g., `p4d.24xlarge`, `p5.48xlarge`) and appropriate security group configuration for
-EFA traffic.
+> **Note:** Multi-node deployments require EFA-enabled instances (e.g., `p4d.24xlarge`, `p5.48xlarge`) and appropriate security group configuration
+> for EFA traffic.
 
 ## Health Checks
 
