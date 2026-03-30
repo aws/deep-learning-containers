@@ -245,16 +245,28 @@ jobs:
   # Sanity tests
   # ============================================================
   sanity-test:
-    needs: [build-ec2-gpu, build-ec2-cpu, build-sagemaker-gpu, build-sagemaker-cpu, load-config-ec2-gpu, load-config-ec2-cpu, load-config-sagemaker-gpu, load-config-sagemaker-cpu]
+    needs: [build-ec2-gpu, build-ec2-cpu, build-sagemaker-gpu, build-sagemaker-cpu]
     if: success()
     strategy:
       fail-fast: false
       matrix:
         include:
           - ci-image: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+            device-type: gpu
+            cuda-version: cu129
+            customer-type: ec2
           - ci-image: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+            device-type: cpu
+            cuda-version: ""
+            customer-type: ec2
           - ci-image: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
+            device-type: gpu
+            cuda-version: cu129
+            customer-type: sagemaker
           - ci-image: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+            device-type: cpu
+            cuda-version: ""
+            customer-type: sagemaker
     concurrency:
       group: ${{ github.workflow }}-sanity-${{ matrix.ci-image }}-${{ github.run_id }}
       cancel-in-progress: true
@@ -266,11 +278,11 @@ jobs:
       framework: ray
       framework-version: "2.54.0"
       python-version: py313
-      cuda-version: cu129
+      cuda-version: ${{ matrix.cuda-version }}
       os-version: amzn2023
-      customer-type: ec2
+      customer-type: ${{ matrix.customer-type }}
       arch-type: x86
-      device-type: gpu
+      device-type: ${{ matrix.device-type }}
       contributor: None
       container-type: inference
 
@@ -298,6 +310,32 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       framework: ray
       framework-version: "2.54.0"
+
+  # ============================================================
+  # Telemetry tests
+  # ============================================================
+  telemetry-test:
+    needs: [build-ec2-gpu, build-ec2-cpu, build-sagemaker-gpu, build-sagemaker-cpu]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ci-image: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+          - ci-image: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+          - ci-image: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
+          - ci-image: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-${{ matrix.ci-image }}-${{ github.run_id }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ matrix.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ray
+      framework-version: "2.54.0"
+      container-type: inference
 
   # ============================================================
   # Generate release specs
