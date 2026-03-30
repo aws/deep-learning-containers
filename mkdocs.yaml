@@ -64,6 +64,8 @@ markdown_extensions:
   - admonition                                                    # Note/warning/tip boxes (signify by !!! note)
   - pymdownx.details                                              # Collapsible admonitions (signify by ??? note)
   - pymdownx.superfences                                          # Nested code blocks, diagrams
+  - pymdownx.snippets:                                            # Include external files in code blocks
+      base_path: ["."]
   - pymdownx.tabbed:                                              # Tabbed content blocks
       alternate_style: true                                       # Modern tab styling
   - pymdownx.highlight:                                           # Syntax highlighting for code

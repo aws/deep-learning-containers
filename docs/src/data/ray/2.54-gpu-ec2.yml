@@ -4,14 +4,14 @@ accelerator: gpu
 python: py313
 cuda: cu129
 os: amzn2023
-platform: ec2
+platform: default
 public_registry: true
 
 tags:
-  - "serve-ml-ec2-cuda-v1.0.0"
+  - "serve-ml-cuda-v1.0.0"
 
 announcements:
-  - "Introduced Ray Serve 2.54 GPU containers for EC2, ECS, EKS"
+  - "Introduced Ray Serve 2.54 GPU containers for EC2"
   - "Built on Amazon Linux 2023 with Python 3.13"
 
 packages:

@@ -3,14 +3,14 @@ version: "2.54"
 accelerator: cpu
 python: py313
 os: amzn2023
-platform: ec2
+platform: default
 public_registry: true
 
 tags:
-  - "serve-ml-ec2-cpu-v1.0.0"
+  - "serve-ml-cpu-v1.0.0"
 
 announcements:
-  - "Introduced Ray Serve 2.54 CPU containers for EC2, ECS, EKS"
+  - "Introduced Ray Serve 2.54 CPU containers for EC2"
   - "Built on Amazon Linux 2023 with Python 3.13"
 
 packages:
