@@ -68,7 +68,7 @@ curl http://localhost:8000/v1/chat/completions \
 
 ## Run on {{ sagemaker }}
 
-### Using SageMaker Python SDK
+### SageMaker Python SDK v2
 
 ```python
 from sagemaker.model import Model
@@ -79,9 +79,7 @@ model = Model(
     image_uri="{{ images.latest_vllm_sagemaker }}",
     role="arn:aws:iam::<account_id>:role/<role_name>",
     predictor_cls=Predictor,
-    env={
-        "SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-    },
+    env={"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
 )
 
 predictor = model.deploy(
@@ -90,17 +88,111 @@ predictor = model.deploy(
     inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
     serializer=JSONSerializer(),
 )
-```
 
-### Send a Request
-
-```python
 response = predictor.predict({
     "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     "messages": [{"role": "user", "content": "What is deep learning?"}],
     "max_tokens": 256,
 })
 print(response)
+```
+
+### SageMaker Python SDK v3
+
+```python
+import json
+
+import boto3
+from sagemaker.core.resources import Endpoint, EndpointConfig, Model
+from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
+
+model = Model.create(
+    model_name="vllm-model",
+    primary_container=ContainerDefinition(
+        image="{{ images.latest_vllm_sagemaker }}",
+        environment={"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
+    ),
+    execution_role_arn="arn:aws:iam::<account_id>:role/<role_name>",
+)
+
+ep_cfg = EndpointConfig.create(
+    endpoint_config_name="vllm-config",
+    production_variants=[
+        ProductionVariant(
+            variant_name="default",
+            model_name="vllm-model",
+            instance_type="ml.g5.2xlarge",
+            initial_instance_count=1,
+            inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
+        ),
+    ],
+)
+
+endpoint = Endpoint.create(
+    endpoint_name="vllm-endpoint",
+    endpoint_config_name="vllm-config",
+)
+endpoint.wait_for_status("InService")
+
+smrt = boto3.client("sagemaker-runtime")
+resp = smrt.invoke_endpoint(
+    EndpointName="vllm-endpoint",
+    ContentType="application/json",
+    Body=json.dumps({
+        "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "messages": [{"role": "user", "content": "What is deep learning?"}],
+        "max_tokens": 256,
+    }),
+)
+print(json.loads(resp["Body"].read()))
+```
+
+### Boto3
+
+```python
+import json
+
+import boto3
+
+sm = boto3.client("sagemaker")
+smrt = boto3.client("sagemaker-runtime")
+
+sm.create_model(
+    ModelName="vllm-model",
+    PrimaryContainer={
+        "Image": "{{ images.latest_vllm_sagemaker }}",
+        "Environment": {"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
+    },
+    ExecutionRoleArn="arn:aws:iam::<account_id>:role/<role_name>",
+)
+
+sm.create_endpoint_config(
+    EndpointConfigName="vllm-config",
+    ProductionVariants=[{
+        "VariantName": "default",
+        "ModelName": "vllm-model",
+        "InstanceType": "ml.g5.2xlarge",
+        "InitialInstanceCount": 1,
+        "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
+    }],
+)
+
+sm.create_endpoint(
+    EndpointName="vllm-endpoint",
+    EndpointConfigName="vllm-config",
+)
+
+# Wait for endpoint to be InService, then invoke:
+resp = smrt.invoke_endpoint(
+    EndpointName="vllm-endpoint",
+    ContentType="application/json",
+    Body=json.dumps({
+        "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+        "messages": [{"role": "user", "content": "What is deep learning?"}],
+        "max_tokens": 256,
+    }),
+)
+print(json.loads(resp["Body"].read()))
 ```
 
 ## Next Steps
