@@ -87,6 +87,7 @@ import json
 
 response = predictor.predict(
     json.dumps({
+        "model": "meta-llama/Llama-3.1-8B-Instruct",
         "messages": [{"role": "user", "content": "What is deep learning?"}],
         "max_tokens": 256,
     }),

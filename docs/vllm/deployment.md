@@ -51,7 +51,8 @@ model = Model(
     env={
         "SM_VLLM_MODEL": "meta-llama/Llama-3.1-70B-Instruct",
         "HF_TOKEN": "<your_hf_token>",
-        "SM_VLLM_ADDITIONAL_ARGS": "--tensor-parallel-size 8 --max-model-len 8192",
+        "SM_VLLM_TENSOR_PARALLEL_SIZE": "8",
+        "SM_VLLM_MAX_MODEL_LEN": "8192",
     },
 )
 

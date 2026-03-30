@@ -4,13 +4,16 @@ Configure the vLLM {{ dlc_short }} images using environment variables and server
 
 ## {{ sagemaker }} Environment Variables
 
-When running on {{ sagemaker }}, the following environment variables control the vLLM server:
+When running on {{ sagemaker }}, the entrypoint converts any `SM_VLLM_*` environment variable into a vLLM server argument by stripping the prefix,
+lowercasing, and replacing underscores with hyphens. For example, `SM_VLLM_MAX_MODEL_LEN=4096` becomes `--max-model-len 4096`.
 
 | Variable | Description | Required |
 | --- | --- | --- |
 | `SM_VLLM_MODEL` | Model ID from Hugging Face Hub or S3 path | Yes |
 | `HF_TOKEN` | Hugging Face token for gated models | For gated models |
-| `SM_VLLM_ADDITIONAL_ARGS` | Additional vLLM server arguments as a string | No |
+| `SM_VLLM_TENSOR_PARALLEL_SIZE` | Number of GPUs for tensor parallelism | No |
+| `SM_VLLM_MAX_MODEL_LEN` | Maximum sequence length | No |
+| `SM_VLLM_ENFORCE_EAGER` | Set to `true` to disable CUDA graphs | No |
 
 ### Example
 
@@ -18,7 +21,8 @@ When running on {{ sagemaker }}, the following environment variables control the
 env = {
     "SM_VLLM_MODEL": "meta-llama/Llama-3.1-8B-Instruct",
     "HF_TOKEN": "<your_hf_token>",
-    "SM_VLLM_ADDITIONAL_ARGS": "--max-model-len 4096 --enforce-eager",
+    "SM_VLLM_MAX_MODEL_LEN": "4096",
+    "SM_VLLM_ENFORCE_EAGER": "true",
 }
 ```
 
