@@ -8,8 +8,13 @@ import pytest
 from .conftest import run_training_job
 
 BASE_HP = {
-    "max_depth": "5", "eta": "0.2", "gamma": "4", "min_child_weight": "6",
-    "objective": "reg:squarederror", "tree_method": "exact", "num_round": "50",
+    "max_depth": "5",
+    "eta": "0.2",
+    "gamma": "4",
+    "min_child_weight": "6",
+    "objective": "reg:squarederror",
+    "tree_method": "exact",
+    "num_round": "50",
 }
 
 
@@ -25,10 +30,16 @@ BASE_HP = {
 )
 def test_data_size(image_uri, role, benchmark_bucket, dataset_path, volume_size, timeout):
     _, duration, desc = run_training_job(
-        image_uri=image_uri, role=role, benchmark_bucket=benchmark_bucket,
-        hyperparameters=BASE_HP, train_s3_key=f"{dataset_path}/train/",
-        validation_s3_key=f"{dataset_path}/val/", content_type="text/libsvm",
-        instance_type="ml.m5.2xlarge", volume_size=volume_size, max_run=timeout,
+        image_uri=image_uri,
+        role=role,
+        benchmark_bucket=benchmark_bucket,
+        hyperparameters=BASE_HP,
+        train_s3_key=f"{dataset_path}/train/",
+        validation_s3_key=f"{dataset_path}/val/",
+        content_type="text/libsvm",
+        instance_type="ml.m5.2xlarge",
+        volume_size=volume_size,
+        max_run=timeout,
     )
     assert desc["TrainingJobStatus"] == "Completed"
     assert 1 <= duration <= timeout
