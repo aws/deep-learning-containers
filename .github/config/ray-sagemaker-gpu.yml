@@ -20,6 +20,7 @@ common:
   build_target: "ray-sagemaker-gpu"
   ci_tag: "ray-gpu-sagemaker"
   dockerfile: "docker/ray/Dockerfile.gpu"
+  base_image: "unused-ray-gpu-multistage"
   platform: "sagemaker"
   prod_image: "ray:2.54-gpu-py313"
   device_type: "gpu"
