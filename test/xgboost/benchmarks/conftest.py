@@ -14,7 +14,6 @@ import boto3
 import pytest
 from sagemaker.estimator import Estimator
 from sagemaker.inputs import TrainingInput
-
 from test_utils import random_suffix_name
 
 LOGGER = logging.getLogger(__name__)
@@ -89,5 +88,7 @@ def run_training_job(
     sm = boto3.client("sagemaker")
     desc = sm.describe_training_job(TrainingJobName=job_name)
 
-    LOGGER.info(f"Job {job_name} completed in {duration:.0f}s — status: {desc['TrainingJobStatus']}")
+    LOGGER.info(
+        f"Job {job_name} completed in {duration:.0f}s — status: {desc['TrainingJobStatus']}"
+    )
     return job_name, duration, desc

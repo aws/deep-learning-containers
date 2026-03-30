@@ -27,15 +27,26 @@ BASE_HP = {
         ("multi:softmax", "xgboost/libsvm/multi/10", {"num_class": "10"}, 1800),
         ("multi:softmax", "xgboost/libsvm/multi/15", {"num_class": "15"}, 2400),
     ],
-    ids=["reg-squarederror-100kx200", "binary-logistic", "multi-softmax-5class", "multi-softmax-10class", "multi-softmax-15class"],
+    ids=[
+        "reg-squarederror-100kx200",
+        "binary-logistic",
+        "multi-softmax-5class",
+        "multi-softmax-10class",
+        "multi-softmax-15class",
+    ],
 )
 def test_objective(image_uri, role, benchmark_bucket, objective, dataset_path, extra_hp, timeout):
     hp = {**BASE_HP, "objective": objective, **extra_hp}
     _, duration, desc = run_training_job(
-        image_uri=image_uri, role=role, benchmark_bucket=benchmark_bucket,
-        hyperparameters=hp, train_s3_key=f"{dataset_path}/train/",
-        validation_s3_key=f"{dataset_path}/val/", content_type="text/libsvm",
-        instance_type="ml.m5.large", max_run=timeout,
+        image_uri=image_uri,
+        role=role,
+        benchmark_bucket=benchmark_bucket,
+        hyperparameters=hp,
+        train_s3_key=f"{dataset_path}/train/",
+        validation_s3_key=f"{dataset_path}/val/",
+        content_type="text/libsvm",
+        instance_type="ml.m5.large",
+        max_run=timeout,
     )
     assert desc["TrainingJobStatus"] == "Completed"
     assert 1 <= duration <= timeout
