@@ -108,6 +108,10 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_filesystem.sh
 
+      - name: Check for embedded credentials and secrets
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_credentials.sh
+
       - name: Check no conda packages from repo.anaconda.com
         run: |
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_anaconda.sh
