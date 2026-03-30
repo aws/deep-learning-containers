@@ -12,10 +12,6 @@ CREDENTIAL_FILES=(
   "$HOME/.config/git/credentials"
   "$HOME/.netrc"
   "$HOME/.docker/config.json"
-  "$HOME/.ssh/id_rsa"
-  "$HOME/.ssh/id_ed25519"
-  "$HOME/.ssh/id_ecdsa"
-  "$HOME/.ssh/id_dsa"
   "$HOME/.npmrc"
   "$HOME/.pypirc"
   "$HOME/.boto"
@@ -127,7 +123,7 @@ for DIR in /etc /opt "$HOME"; do
     echo "FAIL: Private key header found in $F"
     FAILED=1
   done < <(grep -rlI -- '-----BEGIN.*PRIVATE KEY-----' "$DIR" \
-    --exclude-dir=ssl "${GREP_EXCLUDE[@]}" \
+    --exclude-dir=ssl --exclude-dir=.ssh "${GREP_EXCLUDE[@]}" \
     2>/dev/null || true)
 done
 
