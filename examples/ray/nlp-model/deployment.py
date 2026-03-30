@@ -1,6 +1,6 @@
+import torch
 from ray import serve
 from transformers import pipeline
-import torch
 
 
 @serve.deployment(num_replicas=1)
