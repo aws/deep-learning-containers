@@ -341,7 +341,7 @@ jobs:
   # Generate release specs
   # ============================================================
   generate-release-spec-ec2-gpu:
-    needs: [load-config-ec2-gpu, build-ec2-gpu, sanity-test, security-test]
+    needs: [load-config-ec2-gpu, build-ec2-gpu, sanity-test, security-test, telemetry-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -360,7 +360,7 @@ jobs:
           config-json: ${{ needs.load-config-ec2-gpu.outputs.config }}
 
   generate-release-spec-ec2-cpu:
-    needs: [load-config-ec2-cpu, build-ec2-cpu, sanity-test, security-test]
+    needs: [load-config-ec2-cpu, build-ec2-cpu, sanity-test, security-test, telemetry-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -379,7 +379,7 @@ jobs:
           config-json: ${{ needs.load-config-ec2-cpu.outputs.config }}
 
   generate-release-spec-sagemaker-gpu:
-    needs: [load-config-sagemaker-gpu, build-sagemaker-gpu, sanity-test, security-test]
+    needs: [load-config-sagemaker-gpu, build-sagemaker-gpu, sanity-test, security-test, telemetry-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -398,7 +398,7 @@ jobs:
           config-json: ${{ needs.load-config-sagemaker-gpu.outputs.config }}
 
   generate-release-spec-sagemaker-cpu:
-    needs: [load-config-sagemaker-cpu, build-sagemaker-cpu, sanity-test, security-test]
+    needs: [load-config-sagemaker-cpu, build-sagemaker-cpu, sanity-test, security-test, telemetry-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
