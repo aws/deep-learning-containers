@@ -1,7 +1,9 @@
 name: Auto Release - XGBoost SageMaker
 
 on:
-  # Manual trigger only for now (release not ready)
+  # TODO: Remove push trigger after testing, keep only workflow_dispatch
+  push:
+    branches: [xgboost-release]
   workflow_dispatch:
 
 permissions:
