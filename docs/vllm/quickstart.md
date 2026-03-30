@@ -37,6 +37,16 @@ For version pinning options (e.g., `server-cuda-v1.0.0`), see [Versioning](versi
 
 ```bash
 docker run --gpus all -p 8000:8000 \
+  public.ecr.aws/deep-learning-containers/vllm:server-cuda \
+  --model TinyLlama/TinyLlama-1.1B-Chat-v1.0 \
+  --host 0.0.0.0 \
+  --port 8000
+```
+
+For gated models (e.g., Llama), add `-e HF_TOKEN=<your_hf_token>`:
+
+```bash
+docker run --gpus all -p 8000:8000 \
   -e HF_TOKEN=<your_hf_token> \
   public.ecr.aws/deep-learning-containers/vllm:server-cuda \
   --model meta-llama/Llama-3.1-8B-Instruct \
@@ -44,15 +54,13 @@ docker run --gpus all -p 8000:8000 \
   --port 8000
 ```
 
-> **Note:** For gated models like Llama, set `-e HF_TOKEN=<your_token>` in the `docker run` command.
-
 ### Send a Request
 
 ```bash
 curl http://localhost:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     "messages": [{"role": "user", "content": "What is deep learning?"}],
     "max_tokens": 256
   }'
@@ -69,8 +77,7 @@ model = Model(
     image_uri="{{ images.latest_vllm_sagemaker }}",
     role="arn:aws:iam::<account_id>:role/<role_name>",
     env={
-        "SM_VLLM_MODEL": "meta-llama/Llama-3.1-8B-Instruct",
-        "HF_TOKEN": "<your_hf_token>",
+        "SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
     },
 )
 
@@ -87,7 +94,7 @@ import json
 
 response = predictor.predict(
     json.dumps({
-        "model": "meta-llama/Llama-3.1-8B-Instruct",
+        "model": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
         "messages": [{"role": "user", "content": "What is deep learning?"}],
         "max_tokens": 256,
     }),
