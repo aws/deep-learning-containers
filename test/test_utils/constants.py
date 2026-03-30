@@ -1,5 +1,6 @@
 DEFAULT_REGION = "us-west-2"
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 SAGEMAKER_ROLE = "SageMakerRole"
+XGBOOST_SAGEMAKER_ROLE = "XGBoostSageMakerRole"
 # https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html
 INFERENCE_AMI_VERSION = "al2-ami-sagemaker-inference-gpu-3-1"
