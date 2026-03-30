@@ -9,23 +9,19 @@ variants, built on Amazon Linux 2023 with Python 3.13.
 
 ## Pull Commands
 
-=== "Default"
+**Default:**
 
-````
 ```bash
 docker pull {{ images.latest_ray_default_gpu }}
 docker pull {{ images.latest_ray_default_cpu }}
 ```
-````
 
-=== "SageMaker"
+**SageMaker:**
 
-````
 ```bash
 docker pull {{ images.latest_ray_sagemaker_gpu }}
 docker pull {{ images.latest_ray_sagemaker_cpu }}
 ```
-````
 
 Default images are tested on EC2 instances. See [Available Images](../reference/available_images.md) for all image URIs and
 [Getting Started](../get_started/index.md) for authentication instructions.
