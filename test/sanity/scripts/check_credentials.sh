@@ -117,6 +117,8 @@ for DIR in /etc /opt "$HOME"; do
 done
 
 # Scan for private key headers outside standard certificate paths
+# Exclude .ssh — EFA and distributed training scripts generate SSH keys at build time
+# for passwordless inter-container communication (see configure_ssh.sh, install_efa.sh)
 for DIR in /etc /opt "$HOME"; do
   [ -d "$DIR" ] || continue
   while IFS= read -r F; do
