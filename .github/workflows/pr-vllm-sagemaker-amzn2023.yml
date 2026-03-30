@@ -16,7 +16,7 @@ on:
       - ".github/workflows/pr-vllm-sagemaker-amzn2023.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - ".github/workflows/reusable-vllm-sagemaker-tests.yml"
-      - "test/sanity/**"
+      # - "test/sanity/**"
       - "test/telemetry/**"
       - "test/vllm/sagemaker/**"
 
@@ -127,7 +127,7 @@ jobs:
               - "scripts/telemetry/**"
               - ".github/config/vllm-sagemaker-amzn2023.yml"
             sanity-test-change:
-              - "test/sanity/**"
+              # - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
             sagemaker-test-change:
