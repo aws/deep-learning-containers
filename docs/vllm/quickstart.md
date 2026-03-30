@@ -26,7 +26,7 @@ Requires authentication, uses a region-specific URI:
 aws ecr get-login-password --region us-west-2 | \
   docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
 
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-sagemaker-cuda
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda
 ```
 
 For version pinning options (e.g., `server-cuda-v1.0.0`), see [Versioning](versioning.md).
@@ -95,6 +95,10 @@ response = predictor.predict({
     "max_tokens": 256,
 })
 print(response)
+
+# Cleanup when done
+predictor.delete_model()
+predictor.delete_endpoint(delete_endpoint_config=True)
 ```
 
 ### SageMaker Python SDK v3
@@ -145,6 +149,11 @@ resp = smrt.invoke_endpoint(
     }),
 )
 print(json.loads(resp["Body"].read()))
+
+# Cleanup when done
+endpoint.delete()
+ep_cfg.delete()
+model.delete()
 ```
 
 ### Boto3
@@ -182,7 +191,10 @@ sm.create_endpoint(
     EndpointConfigName="vllm-config",
 )
 
-# Wait for endpoint to be InService, then invoke:
+# Wait for endpoint to be InService
+waiter = sm.get_waiter("endpoint_in_service")
+waiter.wait(EndpointName="vllm-endpoint")
+
 resp = smrt.invoke_endpoint(
     EndpointName="vllm-endpoint",
     ContentType="application/json",
@@ -193,6 +205,11 @@ resp = smrt.invoke_endpoint(
     }),
 )
 print(json.loads(resp["Body"].read()))
+
+# Cleanup when done
+sm.delete_endpoint(EndpointName="vllm-endpoint")
+sm.delete_endpoint_config(EndpointConfigName="vllm-config")
+sm.delete_model(ModelName="vllm-model")
 ```
 
 ## Next Steps
