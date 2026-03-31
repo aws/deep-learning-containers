@@ -154,13 +154,24 @@ jobs:
   benchmark-test:
     needs: [build-image, load-config]
     if: success()
-    timeout-minutes: 120
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        test-module:
+          - test_training_objective
+          - test_training_tree_method
+          - test_training_max_depth
+          - test_training_num_round
+          - test_training_data_size
+          - test_training_instance_type
+          - test_training_content_type
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-benchmark-test-${{ github.run_id }}
+      group: ${{ github.workflow }}-benchmark-${{ matrix.test-module }}-${{ github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -173,13 +184,13 @@ jobs:
           uv pip install -r test/requirements.txt
           uv pip install -r test/xgboost/requirements.txt
 
-      - name: Run benchmark tests
+      - name: Run ${{ matrix.test-module }}
         run: |
           source .venv/bin/activate
           cd test/
           python3 -m pytest -vs -rA \
             --image-uri ${{ needs.build-image.outputs.ci-image }} \
-            xgboost/benchmarks/
+            xgboost/benchmarks/${{ matrix.test-module }}.py
 
   # TODO: Add integration-test job once integ tests are implemented
   # TODO: Add container-test job once container tests are implemented
