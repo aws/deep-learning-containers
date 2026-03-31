@@ -23,40 +23,8 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
-  # ===========================================================================
-  # Container tests — training
-  # ===========================================================================
   container-test-training:
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        test-case:
-          - test_single_file_libsvm
-          - test_single_file_libsvm_weights
-          - test_single_file_libsvm_hpo_param
-          - test_single_file_libsvm_multiclass_hpo
-          - test_single_file_libsvm_iterate_objectives
-          - test_single_file_libsvm_threshold_eval_metric
-          - test_single_file_libsvm_verbosity
-          - test_multi_files_libsvm
-          - test_single_file_csv
-          - test_single_file_csv_weights
-          - test_multi_file_csv
-          - test_single_file_csv_space_separated
-          - test_single_file_csv_sci_notation
-          - test_single_file_csv_empty_cells
-          - test_checkpoint_and_reload
-          - test_no_training_data
-          - test_no_validation_data
-          - test_invalid_data_csv_content_type
-          - test_csv_alpha_with_csv_content_type
-          - test_csv_data_with_libsvm_content_type
-          - test_invalid_data_with_libsvm_content_type
-          - test_invalid_hyperparameter
-          - test_missing_num_round
-          - test_multiclass_without_num_class
-          - test_pipe_mode_rejected
+    timeout-minutes: 90
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -81,38 +49,16 @@ jobs:
           source .venv/bin/activate
           uv pip install -r test/requirements.txt docker pytest boto3
 
-      - name: Run ${{ matrix.test-case }}
+      - name: Run training container tests
         run: |
           source .venv/bin/activate
           cd test/
           python3 -m pytest -vs -rA \
             --image ${{ inputs.image-uri }} \
-            -k "${{ matrix.test-case }}" \
             xgboost/container/test_training.py
 
-  # ===========================================================================
-  # Container tests — scoring
-  # ===========================================================================
   container-test-scoring:
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        test-case:
-          - test_execution_parameters
-          - test_csv_inference
-          - test_libsvm_inference
-          - test_recordio_protobuf_inference
-          - test_binary_classification
-          - test_csv_20mb_payload
-          - test_unsupported_content_type
-          - test_empty_payload
-          - test_invalid_feature_dimension
-          - test_libsvm_payload_with_csv_content_type
-          - test_invalid_payload_with_csv_content_type
-          - test_csv_payload_with_libsvm_content_type
-          - test_invalid_payload_with_libsvm_content_type
-          - test_invalid_accept_selectable_inference
+    timeout-minutes: 60
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -137,27 +83,16 @@ jobs:
           source .venv/bin/activate
           uv pip install -r test/requirements.txt docker pytest boto3 requests
 
-      - name: Run ${{ matrix.test-case }}
+      - name: Run scoring container tests
         run: |
           source .venv/bin/activate
           cd test/
           python3 -m pytest -vs -rA \
             --image ${{ inputs.image-uri }} \
-            -k "${{ matrix.test-case }}" \
             xgboost/container/test_scoring.py
 
-  # ===========================================================================
-  # Container tests — batch transform
-  # ===========================================================================
   container-test-batch-transform:
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        test-case:
-          - test_libsvm_batch
-          - test_recordio_protobuf_batch
-          - test_csv_batch
+    timeout-minutes: 60
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -182,13 +117,12 @@ jobs:
           source .venv/bin/activate
           uv pip install -r test/requirements.txt docker pytest boto3 requests
 
-      - name: Run ${{ matrix.test-case }}
+      - name: Run batch transform container tests
         run: |
           source .venv/bin/activate
           cd test/
           python3 -m pytest -vs -rA \
             --image ${{ inputs.image-uri }} \
-            -k "${{ matrix.test-case }}" \
             xgboost/container/test_batch_transform.py
 
   # TODO: Add integration-test job (upstream sagemaker-xgboost-container local mode tests)
