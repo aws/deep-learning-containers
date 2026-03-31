@@ -48,7 +48,7 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 
 model = Model(
-    image_uri="{{ images.latest_vllm_sagemaker }}",
+    image_uri="763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-sagemaker-cuda",
     role="arn:aws:iam::<account_id>:role/<role_name>",
     predictor_cls=Predictor,
     env={
@@ -65,19 +65,33 @@ predictor = model.deploy(
     inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
     serializer=JSONSerializer(),
 )
+
+response = predictor.predict({
+    "model": "meta-llama/Llama-3.1-70B-Instruct",
+    "messages": [{"role": "user", "content": "What is deep learning?"}],
+    "max_tokens": 256,
+})
+print(response)
+
+# Cleanup when done
+predictor.delete_model()
+predictor.delete_endpoint(delete_endpoint_config=True)
 ```
 
 ### Using Boto3
 
 ```python
+import json
+
 import boto3
 
-sagemaker = boto3.client("sagemaker")
+sm = boto3.client("sagemaker")
+smrt = boto3.client("sagemaker-runtime")
 
-sagemaker.create_model(
+sm.create_model(
     ModelName="vllm-model",
     PrimaryContainer={
-        "Image": "{{ images.latest_vllm_sagemaker }}",
+        "Image": "763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-sagemaker-cuda",
         "Environment": {
             "SM_VLLM_MODEL": "meta-llama/Llama-3.1-8B-Instruct",
             "HF_TOKEN": "<your_hf_token>",
@@ -86,23 +100,41 @@ sagemaker.create_model(
     ExecutionRoleArn="arn:aws:iam::<account_id>:role/<role_name>",
 )
 
-sagemaker.create_endpoint_config(
-    EndpointConfigName="vllm-endpoint-config",
-    ProductionVariants=[
-        {
-            "VariantName": "default",
-            "ModelName": "vllm-model",
-            "InstanceType": "ml.g5.2xlarge",
-            "InitialInstanceCount": 1,
-            "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
-        }
-    ],
+sm.create_endpoint_config(
+    EndpointConfigName="vllm-config",
+    ProductionVariants=[{
+        "VariantName": "default",
+        "ModelName": "vllm-model",
+        "InstanceType": "ml.g5.2xlarge",
+        "InitialInstanceCount": 1,
+        "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
+    }],
 )
 
-sagemaker.create_endpoint(
+sm.create_endpoint(
     EndpointName="vllm-endpoint",
-    EndpointConfigName="vllm-endpoint-config",
+    EndpointConfigName="vllm-config",
 )
+
+# Wait for endpoint to be InService
+waiter = sm.get_waiter("endpoint_in_service")
+waiter.wait(EndpointName="vllm-endpoint")
+
+resp = smrt.invoke_endpoint(
+    EndpointName="vllm-endpoint",
+    ContentType="application/json",
+    Body=json.dumps({
+        "model": "meta-llama/Llama-3.1-8B-Instruct",
+        "messages": [{"role": "user", "content": "What is deep learning?"}],
+        "max_tokens": 256,
+    }),
+)
+print(json.loads(resp["Body"].read()))
+
+# Cleanup when done
+sm.delete_endpoint(EndpointName="vllm-endpoint")
+sm.delete_endpoint_config(EndpointConfigName="vllm-config")
+sm.delete_model(ModelName="vllm-model")
 ```
 
 ## {{ ecs }} / {{ eks }}
@@ -111,6 +143,8 @@ sagemaker.create_endpoint(
 
 ```json
 {
+  "family": "vllm-inference",
+  "networkMode": "host",
   "containerDefinitions": [
     {
       "name": "vllm",
@@ -123,10 +157,20 @@ sagemaker.create_endpoint(
       "environment": [
         {"name": "HF_TOKEN", "value": "<your_hf_token>"}
       ],
-      "portMappings": [{"containerPort": 8000}],
+      "memoryReservation": 14000,
+      "portMappings": [{"containerPort": 8000, "hostPort": 8000}],
       "resourceRequirements": [
         {"type": "GPU", "value": "1"}
-      ]
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/vllm-inference",
+          "awslogs-region": "us-west-2",
+          "awslogs-stream-prefix": "vllm",
+          "awslogs-create-group": "true"
+        }
+      }
     }
   ]
 }

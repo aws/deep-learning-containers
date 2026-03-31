@@ -76,7 +76,7 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 
 model = Model(
-    image_uri="{{ images.latest_vllm_sagemaker }}",
+    image_uri="763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-sagemaker-cuda",
     role="arn:aws:iam::<account_id>:role/<role_name>",
     predictor_cls=Predictor,
     env={"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
@@ -95,6 +95,10 @@ response = predictor.predict({
     "max_tokens": 256,
 })
 print(response)
+
+# Cleanup when done
+predictor.delete_model()
+predictor.delete_endpoint(delete_endpoint_config=True)
 ```
 
 ### SageMaker Python SDK v3
@@ -109,7 +113,7 @@ from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 model = Model.create(
     model_name="vllm-model",
     primary_container=ContainerDefinition(
-        image="{{ images.latest_vllm_sagemaker }}",
+        image="763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-sagemaker-cuda",
         environment={"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
     ),
     execution_role_arn="arn:aws:iam::<account_id>:role/<role_name>",
@@ -145,6 +149,11 @@ resp = smrt.invoke_endpoint(
     }),
 )
 print(json.loads(resp["Body"].read()))
+
+# Cleanup when done
+endpoint.delete()
+ep_cfg.delete()
+model.delete()
 ```
 
 ### Boto3
@@ -160,7 +169,7 @@ smrt = boto3.client("sagemaker-runtime")
 sm.create_model(
     ModelName="vllm-model",
     PrimaryContainer={
-        "Image": "{{ images.latest_vllm_sagemaker }}",
+        "Image": "763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-sagemaker-cuda",
         "Environment": {"SM_VLLM_MODEL": "TinyLlama/TinyLlama-1.1B-Chat-v1.0"},
     },
     ExecutionRoleArn="arn:aws:iam::<account_id>:role/<role_name>",
@@ -182,7 +191,10 @@ sm.create_endpoint(
     EndpointConfigName="vllm-config",
 )
 
-# Wait for endpoint to be InService, then invoke:
+# Wait for endpoint to be InService
+waiter = sm.get_waiter("endpoint_in_service")
+waiter.wait(EndpointName="vllm-endpoint")
+
 resp = smrt.invoke_endpoint(
     EndpointName="vllm-endpoint",
     ContentType="application/json",
@@ -193,6 +205,11 @@ resp = smrt.invoke_endpoint(
     }),
 )
 print(json.loads(resp["Body"].read()))
+
+# Cleanup when done
+sm.delete_endpoint(EndpointName="vllm-endpoint")
+sm.delete_endpoint_config(EndpointConfigName="vllm-config")
+sm.delete_model(ModelName="vllm-model")
 ```
 
 ## Next Steps
