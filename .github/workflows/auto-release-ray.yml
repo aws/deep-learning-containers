@@ -379,29 +379,230 @@ jobs:
       container-type: inference
 
   # ============================================================
-  # Security tests
+  # EC2 GPU — FFmpeg + serve tests
   # ============================================================
-  security-test:
-    needs: [build-ec2-gpu, build-ec2-cpu, build-sagemaker-gpu, build-sagemaker-cpu]
-    if: success()
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - ci-image: ${{ needs.build-ec2-gpu.outputs.ci-image }}
-          - ci-image: ${{ needs.build-ec2-cpu.outputs.ci-image }}
-          - ci-image: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
-          - ci-image: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+  ray-ec2-gpu-ffmpeg-test:
+    needs: [build-ec2-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-security-${{ matrix.ci-image }}-${{ github.run_id }}
+      group: ${{ github.workflow }}-ec2-gpu-ffmpeg-${{ github.run_id }}
       cancel-in-progress: true
-    uses: ./.github/workflows/reusable-security-tests.yml
-    with:
-      image-uri: ${{ matrix.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: ray
-      framework-version: "2.54.0"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-ec2-gpu.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+      - name: Run FFmpeg GPU test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_gpu.sh
+
+  ray-ec2-gpu-serve-test:
+    needs: [build-ec2-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-ec2-gpu-serve-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray/ec2/requirements.txt
+      - name: Run EC2 serve tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.build-ec2-gpu.outputs.ci-image }} \
+            ray/ec2/test_ec2_gpu.py
+
+  # ============================================================
+  # EC2 CPU — FFmpeg + serve tests
+  # ============================================================
+  ray-ec2-cpu-ffmpeg-test:
+    needs: [build-ec2-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-ec2-cpu-ffmpeg-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-ec2-cpu.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+
+  ray-ec2-cpu-serve-test:
+    needs: [build-ec2-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-ec2-cpu-serve-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray/ec2/requirements.txt
+      - name: Run EC2 serve tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.build-ec2-cpu.outputs.ci-image }} \
+            ray/ec2/test_ec2_cpu.py
+
+  # ============================================================
+  # SageMaker GPU — local + endpoint tests
+  # ============================================================
+  ray-sagemaker-gpu-local-test:
+    needs: [build-sagemaker-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-gpu-local-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-sagemaker-gpu.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+      - name: Run FFmpeg GPU test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_gpu.sh
+
+  ray-sagemaker-gpu-endpoint-test:
+    needs: [build-sagemaker-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-gpu-endpoint-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray/sagemaker/requirements.txt
+      - name: Run sagemaker endpoint test
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.build-sagemaker-gpu.outputs.ci-image }} \
+            ray/sagemaker/test_sm_endpoint_gpu.py
+
+  # ============================================================
+  # SageMaker CPU — local + endpoint tests
+  # ============================================================
+  ray-sagemaker-cpu-local-test:
+    needs: [build-sagemaker-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-cpu-local-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-sagemaker-cpu.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+
+  ray-sagemaker-cpu-endpoint-test:
+    needs: [build-sagemaker-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-cpu-endpoint-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray/sagemaker/requirements.txt
+      - name: Run sagemaker endpoint test
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.build-sagemaker-cpu.outputs.ci-image }} \
+            ray/sagemaker/test_sm_endpoint_cpu.py
 
   # ============================================================
   # Telemetry tests
@@ -433,7 +634,7 @@ jobs:
   # Generate release specs
   # ============================================================
   generate-release-spec-ec2-gpu:
-    needs: [load-config-ec2-gpu, build-ec2-gpu, sanity-test, security-test, telemetry-test]
+    needs: [load-config-ec2-gpu, build-ec2-gpu, sanity-test, telemetry-test, ray-ec2-gpu-ffmpeg-test, ray-ec2-gpu-serve-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -452,7 +653,7 @@ jobs:
           config-json: ${{ needs.load-config-ec2-gpu.outputs.config }}
 
   generate-release-spec-ec2-cpu:
-    needs: [load-config-ec2-cpu, build-ec2-cpu, sanity-test, security-test, telemetry-test]
+    needs: [load-config-ec2-cpu, build-ec2-cpu, sanity-test, telemetry-test, ray-ec2-cpu-ffmpeg-test, ray-ec2-cpu-serve-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -471,7 +672,7 @@ jobs:
           config-json: ${{ needs.load-config-ec2-cpu.outputs.config }}
 
   generate-release-spec-sagemaker-gpu:
-    needs: [load-config-sagemaker-gpu, build-sagemaker-gpu, sanity-test, security-test, telemetry-test]
+    needs: [load-config-sagemaker-gpu, build-sagemaker-gpu, sanity-test, telemetry-test, ray-sagemaker-gpu-local-test, ray-sagemaker-gpu-endpoint-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -490,7 +691,7 @@ jobs:
           config-json: ${{ needs.load-config-sagemaker-gpu.outputs.config }}
 
   generate-release-spec-sagemaker-cpu:
-    needs: [load-config-sagemaker-cpu, build-sagemaker-cpu, sanity-test, security-test, telemetry-test]
+    needs: [load-config-sagemaker-cpu, build-sagemaker-cpu, sanity-test, telemetry-test, ray-sagemaker-cpu-local-test, ray-sagemaker-cpu-endpoint-test]
     if: success()
     runs-on: ubuntu-latest
     outputs:
