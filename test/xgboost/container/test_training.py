@@ -298,14 +298,12 @@ class TestValidTraining:
         for mf in os.listdir(paths["model"]):
             os.remove(os.path.join(paths["model"], mf))
 
-        tmpdir = os.path.dirname(paths["input_config"].rstrip("/").rsplit("/input", 1)[0] + "/x")
         tmpdir = paths["input_config"].rsplit("/input/", 1)[0]
         volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
-        env = {"SAGEMAKER_PROGRAM": "sagemaker_xgboost_container.training:main"}
 
         container = docker_client.containers.run(
             image_uri, command="train", volumes=volumes,
-            environment=env, detach=True,
+            detach=True,
         )
         try:
             result = container.wait(timeout=300)

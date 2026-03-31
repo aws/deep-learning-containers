@@ -88,9 +88,7 @@ def run_training(docker_client, image_uri, hyperparameters, inputdataconfig,
         _copy_files(validation_files, paths["input_validation"])
 
     volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
-    env = {"SAGEMAKER_PROGRAM": "sagemaker_xgboost_container.training:main"}
-    if environment:
-        env.update(environment)
+    env = environment.copy() if environment else {}
 
     container = docker_client.containers.run(
         image_uri,
@@ -174,7 +172,7 @@ class ServingContainer:
                 if resp.status_code == 200:
                     LOGGER.info("Serving container healthy")
                     return
-            except requests.ConnectionError:
+            except (requests.ConnectionError, RuntimeError):
                 pass
             time.sleep(HEALTH_CHECK_INTERVAL)
         raise TimeoutError("Serving container did not become healthy")
@@ -182,12 +180,11 @@ class ServingContainer:
     # -- HTTP helpers --------------------------------------------------------
 
     def _url(self, path):
-        if self._host_port is None:
-            self._container.reload()
-            port_map = self._container.ports.get(f"{SERVE_PORT}/tcp")
-            if not port_map:
-                raise RuntimeError("No port mapping found")
-            self._host_port = int(port_map[0]["HostPort"])
+        self._container.reload()
+        port_map = self._container.ports.get(f"{SERVE_PORT}/tcp")
+        if not port_map:
+            raise RuntimeError("No port mapping found")
+        self._host_port = int(port_map[0]["HostPort"])
         return f"http://localhost:{self._host_port}{path}"
 
     def ping(self):
