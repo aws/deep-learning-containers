@@ -1,0 +1,35 @@
+framework: PyTorch
+version: "2.10"
+accelerator: gpu
+python: py313
+cuda: cu130
+os: ubuntu22.04
+platform: ec2
+ga: "2026-03-23"
+eop: "2027-03-23"
+public_registry: true
+
+tags:
+  - "2.10.0-gpu-py313-cu130-ubuntu22.04-ec2"
+  - "2.10-gpu-py313-cu130-ubuntu22.04-ec2-v1"
+  - "2.10.0-gpu-py313-ec2"
+  - "2.10-gpu-py313-ec2"
+
+announcements:
+  - "Introduced containers for PyTorch 2.10 for Training on EC2, ECS, EKS"
+  - "Added Python 3.13 support"
+  - "Added PyTorch domain libraries: torchtnt 0.2.4, torchdata 0.11.0, torchaudio 2.10.0, torchvision 0.25.0"
+  - "Added CUDA 13.0, Ubuntu 22.04 support"
+
+packages:
+  python: "3.13.11"
+  pytorch: "2.10.0"
+  torchvision: "0.25.0"
+  torchaudio: "2.10.0"
+  torchdata: "0.11.0"
+  torchtnt: "0.2.4"
+  cuda: "13.0.2"
+  efa: "1.47.0"
+  transformer_engine: "2.11"
+  flash_attn: "2.8.3"
+  gdrcopy: "2.5.1"
