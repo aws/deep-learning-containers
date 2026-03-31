@@ -63,8 +63,8 @@ fi
 # --- GPU compute: cudaMalloc/cudaFree via CUDA runtime API ---
 if nvidia-smi &>/dev/null; then
   if python3 -c "
-import ctypes
-cudart = ctypes.CDLL('libcudart.so.12')
+import ctypes, ctypes.util
+cudart = ctypes.CDLL(ctypes.util.find_library('cudart'))
 ptr = ctypes.c_void_p()
 rc = cudart.cudaMalloc(ctypes.byref(ptr), ctypes.c_size_t(1024))
 assert rc == 0, f'cudaMalloc failed with rc={rc}'

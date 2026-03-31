@@ -14,7 +14,7 @@ public.ecr.aws/deep-learning-containers/vllm:server-cuda
 
 | Version | Release Date | vLLM Base | PyTorch | CUDA | Highlights |
 | --- | --- | --- | --- | --- | --- |
-| v1.0.0 | TBD | 0.17.1+ | 2.10.0 | 12.9 | First release with simplified tag format |
+| v1.0.0 | TBD | 0.18.0+ | 2.10.0 | 12.9.1 | First release with simplified tag format, AL2023 base |
 
 > **Note:** This table will be updated as new versions are released. Each entry links to its detailed release notes below.
 
@@ -22,34 +22,59 @@ public.ecr.aws/deep-learning-containers/vllm:server-cuda
 
 ### v1.0.0
 
-**Base:** vLLM 0.17.1 + curated patches
+**Base:** vLLM 0.18.0 (`v0.18.0` tag) + curated patches, built as `0.18.0+amzn2023`
+
+**OS:** Amazon Linux 2023 (`nvidia/cuda:12.9.1-runtime-amzn2023`)
 
 **Key packages:**
 
 | Package | Version |
 | --- | --- |
-| vLLM | 0.17.1+ |
+| vLLM | 0.18.0+amzn2023 |
 | PyTorch | 2.10.0 |
-| CUDA | 12.9 |
-| NCCL | 2.27.5 |
 | Python | 3.12 |
+| CUDA | 12.9.1 |
+| FlashInfer | 0.6.6 |
 | EFA | 1.47.0 |
+
+**GPU architectures:** V100 (7.0), T4 (7.5), A100 (8.0), L4/L40S (8.9), H100 (9.0), B200 (10.0), B300 (12.0)
+
+**Extras included:**
+
+- DeepGEMM (for sm90a/sm100a)
+- DeepEP (for sm90a/sm100a)
+- accelerate, hf_transfer, bitsandbytes, modelscope, runai-model-streamer
+
+**CVE patches:**
+
+- pillow ≥ 12.1.1
+- xgrammar ≥ 0.1.32
+- PyJWT ≥ 2.12.0
+- cbor2 ≥ 5.9.0
 
 **What's new:**
 
+- Amazon Linux 2023 base image (previously Ubuntu)
 - Simplified tag format (`server-cuda-v1.0.0`) replacing legacy verbose tags
 - 3-part semantic versioning (MAJOR.MINOR.PATCH)
-- Curated build with targeted upstream patches for model support and performance
+- Curated build from `v0.18.0` with targeted upstream patches
+- DeepGEMM and DeepEP for H100/B200 performance
+- KV connectors (lmcache, nixl) for disaggregated prefilling
 - Available on {{ ecr_public }} and private {{ ecr }}
 
 **What's included from upstream:**
 
-- OpenAI-compatible API server
+- OpenAI-compatible API server with gRPC support
 - Tensor parallelism and pipeline parallelism
-- FP8, AWQ, GPTQ quantization support
-- LoRA adapter serving
+- FP8, AWQ, GPTQ, MXFP4/MXFP8 quantization support
+- LoRA adapter serving (including FP8 LoRA)
 - Structured outputs and tool calling
-- Speculative decoding
+- Speculative decoding (Eagle, Eagle3, NGram GPU, MTP)
+- GPU-less render serving for multimodal preprocessing
+- KV cache offloading with smart CPU stores and FlexKV
+- Elastic expert parallelism with NIXL-EP
+- Responses API with streaming tool calls
+- Online beam search for ASR models
 
 ## Changelog Format
 
