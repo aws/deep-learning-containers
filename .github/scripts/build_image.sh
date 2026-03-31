@@ -115,13 +115,16 @@ BUILD_CMD="${BUILD_CMD} \
   --target ${TARGET} \
   -f ${DOCKERFILE_PATH} ."
 
+# Ensure default docker builder is used
+docker buildx use default 2>/dev/null || true
+
 # Execute build
 echo "Executing build command..."
 echo "${BUILD_CMD}"
 eval ${BUILD_CMD}
 
-# Clean up local image
-docker rmi ${CI_IMAGE_URI}
+# Clean up local image (may not exist when using remote buildkitd)
+docker rmi ${CI_IMAGE_URI} 2>/dev/null || true
 
 echo "Build completed successfully!"
 echo "CI_IMAGE_URI=${CI_IMAGE_URI}"

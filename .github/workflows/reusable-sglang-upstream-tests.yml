@@ -26,6 +26,11 @@ on:
         description: 'Docker run command to start the benchmark container (must output CONTAINER_ID)'
         required: true
         type: string
+      run-srt-backend-test:
+        description: 'Whether to run the SRT backend test suite (default: true)'
+        required: false
+        type: boolean
+        default: true
 
 env:
   TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
@@ -79,6 +84,7 @@ jobs:
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
   srt-backend-test:
+    if: ${{ inputs.run-srt-backend-test }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner

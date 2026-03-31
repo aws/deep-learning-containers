@@ -1,0 +1,175 @@
+name: Reusable vLLM Model Smoke Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: "Image URI to test"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR authentication"
+        required: true
+        type: string
+      aws-region:
+        description: "AWS region for ECR authentication"
+        required: true
+        type: string
+
+jobs:
+  load-models:
+    runs-on: ubuntu-latest
+    outputs:
+      codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
+      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Parse model config
+        id: parse
+        run: |
+          python3 -c "
+          import yaml, json
+          with open('.github/config/vllm-model-tests.yml') as f:
+              cfg = yaml.safe_load(f)
+          st = cfg.get('smoke-test', {})
+          prefix = cfg.get('s3_prefix', '')
+          for m in st.get('codebuild-fleet', []) + st.get('runner-scale-sets', []):
+              m['s3_path'] = prefix + '/' + m.pop('s3_model')
+          print('codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
+          print('runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
+          " > parsed.txt
+          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
+          grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
+          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
+          echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
+
+  test-model-codebuild-fleet:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix)[0] != null }}
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          mkdir -p "${MODEL_DIR}"
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
+      - name: Start container
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            -v /dlc-models:/models \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy scripts into container
+        run: |
+          docker cp scripts/vllm/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+
+      - name: Run model smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.name }}" \
+            ${{ matrix.extra_args }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          rm -rf /dlc-models
+
+  test-model-runner-scale-sets:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          mkdir -p "${MODEL_DIR}"
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
+      - name: Start container
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            --ipc=host --shm-size=10g \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      # on runner scales sets, container run inside container cannot mount
+      # we need to copy models to the container
+      - name: Copy files into container
+        run: |
+          docker exec ${CONTAINER_ID} mkdir -p /models
+          docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
+          docker cp scripts/vllm/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          rm -rf /dlc-models
+
+      - name: Run model smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.name }}" \
+            ${{ matrix.extra_args }}
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          rm -rf /dlc-models

@@ -1,0 +1,309 @@
+name: PR - Base v1
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "docker/base/**"
+      - "scripts/common/**"
+      - "test/cuda/**"
+      - "test/security/data/ecr_scan_allowlist/base/**"
+      - ".github/config/base-v1.yml"
+      - ".github/workflows/pr-base-v1.yml"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+  CONFIG_FILE: ".github/config/base-v1.yml"
+  DOCKERFILE_PATH: "docker/base/v1/Dockerfile"
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
+  load-config:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      prod-image: ${{ steps.parse.outputs.prod-image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: ${{ env.CONFIG_FILE }}
+
+      - name: Parse configuration
+        id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+
+  check-changes:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      cuda-test-change: ${{ steps.changes.outputs.cuda-test-change }}
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            build-change:
+              - "docker/base/**"
+              - "scripts/common/**"
+              - ".github/config/base-v1.yml"
+              - "test/security/data/ecr_scan_allowlist/base/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            cuda-test-change:
+              - "test/cuda/**"
+
+  # ============================================================
+  # Build both image targets (runtime and devel)
+  # ============================================================
+  build-images:
+    needs: [check-changes, load-config]
+    if: needs.check-changes.outputs.build-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ matrix.target.name }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: runtime, tag: cuda129-runtime-amzn2023 }
+          - { name: devel, tag: cuda129-devel-amzn2023 }
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build ${{ matrix.target.name }}
+        id: build
+        run: |
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}"
+          echo "Building ${CI_IMAGE_URI}"
+
+          docker buildx build --progress plain \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target ${{ matrix.target.name }} \
+            -f ${{ env.DOCKERFILE_PATH }} .
+
+          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Sanity tests — run against both targets
+  # ============================================================
+  sanity-test:
+    needs: [check-changes, build-images, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: cuda129-runtime-amzn2023 }
+          - { tag: cuda129-devel-amzn2023 }
+    concurrency:
+      group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      python-version: ${{ needs.load-config.outputs.python-version }}
+      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
+      os-version: ${{ needs.load-config.outputs.os-version }}
+      customer-type: ${{ needs.load-config.outputs.customer-type }}
+      arch-type: ${{ needs.load-config.outputs.arch-type }}
+      device-type: ${{ needs.load-config.outputs.device-type }}
+      contributor: ${{ needs.load-config.outputs.contributor }}
+      container-type: ${{ needs.load-config.outputs.container-type }}
+
+  # ============================================================
+  # Base-specific sanity tests (CPU only — Python, compiler flags)
+  # ============================================================
+  base-sanity-test:
+    needs: [check-changes, build-images, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: cuda129-runtime-amzn2023 }
+          - { tag: cuda129-devel-amzn2023 }
+    concurrency:
+      group: ${{ github.workflow }}-base-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run base image checks
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh 3.13 12.9
+
+  # ============================================================
+  # Security tests — run against both targets
+  # ============================================================
+  security-test:
+    needs: [build-images, load-config]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: cuda129-runtime-amzn2023 }
+          - { tag: cuda129-devel-amzn2023 }
+    concurrency:
+      group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+
+  # ============================================================
+  # CUDA tests — GPU sanity checks for both targets
+  # ============================================================
+  cuda-test:
+    needs: [check-changes, build-images]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.cuda-test-change == 'true')
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: cuda129-runtime-amzn2023, script: cuda_runtime_test.sh, cuda: "12.9" }
+          - { tag: cuda129-devel-amzn2023, script: cuda_devel_test.sh, cuda: "12.9" }
+    concurrency:
+      group: ${{ github.workflow }}-cuda-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run CUDA test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/cuda/scripts/${{ matrix.target.script }} ${{ matrix.target.cuda }}

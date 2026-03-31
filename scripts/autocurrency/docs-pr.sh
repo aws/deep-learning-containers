@@ -87,7 +87,7 @@ generate_pr_title() {
   local framework="$1" version="$2" platform="$3"
   local display
   display=$(get_display_name "$framework")
-  echo "docs: Add ${display} ${version} ${platform^^} image data"
+  echo "[Docs Update] ${display} ${version} ${platform^^}"
 }
 
 ###############################################################################
@@ -119,6 +119,32 @@ TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}
 IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
 
 # -----------------------------------------------------------------
+# Early exit: skip unsupported platforms
+# -----------------------------------------------------------------
+if [ "$PLATFORM" = "rayserve_ec2" ]; then
+  echo "${FRAMEWORK}: Platform '${PLATFORM}' is not supported for docs generation. Skipping."
+  exit 0
+fi
+
+# -----------------------------------------------------------------
+# Early exit: check if docs PR branch already exists
+# -----------------------------------------------------------------
+branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
+if git ls-remote --exit-code --heads origin "${branch_name}" &>/dev/null; then
+  echo "${FRAMEWORK}: Branch '${branch_name}' already exists. PR likely in progress. Skipping."
+  exit 0
+fi
+
+# -----------------------------------------------------------------
+# Early exit: check if docs data file already exists
+# -----------------------------------------------------------------
+OUTPUT_FILE="${REPO_ROOT}/docs/src/data/${FRAMEWORK}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
+if [ -f "$OUTPUT_FILE" ]; then
+  echo "${FRAMEWORK}: Docs file '${OUTPUT_FILE}' already exists. Skipping."
+  exit 0
+fi
+
+# -----------------------------------------------------------------
 # Step 1: Pull image and extract package versions
 # -----------------------------------------------------------------
 echo ""
@@ -143,14 +169,15 @@ for i in $(seq 0 $(( pip_count - 1 ))); do
   pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$TRACKER")
   output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
 
-  version=$(docker run --rm "$IMAGE_URI" pip show "$pkg_name" 2>/dev/null | grep "^Version:" | awk '{print $2}') || true
+  version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "pip show ${pkg_name} 2>/dev/null" | grep "^Version:" | awk '{print $2}' | sed 's/+.*//') || true
+  safe_key="${output_key//-/_}"
   if [ -n "$version" ]; then
     echo "  ✅ ${output_key}: ${version}"
-    declare "PKG_${output_key}=${version}"
+    declare "PKG_${safe_key}=${version}"
   else
     echo "::warning::Failed to extract version for pip package '${pkg_name}' (key: ${output_key})"
     FAILED_PACKAGES+=("$output_key")
-    declare "PKG_${output_key}="
+    declare "PKG_${safe_key}="
   fi
 done
 
@@ -161,19 +188,19 @@ for i in $(seq 0 $(( system_count - 1 ))); do
 
   case "$sys_pkg" in
     cuda)
-      version=$(docker run --rm "$IMAGE_URI" nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "nvcc --version 2>/dev/null" | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
       ;;
     nccl)
-      version=$(docker run --rm "$IMAGE_URI" python3 -c "import torch; print(torch.cuda.nccl.version())" 2>/dev/null) || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "python3 -c \"import torch; v=torch.cuda.nccl.version(); print(f'{v[0]}.{v[1]}.{v[2]}')\" 2>/dev/null") || true
       ;;
     efa)
-      version=$(docker run --rm "$IMAGE_URI" fi_info --version 2>/dev/null | head -1 | awk '{print $2}') || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "cat /opt/amazon/efa_installed_packages 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'") || true
       ;;
     cudnn)
-      version=$(docker run --rm "$IMAGE_URI" python3 -c "import torch; print(torch.backends.cudnn.version())" 2>/dev/null) || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null | grep 'libcudnn[0-9]*' | head -1 | awk '{print \$3}'" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+') || true
       ;;
     gdrcopy)
-      version=$(docker run --rm "$IMAGE_URI" dpkg -l 2>/dev/null | grep gdrcopy | awk '{print $3}' | head -1) || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null" | grep gdrcopy | awk '{print $3}' | head -1) || true
       ;;
     *)
       echo "::warning::Unknown system package '${sys_pkg}', skipping"
@@ -216,8 +243,7 @@ tag4=$(echo "$tags" | sed -n '4p')
 
 announcement=$(generate_announcement "$FRAMEWORK" "$VERSION" "$PLATFORM")
 
-output_dir="${REPO_ROOT}/docs/src/data/${FRAMEWORK}"
-OUTPUT_FILE="${output_dir}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
+output_dir="$(dirname "$OUTPUT_FILE")"
 mkdir -p "$output_dir"
 
 # Build packages section dynamically from tracker config
@@ -226,7 +252,7 @@ packages_yaml=""
 for i in $(seq 0 $(( pip_count - 1 ))); do
   pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$TRACKER")
   output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
-  env_var="PKG_${output_key}"
+  env_var="PKG_${output_key//-/_}"
   packages_yaml="${packages_yaml}  ${output_key}: \"${!env_var:-}\"\n"
 done
 
@@ -270,7 +296,6 @@ echo "============================================================"
 echo "Step 3: Create branch, commit, and open PR"
 echo "============================================================"
 
-branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
 pr_title=$(generate_pr_title "$FRAMEWORK" "$VERSION" "$PLATFORM")
 
 git config user.name "asimov-bot[bot]"
@@ -281,11 +306,22 @@ git add "$OUTPUT_FILE"
 git commit -m "$pr_title"
 git push --force origin "$branch_name"
 
-pr_body="Auto-generated by the release workflow.
+pr_body=$(cat <<PRBODY
+## Docs Update: ${display_name} ${VERSION} (${PLATFORM^^})
 
-This PR adds the docs data file for ${display_name} ${VERSION} (${PLATFORM}).
+**Framework**: ${display_name}
+**Version**: ${VERSION}
+**Platform**: ${PLATFORM^^}
 
-**File:** \`${OUTPUT_FILE}\`"
+### What to Review
+- Verify the generated image tags
+- Confirm package versions are present and correct
+- Adjust the \`announcements\` section if needed
+
+### Auto-generated by
+- [reusable-release-image.yml](https://github.com/aws/deep-learning-containers/blob/main/.github/workflows/reusable-release-image.yml) — step4-docs-pr
+PRBODY
+)
 
 if [ -n "${FAILED_PACKAGES_STR}" ]; then
   pr_body="${pr_body}
@@ -297,15 +333,8 @@ if [ -n "${FAILED_PACKAGES_STR}" ]; then
 $(echo "$FAILED_PACKAGES_STR" | tr ',' '\n' | while read -r pkg; do echo "- \`${pkg}\`"; done)"
 fi
 
-existing_pr=$(gh pr list --head "$branch_name" --json number --jq '.[0].number' 2>/dev/null) || true
-if [ -n "$existing_pr" ] && [ "$existing_pr" != "null" ]; then
-  echo "Updating existing PR #${existing_pr}"
-  gh pr edit "$existing_pr" --title "$pr_title" --body "$pr_body"
-  PR_URL=$(gh pr view "$existing_pr" --json url --jq '.url')
-else
-  echo "Creating new PR"
-  PR_URL=$(gh pr create --title "$pr_title" --body "$pr_body" --head "$branch_name" --base main)
-fi
+echo "Creating PR..."
+PR_URL=$(gh pr create --title "$pr_title" --body "$pr_body" --head "$branch_name" --base main)
 
 echo "✅ PR URL: ${PR_URL}"
 

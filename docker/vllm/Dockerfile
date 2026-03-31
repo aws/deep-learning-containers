@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.17.1
+ARG BASE_IMAGE=vllm/vllm-openai:v0.18.1
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -32,6 +32,7 @@ RUN uv pip install --system \
 
 # patch CVEs and sauron
 RUN uv pip install --system \
+  "cbor2>=5.9.0" \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
