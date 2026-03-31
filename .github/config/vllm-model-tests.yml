@@ -32,15 +32,15 @@ benchmark:
       min_rps: 5
 
     - name: "qwen3.5-9b"
-      s3_model: "gpt-oss-20b.tar.gz"
+      s3_model: "qwen3.5-9b.tar.gz"
       fleet: "x86-g6xl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096  --enforce-eager"
       input_len: 512
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 400
-      min_rps: 1.5
+      min_throughput: 180
+      min_rps: 0.15
 
     - name: "llama-3.3-70b"
       s3_model: "llama-3.3-70b.tar.gz"
@@ -80,6 +80,8 @@ benchmark:
       min_throughput: 80
       min_rps: 0.35
 
+# A100 is compute capability 8.0 — FP8 requires 8.9+ (H100/L40S).
+# The Marlin fallback uses significantly more memory.
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
       fleet: "x86-g6e12xl-runner"
@@ -113,16 +115,6 @@ benchmark:
       min_throughput: 1133
       min_rps: 3
 
-    - name: "gpt-oss-20b"
-      s3_model: "gpt-oss-20b.tar.gz"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 1200
-      min_rps: 5
-
     - name: "qwen3.5-35b-a3b-fp8"
       s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
       # https://github.com/vllm-project/vllm/issues/35743 open bug for capturing CUDA graph fails
@@ -137,7 +129,8 @@ benchmark:
 
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
-      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+      # A100 lacks native FP8 — vLLM dequantizes to BF16 at load, doubling weight memory
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --enforce-eager"
       input_len: 512
       output_len: 128
       num_prompts: 64

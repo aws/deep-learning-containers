@@ -7,7 +7,7 @@ ARG PYTHON_VERSION=3.12
 FROM alpine/git AS source
 
 ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
-ARG VLLM_VERSION=0.17.1
+ARG VLLM_VERSION=0.18.0
 ARG VLLM_REF=v${VLLM_VERSION}
 
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src
@@ -71,12 +71,12 @@ ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 ARG max_jobs=32
 ENV MAX_JOBS=${max_jobs}
 
-ARG nvcc_threads=16
+ARG nvcc_threads=2
 ENV NVCC_THREADS=${nvcc_threads}
 
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
-ARG VLLM_VERSION=0.17.1
+ARG VLLM_VERSION=0.18.0
 ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
@@ -140,7 +140,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install /tmp/vllm-dist/*.wh
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install FlashInfer cubin/jit-cache
-ARG FLASHINFER_VERSION=0.6.4
+ARG FLASHINFER_VERSION=0.6.6
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==${FLASHINFER_VERSION} \
   flashinfer-jit-cache==${FLASHINFER_VERSION} \
   --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
@@ -166,6 +166,38 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   else \
     echo "No DeepEP wheels to install; skipping."; \
   fi && rm -rf /tmp/ep_kernels
+
+# Install KV connectors (lmcache, nixl) if requested
+ARG INSTALL_KV_CONNECTORS=true
+COPY --from=source /src/requirements/kv_connectors.txt /tmp/kv_connectors.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
+    CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
+    if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
+        if [ "$CUDA_MAJOR" -ge 13 ]; then \
+            uv pip install nixl-cu13; \
+        fi; \
+        uv pip install -r /tmp/kv_connectors.txt --no-build || ( \
+            dnf install -y --setopt=install_weak_deps=False \
+                libcusparse-devel-${CUDA_DASH} \
+                libcublas-devel-${CUDA_DASH} \
+                libcusolver-devel-${CUDA_DASH} \
+            && uv pip install -r /tmp/kv_connectors.txt --no-build-isolation \
+            && dnf remove -y libcusparse-devel-${CUDA_DASH} libcublas-devel-${CUDA_DASH} libcusolver-devel-${CUDA_DASH} \
+            && dnf clean all && rm -rf /var/cache/dnf \
+        ); \
+    fi
+
+# =============================================================================
+# STAGE: builder-oss — generates license files without modifying runtime venv
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
+ARG PYTHON_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=deps /opt/venv /opt/venv
+COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
@@ -241,12 +273,12 @@ RUN uv pip install --no-cache-dir \
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
 
+# telemetry
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
@@ -256,14 +288,20 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python \
-  && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
   && rm -rf /tmp/uv* \
   && rm -rf /var/cache/dnf \
   && rm -rf /root/.cache || true
 
+# OSS compliance (runs in isolated stage to avoid polluting the venv)
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# install EFA
 COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 ARG EFA_VERSION="1.47.0"
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
