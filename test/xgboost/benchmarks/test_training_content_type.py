@@ -41,9 +41,7 @@ BASE_HP = {
         "parquet-file",
     ],
 )
-def test_content_type(
-    image_uri, role, benchmark_bucket, dataset_path, content_type, input_mode
-):
+def test_content_type(image_uri, role, benchmark_bucket, dataset_path, content_type, input_mode):
     _, duration, desc = run_training_job(
         image_uri=image_uri,
         role=role,
