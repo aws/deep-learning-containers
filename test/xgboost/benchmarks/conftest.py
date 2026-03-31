@@ -81,9 +81,7 @@ def run_training_job(
         ),
     }
 
-    LOGGER.info(
-        f"Starting benchmark job: {job_name} ({instance_count}x {instance_type})"
-    )
+    LOGGER.info(f"Starting benchmark job: {job_name} ({instance_count}x {instance_type})")
     sm = boto3.client("sagemaker")
     start = time.time()
     try:
