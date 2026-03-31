@@ -143,6 +143,8 @@ sm.delete_model(ModelName="vllm-model")
 
 ```json
 {
+  "family": "vllm-inference",
+  "networkMode": "host",
   "containerDefinitions": [
     {
       "name": "vllm",
@@ -155,10 +157,20 @@ sm.delete_model(ModelName="vllm-model")
       "environment": [
         {"name": "HF_TOKEN", "value": "<your_hf_token>"}
       ],
-      "portMappings": [{"containerPort": 8000}],
+      "memoryReservation": 14000,
+      "portMappings": [{"containerPort": 8000, "hostPort": 8000}],
       "resourceRequirements": [
         {"type": "GPU", "value": "1"}
-      ]
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/vllm-inference",
+          "awslogs-region": "us-west-2",
+          "awslogs-stream-prefix": "vllm",
+          "awslogs-create-group": "true"
+        }
+      }
     }
   ]
 }
