@@ -309,8 +309,9 @@ class TestValidTraining:
             exit_code2 = result.get("StatusCode", -1)
         except Exception:
             exit_code2 = -1
-        logs2 = container.logs().decode("utf-8", errors="replace")
-        container.remove(force=True)
+        finally:
+            logs2 = container.logs().decode("utf-8", errors="replace")
+            container.remove(force=True)
 
         assert exit_code2 == 0
         ckpt_files2 = os.listdir(paths["checkpoints"])
