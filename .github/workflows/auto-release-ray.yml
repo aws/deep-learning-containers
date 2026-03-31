@@ -725,6 +725,7 @@ jobs:
       environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-ec2-gpu.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
+      skip-docs-pr: true
     secrets: inherit
 
   # ============================================================
@@ -743,6 +744,7 @@ jobs:
       environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-ec2-cpu.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
+      skip-docs-pr: true
     secrets: inherit
 
   # ============================================================
@@ -761,6 +763,7 @@ jobs:
       environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-sagemaker-gpu.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
+      skip-docs-pr: true
     secrets: inherit
 
   # ============================================================
@@ -779,4 +782,5 @@ jobs:
       environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-sagemaker-cpu.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
+      skip-docs-pr: true
     secrets: inherit
