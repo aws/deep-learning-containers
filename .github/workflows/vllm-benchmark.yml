@@ -102,6 +102,7 @@ jobs:
         run: |
           docker pull ${{ env.IMAGE_URI }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            --ipc=host --shm-size=10g \
             -v /dlc-models:/models \
             ${{ env.IMAGE_URI }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
