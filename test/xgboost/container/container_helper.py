@@ -136,6 +136,7 @@ class ServingContainer:
         paths = _create_opt_ml(tmpdir)
         # Copy model files
         _copy_files([self._model_dir], paths["model"])
+        _write_configs(paths["input_config"], {}, {}, {"current_host": "algo-1", "hosts": ["algo-1"]})
 
         volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
         env = dict(self._env)
@@ -156,6 +157,8 @@ class ServingContainer:
             logs = self._container.logs().decode("utf-8", errors="replace")
             LOGGER.info("Serving container logs:\n%s", logs)
             self._container.remove(force=True)
+        if self._opt_ml:
+            shutil.rmtree(self._opt_ml, ignore_errors=True)
 
     # -- health check --------------------------------------------------------
 

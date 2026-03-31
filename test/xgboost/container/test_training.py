@@ -8,6 +8,7 @@ Covers:
 """
 
 import copy
+import json
 import os
 import re
 
@@ -42,7 +43,6 @@ STD_HP = {
     "max_delta_step": "0",
     "min_child_weight": "1.0",
     "colsample_bytree": "1.0",
-    "silent": "0",
     "max_leaves": "0",
     "lambda_bias": "0.0",
     "grow_policy": "depthwise",
@@ -289,7 +289,6 @@ class TestValidTraining:
         hp2["eval_metric"] = "error"
         hp2.pop("early_stopping_rounds", None)
 
-        import json
         config_dir = paths["input_config"]
         with open(os.path.join(config_dir, "hyperparameters.json"), "w") as f:
             json.dump(hp2, f)
@@ -310,8 +309,9 @@ class TestValidTraining:
             exit_code2 = result.get("StatusCode", -1)
         except Exception:
             exit_code2 = -1
-        logs2 = container.logs().decode("utf-8", errors="replace")
-        container.remove(force=True)
+        finally:
+            logs2 = container.logs().decode("utf-8", errors="replace")
+            container.remove(force=True)
 
         assert exit_code2 == 0
         ckpt_files2 = os.listdir(paths["checkpoints"])
