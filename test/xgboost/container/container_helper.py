@@ -104,10 +104,10 @@ def run_training(docker_client, image_uri, hyperparameters, inputdataconfig,
     except Exception:
         LOGGER.warning("Training did not finish within %ss", timeout)
         exit_code = -1
-
-    logs = container.logs().decode("utf-8", errors="replace")
-    LOGGER.info("Container logs:\n%s", logs)
-    container.remove(force=True)
+    finally:
+        logs = container.logs().decode("utf-8", errors="replace")
+        LOGGER.info("Container logs:\n%s", logs)
+        container.remove(force=True)
 
     model_files = [f for f in os.listdir(paths["model"]) if "model" in f]
     return exit_code, logs, model_files, paths
