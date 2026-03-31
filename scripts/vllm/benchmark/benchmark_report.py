@@ -37,10 +37,10 @@ def main(results_dir):
 
     print("## Throughput\n")
     print(
-        "| Model | Runner | TP | Input Len | Output Len | Prompts | Tokens/s | Requests/s | Elapsed (s) |"
+        "| Model | Runner | TP | Input Len | Output Len | Prompts | Output Tokens/s | Total Tokens/s | Requests/s | Elapsed (s) |"
     )
     print(
-        "|-------|--------|----|-----------|------------|---------|----------|------------|-------------|"
+        "|-------|--------|----|-----------|------------|---------|-----------------|----------------|------------|-------------|"
     )
     for f in sorted(glob.glob(f"{results_dir}/**/throughput_*.json", recursive=True)):
         name = os.path.basename(f).replace("throughput_", "").replace(".json", "")
@@ -48,10 +48,12 @@ def main(results_dir):
         tp = get_tp(c.get("extra_args", ""))
         with open(f) as fh:
             r = json.load(fh)
+        output_tps = r.get("output_tokens_per_second", 0)
         print(
             f"| {name} | {c.get('runner', 'unknown')} | {tp} "
             f"| {c.get('input_len', '')} | {c.get('output_len', '')} "
-            f"| {c.get('num_prompts', '')} | {r['tokens_per_second']:.2f} "
+            f"| {c.get('num_prompts', '')} | {output_tps:.2f} "
+            f"| {r['tokens_per_second']:.2f} "
             f"| {r['requests_per_second']:.2f} | {r['elapsed_time']:.2f} |"
         )
 
