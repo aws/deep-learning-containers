@@ -14,7 +14,7 @@ public.ecr.aws/deep-learning-containers/vllm:server-cuda
 
 | Version | Release Date | vLLM Base | PyTorch | CUDA | Highlights |
 | --- | --- | --- | --- | --- | --- |
-| v1.0.0 | TBD | 0.18.0+ | 2.6.0 | 12.9.1 | First release with simplified tag format, AL2023 base |
+| v1.0.0 | TBD | 0.18.0+ | 2.10.0 | 12.9.1 | First release with simplified tag format, AL2023 base |
 
 > **Note:** This table will be updated as new versions are released. Each entry links to its detailed release notes below.
 
@@ -31,6 +31,7 @@ public.ecr.aws/deep-learning-containers/vllm:server-cuda
 | Package | Version |
 | --- | --- |
 | vLLM | 0.18.0+amzn2023 |
+| PyTorch | 2.10.0 |
 | Python | 3.12 |
 | CUDA | 12.9.1 |
 | FlashInfer | 0.6.6 |
