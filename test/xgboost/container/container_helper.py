@@ -88,9 +88,7 @@ def run_training(docker_client, image_uri, hyperparameters, inputdataconfig,
         _copy_files(validation_files, paths["input_validation"])
 
     volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
-    env = {"SAGEMAKER_PROGRAM": "sagemaker_xgboost_container.training:main"}
-    if environment:
-        env.update(environment)
+    env = environment.copy() if environment else {}
 
     container = docker_client.containers.run(
         image_uri,
