@@ -189,6 +189,7 @@ RUN pip install --no-cache-dir \
     "setuptools>=80.10.1" \
     "urllib3>=2.5.0" \
     "awscli" \
+    "s3fs>=2026.2.0" \
     opencv-python==4.11.0.86 \
     mpi4py \
     jinja2>=3.1.6 \
