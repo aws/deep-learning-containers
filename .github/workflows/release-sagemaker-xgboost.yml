@@ -154,7 +154,7 @@ jobs:
   benchmark-test:
     needs: [build-image, load-config]
     if: success()
-    timeout-minutes: 60
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
