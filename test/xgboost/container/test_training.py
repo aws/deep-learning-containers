@@ -8,6 +8,7 @@ Covers:
 """
 
 import copy
+import json
 import os
 import re
 
@@ -288,7 +289,6 @@ class TestValidTraining:
         hp2["eval_metric"] = "error"
         hp2.pop("early_stopping_rounds", None)
 
-        import json
         config_dir = paths["input_config"]
         with open(os.path.join(config_dir, "hyperparameters.json"), "w") as f:
             json.dump(hp2, f)
