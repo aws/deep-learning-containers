@@ -92,17 +92,11 @@ jobs:
           nvidia-smi
 
       - name: Download model from S3
-        run: |
-          MODEL_DIR="/dlc-models/${{ matrix.name }}"
-          mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
-          SUBDIRS=("${MODEL_DIR}"/*)
-          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
-          fi
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
 
       - name: Start container
         run: |
@@ -148,8 +142,7 @@ jobs:
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ env.IMAGE_URI }} 2>/dev/null || true
-          rm -rf /dlc-models
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
 
   benchmark-runner-scale-sets:
     name: benchmark (${{ matrix.name }})
