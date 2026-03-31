@@ -184,6 +184,12 @@ kind: Pod
 metadata:
   name: vllm-inference
 spec:
+  nodeSelector:
+    nvidia.com/gpu.present: "true"
+  tolerations:
+    - key: "nvidia.com/gpu"
+      operator: "Exists"
+      effect: "NoSchedule"
   containers:
     - name: vllm
       image: public.ecr.aws/deep-learning-containers/vllm:server-cuda
