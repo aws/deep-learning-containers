@@ -2,7 +2,7 @@ name: Release - XGBoost SageMaker
 
 on:
   push:
-    branches: [main]
+    branches: [xgboost-integ-test]
     paths:
       - "docker/xgboost/**"
       - "test/xgboost/**"
