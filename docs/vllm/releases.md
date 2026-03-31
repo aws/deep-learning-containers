@@ -64,12 +64,17 @@ public.ecr.aws/deep-learning-containers/vllm:server-cuda
 
 **What's included from upstream:**
 
-- OpenAI-compatible API server
+- OpenAI-compatible API server with gRPC support
 - Tensor parallelism and pipeline parallelism
-- FP8, AWQ, GPTQ quantization support
-- LoRA adapter serving
+- FP8, AWQ, GPTQ, MXFP4/MXFP8 quantization support
+- LoRA adapter serving (including FP8 LoRA)
 - Structured outputs and tool calling
-- Speculative decoding
+- Speculative decoding (Eagle, Eagle3, NGram GPU, MTP)
+- GPU-less render serving for multimodal preprocessing
+- KV cache offloading with smart CPU stores and FlexKV
+- Elastic expert parallelism with NIXL-EP
+- Responses API with streaming tool calls
+- Online beam search for ASR models
 
 ## Changelog Format
 
