@@ -61,10 +61,11 @@ jobs:
     needs: [load-benchmarks]
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
     runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}-${{ strategy.job-index }}
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ matrix.fleet }}
         buildspec-override:true
     steps:
