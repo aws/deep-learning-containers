@@ -157,6 +157,8 @@ class ServingContainer:
             logs = self._container.logs().decode("utf-8", errors="replace")
             LOGGER.info("Serving container logs:\n%s", logs)
             self._container.remove(force=True)
+        if self._opt_ml:
+            shutil.rmtree(self._opt_ml, ignore_errors=True)
 
     # -- health check --------------------------------------------------------
 
