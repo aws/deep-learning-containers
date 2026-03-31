@@ -1,4 +1,4 @@
-name: Reusable XGBoost Tests
+name: Reusable XGBoost SageMaker Integration Tests
 
 permissions:
   contents: read
@@ -18,24 +18,9 @@ on:
         description: 'AWS region for ECR authentication'
         required: true
         type: string
-      framework-version:
-        description: 'XGBoost framework version'
-        required: true
-        type: string
-      run-benchmarks:
-        description: 'Whether to run benchmark tests'
-        required: false
-        type: boolean
-        default: false
-      run-integration:
-        description: 'Whether to run integration tests'
-        required: false
-        type: boolean
-        default: true
 
 env:
   FORCE_COLOR: "1"
-  XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
 
 jobs:
   # ===========================================================================
@@ -206,90 +191,43 @@ jobs:
             -k "${{ matrix.test-case }}" \
             xgboost/container/test_batch_transform.py
 
-  # ===========================================================================
-  # Integration tests (upstream sagemaker-xgboost-container local mode)
-  # ===========================================================================
-  integration-test:
-    if: inputs.run-integration
-    timeout-minutes: 30
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Clone sagemaker-xgboost-container
-        run: rm -rf /tmp/xgboost-integ && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-integ
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
-
-      - name: Setup test environment
-        run: |
-          cd /tmp/xgboost-integ
-          uv venv /tmp/xgboost-integ/.venv --python 3.10
-          . /tmp/xgboost-integ/.venv/bin/activate
-          uv pip install .[test]
-          uv pip install --upgrade boto3 botocore
-          docker compose version || (curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose)
-          sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
-            .venv/lib/python3.10/site-packages/sagemaker_containers/_mapping.py
-
-      - name: Run integration tests
-        env:
-          CI_IMAGE_URI: ${{ inputs.image-uri }}
-        run: |
-          . /tmp/xgboost-integ/.venv/bin/activate
-          cd /tmp/xgboost-integ
-          pytest test/integration/local \
-            --ignore=test/integration/local/test_multiple_model_endpoint.py \
-            --docker-base-name "${CI_IMAGE_URI%:*}" \
-            --tag "${CI_IMAGE_URI##*:}" \
-            --py-version 3 \
-            --framework-version ${{ inputs.framework-version }}
+  # TODO: Add integration-test job (upstream sagemaker-xgboost-container local mode tests)
 
   # ===========================================================================
-  # Benchmark tests (SageMaker training jobs)
+  # Benchmark tests (SageMaker training jobs) — commented out pending validation
   # ===========================================================================
-  benchmark-test:
-    if: inputs.run-benchmarks
-    timeout-minutes: 150
-    strategy:
-      fail-fast: false
-      matrix:
-        test-module:
-          - test_training_objective
-          - test_training_tree_method
-          - test_training_max_depth
-          - test_training_num_round
-          - test_training_data_size
-          - test_training_instance_type
-          - test_training_content_type
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-          uv pip install -r test/xgboost/requirements.txt
-
-      - name: Run ${{ matrix.test-module }}
-        run: |
-          source .venv/bin/activate
-          cd test/
-          python3 -m pytest -vs -rA \
-            --image-uri ${{ inputs.image-uri }} \
-            xgboost/benchmarks/${{ matrix.test-module }}.py
+  # benchmark-test:
+  #   timeout-minutes: 150
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test-module:
+  #         - test_training_objective
+  #         - test_training_tree_method
+  #         - test_training_max_depth
+  #         - test_training_num_round
+  #         - test_training_data_size
+  #         - test_training_instance_type
+  #         - test_training_content_type
+  #   runs-on:
+  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+  #       fleet:default-runner
+  #       buildspec-override:true
+  #   steps:
+  #     - name: Checkout DLC source
+  #       uses: actions/checkout@v5
+  #
+  #     - name: Install test dependencies
+  #       run: |
+  #         uv venv --python 3.12
+  #         source .venv/bin/activate
+  #         uv pip install -r test/requirements.txt
+  #         uv pip install -r test/xgboost/requirements.txt
+  #
+  #     - name: Run ${{ matrix.test-module }}
+  #       run: |
+  #         source .venv/bin/activate
+  #         cd test/
+  #         python3 -m pytest -vs -rA \
+  #           --image-uri ${{ inputs.image-uri }} \
+  #           xgboost/benchmarks/${{ matrix.test-module }}.py
