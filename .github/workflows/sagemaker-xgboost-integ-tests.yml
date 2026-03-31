@@ -47,7 +47,7 @@ jobs:
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
-          uv pip install -r test/requirements.txt docker pytest boto3
+          uv pip install -r test/requirements.txt docker pytest boto3 requests
 
       - name: Run training container tests
         run: |
