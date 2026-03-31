@@ -43,8 +43,8 @@ echo "=== Running throughput benchmark ==="
 vllm bench throughput \
   --model "${MODEL_DIR}" \
   --dataset-name random \
-  --input-len "${INPUT_LEN}" \
-  --output-len "${OUTPUT_LEN}" \
+  --random-input-len "${INPUT_LEN}" \
+  --random-output-len "${OUTPUT_LEN}" \
   --num-prompts "${NUM_PROMPTS}" \
   --output-json "${RESULTS_DIR}/throughput_${MODEL_NAME}.json" \
   ${EXTRA_ARGS} 2>&1 | tee "${RESULTS_DIR}/throughput_${MODEL_NAME}.log"
