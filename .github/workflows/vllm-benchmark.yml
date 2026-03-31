@@ -165,20 +165,6 @@ jobs:
           aws-account-id: ${{ env.ACCOUNT_ID }}
           aws-region: ${{ env.REGION }}
 
-      - name: GPU cleanup and status
-        run: |
-          echo "=== Pre-cleanup GPU state ==="
-          nvidia-smi
-          echo ""
-          echo "=== Stopping stale containers ==="
-          docker ps -q | xargs -r docker stop 2>/dev/null || true
-          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
-          echo "=== Clearing GPU memory ==="
-          nvidia-smi --gpu-reset 2>/dev/null || true
-          echo ""
-          echo "=== Post-cleanup GPU state ==="
-          nvidia-smi
-
       - name: Download model from S3
         uses: ./.github/actions/download-model
         id: model
