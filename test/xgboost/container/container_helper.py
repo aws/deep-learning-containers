@@ -136,6 +136,7 @@ class ServingContainer:
         paths = _create_opt_ml(tmpdir)
         # Copy model files
         _copy_files([self._model_dir], paths["model"])
+        _write_configs(paths["input_config"], {}, {}, {"current_host": "algo-1", "hosts": ["algo-1"]})
 
         volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
         env = dict(self._env)
