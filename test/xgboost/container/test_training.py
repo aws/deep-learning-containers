@@ -42,7 +42,6 @@ STD_HP = {
     "max_delta_step": "0",
     "min_child_weight": "1.0",
     "colsample_bytree": "1.0",
-    "silent": "0",
     "max_leaves": "0",
     "lambda_bias": "0.0",
     "grow_policy": "depthwise",
