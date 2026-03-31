@@ -59,9 +59,11 @@ jobs:
     name: benchmark (${{ matrix.name }} / ${{ matrix.fleet }})
     if: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix)[0] != null }}
     needs: [load-benchmarks]
+    concurrency:
+      group: benchmark-fleet-${{ matrix.fleet }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
     runs-on:
