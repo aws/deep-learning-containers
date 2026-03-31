@@ -33,6 +33,11 @@ on:
         required: false
         type: boolean
         default: false
+      skip-docs-pr:
+        description: 'If true, skip the docs PR step (step 4) while keeping steps 1-3'
+        required: false
+        type: boolean
+        default: false
     outputs:
       run-identifier:
         description: 'Unique identifier for this release run'
@@ -300,7 +305,7 @@ jobs:
 
   step4-docs-pr:
     needs: [step1-publish-images, step3-publish-notifications]
-    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
+    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only && !inputs.skip-docs-pr
     runs-on: ubuntu-latest
     steps:
       - name: Decode the GitHub App Private Key
