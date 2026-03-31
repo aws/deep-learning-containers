@@ -46,8 +46,8 @@ echo "=== Running throughput benchmark ==="
 vllm bench throughput \
   --model "${MODEL_DIR}" \
   --dataset-name random \
-  --random-input-len "${INPUT_LEN}" \
-  --random-output-len "${OUTPUT_LEN}" \
+  --input-len "${INPUT_LEN}" \
+  --output-len "${OUTPUT_LEN}" \
   --num-prompts "${NUM_PROMPTS}" \
   --output-json "${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json" \
   ${EXTRA_ARGS}
@@ -61,7 +61,7 @@ python3 -c "
 import json, sys
 with open('${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json') as f:
     r = json.load(f)
-tps = r['total_num_output_tokens'] / r['elapsed_time']
+tps = r['tokens_per_second']
 rps = r['requests_per_second']
 print(f'Output tokens/s: {tps:.2f} (min: ${MIN_THROUGHPUT})')
 print(f'Requests/s: {rps:.2f} (min: ${MIN_RPS})')
