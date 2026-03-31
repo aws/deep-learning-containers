@@ -152,7 +152,6 @@ jobs:
     needs: [load-benchmarks]
     strategy:
       fail-fast: false
-      max-parallel: 1
       matrix:
         include: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix) }}
     runs-on: gpu-efa-runners
