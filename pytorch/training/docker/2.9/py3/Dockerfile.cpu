@@ -211,6 +211,9 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     blis \
     numpy
 
+# Upgrade black bundled in spacy test requirements to fix CVE-2026-32274
+RUN pip install --no-cache-dir "black>=26.3.1"
+
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.9/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
