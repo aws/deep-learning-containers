@@ -46,17 +46,24 @@ def main():
     print("Downloading training data...")
     download_s3_dir(s3, S3_BUCKET, S3_TRAINING_PREFIX, train_dir)
 
-    # --- mnist-xgb-model (784 features, multiclass) ---
-    # Train on mnist-700.csv (same dims as all mnist inference inputs)
+    # --- mnist-xgb-model ---
+    # mnist-700.csv: first column is label, remaining are features
+    # libsvm files use 1-based indexing with max index 785, so set num_feature=785
+    # to ensure model accepts all inference input formats
     print("Generating mnist-xgb-model...")
     mnist_data = np.genfromtxt(os.path.join(input_dir, "mnist-700.csv"), delimiter=",")
-    np.random.seed(42)
-    labels = np.random.randint(0, 10, size=mnist_data.shape[0]).astype(float)
-    dtrain = xgb.DMatrix(mnist_data, label=labels)
+    labels = mnist_data[:, 0]
+    features = mnist_data[:, 1:]
+    n_features = 785  # max feature index in libsvm files
+    # Pad features to n_features if needed
+    if features.shape[1] < n_features:
+        pad = np.zeros((features.shape[0], n_features - features.shape[1]))
+        features = np.concatenate([features, pad], axis=1)
+    dtrain = xgb.DMatrix(features, label=labels)
     bst = xgb.train({"objective": "multi:softmax", "num_class": 10, "max_depth": 6},
                      dtrain, 10)
     bst.save_model(os.path.join(out_dir, "mnist-xgb-model"))
-    print(f"  {mnist_data.shape[0]} rows x {mnist_data.shape[1]} cols")
+    print(f"  {features.shape[0]} rows x {features.shape[1]} features")
 
     # --- diabetes-binary-xgb-model ---
     print("Generating diabetes-binary-xgb-model...")
