@@ -10,9 +10,18 @@ import yaml
 CONFIG = ".github/config/vllm-model-tests.yml"
 
 
-def _parse_model_name(filename, prefix):
-    """Extract model name from artifact filename like throughput_qwen3.5-9b.json."""
-    return os.path.basename(filename).replace(f"{prefix}_", "", 1).replace(".json", "")
+def _parse_artifact_name(filename, prefix, known_models):
+    """Extract model name and runner from filename like throughput_qwen3.5-9b_x86-g6xl-runner.json.
+
+    Uses known model names to split correctly since both model names and
+    runner names contain hyphens/underscores.
+    """
+    base = os.path.basename(filename).replace(f"{prefix}_", "", 1).replace(".json", "")
+    for name in sorted(known_models, key=len, reverse=True):
+        if base.startswith(name):
+            runner = base[len(name) :].lstrip("_") or "unknown"
+            return name, runner
+    return base, "unknown"
 
 
 def get_tp(extra_args):
@@ -48,14 +57,14 @@ def main(results_dir):
         "|-------|--------|----|-----------|------------|---------|-----------------|----------------|------------|-------------|"
     )
     for f in sorted(glob.glob(f"{results_dir}/**/throughput_*.json", recursive=True)):
-        name = _parse_model_name(f, "throughput")
+        name, runner = _parse_artifact_name(f, "throughput", models)
         c = models.get(name, {})
         tp = get_tp(c.get("extra_args", ""))
         with open(f) as fh:
             r = json.load(fh)
         output_tps = r.get("output_tokens_per_second", 0)
         print(
-            f"| {name} | {c.get('runner', 'unknown')} | {tp} "
+            f"| {name} | {runner} | {tp} "
             f"| {c.get('input_len', '')} | {c.get('output_len', '')} "
             f"| {c.get('num_prompts', '')} | {output_tps:.2f} "
             f"| {r['tokens_per_second']:.2f} "
@@ -66,14 +75,14 @@ def main(results_dir):
     print("| Model | Runner | TP | Batch Size | Avg (s) | p50 (s) | p90 (s) | p99 (s) |")
     print("|-------|--------|----|------------|---------|---------|---------|---------|")
     for f in sorted(glob.glob(f"{results_dir}/**/latency_*.json", recursive=True)):
-        name = _parse_model_name(f, "latency")
+        name, runner = _parse_artifact_name(f, "latency", models)
         c = models.get(name, {})
         tp = get_tp(c.get("extra_args", ""))
         with open(f) as fh:
             r = json.load(fh)
         p = r.get("percentiles", {})
         print(
-            f"| {name} | {c.get('runner', 'unknown')} | {tp} "
+            f"| {name} | {runner} | {tp} "
             f"| {c.get('batch_size', '')} | {r['avg_latency']:.4f} "
             f"| {p.get('50', 0):.4f} | {p.get('90', 0):.4f} | {p.get('99', 0):.4f} |"
         )
