@@ -10,17 +10,12 @@ import yaml
 CONFIG = ".github/config/vllm-model-tests.yml"
 
 
-def _parse_artifact_name(filename, prefix, known_models):
-    """Extract model name and runner from filename like throughput_qwen3.5-9b_x86-g6xl-runner.json.
-
-    Uses known model names to split correctly since both model names and
-    runner names contain hyphens/underscores.
-    """
+def _parse_artifact_name(filename, prefix):
+    """Parse model name and runner from filename like throughput_qwen3.5-9b_x86-g6xl-runner.json."""
     base = os.path.basename(filename).replace(f"{prefix}_", "", 1).replace(".json", "")
-    for name in sorted(known_models, key=len, reverse=True):
-        if base.startswith(name):
-            runner = base[len(name) :].lstrip("_") or "unknown"
-            return name, runner
+    parts = base.rsplit("_", 1)
+    if len(parts) == 2:
+        return parts[0], parts[1]
     return base, "unknown"
 
 
@@ -57,7 +52,7 @@ def main(results_dir):
         "|-------|--------|----|-----------|------------|---------|-----------------|----------------|------------|-------------|"
     )
     for f in sorted(glob.glob(f"{results_dir}/**/throughput_*.json", recursive=True)):
-        name, runner = _parse_artifact_name(f, "throughput", models)
+        name, runner = _parse_artifact_name(f, "throughput")
         c = models.get(name, {})
         tp = get_tp(c.get("extra_args", ""))
         with open(f) as fh:
@@ -75,7 +70,7 @@ def main(results_dir):
     print("| Model | Runner | TP | Batch Size | Avg (s) | p50 (s) | p90 (s) | p99 (s) |")
     print("|-------|--------|----|------------|---------|---------|---------|---------|")
     for f in sorted(glob.glob(f"{results_dir}/**/latency_*.json", recursive=True)):
-        name, runner = _parse_artifact_name(f, "latency", models)
+        name, runner = _parse_artifact_name(f, "latency")
         c = models.get(name, {})
         tp = get_tp(c.get("extra_args", ""))
         with open(f) as fh:
