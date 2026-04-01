@@ -16,6 +16,8 @@ import time
 
 import requests
 
+import docker.types
+
 LOGGER = logging.getLogger(__name__)
 
 TRAIN_TIMEOUT = 300
@@ -111,6 +113,72 @@ def run_training(docker_client, image_uri, hyperparameters, inputdataconfig,
 
     model_files = [f for f in os.listdir(paths["model"]) if "model" in f]
     return exit_code, logs, model_files, paths
+
+
+def run_distributed_training(docker_client, image_uri, hyperparameters, inputdataconfig,
+                             resourceconfigs, training_files, timeout=TRAIN_TIMEOUT):
+    """Run multi-container distributed training. Returns list of (exit_code, logs, paths)."""
+    hosts = [rc["current_host"] for rc in resourceconfigs]
+    network_name = "xgb-test-network"
+    subnet = "10.5.5.0/24"
+    base_ip = 2
+
+    # Create docker network
+    try:
+        network = docker_client.networks.get(network_name)
+        network.remove()
+    except Exception:
+        pass
+    ipam_pool = docker.types.IPAMPool(subnet=subnet)
+    ipam_config = docker.types.IPAMConfig(pool_configs=[ipam_pool])
+    network = docker_client.networks.create(network_name, driver="bridge", ipam=ipam_config)
+
+    containers = []
+    all_paths = []
+    try:
+        # Build host→IP mapping
+        host_ips = {h: f"10.5.5.{base_ip + i}" for i, h in enumerate(hosts)}
+        extra_hosts = {h: ip for h, ip in host_ips.items()}
+
+        for i, rc in enumerate(resourceconfigs):
+            tmpdir = tempfile.mkdtemp(prefix=f"xgb-dist-{i}-")
+            paths = _create_opt_ml(tmpdir)
+            _write_configs(paths["input_config"], hyperparameters, inputdataconfig, rc)
+            _copy_files(training_files, paths["input_train"])
+            all_paths.append(paths)
+
+            volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
+            container = docker_client.containers.run(
+                image_uri, command="train", volumes=volumes,
+                hostname=rc["current_host"],
+                extra_hosts=extra_hosts,
+                detach=True,
+            )
+            network.connect(container, ipv4_address=host_ips[rc["current_host"]])
+            containers.append(container)
+
+        # Wait for all containers
+        results = []
+        for container in containers:
+            try:
+                result = container.wait(timeout=timeout)
+                exit_code = result.get("StatusCode", -1)
+            except Exception:
+                exit_code = -1
+            logs = container.logs().decode("utf-8", errors="replace")
+            results.append((exit_code, logs))
+    finally:
+        for c in containers:
+            try:
+                c.remove(force=True)
+            except Exception:
+                pass
+        try:
+            network.remove()
+        except Exception:
+            pass
+
+    return [(r[0], r[1], all_paths[i]) for i, r in enumerate(results)]
 
 
 # ---------------------------------------------------------------------------

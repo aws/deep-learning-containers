@@ -62,13 +62,14 @@ def _validate_batch_response(resp, expected_length):
 class TestBatchTransform:
 
     def test_libsvm_batch(self, docker_client, image_uri, inference_resources):
-        responses = _send_batch_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model", "text/x-libsvm",
-            ["mnist-1.libsvm", "mnist-less-dim-1.libsvm", "mnist-700.libsvm"],
-        )
-        _validate_batch_response(responses[0], 1)
-        _validate_batch_response(responses[1], 1)
-        _validate_batch_response(responses[2], 700)
+        for model in ["mnist-pkl-model", "mnist-xgb-model"]:
+            responses = _send_batch_requests(
+                docker_client, image_uri, inference_resources, model, "text/x-libsvm",
+                ["mnist-1.libsvm", "mnist-less-dim-1.libsvm", "mnist-700.libsvm"],
+            )
+            _validate_batch_response(responses[0], 1)
+            _validate_batch_response(responses[1], 1)
+            _validate_batch_response(responses[2], 700)
 
         # text/libsvm variant
         responses = _send_batch_requests(
@@ -79,25 +80,37 @@ class TestBatchTransform:
         _validate_batch_response(responses[1], 700)
 
     def test_recordio_protobuf_batch(self, docker_client, image_uri, inference_resources):
-        responses = _send_batch_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model",
-            "application/x-recordio-protobuf",
-            ["mnist-1.pbr", "mnist-equal-dim.pbr", "mnist-700.pbr"],
-        )
-        _validate_batch_response(responses[0], 1)
-        _validate_batch_response(responses[1], 1)
-        _validate_batch_response(responses[2], 700)
+        for model in ["mnist-pkl-model", "mnist-xgb-model"]:
+            responses = _send_batch_requests(
+                docker_client, image_uri, inference_resources, model,
+                "application/x-recordio-protobuf",
+                ["mnist-1.pbr", "mnist-equal-dim.pbr", "mnist-700.pbr"],
+            )
+            _validate_batch_response(responses[0], 1)
+            _validate_batch_response(responses[1], 1)
+            _validate_batch_response(responses[2], 700)
 
     def test_csv_batch(self, docker_client, image_uri, inference_resources):
-        # mnist xgb
+        # mnist pkl
         responses = _send_batch_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model", "text/csv",
+            docker_client, image_uri, inference_resources, "mnist-pkl-model", "text/csv",
             ["mnist-1.csv", "mnist-empty-cell.csv", "mnist-equal-dim.csv", "mnist-700.csv"],
         )
         _validate_batch_response(responses[0], 1)
         _validate_batch_response(responses[1], 1)
         _validate_batch_response(responses[2], 1)
         _validate_batch_response(responses[3], 700)
+
+        # insurance pkl
+        responses = _send_batch_requests(
+            docker_client, image_uri, inference_resources, "insurance-pkl-model", "text/csv",
+            ["insurance-1.csv", "insurance-2000.csv", "insurance-empty-cell.csv",
+             "insurance-nan-values.csv"],
+        )
+        _validate_batch_response(responses[0], 1)
+        _validate_batch_response(responses[1], 2000)
+        _validate_batch_response(responses[2], 2000)
+        _validate_batch_response(responses[3], 2000)
 
         # insurance xgb
         responses = _send_batch_requests(
@@ -107,3 +120,10 @@ class TestBatchTransform:
         _validate_batch_response(responses[0], 1)
         _validate_batch_response(responses[1], 2000)
         _validate_batch_response(responses[2], 2000)
+
+        # salary pkl (single column)
+        responses = _send_batch_requests(
+            docker_client, image_uri, inference_resources, "salary-pkl-model", "text/csv",
+            ["salary-30.csv"],
+        )
+        _validate_batch_response(responses[0], 30)

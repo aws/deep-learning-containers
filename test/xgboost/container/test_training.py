@@ -14,7 +14,7 @@ import re
 
 import pytest
 
-from .container_helper import run_training
+from .container_helper import run_training, run_distributed_training
 
 # ---------------------------------------------------------------------------
 # Standard configs (mirrors configs.py from reference tests)
@@ -279,9 +279,45 @@ class TestValidTraining:
                       [os.path.join(d, "train_empty_cell.csv")])
         _assert_success(result)
 
-    # TODO: Add test_two_container_with_libsvm_data (distributed training)
-    # TODO: Add test_two_container_with_libsvm_data_shardedbykey (distributed sharded)
-    # These require Docker network setup with ContainerNetwork for multi-container tests
+    def test_two_container_with_libsvm_data(self, docker_client, image_uri, training_resources):
+        idc = copy.deepcopy(STD_IDC)
+        idc["train"]["ContentType"] = "text/libsvm"
+        idc["validation"]["ContentType"] = "text/libsvm"
+        d = _libsvm_dir(training_resources)
+        train_files = [os.path.join(d, "agaricus.libsvm.train")]
+        hosts = ["algo-1", "algo-2"]
+        rcs = [
+            {"current_host": "algo-1", "hosts": hosts},
+            {"current_host": "algo-2", "hosts": hosts},
+        ]
+        results = run_distributed_training(
+            docker_client, image_uri, STD_HP, idc, rcs, train_files,
+        )
+        assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
+        assert results[1][0] == 0, f"Container 2 failed:\n{results[1][1]}"
+        model_files = [f for f in os.listdir(results[0][2]["model"]) if "model" in f]
+        assert len(model_files) == 1
+
+    def test_two_container_with_libsvm_data_shardedbykey(self, docker_client, image_uri, training_resources):
+        idc = copy.deepcopy(STD_IDC)
+        idc["train"]["ContentType"] = "text/libsvm"
+        idc["train"]["S3DistributionType"] = "ShardedByS3Key"
+        idc["validation"]["ContentType"] = "text/libsvm"
+        idc["validation"]["S3DistributionType"] = "ShardedByS3Key"
+        d = _libsvm_dir(training_resources)
+        train_files = [os.path.join(d, "agaricus.libsvm.train")]
+        hosts = ["algo-1", "algo-2"]
+        rcs = [
+            {"current_host": "algo-1", "hosts": hosts},
+            {"current_host": "algo-2", "hosts": hosts},
+        ]
+        results = run_distributed_training(
+            docker_client, image_uri, STD_HP, idc, rcs, train_files,
+        )
+        assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
+        assert results[1][0] == 0, f"Container 2 failed:\n{results[1][1]}"
+        model_files = [f for f in os.listdir(results[0][2]["model"]) if "model" in f]
+        assert len(model_files) == 1
 
     def test_checkpoint_and_reload(self, docker_client, image_uri, training_resources):
         """Train 10 rounds, verify checkpoints, then resume to 20 rounds."""
