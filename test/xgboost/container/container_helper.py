@@ -147,16 +147,16 @@ def run_distributed_training(docker_client, image_uri, hyperparameters, inputdat
             all_paths.append(paths)
 
             volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
-            networking_config = docker_client.api.create_networking_config({
-                network_name: docker_client.api.create_endpoint_config(
-                    ipv4_address=host_ips[rc["current_host"]]
-                )
-            })
+            env = {
+                "CURRENT_HOST": rc["current_host"],
+                "HOSTS": ",".join(hosts),
+            }
             container = docker_client.containers.run(
                 image_uri, command="train", volumes=volumes,
                 hostname=rc["current_host"],
                 extra_hosts=extra_hosts,
                 network=network_name,
+                environment=env,
                 detach=True,
             )
             containers.append(container)
