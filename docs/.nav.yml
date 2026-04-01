@@ -13,6 +13,7 @@ nav:
     - vLLM: releasenotes/vllm/index.md
     - PyTorch: releasenotes/pytorch/index.md
     - Tensorflow: releasenotes/tensorflow/index.md
+  - Versioning Strategy: versioningstrategy/index.md
   - Tutorials: tutorials
   - Reference:
     - reference/index.md

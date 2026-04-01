@@ -14,7 +14,7 @@ announcements:
   - "Built on Amazon Linux 2023 with Python 3.13"
 
 packages:
-  ray: "2.54.0"
+  ray: "2.54.1"
   pytorch: "2.10.0"
   torchvision: "0.25.0"
   torchaudio: "2.10.0"
