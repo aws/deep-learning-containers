@@ -144,6 +144,8 @@ framework_groups:
     tensorflow-inference:
       - tensorflow-inference
       - tensorflow-inference-arm64
+  sglang:
+    - sglang
   vllm:
     - vllm
     - vllm-arm64
