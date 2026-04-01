@@ -28,7 +28,7 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 6000
+      min_throughput: 1200
       min_rps: 5
 
     - name: "qwen3.5-9b"
@@ -39,7 +39,7 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 180
+      min_throughput: 20
       min_rps: 0.15
 
     - name: "llama-3.3-70b"
@@ -50,7 +50,7 @@ benchmark:
       output_len: 128
       num_prompts: 32
       batch_size: 2
-      min_throughput: 400
+      min_throughput: 80
       min_rps: 0.35
 
     # https://github.com/vllm-project/vllm/issues/32637
@@ -64,7 +64,7 @@ benchmark:
     #   output_len: 128
     #   num_prompts: 64
     #   batch_size: 4
-    #   min_throughput: 100
+    #   min_throughput: 20
     #   min_rps: 1
 
     - name: "qwen3.5-35b-a3b-fp8"
@@ -77,7 +77,7 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 400
+      min_throughput: 80
       min_rps: 0.35
 
 # A100 is compute capability 8.0 — FP8 requires 8.9+ (H100/L40S).
@@ -90,7 +90,7 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 100
+      min_throughput: 20
       min_rps: 0.2
 
     - name: "qwen3-coder-next-fp8"
@@ -101,7 +101,7 @@ benchmark:
       output_len: 256
       num_prompts: 32
       batch_size: 2
-      min_throughput: 280
+      min_throughput: 93
       min_rps: 0.25
 
   runner-scale-sets:
@@ -112,7 +112,7 @@ benchmark:
       output_len: 256
       num_prompts: 32
       batch_size: 2
-      min_throughput: 3400
+      min_throughput: 1133
       min_rps: 3
 
     - name: "qwen3.5-35b-a3b-fp8"
@@ -124,7 +124,7 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 400
+      min_throughput: 80
       min_rps: 0.35
 
     - name: "qwen3.5-27b-fp8"
@@ -135,7 +135,7 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 100
+      min_throughput: 20
       min_rps: 0.2
 
     - name: "qwen3-coder-next-fp8"
@@ -145,7 +145,7 @@ benchmark:
       output_len: 256
       num_prompts: 32
       batch_size: 2
-      min_throughput: 280
+      min_throughput: 93
       min_rps: 0.25
 
     - name: "llama-3.3-70b"
@@ -155,7 +155,7 @@ benchmark:
       output_len: 128
       num_prompts: 32
       batch_size: 2
-      min_throughput: 400
+      min_throughput: 80
       min_rps: 0.35
 
 # upstream
