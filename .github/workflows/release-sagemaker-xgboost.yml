@@ -3,7 +3,7 @@ name: Release - XGBoost SageMaker
 on:
   # TODO: Remove push trigger after testing, keep only workflow_dispatch
   push:
-    branches: [xgboost-release]
+    branches: [xgboost-migration]
   workflow_dispatch:
 
 permissions:
