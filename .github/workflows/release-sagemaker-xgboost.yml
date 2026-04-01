@@ -3,12 +3,7 @@ name: Release - XGBoost SageMaker
 on:
   push:
     branches: [xgboost-integ-test]
-    paths:
-      - "docker/xgboost/**"
-      - "test/xgboost/**"
-      - ".github/config/sagemaker-xgboost.yml"
-      - ".github/workflows/release-sagemaker-xgboost.yml"
-      - ".github/workflows/sagemaker-xgboost-integ-tests.yml"
+   
   workflow_dispatch:
 
 permissions:
