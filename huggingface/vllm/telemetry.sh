@@ -3,9 +3,9 @@
 if [ -f /usr/local/bin/deep_learning_container.py ] && [[ -z "${OPT_OUT_TRACKING}" || "${OPT_OUT_TRACKING,,}" != "true" ]]; then
     (
         python /usr/local/bin/deep_learning_container.py \
-            --framework "huggingface_pytorch" \
-            --framework-version "2.9.0" \
-            --container-type "training" \
+            --framework "huggingface_vllm" \
+            --framework-version "0.17.0" \
+            --container-type "general" \
             &>/dev/null &
     )
 fi

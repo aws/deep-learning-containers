@@ -55,6 +55,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__10",
     "pytorch_training___2__9",
     "pytorch_training___2__8",
     "pytorch_training___2__7",
@@ -1686,11 +1687,13 @@ def lookup_condition(lookup, image):
     # Extract ecr repo name from the image and check if it exactly matches the lookup (fixture name)
     repo_name = get_ecr_repo_name(image)
 
-    # If lookup includes tag, check that we match beginning of string
+    # If lookup includes tag, check that we match beginning of string.
+    # Append a non-digit boundary after the version to prevent prefix collisions
+    # e.g. "pytorch-training:2.1" must not match "pytorch-training:2.10.0-gpu-..."
     if ":" in lookup and ":" in image:
         _, tag = get_repository_and_tag_from_image_uri(image)
         generic_repo_tag = f"{repo_name}:{tag}".replace("pr-", "").replace("beta-", "")
-        if re.match(rf"^{lookup}", generic_repo_tag):
+        if re.match(rf"^{re.escape(lookup)}(\D|$)", generic_repo_tag):
             return True
 
     job_types = (
