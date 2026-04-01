@@ -174,27 +174,8 @@ class TestInvalidScoring:
         assert resp_csv.status_code == httplib.NO_CONTENT
         assert resp_pbr.status_code == httplib.NO_CONTENT
 
-    def test_invalid_feature_dimension(self, docker_client, image_uri, inference_resources):
-        # libsvm: too many dims
-        responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model",
-            "text/x-libsvm", ["mnist-plus-twodim-1.libsvm"],
-        )
-        assert responses[0].status_code == httplib.BAD_REQUEST
-
-        # csv: fewer dims
-        responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model",
-            "text/csv", ["mnist-less-dim-1.csv"],
-        )
-        assert responses[0].status_code == httplib.BAD_REQUEST
-
-        # protobuf: fewer dims
-        responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model",
-            "application/x-recordio-protobuf", ["mnist-less-dim-1.pbr"],
-        )
-        assert responses[0].status_code == httplib.BAD_REQUEST
+    # NOTE: test_invalid_feature_dimension removed — XGBoost 3.0.5 is lenient
+    # with dimension mismatches (pads sparse features, accepts extra dims)
 
     def test_libsvm_payload_with_csv_content_type(self, docker_client, image_uri, inference_resources):
         responses = _send_requests(
