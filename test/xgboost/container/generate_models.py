@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Generate XGBoost 3.0.5-compatible inference models and upload to S3.
 
-Trains models using the inference input data so feature dimensions match.
+Uses inference input data to create models with matching feature dimensions.
+This is valid for container tests — we're testing the container's ability to
+load models and serve predictions, not model accuracy.
+
 Run on CI host with: pip install xgboost==3.0.5 boto3 numpy
 """
 
@@ -44,45 +47,33 @@ def main():
     download_s3_dir(s3, S3_BUCKET, S3_TRAINING_PREFIX, train_dir)
 
     # --- mnist-xgb-model (784 features, multiclass) ---
-    # Train on mnist-700.csv which has the same feature dimensions as all mnist-*.csv/libsvm/pbr inputs
+    # Train on mnist-700.csv (same dims as all mnist inference inputs)
     print("Generating mnist-xgb-model...")
-    mnist_csv = np.genfromtxt(os.path.join(input_dir, "mnist-700.csv"), delimiter=",")
-    # First column is label for mnist CSV inference data
-    # Generate synthetic labels for training (actual values don't matter for inference shape tests)
-    n_rows, n_cols = mnist_csv.shape
-    labels = np.random.randint(0, 10, size=n_rows).astype(float)
-    dtrain_mnist = xgb.DMatrix(mnist_csv, label=labels)
-    print(f"  mnist training matrix: {n_rows} rows, {n_cols} cols")
-    bst_mnist = xgb.train(
-        {"objective": "multi:softmax", "num_class": 10, "max_depth": 6},
-        dtrain_mnist, 10,
-    )
-    bst_mnist.save_model(os.path.join(out_dir, "mnist-xgb-model"))
+    mnist_data = np.genfromtxt(os.path.join(input_dir, "mnist-700.csv"), delimiter=",")
+    np.random.seed(42)
+    labels = np.random.randint(0, 10, size=mnist_data.shape[0]).astype(float)
+    dtrain = xgb.DMatrix(mnist_data, label=labels)
+    bst = xgb.train({"objective": "multi:softmax", "num_class": 10, "max_depth": 6},
+                     dtrain, 10)
+    bst.save_model(os.path.join(out_dir, "mnist-xgb-model"))
+    print(f"  {mnist_data.shape[0]} rows x {mnist_data.shape[1]} cols")
 
-    # --- diabetes-binary-xgb-model (same feature dims as diabetes_inference.csv) ---
+    # --- diabetes-binary-xgb-model ---
     print("Generating diabetes-binary-xgb-model...")
-    diabetes_csv = np.genfromtxt(os.path.join(input_dir, "diabetes_inference.csv"), delimiter=",")
-    n_rows_d, n_cols_d = diabetes_csv.shape
-    labels_d = np.random.randint(0, 2, size=n_rows_d).astype(float)
-    dtrain_diabetes = xgb.DMatrix(diabetes_csv, label=labels_d)
-    print(f"  diabetes training matrix: {n_rows_d} rows, {n_cols_d} cols")
-    bst_diabetes = xgb.train(
-        {"objective": "binary:hinge", "max_depth": 6},
-        dtrain_diabetes, 10,
-    )
-    bst_diabetes.save_model(os.path.join(out_dir, "diabetes-binary-xgb-model"))
+    diabetes_data = np.genfromtxt(os.path.join(input_dir, "diabetes_inference.csv"), delimiter=",")
+    labels_d = np.random.randint(0, 2, size=diabetes_data.shape[0]).astype(float)
+    dtrain_d = xgb.DMatrix(diabetes_data, label=labels_d)
+    bst_d = xgb.train({"objective": "binary:hinge", "max_depth": 6}, dtrain_d, 10)
+    bst_d.save_model(os.path.join(out_dir, "diabetes-binary-xgb-model"))
+    print(f"  {diabetes_data.shape[0]} rows x {diabetes_data.shape[1]} cols")
 
-    # --- insurance-xgb-model (trained on actual CSV training data) ---
+    # --- insurance-xgb-model (from actual training CSV) ---
     print("Generating insurance-xgb-model...")
-    csv_dir = os.path.join(train_dir, "single-csv")
-    csv_train = np.genfromtxt(os.path.join(csv_dir, "train.csv"), delimiter=",")
+    csv_train = np.genfromtxt(os.path.join(train_dir, "single-csv", "train.csv"), delimiter=",")
     dtrain_ins = xgb.DMatrix(csv_train[:, 1:], label=csv_train[:, 0])
-    print(f"  insurance training matrix: {csv_train.shape[0]} rows, {csv_train.shape[1] - 1} cols")
-    bst_ins = xgb.train(
-        {"objective": "reg:squarederror", "max_depth": 6},
-        dtrain_ins, 10,
-    )
+    bst_ins = xgb.train({"objective": "reg:squarederror", "max_depth": 6}, dtrain_ins, 10)
     bst_ins.save_model(os.path.join(out_dir, "insurance-xgb-model"))
+    print(f"  {csv_train.shape[0]} rows x {csv_train.shape[1] - 1} cols")
 
     # --- Upload to S3 ---
     print(f"\nUploading to s3://{S3_BUCKET}/{S3_PREFIX}/")
