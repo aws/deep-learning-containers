@@ -52,8 +52,8 @@ def main():
 
     # --- mnist models (binary classification on agaricus) ---
     print("Generating mnist models...")
-    dtrain = xgb.DMatrix(os.path.join(libsvm_dir, "agaricus.libsvm.train"))
-    dtest = xgb.DMatrix(os.path.join(libsvm_dir, "agaricus.libsvm.test"))
+    dtrain = xgb.DMatrix(os.path.join(libsvm_dir, "agaricus.libsvm.train") + "?format=libsvm")
+    dtest = xgb.DMatrix(os.path.join(libsvm_dir, "agaricus.libsvm.test") + "?format=libsvm")
     bst = xgb.train({"objective": "binary:logistic", "max_depth": 6, "eval_metric": "error"},
                      dtrain, 10, evals=[(dtest, "test")])
     bst.save_model(os.path.join(out_dir, "mnist-xgb-model"))
