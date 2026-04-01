@@ -24,7 +24,7 @@ common:
 release:
   release: true
   force_release: false
-  public_registry: true
+  public_registry: false
   private_registry: true
   enable_soci: false
   environment: gamma

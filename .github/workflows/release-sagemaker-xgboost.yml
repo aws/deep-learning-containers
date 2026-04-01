@@ -151,47 +151,88 @@ jobs:
       framework: ${{ needs.load-config.outputs.framework }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
 
-  benchmark-test:
-    needs: [build-image, load-config]
-    if: success()
-    timeout-minutes: 150
-    strategy:
-      fail-fast: false
-      matrix:
-        test-module:
-          - test_training_objective
-          - test_training_tree_method
-          - test_training_max_depth
-          - test_training_num_round
-          - test_training_data_size
-          - test_training_instance_type
-          - test_training_content_type
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-benchmark-${{ matrix.test-module }}-${{ github.run_id }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-          uv pip install -r test/xgboost/requirements.txt
-
-      - name: Run ${{ matrix.test-module }}
-        run: |
-          source .venv/bin/activate
-          cd test/
-          python3 -m pytest -vs -rA \
-            --image-uri ${{ needs.build-image.outputs.ci-image }} \
-            xgboost/benchmarks/${{ matrix.test-module }}.py
+  # Benchmark tests commented out - already passed in PR #5852
+  # benchmark-test:
+  #   needs: [build-image, load-config]
+  #   if: success()
+  #   timeout-minutes: 150
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       test-module:
+  #         - test_training_objective
+  #         - test_training_tree_method
+  #         - test_training_max_depth
+  #         - test_training_num_round
+  #         - test_training_data_size
+  #         - test_training_instance_type
+  #         - test_training_content_type
+  #   runs-on:
+  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+  #       fleet:default-runner
+  #       buildspec-override:true
+  #   concurrency:
+  #     group: ${{ github.workflow }}-benchmark-${{ matrix.test-module }}-${{ github.run_id }}
+  #     cancel-in-progress: true
+  #   steps:
+  #     - name: Checkout DLC source
+  #       uses: actions/checkout@v5
+  #     - name: Install test dependencies
+  #       run: |
+  #         uv venv --python 3.12
+  #         source .venv/bin/activate
+  #         uv pip install -r test/requirements.txt
+  #         uv pip install -r test/xgboost/requirements.txt
+  #     - name: Run ${{ matrix.test-module }}
+  #       run: |
+  #         source .venv/bin/activate
+  #         cd test/
+  #         python3 -m pytest -vs -rA \
+  #           --image-uri ${{ needs.build-image.outputs.ci-image }} \
+  #           xgboost/benchmarks/${{ matrix.test-module }}.py
 
   # TODO: Add integration-test job once integ tests are implemented
   # TODO: Add container-test job once container tests are implemented
-  # TODO: Add generate-release-spec and release-image jobs when release is ready
+
+  generate-release-spec:
+    needs: [load-config, build-image, unit-test, security-test]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-generate-release-spec-${{ github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.config }}
+
+  release-image:
+    needs: [load-config, build-image, generate-release-spec]
+    if: needs.generate-release-spec.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-image-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-image.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+    secrets: inherit
