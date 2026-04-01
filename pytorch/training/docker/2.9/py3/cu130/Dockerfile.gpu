@@ -133,9 +133,6 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     blis \
     numpy
 
-# Upgrade black bundled in spacy test requirements to fix CVE-2026-32274
-RUN pip install --no-cache-dir "black>=26.3.1"
-
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
@@ -292,6 +289,9 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# Upgrade black bundled in spacy test requirements to fix CVE-2026-32274
+RUN pip install --no-cache-dir "black>=26.3.1"
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
