@@ -136,7 +136,6 @@ def run_distributed_training(docker_client, image_uri, hyperparameters, inputdat
     containers = []
     all_paths = []
     try:
-        # Build host→IP mapping
         host_ips = {h: f"10.5.5.{base_ip + i}" for i, h in enumerate(hosts)}
         extra_hosts = {h: ip for h, ip in host_ips.items()}
 
@@ -148,13 +147,18 @@ def run_distributed_training(docker_client, image_uri, hyperparameters, inputdat
             all_paths.append(paths)
 
             volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
+            networking_config = docker_client.api.create_networking_config({
+                network_name: docker_client.api.create_endpoint_config(
+                    ipv4_address=host_ips[rc["current_host"]]
+                )
+            })
             container = docker_client.containers.run(
                 image_uri, command="train", volumes=volumes,
                 hostname=rc["current_host"],
                 extra_hosts=extra_hosts,
+                network=network_name,
                 detach=True,
             )
-            network.connect(container, ipv4_address=host_ips[rc["current_host"]])
             containers.append(container)
 
         # Wait for all containers
