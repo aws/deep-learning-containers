@@ -61,6 +61,8 @@ jobs:
     needs: [load-benchmarks]
     strategy:
       fail-fast: false
+      # we only have 1 g6e12xl 4 models need it action only schedules once for the same label
+      max-parallel: 2
       matrix:
         include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
     runs-on:
