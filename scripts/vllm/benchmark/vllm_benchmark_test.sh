@@ -46,41 +46,28 @@ echo "=== Running throughput benchmark ==="
 vllm bench throughput \
   --model "${MODEL_DIR}" \
   --dataset-name random \
-  --random-input-len "${INPUT_LEN}" \
-  --random-output-len "${OUTPUT_LEN}" \
+  --input-len "${INPUT_LEN}" \
+  --output-len "${OUTPUT_LEN}" \
   --num-prompts "${NUM_PROMPTS}" \
   --output-json "${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json" \
-  ${EXTRA_ARGS} 2>&1 | tee "${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.log"
+  ${EXTRA_ARGS}
 
 echo ""
 echo "=== Throughput results ==="
+cat "${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
 
-# Parse output tokens/s and requests/s from vllm stdout:
-#   Throughput: 0.18 requests/s, 204.92 total tokens/s, 22.77 output tokens/s
+# Validate throughput
 python3 -c "
-import json, re, sys
-
-log = open('${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.log').read()
-m = re.search(r'([\d.]+)\s+requests/s,\s+([\d.]+)\s+total tokens/s,\s+([\d.]+)\s+output tokens/s', log)
-if not m:
-    print('ERROR: could not parse throughput line from vllm output')
-    sys.exit(1)
-
-rps, total_tps, output_tps = float(m.group(1)), float(m.group(2)), float(m.group(3))
-
-# Enrich JSON with parsed values
+import json, sys
 with open('${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json') as f:
     r = json.load(f)
-r['output_tokens_per_second'] = output_tps
-with open('${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json', 'w') as f:
-    json.dump(r, f, indent=4)
-
-print(f'Total tokens/s: {total_tps:.2f} (input+output)')
-print(f'Output tokens/s: {output_tps:.2f} (min: ${MIN_THROUGHPUT})')
+tps = r['tokens_per_second']
+rps = r['requests_per_second']
+print(f'Output tokens/s: {tps:.2f} (min: ${MIN_THROUGHPUT})')
 print(f'Requests/s: {rps:.2f} (min: ${MIN_RPS})')
 ok = True
-if output_tps < ${MIN_THROUGHPUT}:
-    print(f'FAIL: output tokens/s {output_tps:.2f} < ${MIN_THROUGHPUT}')
+if tps < ${MIN_THROUGHPUT}:
+    print(f'FAIL: tokens/s {tps:.2f} < ${MIN_THROUGHPUT}')
     ok = False
 if rps < ${MIN_RPS}:
     print(f'FAIL: requests/s {rps:.2f} < ${MIN_RPS}')
