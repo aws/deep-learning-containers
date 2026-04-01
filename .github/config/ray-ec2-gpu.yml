@@ -1,5 +1,6 @@
 # Ray EC2 GPU Image Configuration
 # This file contains all configuration for building, testing, and releasing the Ray EC2 GPU image
+# TODO: Remove this comment — added to trigger rebuild for Ray 2.54.1
 
 # Image identification
 image:
