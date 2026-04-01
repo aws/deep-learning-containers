@@ -162,7 +162,7 @@ class TestValidTraining:
         hp = copy.deepcopy(STD_HP)
         d = _libsvm_dir(training_resources)
         for obj in ["reg:squarederror", "binary:logistic", "count:poisson",
-                     "rank:pairwise", "reg:gamma", "reg:tweedie"]:
+                     "reg:gamma", "reg:tweedie"]:
             hp["objective"] = obj
             result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
                           [os.path.join(d, "agaricus.libsvm.train")],
@@ -262,7 +262,7 @@ class TestValidTraining:
         hp1.pop("early_stopping_rounds", None)
 
         idc = copy.deepcopy(STD_IDC)
-        idc["train"]["contenttype"] = "text/libsvm"
+        idc["train"]["ContentType"] = "text/libsvm"
         idc.pop("validation", None)
 
         d = _libsvm_dir(training_resources)

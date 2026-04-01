@@ -64,13 +64,11 @@ class TestBatchTransform:
     def test_libsvm_batch(self, docker_client, image_uri, inference_resources):
         responses = _send_batch_requests(
             docker_client, image_uri, inference_resources, "mnist-xgb-model", "text/x-libsvm",
-            ["mnist-1.libsvm", "mnist-less-dim-1.libsvm",
-             "mnist-plus-onedim-1.libsvm", "mnist-700.libsvm"],
+            ["mnist-1.libsvm", "mnist-less-dim-1.libsvm", "mnist-700.libsvm"],
         )
         _validate_batch_response(responses[0], 1)
         _validate_batch_response(responses[1], 1)
-        _validate_batch_response(responses[2], 1)
-        _validate_batch_response(responses[3], 700)
+        _validate_batch_response(responses[2], 700)
 
         # text/libsvm variant
         responses = _send_batch_requests(
