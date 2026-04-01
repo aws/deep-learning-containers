@@ -23,6 +23,41 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
+  # ===========================================================================
+  # Generate inference models inside the container (ensures version compat)
+  # ===========================================================================
+  generate-models:
+    timeout-minutes: 15
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Pull image
+        run: docker pull ${{ inputs.image-uri }}
+
+      - name: Generate and upload models
+        run: |
+          docker run --rm \
+            -v $(pwd):/work -w /work \
+            -e AWS_DEFAULT_REGION=${{ inputs.aws-region }} \
+            -e AWS_CONTAINER_CREDENTIALS_RELATIVE_URI \
+            ${{ inputs.image-uri }} \
+            python3 test/xgboost/container/generate_models.py
+
+  # ===========================================================================
+  # Container tests — training (no model dependency)
+  # ===========================================================================
   container-test-training:
     timeout-minutes: 90
     runs-on:
@@ -53,11 +88,15 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA \
+          python3 -m pytest -v --tb=short -rA \
             --image ${{ inputs.image-uri }} \
             xgboost/container/test_training.py
 
+  # ===========================================================================
+  # Container tests — scoring (depends on generate-models)
+  # ===========================================================================
   container-test-scoring:
+    needs: [generate-models]
     timeout-minutes: 60
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -87,11 +126,15 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA \
+          python3 -m pytest -v --tb=short -rA \
             --image ${{ inputs.image-uri }} \
             xgboost/container/test_scoring.py
 
+  # ===========================================================================
+  # Container tests — batch transform (depends on generate-models)
+  # ===========================================================================
   container-test-batch-transform:
+    needs: [generate-models]
     timeout-minutes: 60
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -121,7 +164,7 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA \
+          python3 -m pytest -v --tb=short -rA \
             --image ${{ inputs.image-uri }} \
             xgboost/container/test_batch_transform.py
 
@@ -162,6 +205,6 @@ jobs:
   #       run: |
   #         source .venv/bin/activate
   #         cd test/
-  #         python3 -m pytest -vs -rA \
+  #         python3 -m pytest -v --tb=short -rA \
   #           --image-uri ${{ inputs.image-uri }} \
   #           xgboost/benchmarks/${{ matrix.test-module }}.py
