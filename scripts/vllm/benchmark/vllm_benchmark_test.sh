@@ -49,8 +49,8 @@ vllm bench throughput \
   --random-input-len "${INPUT_LEN}" \
   --random-output-len "${OUTPUT_LEN}" \
   --num-prompts "${NUM_PROMPTS}" \
-  --output-json "${RESULTS_DIR}/throughput_${MODEL_NAME}.json" \
-  ${EXTRA_ARGS} 2>&1 | tee "${RESULTS_DIR}/throughput_${MODEL_NAME}.log"
+  --output-json "${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json" \
+  ${EXTRA_ARGS} 2>&1 | tee "${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.log"
 
 echo ""
 echo "=== Throughput results ==="
@@ -60,7 +60,7 @@ echo "=== Throughput results ==="
 python3 -c "
 import json, re, sys
 
-log = open('${RESULTS_DIR}/throughput_${MODEL_NAME}.log').read()
+log = open('${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.log').read()
 m = re.search(r'([\d.]+)\s+requests/s,\s+([\d.]+)\s+total tokens/s,\s+([\d.]+)\s+output tokens/s', log)
 if not m:
     print('ERROR: could not parse throughput line from vllm output')
@@ -69,10 +69,10 @@ if not m:
 rps, total_tps, output_tps = float(m.group(1)), float(m.group(2)), float(m.group(3))
 
 # Enrich JSON with parsed values
-with open('${RESULTS_DIR}/throughput_${MODEL_NAME}.json') as f:
+with open('${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json') as f:
     r = json.load(f)
 r['output_tokens_per_second'] = output_tps
-with open('${RESULTS_DIR}/throughput_${MODEL_NAME}.json', 'w') as f:
+with open('${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json', 'w') as f:
     json.dump(r, f, indent=4)
 
 print(f'Total tokens/s: {total_tps:.2f} (input+output)')
