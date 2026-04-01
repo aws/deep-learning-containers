@@ -375,7 +375,7 @@ class TestInvalidTraining:
         ("max_delta_step", ["-0.1", "invalid_string"]),
         ("colsample_bytree", ["-0.1", "0", "invalid_string"]),
         ("colsample_bylevel", ["-0.1", "0", "invalid_string"]),
-        ("tree_method", ["invalid_method"]),
+        ("tree_method", ["invalid_method", "gpu_exact"]),
         ("sketch_eps", ["0", "1", "invalid_string"]),
         ("refresh_leaf", ["invalid", "2"]),
         ("process_type", ["invalid", "0.01"]),

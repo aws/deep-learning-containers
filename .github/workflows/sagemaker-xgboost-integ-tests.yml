@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 90
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     steps:
       - name: Checkout DLC source
@@ -61,7 +61,7 @@ jobs:
     timeout-minutes: 60
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     steps:
       - name: Checkout DLC source
@@ -95,7 +95,7 @@ jobs:
     timeout-minutes: 60
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     steps:
       - name: Checkout DLC source
@@ -145,7 +145,7 @@ jobs:
   #         - test_training_content_type
   #   runs-on:
   #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:default-runner
+  #       fleet:x86-g6xl-runner
   #       buildspec-override:true
   #   steps:
   #     - name: Checkout DLC source
