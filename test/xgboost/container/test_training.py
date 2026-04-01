@@ -279,10 +279,6 @@ class TestValidTraining:
                       [os.path.join(d, "train_empty_cell.csv")])
         _assert_success(result)
 
-    # TODO: Distributed training tests need Docker network debugging —
-    # containers start and exit 0 but master doesn't save model.
-    # Requires investigation into Rabit/federated communication setup.
-    @pytest.mark.skip(reason="Distributed training Docker networking needs debugging")
     def test_two_container_with_libsvm_data(self, docker_client, image_uri, training_resources):
         idc = copy.deepcopy(STD_IDC)
         idc["train"]["ContentType"] = "text/libsvm"
@@ -302,7 +298,6 @@ class TestValidTraining:
         model_files = os.listdir(results[0][2]["model"])
         assert len(model_files) >= 1, f"No model files in master node model dir"
 
-    @pytest.mark.skip(reason="Distributed training Docker networking needs debugging")
     def test_two_container_with_libsvm_data_shardedbykey(self, docker_client, image_uri, training_resources):
         idc = copy.deepcopy(STD_IDC)
         idc["train"]["ContentType"] = "text/libsvm"
