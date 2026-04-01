@@ -296,7 +296,11 @@ class TestValidTraining:
         assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
         assert results[1][0] == 0, f"Container 2 failed:\n{results[1][1]}"
         model_files = os.listdir(results[0][2]["model"])
-        assert len(model_files) >= 1, f"No model files in master node model dir"
+        assert len(model_files) >= 1, (
+            f"No model files in master node model dir.\n"
+            f"Container 1 logs:\n{results[0][1]}\n"
+            f"Container 2 logs:\n{results[1][1]}"
+        )
 
     def test_two_container_with_libsvm_data_shardedbykey(self, docker_client, image_uri, training_resources):
         idc = copy.deepcopy(STD_IDC)
@@ -317,7 +321,11 @@ class TestValidTraining:
         assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
         assert results[1][0] == 0, f"Container 2 failed:\n{results[1][1]}"
         model_files = os.listdir(results[0][2]["model"])
-        assert len(model_files) >= 1, f"No model files in master node model dir"
+        assert len(model_files) >= 1, (
+            f"No model files in master node model dir.\n"
+            f"Container 1 logs:\n{results[0][1]}\n"
+            f"Container 2 logs:\n{results[1][1]}"
+        )
 
     def test_checkpoint_and_reload(self, docker_client, image_uri, training_resources):
         """Train 10 rounds, verify checkpoints, then resume to 20 rounds."""
