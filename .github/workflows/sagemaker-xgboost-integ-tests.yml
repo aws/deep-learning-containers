@@ -30,30 +30,22 @@ jobs:
     timeout-minutes: 15
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:default-runner
         buildspec-override:true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
-
-      - name: Pull image
-        run: docker pull ${{ inputs.image-uri }}
+      - name: Install dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install xgboost==3.0.5 boto3 numpy
 
       - name: Generate and upload models
         run: |
-          docker run --rm \
-            -v $(pwd):/work -w /work \
-            -e AWS_DEFAULT_REGION=${{ inputs.aws-region }} \
-            -e AWS_CONTAINER_CREDENTIALS_RELATIVE_URI \
-            ${{ inputs.image-uri }} \
-            python3 test/xgboost/container/generate_models.py
+          source .venv/bin/activate
+          python3 test/xgboost/container/generate_models.py
 
   # ===========================================================================
   # Container tests — training (no model dependency)
