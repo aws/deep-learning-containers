@@ -10,17 +10,9 @@ import yaml
 CONFIG = ".github/config/vllm-model-tests.yml"
 
 
-def _parse_artifact_name(filename, prefix):
-    """Parse model name and runner type from artifact filename.
-
-    Filename format: {prefix}_{model}_{runner}.json
-    """
-    base = os.path.basename(filename).replace(f"{prefix}_", "", 1).replace(".json", "")
-    # Runner type is the last segment after the final underscore
-    parts = base.rsplit("_", 1)
-    if len(parts) == 2:
-        return parts[0], parts[1]
-    return base, "unknown"
+def _parse_model_name(filename, prefix):
+    """Extract model name from artifact filename like throughput_qwen3.5-9b.json."""
+    return os.path.basename(filename).replace(f"{prefix}_", "", 1).replace(".json", "")
 
 
 def get_tp(extra_args):
@@ -56,14 +48,14 @@ def main(results_dir):
         "|-------|--------|----|-----------|------------|---------|-----------------|----------------|------------|-------------|"
     )
     for f in sorted(glob.glob(f"{results_dir}/**/throughput_*.json", recursive=True)):
-        name, runner = _parse_artifact_name(f, "throughput")
+        name = _parse_model_name(f, "throughput")
         c = models.get(name, {})
         tp = get_tp(c.get("extra_args", ""))
         with open(f) as fh:
             r = json.load(fh)
         output_tps = r.get("output_tokens_per_second", 0)
         print(
-            f"| {name} | {runner} | {tp} "
+            f"| {name} | {c.get('runner', 'unknown')} | {tp} "
             f"| {c.get('input_len', '')} | {c.get('output_len', '')} "
             f"| {c.get('num_prompts', '')} | {output_tps:.2f} "
             f"| {r['tokens_per_second']:.2f} "
@@ -74,14 +66,14 @@ def main(results_dir):
     print("| Model | Runner | TP | Batch Size | Avg (s) | p50 (s) | p90 (s) | p99 (s) |")
     print("|-------|--------|----|------------|---------|---------|---------|---------|")
     for f in sorted(glob.glob(f"{results_dir}/**/latency_*.json", recursive=True)):
-        name, runner = _parse_artifact_name(f, "latency")
+        name = _parse_model_name(f, "latency")
         c = models.get(name, {})
         tp = get_tp(c.get("extra_args", ""))
         with open(f) as fh:
             r = json.load(fh)
         p = r.get("percentiles", {})
         print(
-            f"| {name} | {runner} | {tp} "
+            f"| {name} | {c.get('runner', 'unknown')} | {tp} "
             f"| {c.get('batch_size', '')} | {r['avg_latency']:.4f} "
             f"| {p.get('50', 0):.4f} | {p.get('90', 0):.4f} | {p.get('99', 0):.4f} |"
         )
