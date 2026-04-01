@@ -137,7 +137,6 @@ def run_distributed_training(docker_client, image_uri, hyperparameters, inputdat
     all_paths = []
     try:
         host_ips = {h: f"10.5.5.{base_ip + i}" for i, h in enumerate(hosts)}
-        extra_hosts = {h: ip for h, ip in host_ips.items()}
 
         for i, rc in enumerate(resourceconfigs):
             tmpdir = tempfile.mkdtemp(prefix=f"xgb-dist-{i}-")
@@ -146,19 +145,35 @@ def run_distributed_training(docker_client, image_uri, hyperparameters, inputdat
             _copy_files(training_files, paths["input_train"])
             all_paths.append(paths)
 
+            cur_host = rc["current_host"]
+            # Each container only needs extra_hosts for the OTHER hosts
+            other_hosts = {h: ip for h, ip in host_ips.items() if h != cur_host}
             volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
             env = {
-                "CURRENT_HOST": rc["current_host"],
+                "CURRENT_HOST": cur_host,
                 "HOSTS": ",".join(hosts),
             }
-            container = docker_client.containers.run(
-                image_uri, command="train", volumes=volumes,
-                hostname=rc["current_host"],
-                extra_hosts=extra_hosts,
-                network=network_name,
-                environment=env,
-                detach=True,
+
+            # Use low-level API to assign specific IP on the network
+            networking_config = docker_client.api.create_networking_config({
+                network_name: docker_client.api.create_endpoint_config(
+                    ipv4_address=host_ips[cur_host],
+                )
+            })
+            host_config = docker_client.api.create_host_config(
+                binds={tmpdir: {"bind": "/opt/ml", "mode": "rw"}},
+                extra_hosts=other_hosts,
             )
+            cid = docker_client.api.create_container(
+                image_uri,
+                command="train",
+                hostname=cur_host,
+                environment=[f"{k}={v}" for k, v in env.items()],
+                host_config=host_config,
+                networking_config=networking_config,
+            )
+            docker_client.api.start(cid)
+            container = docker_client.containers.get(cid["Id"])
             containers.append(container)
 
         # Wait for all containers
