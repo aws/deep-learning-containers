@@ -1,19 +1,14 @@
 #!/usr/bin/env python3
-"""Generate XGBoost-compatible inference models and upload to S3.
+"""Generate XGBoost 3.0.5-compatible inference models and upload to S3.
 
-Run inside the XGBoost container to ensure models match the container's version:
+Uses inference input data to create models with matching feature dimensions.
+This is valid for container tests — we're testing the container's ability to
+load models and serve predictions, not model accuracy.
 
-    docker run --rm -v ~/.aws:/root/.aws <IMAGE_URI> \
-        python3 -c "$(cat test/xgboost/container/generate_models.py)"
-
-Or mount and run directly:
-
-    docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/work -w /work <IMAGE_URI> \
-        python3 test/xgboost/container/generate_models.py
+Run on CI host with: pip install xgboost==3.0.5 boto3 numpy
 """
 
 import os
-import pickle
 import tempfile
 
 import boto3
@@ -22,6 +17,7 @@ import xgboost as xgb
 
 S3_BUCKET = "dlc-cicd-models"
 S3_PREFIX = "xgboost/container_test_resources/inference/models"
+S3_INPUT_PREFIX = "xgboost/container_test_resources/inference/input"
 S3_TRAINING_PREFIX = "xgboost/container_test_resources/training/data"
 
 
@@ -40,45 +36,54 @@ def download_s3_dir(s3, bucket, prefix, local_dir):
 
 def main():
     out_dir = tempfile.mkdtemp(prefix="xgb-models-")
-    data_dir = tempfile.mkdtemp(prefix="xgb-data-")
+    input_dir = tempfile.mkdtemp(prefix="xgb-input-")
+    train_dir = tempfile.mkdtemp(prefix="xgb-train-")
     s3 = boto3.client("s3")
 
     print(f"XGBoost version: {xgb.__version__}")
-    print(f"Downloading training data...")
-    download_s3_dir(s3, S3_BUCKET, S3_TRAINING_PREFIX, data_dir)
+    print("Downloading inference input data...")
+    download_s3_dir(s3, S3_BUCKET, S3_INPUT_PREFIX, input_dir)
+    print("Downloading training data...")
+    download_s3_dir(s3, S3_BUCKET, S3_TRAINING_PREFIX, train_dir)
 
-    libsvm_dir = os.path.join(data_dir, "single-libsvm")
-    csv_dir = os.path.join(data_dir, "single-csv")
-
-    # --- mnist models (binary classification on agaricus) ---
-    print("Generating mnist models...")
-    dtrain = xgb.DMatrix(os.path.join(libsvm_dir, "agaricus.libsvm.train") + "?format=libsvm")
-    dtest = xgb.DMatrix(os.path.join(libsvm_dir, "agaricus.libsvm.test") + "?format=libsvm")
-    bst = xgb.train({"objective": "binary:logistic", "max_depth": 6, "eval_metric": "error"},
-                     dtrain, 10, evals=[(dtest, "test")])
+    # --- mnist-xgb-model (784 features, multiclass) ---
+    # Train on mnist-700.csv (same dims as all mnist inference inputs)
+    print("Generating mnist-xgb-model...")
+    mnist_data = np.genfromtxt(os.path.join(input_dir, "mnist-700.csv"), delimiter=",")
+    np.random.seed(42)
+    labels = np.random.randint(0, 10, size=mnist_data.shape[0]).astype(float)
+    dtrain = xgb.DMatrix(mnist_data, label=labels)
+    bst = xgb.train({"objective": "multi:softmax", "num_class": 10, "max_depth": 6},
+                     dtrain, 10)
     bst.save_model(os.path.join(out_dir, "mnist-xgb-model"))
+    print(f"  {mnist_data.shape[0]} rows x {mnist_data.shape[1]} cols")
 
-    # --- diabetes binary classification ---
+    # --- diabetes-binary-xgb-model ---
     print("Generating diabetes-binary-xgb-model...")
-    bst_bin = xgb.train({"objective": "binary:hinge", "max_depth": 6}, dtrain, 10)
-    bst_bin.save_model(os.path.join(out_dir, "diabetes-binary-xgb-model"))
+    diabetes_data = np.genfromtxt(os.path.join(input_dir, "diabetes_inference.csv"), delimiter=",")
+    labels_d = np.random.randint(0, 2, size=diabetes_data.shape[0]).astype(float)
+    dtrain_d = xgb.DMatrix(diabetes_data, label=labels_d)
+    bst_d = xgb.train({"objective": "binary:hinge", "max_depth": 6}, dtrain_d, 10)
+    bst_d.save_model(os.path.join(out_dir, "diabetes-binary-xgb-model"))
+    print(f"  {diabetes_data.shape[0]} rows x {diabetes_data.shape[1]} cols")
 
-    # --- insurance models ---
-    print("Generating insurance models...")
-    csv_train = np.genfromtxt(os.path.join(csv_dir, "train.csv"), delimiter=",")
-    dtrain_csv = xgb.DMatrix(csv_train[:, 1:], label=csv_train[:, 0])
-    bst_ins = xgb.train({"objective": "reg:squarederror", "max_depth": 6}, dtrain_csv, 10)
+    # --- insurance-xgb-model (from actual training CSV) ---
+    print("Generating insurance-xgb-model...")
+    csv_train = np.genfromtxt(os.path.join(train_dir, "single-csv", "train.csv"), delimiter=",")
+    dtrain_ins = xgb.DMatrix(csv_train[:, 1:], label=csv_train[:, 0])
+    bst_ins = xgb.train({"objective": "reg:squarederror", "max_depth": 6}, dtrain_ins, 10)
     bst_ins.save_model(os.path.join(out_dir, "insurance-xgb-model"))
+    print(f"  {csv_train.shape[0]} rows x {csv_train.shape[1] - 1} cols")
 
     # --- Upload to S3 ---
-    print(f"Uploading to s3://{S3_BUCKET}/{S3_PREFIX}/")
-    for fname in os.listdir(out_dir):
+    print(f"\nUploading to s3://{S3_BUCKET}/{S3_PREFIX}/")
+    for fname in sorted(os.listdir(out_dir)):
         local = os.path.join(out_dir, fname)
         key = f"{S3_PREFIX}/{fname}"
         s3.upload_file(local, S3_BUCKET, key)
         print(f"  {fname} ({os.path.getsize(local)} bytes)")
 
-    print(f"Done — models generated with XGBoost {xgb.__version__}")
+    print(f"\nDone — models generated with XGBoost {xgb.__version__}")
 
 
 if __name__ == "__main__":

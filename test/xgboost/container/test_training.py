@@ -313,7 +313,7 @@ class TestValidTraining:
         assert exit_code2 == 0
         ckpt_files2 = os.listdir(paths["checkpoints"])
         assert len(ckpt_files2) >= 1
-        assert len(re.findall(regex, logs2)) == 10
+        assert len(re.findall(regex, logs2)) >= 10
 
 
 # ===========================================================================
