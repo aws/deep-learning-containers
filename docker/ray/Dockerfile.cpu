@@ -56,7 +56,7 @@ LABEL dlc_minor_version="0"
 
 ARG PYTHON="python"
 ARG FRAMEWORK="ray"
-ARG FRAMEWORK_VERSION="2.54.0"
+ARG FRAMEWORK_VERSION="2.54.1"
 ARG CONTAINER_TYPE="inference"
 
 # Copy Python installation and venv from builder
