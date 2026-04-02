@@ -1,4 +1,4 @@
-name: XGBoost SageMaker Integration Tests
+name: XGBoost SageMaker E2E Tests
 
 permissions:
   contents: read
@@ -163,7 +163,7 @@ jobs:
   # ===========================================================================
   # Integration tests — SageMaker training/inference/transform jobs
   # ===========================================================================
-  integration-test:
+  e2e-test:
     timeout-minutes: 120
     strategy:
       fail-fast: false
@@ -200,4 +200,4 @@ jobs:
           cd test/
           python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image-uri ${{ inputs.image-uri }} \
-            xgboost/integration/${{ matrix.test-module }}.py
+            xgboost/e2e/${{ matrix.test-module }}.py

@@ -10,7 +10,7 @@ from sagemaker.estimator import Estimator
 from sagemaker.inputs import TrainingInput
 from test_utils import random_suffix_name
 
-from .conftest import data_uri, INTEG_TEST_BUCKET, s3_uri
+from .conftest import data_uri, E2E_TEST_BUCKET, s3_uri
 
 BASE_HP = {
     "max_depth": "5",
@@ -25,7 +25,7 @@ BASE_HP = {
 class TestHPO:
     def test_tuning_rmse(self, image_uri, role):
         job_name = random_suffix_name("xgb-hpo", 32)
-        output_path = s3_uri(INTEG_TEST_BUCKET, f"integ-output/{job_name}")
+        output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
         estimator = Estimator(
             image_uri=image_uri,

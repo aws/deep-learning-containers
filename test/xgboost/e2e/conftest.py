@@ -1,4 +1,4 @@
-"""Shared fixtures and helpers for XGBoost SageMaker integration tests.
+"""Shared fixtures and helpers for XGBoost SageMaker E2E tests.
 
 Replaces ai_algorithms_qa orchestration with direct SageMaker SDK calls.
 """
@@ -16,8 +16,8 @@ from test_utils import random_suffix_name
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-INTEG_TEST_BUCKET = "amazonai-algorithms-integration-tests"
-INTEG_DATA_PREFIX = "input/xgboost"
+E2E_TEST_BUCKET = "amazonai-algorithms-integration-tests"
+E2E_DATA_PREFIX = "input/xgboost"
 
 
 def s3_uri(bucket, key):
@@ -25,7 +25,7 @@ def s3_uri(bucket, key):
 
 
 def data_uri(key):
-    return s3_uri(INTEG_TEST_BUCKET, f"{INTEG_DATA_PREFIX}/{key}")
+    return s3_uri(E2E_TEST_BUCKET, f"{E2E_DATA_PREFIX}/{key}")
 
 
 def run_training_job(
@@ -48,7 +48,7 @@ def run_training_job(
 ):
     """Launch a SageMaker training job and return (job_name, duration, description)."""
     job_name = random_suffix_name(f"xgb-{test_name}", 63)
-    output_path = s3_uri(INTEG_TEST_BUCKET, f"integ-output/{job_name}")
+    output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
     estimator = Estimator(
         image_uri=image_uri,
@@ -136,7 +136,7 @@ def run_batch_transform(
 ):
     """Run a batch transform job and return the job description."""
     job_name = random_suffix_name(f"xgb-{test_name}", 63)
-    output_path = s3_uri(INTEG_TEST_BUCKET, f"integ-output/{job_name}")
+    output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
     model = Model(image_uri=image_uri, model_data=model_data, role=role)
     model.create(instance_type=instance_type)
