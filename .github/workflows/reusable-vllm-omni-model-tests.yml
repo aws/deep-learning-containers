@@ -65,13 +65,11 @@ jobs:
           image-uri: ${{ inputs.image-uri }}
 
       - name: Download model from S3
-        run: |
-          mkdir -p /models/${{ matrix.model.name }}
-          aws s3 cp ${{ matrix.model.s3_path }} /tmp/${{ matrix.model.s3_model }}
-          tar xf /tmp/${{ matrix.model.s3_model }} -C /models/${{ matrix.model.name }}
-          rm /tmp/${{ matrix.model.s3_model }}
-          echo "Model extracted to /models/${{ matrix.model.name }}"
-          ls /models/${{ matrix.model.name }}/ | head -10
+        id: download-model
+        uses: ./.github/actions/download-model
+        with:
+          s3-path: ${{ matrix.model.s3_path }}
+          model-name: ${{ matrix.model.name }}
 
       - name: Pull image
         run: docker pull ${{ inputs.image-uri }}
@@ -81,7 +79,7 @@ jobs:
           IMAGE="${{ inputs.image-uri }}"
           CONTAINER_ID=$(docker run -d --rm --gpus all \
             --shm-size=4g \
-            -v /models/${{ matrix.model.name }}:/models/${{ matrix.model.name }} \
+            -v /dlc-models:/models \
             -v $(pwd)/test/vllm-omni/scripts:/workspace/test \
             --entrypoint /bin/bash \
             ${IMAGE} -c 'sleep infinity')
@@ -94,10 +92,16 @@ jobs:
           IMAGE="${{ inputs.image-uri }}"
           CONTAINER_ID=$(docker run -d --rm --gpus all \
             --shm-size=4g \
-            -v /models/${{ matrix.model.name }}:/models/${{ matrix.model.name }} \
+            -v /dlc-models:/models \
             -v $(pwd)/test/vllm-omni/scripts:/workspace/test \
             --entrypoint /bin/bash \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_sagemaker_smoke_test.sh \
             /models/${{ matrix.model.name }} ${{ matrix.model.type }}
           docker kill ${CONTAINER_ID} 2>/dev/null || true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          kill ${{ steps.download-model.outputs.lock-pid }} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
