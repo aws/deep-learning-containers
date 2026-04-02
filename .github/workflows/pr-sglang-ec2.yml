@@ -119,6 +119,7 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+              - "test/**"
 
   build-image:
     needs: [check-changes, load-config]
