@@ -67,3 +67,14 @@ class TestTrainingParquet:
             train_distribution="FullyReplicated",
         )
         assert desc["TrainingJobStatus"] == "Completed"
+
+    def test_dask_gpu_multi_instance(self, image_uri, role):
+        hp = {**BASE_HP, "tree_method": "gpu_hist", "use_dask_gpu_training": "true"}
+        _, _, desc = run_training_job(
+            image_uri=image_uri, role=role, hyperparameters=hp,
+            train_s3_key="parquet/train", validation_s3_key="parquet/test",
+            content_type="application/x-parquet", test_name="pq-dask-2x",
+            instance_type="ml.g4dn.2xlarge", instance_count=2,
+            train_distribution="FullyReplicated",
+        )
+        assert desc["TrainingJobStatus"] == "Completed"

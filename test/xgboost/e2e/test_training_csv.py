@@ -66,3 +66,26 @@ class TestTrainingCsv:
             train_distribution="FullyReplicated",
         )
         assert desc["TrainingJobStatus"] == "Completed"
+
+    def test_dask_gpu_multi_instance(self, image_uri, role):
+        hp = {**BASE_HP, "tree_method": "gpu_hist", "use_dask_gpu_training": "true"}
+        _, _, desc = run_training_job(
+            image_uri=image_uri, role=role, hyperparameters=hp,
+            train_s3_key="csv/train", validation_s3_key="csv/test",
+            content_type="text/csv", test_name="csv-dask-2x",
+            instance_type="ml.g4dn.2xlarge", instance_count=2,
+            train_distribution="FullyReplicated",
+        )
+        assert desc["TrainingJobStatus"] == "Completed"
+
+    def test_dask_gpu_binary_class(self, image_uri, role):
+        hp = {**BASE_HP, "tree_method": "gpu_hist", "use_dask_gpu_training": "true",
+              "objective": "binary:logistic"}
+        _, _, desc = run_training_job(
+            image_uri=image_uri, role=role, hyperparameters=hp,
+            train_s3_key="csv/binary/train", validation_s3_key="csv/binary/test",
+            content_type="text/csv", test_name="csv-dask-bin",
+            instance_type="ml.g4dn.2xlarge",
+            train_distribution="FullyReplicated",
+        )
+        assert desc["TrainingJobStatus"] == "Completed"

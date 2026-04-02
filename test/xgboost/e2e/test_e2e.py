@@ -95,3 +95,18 @@ class TestE2E:
             train_distribution="FullyReplicated",
         )
         assert desc["TrainingJobStatus"] == "Completed"
+
+    def test_multi_model_inference(self, image_uri, role, trained_model):
+        endpoint_name = None
+        try:
+            predictor, endpoint_name = deploy_endpoint(
+                image_uri=image_uri, role=role,
+                model_data=trained_model, test_name="e2e-mme",
+            )
+            predictor.content_type = "text/libsvm"
+            predictor.accept = "text/csv"
+            response = predictor.predict(LIBSVM_PAYLOAD)
+            assert response is not None
+        finally:
+            if endpoint_name:
+                delete_endpoint(endpoint_name)
