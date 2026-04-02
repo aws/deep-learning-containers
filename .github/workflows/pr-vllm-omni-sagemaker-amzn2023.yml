@@ -242,15 +242,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup Python
+      - name: Install test dependencies
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
+          uv pip install -r test/vllm-omni/sagemaker/requirements.txt
 
       - name: Run SageMaker endpoint test
         run: |
           source .venv/bin/activate
-          PYTHONPATH=$(pwd)/test:$PYTHONPATH pytest test/vllm-omni/sagemaker/test_sm_omni_endpoint.py -v \
-            --image-uri ${{ needs.build-image.outputs.ci-image }} \
-            --region ${{ vars.AWS_REGION }}
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ needs.build-image.outputs.ci-image }} vllm-omni/sagemaker
