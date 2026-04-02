@@ -40,7 +40,7 @@ class TestNetworkIsolation:
         Uses entry_point + source_dir so SageMaker delivers the code
         via the platform before the container starts (not via S3 at runtime).
         """
-        job_name = random_suffix_name("xgb-netiso-script", 63)
+        job_name = random_suffix_name("xgb-netiso-script", 32)
         output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
         estimator = Estimator(
