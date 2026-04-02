@@ -5,10 +5,9 @@ Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_script_mo
 
 import pytest
 
-from .conftest import delete_endpoint, deploy_endpoint, run_training_job
+from .conftest import data_uri, delete_endpoint, deploy_endpoint, run_training_job
 
-# Script code tarball must be in a bucket the container's execution role can access
-SCRIPT_CODE_S3 = "s3://dlc-cicd-models/xgboost/script_mode/code/abalone.1.2-1.tar.gz"
+SCRIPT_CODE_S3 = data_uri("script_mode/code/abalone.1.2-1.tar.gz")
 
 SCRIPT_HP = {
     "sagemaker_program": "abalone.py",
