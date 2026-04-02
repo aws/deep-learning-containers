@@ -116,7 +116,8 @@ def run_training(docker_client, image_uri, hyperparameters, inputdataconfig,
 
 
 def run_distributed_training(docker_client, image_uri, hyperparameters, inputdataconfig,
-                             resourceconfigs, training_files, timeout=TRAIN_TIMEOUT):
+                             resourceconfigs, training_files, validation_files=None,
+                             timeout=TRAIN_TIMEOUT):
     """Run multi-container distributed training. Returns list of (exit_code, logs, paths)."""
     hosts = [rc["current_host"] for rc in resourceconfigs]
     network_name = "xgb-test-network"
@@ -143,6 +144,8 @@ def run_distributed_training(docker_client, image_uri, hyperparameters, inputdat
             paths = _create_opt_ml(tmpdir)
             _write_configs(paths["input_config"], hyperparameters, inputdataconfig, rc)
             _copy_files(training_files, paths["input_train"])
+            if validation_files:
+                _copy_files(validation_files, paths["input_validation"])
             all_paths.append(paths)
 
             cur_host = rc["current_host"]
