@@ -95,7 +95,7 @@ def model_endpoint(aws_session, model_package, instance_type):
         sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+@pytest.mark.parametrize("instance_type", ["ml.g4dn.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_endpoint(model_endpoint):
     predictor = model_endpoint
