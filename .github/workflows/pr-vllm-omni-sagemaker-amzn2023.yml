@@ -253,4 +253,4 @@ jobs:
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$PYTHONPATH pytest test/vllm-omni/sagemaker/test_sm_omni_endpoint.py -v \
             --image-uri ${{ needs.build-image.outputs.ci-image }} \
-            --aws-region ${{ vars.AWS_REGION }}
+            --region ${{ vars.AWS_REGION }}
