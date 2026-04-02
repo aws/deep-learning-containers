@@ -280,6 +280,9 @@ class TestValidTraining:
         _assert_success(result)
 
     def test_two_container_with_libsvm_data(self, docker_client, image_uri, training_resources):
+        hp = copy.deepcopy(STD_HP)
+        hp["tree_method"] = "hist"
+        hp.pop("updater", None)
         idc = copy.deepcopy(STD_IDC)
         idc["train"]["ContentType"] = "text/libsvm"
         idc["validation"]["ContentType"] = "text/libsvm"
@@ -292,7 +295,7 @@ class TestValidTraining:
             {"current_host": "algo-2", "hosts": hosts},
         ]
         results = run_distributed_training(
-            docker_client, image_uri, STD_HP, idc, rcs, train_files,
+            docker_client, image_uri, hp, idc, rcs, train_files,
             validation_files=val_files,
         )
         assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
@@ -305,6 +308,9 @@ class TestValidTraining:
         )
 
     def test_two_container_with_libsvm_data_shardedbykey(self, docker_client, image_uri, training_resources):
+        hp = copy.deepcopy(STD_HP)
+        hp["tree_method"] = "hist"
+        hp.pop("updater", None)
         idc = copy.deepcopy(STD_IDC)
         idc["train"]["ContentType"] = "text/libsvm"
         idc["train"]["S3DistributionType"] = "ShardedByS3Key"
@@ -319,7 +325,7 @@ class TestValidTraining:
             {"current_host": "algo-2", "hosts": hosts},
         ]
         results = run_distributed_training(
-            docker_client, image_uri, STD_HP, idc, rcs, train_files,
+            docker_client, image_uri, hp, idc, rcs, train_files,
             validation_files=val_files,
         )
         assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
