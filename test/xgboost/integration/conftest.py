@@ -7,7 +7,6 @@ import logging
 import time
 
 import boto3
-import pytest
 from sagemaker.estimator import Estimator
 from sagemaker.inputs import TrainingInput
 from sagemaker.model import Model
@@ -36,6 +35,7 @@ def run_training_job(
     train_s3_key,
     validation_s3_key,
     content_type,
+    test_name="train",
     instance_type="ml.m5.xlarge",
     instance_count=1,
     volume_size=10,
@@ -46,7 +46,7 @@ def run_training_job(
     enable_network_isolation=False,
 ):
     """Launch a SageMaker training job and return (job_name, duration, description)."""
-    job_name = random_suffix_name("xgb-integ", 50)
+    job_name = random_suffix_name(f"xgb-{test_name}", 63)
     output_path = s3_uri(INTEG_TEST_BUCKET, f"integ-output/{job_name}")
 
     estimator = Estimator(
@@ -94,9 +94,9 @@ def run_training_job(
     return job_name, duration, desc
 
 
-def deploy_endpoint(image_uri, role, model_data, instance_type="ml.m5.xlarge", env=None):
+def deploy_endpoint(image_uri, role, model_data, test_name="ep", instance_type="ml.m5.xlarge", env=None):
     """Deploy a real-time endpoint and return (predictor, endpoint_name)."""
-    endpoint_name = random_suffix_name("xgb-ep", 50)
+    endpoint_name = random_suffix_name(f"xgb-{test_name}", 63)
     model = Model(
         image_uri=image_uri,
         model_data=model_data,
@@ -125,14 +125,13 @@ def delete_endpoint(endpoint_name):
 
 def run_batch_transform(
     image_uri, role, model_data, input_s3_uri, content_type,
-    instance_type="ml.m5.xlarge", split_type="Line", accept="text/csv",
+    test_name="bt", instance_type="ml.m5.xlarge", split_type="Line", accept="text/csv",
 ):
     """Run a batch transform job and return the job description."""
-    job_name = random_suffix_name("xgb-bt", 50)
+    job_name = random_suffix_name(f"xgb-{test_name}", 63)
     output_path = s3_uri(INTEG_TEST_BUCKET, f"integ-output/{job_name}")
 
     model = Model(image_uri=image_uri, model_data=model_data, role=role)
-    model_name = random_suffix_name("xgb-model", 50)
     model.create(instance_type=instance_type)
 
     transformer = Transformer(

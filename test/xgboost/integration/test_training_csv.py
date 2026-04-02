@@ -3,8 +3,6 @@
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_training_csv.py
 """
 
-import pytest
-
 from .conftest import run_training_job
 
 BASE_HP = {
@@ -22,12 +20,9 @@ BASE_HP = {
 class TestTrainingCsv:
     def test_single_instance(self, image_uri, role):
         _, duration, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=BASE_HP,
-            train_s3_key="csv/train",
-            validation_s3_key="csv/test",
-            content_type="text/csv",
+            image_uri=image_uri, role=role, hyperparameters=BASE_HP,
+            train_s3_key="csv/train", validation_s3_key="csv/test",
+            content_type="text/csv", test_name="csv-single",
         )
         assert desc["TrainingJobStatus"] == "Completed"
         assert 1 <= duration <= 1800
@@ -35,24 +30,18 @@ class TestTrainingCsv:
     def test_distributed(self, image_uri, role):
         hp = {**BASE_HP, "tree_method": "hist"}
         _, duration, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=hp,
-            train_s3_key="csv/train",
-            validation_s3_key="csv/test",
-            content_type="text/csv",
+            image_uri=image_uri, role=role, hyperparameters=hp,
+            train_s3_key="csv/train", validation_s3_key="csv/test",
+            content_type="text/csv", test_name="csv-dist",
             instance_count=2,
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_pipe_mode_single_instance(self, image_uri, role):
         _, duration, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=BASE_HP,
-            train_s3_key="csv/train",
-            validation_s3_key="csv/test",
-            content_type="text/csv",
+            image_uri=image_uri, role=role, hyperparameters=BASE_HP,
+            train_s3_key="csv/train", validation_s3_key="csv/test",
+            content_type="text/csv", test_name="csv-pipe",
             input_mode="Pipe",
         )
         assert desc["TrainingJobStatus"] == "Completed"
