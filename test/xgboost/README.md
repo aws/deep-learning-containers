@@ -80,5 +80,6 @@ release-sagemaker-xgboost.yml
         ├── container-test-training      (parallel, no model dependency)
         ├── container-test-scoring       (after generate-models)
         ├── container-test-batch-transform (after generate-models)
-        └── e2e-test                     (10 test modules in parallel via matrix)
+        ├── e2e-test                     (10 test modules in parallel via matrix)
+        └── benchmark-test               (7 test modules in parallel via matrix)
 ```
