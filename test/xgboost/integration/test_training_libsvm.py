@@ -47,6 +47,7 @@ class TestTrainingLibsvm:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_checkpoint_single_instance(self, image_uri, role):
+        checkpoint_uri = f"s3://amazonai-algorithms-integration-tests/integ-output/checkpoints/{__name__}"
         _, duration, desc = run_training_job(
             image_uri=image_uri,
             role=role,
@@ -54,7 +55,7 @@ class TestTrainingLibsvm:
             train_s3_key="train",
             validation_s3_key="test",
             content_type="text/libsvm",
-            checkpoint_s3_uri="auto",
+            checkpoint_s3_uri=checkpoint_uri,
         )
         assert desc["TrainingJobStatus"] == "Completed"
 

@@ -17,7 +17,7 @@ from test_utils import random_suffix_name
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-INTEG_TEST_BUCKET = "amazonai-algorithms-integ-tests-us-west-2"
+INTEG_TEST_BUCKET = "amazonai-algorithms-integration-tests"
 INTEG_DATA_PREFIX = "input/xgboost"
 
 
