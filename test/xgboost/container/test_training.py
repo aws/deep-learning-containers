@@ -14,7 +14,7 @@ import re
 
 import pytest
 
-from .container_helper import run_training, run_distributed_training
+from .container_helper import run_distributed_training, run_training
 
 # ---------------------------------------------------------------------------
 # Standard configs (mirrors configs.py from reference tests)
@@ -80,6 +80,7 @@ STD_CPC = {"LocalPath": "/opt/ml/checkpoints"}
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _libsvm_dir(resources):
     return os.path.join(resources, "data", "single-libsvm")
 
@@ -88,10 +89,24 @@ def _csv_dir(resources):
     return os.path.join(resources, "data", "single-csv")
 
 
-def _run(docker_client, image_uri, resources, hp, idc, rc, train_files,
-         val_files=None, cpc=None, env=None):
+def _run(
+    docker_client,
+    image_uri,
+    resources,
+    hp,
+    idc,
+    rc,
+    train_files,
+    val_files=None,
+    cpc=None,
+    env=None,
+):
     return run_training(
-        docker_client, image_uri, hp, idc, rc,
+        docker_client,
+        image_uri,
+        hp,
+        idc,
+        rc,
         training_files=train_files,
         validation_files=val_files,
         checkpointconfig=cpc,
@@ -116,36 +131,66 @@ def _assert_failed(result, regex="UserError:"):
 # Valid training tests
 # ===========================================================================
 
-class TestValidTraining:
 
+class TestValidTraining:
     def test_single_file_libsvm(self, docker_client, image_uri, training_resources):
         idc = copy.deepcopy(STD_IDC)
         idc["train"]["ContentType"] = "text/libsvm"
         idc["validation"]["ContentType"] = "libsvm"
         d = _libsvm_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      [os.path.join(d, "agaricus.libsvm.train")],
-                      [os.path.join(d, "agaricus.libsvm.test")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            idc,
+            STD_RC,
+            [os.path.join(d, "agaricus.libsvm.train")],
+            [os.path.join(d, "agaricus.libsvm.test")],
+        )
         _assert_success(result)
 
     def test_single_file_libsvm_weights(self, docker_client, image_uri, training_resources):
         d = _libsvm_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, STD_IDC, STD_RC,
-                      [os.path.join(d, "agaricus.libsvm.train.weights")],
-                      [os.path.join(d, "agaricus.libsvm.test")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            STD_IDC,
+            STD_RC,
+            [os.path.join(d, "agaricus.libsvm.train.weights")],
+            [os.path.join(d, "agaricus.libsvm.test")],
+        )
         _assert_success(result)
 
     def test_single_file_libsvm_hpo_param(self, docker_client, image_uri, training_resources):
         hp = copy.deepcopy(STD_HP)
         d = _libsvm_dir(training_resources)
-        for metric in ["validation:rmse", "validation:mae", "validation:logloss",
-                       "validation:error", "validation:auc", "validation:aucpr",
-                       "validation:ndcg", "validation:map", "validation:accuracy",
-                       "validation:f1", "validation:mse"]:
+        for metric in [
+            "validation:rmse",
+            "validation:mae",
+            "validation:logloss",
+            "validation:error",
+            "validation:auc",
+            "validation:aucpr",
+            "validation:ndcg",
+            "validation:map",
+            "validation:accuracy",
+            "validation:f1",
+            "validation:mse",
+        ]:
             hp["_tuning_objective_metric"] = metric
-            result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                          [os.path.join(d, "agaricus.libsvm.train")],
-                          [os.path.join(d, "agaricus.libsvm.test")])
+            result = _run(
+                docker_client,
+                image_uri,
+                training_resources,
+                hp,
+                STD_IDC,
+                STD_RC,
+                [os.path.join(d, "agaricus.libsvm.train")],
+                [os.path.join(d, "agaricus.libsvm.test")],
+            )
             _assert_success(result, regex=metric.replace(":", "-"))
 
     def test_single_file_libsvm_multiclass_hpo(self, docker_client, image_uri, training_resources):
@@ -155,69 +200,132 @@ class TestValidTraining:
         hp["eval_metric"] = "merror"
         hp["_tuning_objective_metric"] = "validation:merror"
         d = _libsvm_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                      [os.path.join(d, "synthetic_multi.libsvm.train")],
-                      [os.path.join(d, "synthetic_multi.libsvm.train")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            hp,
+            STD_IDC,
+            STD_RC,
+            [os.path.join(d, "synthetic_multi.libsvm.train")],
+            [os.path.join(d, "synthetic_multi.libsvm.train")],
+        )
         _assert_success(result, regex="validation-merror")
 
-    def test_single_file_libsvm_hpo_param_non_overlapping(self, docker_client, image_uri, training_resources):
+    def test_single_file_libsvm_hpo_param_non_overlapping(
+        self, docker_client, image_uri, training_resources
+    ):
         hp = copy.deepcopy(STD_HP)
         hp["_tuning_objective_metric"] = "validation:logloss"
         d = _libsvm_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                      [os.path.join(d, "agaricus.libsvm.train")],
-                      [os.path.join(d, "agaricus.libsvm.test")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            hp,
+            STD_IDC,
+            STD_RC,
+            [os.path.join(d, "agaricus.libsvm.train")],
+            [os.path.join(d, "agaricus.libsvm.test")],
+        )
         _assert_success(result, regex="(?=.*validation-logloss:.*)(?=.*validation-error:.*)")
 
-    def test_single_file_output_both_default_and_custom_metrics(self, docker_client, image_uri, training_resources):
+    def test_single_file_output_both_default_and_custom_metrics(
+        self, docker_client, image_uri, training_resources
+    ):
         hp = copy.deepcopy(STD_HP)
         eval_metrics = ["logloss", "f1", "error"]
         hp["eval_metric"] = ",".join(eval_metrics)
         for hpo_metric in ["validation:accuracy", "validation:mae"]:
             hp["_tuning_objective_metric"] = hpo_metric
             d = _libsvm_dir(training_resources)
-            result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                          [os.path.join(d, "agaricus.libsvm.train")],
-                          [os.path.join(d, "agaricus.libsvm.test")])
+            result = _run(
+                docker_client,
+                image_uri,
+                training_resources,
+                hp,
+                STD_IDC,
+                STD_RC,
+                [os.path.join(d, "agaricus.libsvm.train")],
+                [os.path.join(d, "agaricus.libsvm.test")],
+            )
             all_metrics = list(set(eval_metrics) | {hpo_metric})
             regex = "".join(f"(?=.*{m.replace(':', '-')})" for m in all_metrics)
             _assert_success(result, regex=regex)
 
-    def test_single_file_libsvm_iterate_objectives(self, docker_client, image_uri, training_resources):
+    def test_single_file_libsvm_iterate_objectives(
+        self, docker_client, image_uri, training_resources
+    ):
         hp = copy.deepcopy(STD_HP)
         d = _libsvm_dir(training_resources)
-        for obj in ["reg:squarederror", "reg:logistic", "binary:logistic",
-                     "binary:logitraw", "count:poisson"]:
+        for obj in [
+            "reg:squarederror",
+            "reg:logistic",
+            "binary:logistic",
+            "binary:logitraw",
+            "count:poisson",
+        ]:
             hp["objective"] = obj
-            result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                          [os.path.join(d, "agaricus.libsvm.train")],
-                          [os.path.join(d, "agaricus.libsvm.test")])
+            result = _run(
+                docker_client,
+                image_uri,
+                training_resources,
+                hp,
+                STD_IDC,
+                STD_RC,
+                [os.path.join(d, "agaricus.libsvm.train")],
+                [os.path.join(d, "agaricus.libsvm.test")],
+            )
             _assert_success(result)
 
-    def test_single_file_libsvm_threshold_eval_metric(self, docker_client, image_uri, training_resources):
+    def test_single_file_libsvm_threshold_eval_metric(
+        self, docker_client, image_uri, training_resources
+    ):
         hp = copy.deepcopy(STD_HP)
         hp["eval_metric"] = "error@0.8"
         d = _libsvm_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                      [os.path.join(d, "agaricus.libsvm.train")],
-                      [os.path.join(d, "agaricus.libsvm.test")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            hp,
+            STD_IDC,
+            STD_RC,
+            [os.path.join(d, "agaricus.libsvm.train")],
+            [os.path.join(d, "agaricus.libsvm.test")],
+        )
         _assert_success(result)
 
     def test_single_file_libsvm_verbosity(self, docker_client, image_uri, training_resources):
         hp = copy.deepcopy(STD_HP)
         hp["verbosity"] = "3"
         d = _libsvm_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                      [os.path.join(d, "agaricus.libsvm.train")],
-                      [os.path.join(d, "agaricus.libsvm.test")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            hp,
+            STD_IDC,
+            STD_RC,
+            [os.path.join(d, "agaricus.libsvm.train")],
+            [os.path.join(d, "agaricus.libsvm.test")],
+        )
         _assert_success(result)
 
     def test_multi_files_libsvm(self, docker_client, image_uri, training_resources):
         d = os.path.join(training_resources, "data", "multi-libsvm")
         train_dir = os.path.join(d, "train")
         val_dir = os.path.join(d, "val")
-        result = _run(docker_client, image_uri, training_resources, STD_HP, STD_IDC, STD_RC,
-                      [train_dir], [val_dir])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            STD_IDC,
+            STD_RC,
+            [train_dir],
+            [val_dir],
+        )
         _assert_success(result)
 
     def test_single_file_csv(self, docker_client, image_uri, training_resources):
@@ -225,9 +333,16 @@ class TestValidTraining:
         idc["train"]["ContentType"] = "text/csv"
         idc["validation"]["ContentType"] = "csv"
         d = _csv_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      [os.path.join(d, "train.csv")],
-                      [os.path.join(d, "val.csv")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            idc,
+            STD_RC,
+            [os.path.join(d, "train.csv")],
+            [os.path.join(d, "val.csv")],
+        )
         _assert_success(result)
 
     def test_single_file_csv_weights(self, docker_client, image_uri, training_resources):
@@ -237,9 +352,16 @@ class TestValidTraining:
         hp = copy.deepcopy(STD_HP)
         hp["csv_weights"] = "1"
         d = _csv_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, hp, idc, STD_RC,
-                      [os.path.join(d, "train.csv.weights")],
-                      [os.path.join(d, "val.csv")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            hp,
+            idc,
+            STD_RC,
+            [os.path.join(d, "train.csv.weights")],
+            [os.path.join(d, "val.csv")],
+        )
         _assert_success(result)
 
     def test_multi_file_csv(self, docker_client, image_uri, training_resources):
@@ -247,9 +369,16 @@ class TestValidTraining:
         idc = copy.deepcopy(STD_IDC)
         idc["train"]["ContentType"] = "csv"
         idc["validation"]["ContentType"] = "csv"
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      [os.path.join(d, "train")],
-                      [os.path.join(d, "val")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            idc,
+            STD_RC,
+            [os.path.join(d, "train")],
+            [os.path.join(d, "val")],
+        )
         _assert_success(result)
 
     def test_single_file_csv_space_separated(self, docker_client, image_uri, training_resources):
@@ -257,8 +386,15 @@ class TestValidTraining:
         idc["train"]["ContentType"] = "csv"
         idc.pop("validation", None)
         d = _csv_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      [os.path.join(d, "train_space.csv")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            idc,
+            STD_RC,
+            [os.path.join(d, "train_space.csv")],
+        )
         _assert_success(result)
 
     def test_single_file_csv_sci_notation(self, docker_client, image_uri, training_resources):
@@ -266,8 +402,15 @@ class TestValidTraining:
         idc["train"]["ContentType"] = "csv"
         idc.pop("validation", None)
         d = _csv_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      [os.path.join(d, "train_sci.csv")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            idc,
+            STD_RC,
+            [os.path.join(d, "train_sci.csv")],
+        )
         _assert_success(result)
 
     def test_single_file_csv_empty_cells(self, docker_client, image_uri, training_resources):
@@ -275,8 +418,15 @@ class TestValidTraining:
         idc["train"]["ContentType"] = "csv"
         idc.pop("validation", None)
         d = _csv_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      [os.path.join(d, "train_empty_cell.csv")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            idc,
+            STD_RC,
+            [os.path.join(d, "train_empty_cell.csv")],
+        )
         _assert_success(result)
 
     def test_two_container_with_libsvm_data(self, docker_client, image_uri, training_resources):
@@ -295,7 +445,12 @@ class TestValidTraining:
             {"current_host": "algo-2", "hosts": hosts},
         ]
         results = run_distributed_training(
-            docker_client, image_uri, hp, idc, rcs, train_files,
+            docker_client,
+            image_uri,
+            hp,
+            idc,
+            rcs,
+            train_files,
             validation_files=val_files,
         )
         assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
@@ -307,7 +462,9 @@ class TestValidTraining:
             f"Container 2 logs:\n{results[1][1]}"
         )
 
-    def test_two_container_with_libsvm_data_shardedbykey(self, docker_client, image_uri, training_resources):
+    def test_two_container_with_libsvm_data_shardedbykey(
+        self, docker_client, image_uri, training_resources
+    ):
         hp = copy.deepcopy(STD_HP)
         hp["tree_method"] = "hist"
         hp.pop("updater", None)
@@ -325,7 +482,12 @@ class TestValidTraining:
             {"current_host": "algo-2", "hosts": hosts},
         ]
         results = run_distributed_training(
-            docker_client, image_uri, hp, idc, rcs, train_files,
+            docker_client,
+            image_uri,
+            hp,
+            idc,
+            rcs,
+            train_files,
             validation_files=val_files,
         )
         assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
@@ -353,14 +515,19 @@ class TestValidTraining:
 
         # Phase 1: train 10 rounds
         exit_code, logs, model_files, paths = run_training(
-            docker_client, image_uri, hp1, idc, STD_RC,
-            training_files=train_files, checkpointconfig=STD_CPC,
+            docker_client,
+            image_uri,
+            hp1,
+            idc,
+            STD_RC,
+            training_files=train_files,
+            checkpointconfig=STD_CPC,
         )
         assert exit_code == 0
         assert len(model_files) == 1
 
         ckpt_files = os.listdir(paths["checkpoints"])
-        assert len(ckpt_files) >= 1, f"No checkpoint files found"
+        assert len(ckpt_files) >= 1, "No checkpoint files found"
         regex = r"\[\d+\].*(?=.*train-error:.*)"
         assert len(re.findall(regex, logs)) == 10
 
@@ -382,7 +549,9 @@ class TestValidTraining:
         volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
 
         container = docker_client.containers.run(
-            image_uri, command="train", volumes=volumes,
+            image_uri,
+            command="train",
+            volumes=volumes,
             detach=True,
         )
         try:
@@ -404,8 +573,8 @@ class TestValidTraining:
 # Invalid training tests
 # ===========================================================================
 
-class TestInvalidTraining:
 
+class TestInvalidTraining:
     def _get_libsvm_data(self, resources, with_validation=True):
         d = _libsvm_dir(resources)
         train = [os.path.join(d, "agaricus.libsvm.train")]
@@ -418,8 +587,9 @@ class TestInvalidTraining:
 
     def test_no_validation_data(self, docker_client, image_uri, training_resources):
         train = self._get_libsvm_data(training_resources, False)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, STD_IDC, STD_RC,
-                      train, [])
+        result = _run(
+            docker_client, image_uri, training_resources, STD_HP, STD_IDC, STD_RC, train, []
+        )
         _assert_failed(result)
 
     def test_invalid_data_csv_content_type(self, docker_client, image_uri, training_resources):
@@ -427,69 +597,106 @@ class TestInvalidTraining:
         idc["train"]["ContentType"] = "csv"
         idc["validation"]["ContentType"] = "csv"
         d = os.path.join(training_resources, "data", "invalid-data")
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      [os.path.join(d, "data.rec")], [os.path.join(d, "data.rec")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            idc,
+            STD_RC,
+            [os.path.join(d, "data.rec")],
+            [os.path.join(d, "data.rec")],
+        )
         _assert_failed(result)
 
     def test_csv_alpha_with_csv_content_type(self, docker_client, image_uri, training_resources):
         idc = copy.deepcopy(STD_IDC)
         idc["train"]["ContentType"] = "text/csv"
         d = _csv_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      [os.path.join(d, "train_alpha.csv")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            idc,
+            STD_RC,
+            [os.path.join(d, "train_alpha.csv")],
+        )
         _assert_failed(result)
 
     def test_csv_data_with_libsvm_content_type(self, docker_client, image_uri, training_resources):
         d = _csv_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, STD_IDC, STD_RC,
-                      [os.path.join(d, "train.csv")], [os.path.join(d, "val.csv")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            STD_IDC,
+            STD_RC,
+            [os.path.join(d, "train.csv")],
+            [os.path.join(d, "val.csv")],
+        )
         _assert_failed(result, regex="UserError:")
 
-    def test_invalid_data_with_libsvm_content_type(self, docker_client, image_uri, training_resources):
+    def test_invalid_data_with_libsvm_content_type(
+        self, docker_client, image_uri, training_resources
+    ):
         d = os.path.join(training_resources, "data", "invalid-data")
-        result = _run(docker_client, image_uri, training_resources, STD_HP, STD_IDC, STD_RC,
-                      [os.path.join(d, "data.rec")], [os.path.join(d, "data.rec")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            STD_IDC,
+            STD_RC,
+            [os.path.join(d, "data.rec")],
+            [os.path.join(d, "data.rec")],
+        )
         _assert_failed(result)
 
-    @pytest.mark.parametrize("param,values", [
-        ("eta", ["-0.1", "1.01", "invalid_string"]),
-        ("gamma", ["-0.1", "invalid_string"]),
-        ("max_depth", ["-0.1", "invalid_string"]),
-        ("min_child_weight", ["-0.1", "invalid_string"]),
-        ("max_delta_step", ["-0.1", "invalid_string"]),
-        ("colsample_bytree", ["-0.1", "0", "invalid_string"]),
-        ("colsample_bylevel", ["-0.1", "0", "invalid_string"]),
-        ("tree_method", ["invalid_method", "gpu_exact"]),
-        ("sketch_eps", ["0", "1", "invalid_string"]),
-        ("refresh_leaf", ["invalid", "2"]),
-        ("process_type", ["invalid", "0.01"]),
-        ("grow_policy", ["invalid", "0.01"]),
-        ("sample_type", ["invalid", "0.01"]),
-        ("normalize_type", ["invalid", "0.01"]),
-        ("rate_drop", ["invalid", "-0.01", "1.01"]),
-        ("one_drop", ["invalid", "-0.01", "1.01"]),
-        ("skip_drop", ["invalid", "-0.01", "1.01"]),
-        ("tweedie_variance_power", ["invalid", "1", "2"]),
-        ("eval_metric", ["invalid", "1", "rmse,invalid", "error@nonfloat"]),
-        ("booster", ["invalid", "1"]),
-        ("verbosity", ["invalid", "-1", "4", "0.5"]),
-    ])
-    def test_invalid_hyperparameter(self, docker_client, image_uri, training_resources,
-                                    param, values):
+    @pytest.mark.parametrize(
+        "param,values",
+        [
+            ("eta", ["-0.1", "1.01", "invalid_string"]),
+            ("gamma", ["-0.1", "invalid_string"]),
+            ("max_depth", ["-0.1", "invalid_string"]),
+            ("min_child_weight", ["-0.1", "invalid_string"]),
+            ("max_delta_step", ["-0.1", "invalid_string"]),
+            ("colsample_bytree", ["-0.1", "0", "invalid_string"]),
+            ("colsample_bylevel", ["-0.1", "0", "invalid_string"]),
+            ("tree_method", ["invalid_method", "gpu_exact"]),
+            ("sketch_eps", ["0", "1", "invalid_string"]),
+            ("refresh_leaf", ["invalid", "2"]),
+            ("process_type", ["invalid", "0.01"]),
+            ("grow_policy", ["invalid", "0.01"]),
+            ("sample_type", ["invalid", "0.01"]),
+            ("normalize_type", ["invalid", "0.01"]),
+            ("rate_drop", ["invalid", "-0.01", "1.01"]),
+            ("one_drop", ["invalid", "-0.01", "1.01"]),
+            ("skip_drop", ["invalid", "-0.01", "1.01"]),
+            ("tweedie_variance_power", ["invalid", "1", "2"]),
+            ("eval_metric", ["invalid", "1", "rmse,invalid", "error@nonfloat"]),
+            ("booster", ["invalid", "1"]),
+            ("verbosity", ["invalid", "-1", "4", "0.5"]),
+        ],
+    )
+    def test_invalid_hyperparameter(
+        self, docker_client, image_uri, training_resources, param, values
+    ):
         train, val = self._get_libsvm_data(training_resources)
         hp = copy.deepcopy(STD_HP)
         for v in values:
             hp[param] = v
-            result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                          train, val)
+            result = _run(
+                docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC, train, val
+            )
             _assert_failed(result)
 
     def test_missing_num_round(self, docker_client, image_uri, training_resources):
         hp = copy.deepcopy(STD_HP)
         hp.pop("num_round", None)
         train, val = self._get_libsvm_data(training_resources)
-        result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                      train, val)
+        result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC, train, val)
         _assert_failed(result)
 
     def test_multiclass_without_num_class(self, docker_client, image_uri, training_resources):
@@ -497,18 +704,30 @@ class TestInvalidTraining:
         train, val = self._get_libsvm_data(training_resources)
         for obj in ["multi:softmax", "multi:softprob"]:
             hp["objective"] = obj
-            result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                          train, val)
+            result = _run(
+                docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC, train, val
+            )
             _assert_failed(result)
 
-    def test_libsvm_data_alpha_with_libsvm_content_type(self, docker_client, image_uri, training_resources):
+    def test_libsvm_data_alpha_with_libsvm_content_type(
+        self, docker_client, image_uri, training_resources
+    ):
         d = _libsvm_dir(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, STD_IDC, STD_RC,
-                      [os.path.join(d, "agaricus.alpha.train")],
-                      [os.path.join(d, "agaricus.alpha.train")])
+        result = _run(
+            docker_client,
+            image_uri,
+            training_resources,
+            STD_HP,
+            STD_IDC,
+            STD_RC,
+            [os.path.join(d, "agaricus.alpha.train")],
+            [os.path.join(d, "agaricus.alpha.train")],
+        )
         _assert_failed(result)
 
-    def test_invalid_updater_for_update_process_type(self, docker_client, image_uri, training_resources):
+    def test_invalid_updater_for_update_process_type(
+        self, docker_client, image_uri, training_resources
+    ):
         hp = copy.deepcopy(STD_HP)
         hp["process_type"] = "update"
         train = self._get_libsvm_data(training_resources, False)
@@ -540,8 +759,9 @@ class TestInvalidTraining:
         train, val = self._get_libsvm_data(training_resources)
         for obj in ["reg:squarederror", "reg:linear", "reg:gamma"]:
             hp["objective"] = obj
-            result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                          train, val)
+            result = _run(
+                docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC, train, val
+            )
             _assert_failed(result)
 
     def test_invalid_eval_metric_values(self, docker_client, image_uri, training_resources):
@@ -549,14 +769,14 @@ class TestInvalidTraining:
         train, val = self._get_libsvm_data(training_resources)
         for invalid in ["<function", "auc@0.5"]:
             hp["eval_metric"] = invalid
-            result = _run(docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC,
-                          train, val)
+            result = _run(
+                docker_client, image_uri, training_resources, hp, STD_IDC, STD_RC, train, val
+            )
             _assert_failed(result)
 
     def test_pipe_mode_rejected(self, docker_client, image_uri, training_resources):
         idc = copy.deepcopy(STD_IDC)
         idc["train"]["TrainingInputMode"] = "Pipe"
         train, val = self._get_libsvm_data(training_resources)
-        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC,
-                      train, val)
+        result = _run(docker_client, image_uri, training_resources, STD_HP, idc, STD_RC, train, val)
         _assert_failed(result)

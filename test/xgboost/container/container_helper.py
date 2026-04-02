@@ -14,9 +14,8 @@ import shutil
 import tempfile
 import time
 
-import requests
-
 import docker.types
+import requests
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,6 +28,7 @@ SERVE_PORT = 8080
 # ---------------------------------------------------------------------------
 # /opt/ml layout helpers
 # ---------------------------------------------------------------------------
+
 
 def _create_opt_ml(tmpdir):
     """Create the /opt/ml directory tree inside *tmpdir* and return paths dict."""
@@ -45,8 +45,9 @@ def _create_opt_ml(tmpdir):
     return paths
 
 
-def _write_configs(config_dir, hyperparameters, inputdataconfig, resourceconfig,
-                   checkpointconfig=None):
+def _write_configs(
+    config_dir, hyperparameters, inputdataconfig, resourceconfig, checkpointconfig=None
+):
     with open(os.path.join(config_dir, "hyperparameters.json"), "w") as f:
         json.dump(hyperparameters, f)
     with open(os.path.join(config_dir, "inputdataconfig.json"), "w") as f:
@@ -72,9 +73,19 @@ def _copy_files(src_files, dest_dir):
 # Training
 # ---------------------------------------------------------------------------
 
-def run_training(docker_client, image_uri, hyperparameters, inputdataconfig,
-                 resourceconfig, training_files, validation_files=None,
-                 checkpointconfig=None, environment=None, timeout=TRAIN_TIMEOUT):
+
+def run_training(
+    docker_client,
+    image_uri,
+    hyperparameters,
+    inputdataconfig,
+    resourceconfig,
+    training_files,
+    validation_files=None,
+    checkpointconfig=None,
+    environment=None,
+    timeout=TRAIN_TIMEOUT,
+):
     """Run a training container and return (exit_code, logs, model_files, paths).
 
     *paths* is the dict returned by ``_create_opt_ml`` so callers can inspect
@@ -83,8 +94,9 @@ def run_training(docker_client, image_uri, hyperparameters, inputdataconfig,
     tmpdir = tempfile.mkdtemp(prefix="xgb-train-")
     paths = _create_opt_ml(tmpdir)
 
-    _write_configs(paths["input_config"], hyperparameters, inputdataconfig,
-                   resourceconfig, checkpointconfig)
+    _write_configs(
+        paths["input_config"], hyperparameters, inputdataconfig, resourceconfig, checkpointconfig
+    )
     _copy_files(training_files, paths["input_train"])
     if validation_files:
         _copy_files(validation_files, paths["input_validation"])
@@ -115,9 +127,16 @@ def run_training(docker_client, image_uri, hyperparameters, inputdataconfig,
     return exit_code, logs, model_files, paths
 
 
-def run_distributed_training(docker_client, image_uri, hyperparameters, inputdataconfig,
-                             resourceconfigs, training_files, validation_files=None,
-                             timeout=TRAIN_TIMEOUT):
+def run_distributed_training(
+    docker_client,
+    image_uri,
+    hyperparameters,
+    inputdataconfig,
+    resourceconfigs,
+    training_files,
+    validation_files=None,
+    timeout=TRAIN_TIMEOUT,
+):
     """Run multi-container distributed training. Returns list of (exit_code, logs, paths)."""
     hosts = [rc["current_host"] for rc in resourceconfigs]
     network_name = "xgb-test-network"
@@ -151,18 +170,19 @@ def run_distributed_training(docker_client, image_uri, hyperparameters, inputdat
             cur_host = rc["current_host"]
             # Each container only needs extra_hosts for the OTHER hosts
             other_hosts = {h: ip for h, ip in host_ips.items() if h != cur_host}
-            volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
             env = {
                 "CURRENT_HOST": cur_host,
                 "HOSTS": ",".join(hosts),
             }
 
             # Use low-level API to assign specific IP on the network
-            networking_config = docker_client.api.create_networking_config({
-                network_name: docker_client.api.create_endpoint_config(
-                    ipv4_address=host_ips[cur_host],
-                )
-            })
+            networking_config = docker_client.api.create_networking_config(
+                {
+                    network_name: docker_client.api.create_endpoint_config(
+                        ipv4_address=host_ips[cur_host],
+                    )
+                }
+            )
             host_config = docker_client.api.create_host_config(
                 binds={tmpdir: {"bind": "/opt/ml", "mode": "rw"}},
                 extra_hosts=other_hosts,
@@ -207,6 +227,7 @@ def run_distributed_training(docker_client, image_uri, hyperparameters, inputdat
 # Serving (inference / batch transform)
 # ---------------------------------------------------------------------------
 
+
 class ServingContainer:
     """Context manager that starts a serving container and exposes HTTP helpers."""
 
@@ -226,7 +247,9 @@ class ServingContainer:
         paths = _create_opt_ml(tmpdir)
         # Copy model files
         _copy_files([self._model_dir], paths["model"])
-        _write_configs(paths["input_config"], {}, {}, {"current_host": "algo-1", "hosts": ["algo-1"]})
+        _write_configs(
+            paths["input_config"], {}, {}, {"current_host": "algo-1", "hosts": ["algo-1"]}
+        )
 
         volumes = {tmpdir: {"bind": "/opt/ml", "mode": "rw"}}
         env = dict(self._env)
@@ -257,9 +280,7 @@ class ServingContainer:
         while time.time() < deadline:
             self._container.reload()
             if self._container.status != "running":
-                raise RuntimeError(
-                    f"Container exited: {self._container.logs().decode()}"
-                )
+                raise RuntimeError(f"Container exited: {self._container.logs().decode()}")
             try:
                 resp = requests.get(self._url("/ping"), timeout=2)
                 if resp.status_code == 200:
@@ -287,9 +308,7 @@ class ServingContainer:
         headers = {"Content-Type": content_type}
         if accept:
             headers["Accept"] = accept
-        return requests.post(
-            self._url("/invocations"), data=data, headers=headers, timeout=60
-        )
+        return requests.post(self._url("/invocations"), data=data, headers=headers, timeout=60)
 
     def execution_parameters(self):
         return requests.get(self._url("/execution-parameters"), timeout=5)
