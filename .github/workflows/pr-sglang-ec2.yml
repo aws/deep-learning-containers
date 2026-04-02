@@ -6,7 +6,6 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "**sglang**"
-      - "**test**"
       - "!docs/**"
       - "!**amzn2023**"
 
@@ -119,7 +118,6 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
-              - "test/**"
 
   build-image:
     needs: [check-changes, load-config]
