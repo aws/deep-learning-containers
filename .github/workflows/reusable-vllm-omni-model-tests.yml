@@ -35,10 +35,7 @@ jobs:
           import yaml, json
           with open('.github/config/vllm-omni-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
-          prefix = cfg.get('s3_prefix', '')
           models = cfg.get('smoke-test', {}).get('codebuild-fleet', [])
-          for m in models:
-              m['s3_path'] = f\"{prefix}/{m['s3_model']}\"
           print(f'matrix={json.dumps(models)}')
           " >> "$GITHUB_OUTPUT"
 
@@ -64,13 +61,6 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
-      - name: Download model from S3
-        id: download-model
-        uses: ./.github/actions/download-model
-        with:
-          s3-path: ${{ matrix.model.s3_path }}
-          model-name: ${{ matrix.model.name }}
-
       - name: Pull image
         run: docker pull ${{ inputs.image-uri }}
 
@@ -79,12 +69,11 @@ jobs:
           IMAGE="${{ inputs.image-uri }}"
           CONTAINER_ID=$(docker run -d --rm --gpus all \
             --shm-size=4g \
-            -v /dlc-models:/models \
             -v $(pwd)/test/vllm-omni/scripts:/workspace/test \
             --entrypoint /bin/bash \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_ec2_smoke_test.sh \
-            /models/${{ matrix.model.name }} ${{ matrix.model.type }}
+            "${{ matrix.model.model }}" ${{ matrix.model.type }}
           docker kill ${CONTAINER_ID} 2>/dev/null || true
 
       - name: Run SageMaker smoke test
@@ -92,16 +81,13 @@ jobs:
           IMAGE="${{ inputs.image-uri }}"
           CONTAINER_ID=$(docker run -d --rm --gpus all \
             --shm-size=4g \
-            -v /dlc-models:/models \
             -v $(pwd)/test/vllm-omni/scripts:/workspace/test \
             --entrypoint /bin/bash \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_sagemaker_smoke_test.sh \
-            /models/${{ matrix.model.name }} ${{ matrix.model.type }}
+            "${{ matrix.model.model }}" ${{ matrix.model.type }}
           docker kill ${CONTAINER_ID} 2>/dev/null || true
 
       - name: Cleanup
         if: always()
-        run: |
-          kill ${{ steps.download-model.outputs.lock-pid }} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+        run: docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
