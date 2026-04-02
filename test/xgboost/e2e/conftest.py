@@ -133,7 +133,7 @@ def run_training_job(
 
 
 def deploy_endpoint(image_uri, role, model_data, test_name="ep", instance_type="ml.m5.xlarge", env=None):
-    """Deploy a real-time endpoint and return (predictor, endpoint_name)."""
+    """Deploy a real-time endpoint and return (predictor, endpoint_name, model_name)."""
     from sagemaker.predictor import Predictor
     endpoint_name = random_suffix_name(f"xgb-{test_name}", 32)
     model = Model(
@@ -142,11 +142,17 @@ def deploy_endpoint(image_uri, role, model_data, test_name="ep", instance_type="
         role=role,
         env=env,
     )
-    model.deploy(
-        initial_instance_count=1,
-        instance_type=instance_type,
-        endpoint_name=endpoint_name,
-    )
+    try:
+        model.deploy(
+            initial_instance_count=1,
+            instance_type=instance_type,
+            endpoint_name=endpoint_name,
+        )
+    except Exception:
+        # model may have been created even if deploy failed
+        if model.name:
+            _created_models.append(model.name)
+        raise
     _created_models.append(model.name)
     _created_endpoints.append(endpoint_name)
     predictor = Predictor(endpoint_name=endpoint_name)
@@ -156,6 +162,20 @@ def deploy_endpoint(image_uri, role, model_data, test_name="ep", instance_type="
 def delete_endpoint(endpoint_name):
     """Delete endpoint, endpoint config, and associated model."""
     sm = boto3.client("sagemaker")
+    # Find and delete the model associated with this endpoint
+    try:
+        ep_config = sm.describe_endpoint_config(EndpointConfigName=endpoint_name)
+        for variant in ep_config.get("ProductionVariants", []):
+            model_name = variant.get("ModelName")
+            if model_name:
+                try:
+                    sm.delete_model(ModelName=model_name)
+                except Exception:
+                    pass
+                if model_name in _created_models:
+                    _created_models.remove(model_name)
+    except Exception:
+        pass
     try:
         sm.delete_endpoint(EndpointName=endpoint_name)
     except Exception:
