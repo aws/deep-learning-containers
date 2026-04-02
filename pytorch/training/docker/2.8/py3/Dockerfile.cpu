@@ -197,7 +197,8 @@ RUN pip install --no-cache-dir \
     mpi4py \
     jinja2>=3.1.6 \
     tornado>=6.5.1 \
-    "filelock>=3.20.1"
+    "filelock>=3.20.1" \
+    "black>=26.3.1"
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
