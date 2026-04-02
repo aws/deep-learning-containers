@@ -318,4 +318,3 @@ RUN pip install --no-cache-dir "black>=26.3.1"
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
-
