@@ -9,6 +9,7 @@ from .conftest import data_uri, delete_endpoint, deploy_endpoint, run_training_j
 
 SCRIPT_HP = {
     "sagemaker_program": "abalone.py",
+    "sagemaker_submit_directory": "/opt/ml/input/data/code",
     "max_depth": "5",
     "eta": "0.2",
     "gamma": "4",
@@ -19,20 +20,19 @@ SCRIPT_HP = {
     "num_round": "50",
 }
 
+CODE_CHANNEL = {"code": data_uri("script_mode/code/abalone.1.2-1.tar.gz")}
+
 
 @pytest.fixture(scope="module")
 def script_mode_model(image_uri, role):
     """Train a script-mode model once for all tests in this module."""
-    hp = {
-        **SCRIPT_HP,
-        "sagemaker_submit_directory": data_uri("script_mode/code/abalone.1.2-1.tar.gz"),
-    }
     _, _, desc = run_training_job(
-        image_uri=image_uri, role=role, hyperparameters=hp,
+        image_uri=image_uri, role=role, hyperparameters=SCRIPT_HP,
         train_s3_key="script_mode/data/train",
         validation_s3_key="script_mode/data/validation",
         content_type="text/libsvm", test_name="script-train",
         instance_count=2, volume_size=20, max_run=3600,
+        extra_channels=CODE_CHANNEL,
     )
     assert desc["TrainingJobStatus"] == "Completed"
     return desc["ModelArtifacts"]["S3ModelArtifacts"]
