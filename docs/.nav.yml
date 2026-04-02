@@ -11,6 +11,16 @@ nav:
     - vLLM: releasenotes/vllm/index.md
     - PyTorch: releasenotes/pytorch/index.md
     - Tensorflow: releasenotes/tensorflow/index.md
+  - SGLang:
+    - sglang/index.md
+    - Quickstart: sglang/quickstart.md
+    - Configuration: sglang/configuration.md
+    - Deployment: sglang/deployment.md
+    - Supported Models: sglang/supported_models.md
+    - Benchmarks: sglang/benchmarks.md
+    - Releases: sglang/releases.md
+    - Versioning: sglang/versioning.md
+    - Support Policy: sglang/support_policy.md
   - vLLM:
     - vllm/index.md
     - Quickstart: vllm/quickstart.md

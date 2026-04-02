@@ -17,4 +17,5 @@ def define_env(env):
         "latest_vllm_ec2": get_latest_image_uri("vllm", "ec2"),
         "latest_vllm_sagemaker": get_latest_image_uri("vllm", "sagemaker"),
         "latest_sglang_sagemaker": get_latest_image_uri("sglang", "sagemaker"),
+        "latest_sglang_ec2": get_latest_image_uri("sglang", "ec2"),
     }
