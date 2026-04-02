@@ -44,6 +44,7 @@ def run_training_job(
     train_distribution="ShardedByS3Key",
     checkpoint_s3_uri=None,
     enable_network_isolation=False,
+    extra_channels=None,
 ):
     """Launch a SageMaker training job and return (job_name, duration, description)."""
     job_name = random_suffix_name(f"xgb-{test_name}", 63)
@@ -75,6 +76,10 @@ def run_training_job(
             distribution="FullyReplicated",
         ),
     }
+
+    if extra_channels:
+        for name, uri in extra_channels.items():
+            channels[name] = TrainingInput(s3_data=uri)
 
     LOGGER.info(f"Starting job: {job_name} ({instance_count}x {instance_type})")
     sm = boto3.client("sagemaker")
