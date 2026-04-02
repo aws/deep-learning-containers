@@ -35,7 +35,7 @@ class TestTransform:
     def test_batch_inference_libsvm(self, image_uri, role, model_data):
         desc = run_batch_transform(
             image_uri=image_uri, role=role, model_data=model_data,
-            input_s3_uri=data_uri("testdata/abalone_test.libsvm"),
+            input_s3_uri=data_uri("test/abalone.test"),
             content_type="text/libsvm", test_name="bt-libsvm",
         )
         assert desc["TransformJobStatus"] == "Completed"
