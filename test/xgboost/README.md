@@ -4,6 +4,34 @@ This directory contains all tests for the SageMaker XGBoost deep learning contai
 Tests are organized into three tiers that validate the container at different levels,
 from fast local Docker tests to full SageMaker training jobs.
 
+## Access Requirements
+
+| Tier | Requires AWS? | Requires internal S3? | Who can run |
+|------|--------------|----------------------|-------------|
+| Container tests | No (Docker only) | Yes — test resources in S3 | CI only (internal) |
+| Integration tests | Yes — SageMaker jobs | Yes — `amazonai-algorithms-integ-tests` bucket | CI only (internal) |
+| Benchmark tests | Yes — SageMaker jobs | Yes — `amazonai-algorithms-benchmarking` bucket | CI only (internal) |
+
+> **Note for external contributors:** All three test tiers depend on internal AWS
+> resources (S3 buckets, IAM roles, ECR registries) that are not publicly accessible.
+> Tests are run automatically by CI when a PR is submitted. You do not need to run
+> them locally — the CI bot will report results on your PR.
+>
+> If you want to validate your changes locally before submitting a PR, you can build
+> the Docker image and run it manually:
+>
+> ```bash
+> # Build the container
+> docker build -t xgboost-test -f docker/xgboost/Dockerfile .
+>
+> # Quick smoke test — run a training job locally
+> docker run --rm \
+>   -v /tmp/test_data:/opt/ml/input/data \
+>   -v /tmp/test_model:/opt/ml/model \
+>   -v /tmp/test_output:/opt/ml/output \
+>   xgboost-test train
+> ```
+
 ## Test Tiers
 
 ```
@@ -17,9 +45,12 @@ test/xgboost/
 
 ### Tier 1: Container Tests (`container/`)
 
-Run the XGBoost container locally via docker-py. No AWS resources are created —
-the container is pulled, mounted with `/opt/ml/` directory structures, and exercised
-directly. These are the fastest tests and run on every push.
+Run the XGBoost container locally via docker-py. The container is pulled, mounted
+with `/opt/ml/` directory structures, and exercised directly. These are the fastest
+tests and run on every push.
+
+Test resources (training data, inference payloads) are downloaded from
+`s3://dlc-cicd-models/xgboost/container_test_resources/` at the start of the session.
 
 | File | What it tests |
 |------|---------------|
@@ -30,7 +61,7 @@ directly. These are the fastest tests and run on every push.
 | `conftest.py` | `--image` flag, S3 resource download, docker client fixture |
 | `generate_models.py` | Generates XGBoost 3.0.5-compatible inference models and uploads to S3 |
 
-**How to run locally:**
+**How to run (CI / internal):**
 
 ```bash
 cd test/
@@ -64,7 +95,7 @@ infrastructure. Migrated from `SMFrameworksXGBoost3_0-5Tests/src/integration_tes
 | `test_script_mode_e2e.py` | Script-mode train → deploy → invoke |
 | `test_network_isolation.py` | Algo-mode + script-mode with network isolation enabled |
 
-**Data location:** `s3://amazonai-algorithms-integ-tests/input/xgboost/`
+**Data location:** `s3://amazonai-algorithms-integ-tests/input/xgboost/` (internal)
 
 ```
 input/xgboost/
@@ -81,7 +112,7 @@ input/xgboost/
 └── testdata/abalone_test.libsvm   # Batch transform input
 ```
 
-**How to run:**
+**How to run (CI / internal):**
 
 ```bash
 cd test/
@@ -106,9 +137,9 @@ data sizes, instance types, content types, max depth, and num_round.
 | `test_training_instance_type.py` | m5.large/xlarge/2xlarge, g4dn.xlarge |
 | `test_training_content_type.py` | libsvm, csv, protobuf |
 
-**Data location:** `s3://amazonai-algorithms-benchmarking/xgboost/`
+**Data location:** `s3://amazonai-algorithms-benchmarking/xgboost/` (internal)
 
-**How to run:**
+**How to run (CI / internal):**
 
 ```bash
 cd test/
@@ -120,7 +151,7 @@ python3 -m pytest -v --tb=short \
 
 ## CI Workflows
 
-Three GitHub Actions workflows orchestrate these tests:
+Three GitHub Actions workflows orchestrate these tests automatically:
 
 | Workflow | Trigger | What runs |
 |----------|---------|-----------|
@@ -143,12 +174,18 @@ release-sagemaker-xgboost.yml
         └── container-test-batch-transform (after generate-models)
 ```
 
-## Prerequisites
+## For External Contributors
 
-- Docker installed and running (for container tests)
-- AWS credentials with access to the CI account (for integration/benchmark tests)
-- `SageMakerRole` IAM role in the CI account
-- Test data in the S3 buckets listed above
+You don't need to run any tests locally. When you open a PR:
+
+1. The CI bot builds the container image from your changes
+2. All test tiers run automatically against the built image
+3. Results are posted on the PR
+
+If CI fails, check the workflow logs linked in the PR checks. Common issues:
+- **Training test failures** — usually a hyperparameter or entrypoint change
+- **Scoring test failures** — usually a content type or model format issue
+- **Security test failures** — usually a new CVE in a dependency
 
 ## Common Flags
 
