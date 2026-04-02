@@ -24,7 +24,7 @@ BASE_HP = {
 
 class TestHPO:
     def test_tuning_rmse(self, image_uri, role):
-        job_name = random_suffix_name("xgb-hpo", 50)
+        job_name = random_suffix_name("xgb-hpo", 32)
         output_path = s3_uri(INTEG_TEST_BUCKET, f"integ-output/{job_name}")
 
         estimator = Estimator(

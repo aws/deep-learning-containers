@@ -3,8 +3,6 @@
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_training_pq.py
 """
 
-import pytest
-
 from .conftest import run_training_job
 
 BASE_HP = {
@@ -22,12 +20,9 @@ BASE_HP = {
 class TestTrainingParquet:
     def test_single_instance(self, image_uri, role):
         _, duration, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=BASE_HP,
-            train_s3_key="parquet/train",
-            validation_s3_key="parquet/test",
-            content_type="application/x-parquet",
+            image_uri=image_uri, role=role, hyperparameters=BASE_HP,
+            train_s3_key="parquet/train", validation_s3_key="parquet/test",
+            content_type="application/x-parquet", test_name="pq-single",
             instance_type="ml.m5.2xlarge",
         )
         assert desc["TrainingJobStatus"] == "Completed"
@@ -36,24 +31,18 @@ class TestTrainingParquet:
     def test_distributed(self, image_uri, role):
         hp = {**BASE_HP, "tree_method": "hist"}
         _, duration, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=hp,
-            train_s3_key="parquet/train",
-            validation_s3_key="parquet/test",
-            content_type="application/x-parquet",
+            image_uri=image_uri, role=role, hyperparameters=hp,
+            train_s3_key="parquet/train", validation_s3_key="parquet/test",
+            content_type="application/x-parquet", test_name="pq-dist",
             instance_count=2,
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_pipe_mode_single_instance(self, image_uri, role):
         _, duration, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=BASE_HP,
-            train_s3_key="parquet/train",
-            validation_s3_key="parquet/test",
-            content_type="application/x-parquet",
+            image_uri=image_uri, role=role, hyperparameters=BASE_HP,
+            train_s3_key="parquet/train", validation_s3_key="parquet/test",
+            content_type="application/x-parquet", test_name="pq-pipe",
             input_mode="Pipe",
         )
         assert desc["TrainingJobStatus"] == "Completed"

@@ -3,8 +3,6 @@
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_network_isolation.py
 """
 
-import pytest
-
 from .conftest import data_uri, run_training_job
 
 BASE_HP = {
@@ -22,30 +20,32 @@ BASE_HP = {
 class TestNetworkIsolation:
     def test_algo_mode(self, image_uri, role):
         _, duration, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=BASE_HP,
-            train_s3_key="train",
-            validation_s3_key="test",
-            content_type="text/libsvm",
+            image_uri=image_uri, role=role, hyperparameters=BASE_HP,
+            train_s3_key="train", validation_s3_key="test",
+            content_type="text/libsvm", test_name="netiso-algo",
             enable_network_isolation=True,
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_script_mode(self, image_uri, role):
+        """Script mode with network isolation.
+
+        Uses sagemaker_submit_directory pointing to a code channel
+        so the script is downloaded before isolation takes effect.
+        """
         hp = {
             **BASE_HP,
             "sagemaker_program": "abalone.py",
-            "sagemaker_submit_directory": data_uri("script_mode/code/abalone.1.2-1.tar.gz"),
+            "sagemaker_submit_directory": "/opt/ml/input/data/code",
         }
         _, duration, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=hp,
+            image_uri=image_uri, role=role, hyperparameters=hp,
             train_s3_key="script_mode/data/train",
             validation_s3_key="script_mode/data/validation",
-            content_type="text/libsvm",
-            instance_count=2,
-            enable_network_isolation=True,
+            content_type="text/libsvm", test_name="netiso-script",
+            instance_count=2, enable_network_isolation=True,
+            extra_channels={
+                "code": data_uri("script_mode/code/abalone.1.2-1.tar.gz"),
+            },
         )
         assert desc["TrainingJobStatus"] == "Completed"
