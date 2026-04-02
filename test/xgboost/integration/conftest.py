@@ -20,8 +20,8 @@ from test_utils import random_suffix_name
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-INTEG_TEST_BUCKET = "dlc-cicd-models"
-INTEG_DATA_PREFIX = "xgboost/integ_test_resources"
+INTEG_TEST_BUCKET = "amazonai-algorithms-integ-tests"
+INTEG_DATA_PREFIX = "input/xgboost"
 
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
 

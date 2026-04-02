@@ -24,13 +24,13 @@ They replace the `ai_algorithms_qa` (Hydra) framework with direct SageMaker Pyth
 
 Integration test data must be available at:
 ```
-s3://dlc-cicd-models/xgboost/integ_test_resources/
+s3://amazonai-algorithms-integ-tests/input/xgboost/
 ```
 
 ### Required S3 structure
 
 ```
-xgboost/integ_test_resources/
+input/xgboost/
 ├── train/                          # libsvm abalone training data
 ├── test/                           # libsvm abalone test data
 ├── csv/train/                      # CSV training data
@@ -58,16 +58,6 @@ xgboost/integ_test_resources/
 ```bash
 cd test/xgboost/integration
 python upload_resources.py
-```
-
-### Copying data from existing bucket
-
-The original data lives in the `amazonai-algorithms-integ-tests` bucket under `input/xgboost/`.
-Copy it to the DLC CI bucket:
-
-```bash
-aws s3 sync s3://amazonai-algorithms-integ-tests-us-west-2/input/xgboost/ \
-            s3://dlc-cicd-models/xgboost/integ_test_resources/
 ```
 
 ## Running Tests

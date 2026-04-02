@@ -1,6 +1,6 @@
 """Upload integration test resources to S3.
 
-Run this script once to populate s3://dlc-cicd-models/xgboost/integ_test_resources/
+Run this script once to populate s3://amazonai-algorithms-integ-tests/input/xgboost/
 with the data needed by the integration tests.
 
 The script expects the following data to already exist in the bucket
@@ -32,8 +32,8 @@ import tempfile
 
 import boto3
 
-BUCKET = "dlc-cicd-models"
-PREFIX = "xgboost/integ_test_resources"
+BUCKET = "amazonai-algorithms-integ-tests"
+PREFIX = "input/xgboost"
 RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
 
 
