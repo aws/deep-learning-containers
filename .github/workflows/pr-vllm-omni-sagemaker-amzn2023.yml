@@ -226,6 +226,7 @@ jobs:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
+      customer-type: ${{ needs.load-config.outputs.customer-type }}
     secrets: inherit
 
   sagemaker-endpoint-test:

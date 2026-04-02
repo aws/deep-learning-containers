@@ -18,6 +18,10 @@ on:
         description: "AWS region for ECR authentication"
         required: true
         type: string
+      customer-type:
+        description: "Customer type: ec2 or sagemaker"
+        required: true
+        type: string
 
 jobs:
   load-models:
@@ -40,6 +44,7 @@ jobs:
           " >> "$GITHUB_OUTPUT"
 
   smoke-test:
+    name: smoke-test (${{ matrix.model.name }})
     needs: load-models
     if: needs.load-models.outputs.matrix != '[]'
     strategy:
@@ -61,33 +66,26 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
-      - name: Pull image
-        run: docker pull ${{ inputs.image-uri }}
-
-      - name: Run EC2 smoke test
+      - name: Start container
         run: |
-          IMAGE="${{ inputs.image-uri }}"
-          CONTAINER_ID=$(docker run -d --rm --gpus all \
-            --shm-size=4g \
-            -v $(pwd)/test/vllm-omni/scripts:/workspace/test \
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --shm-size=4g \
             --entrypoint /bin/bash \
-            ${IMAGE} -c 'sleep infinity')
-          docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_ec2_smoke_test.sh \
-            "${{ matrix.model.model }}" ${{ matrix.model.type }}
-          docker kill ${CONTAINER_ID} 2>/dev/null || true
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Run SageMaker smoke test
+      - name: Copy test scripts into container
         run: |
-          IMAGE="${{ inputs.image-uri }}"
-          CONTAINER_ID=$(docker run -d --rm --gpus all \
-            --shm-size=4g \
-            -v $(pwd)/test/vllm-omni/scripts:/workspace/test \
-            --entrypoint /bin/bash \
-            ${IMAGE} -c 'sleep infinity')
-          docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_sagemaker_smoke_test.sh \
+          docker cp test/vllm-omni/scripts/. ${CONTAINER_ID}:/workspace/test/
+
+      - name: Run smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_${{ inputs.customer-type }}_smoke_test.sh \
             "${{ matrix.model.model }}" ${{ matrix.model.type }}
-          docker kill ${CONTAINER_ID} 2>/dev/null || true
 
       - name: Cleanup
         if: always()
-        run: docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
