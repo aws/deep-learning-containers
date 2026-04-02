@@ -76,11 +76,21 @@ elif [ "${MODEL_TYPE}" = "diffusion" ]; then
         }
       }')
     echo "${RESPONSE}" | python3 -c "
-import sys, json
+import sys, json, base64
 data = json.load(sys.stdin)
-assert 'choices' in data, 'No choices in response'
+assert 'choices' in data, f'No choices in response: {str(data)[:200]}'
 content = data['choices'][0]['message']['content']
-print(f'Image generation response received, content type: {type(content)}')
+# Extract image and validate
+if isinstance(content, list):
+    img_item = next(c for c in content if c.get('type') == 'image_url')
+    url = img_item['image_url']['url']
+else:
+    url = str(content)
+assert 'base64,' in url, 'No base64 image in response'
+img_b64 = url.split('base64,')[1]
+img_bytes = base64.b64decode(img_b64)
+print(f'Image generated: {len(img_bytes)} bytes')
+assert len(img_bytes) > 1000, f'Image too small: {len(img_bytes)} bytes'
 print('Diffusion serving test PASSED')
 "
 fi
