@@ -8,7 +8,7 @@ All tests run automatically in CI on every PR and release.
 ```
 test/xgboost/
 ├── container/       # Tier 1 — Local Docker container tests (minutes)
-├── e2e/             # Tier 2 — SageMaker SDK E2E tests (30-60 min)
+├── e2e/             # Tier 2 — SageMaker E2E tests (30-60 min)
 └── benchmarks/      # Tier 3 — SageMaker performance benchmarks (hours)
 ```
 
@@ -39,8 +39,8 @@ SageMaker Python SDK. Validates the container works end-to-end on SageMaker infr
 | `test_training_pb.py` | Single/distributed/pipe-mode/sparse training with protobuf data |
 | `test_training_pq.py` | Single/distributed/pipe-mode training with parquet data |
 | `test_e2e.py` | Train a model → deploy endpoint → invoke (CPU + GPU) |
-| `test_inference.py` | Deploy pre-trained model → invoke with libsvm/csv/protobuf |
-| `test_transform.py` | Batch transform with libsvm input |
+| `test_inference.py` | Train a model → deploy → invoke with libsvm/csv |
+| `test_transform.py` | Train a model → batch transform with libsvm input |
 | `test_hpo.py` | Hyperparameter tuning (rmse minimization) |
 | `test_script_mode_e2e.py` | Script-mode train → deploy → invoke |
 | `test_network_isolation.py` | Algo-mode + script-mode with network isolation enabled |
@@ -63,9 +63,9 @@ SageMaker training jobs that measure performance across different configurations
 
 | Workflow | Trigger | What runs |
 |----------|---------|-----------|
-| `pr-sagemaker-xgboost.yml` | PR to `main` touching `docker/xgboost/**` | Build → unit tests → security → E2E tests |
-| `release-sagemaker-xgboost.yml` | `workflow_dispatch` / push | Build → unit tests → security → container + E2E + benchmark tests |
-| `sagemaker-xgboost-integ-tests.yml` | Called by release workflow | Container tests (training, scoring, batch transform) with model generation |
+| `pr-sagemaker-xgboost.yml` | PR to `main` touching `docker/xgboost/**` | Build → unit tests → security → upstream integration |
+| `release-sagemaker-xgboost.yml` | `workflow_dispatch` / push | Build → unit tests → security → `sagemaker-xgboost-integ-tests.yml` |
+| `sagemaker-xgboost-integ-tests.yml` | Called by release workflow | Container tests, E2E tests, benchmarks |
 
 ### Release build flow
 
@@ -73,11 +73,12 @@ SageMaker training jobs that measure performance across different configurations
 release-sagemaker-xgboost.yml
   ├── load-config
   ├── build-image
-  ├── unit-test          (upstream sagemaker-xgboost-container tests + flake8)
-  ├── security-test      (reusable-security-tests.yml)
-  └── xgboost-tests      (sagemaker-xgboost-integ-tests.yml)
-        ├── generate-models          (XGBoost 3.0.5 model generation)
-        ├── container-test-training  (parallel, no model dependency)
-        ├── container-test-scoring   (after generate-models)
-        └── container-test-batch-transform (after generate-models)
+  ├── unit-test              (upstream sagemaker-xgboost-container tests + flake8)
+  ├── security-test          (reusable-security-tests.yml)
+  └── xgboost-tests          (sagemaker-xgboost-integ-tests.yml)
+        ├── generate-models              (XGBoost 3.0.5 model generation)
+        ├── container-test-training      (parallel, no model dependency)
+        ├── container-test-scoring       (after generate-models)
+        ├── container-test-batch-transform (after generate-models)
+        └── e2e-test                     (10 test modules in parallel via matrix)
 ```
