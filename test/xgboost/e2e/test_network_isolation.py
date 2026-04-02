@@ -31,11 +31,11 @@ class TestNetworkIsolation:
         """Script mode with network isolation.
 
         SageMaker pre-stages sagemaker_submit_directory into the container
-        before enabling network isolation, so the S3 download happens at
-        the platform level, not inside the container.
+        before enabling network isolation. Note: the original Hydra test
+        overrides training_parameters entirely for script mode, passing
+        only sagemaker_program and sagemaker_submit_directory.
         """
         hp = {
-            **BASE_HP,
             "sagemaker_program": "abalone.py",
             "sagemaker_submit_directory": data_uri("script_mode/code/abalone.1.2-1.tar.gz"),
         }
