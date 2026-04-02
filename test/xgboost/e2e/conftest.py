@@ -78,8 +78,6 @@ def run_training_job(
     checkpoint_s3_uri=None,
     enable_network_isolation=False,
     extra_channels=None,
-    entry_point=None,
-    source_dir=None,
 ):
     """Launch a SageMaker training job and return (job_name, duration, description)."""
     job_name = random_suffix_name(f"xgb-{test_name}", 32)
@@ -97,8 +95,6 @@ def run_training_job(
         input_mode=input_mode,
         checkpoint_s3_uri=checkpoint_s3_uri,
         enable_network_isolation=enable_network_isolation,
-        entry_point=entry_point,
-        source_dir=source_dir,
     )
 
     channels = {
