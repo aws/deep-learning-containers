@@ -11,8 +11,6 @@ import pytest
 from sagemaker.estimator import Estimator
 from sagemaker.inputs import TrainingInput
 from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import CSVSerializer, LibSMVSerializer
 from sagemaker.transformer import Transformer
 from test_utils import random_suffix_name
 
