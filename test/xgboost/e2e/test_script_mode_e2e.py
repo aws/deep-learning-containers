@@ -5,11 +5,14 @@ Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_script_mo
 
 import pytest
 
-from .conftest import data_uri, delete_endpoint, deploy_endpoint, run_training_job
+from .conftest import delete_endpoint, deploy_endpoint, run_training_job
+
+# Script code tarball must be in a bucket the container's execution role can access
+SCRIPT_CODE_S3 = "s3://dlc-cicd-models/xgboost/script_mode/code/abalone.1.2-1.tar.gz"
 
 SCRIPT_HP = {
     "sagemaker_program": "abalone.py",
-    "sagemaker_submit_directory": "/opt/ml/input/data/code",
+    "sagemaker_submit_directory": SCRIPT_CODE_S3,
     "max_depth": "5",
     "eta": "0.2",
     "gamma": "4",
@@ -19,8 +22,6 @@ SCRIPT_HP = {
     "objective": "reg:squarederror",
     "num_round": "50",
 }
-
-CODE_CHANNEL = {"code": data_uri("script_mode/code/abalone.1.2-1.tar.gz")}
 
 
 @pytest.fixture(scope="module")
@@ -32,7 +33,6 @@ def script_mode_model(image_uri, role):
         validation_s3_key="script_mode/data/validation",
         content_type="text/libsvm", test_name="script-train",
         instance_count=2, volume_size=20, max_run=3600,
-        extra_channels=CODE_CHANNEL,
     )
     assert desc["TrainingJobStatus"] == "Completed"
     return desc["ModelArtifacts"]["S3ModelArtifacts"]
@@ -47,9 +47,7 @@ class TestScriptModeE2E:
                 model_data=script_mode_model, test_name="script-infer",
                 env={
                     "SAGEMAKER_PROGRAM": "abalone.py",
-                    "SAGEMAKER_SUBMIT_DIRECTORY": data_uri(
-                        "script_mode/code/abalone.1.2-1.tar.gz"
-                    ),
+                    "SAGEMAKER_SUBMIT_DIRECTORY": SCRIPT_CODE_S3,
                 },
             )
             predictor.content_type = "text/csv"
