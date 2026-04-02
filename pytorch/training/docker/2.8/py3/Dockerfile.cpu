@@ -216,6 +216,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     thinc==8.3.4  \
     blis \
     numpy \
+    "black>=26.3.1" \
  && pip uninstall -y dataclasses
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
