@@ -1,9 +1,6 @@
 name: Release - XGBoost SageMaker
 
 on:
-  push:
-    branches: [xgboost-integ-test]
-   
   workflow_dispatch:
 
 permissions:
