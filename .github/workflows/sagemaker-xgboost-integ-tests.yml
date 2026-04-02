@@ -24,7 +24,7 @@ env:
 
 jobs:
   # ===========================================================================
-  # Generate inference models inside the container (ensures version compat)
+  # Generate inference models (ensures version compat for scoring/batch tests)
   # ===========================================================================
   # generate-models:
   #   timeout-minutes: 15
@@ -35,21 +35,21 @@ jobs:
   #   steps:
   #     - name: Checkout DLC source
   #       uses: actions/checkout@v5
-
+  #
   #     - name: Install dependencies
   #       run: |
   #         uv venv --python 3.12
   #         source .venv/bin/activate
   #         uv pip install xgboost==3.0.5 boto3 numpy
-
+  #
   #     - name: Generate and upload models
   #       run: |
   #         source .venv/bin/activate
   #         python3 test/xgboost/container/generate_models.py
 
-  # # ===========================================================================
-  # # Container tests — training (no model dependency)
-  # # ===========================================================================
+  # ===========================================================================
+  # Container tests — training (no model dependency)
+  # ===========================================================================
   # container-test-training:
   #   timeout-minutes: 90
   #   runs-on:
@@ -59,23 +59,23 @@ jobs:
   #   steps:
   #     - name: Checkout DLC source
   #       uses: actions/checkout@v5
-
+  #
   #     - name: ECR login
   #       uses: ./.github/actions/ecr-authenticate
   #       with:
   #         aws-account-id: ${{ inputs.aws-account-id }}
   #         aws-region: ${{ inputs.aws-region }}
   #         image-uri: ${{ inputs.image-uri }}
-
+  #
   #     - name: Pull image
   #       run: docker pull ${{ inputs.image-uri }}
-
+  #
   #     - name: Install test dependencies
   #       run: |
   #         uv venv --python 3.12
   #         source .venv/bin/activate
   #         uv pip install -r test/requirements.txt docker pytest boto3 requests
-
+  #
   #     - name: Run training container tests
   #       run: |
   #         source .venv/bin/activate
@@ -84,9 +84,9 @@ jobs:
   #           --image ${{ inputs.image-uri }} \
   #           xgboost/container/test_training.py
 
-  # # ===========================================================================
-  # # Container tests — scoring (depends on generate-models)
-  # # ===========================================================================
+  # ===========================================================================
+  # Container tests — scoring (depends on generate-models)
+  # ===========================================================================
   # container-test-scoring:
   #   needs: [generate-models]
   #   timeout-minutes: 60
@@ -97,23 +97,23 @@ jobs:
   #   steps:
   #     - name: Checkout DLC source
   #       uses: actions/checkout@v5
-
+  #
   #     - name: ECR login
   #       uses: ./.github/actions/ecr-authenticate
   #       with:
   #         aws-account-id: ${{ inputs.aws-account-id }}
   #         aws-region: ${{ inputs.aws-region }}
   #         image-uri: ${{ inputs.image-uri }}
-
+  #
   #     - name: Pull image
   #       run: docker pull ${{ inputs.image-uri }}
-
+  #
   #     - name: Install test dependencies
   #       run: |
   #         uv venv --python 3.12
   #         source .venv/bin/activate
   #         uv pip install -r test/requirements.txt docker pytest boto3 requests
-
+  #
   #     - name: Run scoring container tests
   #       run: |
   #         source .venv/bin/activate
@@ -125,59 +125,9 @@ jobs:
   # ===========================================================================
   # Container tests — batch transform (depends on generate-models)
   # ===========================================================================
-  container-test-batch-transform:
-    needs: [generate-models]
-    timeout-minutes: 60
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
-
-      - name: Pull image
-        run: docker pull ${{ inputs.image-uri }}
-
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt docker pytest boto3 requests
-
-      - name: Run batch transform container tests
-        run: |
-          source .venv/bin/activate
-          cd test/
-          python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
-            --image ${{ inputs.image-uri }} \
-            xgboost/container/test_batch_transform.py
-
-  # TODO: Add integration-test job (upstream sagemaker-xgboost-container local mode tests)
-
-  # ===========================================================================
-  # Benchmark tests (SageMaker training jobs) — commented out pending validation
-  # ===========================================================================
-  # benchmark-test:
-  #   timeout-minutes: 150
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       test-module:
-  #         - test_training_objective
-  #         - test_training_tree_method
-  #         - test_training_max_depth
-  #         - test_training_num_round
-  #         - test_training_data_size
-  #         - test_training_instance_type
-  #         - test_training_content_type
+  # container-test-batch-transform:
+  #   needs: [generate-models]
+  #   timeout-minutes: 60
   #   runs-on:
   #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
   #       fleet:x86-g6xl-runner
@@ -186,17 +136,68 @@ jobs:
   #     - name: Checkout DLC source
   #       uses: actions/checkout@v5
   #
+  #     - name: ECR login
+  #       uses: ./.github/actions/ecr-authenticate
+  #       with:
+  #         aws-account-id: ${{ inputs.aws-account-id }}
+  #         aws-region: ${{ inputs.aws-region }}
+  #         image-uri: ${{ inputs.image-uri }}
+  #
+  #     - name: Pull image
+  #       run: docker pull ${{ inputs.image-uri }}
+  #
   #     - name: Install test dependencies
   #       run: |
   #         uv venv --python 3.12
   #         source .venv/bin/activate
-  #         uv pip install -r test/requirements.txt
-  #         uv pip install -r test/xgboost/requirements.txt
+  #         uv pip install -r test/requirements.txt docker pytest boto3 requests
   #
-  #     - name: Run ${{ matrix.test-module }}
+  #     - name: Run batch transform container tests
   #       run: |
   #         source .venv/bin/activate
   #         cd test/
   #         python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
-  #           --image-uri ${{ inputs.image-uri }} \
-  #           xgboost/benchmarks/${{ matrix.test-module }}.py
+  #           --image ${{ inputs.image-uri }} \
+  #           xgboost/container/test_batch_transform.py
+
+  # ===========================================================================
+  # Integration tests — SageMaker training/inference/transform jobs
+  # ===========================================================================
+  integration-test:
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        test-module:
+          - test_training_libsvm
+          - test_training_csv
+          - test_training_pb
+          - test_training_pq
+          - test_e2e
+          - test_inference
+          - test_transform
+          - test_hpo
+          - test_script_mode_e2e
+          - test_network_isolation
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/xgboost/requirements.txt
+
+      - name: Run ${{ matrix.test-module }}
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
+            --image-uri ${{ inputs.image-uri }} \
+            xgboost/integration/${{ matrix.test-module }}.py
