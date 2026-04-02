@@ -6,7 +6,7 @@ Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_e2e_selec
 import json
 import pytest
 
-from .conftest import data_uri, delete_endpoint, deploy_endpoint, run_training_job
+from .conftest import delete_endpoint, deploy_endpoint, run_training_job
 
 SELECTABLE_HP = {
     "max_depth": "3",
