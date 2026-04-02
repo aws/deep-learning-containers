@@ -285,6 +285,7 @@ class TestValidTraining:
         idc["validation"]["ContentType"] = "text/libsvm"
         d = _libsvm_dir(training_resources)
         train_files = [os.path.join(d, "agaricus.libsvm.train")]
+        val_files = [os.path.join(d, "agaricus.libsvm.test")]
         hosts = ["algo-1", "algo-2"]
         rcs = [
             {"current_host": "algo-1", "hosts": hosts},
@@ -292,6 +293,7 @@ class TestValidTraining:
         ]
         results = run_distributed_training(
             docker_client, image_uri, STD_HP, idc, rcs, train_files,
+            validation_files=val_files,
         )
         assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
         assert results[1][0] == 0, f"Container 2 failed:\n{results[1][1]}"
@@ -310,6 +312,7 @@ class TestValidTraining:
         idc["validation"]["S3DistributionType"] = "ShardedByS3Key"
         d = _libsvm_dir(training_resources)
         train_files = [os.path.join(d, "agaricus.libsvm.train")]
+        val_files = [os.path.join(d, "agaricus.libsvm.test")]
         hosts = ["algo-1", "algo-2"]
         rcs = [
             {"current_host": "algo-1", "hosts": hosts},
@@ -317,6 +320,7 @@ class TestValidTraining:
         ]
         results = run_distributed_training(
             docker_client, image_uri, STD_HP, idc, rcs, train_files,
+            validation_files=val_files,
         )
         assert results[0][0] == 0, f"Container 1 failed:\n{results[0][1]}"
         assert results[1][0] == 0, f"Container 2 failed:\n{results[1][1]}"
