@@ -4,7 +4,6 @@ Replaces ai_algorithms_qa orchestration with direct SageMaker SDK calls.
 """
 
 import logging
-import os
 import time
 
 import boto3
@@ -12,8 +11,6 @@ import pytest
 from sagemaker.estimator import Estimator
 from sagemaker.inputs import TrainingInput
 from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import CSVSerializer, LibSMVSerializer
 from sagemaker.transformer import Transformer
 from test_utils import random_suffix_name
 
@@ -22,8 +19,6 @@ LOGGER.setLevel(logging.INFO)
 
 INTEG_TEST_BUCKET = "amazonai-algorithms-integ-tests"
 INTEG_DATA_PREFIX = "input/xgboost"
-
-RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "resources")
 
 
 def s3_uri(bucket, key):
