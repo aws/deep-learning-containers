@@ -1,0 +1,103 @@
+name: Reusable vLLM-Omni Model Smoke Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: "Image URI to test"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR authentication"
+        required: true
+        type: string
+      aws-region:
+        description: "AWS region for ECR authentication"
+        required: true
+        type: string
+
+jobs:
+  load-models:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.parse.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Parse model config
+        id: parse
+        run: |
+          python3 -c "
+          import yaml, json
+          with open('.github/config/vllm-omni-model-tests.yml') as f:
+              cfg = yaml.safe_load(f)
+          prefix = cfg.get('s3_prefix', '')
+          models = cfg.get('smoke-test', {}).get('codebuild-fleet', [])
+          for m in models:
+              m['s3_path'] = f\"{prefix}/{m['s3_model']}\"
+          print(f'matrix={json.dumps(models)}')
+          " >> "$GITHUB_OUTPUT"
+
+  smoke-test:
+    needs: load-models
+    if: needs.load-models.outputs.matrix != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        model: ${{ fromJson(needs.load-models.outputs.matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.model.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Download model from S3
+        run: |
+          mkdir -p /models/${{ matrix.model.name }}
+          aws s3 cp ${{ matrix.model.s3_path }} /tmp/${{ matrix.model.s3_model }}
+          tar xf /tmp/${{ matrix.model.s3_model }} -C /models/${{ matrix.model.name }}
+          rm /tmp/${{ matrix.model.s3_model }}
+          echo "Model extracted to /models/${{ matrix.model.name }}"
+          ls /models/${{ matrix.model.name }}/ | head -10
+
+      - name: Pull image
+        run: docker pull ${{ inputs.image-uri }}
+
+      - name: Run EC2 smoke test
+        run: |
+          IMAGE="${{ inputs.image-uri }}"
+          CONTAINER_ID=$(docker run -d --rm --gpus all \
+            --shm-size=4g \
+            -v /models/${{ matrix.model.name }}:/models/${{ matrix.model.name }} \
+            -v $(pwd)/test/vllm-omni/scripts:/workspace/test \
+            --entrypoint /bin/bash \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_ec2_smoke_test.sh \
+            /models/${{ matrix.model.name }} ${{ matrix.model.type }}
+          docker kill ${CONTAINER_ID} 2>/dev/null || true
+
+      - name: Run SageMaker smoke test
+        run: |
+          IMAGE="${{ inputs.image-uri }}"
+          CONTAINER_ID=$(docker run -d --rm --gpus all \
+            --shm-size=4g \
+            -v /models/${{ matrix.model.name }}:/models/${{ matrix.model.name }} \
+            -v $(pwd)/test/vllm-omni/scripts:/workspace/test \
+            --entrypoint /bin/bash \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_sagemaker_smoke_test.sh \
+            /models/${{ matrix.model.name }} ${{ matrix.model.type }}
+          docker kill ${CONTAINER_ID} 2>/dev/null || true
