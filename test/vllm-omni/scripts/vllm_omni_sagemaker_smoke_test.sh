@@ -48,23 +48,18 @@ print(f'Model loaded: {data[\"data\"][0][\"id\"]}')
 "
 
 if [ "${MODEL_TYPE}" = "tts" ]; then
-    # TTS via chat completions API
-    RESPONSE=$(curl -sf http://localhost:${PORT}/v1/chat/completions \
+    # TTS via /v1/audio/speech API (OpenAI-compatible speech endpoint)
+    curl -sf -X POST http://localhost:${PORT}/v1/audio/speech \
       -H "Content-Type: application/json" \
       -d '{
-        "messages": [{"role": "user", "content": "Hello world"}],
-        "extra_body": {
-          "task_type": "CustomVoice",
-          "language": "English",
-          "speaker": "Ryan"
-        }
-      }')
-    echo "${RESPONSE}" | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-assert 'choices' in data, 'No choices in response'
-print('TTS serving test PASSED')
-"
+        "input": "Hello, how are you?",
+        "voice": "vivian",
+        "language": "English"
+      }' --output /tmp/tts_output.wav
+    FILE_SIZE=$(stat -c%s /tmp/tts_output.wav 2>/dev/null || stat -f%z /tmp/tts_output.wav)
+    echo "TTS output file size: ${FILE_SIZE} bytes"
+    [ "${FILE_SIZE}" -gt 1000 ] || { echo "FAIL: TTS output too small"; exit 1; }
+    echo "TTS serving test PASSED"
 
 elif [ "${MODEL_TYPE}" = "diffusion" ]; then
     # Image generation via chat completions API
