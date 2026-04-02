@@ -1,4 +1,4 @@
-name: XGBoost SageMaker E2E Tests
+name: XGBoost SageMaker Integration Tests
 
 permissions:
   contents: read

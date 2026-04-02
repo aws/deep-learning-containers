@@ -64,8 +64,8 @@ SageMaker training jobs that measure performance across different configurations
 | Workflow | Trigger | What runs |
 |----------|---------|-----------|
 | `pr-sagemaker-xgboost.yml` | PR to `main` touching `docker/xgboost/**` | Build → unit tests → security → E2E tests |
-| `release-sagemaker-xgboost.yml` | `workflow_dispatch` / push | Build → unit tests → security → container + E2E tests |
-| `sagemaker-xgboost-e2e-tests.yml` | Called by release workflow | Container tests (training, scoring, batch transform) with model generation |
+| `release-sagemaker-xgboost.yml` | `workflow_dispatch` / push | Build → unit tests → security → container + E2E + benchmark tests |
+| `sagemaker-xgboost-integ-tests.yml` | Called by release workflow | Container tests (training, scoring, batch transform) with model generation |
 
 ### Release build flow
 
@@ -75,7 +75,7 @@ release-sagemaker-xgboost.yml
   ├── build-image
   ├── unit-test          (upstream sagemaker-xgboost-container tests + flake8)
   ├── security-test      (reusable-security-tests.yml)
-  └── xgboost-tests      (sagemaker-xgboost-e2e-tests.yml)
+  └── xgboost-tests      (sagemaker-xgboost-integ-tests.yml)
         ├── generate-models          (XGBoost 3.0.5 model generation)
         ├── container-test-training  (parallel, no model dependency)
         ├── container-test-scoring   (after generate-models)
