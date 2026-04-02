@@ -1,9 +1,12 @@
 """AWS Session Manager for all AWS boto3 API resources"""
 
+import ipaddress
 import logging
 import os
 import stat
 import tempfile
+import time
+import urllib.request
 from datetime import datetime
 
 import boto3
@@ -156,12 +159,26 @@ class AWSSessionManager:
         )
         return {tag["Key"]: tag["Value"] for tag in response["Tags"]}
 
+    def get_codebuild_runner_public_ip(self):
+        """Get this machine's public IP via checkip.amazonaws.com. Retries 3 times."""
+        url = "https://checkip.amazonaws.com"
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(url, timeout=5) as resp:
+                    ip = resp.read().decode().strip()
+                ipaddress.IPv4Address(ip)
+                return ip
+            except Exception:
+                if attempt == 2:
+                    raise RuntimeError(f"Failed to get public IP from {url} after 3 attempts")
+                time.sleep(2**attempt)
+
     # ===========================================
     # ===== Security Groups =====================
     # ===========================================
 
     def create_ssh_security_group(self, group_name=None):
-        """Create a security group allowing SSH from anywhere. Returns group ID."""
+        """Create a security group allowing SSH from the current machine's public IP. Returns group ID."""
         if not group_name:
             group_name = random_suffix_name("dlc-ssh", 36)
         vpc_id = self.ec2.describe_vpcs(Filters=[{"Name": "is-default", "Values": ["true"]}])[
@@ -180,7 +197,12 @@ class AWSSessionManager:
                     "IpProtocol": "tcp",
                     "FromPort": 22,
                     "ToPort": 22,
-                    "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
+                    "IpRanges": [
+                        {
+                            "CidrIp": f"{self.get_codebuild_runner_public_ip()}/32",
+                            "Description": "CodeBuild runner SSH access",
+                        }
+                    ],
                 },
             ],
         )
