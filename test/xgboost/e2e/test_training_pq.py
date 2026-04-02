@@ -30,7 +30,7 @@ class TestTrainingParquet:
 
     def test_distributed(self, image_uri, role):
         hp = {**BASE_HP, "tree_method": "hist"}
-        _, duration, desc = run_training_job(
+        _, _, desc = run_training_job(
             image_uri=image_uri, role=role, hyperparameters=hp,
             train_s3_key="parquet/train", validation_s3_key="parquet/test",
             content_type="application/x-parquet", test_name="pq-dist",
@@ -39,10 +39,31 @@ class TestTrainingParquet:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_pipe_mode_single_instance(self, image_uri, role):
-        _, duration, desc = run_training_job(
+        _, _, desc = run_training_job(
             image_uri=image_uri, role=role, hyperparameters=BASE_HP,
             train_s3_key="parquet/train", validation_s3_key="parquet/test",
             content_type="application/x-parquet", test_name="pq-pipe",
             input_mode="Pipe",
+        )
+        assert desc["TrainingJobStatus"] == "Completed"
+
+    def test_pipe_mode_distributed(self, image_uri, role):
+        hp = {**BASE_HP, "tree_method": "hist"}
+        _, _, desc = run_training_job(
+            image_uri=image_uri, role=role, hyperparameters=hp,
+            train_s3_key="parquet/train", validation_s3_key="parquet/test",
+            content_type="application/x-parquet", test_name="pq-pipe-dist",
+            input_mode="Pipe", instance_count=2,
+        )
+        assert desc["TrainingJobStatus"] == "Completed"
+
+    def test_dask_gpu_single(self, image_uri, role):
+        hp = {**BASE_HP, "tree_method": "gpu_hist", "use_dask_gpu_training": "true"}
+        _, _, desc = run_training_job(
+            image_uri=image_uri, role=role, hyperparameters=hp,
+            train_s3_key="parquet/train", validation_s3_key="parquet/test",
+            content_type="application/x-parquet", test_name="pq-dask-gpu",
+            instance_type="ml.g4dn.2xlarge",
+            train_distribution="FullyReplicated",
         )
         assert desc["TrainingJobStatus"] == "Completed"
