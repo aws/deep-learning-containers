@@ -11,7 +11,6 @@ from .conftest import (
     delete_endpoint,
     deploy_endpoint,
     run_training_job,
-    RESOURCES_DIR,
 )
 
 E2E_HP = {
