@@ -191,12 +191,13 @@ def delete_endpoint(endpoint_name):
 def run_batch_transform(
     image_uri, role, model_data, input_s3_uri, content_type,
     test_name="bt", instance_type="ml.m5.xlarge", split_type="Line", accept="text/csv",
+    env=None,
 ):
     """Run a batch transform job and return the job description."""
     job_name = random_suffix_name(f"xgb-{test_name}", 32)
     output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
-    model = Model(image_uri=image_uri, model_data=model_data, role=role)
+    model = Model(image_uri=image_uri, model_data=model_data, role=role, env=env)
     model.create(instance_type=instance_type)
     _created_models.append(model.name)
 

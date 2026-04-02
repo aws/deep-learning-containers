@@ -106,6 +106,26 @@ class TestSelectableInference:
                 delete_endpoint(endpoint_name)
 
 
-    @pytest.mark.skip(reason="Requires iris_sample_selectable.csv with numeric-only data in S3")
     def test_batch_transform_csv(self, image_uri, role, selectable_model):
-        pass
+        """Batch transform with selectable content output.
+
+        Uploads numeric iris inference data to S3, then runs batch transform
+        with SAGEMAKER_INFERENCE_OUTPUT env var on the model.
+        """
+        import boto3
+        # Upload numeric inference payload to S3 for batch transform input
+        payload = "1,5.1,3.5,1.4,0.2\n60,5.2,2.7,3.9,1.4\n113,6.8,3,5.5,2.1"
+        s3 = boto3.client("s3")
+        input_key = "e2e-output/selectable-bt-input/iris_numeric.csv"
+        s3.put_object(Bucket="amazonai-algorithms-integration-tests", Key=input_key, Body=payload)
+
+        desc = run_batch_transform(
+            image_uri=image_uri, role=role, model_data=selectable_model,
+            input_s3_uri=f"s3://amazonai-algorithms-integration-tests/{input_key}",
+            content_type="text/csv", test_name="select-bt",
+            env={
+                "SAGEMAKER_DEFAULT_INVOCATIONS_ACCEPT": "text/csv",
+                "SAGEMAKER_INFERENCE_OUTPUT": "predicted_label,probability",
+            },
+        )
+        assert desc["TransformJobStatus"] == "Completed"
