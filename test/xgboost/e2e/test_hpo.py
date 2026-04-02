@@ -3,7 +3,6 @@
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_hpo.py
 """
 
-import pytest
 import boto3
 from sagemaker.tuner import HyperparameterTuner, ContinuousParameter, IntegerParameter
 from sagemaker.estimator import Estimator

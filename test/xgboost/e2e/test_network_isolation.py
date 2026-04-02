@@ -4,7 +4,6 @@ Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_network_i
 """
 
 import boto3
-import time
 from sagemaker.estimator import Estimator
 from sagemaker.inputs import TrainingInput
 from test_utils import random_suffix_name

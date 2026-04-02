@@ -7,6 +7,7 @@ import logging
 import time
 
 import boto3
+import pytest
 from sagemaker.estimator import Estimator
 from sagemaker.inputs import TrainingInput
 from sagemaker.model import Model
@@ -19,6 +20,10 @@ LOGGER.setLevel(logging.INFO)
 E2E_TEST_BUCKET = "amazonai-algorithms-integration-tests"
 E2E_DATA_PREFIX = "input/xgboost"
 
+# Track created resources for cleanup
+_created_models = []
+_created_endpoints = []
+
 
 def s3_uri(bucket, key):
     return f"s3://{bucket}/{key}"
@@ -26,6 +31,34 @@ def s3_uri(bucket, key):
 
 def data_uri(key):
     return s3_uri(E2E_TEST_BUCKET, f"{E2E_DATA_PREFIX}/{key}")
+
+
+def cleanup_resources():
+    """Delete all SageMaker resources created during the test session."""
+    sm = boto3.client("sagemaker")
+    for ep in _created_endpoints:
+        try:
+            sm.delete_endpoint(EndpointName=ep)
+        except Exception:
+            pass
+        try:
+            sm.delete_endpoint_config(EndpointConfigName=ep)
+        except Exception:
+            pass
+    for model_name in _created_models:
+        try:
+            sm.delete_model(ModelName=model_name)
+        except Exception:
+            pass
+    _created_endpoints.clear()
+    _created_models.clear()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _cleanup_after_session():
+    """Automatically clean up all SageMaker resources after the test session."""
+    yield
+    cleanup_resources()
 
 
 def run_training_job(
@@ -114,11 +147,14 @@ def deploy_endpoint(image_uri, role, model_data, test_name="ep", instance_type="
         instance_type=instance_type,
         endpoint_name=endpoint_name,
     )
+    _created_models.append(model.name)
+    _created_endpoints.append(endpoint_name)
     predictor = Predictor(endpoint_name=endpoint_name)
     return predictor, endpoint_name
 
 
 def delete_endpoint(endpoint_name):
+    """Delete endpoint, endpoint config, and associated model."""
     sm = boto3.client("sagemaker")
     try:
         sm.delete_endpoint(EndpointName=endpoint_name)
@@ -128,6 +164,8 @@ def delete_endpoint(endpoint_name):
         sm.delete_endpoint_config(EndpointConfigName=endpoint_name)
     except Exception:
         pass
+    if endpoint_name in _created_endpoints:
+        _created_endpoints.remove(endpoint_name)
 
 
 def run_batch_transform(
@@ -140,6 +178,7 @@ def run_batch_transform(
 
     model = Model(image_uri=image_uri, model_data=model_data, role=role)
     model.create(instance_type=instance_type)
+    _created_models.append(model.name)
 
     transformer = Transformer(
         model_name=model.name,
@@ -148,13 +187,21 @@ def run_batch_transform(
         output_path=output_path,
         accept=accept,
     )
-    transformer.transform(
-        data=input_s3_uri,
-        content_type=content_type,
-        split_type=split_type,
-        job_name=job_name,
-    )
-    transformer.wait()
+    try:
+        transformer.transform(
+            data=input_s3_uri,
+            content_type=content_type,
+            split_type=split_type,
+            job_name=job_name,
+        )
+        transformer.wait()
+    except Exception:
+        sm = boto3.client("sagemaker")
+        try:
+            sm.stop_transform_job(TransformJobName=job_name)
+        except Exception:
+            pass
+        raise
 
     sm = boto3.client("sagemaker")
     desc = sm.describe_transform_job(TransformJobName=job_name)
