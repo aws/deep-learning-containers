@@ -6,7 +6,7 @@ Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_e2e_selec
 import json
 import pytest
 
-from .conftest import delete_endpoint, deploy_endpoint, run_training_job
+from .conftest import data_uri, delete_endpoint, deploy_endpoint, run_batch_transform, run_training_job
 
 SELECTABLE_HP = {
     "max_depth": "3",
@@ -104,3 +104,12 @@ class TestSelectableInference:
         finally:
             if endpoint_name:
                 delete_endpoint(endpoint_name)
+
+
+    def test_batch_transform_csv(self, image_uri, role, selectable_model):
+        desc = run_batch_transform(
+            image_uri=image_uri, role=role, model_data=selectable_model,
+            input_s3_uri=data_uri("iris/test"),
+            content_type="text/csv", test_name="select-bt",
+        )
+        assert desc["TransformJobStatus"] == "Completed"

@@ -83,3 +83,10 @@ class TestHPO:
                  "train", "test", "text/libsvm",
                  "validation:rmse", "Minimize", RMSE_METRIC, "hpo-gpu",
                  instance_type="ml.g4dn.2xlarge")
+
+    def test_gpu_tuning_aucpr(self, image_uri, role):
+        hp = {**BASE_HP, "objective": "binary:hinge", "tree_method": "gpu_hist"}
+        _run_hpo(image_uri, role, hp,
+                 "csv/binary_train", "csv/binary_train", "text/csv",
+                 "validation:aucpr", "Maximize", AUCPR_METRIC, "hpo-gpu-auc",
+                 instance_type="ml.g4dn.2xlarge")
