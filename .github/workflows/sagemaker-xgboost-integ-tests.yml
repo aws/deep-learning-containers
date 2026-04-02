@@ -80,7 +80,7 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -v --tb=short -rA \
+          python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image ${{ inputs.image-uri }} \
             xgboost/container/test_training.py
 
@@ -118,7 +118,7 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -v --tb=short -rA \
+          python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image ${{ inputs.image-uri }} \
             xgboost/container/test_scoring.py
 
@@ -156,7 +156,7 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -v --tb=short -rA \
+          python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image ${{ inputs.image-uri }} \
             xgboost/container/test_batch_transform.py
 
@@ -197,6 +197,6 @@ jobs:
   #       run: |
   #         source .venv/bin/activate
   #         cd test/
-  #         python3 -m pytest -v --tb=short -rA \
+  #         python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
   #           --image-uri ${{ inputs.image-uri }} \
   #           xgboost/benchmarks/${{ matrix.test-module }}.py
