@@ -51,7 +51,6 @@ def model_package(aws_session, image_uri, model_id):
             predictor_cls=Predictor,
             env={
                 "SM_VLLM_MODEL": model_id,
-                "SM_VLLM_ENFORCE_EAGER": "true",
                 "HF_TOKEN": hf_token,
             },
         )

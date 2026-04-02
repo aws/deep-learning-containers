@@ -12,7 +12,7 @@ PORT=8091
 echo "=== Testing vLLM-Omni SageMaker: ${MODEL_TYPE} at ${MODEL_PATH} ==="
 
 # Start server in background
-vllm serve --omni --model "${MODEL_PATH}" --port ${PORT} --enforce-eager --stage-init-timeout 600 &
+vllm serve --omni --model "${MODEL_PATH}" --port ${PORT} --stage-init-timeout 600 &
 SERVER_PID=$!
 
 cleanup() {

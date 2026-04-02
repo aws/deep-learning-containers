@@ -8,7 +8,7 @@ smoke-test:
       model: "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
       type: tts
       fleet: "x86-g6xl-runner"
-      extra_args: "--enforce-eager --gpu-memory-utilization 0.8"
+      extra_args: ""
 
     - name: "flux2-klein-4b"
       model: "black-forest-labs/FLUX.2-klein-4B"
