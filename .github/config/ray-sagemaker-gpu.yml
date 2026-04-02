@@ -29,7 +29,7 @@ common:
 # Release configuration
 release:
   release: true
-  force_release: false
+  force_release: true
   public_registry: true
   private_registry: true
   enable_soci: true
