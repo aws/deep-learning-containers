@@ -35,15 +35,17 @@ SageMaker Python SDK. Validates the container works end-to-end on SageMaker infr
 | File | What it tests |
 |------|---------------|
 | `test_training_libsvm.py` | Single/distributed/checkpoint/GPU training with libsvm data |
-| `test_training_csv.py` | Single/distributed/pipe-mode training with CSV data |
+| `test_training_csv.py` | Single/distributed/pipe-mode/Dask GPU training with CSV data |
 | `test_training_pb.py` | Single/distributed/pipe-mode/sparse training with protobuf data |
-| `test_training_pq.py` | Single/distributed/pipe-mode training with parquet data |
-| `test_e2e.py` | Train a model → deploy endpoint → invoke (CPU + GPU) |
+| `test_training_pq.py` | Single/distributed/pipe-mode/Dask GPU training with parquet data |
+| `test_e2e.py` | Train → deploy → invoke (CPU + GPU), Dask GPU training |
+| `test_e2e_selectable.py` | Multiclass train → inference with CSV/JSON/JSONLINES accept types |
 | `test_inference.py` | Train a model → deploy → invoke with libsvm/csv |
+| `test_inference_mme.py` | Multi-model endpoint inference |
 | `test_transform.py` | Train a model → batch transform with libsvm input |
-| `test_hpo.py` | Hyperparameter tuning (rmse minimization) |
+| `test_hpo.py` | Hyperparameter tuning: rmse, aucpr, GPU |
 | `test_script_mode_e2e.py` | Script-mode train → deploy → invoke |
-| `test_network_isolation.py` | Algo-mode + script-mode with network isolation enabled |
+| `test_network_isolation.py` | Algo-mode training with network isolation |
 
 ### Tier 3: Benchmark Tests (`benchmarks/`)
 
@@ -65,7 +67,7 @@ SageMaker training jobs that measure performance across different configurations
 |----------|---------|-----------|
 | `pr-sagemaker-xgboost.yml` | PR to `main` touching `docker/xgboost/**` | Build → unit tests → security → upstream integration |
 | `release-sagemaker-xgboost.yml` | `workflow_dispatch` / push | Build → unit tests → security → `sagemaker-xgboost-integ-tests.yml` |
-| `sagemaker-xgboost-integ-tests.yml` | Called by release workflow | Container tests, E2E tests, benchmarks |
+| `sagemaker-xgboost-integ-tests.yml` | Called by release workflow | Container tests → E2E tests → benchmarks |
 
 ### Release build flow
 
@@ -77,9 +79,9 @@ release-sagemaker-xgboost.yml
   ├── security-test          (reusable-security-tests.yml)
   └── xgboost-tests          (sagemaker-xgboost-integ-tests.yml)
         ├── generate-models              (XGBoost 3.0.5 model generation)
-        ├── container-test-training      (parallel, no model dependency)
+        ├── container-test-training      (parallel with generate-models)
         ├── container-test-scoring       (after generate-models)
         ├── container-test-batch-transform (after generate-models)
-        ├── e2e-test                     (10 test modules in parallel via matrix)
-        └── benchmark-test               (7 test modules in parallel via matrix)
+        ├── e2e-test                     (after container tests, 12 modules in parallel)
+        └── benchmark-test               (after e2e tests, 7 modules in parallel)
 ```
