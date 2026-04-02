@@ -1,18 +1,18 @@
 # vLLM-Omni Model Test Configuration
 # Tests for omni-modality models (TTS, image generation)
 
-s3_prefix: "s3://dlc-cicd-models/llm-models"
+s3_prefix: "s3://dlc-cicd-models/omni-models"
 
 smoke-test:
   codebuild-fleet:
     - name: "qwen3-tts-1.7b-customvoice"
-      s3_model: "qwen3-tts-1.7b-customvoice.tar"
+      s3_model: "qwen3-tts-1.7b-customvoice.tar.gz"
       type: tts
       fleet: "x86-g6xl-runner"
       extra_args: "--enforce-eager --gpu-memory-utilization 0.8"
 
     - name: "flux2-klein-4b"
-      s3_model: "flux2-klein-4b.tar"
+      s3_model: "flux2-klein-4b.tar.gz"
       type: diffusion
       fleet: "x86-g6xl-runner"
       extra_args: ""
