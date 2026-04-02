@@ -36,6 +36,9 @@ class TestHPO:
             hyperparameters=BASE_HP,
             volume_size=10,
             max_run=2700,
+            metric_definitions=[
+                {"Name": "validation:rmse", "Regex": r"\[.*\].*#011validation-rmse:([\d.]+)"},
+            ],
         )
 
         tuner = HyperparameterTuner(
