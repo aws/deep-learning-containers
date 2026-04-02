@@ -50,6 +50,9 @@ class TestHPO:
             },
             max_jobs=4,
             max_parallel_jobs=2,
+            metric_definitions=[
+                {"Name": "validation:rmse", "Regex": r"\[.*\].*#011validation-rmse:([\d.]+)"},
+            ],
         )
 
         channels = {
