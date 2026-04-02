@@ -348,11 +348,12 @@ FROM runtime AS omni-deps
 
 ARG VLLM_OMNI_VERSION=0.18.0
 
-# System deps for omni-modality (audio/video processing)
-# ffmpeg: required by pydub and imageio-ffmpeg for audio/video I/O
-# AL2023 minimal CUDA image lacks these — install ffmpeg from static build
-RUN curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
-  | tar -xJ --strip-components=1 -C /usr/local/bin/ --wildcards '*/ffmpeg' '*/ffprobe'
+# System deps for omni-modality (TTS, audio, image/video)
+# Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, sox, ffmpeg
+RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
+  && dnf install -y spal-release \
+  && dnf install -y --setopt=install_weak_deps=False espeak-ng sox ffmpeg-free \
+  && dnf clean all && rm -rf /var/cache/dnf
 
 # Install vllm-omni (pure Python, no compilation)
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_OMNI_VERSION}
