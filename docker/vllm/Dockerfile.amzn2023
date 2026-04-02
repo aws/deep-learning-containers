@@ -349,8 +349,11 @@ FROM runtime AS omni-deps
 ARG VLLM_OMNI_VERSION=0.18.0
 
 # System deps for omni-modality (TTS, audio, image)
+# AL2023 has espeak/sox but not espeak-ng/ffmpeg — install ffmpeg from static build
 RUN dnf install -y --setopt=install_weak_deps=False \
-  espeak-ng ffmpeg sox libsox-fmt-all \
+  espeak sox \
+  && curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz \
+  | tar -xJ --strip-components=1 -C /usr/local/bin/ --wildcards '*/ffmpeg' '*/ffprobe' \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Install vllm-omni (pure Python, no compilation)
