@@ -174,7 +174,9 @@ jobs:
           - test_training_pb
           - test_training_pq
           - test_e2e
+          - test_e2e_selectable
           - test_inference
+          - test_inference_mme
           - test_transform
           - test_hpo
           - test_script_mode_e2e
