@@ -17,7 +17,7 @@ import os
 os.environ['VLLM_WORKER_MULTIPROC_METHOD'] = 'spawn'
 from vllm_omni.entrypoints.omni import Omni
 
-omni = Omni(model='${MODEL_PATH}')
+omni = Omni(model='${MODEL_PATH}', stage_init_timeout=600)
 additional_information = {
     'task_type': ['CustomVoice'],
     'text': ['Hello, this is a test of the text to speech system.'],
@@ -46,7 +46,7 @@ import os
 os.environ['VLLM_WORKER_MULTIPROC_METHOD'] = 'spawn'
 from vllm_omni.entrypoints.omni import Omni
 
-omni = Omni(model='${MODEL_PATH}')
+omni = Omni(model='${MODEL_PATH}', stage_init_timeout=600)
 prompt = 'a red apple on a white table'
 outputs = omni.generate(prompt)
 images = outputs[0].request_output.images

@@ -12,7 +12,7 @@ PORT=8091
 echo "=== Testing vLLM-Omni SageMaker: ${MODEL_TYPE} at ${MODEL_PATH} ==="
 
 # Start server in background
-vllm serve --omni --model "${MODEL_PATH}" --port ${PORT} --enforce-eager &
+vllm serve --omni --model "${MODEL_PATH}" --port ${PORT} --enforce-eager --stage-init-timeout 600 &
 SERVER_PID=$!
 
 cleanup() {
@@ -24,7 +24,7 @@ trap cleanup EXIT
 
 # Wait for server to be ready
 echo "Waiting for server to start..."
-for i in $(seq 1 120); do
+for i in $(seq 1 300); do
     if curl -s http://localhost:${PORT}/health >/dev/null 2>&1; then
         echo "Server ready after ${i}s"
         break
