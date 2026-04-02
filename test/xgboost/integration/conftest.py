@@ -96,6 +96,7 @@ def run_training_job(
 
 def deploy_endpoint(image_uri, role, model_data, test_name="ep", instance_type="ml.m5.xlarge", env=None):
     """Deploy a real-time endpoint and return (predictor, endpoint_name)."""
+    from sagemaker.predictor import Predictor
     endpoint_name = random_suffix_name(f"xgb-{test_name}", 63)
     model = Model(
         image_uri=image_uri,
@@ -103,11 +104,12 @@ def deploy_endpoint(image_uri, role, model_data, test_name="ep", instance_type="
         role=role,
         env=env,
     )
-    predictor = model.deploy(
+    model.deploy(
         initial_instance_count=1,
         instance_type=instance_type,
         endpoint_name=endpoint_name,
     )
+    predictor = Predictor(endpoint_name=endpoint_name)
     return predictor, endpoint_name
 
 
