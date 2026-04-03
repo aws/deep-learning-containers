@@ -97,13 +97,28 @@ def model_endpoint(aws_session, model_package, instance_type):
 @pytest.mark.parametrize("instance_type", ["ml.g4dn.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_endpoint(model_endpoint):
-    """Validate that the TTS model deploys and serves on SageMaker.
-
-    Note: TTS inference uses /v1/audio/speech which is not routed through
-    SageMaker's /invocations endpoint. Full TTS inference is validated by
-    the container smoke test (vllm_omni_sagemaker_smoke_test.sh).
-    This test validates that the model loads and the endpoint is InService.
-    """
     predictor = model_endpoint
-    LOGGER.info(f"Endpoint {predictor.endpoint_name} is InService with TTS model")
-    LOGGER.info("TTS endpoint deployment test PASSED")
+
+    payload = {
+        "messages": [{"role": "user", "content": "Hello, this is a test."}],
+        "extra_body": {
+            "task_type": "CustomVoice",
+            "language": "English",
+            "speaker": "Ryan",
+        },
+    }
+    LOGGER.info(f"Sending TTS inference request: {pformat(payload)}")
+
+    response = predictor.predict(payload)
+    if isinstance(response, bytes):
+        response = response.decode("utf-8")
+    if isinstance(response, str):
+        try:
+            response = json.loads(response)
+        except json.JSONDecodeError:
+            pass
+
+    assert response, "Model response is empty"
+    LOGGER.info(f"TTS response received: {pformat(response)}")
+    assert "choices" in response, f"No choices in response: {response}"
+    LOGGER.info("TTS endpoint test PASSED")
