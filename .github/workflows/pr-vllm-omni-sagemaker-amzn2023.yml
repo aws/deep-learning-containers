@@ -141,8 +141,50 @@ jobs:
             telemetry-test-change:
               - "test/telemetry/**"
 
-  build-image:
+  build-runtime:
     needs: [check-changes, load-config]
+    if: needs.check-changes.outputs.build-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-vllm-build-runner
+        buildspec-override:true
+    timeout-minutes: 720
+    outputs:
+      runtime-base: ${{ steps.check.outputs.image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Check or build runtime base
+        id: check
+        run: |
+          TAG="vllm-runtime-v${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.python-version }}"
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${TAG}"
+          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
+
+          if docker manifest inspect "${IMAGE}" >/dev/null 2>&1; then
+            echo "Runtime base exists: ${IMAGE}"
+            exit 0
+          fi
+
+          echo "Building runtime base: ${IMAGE}"
+          docker buildx build --progress plain \
+            --target runtime-build \
+            --tag "${IMAGE}" \
+            --push \
+            -f docker/vllm/Dockerfile.amzn2023 .
+
+  build-image:
+    needs: [check-changes, load-config, build-runtime]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -178,6 +220,7 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
+          runtime-base: ${{ needs.build-runtime.outputs.runtime-base }}
 
   sanity-test:
     needs: [check-changes, build-image, load-config]

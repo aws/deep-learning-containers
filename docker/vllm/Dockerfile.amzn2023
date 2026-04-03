@@ -1,6 +1,11 @@
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 
+# Pre-built runtime image. When set, skips the compile stages (source/build/deps)
+# and uses this image directly as the runtime base. Build it with:
+#   docker buildx build --target runtime --tag <ecr>/vllm-runtime:<tag> --push ...
+ARG RUNTIME_BASE=""
+
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
 # =============================================================================
@@ -201,8 +206,9 @@ RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHO
 
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
+# Built from scratch (compile path) or pulled from pre-built RUNTIME_BASE.
 # =============================================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime-build
 
 ARG CUDA_VERSION
 ARG PYTHON_VERSION=3.12
@@ -237,6 +243,10 @@ ENV VIRTUAL_ENV="/opt/venv"
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_USAGE_SOURCE=production-docker-image
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
+
+# Pre-built runtime (fast path) — used when RUNTIME_BASE is set
+ARG RUNTIME_BASE
+FROM ${RUNTIME_BASE:-runtime-build} AS runtime
 
 # =============================================================================
 # STAGE 4: DLC overlay — Amazon DLC customizations on top of vLLM runtime
