@@ -110,7 +110,9 @@ jobs:
       - name: Run smoke test
         run: |
           docker exec ${CONTAINER_ID} bash /tmp/smoke_test.sh \
-            "${{ matrix.model.type }}"
+            "${{ matrix.model.route }}" \
+            '${{ matrix.model.test_request }}' \
+            "${{ matrix.model.validate }}"
 
       - name: Cleanup
         if: always()
