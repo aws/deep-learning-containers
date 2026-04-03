@@ -1,15 +1,8 @@
 name: PR - PyTorch EC2
 
+# Disabled: focusing on omni workflows only
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - "docker/pytorch/**"
-      - "scripts/pytorch/**"
-      - "test/pytorch/**"
-      - ".github/workflows/pr-pytorch-ec2.yml"
-      - "!docs/**"
+  workflow_dispatch: {}
 
 permissions:
   contents: read

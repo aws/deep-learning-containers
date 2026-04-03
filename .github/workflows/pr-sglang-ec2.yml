@@ -1,13 +1,8 @@
 name: PR - SGLang EC2
 
+# Disabled: focusing on omni workflows only
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - "**sglang**"
-      - "!docs/**"
-      - "!**amzn2023**"
+  workflow_dispatch: {}
 
 permissions:
   contents: read

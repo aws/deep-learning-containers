@@ -1,11 +1,8 @@
 name: PR - Documentations
 
+# Disabled: focusing on omni workflows only
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - "**docs**"
+  workflow_dispatch: {}
 
 permissions:
   contents: read

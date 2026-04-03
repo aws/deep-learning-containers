@@ -1,18 +1,8 @@
 name: PR - Lambda
 
+# Disabled: focusing on omni workflows only
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - "docker/lambda/**"
-      - "scripts/lambda/**"
-      - "scripts/common/**"
-      - "scripts/telemetry/**"
-      - "test/lambda/**"
-      - "test/security/data/ecr_scan_allowlist/lambda/**"
-      - ".github/workflows/pr-lambda.yml"
-      - "!docs/**"
+  workflow_dispatch: {}
 
 permissions:
   contents: read

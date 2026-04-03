@@ -1,14 +1,8 @@
 name: PR - vLLM RayServe
 
+# Disabled: focusing on omni workflows only
 on:
-  # Direct execution on pull requests
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - "**vllm**"
-      - "!docs/**"
-      - "!**amzn2023**"
+  workflow_dispatch: {}
 
 permissions:
   contents: read

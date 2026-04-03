@@ -1,12 +1,8 @@
 name: PR - Ray EC2 CPU
 
+# Disabled: focusing on omni workflows only
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - "**ray**"
-      - "!docs/**"
+  workflow_dispatch: {}
 
 permissions:
   contents: read
