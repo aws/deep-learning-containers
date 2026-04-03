@@ -27,7 +27,7 @@ def selectable_model(image_uri, role):
     """Train a multiclass model on iris dataset."""
     _, _, desc = run_training_job(
         image_uri=image_uri, role=role, hyperparameters=SELECTABLE_HP,
-        train_s3_key="iris/train", validation_s3_key="iris/test",
+        train_s3_key="iris/train", validation_s3_key="iris/train",
         content_type="text/csv", test_name="select-train",
     )
     assert desc["TrainingJobStatus"] == "Completed"
