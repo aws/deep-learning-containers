@@ -97,28 +97,25 @@ def model_endpoint(aws_session, model_package, instance_type):
 @pytest.mark.parametrize("instance_type", ["ml.g4dn.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_endpoint(model_endpoint):
+    """TTS via /invocations routed to /v1/audio/speech by the serve proxy."""
     predictor = model_endpoint
+    sm_runtime = predictor.sagemaker_session.sagemaker_runtime_client
 
-    payload = {
-        "messages": [{"role": "user", "content": "Hello, this is a test."}],
-        "extra_body": {
-            "task_type": "CustomVoice",
-            "language": "English",
-            "speaker": "Ryan",
-        },
-    }
-    LOGGER.info(f"Sending TTS inference request: {pformat(payload)}")
+    payload = json.dumps({
+        "input": "Hello, this is a test of the text to speech system.",
+        "voice": "vivian",
+        "language": "English",
+    })
 
-    response = predictor.predict(payload)
-    if isinstance(response, bytes):
-        response = response.decode("utf-8")
-    if isinstance(response, str):
-        try:
-            response = json.loads(response)
-        except json.JSONDecodeError:
-            pass
+    LOGGER.info("Sending TTS request via /invocations with route=/v1/audio/speech")
+    response = sm_runtime.invoke_endpoint(
+        EndpointName=predictor.endpoint_name,
+        ContentType="application/json",
+        Body=payload,
+        CustomAttributes="route=/v1/audio/speech",
+    )
 
-    assert response, "Model response is empty"
-    LOGGER.info(f"TTS response received: {pformat(response)}")
-    assert "choices" in response, f"No choices in response: {response}"
+    audio_bytes = response["Body"].read()
+    LOGGER.info(f"TTS audio response: {len(audio_bytes)} bytes")
+    assert len(audio_bytes) > 1000, f"TTS output too small: {len(audio_bytes)} bytes"
     LOGGER.info("TTS endpoint test PASSED")

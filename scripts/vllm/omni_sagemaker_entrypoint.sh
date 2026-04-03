@@ -6,7 +6,8 @@ bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
 PREFIX="SM_VLLM_"
 ARG_PREFIX="--"
 
-ARGS=(--port 8080)
+# vllm-omni listens on 8081; the serve proxy on 8080 (SageMaker's port)
+ARGS=(--port 8081)
 
 # Auto-detect model if SM_VLLM_MODEL is not set
 if [ -z "${SM_VLLM_MODEL}" ]; then
@@ -38,4 +39,9 @@ while IFS='=' read -r key value; do
     fi
 done < <(env | grep "^${PREFIX}")
 
-exec vllm serve --omni "${ARGS[@]}"
+# Start vllm-omni on port 8081 in background
+vllm serve --omni "${ARGS[@]}" &
+VLLM_PID=$!
+
+# Start the SageMaker serve proxy on port 8080 (foreground)
+exec python3 /usr/local/bin/omni_sagemaker_serve.py
