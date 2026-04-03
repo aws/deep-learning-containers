@@ -169,10 +169,7 @@ RUN pip install --no-cache-dir \
     mkl \
     mkl-include \
     parso \
-    typing \
-    charset-normalizer \
     packaging \
-    boto3 \
     PyYAML \
     numpy \
     scipy \
@@ -188,13 +185,13 @@ RUN pip install --no-cache-dir \
     "requests>=2.33.0" \
     "setuptools>=80.10.1" \
     "urllib3>=2.5.0" \
-    "awscli" \
+    "pyasn1>=0.6.2" \
+    "wheel>=0.46.2" \
     opencv-python==4.11.0.86 \
     mpi4py \
-    jinja2>=3.1.6 \
-    tornado>=6.5.1 \
+    "jinja2>=3.1.6" \
+    "tornado>=6.5.1" \
     "filelock>=3.20.1" \
-    pytz \
     tzdata
 
 # Install PyTorch
@@ -207,14 +204,12 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     s3torchconnector \
     fastai \
     accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    # pin thinc due to incompatibility with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-    thinc \
+    # requires explicit declaration of spacy, thinc, blis
+    # pin spacy/thinc for numpy compatibility with sagemaker
+    spacy==3.8.7 \
+    thinc==8.3.4 \
     blis \
-    numpy \
- && pip uninstall -y dataclasses
+    numpy
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.9/license.txt
 
@@ -283,12 +278,18 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 WORKDIR /
 
 # Install SM packages
+# Install s3fs, boto3, awscli together so pip can resolve the
+# aiobotocore -> botocore version constraints in a single pass
 RUN pip install --no-cache-dir -U \
+    "s3fs>=2026.2.0" \
+    awscli \
+    boto3 \
     smclarify \
     "sagemaker>=2.254.1,<3" \
     sagemaker-experiments \
     sagemaker-pytorch-training \
-    sagemaker-training
+    sagemaker-training \
+    sniffio
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
@@ -300,7 +301,8 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     shap \
-    cloudpickle
+    cloudpickle \
+    langcodes
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
@@ -310,6 +312,9 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
+
+# Upgrade black bundled in spacy test requirements to fix CVE-2026-32274
+RUN pip install --no-cache-dir "black>=26.3.1"
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
