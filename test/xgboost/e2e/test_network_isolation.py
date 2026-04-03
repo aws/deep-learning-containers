@@ -28,16 +28,9 @@ class TestNetworkIsolation:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_script_mode(self, image_uri, role):
-        """Script mode with network isolation.
-
-        SageMaker pre-stages sagemaker_submit_directory into the container
-        before enabling network isolation. Note: the original Hydra test
-        overrides training_parameters entirely for script mode, passing
-        only sagemaker_program and sagemaker_submit_directory.
-        """
         hp = {
             "sagemaker_program": "abalone.py",
-            "sagemaker_submit_directory": data_uri("script_mode/code/abalone.1.2-1.tar.gz"),
+            "sagemaker_submit_directory": "/opt/ml/input/data/code/abalone.1.2-1.tar.gz",
         }
         _, duration, desc = run_training_job(
             image_uri=image_uri, role=role, hyperparameters=hp,
@@ -45,5 +38,8 @@ class TestNetworkIsolation:
             validation_s3_key="script_mode/data/validation",
             content_type="text/libsvm", test_name="netiso-script",
             instance_count=2, enable_network_isolation=True,
+            extra_channels={
+                "code": data_uri("script_mode/code/abalone.1.2-1.tar.gz"),
+            },
         )
         assert desc["TrainingJobStatus"] == "Completed"
