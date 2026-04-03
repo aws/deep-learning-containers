@@ -25,7 +25,7 @@ def mme_model(image_uri, role):
     """Train an iris model for MME tests."""
     _, _, desc = run_training_job(
         image_uri=image_uri, role=role, hyperparameters=TRAIN_HP,
-        train_s3_key="iris/train", validation_s3_key="iris/train",
+        train_s3_key="iris/train", validation_s3_key="iris/test",
         content_type="text/csv", test_name="mme-train",
     )
     assert desc["TrainingJobStatus"] == "Completed"
