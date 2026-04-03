@@ -56,7 +56,7 @@ def run_training_job(
     input_mode="File",
 ):
     """Launch a SageMaker training job and return (job_name, duration_seconds, job_description)."""
-    job_name = random_suffix_name("xgb-bench", 50)
+    job_name = random_suffix_name("xgb-bench", 32)
     output_path = s3_uri(benchmark_bucket, f"benchmark-output/{job_name}")
 
     estimator = Estimator(
