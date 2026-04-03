@@ -469,6 +469,7 @@ RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=Fal
 
 COPY ./scripts/vllm/omni_sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 COPY ./scripts/vllm/omni_sagemaker_serve.py /usr/local/bin/omni_sagemaker_serve.py
+ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

@@ -1,45 +1,28 @@
 #!/bin/bash
 # Smoke test for vLLM-Omni SageMaker images
-# Validates the server starts with --omni and responds to requests
+# The container is started with the real SageMaker entrypoint (including
+# the routing middleware). This script only waits for readiness and tests
+# inference via /invocations and /ping — the same path SageMaker uses.
 set -eux
 
-nvidia-smi
+MODEL_TYPE="${1:?Usage: $0 <model-type>}"
+PORT=8080
 
-MODEL_PATH="${1:?Usage: $0 <model-path> <model-type>}"
-MODEL_TYPE="${2:?Usage: $0 <model-path> <model-type>}"
-PORT=8091
+echo "=== Testing vLLM-Omni SageMaker: ${MODEL_TYPE} ==="
 
-echo "=== Testing vLLM-Omni SageMaker: ${MODEL_TYPE} at ${MODEL_PATH} ==="
-
-# Start server in background
-vllm serve --omni --model "${MODEL_PATH}" --port ${PORT} --stage-init-timeout 600 &
-SERVER_PID=$!
-
-cleanup() {
-    echo "Stopping server (PID ${SERVER_PID})..."
-    kill ${SERVER_PID} 2>/dev/null || true
-    wait ${SERVER_PID} 2>/dev/null || true
-}
-trap cleanup EXIT
-
-# Wait for server to be ready
-echo "Waiting for server to start..."
+# Wait for server (entrypoint starts it)
+echo "Waiting for server..."
 for i in $(seq 1 300); do
-    if curl -s http://localhost:${PORT}/health >/dev/null 2>&1; then
+    if curl -s http://localhost:${PORT}/ping >/dev/null 2>&1; then
         echo "Server ready after ${i}s"
         break
-    fi
-    if ! kill -0 ${SERVER_PID} 2>/dev/null; then
-        echo "ERROR: Server process died"
-        exit 1
     fi
     sleep 1
 done
 
-# Verify health endpoint
-curl -sf http://localhost:${PORT}/health || { echo "Health check failed"; exit 1; }
+curl -sf http://localhost:${PORT}/ping || { echo "Ping failed"; exit 1; }
+curl -sf http://localhost:${PORT}/health || { echo "Health failed"; exit 1; }
 
-# Verify models endpoint
 curl -sf http://localhost:${PORT}/v1/models | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
@@ -48,9 +31,9 @@ print(f'Model loaded: {data[\"data\"][0][\"id\"]}')
 "
 
 if [ "${MODEL_TYPE}" = "tts" ]; then
-    # TTS via /v1/audio/speech API (OpenAI-compatible speech endpoint)
-    curl -sf -X POST http://localhost:${PORT}/v1/audio/speech \
+    curl -sf -X POST http://localhost:${PORT}/invocations \
       -H "Content-Type: application/json" \
+      -H "X-Amzn-SageMaker-Custom-Attributes: route=/v1/audio/speech" \
       -d '{
         "input": "Hello, how are you?",
         "voice": "vivian",
@@ -62,8 +45,7 @@ if [ "${MODEL_TYPE}" = "tts" ]; then
     echo "TTS serving test PASSED"
 
 elif [ "${MODEL_TYPE}" = "diffusion" ]; then
-    # Image generation via chat completions API
-    RESPONSE=$(curl -sf http://localhost:${PORT}/v1/chat/completions \
+    RESPONSE=$(curl -sf http://localhost:${PORT}/invocations \
       -H "Content-Type: application/json" \
       -d '{
         "messages": [{"role": "user", "content": "a red apple on a white table"}],
@@ -80,7 +62,6 @@ import sys, json, base64
 data = json.load(sys.stdin)
 assert 'choices' in data, f'No choices in response: {str(data)[:200]}'
 content = data['choices'][0]['message']['content']
-# Extract image and validate
 if isinstance(content, list):
     img_item = next(c for c in content if c.get('type') == 'image_url')
     url = img_item['image_url']['url']

@@ -40,6 +40,25 @@ jobs:
       - name: Run permission gate (from base)
         uses: ./.github/actions/pr-permission-gate
 
+  unit-test:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install starlette pytest
+
+      - name: Run middleware unit tests
+        run: PYTHONPATH=scripts/vllm pytest scripts/vllm/test_sagemaker_middleware.py -v
+
   load-config:
     needs: [gatekeeper]
     if: success()

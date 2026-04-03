@@ -76,23 +76,41 @@ jobs:
           s3-path: ${{ matrix.model.s3_path }}
           model-name: ${{ matrix.model.name }}
 
-      - name: Start container
+      # EC2: entrypoint accepts CLI args directly
+      - name: Start container (EC2)
+        if: inputs.customer-type == 'ec2'
         run: |
           docker pull ${{ inputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --shm-size=4g \
-            --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d --gpus all --shm-size=4g \
             -v /dlc-models:/models \
+            -p 8080:8080 \
+            ${{ inputs.image-uri }} \
+            --model /models/${{ matrix.model.name }} \
+            --stage-init-timeout 600)
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      # SageMaker: entrypoint reads SM_VLLM_* env vars
+      - name: Start container (SageMaker)
+        if: inputs.customer-type == 'sagemaker'
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d --gpus all --shm-size=4g \
+            -v /dlc-models:/models \
+            -e SM_VLLM_MODEL=/models/${{ matrix.model.name }} \
+            -e SM_VLLM_STAGE_INIT_TIMEOUT=600 \
+            -p 8080:8080 \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Copy test scripts into container
+      - name: Copy test scripts
         run: |
-          docker cp test/vllm-omni/scripts/. ${CONTAINER_ID}:/models/
+          docker cp test/vllm-omni/scripts/vllm_omni_${{ inputs.customer-type }}_smoke_test.sh \
+            ${CONTAINER_ID}:/tmp/smoke_test.sh
 
       - name: Run smoke test
         run: |
-          docker exec ${CONTAINER_ID} bash /models/vllm_omni_${{ inputs.customer-type }}_smoke_test.sh \
-            "/models/${{ matrix.model.name }}" ${{ matrix.model.type }}
+          docker exec ${CONTAINER_ID} bash /tmp/smoke_test.sh \
+            "${{ matrix.model.type }}"
 
       - name: Cleanup
         if: always()

@@ -2,7 +2,6 @@
 
 import json
 import logging
-from pprint import pformat
 
 import pytest
 from sagemaker.model import Model
@@ -101,11 +100,13 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
     predictor = model_endpoint
     sm_runtime = predictor.sagemaker_session.sagemaker_runtime_client
 
-    payload = json.dumps({
-        "input": "Hello, this is a test of the text to speech system.",
-        "voice": "vivian",
-        "language": "English",
-    })
+    payload = json.dumps(
+        {
+            "input": "Hello, this is a test of the text to speech system.",
+            "voice": "vivian",
+            "language": "English",
+        }
+    )
 
     LOGGER.info("Sending TTS request via /invocations with route=/v1/audio/speech")
     response = sm_runtime.invoke_endpoint(
