@@ -29,6 +29,7 @@ class TestNetworkIsolation:
 
     def test_script_mode(self, image_uri, role):
         hp = {
+            **BASE_HP,
             "sagemaker_program": "abalone.py",
             "sagemaker_submit_directory": "/opt/ml/input/data/code/abalone.1.2-1.tar.gz",
         }
