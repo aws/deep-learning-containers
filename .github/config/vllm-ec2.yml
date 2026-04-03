@@ -8,14 +8,14 @@ image:
 # Build configuration
 common:
   framework: "vllm"
-  framework_version: "0.18.1"
+  framework_version: "0.19.0"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
   os_version: "ubuntu22.04"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "vllm:0.18-gpu-py312-ec2"
+  prod_image: "vllm:0.19-gpu-py312-ec2"
   device_type: "gpu"
   contributor: "None"
 # Release configuration
