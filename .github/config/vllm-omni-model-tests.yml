@@ -1,17 +1,19 @@
 # vLLM-Omni Model Test Configuration
 # Tests for omni-modality models (TTS, image generation)
-# Models are downloaded directly from HuggingFace (public, no gating)
+# Models are pre-cached in S3 as tar.gz archives
+
+s3_prefix: "s3://dlc-cicd-models/omni-models"
 
 smoke-test:
   codebuild-fleet:
     - name: "qwen3-tts-1.7b-customvoice"
-      model: "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+      s3_model: "qwen3-tts-1.7b-customvoice.tar.gz"
       type: tts
       fleet: "x86-g6xl-runner"
       extra_args: ""
 
     - name: "flux2-klein-4b"
-      model: "black-forest-labs/FLUX.2-klein-4B"
+      s3_model: "flux2-klein-4b.tar.gz"
       type: diffusion
       fleet: "x86-g6xl-runner"
       extra_args: ""

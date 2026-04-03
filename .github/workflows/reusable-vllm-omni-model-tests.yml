@@ -39,7 +39,10 @@ jobs:
           import yaml, json
           with open('.github/config/vllm-omni-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
+          prefix = cfg.get('s3_prefix', '')
           models = cfg.get('smoke-test', {}).get('codebuild-fleet', [])
+          for m in models:
+              m['s3_path'] = prefix + '/' + m.pop('s3_model')
           print(f'matrix={json.dumps(models)}')
           " >> "$GITHUB_OUTPUT"
 
@@ -66,26 +69,35 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
+      - name: Download model from S3
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.model.s3_path }}
+          model-name: ${{ matrix.model.name }}
+
       - name: Start container
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --shm-size=4g \
             --entrypoint /bin/bash \
+            -v /dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Copy test scripts into container
         run: |
-          docker cp test/vllm-omni/scripts/. ${CONTAINER_ID}:/workspace/test/
+          docker cp test/vllm-omni/scripts/. ${CONTAINER_ID}:/models/
 
       - name: Run smoke test
         run: |
-          docker exec ${CONTAINER_ID} bash /workspace/test/vllm_omni_${{ inputs.customer-type }}_smoke_test.sh \
-            "${{ matrix.model.model }}" ${{ matrix.model.type }}
+          docker exec ${CONTAINER_ID} bash /models/vllm_omni_${{ inputs.customer-type }}_smoke_test.sh \
+            "/models/${{ matrix.model.name }}" ${{ matrix.model.type }}
 
       - name: Cleanup
         if: always()
         run: |
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
