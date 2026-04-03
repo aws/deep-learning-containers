@@ -1,6 +1,5 @@
 # Multi-stage build for PyTorch Ray inference container (SageMaker + EC2)
 # CPU variant - Amazon Linux 2023 base
-# Ray 2.54.1
 
 #############
 # Stage 1: Builder

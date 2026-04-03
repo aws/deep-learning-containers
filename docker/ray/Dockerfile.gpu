@@ -1,6 +1,5 @@
 # Multi-stage build for PyTorch Ray inference container (SageMaker + EC2)
 # GPU variant - NVIDIA CUDA 12.9 base on Amazon Linux 2023
-# Ray 2.54.1
 
 #############
 # Stage 1: FFmpeg builder - needs CUDA devel image for nvcc + CUDA headers
