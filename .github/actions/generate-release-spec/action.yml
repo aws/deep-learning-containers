@@ -44,6 +44,7 @@ runs:
         CUSTOMER_TYPE=$(jq -r '.common.customer_type' config.json)
         CUDA_VERSION=$(jq -r '.common.cuda_version' config.json)
         CONTAINER_TYPE=$(jq -r '.common.container_type' config.json)
+        PLATFORM=$(jq -r '.common.platform' config.json)
 
         # Extract boolean values
         FORCE_RELEASE=$(jq -r '.release.force_release' config.json)
@@ -59,6 +60,7 @@ runs:
         [ "$DEVICE_TYPE" != "null" ] && echo "  Device Type: ${DEVICE_TYPE}"
         [ "$CUSTOMER_TYPE" != "null" ] && echo "  Customer Type: ${CUSTOMER_TYPE}"
         [ "$CONTAINER_TYPE" != "null" ] && echo "  Container Type: ${CONTAINER_TYPE}"
+        [ "$PLATFORM" != "null" ] && echo "  Platform: ${PLATFORM}"
         [ "$FORCE_RELEASE" != "null" ] && echo "  Force Release: ${FORCE_RELEASE}"
         [ "$PUBLIC_REGISTRY" != "null" ] && echo "  Public Registry: ${PUBLIC_REGISTRY}"
         [ "$PRIVATE_REGISTRY" != "null" ] && echo "  Private Registry: ${PRIVATE_REGISTRY}"
@@ -81,6 +83,7 @@ runs:
           [ "$CUSTOMER_TYPE" != "null" ] && echo "customer_type: \"${CUSTOMER_TYPE}\""
           [ "$CUDA_VERSION" != "null" ] && echo "cuda_version: \"${CUDA_VERSION}\""
           [ "$CONTAINER_TYPE" != "null" ] && echo "container_type: \"${CONTAINER_TYPE}\""
+          [ "$PLATFORM" != "null" ] && echo "platform: \"${PLATFORM}\""
 
           # Boolean flags - include if not null (handles both true and false)
           [ "$FORCE_RELEASE" != "null" ] && echo "force_release: ${FORCE_RELEASE}"
