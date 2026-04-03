@@ -24,6 +24,7 @@ LOGGER = logging.getLogger(__name__)
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _input_path(resources, filename):
     return os.path.join(resources, "input", filename)
 
@@ -32,8 +33,9 @@ def _model_path(resources, model_name):
     return os.path.join(resources, "models", model_name)
 
 
-def _send_batch_requests(docker_client, image_uri, resources, model_name,
-                         content_type, input_files):
+def _send_batch_requests(
+    docker_client, image_uri, resources, model_name, content_type, input_files
+):
     model_dir = _model_path(resources, model_name)
     env = {"SAGEMAKER_BATCH": "True"}
     responses = []
@@ -59,12 +61,16 @@ def _validate_batch_response(resp, expected_length):
 # Tests
 # ===========================================================================
 
-class TestBatchTransform:
 
+class TestBatchTransform:
     def test_libsvm_batch(self, docker_client, image_uri, inference_resources):
         for model in ["mnist-pkl-model", "mnist-xgb-model"]:
             responses = _send_batch_requests(
-                docker_client, image_uri, inference_resources, model, "text/x-libsvm",
+                docker_client,
+                image_uri,
+                inference_resources,
+                model,
+                "text/x-libsvm",
                 ["mnist-1.libsvm", "mnist-less-dim-1.libsvm", "mnist-700.libsvm"],
             )
             _validate_batch_response(responses[0], 1)
@@ -73,7 +79,11 @@ class TestBatchTransform:
 
         # text/libsvm variant
         responses = _send_batch_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model", "text/libsvm",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-xgb-model",
+            "text/libsvm",
             ["mnist-1.libsvm", "mnist-700.libsvm"],
         )
         _validate_batch_response(responses[0], 1)
@@ -82,7 +92,10 @@ class TestBatchTransform:
     def test_recordio_protobuf_batch(self, docker_client, image_uri, inference_resources):
         for model in ["mnist-pkl-model", "mnist-xgb-model"]:
             responses = _send_batch_requests(
-                docker_client, image_uri, inference_resources, model,
+                docker_client,
+                image_uri,
+                inference_resources,
+                model,
                 "application/x-recordio-protobuf",
                 ["mnist-1.pbr", "mnist-equal-dim.pbr", "mnist-700.pbr"],
             )
@@ -93,7 +106,11 @@ class TestBatchTransform:
     def test_csv_batch(self, docker_client, image_uri, inference_resources):
         # mnist pkl
         responses = _send_batch_requests(
-            docker_client, image_uri, inference_resources, "mnist-pkl-model", "text/csv",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-pkl-model",
+            "text/csv",
             ["mnist-1.csv", "mnist-empty-cell.csv", "mnist-equal-dim.csv", "mnist-700.csv"],
         )
         _validate_batch_response(responses[0], 1)
@@ -103,9 +120,17 @@ class TestBatchTransform:
 
         # insurance pkl
         responses = _send_batch_requests(
-            docker_client, image_uri, inference_resources, "insurance-pkl-model", "text/csv",
-            ["insurance-1.csv", "insurance-2000.csv", "insurance-empty-cell.csv",
-             "insurance-nan-values.csv"],
+            docker_client,
+            image_uri,
+            inference_resources,
+            "insurance-pkl-model",
+            "text/csv",
+            [
+                "insurance-1.csv",
+                "insurance-2000.csv",
+                "insurance-empty-cell.csv",
+                "insurance-nan-values.csv",
+            ],
         )
         _validate_batch_response(responses[0], 1)
         _validate_batch_response(responses[1], 2000)
@@ -114,7 +139,11 @@ class TestBatchTransform:
 
         # insurance xgb
         responses = _send_batch_requests(
-            docker_client, image_uri, inference_resources, "insurance-xgb-model", "text/csv",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "insurance-xgb-model",
+            "text/csv",
             ["insurance-1.csv", "insurance-2000.csv", "insurance-empty-cell.csv"],
         )
         _validate_batch_response(responses[0], 1)
@@ -123,7 +152,11 @@ class TestBatchTransform:
 
         # salary pkl (single column)
         responses = _send_batch_requests(
-            docker_client, image_uri, inference_resources, "salary-pkl-model", "text/csv",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "salary-pkl-model",
+            "text/csv",
             ["salary-30.csv"],
         )
         _validate_batch_response(responses[0], 30)

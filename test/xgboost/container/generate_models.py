@@ -61,8 +61,7 @@ def main():
         pad = np.zeros((features.shape[0], n_features - features.shape[1]))
         features = np.concatenate([features, pad], axis=1)
     dtrain = xgb.DMatrix(features, label=labels)
-    bst = xgb.train({"objective": "multi:softmax", "num_class": 10, "max_depth": 6},
-                     dtrain, 10)
+    bst = xgb.train({"objective": "multi:softmax", "num_class": 10, "max_depth": 6}, dtrain, 10)
     bst.save_model(os.path.join(out_dir, "mnist-xgb-model"))
     pickle.dump(bst, open(os.path.join(out_dir, "mnist-pkl-model"), "wb"))
     print(f"  {features.shape[0]} rows x {features.shape[1]} features")
@@ -93,7 +92,7 @@ def main():
     dtrain_sal = xgb.DMatrix(X_sal, label=y_sal)
     bst_sal = xgb.train({"objective": "reg:squarederror", "max_depth": 3}, dtrain_sal, 10)
     pickle.dump(bst_sal, open(os.path.join(out_dir, "salary-pkl-model"), "wb"))
-    print(f"  100 rows x 1 feature")
+    print("  100 rows x 1 feature")
 
     # --- Upload to S3 ---
     print(f"\nUploading to s3://{S3_BUCKET}/{S3_PREFIX}/")

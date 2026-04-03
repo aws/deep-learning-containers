@@ -11,8 +11,9 @@ import os
 import tempfile
 
 import boto3
-import docker
 import pytest
+
+import docker
 
 LOGGER = logging.getLogger(__name__)
 
