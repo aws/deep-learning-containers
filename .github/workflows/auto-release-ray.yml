@@ -3,14 +3,14 @@ name: Auto Release - Ray
 on:
   # schedule run must be on the default branch
   schedule:
-    # Runs at 10:00 AM PST/PDT on Monday and Wednesday
-    - cron: '00 17 * * 1,3'
+    # Runs at 12:00 PM PST / 1:00 PM PDT on Tuesday and Thursday
+    - cron: '00 20 * * 2,4'
 
-  # Temporary PR trigger for gamma testing — remove after validation completes
-  pull_request:
-    paths:
-      - "**ray**"
-      - "!docs/**"
+  # PR trigger for gamma testing
+  # pull_request:
+  #   paths:
+  #     - "**ray**"
+  #     - "!docs/**"
 
   # Manual trigger
   workflow_dispatch:
@@ -722,7 +722,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-ec2-gpu.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec-ec2-gpu.outputs.release-spec }}
-      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-ec2-gpu.outputs.config).release.environment }}
+      environment: ${{ fromJson(needs.load-config-ec2-gpu.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
       skip-docs-pr: true
@@ -741,7 +741,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-ec2-cpu.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec-ec2-cpu.outputs.release-spec }}
-      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-ec2-cpu.outputs.config).release.environment }}
+      environment: ${{ fromJson(needs.load-config-ec2-cpu.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
       skip-docs-pr: true
@@ -760,7 +760,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec-sagemaker-gpu.outputs.release-spec }}
-      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-sagemaker-gpu.outputs.config).release.environment }}
+      environment: ${{ fromJson(needs.load-config-sagemaker-gpu.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
       skip-docs-pr: true
@@ -779,7 +779,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec-sagemaker-cpu.outputs.release-spec }}
-      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-sagemaker-cpu.outputs.config).release.environment }}
+      environment: ${{ fromJson(needs.load-config-sagemaker-cpu.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
       skip-docs-pr: true
