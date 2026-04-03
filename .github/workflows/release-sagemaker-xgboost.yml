@@ -148,47 +148,13 @@ jobs:
       framework: ${{ needs.load-config.outputs.framework }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
 
-  benchmark-test:
+  xgboost-tests:
     needs: [build-image, load-config]
     if: success()
-    timeout-minutes: 150
-    strategy:
-      fail-fast: false
-      matrix:
-        test-module:
-          - test_training_objective
-          - test_training_tree_method
-          - test_training_max_depth
-          - test_training_num_round
-          - test_training_data_size
-          - test_training_instance_type
-          - test_training_content_type
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-benchmark-${{ matrix.test-module }}-${{ github.run_id }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
+    uses: ./.github/workflows/sagemaker-xgboost-integ-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-          uv pip install -r test/xgboost/requirements.txt
-
-      - name: Run ${{ matrix.test-module }}
-        run: |
-          source .venv/bin/activate
-          cd test/
-          python3 -m pytest -vs -rA \
-            --image-uri ${{ needs.build-image.outputs.ci-image }} \
-            xgboost/benchmarks/${{ matrix.test-module }}.py
-
-  # TODO: Add integration-test job once integ tests are implemented
-  # TODO: Add container-test job once container tests are implemented
   # TODO: Add generate-release-spec and release-image jobs when release is ready
