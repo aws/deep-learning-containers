@@ -17,7 +17,7 @@ pytest tests/entrypoints/sagemaker/test_sagemaker_middleware_integration.py -v
 pytest tests/entrypoints/sagemaker/test_sagemaker_handler_overrides.py -v
 
 # Test LoRA adapter loading/unloading via original OpenAI API server endpoints
-pytest tests/entrypoints/openai/test_lora_adapters.py -v
+pytest tests/entrypoints/serve/lora/test_lora_adapters.py -v
 
 cd examples
 pip install tensorizer # for tensorizer test
