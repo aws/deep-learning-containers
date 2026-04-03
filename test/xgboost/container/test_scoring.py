@@ -24,6 +24,7 @@ LOGGER = logging.getLogger(__name__)
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _input_path(resources, filename):
     return os.path.join(resources, "input", filename)
 
@@ -32,8 +33,9 @@ def _model_path(resources, model_name):
     return os.path.join(resources, "models", model_name)
 
 
-def _send_requests(docker_client, image_uri, resources, model_name, content_type,
-                   input_files, environment=None):
+def _send_requests(
+    docker_client, image_uri, resources, model_name, content_type, input_files, environment=None
+):
     """Start serving container, send requests for each input file, return responses."""
     model_dir = _model_path(resources, model_name)
     responses = []
@@ -63,8 +65,8 @@ def _validate_response(resp, expected_length):
 # Valid scoring tests
 # ===========================================================================
 
-class TestValidScoring:
 
+class TestValidScoring:
     def test_execution_parameters(self, docker_client, image_uri, inference_resources):
         model_dir = _model_path(inference_resources, "mnist-xgb-model")
         with ServingContainer(docker_client, image_uri, model_dir) as ctx:
@@ -77,7 +79,11 @@ class TestValidScoring:
     def test_csv_inference(self, docker_client, image_uri, inference_resources):
         # mnist xgb model
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model", "text/csv",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-xgb-model",
+            "text/csv",
             ["mnist-1.csv", "mnist-empty-cell.csv", "mnist-equal-dim.csv", "mnist-700.csv"],
         )
         _validate_response(responses[0], 1)
@@ -87,7 +93,11 @@ class TestValidScoring:
 
         # mnist pkl model
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-pkl-model", "text/csv",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-pkl-model",
+            "text/csv",
             ["mnist-1.csv", "mnist-700.csv"],
         )
         _validate_response(responses[0], 1)
@@ -95,7 +105,11 @@ class TestValidScoring:
 
         # insurance xgb model
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "insurance-xgb-model", "text/csv",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "insurance-xgb-model",
+            "text/csv",
             ["insurance-1.csv", "insurance-2000.csv", "insurance-empty-cell.csv"],
         )
         _validate_response(responses[0], 1)
@@ -104,9 +118,17 @@ class TestValidScoring:
 
         # insurance pkl model
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "insurance-pkl-model", "text/csv",
-            ["insurance-1.csv", "insurance-2000.csv", "insurance-empty-cell.csv",
-             "insurance-nan-values.csv"],
+            docker_client,
+            image_uri,
+            inference_resources,
+            "insurance-pkl-model",
+            "text/csv",
+            [
+                "insurance-1.csv",
+                "insurance-2000.csv",
+                "insurance-empty-cell.csv",
+                "insurance-nan-values.csv",
+            ],
         )
         _validate_response(responses[0], 1)
         _validate_response(responses[1], 2000)
@@ -115,7 +137,11 @@ class TestValidScoring:
 
         # salary pkl model (single column)
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "salary-pkl-model", "text/csv",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "salary-pkl-model",
+            "text/csv",
             ["salary-30.csv"],
         )
         _validate_response(responses[0], 30)
@@ -123,7 +149,11 @@ class TestValidScoring:
     def test_libsvm_inference(self, docker_client, image_uri, inference_resources):
         for model in ["mnist-pkl-model", "mnist-xgb-model"]:
             responses = _send_requests(
-                docker_client, image_uri, inference_resources, model, "text/x-libsvm",
+                docker_client,
+                image_uri,
+                inference_resources,
+                model,
+                "text/x-libsvm",
                 ["mnist-1.libsvm", "mnist-less-dim-1.libsvm", "mnist-700.libsvm"],
             )
             _validate_response(responses[0], 1)
@@ -132,7 +162,11 @@ class TestValidScoring:
 
         # text/libsvm content type variant
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model", "text/libsvm",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-xgb-model",
+            "text/libsvm",
             ["mnist-1.libsvm", "mnist-700.libsvm"],
         )
         _validate_response(responses[0], 1)
@@ -141,7 +175,10 @@ class TestValidScoring:
     def test_recordio_protobuf_inference(self, docker_client, image_uri, inference_resources):
         for model in ["mnist-pkl-model", "mnist-xgb-model"]:
             responses = _send_requests(
-                docker_client, image_uri, inference_resources, model,
+                docker_client,
+                image_uri,
+                inference_resources,
+                model,
                 "application/x-recordio-protobuf",
                 ["mnist-1.pbr", "mnist-equal-dim.pbr", "mnist-700.pbr"],
             )
@@ -151,8 +188,11 @@ class TestValidScoring:
 
     def test_binary_classification(self, docker_client, image_uri, inference_resources):
         responses = _send_requests(
-            docker_client, image_uri, inference_resources,
-            "diabetes-binary-xgb-model", "text/csv",
+            docker_client,
+            image_uri,
+            inference_resources,
+            "diabetes-binary-xgb-model",
+            "text/csv",
             ["diabetes_inference.csv"],
         )
         assert responses[0].status_code == httplib.OK
@@ -162,7 +202,7 @@ class TestValidScoring:
         assert all(p in (0.0, 1.0) for p in predictions)
 
     def test_csv_20mb_payload(self, docker_client, image_uri, inference_resources):
-        max_payload = 20 * 1024 ** 2
+        max_payload = 20 * 1024**2
         model_dir = _model_path(inference_resources, "mnist-xgb-model")
         env = {"MAX_CONTENT_LENGTH": str(max_payload)}
         with ServingContainer(docker_client, image_uri, model_dir, env) as ctx:
@@ -179,8 +219,8 @@ class TestValidScoring:
 # Invalid scoring tests
 # ===========================================================================
 
-class TestInvalidScoring:
 
+class TestInvalidScoring:
     def test_unsupported_content_type(self, docker_client, image_uri, inference_resources):
         model_dir = _model_path(inference_resources, "mnist-xgb-model")
         with ServingContainer(docker_client, image_uri, model_dir) as ctx:
@@ -205,39 +245,65 @@ class TestInvalidScoring:
     # NOTE: test_invalid_feature_dimension removed — XGBoost 3.0.5 is lenient
     # with dimension mismatches (pads sparse features, accepts extra dims)
 
-    def test_libsvm_payload_with_csv_content_type(self, docker_client, image_uri, inference_resources):
+    def test_libsvm_payload_with_csv_content_type(
+        self, docker_client, image_uri, inference_resources
+    ):
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model",
-            "text/csv", ["mnist-1.libsvm"],
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-xgb-model",
+            "text/csv",
+            ["mnist-1.libsvm"],
         )
         assert responses[0].status_code == httplib.UNSUPPORTED_MEDIA_TYPE
         assert "Loading csv data failed" in responses[0].text
 
-    def test_invalid_payload_with_csv_content_type(self, docker_client, image_uri, inference_resources):
+    def test_invalid_payload_with_csv_content_type(
+        self, docker_client, image_uri, inference_resources
+    ):
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model",
-            "text/csv", ["data.rec"],
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-xgb-model",
+            "text/csv",
+            ["data.rec"],
         )
         assert responses[0].status_code == httplib.UNSUPPORTED_MEDIA_TYPE
         assert "Loading csv data failed" in responses[0].text
 
-    def test_csv_payload_with_libsvm_content_type(self, docker_client, image_uri, inference_resources):
+    def test_csv_payload_with_libsvm_content_type(
+        self, docker_client, image_uri, inference_resources
+    ):
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model",
-            "text/libsvm", ["mnist-1.csv"],
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-xgb-model",
+            "text/libsvm",
+            ["mnist-1.csv"],
         )
         assert responses[0].status_code == httplib.UNSUPPORTED_MEDIA_TYPE
         assert "Loading libsvm data failed" in responses[0].text
 
-    def test_invalid_payload_with_libsvm_content_type(self, docker_client, image_uri, inference_resources):
+    def test_invalid_payload_with_libsvm_content_type(
+        self, docker_client, image_uri, inference_resources
+    ):
         responses = _send_requests(
-            docker_client, image_uri, inference_resources, "mnist-xgb-model",
-            "text/libsvm", ["data.rec"],
+            docker_client,
+            image_uri,
+            inference_resources,
+            "mnist-xgb-model",
+            "text/libsvm",
+            ["data.rec"],
         )
         assert responses[0].status_code == httplib.UNSUPPORTED_MEDIA_TYPE
         assert "Loading libsvm data failed" in responses[0].text
 
-    def test_invalid_accept_selectable_inference(self, docker_client, image_uri, inference_resources):
+    def test_invalid_accept_selectable_inference(
+        self, docker_client, image_uri, inference_resources
+    ):
         model_dir = _model_path(inference_resources, "mnist-xgb-model")
         env = {"SAGEMAKER_INFERENCE_OUTPUT": "predicted_label"}
         with ServingContainer(docker_client, image_uri, model_dir, env) as ctx:
