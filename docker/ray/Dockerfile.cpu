@@ -63,16 +63,10 @@ ARG CONTAINER_TYPE="inference"
 ARG PYTHON_SHORT_VERSION=3.13
 
 # Copy Python and packages from builder
-COPY --from=builder /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python${PYTHON_SHORT_VERSION}
-COPY --from=builder /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip${PYTHON_SHORT_VERSION}
+COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /usr/local/lib/python${PYTHON_SHORT_VERSION} /usr/local/lib/python${PYTHON_SHORT_VERSION}
 COPY --from=builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr/local/include/python${PYTHON_SHORT_VERSION}
 COPY --from=builder /opt/ffmpeg /opt/ffmpeg
-
-RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
-  && ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
-  && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
-  && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
 # Set PATH for FFmpeg
 ENV PATH="/opt/ffmpeg/bin:$PATH" \
