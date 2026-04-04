@@ -97,10 +97,12 @@ ARG PYTHON_SHORT_VERSION=3.13
 # Copy Python and packages from python-builder
 COPY --from=python-builder /usr/local/bin/ /usr/local/bin/
 COPY --from=python-builder /usr/local/lib/python${PYTHON_SHORT_VERSION} /usr/local/lib/python${PYTHON_SHORT_VERSION}
+COPY --from=python-builder /usr/local/lib/libpython${PYTHON_SHORT_VERSION}* /usr/local/lib/
 COPY --from=python-builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr/local/include/python${PYTHON_SHORT_VERSION}
 
 # Copy FFmpeg from ffmpeg-builder
 COPY --from=ffmpeg-builder /opt/ffmpeg /opt/ffmpeg
+RUN ldconfig
 
 # Set PATH for FFmpeg
 ENV PATH="/opt/ffmpeg/bin:$PATH" \
