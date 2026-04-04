@@ -102,7 +102,7 @@ COPY --from=python-builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr
 
 # Copy FFmpeg from ffmpeg-builder
 COPY --from=ffmpeg-builder /opt/ffmpeg /opt/ffmpeg
-RUN ldconfig
+RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/python.conf && ldconfig
 
 # Set PATH for FFmpeg
 ENV PATH="/opt/ffmpeg/bin:$PATH" \

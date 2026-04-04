@@ -16,6 +16,7 @@ function install_python {
       LDFLAGS="-Wl,-z,relro,-z,now"
     make -j "$(nproc)"
     make altinstall
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/python.conf
     ldconfig
     cd ..
     rm -rf Python-${PYTHON_VERSION} Python-${PYTHON_VERSION}.tgz
