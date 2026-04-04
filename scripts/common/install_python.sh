@@ -16,6 +16,7 @@ function install_python {
       LDFLAGS="-Wl,-z,relro,-z,now"
     make -j "$(nproc)"
     make altinstall
+    ldconfig
     cd ..
     rm -rf Python-${PYTHON_VERSION} Python-${PYTHON_VERSION}.tgz
 
