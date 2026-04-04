@@ -23,9 +23,13 @@ TRAIN_HP = {
 def model_data(image_uri, role):
     """Train a model once for all inference tests."""
     _, _, desc = run_training_job(
-        image_uri=image_uri, role=role, hyperparameters=TRAIN_HP,
-        train_s3_key="train", validation_s3_key="test",
-        content_type="text/libsvm", test_name="infer-model",
+        image_uri=image_uri,
+        role=role,
+        hyperparameters=TRAIN_HP,
+        train_s3_key="train",
+        validation_s3_key="test",
+        content_type="text/libsvm",
+        test_name="infer-model",
     )
     assert desc["TrainingJobStatus"] == "Completed"
     return desc["ModelArtifacts"]["S3ModelArtifacts"]
@@ -36,8 +40,10 @@ class TestInference:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=model_data, test_name="infer-libsvm",
+                image_uri=image_uri,
+                role=role,
+                model_data=model_data,
+                test_name="infer-libsvm",
             )
             predictor.content_type = "text/libsvm"
             predictor.accept = "text/csv"
@@ -51,8 +57,10 @@ class TestInference:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=model_data, test_name="infer-csv",
+                image_uri=image_uri,
+                role=role,
+                model_data=model_data,
+                test_name="infer-csv",
             )
             predictor.content_type = "text/csv"
             predictor.accept = "text/csv"
@@ -67,8 +75,10 @@ class TestInference:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=model_data, test_name="infer-pb",
+                image_uri=image_uri,
+                role=role,
+                model_data=model_data,
+                test_name="infer-pb",
             )
             predictor.content_type = "application/x-recordio-protobuf"
             predictor.accept = "text/csv"
@@ -86,8 +96,10 @@ class TestInference:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=model_data, test_name="infer-mme-lib",
+                image_uri=image_uri,
+                role=role,
+                model_data=model_data,
+                test_name="infer-mme-lib",
             )
             predictor.content_type = "text/libsvm"
             predictor.accept = "text/csv"

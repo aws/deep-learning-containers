@@ -26,9 +26,13 @@ LIBSVM_PAYLOAD = "3 1:0.5 2:0.3 3:0.1 4:0.2 5:0.6 6:0.4 7:0.8 8:0.9"
 def trained_model(image_uri, role):
     """Train a CPU model once for all e2e tests in this module."""
     _, _, desc = run_training_job(
-        image_uri=image_uri, role=role, hyperparameters=E2E_HP,
-        train_s3_key="train", validation_s3_key="test",
-        content_type="text/libsvm", test_name="e2e-train",
+        image_uri=image_uri,
+        role=role,
+        hyperparameters=E2E_HP,
+        train_s3_key="train",
+        validation_s3_key="test",
+        content_type="text/libsvm",
+        test_name="e2e-train",
     )
     assert desc["TrainingJobStatus"] == "Completed"
     return desc["ModelArtifacts"]["S3ModelArtifacts"]
@@ -39,9 +43,13 @@ def gpu_trained_model(image_uri, role):
     """Train a GPU model once for GPU e2e tests."""
     hp = {**E2E_HP, "tree_method": "gpu_hist"}
     _, _, desc = run_training_job(
-        image_uri=image_uri, role=role, hyperparameters=hp,
-        train_s3_key="train", validation_s3_key="test",
-        content_type="text/libsvm", test_name="e2e-gpu-train",
+        image_uri=image_uri,
+        role=role,
+        hyperparameters=hp,
+        train_s3_key="train",
+        validation_s3_key="test",
+        content_type="text/libsvm",
+        test_name="e2e-gpu-train",
         instance_type="ml.g4dn.2xlarge",
     )
     assert desc["TrainingJobStatus"] == "Completed"
@@ -53,8 +61,10 @@ class TestE2E:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=trained_model, test_name="e2e-infer",
+                image_uri=image_uri,
+                role=role,
+                model_data=trained_model,
+                test_name="e2e-infer",
             )
             predictor.content_type = "text/libsvm"
             predictor.accept = "text/csv"
@@ -69,8 +79,10 @@ class TestE2E:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=gpu_trained_model, test_name="e2e-gpu-inf",
+                image_uri=image_uri,
+                role=role,
+                model_data=gpu_trained_model,
+                test_name="e2e-gpu-inf",
                 instance_type="ml.g4dn.2xlarge",
             )
             predictor.content_type = "text/libsvm"
@@ -88,9 +100,13 @@ class TestE2E:
             "use_dask_gpu_training": "true",
         }
         _, _, desc = run_training_job(
-            image_uri=image_uri, role=role, hyperparameters=hp,
-            train_s3_key="parquet/train", validation_s3_key="parquet/test",
-            content_type="application/x-parquet", test_name="e2e-dask",
+            image_uri=image_uri,
+            role=role,
+            hyperparameters=hp,
+            train_s3_key="parquet/train",
+            validation_s3_key="parquet/test",
+            content_type="application/x-parquet",
+            test_name="e2e-dask",
             instance_type="ml.g4dn.2xlarge",
             train_distribution="FullyReplicated",
         )
@@ -100,8 +116,10 @@ class TestE2E:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=trained_model, test_name="e2e-mme",
+                image_uri=image_uri,
+                role=role,
+                model_data=trained_model,
+                test_name="e2e-mme",
             )
             predictor.content_type = "text/libsvm"
             predictor.accept = "text/csv"
