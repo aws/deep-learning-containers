@@ -86,6 +86,7 @@ jobs:
             -p 8080:8080 \
             ${{ inputs.image-uri }} \
             --model /models/${{ matrix.model.name }} \
+            --port 8080 \
             --stage-init-timeout 600)
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
