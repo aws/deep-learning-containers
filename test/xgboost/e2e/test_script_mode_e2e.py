@@ -27,11 +27,16 @@ SCRIPT_HP = {
 def script_mode_model(image_uri, role):
     """Train a script-mode model once for all tests in this module."""
     _, _, desc = run_training_job(
-        image_uri=image_uri, role=role, hyperparameters=SCRIPT_HP,
+        image_uri=image_uri,
+        role=role,
+        hyperparameters=SCRIPT_HP,
         train_s3_key="script_mode/data/train",
         validation_s3_key="script_mode/data/validation",
-        content_type="text/libsvm", test_name="script-train",
-        instance_count=2, volume_size=20, max_run=3600,
+        content_type="text/libsvm",
+        test_name="script-train",
+        instance_count=2,
+        volume_size=20,
+        max_run=3600,
     )
     assert desc["TrainingJobStatus"] == "Completed"
     return desc["ModelArtifacts"]["S3ModelArtifacts"]
@@ -42,8 +47,10 @@ class TestScriptModeE2E:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=script_mode_model, test_name="script-infer",
+                image_uri=image_uri,
+                role=role,
+                model_data=script_mode_model,
+                test_name="script-infer",
                 env={
                     "SAGEMAKER_PROGRAM": "abalone.py",
                     "SAGEMAKER_SUBMIT_DIRECTORY": SCRIPT_CODE_S3,
@@ -63,8 +70,10 @@ class TestScriptModeE2E:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=script_mode_model, test_name="script-mme",
+                image_uri=image_uri,
+                role=role,
+                model_data=script_mode_model,
+                test_name="script-mme",
                 env={
                     "SAGEMAKER_PROGRAM": "abalone.py",
                     "SAGEMAKER_SUBMIT_DIRECTORY": SCRIPT_CODE_S3,
