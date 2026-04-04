@@ -24,9 +24,9 @@ pip install tensorizer # for tensorizer test
 
 # vLLM 0.18.0 moved basic scripts from offline_inference/basic/ to basic/offline_inference/
 if [ -d "basic/offline_inference" ]; then
-  BASIC_DIR="basic/offline_inference"
+	BASIC_DIR="basic/offline_inference"
 else
-  BASIC_DIR="offline_inference/basic"
+	BASIC_DIR="offline_inference/basic"
 fi
 
 python3 ${BASIC_DIR}/generate.py --model facebook/opt-125m
