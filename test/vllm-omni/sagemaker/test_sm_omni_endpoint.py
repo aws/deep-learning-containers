@@ -109,13 +109,20 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
     )
 
     LOGGER.info("Sending TTS request via /invocations with route=/v1/audio/speech")
-    response = sm_runtime.invoke_endpoint(
-        EndpointName=predictor.endpoint_name,
-        ContentType="application/json",
-        Body=payload,
-        CustomAttributes="route=/v1/audio/speech",
-        InvocationTimeoutSeconds=300,
-    )
+    # First request may be slow due to model warmup; retry on timeout
+    for attempt in range(3):
+        try:
+            response = sm_runtime.invoke_endpoint(
+                EndpointName=predictor.endpoint_name,
+                ContentType="application/json",
+                Body=payload,
+                CustomAttributes="route=/v1/audio/speech",
+            )
+            break
+        except Exception as e:
+            LOGGER.warning(f"Attempt {attempt + 1} failed: {e}")
+            if attempt == 2:
+                raise
 
     audio_bytes = response["Body"].read()
     LOGGER.info(f"TTS audio response: {len(audio_bytes)} bytes")
