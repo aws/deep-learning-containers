@@ -109,7 +109,10 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
     )
 
     LOGGER.info("Sending TTS request via /invocations with route=/v1/audio/speech")
-    # First request may be slow due to model warmup; retry on timeout
+    # First request triggers torch.compile + CUDA graph capture (~67s),
+    # which exceeds SageMaker's 60s invoke timeout. Retry after warmup completes.
+    import time
+
     for attempt in range(3):
         try:
             response = sm_runtime.invoke_endpoint(
@@ -120,9 +123,10 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
             )
             break
         except Exception as e:
-            LOGGER.warning(f"Attempt {attempt + 1} failed: {e}")
+            LOGGER.warning(f"Attempt {attempt + 1}/3 failed: {e}")
             if attempt == 2:
                 raise
+            time.sleep(30)
 
     audio_bytes = response["Body"].read()
     LOGGER.info(f"TTS audio response: {len(audio_bytes)} bytes")
