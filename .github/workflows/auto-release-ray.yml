@@ -1,0 +1,786 @@
+name: Auto Release - Ray
+
+on:
+  # schedule run must be on the default branch
+  schedule:
+    # Runs at 12:00 PM PST / 1:00 PM PDT on Tuesday and Thursday
+    - cron: '00 20 * * 2,4'
+
+  # PR trigger for gamma testing
+  # pull_request:
+  #   paths:
+  #     - "**ray**"
+  #     - "!docs/**"
+
+  # Manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  # ============================================================
+  # Load configs for all 4 Ray image variants
+  # ============================================================
+  load-config-ec2-gpu:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      build-target: ${{ steps.parse.outputs.build-target }}
+      ci-tag: ${{ steps.parse.outputs.ci-tag }}
+      dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/ray-ec2-gpu.yml
+      - id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "build-target=$(jq -r '.common.build_target' config.json)" >> $GITHUB_OUTPUT
+          echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(jq -r '.common.dockerfile' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image' config.json)" >> $GITHUB_OUTPUT
+
+  load-config-ec2-cpu:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      build-target: ${{ steps.parse.outputs.build-target }}
+      ci-tag: ${{ steps.parse.outputs.ci-tag }}
+      dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/ray-ec2-cpu.yml
+      - id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "build-target=$(jq -r '.common.build_target' config.json)" >> $GITHUB_OUTPUT
+          echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(jq -r '.common.dockerfile' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image' config.json)" >> $GITHUB_OUTPUT
+
+  load-config-sagemaker-gpu:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      build-target: ${{ steps.parse.outputs.build-target }}
+      ci-tag: ${{ steps.parse.outputs.ci-tag }}
+      dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/ray-sagemaker-gpu.yml
+      - id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "build-target=$(jq -r '.common.build_target' config.json)" >> $GITHUB_OUTPUT
+          echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(jq -r '.common.dockerfile' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image' config.json)" >> $GITHUB_OUTPUT
+
+  load-config-sagemaker-cpu:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      build-target: ${{ steps.parse.outputs.build-target }}
+      ci-tag: ${{ steps.parse.outputs.ci-tag }}
+      dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/ray-sagemaker-cpu.yml
+      - id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "build-target=$(jq -r '.common.build_target' config.json)" >> $GITHUB_OUTPUT
+          echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(jq -r '.common.dockerfile' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image' config.json)" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Build all 4 Ray images
+  # ============================================================
+  build-ec2-gpu:
+    needs: [load-config-ec2-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-ec2-gpu-${{ github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config-ec2-gpu.outputs.framework }}
+          target: ${{ needs.load-config-ec2-gpu.outputs.build-target }}
+          base-image: ${{ needs.load-config-ec2-gpu.outputs.base-image }}
+          framework-version: ${{ needs.load-config-ec2-gpu.outputs.framework-version }}
+          container-type: ${{ needs.load-config-ec2-gpu.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.load-config-ec2-gpu.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-ec2-gpu.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-ec2-gpu.outputs.arch-type }}
+          device-type: ${{ needs.load-config-ec2-gpu.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-ec2-gpu.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-ec2-gpu.outputs.python-version }}
+          os-version: ${{ needs.load-config-ec2-gpu.outputs.os-version }}
+          contributor: ${{ needs.load-config-ec2-gpu.outputs.contributor }}
+          customer-type: ${{ needs.load-config-ec2-gpu.outputs.customer-type }}
+
+  build-ec2-cpu:
+    needs: [load-config-ec2-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-ec2-cpu-${{ github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config-ec2-cpu.outputs.framework }}
+          target: ${{ needs.load-config-ec2-cpu.outputs.build-target }}
+          base-image: ${{ needs.load-config-ec2-cpu.outputs.base-image }}
+          framework-version: ${{ needs.load-config-ec2-cpu.outputs.framework-version }}
+          container-type: ${{ needs.load-config-ec2-cpu.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.load-config-ec2-cpu.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-ec2-cpu.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-ec2-cpu.outputs.arch-type }}
+          device-type: ${{ needs.load-config-ec2-cpu.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-ec2-cpu.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-ec2-cpu.outputs.python-version }}
+          os-version: ${{ needs.load-config-ec2-cpu.outputs.os-version }}
+          contributor: ${{ needs.load-config-ec2-cpu.outputs.contributor }}
+          customer-type: ${{ needs.load-config-ec2-cpu.outputs.customer-type }}
+
+  build-sagemaker-gpu:
+    needs: [load-config-sagemaker-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-sagemaker-gpu-${{ github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config-sagemaker-gpu.outputs.framework }}
+          target: ${{ needs.load-config-sagemaker-gpu.outputs.build-target }}
+          base-image: ${{ needs.load-config-sagemaker-gpu.outputs.base-image }}
+          framework-version: ${{ needs.load-config-sagemaker-gpu.outputs.framework-version }}
+          container-type: ${{ needs.load-config-sagemaker-gpu.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.load-config-sagemaker-gpu.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-sagemaker-gpu.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-sagemaker-gpu.outputs.arch-type }}
+          device-type: ${{ needs.load-config-sagemaker-gpu.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-sagemaker-gpu.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-sagemaker-gpu.outputs.python-version }}
+          os-version: ${{ needs.load-config-sagemaker-gpu.outputs.os-version }}
+          contributor: ${{ needs.load-config-sagemaker-gpu.outputs.contributor }}
+          customer-type: ${{ needs.load-config-sagemaker-gpu.outputs.customer-type }}
+
+  build-sagemaker-cpu:
+    needs: [load-config-sagemaker-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-sagemaker-cpu-${{ github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config-sagemaker-cpu.outputs.framework }}
+          target: ${{ needs.load-config-sagemaker-cpu.outputs.build-target }}
+          base-image: ${{ needs.load-config-sagemaker-cpu.outputs.base-image }}
+          framework-version: ${{ needs.load-config-sagemaker-cpu.outputs.framework-version }}
+          container-type: ${{ needs.load-config-sagemaker-cpu.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.load-config-sagemaker-cpu.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-sagemaker-cpu.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-sagemaker-cpu.outputs.arch-type }}
+          device-type: ${{ needs.load-config-sagemaker-cpu.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-sagemaker-cpu.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-sagemaker-cpu.outputs.python-version }}
+          os-version: ${{ needs.load-config-sagemaker-cpu.outputs.os-version }}
+          contributor: ${{ needs.load-config-sagemaker-cpu.outputs.contributor }}
+          customer-type: ${{ needs.load-config-sagemaker-cpu.outputs.customer-type }}
+
+  # ============================================================
+  # Sanity tests
+  # ============================================================
+  sanity-test:
+    needs: [build-ec2-gpu, build-ec2-cpu, build-sagemaker-gpu, build-sagemaker-cpu]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ci-image: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+            device-type: gpu
+            cuda-version: cu129
+            customer-type: ec2
+          - ci-image: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+            device-type: cpu
+            cuda-version: ""
+            customer-type: ec2
+          - ci-image: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
+            device-type: gpu
+            cuda-version: cu129
+            customer-type: sagemaker
+          - ci-image: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+            device-type: cpu
+            cuda-version: ""
+            customer-type: sagemaker
+    concurrency:
+      group: ${{ github.workflow }}-sanity-${{ matrix.ci-image }}-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ matrix.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ray
+      framework-version: "2.54.1"
+      python-version: py313
+      cuda-version: ${{ matrix.cuda-version }}
+      os-version: amzn2023
+      customer-type: ${{ matrix.customer-type }}
+      arch-type: x86
+      device-type: ${{ matrix.device-type }}
+      contributor: None
+      container-type: inference
+
+  # ============================================================
+  # EC2 GPU — FFmpeg + serve tests
+  # ============================================================
+  ray-ec2-gpu-ffmpeg-test:
+    needs: [build-ec2-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-ec2-gpu-ffmpeg-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-ec2-gpu.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+      - name: Run FFmpeg GPU test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_gpu.sh
+
+  ray-ec2-gpu-serve-test:
+    needs: [build-ec2-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-ec2-gpu-serve-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray/ec2/requirements.txt
+      - name: Run EC2 serve tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.build-ec2-gpu.outputs.ci-image }} \
+            ray/ec2/test_ec2_gpu.py
+
+  # ============================================================
+  # EC2 CPU — FFmpeg + serve tests
+  # ============================================================
+  ray-ec2-cpu-ffmpeg-test:
+    needs: [build-ec2-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-ec2-cpu-ffmpeg-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-ec2-cpu.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+
+  ray-ec2-cpu-serve-test:
+    needs: [build-ec2-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-ec2-cpu-serve-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray/ec2/requirements.txt
+      - name: Run EC2 serve tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.build-ec2-cpu.outputs.ci-image }} \
+            ray/ec2/test_ec2_cpu.py
+
+  # ============================================================
+  # SageMaker GPU — local + endpoint tests
+  # ============================================================
+  ray-sagemaker-gpu-local-test:
+    needs: [build-sagemaker-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-gpu-local-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-sagemaker-gpu.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+      - name: Run FFmpeg GPU test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_gpu.sh
+
+  ray-sagemaker-gpu-endpoint-test:
+    needs: [build-sagemaker-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-gpu-endpoint-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray/sagemaker/requirements.txt
+      - name: Run sagemaker endpoint test
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.build-sagemaker-gpu.outputs.ci-image }} \
+            ray/sagemaker/test_sm_endpoint_gpu.py
+
+  # ============================================================
+  # SageMaker CPU — local + endpoint tests
+  # ============================================================
+  ray-sagemaker-cpu-local-test:
+    needs: [build-sagemaker-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-cpu-local-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-sagemaker-cpu.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+
+  ray-sagemaker-cpu-endpoint-test:
+    needs: [build-sagemaker-cpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-cpu-endpoint-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray/sagemaker/requirements.txt
+      - name: Run sagemaker endpoint test
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.build-sagemaker-cpu.outputs.ci-image }} \
+            ray/sagemaker/test_sm_endpoint_cpu.py
+
+  # ============================================================
+  # Telemetry tests
+  # ============================================================
+  telemetry-test:
+    needs: [build-ec2-gpu, build-ec2-cpu, build-sagemaker-gpu, build-sagemaker-cpu]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ci-image: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+          - ci-image: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+          - ci-image: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
+          - ci-image: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-${{ matrix.ci-image }}-${{ github.run_id }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ matrix.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ray
+      framework-version: "2.54.1"
+      container-type: inference
+
+  # ============================================================
+  # Generate release specs
+  # ============================================================
+  generate-release-spec-ec2-gpu:
+    needs: [load-config-ec2-gpu, build-ec2-gpu, sanity-test, telemetry-test, ray-ec2-gpu-ffmpeg-test, ray-ec2-gpu-serve-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-ec2-gpu.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-ec2-gpu.outputs.config }}
+
+  generate-release-spec-ec2-cpu:
+    needs: [load-config-ec2-cpu, build-ec2-cpu, sanity-test, telemetry-test, ray-ec2-cpu-ffmpeg-test, ray-ec2-cpu-serve-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-ec2-cpu.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-ec2-cpu.outputs.config }}
+
+  generate-release-spec-sagemaker-gpu:
+    needs: [load-config-sagemaker-gpu, build-sagemaker-gpu, sanity-test, telemetry-test, ray-sagemaker-gpu-local-test, ray-sagemaker-gpu-endpoint-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-sagemaker-gpu.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-sagemaker-gpu.outputs.config }}
+
+  generate-release-spec-sagemaker-cpu:
+    needs: [load-config-sagemaker-cpu, build-sagemaker-cpu, sanity-test, telemetry-test, ray-sagemaker-cpu-local-test, ray-sagemaker-cpu-endpoint-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-sagemaker-cpu.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-sagemaker-cpu.outputs.config }}
+
+  # ============================================================
+  # Release — EC2 GPU
+  # ============================================================
+  release-ec2-gpu:
+    needs: [load-config-ec2-gpu, build-ec2-gpu, generate-release-spec-ec2-gpu]
+    if: needs.generate-release-spec-ec2-gpu.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-ec2-gpu-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec-ec2-gpu.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config-ec2-gpu.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      skip-docs-pr: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — EC2 CPU
+  # ============================================================
+  release-ec2-cpu:
+    needs: [load-config-ec2-cpu, build-ec2-cpu, generate-release-spec-ec2-cpu]
+    if: needs.generate-release-spec-ec2-cpu.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-ec2-cpu-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec-ec2-cpu.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config-ec2-cpu.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      skip-docs-pr: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — SageMaker GPU
+  # ============================================================
+  release-sagemaker-gpu:
+    needs: [load-config-sagemaker-gpu, build-sagemaker-gpu, generate-release-spec-sagemaker-gpu]
+    if: needs.generate-release-spec-sagemaker-gpu.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-sagemaker-gpu-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec-sagemaker-gpu.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config-sagemaker-gpu.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      skip-docs-pr: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — SageMaker CPU
+  # ============================================================
+  release-sagemaker-cpu:
+    needs: [load-config-sagemaker-cpu, build-sagemaker-cpu, generate-release-spec-sagemaker-cpu]
+    if: needs.generate-release-spec-sagemaker-cpu.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-sagemaker-cpu-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec-sagemaker-cpu.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config-sagemaker-cpu.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      skip-docs-pr: true
+    secrets: inherit
