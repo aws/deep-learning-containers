@@ -128,13 +128,18 @@ def run_training_job(
     duration = time.time() - start
 
     desc = sm.describe_training_job(TrainingJobName=job_name)
-    LOGGER.info(f"Job {job_name} completed in {duration:.0f}s — status: {desc['TrainingJobStatus']}")
+    LOGGER.info(
+        f"Job {job_name} completed in {duration:.0f}s — status: {desc['TrainingJobStatus']}"
+    )
     return job_name, duration, desc
 
 
-def deploy_endpoint(image_uri, role, model_data, test_name="ep", instance_type="ml.m5.xlarge", env=None):
+def deploy_endpoint(
+    image_uri, role, model_data, test_name="ep", instance_type="ml.m5.xlarge", env=None
+):
     """Deploy a real-time endpoint and return (predictor, endpoint_name, model_name)."""
     from sagemaker.predictor import Predictor
+
     endpoint_name = random_suffix_name(f"xgb-{test_name}", 32)
     model = Model(
         image_uri=image_uri,
@@ -189,8 +194,15 @@ def delete_endpoint(endpoint_name):
 
 
 def run_batch_transform(
-    image_uri, role, model_data, input_s3_uri, content_type,
-    test_name="bt", instance_type="ml.m5.xlarge", split_type="Line", accept="text/csv",
+    image_uri,
+    role,
+    model_data,
+    input_s3_uri,
+    content_type,
+    test_name="bt",
+    instance_type="ml.m5.xlarge",
+    split_type="Line",
+    accept="text/csv",
     env=None,
 ):
     """Run a batch transform job and return the job description."""

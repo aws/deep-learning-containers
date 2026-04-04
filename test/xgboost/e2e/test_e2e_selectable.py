@@ -4,6 +4,7 @@ Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_e2e_selec
 """
 
 import json
+
 import pytest
 
 from .conftest import delete_endpoint, deploy_endpoint, run_training_job
@@ -26,9 +27,13 @@ INFERENCE_PAYLOAD = "1,5.1,3.5,1.4,0.2\n60,5.2,2.7,3.9,1.4\n113,6.8,3,5.5,2.1"
 def selectable_model(image_uri, role):
     """Train a multiclass model on iris dataset."""
     _, _, desc = run_training_job(
-        image_uri=image_uri, role=role, hyperparameters=SELECTABLE_HP,
-        train_s3_key="iris/train", validation_s3_key="iris/test",
-        content_type="text/csv", test_name="select-train",
+        image_uri=image_uri,
+        role=role,
+        hyperparameters=SELECTABLE_HP,
+        train_s3_key="iris/train",
+        validation_s3_key="iris/test",
+        content_type="text/csv",
+        test_name="select-train",
     )
     assert desc["TrainingJobStatus"] == "Completed"
     return desc["ModelArtifacts"]["S3ModelArtifacts"]
@@ -39,8 +44,10 @@ class TestSelectableInference:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=selectable_model, test_name="select-csv",
+                image_uri=image_uri,
+                role=role,
+                model_data=selectable_model,
+                test_name="select-csv",
                 env={"SAGEMAKER_INFERENCE_OUTPUT": "predicted_label,labels"},
             )
             predictor.content_type = "text/csv"
@@ -55,8 +62,10 @@ class TestSelectableInference:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=selectable_model, test_name="select-json",
+                image_uri=image_uri,
+                role=role,
+                model_data=selectable_model,
+                test_name="select-json",
                 env={"SAGEMAKER_INFERENCE_OUTPUT": "labels,probabilities"},
             )
             predictor.content_type = "text/csv"
@@ -73,14 +82,20 @@ class TestSelectableInference:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=selectable_model, test_name="select-jl",
+                image_uri=image_uri,
+                role=role,
+                model_data=selectable_model,
+                test_name="select-jl",
                 env={"SAGEMAKER_INFERENCE_OUTPUT": "predicted_label,probability"},
             )
             predictor.content_type = "text/csv"
             predictor.accept = "application/jsonlines"
             response = predictor.predict(INFERENCE_PAYLOAD)
-            lines = response.decode().strip().splitlines() if isinstance(response, bytes) else response.strip().splitlines()
+            lines = (
+                response.decode().strip().splitlines()
+                if isinstance(response, bytes)
+                else response.strip().splitlines()
+            )
             assert len(lines) == 3
             for line in lines:
                 parsed = json.loads(line)
@@ -93,9 +108,13 @@ class TestSelectableInference:
         endpoint_name = None
         try:
             predictor, endpoint_name = deploy_endpoint(
-                image_uri=image_uri, role=role,
-                model_data=selectable_model, test_name="select-nan",
-                env={"SAGEMAKER_INFERENCE_OUTPUT": "foo,predicted_label,predicted_score,porbabilitise"},
+                image_uri=image_uri,
+                role=role,
+                model_data=selectable_model,
+                test_name="select-nan",
+                env={
+                    "SAGEMAKER_INFERENCE_OUTPUT": "foo,predicted_label,predicted_score,porbabilitise"
+                },
             )
             predictor.content_type = "text/csv"
             predictor.accept = "text/csv"
@@ -104,5 +123,3 @@ class TestSelectableInference:
         finally:
             if endpoint_name:
                 delete_endpoint(endpoint_name)
-
-
