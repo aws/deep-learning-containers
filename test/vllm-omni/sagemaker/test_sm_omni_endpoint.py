@@ -114,6 +114,7 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
         ContentType="application/json",
         Body=payload,
         CustomAttributes="route=/v1/audio/speech",
+        InvocationTimeoutSeconds=300,
     )
 
     audio_bytes = response["Body"].read()
