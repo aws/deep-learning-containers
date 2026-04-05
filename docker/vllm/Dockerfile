@@ -98,7 +98,7 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== ray serve =========================================
 FROM base AS vllm-rayserve-ec2
 
-RUN uv pip install --system ray[serve]==2.49.0 \
+RUN uv pip install --system ray[serve]==2.49.0 "aiohttp>=3.13.4" \
   && uv cache clean
 
 ARG CACHE_REFRESH=0
