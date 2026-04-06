@@ -47,22 +47,29 @@ RUN git clone --depth 1 --branch n8.0.1 https://github.com/FFmpeg/FFmpeg.git /tm
 #############
 FROM amazonlinux:2023 AS python-builder
 
-RUN dnf install -y --setopt=install_weak_deps=False tar gzip \
+RUN dnf install -y --setopt=install_weak_deps=False \
+  gcc \
+  gcc-c++ \
+  make \
+  tar \
+  gzip \
+  wget \
+  openssl-devel \
+  libffi-devel \
+  bzip2-devel \
+  xz-devel \
+  zlib-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
-# Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
-  && mv /root/.local/bin/uv /usr/local/bin/uv
-
-# Create virtual environment
-ARG PYTHON_VERSION=3.13
-RUN uv python install ${PYTHON_VERSION} \
-  && uv venv /opt/venv --python ${PYTHON_VERSION}
+# Build Python from source with security hardening
+ARG PYTHON_VERSION=3.13.12
+ARG PYTHON_SHORT_VERSION=3.13
+COPY ./scripts/common/install_python.sh /tmp/install_python.sh
+RUN bash /tmp/install_python.sh ${PYTHON_VERSION} && rm /tmp/install_python.sh
 
 # Install pinned dependencies
 COPY ./scripts/ray/requirements.lock /tmp/requirements.lock
-RUN --mount=type=cache,target=/root/.cache/uv . /opt/venv/bin/activate \
-  && uv pip install -r /tmp/requirements.lock
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock
 
 
 #############
@@ -85,21 +92,25 @@ ARG CONTAINER_TYPE="inference"
 # Enable video capability to mount NVENC/NVDEC driver libraries
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 
-# Copy Python installation and venv from python-builder
-COPY --from=python-builder /root/.local/share/uv/python /root/.local/share/uv/python
-COPY --from=python-builder /opt/venv /opt/venv
+ARG PYTHON_SHORT_VERSION=3.13
+
+# Copy Python and packages from python-builder
+COPY --from=python-builder /usr/local/bin/ /usr/local/bin/
+COPY --from=python-builder /usr/local/lib/python${PYTHON_SHORT_VERSION} /usr/local/lib/python${PYTHON_SHORT_VERSION}
+COPY --from=python-builder /usr/local/lib/libpython${PYTHON_SHORT_VERSION}* /usr/local/lib/
+COPY --from=python-builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr/local/include/python${PYTHON_SHORT_VERSION}
 
 # Copy FFmpeg from ffmpeg-builder
 COPY --from=ffmpeg-builder /opt/ffmpeg /opt/ffmpeg
+RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/python.conf && ldconfig
 
-# Set PATH to use venv and FFmpeg
-ENV PATH="/opt/venv/bin:/opt/ffmpeg/bin:$PATH" \
+# Set PATH for FFmpeg
+ENV PATH="/opt/ffmpeg/bin:$PATH" \
   LD_LIBRARY_PATH="/opt/ffmpeg/lib:${LD_LIBRARY_PATH}" \
   DLC_CONTAINER_TYPE=inference
 
 # Create model directories
-RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output \
-  && ln -s /opt/venv/bin/python3 /usr/local/bin/python
+RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output
 
 WORKDIR /app
 
