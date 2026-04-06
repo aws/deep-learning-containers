@@ -141,7 +141,7 @@ jobs:
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: sglang-ec2
-          base-image: lmsysorg/sglang:v${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.cuda-version }}-amd64
+          base-image: lmsysorg/sglang:v${{ needs.load-config.outputs.framework-version }}
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
