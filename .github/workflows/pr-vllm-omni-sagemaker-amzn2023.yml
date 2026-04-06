@@ -55,7 +55,7 @@ jobs:
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
-          uv pip install -r test/requirements.txt
+          uv pip install -r test/requirements.txt starlette
 
       - name: Run middleware unit tests
         run: |
