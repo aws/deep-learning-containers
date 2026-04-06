@@ -22,7 +22,7 @@ smoke-test:
     - name: "cosyvoice3-0.5b"
       s3_model: "cosyvoice3-0.5b.tar.gz"
       fleet: "x86-g6exl-runner"
-      extra_args: "--stage-configs-path vllm_omni/model_executor/stage_configs/cosyvoice3.yaml --trust-remote-code --enforce-eager"
+      extra_args: "--stage-configs-path /opt/venv/lib64/python3.12/site-packages/vllm_omni/model_executor/stage_configs/cosyvoice3.yaml --trust-remote-code --enforce-eager"
       route: "/v1/audio/speech"
       test_request: '{"input": "Hello, this is a test.", "voice": "default"}'
       validate: "binary_size_gt:1000"
