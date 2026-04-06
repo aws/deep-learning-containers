@@ -121,7 +121,7 @@ IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEV
 # -----------------------------------------------------------------
 # Early exit: skip unsupported platforms
 # -----------------------------------------------------------------
-if [ "$PLATFORM" = "rayserve_ec2" ]; then
+if [ "$PLATFORM" = "rayserve_ec2" ] || [ "$FRAMEWORK" = "xgboost" ]; then
   echo "${FRAMEWORK}: Platform '${PLATFORM}' is not supported for docs generation. Skipping."
   exit 0
 fi
