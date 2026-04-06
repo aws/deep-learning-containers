@@ -163,12 +163,13 @@ jobs:
           docker exec ${CONTAINER_ID} bash /tmp/smoke_test.sh \
             "${{ matrix.model.route }}" \
             '${{ matrix.model.test_request }}' \
-            "${{ matrix.model.validate }}"
+            "${{ matrix.model.validate }}" \
+            "${{ matrix.model.content_type || 'application/json' }}"
 
       - name: Dump container logs
         if: always()
         run: |
-          docker logs ${CONTAINER_ID} 2>&1 | tail -100 || true
+          docker logs ${CONTAINER_ID} 2>&1 | tail -500 || true
 
       - name: Cleanup
         if: always()

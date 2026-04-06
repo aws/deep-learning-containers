@@ -4,13 +4,15 @@
 # Request payload and validation are passed as arguments from the model config.
 set -eux
 
-ROUTE="${1:?Usage: $0 <route> <test_request_json> <validate>}"
-REQUEST="${2:?Usage: $0 <route> <test_request_json> <validate>}"
-VALIDATE="${3:?Usage: $0 <route> <test_request_json> <validate>}"
+ROUTE="${1:?Usage: $0 <route> <test_request> <validate> [content_type]}"
+REQUEST="${2:?Usage: $0 <route> <test_request> <validate> [content_type]}"
+VALIDATE="${3:?Usage: $0 <route> <test_request> <validate> [content_type]}"
+CONTENT_TYPE="${4:-application/json}"
 PORT=8080
 
 echo "=== vLLM-Omni EC2 smoke test ==="
 echo "Route: ${ROUTE}"
+echo "Content-Type: ${CONTENT_TYPE}"
 echo "Validate: ${VALIDATE}"
 
 # Wait for server
@@ -25,10 +27,20 @@ done
 curl -sf http://localhost:${PORT}/health || { echo "Health check failed"; exit 1; }
 
 # Send request directly to the API endpoint
-curl -sf -X POST "http://localhost:${PORT}${ROUTE}" \
-  -H "Content-Type: application/json" \
-  -d "${REQUEST}" \
-  --output /tmp/omni_response --max-time 300
+if [ "${CONTENT_TYPE}" = "multipart/form-data" ]; then
+    # Convert key=value&key2=value2 to -F flags
+    CURL_ARGS=""
+    IFS='&' read -ra PAIRS <<< "${REQUEST}"
+    for pair in "${PAIRS[@]}"; do
+        CURL_ARGS="${CURL_ARGS} -F ${pair}"
+    done
+    eval curl -sf -X POST "http://localhost:${PORT}${ROUTE}" ${CURL_ARGS} --output /tmp/omni_response --max-time 300
+else
+    curl -sf -X POST "http://localhost:${PORT}${ROUTE}" \
+      -H "Content-Type: application/json" \
+      -d "${REQUEST}" \
+      --output /tmp/omni_response --max-time 300
+fi
 
 # Validate response
 if [[ "${VALIDATE}" == binary_size_gt:* ]]; then

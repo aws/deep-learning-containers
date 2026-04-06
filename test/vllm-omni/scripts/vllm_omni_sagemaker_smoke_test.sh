@@ -4,13 +4,15 @@
 # Request payload and validation are passed as arguments from the model config.
 set -eux
 
-ROUTE="${1:?Usage: $0 <route> <test_request_json> <validate>}"
-REQUEST="${2:?Usage: $0 <route> <test_request_json> <validate>}"
-VALIDATE="${3:?Usage: $0 <route> <test_request_json> <validate>}"
+ROUTE="${1:?Usage: $0 <route> <test_request> <validate> [content_type]}"
+REQUEST="${2:?Usage: $0 <route> <test_request> <validate> [content_type]}"
+VALIDATE="${3:?Usage: $0 <route> <test_request> <validate> [content_type]}"
+CONTENT_TYPE="${4:-application/json}"
 PORT=8080
 
 echo "=== vLLM-Omni SageMaker smoke test ==="
 echo "Route: ${ROUTE}"
+echo "Content-Type: ${CONTENT_TYPE}"
 echo "Validate: ${VALIDATE}"
 
 # Wait for server
@@ -25,11 +27,22 @@ done
 curl -sf http://localhost:${PORT}/ping || { echo "Ping failed"; exit 1; }
 
 # Send request via /invocations with route header
-curl -sf -X POST http://localhost:${PORT}/invocations \
-  -H "Content-Type: application/json" \
-  -H "X-Amzn-SageMaker-Custom-Attributes: route=${ROUTE}" \
-  -d "${REQUEST}" \
-  --output /tmp/omni_response --max-time 300
+if [ "${CONTENT_TYPE}" = "multipart/form-data" ]; then
+    CURL_ARGS=""
+    IFS='&' read -ra PAIRS <<< "${REQUEST}"
+    for pair in "${PAIRS[@]}"; do
+        CURL_ARGS="${CURL_ARGS} -F ${pair}"
+    done
+    eval curl -sf -X POST "http://localhost:${PORT}/invocations" \
+      -H "X-Amzn-SageMaker-Custom-Attributes: route=${ROUTE}" \
+      ${CURL_ARGS} --output /tmp/omni_response --max-time 300
+else
+    curl -sf -X POST http://localhost:${PORT}/invocations \
+      -H "Content-Type: application/json" \
+      -H "X-Amzn-SageMaker-Custom-Attributes: route=${ROUTE}" \
+      -d "${REQUEST}" \
+      --output /tmp/omni_response --max-time 300
+fi
 
 # Validate response
 if [[ "${VALIDATE}" == binary_size_gt:* ]]; then
@@ -43,7 +56,6 @@ elif [[ "${VALIDATE}" == json_field:* ]]; then
     python3 -c "
 import json, sys
 data = json.load(open('/tmp/omni_response'))
-# Navigate nested field like data[0].b64_json
 obj = data
 for part in '${FIELD}'.replace(']','').replace('[','.').split('.'):
     if part.isdigit():

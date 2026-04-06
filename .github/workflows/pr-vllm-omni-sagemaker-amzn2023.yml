@@ -298,3 +298,17 @@ jobs:
           source .venv/bin/activate
           cd test/
           python3 -m pytest -vs -rA --image-uri ${{ needs.build-image.outputs.ci-image }} vllm-omni/sagemaker
+
+      - name: Cleanup orphaned endpoints
+        if: always()
+        run: |
+          source .venv/bin/activate
+          python3 -c "
+          import boto3
+          sm = boto3.client('sagemaker')
+          for ep in sm.list_endpoints(NameContains='vllm-omni', StatusEquals='InService').get('Endpoints', []):
+              name = ep['EndpointName']
+              print(f'Deleting orphaned endpoint: {name}')
+              sm.delete_endpoint(EndpointName=name)
+              sm.delete_endpoint_config(EndpointConfigName=name)
+          "
