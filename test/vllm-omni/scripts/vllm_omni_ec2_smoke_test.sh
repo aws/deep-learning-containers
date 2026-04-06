@@ -28,13 +28,13 @@ curl -sf http://localhost:${PORT}/health || { echo "Health check failed"; exit 1
 
 # Send request directly to the API endpoint
 if [ "${CONTENT_TYPE}" = "multipart/form-data" ]; then
-    # Convert key=value&key2=value2 to -F flags
-    CURL_ARGS=""
+    CURL_CMD=(curl -sf -X POST "http://localhost:${PORT}${ROUTE}")
     IFS='&' read -ra PAIRS <<< "${REQUEST}"
     for pair in "${PAIRS[@]}"; do
-        CURL_ARGS="${CURL_ARGS} -F ${pair}"
+        CURL_CMD+=(-F "${pair}")
     done
-    eval curl -sf -X POST "http://localhost:${PORT}${ROUTE}" ${CURL_ARGS} --output /tmp/omni_response --max-time 300
+    CURL_CMD+=(--output /tmp/omni_response --max-time 300)
+    "${CURL_CMD[@]}"
 else
     curl -sf -X POST "http://localhost:${PORT}${ROUTE}" \
       -H "Content-Type: application/json" \

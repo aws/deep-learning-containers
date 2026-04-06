@@ -28,14 +28,14 @@ curl -sf http://localhost:${PORT}/ping || { echo "Ping failed"; exit 1; }
 
 # Send request via /invocations with route header
 if [ "${CONTENT_TYPE}" = "multipart/form-data" ]; then
-    CURL_ARGS=""
+    CURL_CMD=(curl -sf -X POST "http://localhost:${PORT}/invocations"
+      -H "X-Amzn-SageMaker-Custom-Attributes: route=${ROUTE}")
     IFS='&' read -ra PAIRS <<< "${REQUEST}"
     for pair in "${PAIRS[@]}"; do
-        CURL_ARGS="${CURL_ARGS} -F ${pair}"
+        CURL_CMD+=(-F "${pair}")
     done
-    eval curl -sf -X POST "http://localhost:${PORT}/invocations" \
-      -H "X-Amzn-SageMaker-Custom-Attributes: route=${ROUTE}" \
-      ${CURL_ARGS} --output /tmp/omni_response --max-time 300
+    CURL_CMD+=(--output /tmp/omni_response --max-time 300)
+    "${CURL_CMD[@]}"
 else
     curl -sf -X POST http://localhost:${PORT}/invocations \
       -H "Content-Type: application/json" \
