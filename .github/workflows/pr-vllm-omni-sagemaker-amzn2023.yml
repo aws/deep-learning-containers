@@ -40,28 +40,6 @@ jobs:
       - name: Run permission gate (from base)
         uses: ./.github/actions/pr-permission-gate
 
-  unit-test:
-    needs: [gatekeeper]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt starlette
-
-      - name: Run middleware unit tests
-        run: |
-          source .venv/bin/activate
-          PYTHONPATH=$(pwd)/test:$(pwd)/scripts/vllm:$PYTHONPATH pytest test/vllm-omni/sagemaker/test_sagemaker_middleware.py -v
-
   load-config:
     needs: [gatekeeper]
     if: success()
@@ -187,7 +165,7 @@ jobs:
             -f docker/vllm/Dockerfile.amzn2023 .
 
   build-image:
-    needs: [check-changes, load-config, build-runtime, unit-test]
+    needs: [check-changes, load-config, build-runtime]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}

@@ -1,1 +1,2 @@
 sagemaker>=2,<3
+starlette

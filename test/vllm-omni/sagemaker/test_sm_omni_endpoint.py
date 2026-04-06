@@ -144,7 +144,8 @@ def async_endpoint(aws_session, model_package, instance_type):
     model = model_package
     cleaned_instance = clean_string(instance_type, "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_instance}", 50)
-    s3_output = f"s3://{aws_session.default_bucket()}/vllm-omni-async-output/"
+    account_id = aws_session.sts.get_caller_identity()["Account"]
+    s3_output = f"s3://sagemaker-{aws_session.region}-{account_id}/vllm-omni-async-output/"
 
     try:
         LOGGER.info(f"Deploying async endpoint: {endpoint_name}")

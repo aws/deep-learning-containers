@@ -1,14 +1,17 @@
 # vLLM-Omni Model Test Configuration
-# Tests for omni-modality models (TTS, image generation)
-# Models are pre-cached in S3 as tar.gz archives
+# Tests for omni-modality models (TTS, image generation, video, omni-chat)
 #
 # Each model defines its test_request (sent to /invocations via middleware)
 # and the route for the SageMaker routing middleware.
+#
+# Models with s3_model are pre-cached in S3. Models with hf_model download
+# from HuggingFace at runtime (requires HF_TOKEN env var).
 
 s3_prefix: "s3://dlc-cicd-models/omni-models"
 
 smoke-test:
   codebuild-fleet:
+    # --- TTS models (route: /v1/audio/speech) ---
     - name: "qwen3-tts-1.7b-customvoice"
       s3_model: "qwen3-tts-1.7b-customvoice.tar.gz"
       fleet: "x86-g6xl-runner"
@@ -17,6 +20,15 @@ smoke-test:
       test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
       validate: "binary_size_gt:1000"
 
+    - name: "cosyvoice3-0.5b"
+      hf_model: "FunAudioLLM/Fun-CosyVoice3-0.5B-2512"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/audio/speech"
+      test_request: '{"input": "Hello, this is a test.", "voice": "default"}'
+      validate: "binary_size_gt:1000"
+
+    # --- Image generation models (route: /v1/images/generations) ---
     - name: "flux2-klein-4b"
       s3_model: "flux2-klein-4b.tar.gz"
       fleet: "x86-g6xl-runner"
@@ -24,3 +36,29 @@ smoke-test:
       route: "/v1/images/generations"
       test_request: '{"prompt": "a red apple on a white table", "size": "512x512", "n": 1}'
       validate: "json_field:data[0].b64_json"
+
+    # --- Omni chat models (route: /v1/chat/completions, fallthrough) ---
+    - name: "qwen2.5-omni-3b"
+      hf_model: "Qwen/Qwen2.5-Omni-3B"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/chat/completions"
+      test_request: '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'
+      validate: "json_field:choices[0].message.content"
+
+    - name: "bagel-7b-mot"
+      hf_model: "ByteDance-Seed/BAGEL-7B-MoT"
+      fleet: "x86-g6exl-runner"
+      extra_args: ""
+      route: "/v1/images/generations"
+      test_request: '{"prompt": "a cute cat sitting on a windowsill", "size": "512x512", "n": 1}'
+      validate: "json_field:data[0].b64_json"
+
+    # --- Video generation models (route: /v1/videos) ---
+    - name: "wan2.1-t2v-1.3b"
+      hf_model: "Wan-AI/Wan2.1-T2V-1.3B-Diffusers"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/videos"
+      test_request: '{"prompt": "a dog running on a beach", "n": 1}'
+      validate: "json_field:id"

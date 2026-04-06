@@ -22,6 +22,10 @@ on:
         description: "Customer type: ec2 or sagemaker"
         required: true
         type: string
+    secrets:
+      HF_TOKEN:
+        description: "HuggingFace token for downloading models"
+        required: false
 
 jobs:
   load-models:
@@ -42,7 +46,11 @@ jobs:
           prefix = cfg.get('s3_prefix', '')
           models = cfg.get('smoke-test', {}).get('codebuild-fleet', [])
           for m in models:
-              m['s3_path'] = prefix + '/' + m.pop('s3_model')
+              if 's3_model' in m:
+                  m['s3_path'] = prefix + '/' + m.pop('s3_model')
+                  m['model_source'] = 's3'
+              elif 'hf_model' in m:
+                  m['model_source'] = 'hf'
           print(f'matrix={json.dumps(models)}')
           " >> "$GITHUB_OUTPUT"
 
@@ -70,11 +78,23 @@ jobs:
           image-uri: ${{ inputs.image-uri }}
 
       - name: Download model from S3
+        if: matrix.model.model_source == 's3'
         uses: ./.github/actions/download-model
         id: model
         with:
           s3-path: ${{ matrix.model.s3_path }}
           model-name: ${{ matrix.model.name }}
+
+      - name: Resolve model path
+        id: resolve
+        run: |
+          if [ "${{ matrix.model.model_source }}" = "s3" ]; then
+            echo "model_path=/models/${{ matrix.model.name }}" >> $GITHUB_OUTPUT
+            echo "volume=-v /dlc-models:/models" >> $GITHUB_OUTPUT
+          else
+            echo "model_path=${{ matrix.model.hf_model }}" >> $GITHUB_OUTPUT
+            echo "volume=" >> $GITHUB_OUTPUT
+          fi
 
       # EC2: entrypoint accepts CLI args directly
       - name: Start container (EC2)
@@ -82,10 +102,11 @@ jobs:
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d --gpus all --shm-size=4g \
-            -v /dlc-models:/models \
+            ${{ steps.resolve.outputs.volume }} \
+            -e HF_TOKEN=${{ secrets.HF_TOKEN }} \
             -p 8080:8080 \
             ${{ inputs.image-uri }} \
-            --model /models/${{ matrix.model.name }} \
+            --model ${{ steps.resolve.outputs.model_path }} \
             --port 8080 \
             --stage-init-timeout 600)
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -96,9 +117,10 @@ jobs:
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d --gpus all --shm-size=4g \
-            -v /dlc-models:/models \
-            -e SM_VLLM_MODEL=/models/${{ matrix.model.name }} \
+            ${{ steps.resolve.outputs.volume }} \
+            -e SM_VLLM_MODEL=${{ steps.resolve.outputs.model_path }} \
             -e SM_VLLM_STAGE_INIT_TIMEOUT=600 \
+            -e HF_TOKEN=${{ secrets.HF_TOKEN }} \
             -p 8080:8080 \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
