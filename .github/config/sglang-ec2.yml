@@ -5,11 +5,10 @@
 image:
   name: "sglang-ec2"
   description: "SGLang for EC2 instances"
-
 # Build configuration
 common:
   framework: "sglang"
-  framework_version: "0.5.9"
+  framework_version: "0.5.10"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
@@ -19,7 +18,6 @@ common:
   prod_image: "sglang:0.5-gpu-py312-ec2"
   device_type: "gpu"
   contributor: "None"
-
 # Release configuration
 release:
   release: true
@@ -27,4 +25,4 @@ release:
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: production  # gamma or production
+  environment: production # gamma or production
