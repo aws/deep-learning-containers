@@ -40,6 +40,8 @@ COPY --from=python-builder /usr/local/lib/python${PYTHON_SHORT_VERSION} /usr/loc
 COPY --from=python-builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr/local/include/python${PYTHON_SHORT_VERSION}
 COPY --from=python-builder /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python${PYTHON_SHORT_VERSION}
 COPY --from=python-builder /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip${PYTHON_SHORT_VERSION}
+COPY --from=python-builder /usr/local/lib/libpython${PYTHON_SHORT_VERSION}* /usr/local/lib/
+RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/python.conf && ldconfig
 RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
@@ -90,6 +92,8 @@ COPY --from=python-builder /usr/local/lib/python${PYTHON_SHORT_VERSION} /usr/loc
 COPY --from=python-builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr/local/include/python${PYTHON_SHORT_VERSION}
 COPY --from=python-builder /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python${PYTHON_SHORT_VERSION}
 COPY --from=python-builder /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip${PYTHON_SHORT_VERSION}
+COPY --from=python-builder /usr/local/lib/libpython${PYTHON_SHORT_VERSION}* /usr/local/lib/
+RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/python.conf && ldconfig
 RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
