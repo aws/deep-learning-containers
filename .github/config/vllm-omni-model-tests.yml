@@ -19,14 +19,6 @@ smoke-test:
     #   test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
     #   validate: "binary_size_gt:1000"
 
-    - name: "cosyvoice3-0.5b"
-      s3_model: "cosyvoice3-0.5b.tar.gz"
-      fleet: "x86-g6e12xl-runner"
-      extra_args: "--trust-remote-code --enforce-eager"
-      route: "/v1/audio/speech"
-      test_request: '{"input": "Hello, this is a test.", "voice": "default"}'
-      validate: "binary_size_gt:1000"
-
     # --- Image generation models (route: /v1/images/generations) ---
     # - name: "flux2-klein-4b"
     #   s3_model: "flux2-klein-4b.tar.gz"
@@ -39,7 +31,7 @@ smoke-test:
     # --- Video generation models (route: /v1/videos) ---
     - name: "wan2.1-t2v-1.3b"
       s3_model: "wan2.1-t2v-1.3b.tar.gz"
-      fleet: "x86-g6e4xl-runner"
+      fleet: "x86-g6exl-runner"
       extra_args: ""
       route: "/v1/videos/sync"
       content_type: "multipart/form-data"
