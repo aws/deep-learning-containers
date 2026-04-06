@@ -1,5 +1,5 @@
 # vLLM-Omni Model Test Configuration
-# Tests for omni-modality models (TTS, image generation)
+# Tests for omni-modality models (TTS, image generation, video, omni-chat)
 #
 # Each model defines its test_request (sent to /invocations via middleware)
 # and the route for the SageMaker routing middleware.
@@ -19,6 +19,14 @@ smoke-test:
       test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
       validate: "binary_size_gt:1000"
 
+    - name: "cosyvoice3-0.5b"
+      s3_model: "cosyvoice3-0.5b.tar.gz"
+      fleet: "x86-g6e4xl-runner"
+      extra_args: "--stage-configs-path vllm_omni/model_executor/stage_configs/cosyvoice3.yaml --trust-remote-code --enforce-eager"
+      route: "/v1/audio/speech"
+      test_request: '{"input": "Hello, this is a test.", "voice": "default"}'
+      validate: "binary_size_gt:1000"
+
     # --- Image generation models (route: /v1/images/generations) ---
     - name: "flux2-klein-4b"
       s3_model: "flux2-klein-4b.tar.gz"
@@ -28,8 +36,28 @@ smoke-test:
       test_request: '{"prompt": "a red apple on a white table", "size": "512x512", "n": 1}'
       validate: "json_field:data[0].b64_json"
 
-    # Models tested and not yet compatible with CI smoke tests:
-    # - cosyvoice3-0.5b: no model_type in config.json, needs custom registration
-    # - qwen2.5-omni-3b: multi-stage model OOMs on g6e.xlarge (48GB)
-    # - bagel-7b-mot: needs --stage-configs-path, untested
-    # - wan2.1-t2v-1.3b: needs --stage-configs-path, untested
+    # --- Video generation models (route: /v1/videos) ---
+    - name: "wan2.1-t2v-1.3b"
+      s3_model: "wan2.1-t2v-1.3b.tar.gz"
+      fleet: "x86-g6e4xl-runner"
+      extra_args: ""
+      route: "/v1/videos"
+      test_request: '{"prompt": "a dog running on a beach", "n": 1}'
+      validate: "json_field:id"
+
+    # --- Omni chat models (route: /v1/chat/completions, fallthrough) ---
+    - name: "bagel-7b-mot"
+      s3_model: "bagel-7b-mot.tar.gz"
+      fleet: "x86-g6e4xl-runner"
+      extra_args: ""
+      route: "/v1/chat/completions"
+      test_request: '{"messages": [{"role": "user", "content": [{"type": "text", "text": "<|im_start|>A cute cat<|im_end|>"}]}], "modalities": ["image"], "height": 512, "width": 512, "num_inference_steps": 4, "seed": 42}'
+      validate: "json_field:choices[0].message.content"
+
+    - name: "qwen2.5-omni-3b"
+      s3_model: "qwen2.5-omni-3b.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: ""
+      route: "/v1/chat/completions"
+      test_request: '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'
+      validate: "json_field:choices[0].message.content"
