@@ -53,11 +53,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
-        run: pip install starlette pytest
-
       - name: Run middleware unit tests
-        run: PYTHONPATH=scripts/vllm pytest scripts/vllm/test_sagemaker_middleware.py -v
+        run: pip install starlette pytest && pytest test/vllm-omni/sagemaker/test_sagemaker_middleware.py -v --noconftest
 
   load-config:
     needs: [gatekeeper]
@@ -184,7 +181,7 @@ jobs:
             -f docker/vllm/Dockerfile.amzn2023 .
 
   build-image:
-    needs: [check-changes, load-config, build-runtime]
+    needs: [check-changes, load-config, build-runtime, unit-test]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
