@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.18.1
+ARG BASE_IMAGE=vllm/vllm-openai:v0.19.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -98,7 +98,7 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== ray serve =========================================
 FROM base AS vllm-rayserve-ec2
 
-RUN uv pip install --system ray[serve]==2.49.0 \
+RUN uv pip install --system ray[serve]==2.49.0 "aiohttp>=3.13.4" \
   && uv cache clean
 
 ARG CACHE_REFRESH=0
