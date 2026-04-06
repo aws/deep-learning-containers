@@ -11,11 +11,13 @@ function install_python {
     wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
     tar xzf Python-${PYTHON_VERSION}.tgz
     cd Python-${PYTHON_VERSION}
-    ./configure --enable-optimizations --with-lto --with-computed-gotos --with-system-ffi \
+    ./configure --enable-optimizations --enable-shared --with-lto --with-computed-gotos --with-system-ffi \
       CFLAGS="-fstack-protector-strong -D_FORTIFY_SOURCE=2" \
       LDFLAGS="-Wl,-z,relro,-z,now"
     make -j "$(nproc)"
     make altinstall
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/python.conf
+    ldconfig
     cd ..
     rm -rf Python-${PYTHON_VERSION} Python-${PYTHON_VERSION}.tgz
 
