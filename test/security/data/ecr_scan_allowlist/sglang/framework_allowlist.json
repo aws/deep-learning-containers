@@ -10,5 +10,9 @@
     {
         "vulnerability_id": "CVE-2026-33055",
         "reason": "sglang0.5.9 tar 0.4.44 is a RUST package bundled with uv binary, cannot be patched independently"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27572",
+        "reason": "sglang0.5.10 wasmtime 38.0.4 is a RUST dependency in sgl-model-gateway Cargo.lock, cannot be patched without upstream SGLang update"
     }
 ]
