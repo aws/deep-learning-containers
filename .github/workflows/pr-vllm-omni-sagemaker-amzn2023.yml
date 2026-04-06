@@ -51,8 +51,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Setup test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
       - name: Run middleware unit tests
-        run: pytest test/vllm-omni/sagemaker/test_sagemaker_middleware.py -v
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$(pwd)/scripts/vllm:$PYTHONPATH pytest test/vllm-omni/sagemaker/test_sagemaker_middleware.py -v
 
   load-config:
     needs: [gatekeeper]
