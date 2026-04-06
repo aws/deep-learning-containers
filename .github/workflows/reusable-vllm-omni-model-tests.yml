@@ -108,8 +108,35 @@ jobs:
             ${{ inputs.image-uri }} \
             --model ${{ steps.resolve.outputs.model_path }} \
             --port 8080 \
-            --stage-init-timeout 600)
+            --stage-init-timeout 600 \
+            ${{ matrix.model.extra_args }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Convert extra_args to SM env vars
+        if: inputs.customer-type == 'sagemaker'
+        id: sm-env
+        run: |
+          # Convert --key value pairs to SM_VLLM_KEY=value env vars
+          EXTRA_ENV=""
+          ARGS="${{ matrix.model.extra_args }}"
+          while [[ -n "$ARGS" ]]; do
+            if [[ "$ARGS" =~ ^--([a-z][a-z0-9-]*)[[:space:]]*(.*) ]]; then
+              KEY=$(echo "${BASH_REMATCH[1]}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+              REST="${BASH_REMATCH[2]}"
+              if [[ "$REST" =~ ^--[a-z] ]] || [[ -z "$REST" ]]; then
+                EXTRA_ENV="$EXTRA_ENV -e SM_VLLM_${KEY}=true"
+                ARGS="$REST"
+              else
+                VALUE="${REST%% --*}"
+                EXTRA_ENV="$EXTRA_ENV -e SM_VLLM_${KEY}=${VALUE}"
+                ARGS="${REST#"$VALUE"}"
+              fi
+              ARGS="${ARGS# }"
+            else
+              break
+            fi
+          done
+          echo "env_flags=$EXTRA_ENV" >> $GITHUB_OUTPUT
 
       # SageMaker: entrypoint reads SM_VLLM_* env vars
       - name: Start container (SageMaker)
@@ -121,6 +148,7 @@ jobs:
             -e SM_VLLM_MODEL=${{ steps.resolve.outputs.model_path }} \
             -e SM_VLLM_STAGE_INIT_TIMEOUT=600 \
             -e HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            ${{ steps.sm-env.outputs.env_flags }} \
             -p 8080:8080 \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV

@@ -1,5 +1,5 @@
 # vLLM-Omni Model Test Configuration
-# Tests for omni-modality models (TTS, image generation, video, omni-chat)
+# Tests for omni-modality models (TTS, image generation)
 #
 # Each model defines its test_request (sent to /invocations via middleware)
 # and the route for the SageMaker routing middleware.
@@ -19,14 +19,6 @@ smoke-test:
       test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
       validate: "binary_size_gt:1000"
 
-    - name: "cosyvoice3-0.5b"
-      s3_model: "cosyvoice3-0.5b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: ""
-      route: "/v1/audio/speech"
-      test_request: '{"input": "Hello, this is a test.", "voice": "default"}'
-      validate: "binary_size_gt:1000"
-
     # --- Image generation models (route: /v1/images/generations) ---
     - name: "flux2-klein-4b"
       s3_model: "flux2-klein-4b.tar.gz"
@@ -36,15 +28,8 @@ smoke-test:
       test_request: '{"prompt": "a red apple on a white table", "size": "512x512", "n": 1}'
       validate: "json_field:data[0].b64_json"
 
-    # --- Omni chat models (route: /v1/chat/completions, fallthrough) ---
-    - name: "qwen2.5-omni-3b"
-      s3_model: "qwen2.5-omni-3b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: ""
-      route: "/v1/chat/completions"
-      test_request: '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'
-      validate: "json_field:choices[0].message.content"
-
-    # TODO: Add after S3 upload completes:
-    # - bagel-7b-mot (multimodal, /v1/images/generations, x86-g6exl-runner)
-    # - wan2.1-t2v-1.3b (video, /v1/videos)
+    # Models tested and not yet compatible with CI smoke tests:
+    # - cosyvoice3-0.5b: no model_type in config.json, needs custom registration
+    # - qwen2.5-omni-3b: multi-stage model OOMs on g6e.xlarge (48GB)
+    # - bagel-7b-mot: needs --stage-configs-path, untested
+    # - wan2.1-t2v-1.3b: needs --stage-configs-path, untested
