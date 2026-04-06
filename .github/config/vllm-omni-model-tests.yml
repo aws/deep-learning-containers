@@ -4,8 +4,7 @@
 # Each model defines its test_request (sent to /invocations via middleware)
 # and the route for the SageMaker routing middleware.
 #
-# Models with s3_model are pre-cached in S3. Models with hf_model download
-# from HuggingFace at runtime (requires HF_TOKEN env var).
+# Models use s3_model (pre-cached in S3) downloaded by the download-model action.
 
 s3_prefix: "s3://dlc-cicd-models/omni-models"
 
@@ -20,6 +19,14 @@ smoke-test:
       test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
       validate: "binary_size_gt:1000"
 
+    - name: "cosyvoice3-0.5b"
+      s3_model: "cosyvoice3-0.5b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/audio/speech"
+      test_request: '{"input": "Hello, this is a test.", "voice": "default"}'
+      validate: "binary_size_gt:1000"
+
     # --- Image generation models (route: /v1/images/generations) ---
     - name: "flux2-klein-4b"
       s3_model: "flux2-klein-4b.tar.gz"
@@ -29,8 +36,15 @@ smoke-test:
       test_request: '{"prompt": "a red apple on a white table", "size": "512x512", "n": 1}'
       validate: "json_field:data[0].b64_json"
 
-    # TODO: Add after validation on DLC image with S3 tarballs:
-    # - cosyvoice3-0.5b (TTS, /v1/audio/speech)
-    # - qwen2.5-omni-3b (omni chat, /v1/chat/completions)
-    # - bagel-7b-mot (multimodal, /v1/images/generations)
+    # --- Omni chat models (route: /v1/chat/completions, fallthrough) ---
+    - name: "qwen2.5-omni-3b"
+      s3_model: "qwen2.5-omni-3b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/chat/completions"
+      test_request: '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'
+      validate: "json_field:choices[0].message.content"
+
+    # TODO: Add after S3 upload completes:
+    # - bagel-7b-mot (multimodal, /v1/images/generations, x86-g6exl-runner)
     # - wan2.1-t2v-1.3b (video, /v1/videos)
