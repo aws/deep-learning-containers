@@ -12,6 +12,11 @@ on:
   #     - "**sglang**"
   #     - "!docs/**"
 
+  # Trigger when an auto-update PR for sglang is merged
+  pull_request:
+    types: [closed]
+    branches: [main]
+
   # Manual trigger
   workflow_dispatch:
 
@@ -27,7 +32,20 @@ env:
   CONFIG_FILE: '.github/config/sglang-sagemaker.yml'
 
 jobs:
+  # Gate: skip PR events unless it's a merged auto-update PR for sglang
+  pr-gate:
+    if: >-
+      github.event_name != 'pull_request' || (
+        github.event.pull_request.merged == true &&
+        contains(github.event.pull_request.labels.*.name, 'auto-update') &&
+        startsWith(github.event.pull_request.head.ref, 'auto-update/sglang-')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Gate passed"
+
   load-config:
+    needs: [pr-gate]
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-load-config-${{ github.event.pull_request.number || github.run_id }}
