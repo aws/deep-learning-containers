@@ -21,7 +21,7 @@ smoke-test:
 
     - name: "cosyvoice3-0.5b"
       s3_model: "cosyvoice3-0.5b.tar.gz"
-      fleet: "x86-g6xl-runner"
+      fleet: "x86-g6exl-runner"
       extra_args: ""
       route: "/v1/audio/speech"
       test_request: '{"input": "Hello, this is a test.", "voice": "default"}'
@@ -39,7 +39,7 @@ smoke-test:
     # --- Omni chat models (route: /v1/chat/completions, fallthrough) ---
     - name: "qwen2.5-omni-3b"
       s3_model: "qwen2.5-omni-3b.tar.gz"
-      fleet: "x86-g6xl-runner"
+      fleet: "x86-g6exl-runner"
       extra_args: ""
       route: "/v1/chat/completions"
       test_request: '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'

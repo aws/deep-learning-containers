@@ -137,6 +137,11 @@ jobs:
             '${{ matrix.model.test_request }}' \
             "${{ matrix.model.validate }}"
 
+      - name: Dump container logs
+        if: always()
+        run: |
+          docker logs ${CONTAINER_ID} 2>&1 | tail -100 || true
+
       - name: Cleanup
         if: always()
         run: |
