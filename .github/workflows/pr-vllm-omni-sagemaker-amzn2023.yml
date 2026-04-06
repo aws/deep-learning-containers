@@ -43,18 +43,16 @@ jobs:
   unit-test:
     needs: [gatekeeper]
     if: success()
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
       - name: Run middleware unit tests
-        run: pip install starlette pytest && cd test/vllm-omni/sagemaker && pytest test_sagemaker_middleware.py -v
+        run: pytest test/vllm-omni/sagemaker/test_sagemaker_middleware.py -v
 
   load-config:
     needs: [gatekeeper]
