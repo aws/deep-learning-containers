@@ -54,7 +54,7 @@ jobs:
           python-version: "3.12"
 
       - name: Run middleware unit tests
-        run: pip install starlette pytest && pytest test/vllm-omni/sagemaker/test_sagemaker_middleware.py -v --noconftest
+        run: pip install starlette pytest && cd test/vllm-omni/sagemaker && pytest test_sagemaker_middleware.py -v
 
   load-config:
     needs: [gatekeeper]
