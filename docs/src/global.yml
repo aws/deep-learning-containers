@@ -111,6 +111,7 @@ display_names:
   torchtext: "TorchText"
   torchserve: "TorchServe"
   sgl-kernel: "SGLang Kernel"
+  sglang-kernel: "SGLang Kernel"
   transformers: "Transformers"
   transformer_engine: "Transformer Engine"
   flash_attn: "Flash Attention"
