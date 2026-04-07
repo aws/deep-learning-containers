@@ -1,8 +1,14 @@
 name: PR - vLLM EC2
 
-# Disabled: focusing on omni workflows only
 on:
-  workflow_dispatch: {}
+  # Direct execution on pull requests
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "**vllm**"
+      - "!docs/**"
+      - "!**amzn2023**"
 
 permissions:
   contents: read

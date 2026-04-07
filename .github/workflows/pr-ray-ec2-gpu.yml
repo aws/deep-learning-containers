@@ -1,8 +1,12 @@
 name: PR - Ray EC2 GPU
 
-# Disabled: focusing on omni workflows only
 on:
-  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "**ray**"
+      - "!docs/**"
 
 permissions:
   contents: read

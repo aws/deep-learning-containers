@@ -1,8 +1,17 @@
 name: PR - Base v2
 
-# Disabled: focusing on omni workflows only
 on:
-  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "docker/base/**"
+      - "scripts/common/**"
+      - "test/cuda/**"
+      - "test/security/data/ecr_scan_allowlist/base/**"
+      - ".github/config/base-v2.yml"
+      - ".github/workflows/pr-base-v2.yml"
+      - "!docs/**"
 
 permissions:
   contents: read

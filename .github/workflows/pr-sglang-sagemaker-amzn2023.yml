@@ -1,8 +1,24 @@
 name: PR - SGLang SageMaker AMZN2023
 
-# Disabled: focusing on omni workflows only
 on:
-  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "docker/sglang/Dockerfile.amzn2023"
+      - "scripts/sglang/dockerd_entrypoint.sh"
+      - "scripts/sglang/sagemaker_entrypoint.sh"
+      - "scripts/common/**"
+      - "scripts/telemetry/**"
+      - ".github/config/sglang-sagemaker-amzn2023.yml"
+      - ".github/workflows/pr-sglang-sagemaker-amzn2023.yml"
+      - ".github/workflows/reusable-sglang-sagemaker-tests.yml"
+      - ".github/workflows/reusable-sglang-model-tests.yml"
+      - ".github/config/sglang-model-tests.yml"
+      - "test/sanity/**"
+      - "test/telemetry/**"
+      - "test/sglang/sagemaker/**"
+      - "test/sglang/scripts/**"
 
 permissions:
   contents: read

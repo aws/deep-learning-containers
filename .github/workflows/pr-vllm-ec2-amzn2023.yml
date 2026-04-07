@@ -1,8 +1,22 @@
 name: PR - vLLM EC2 AMZN2023
 
-# Disabled: focusing on omni workflows only
 on:
-  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "docker/vllm/Dockerfile.amzn2023"
+      - "scripts/vllm/amzn2023/**"
+      - "scripts/vllm/dockerd_entrypoint.sh"
+      - "scripts/vllm/sagemaker_entrypoint.sh"
+      - "scripts/common/**"
+      - "scripts/telemetry/**"
+      - ".github/config/vllm-ec2-amzn2023.yml"
+      # - ".github/workflows/pr-vllm-ec2-amzn2023.yml"
+      - ".github/workflows/reusable-vllm-upstream-tests.yml"
+      - ".github/workflows/reusable-vllm-model-tests.yml"
+      # - "test/sanity/**"
+      - "test/telemetry/**"
 
 permissions:
   contents: read
