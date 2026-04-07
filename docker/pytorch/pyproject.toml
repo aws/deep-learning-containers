@@ -6,7 +6,7 @@ dependencies = [
     "torch==2.11.0",
     "torchvision==0.26.0",
     "torchaudio==2.11.0",
-    "deepspeed==0.18.8",
+    "deepspeed==0.18.9",
     "boto3",
     "botocore",
     "pyyaml",
