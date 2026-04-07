@@ -11,22 +11,22 @@ s3_prefix: "s3://dlc-cicd-models/omni-models"
 smoke-test:
   codebuild-fleet:
     # --- TTS models (route: /v1/audio/speech) ---
-    # - name: "qwen3-tts-1.7b-customvoice"
-    #   s3_model: "qwen3-tts-1.7b-customvoice.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: ""
-    #   route: "/v1/audio/speech"
-    #   test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
-    #   validate: "binary_size_gt:1000"
+    - name: "qwen3-tts-1.7b-customvoice"
+      s3_model: "qwen3-tts-1.7b-customvoice.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/audio/speech"
+      test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
+      validate: "binary_size_gt:1000"
 
     # --- Image generation models (route: /v1/images/generations) ---
-    # - name: "flux2-klein-4b"
-    #   s3_model: "flux2-klein-4b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: ""
-    #   route: "/v1/images/generations"
-    #   test_request: '{"prompt": "a red apple on a white table", "size": "512x512", "n": 1}'
-    #   validate: "json_field:data[0].b64_json"
+    - name: "flux2-klein-4b"
+      s3_model: "flux2-klein-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/images/generations"
+      test_request: '{"prompt": "a red apple on a white table", "size": "512x512", "n": 1}'
+      validate: "json_field:data[0].b64_json"
 
     # --- Video generation models (route: /v1/videos) ---
     - name: "wan2.1-t2v-1.3b"
@@ -39,6 +39,7 @@ smoke-test:
       validate: "json_field:id"
 
     # --- Omni chat models (route: /v1/chat/completions, fallthrough) ---
+    # model is big, won't run for now
     # - name: "bagel-7b-mot"
     #   s3_model: "bagel-7b-mot.tar.gz"
     #   fleet: "x86-g6e4xl-runner"
@@ -47,10 +48,10 @@ smoke-test:
     #   test_request: '{"messages": [{"role": "user", "content": [{"type": "text", "text": "<|im_start|>A cute cat<|im_end|>"}]}], "modalities": ["image"], "height": 512, "width": 512, "num_inference_steps": 4, "seed": 42}'
     #   validate: "json_field:choices[0].message.content"
 
-    # - name: "qwen2.5-omni-3b"
-    #   s3_model: "qwen2.5-omni-3b.tar.gz"
-    #   fleet: "x86-g6e12xl-runner"
-    #   extra_args: ""
-    #   route: "/v1/chat/completions"
-    #   test_request: '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'
-    #   validate: "json_field:choices[0].message.content"
+    - name: "qwen2.5-omni-3b"
+      s3_model: "qwen2.5-omni-3b.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: ""
+      route: "/v1/chat/completions"
+      test_request: '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'
+      validate: "json_field:choices[0].message.content"
