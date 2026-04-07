@@ -25,7 +25,7 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 logger = logging.getLogger("omni_sagemaker")
 
 # Routes that require multipart/form-data
-FORM_DATA_ROUTES = {"/v1/videos"}
+FORM_DATA_ROUTES = {"/v1/videos", "/v1/videos/sync"}
 
 
 def _parse_route(headers: list[tuple[bytes, bytes]]) -> str | None:
