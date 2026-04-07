@@ -28,7 +28,3 @@ release:
   private_registry: true
   enable_soci: false
   environment: gamma
-  release_tags:
-    - "3.0-5"
-    - "3.0-5-1.0.15.0"
-    - "3.0-5-cpu-py3"

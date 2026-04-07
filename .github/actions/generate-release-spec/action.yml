@@ -52,9 +52,6 @@ runs:
         PRIVATE_REGISTRY=$(jq -r '.release.private_registry' config.json)
         ENABLE_SOCI=$(jq -r '.release.enable_soci' config.json)
 
-        # Extract release tags array (optional, for frameworks with custom tag schemes)
-        RELEASE_TAGS=$(jq -r '.release.release_tags // empty' config.json)
-
         echo "Generating release spec with:"
         echo "  Framework: ${FRAMEWORK} [required]"
         echo "  Version: ${VERSION} [required]"
@@ -68,7 +65,6 @@ runs:
         [ "$PUBLIC_REGISTRY" != "null" ] && echo "  Public Registry: ${PUBLIC_REGISTRY}"
         [ "$PRIVATE_REGISTRY" != "null" ] && echo "  Private Registry: ${PRIVATE_REGISTRY}"
         [ "$ENABLE_SOCI" != "null" ] && echo "  Enable SOCI: ${ENABLE_SOCI}"
-        [ -n "$RELEASE_TAGS" ] && echo "  Release Tags: $(jq -r '.release.release_tags | join(", ")' config.json)"
 
         # Generate release spec YAML with conditional fields
         {
@@ -94,12 +90,6 @@ runs:
           [ "$PUBLIC_REGISTRY" != "null" ] && echo "public_registry: ${PUBLIC_REGISTRY}"
           [ "$PRIVATE_REGISTRY" != "null" ] && echo "private_registry: ${PRIVATE_REGISTRY}"
           [ "$ENABLE_SOCI" != "null" ] && echo "enable_soci: ${ENABLE_SOCI}"
-
-          # Release tags array - only include if defined
-          if [ -n "$RELEASE_TAGS" ]; then
-            echo "release_tags:"
-            jq -r '.release.release_tags[] | "  - \"" + . + "\""' config.json
-          fi
 
           echo "EOF"
         } >> ${GITHUB_OUTPUT}
