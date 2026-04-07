@@ -21,7 +21,7 @@ runs:
           const levels = ['none', 'read', 'triage', 'write', 'maintain', 'admin'];
 
           // Trusted bots bypass the permission check
-          const trustedBots = ['aws-deep-learning-containers-ci[bot]'];
+          const trustedBots = ['aws-deep-learning-containers-ci[bot]', 'dependabot[bot]'];
           if (trustedBots.includes(username) && context.payload.sender.type === 'Bot') {
             core.info(`✅ ${username} is a trusted bot, skipping permission check.`);
             return;
