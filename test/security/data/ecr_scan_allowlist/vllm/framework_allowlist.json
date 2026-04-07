@@ -104,11 +104,6 @@
         "reason": "Coming in as a dependency from the latest uv 0.10.9"
     },
     {
-        "vulnerability_id": "CVE-2026-33055",
-        "reason": "Rust tar crate 0.4.44 bundled in uv binary, fix requires uv upstream update to tar>=0.4.45",
-        "review_by": "2026-04-06"
-    },
-    {
         "vulnerability_id": "CVE-2026-27893",
         "reason": "vllm 0.10.2 RayServe image - trust_remote_code=True hardcoded, fixed in vllm>=0.18.0. RayServe image not updated in this PR."
     },
