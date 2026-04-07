@@ -1,6 +1,11 @@
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 
+# Pre-built runtime image. When set, skips the compile stages (source/build/deps)
+# and uses this image directly as the runtime base. Build it with:
+#   docker buildx build --target runtime --tag <ecr>/vllm-runtime:<tag> --push ...
+ARG RUNTIME_BASE=""
+
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
 # =============================================================================
@@ -201,8 +206,9 @@ RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHO
 
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
+# Built from scratch (compile path) or pulled from pre-built RUNTIME_BASE.
 # =============================================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime-build
 
 ARG CUDA_VERSION
 ARG PYTHON_VERSION=3.12
@@ -237,6 +243,10 @@ ENV VIRTUAL_ENV="/opt/venv"
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_USAGE_SOURCE=production-docker-image
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
+
+# Pre-built runtime (fast path) — used when RUNTIME_BASE is set
+ARG RUNTIME_BASE
+FROM ${RUNTIME_BASE:-runtime-build} AS runtime
 
 # =============================================================================
 # STAGE 4: DLC overlay — Amazon DLC customizations on top of vLLM runtime
@@ -337,6 +347,139 @@ RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=Fal
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
 COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
+
+# =============================================================================
+# STAGE: omni-deps — install vllm-omni on top of runtime venv
+# =============================================================================
+FROM runtime AS omni-deps
+
+ARG VLLM_OMNI_VERSION=0.18.0
+
+# System deps for omni-modality (TTS, audio, image/video)
+# Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, sox, ffmpeg
+RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
+  && dnf install -y spal-release \
+  && dnf install -y --setopt=install_weak_deps=False espeak-ng sox ffmpeg-free \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# Install vllm-omni (pure Python, no compilation)
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_OMNI_VERSION}
+
+# =============================================================================
+# STAGE: builder-oss-omni — OSS compliance for omni venv
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss-omni
+ARG PYTHON_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=omni-deps /opt/venv /opt/venv
+COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+# =============================================================================
+# STAGE: omni-base — DLC overlay for vLLM-Omni
+# =============================================================================
+FROM omni-deps AS omni-base
+
+ARG PYTHON="python3"
+ARG PYTHON_VERSION=3.12
+ARG CUDA_VERSION
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
+
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=general \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
+
+WORKDIR /
+
+# Install DLC Python dependencies
+RUN uv pip install --no-cache-dir botocore
+
+# Patch CVEs
+RUN uv pip install --no-cache-dir \
+  "pillow>=12.1.1" \
+  "xgrammar>=0.1.32" \
+  "PyJWT>=2.12.0" \
+  "cbor2>=5.9.0" \
+  "gradio>=6.7.0"
+
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+
+# telemetry
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /tmp/uv* \
+  && rm -rf /var/cache/dnf \
+  && rm -rf /root/.cache || true
+
+# OSS compliance (from omni-specific builder)
+COPY --from=builder-oss-omni /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss-omni /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss-omni /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss-omni /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss-omni /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# install EFA
+COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
+ARG EFA_VERSION="1.47.0"
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
+  && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
+  && ldconfig \
+  && bash install_efa_amzn2023.sh ${EFA_VERSION} \
+  && rm install_efa_amzn2023.sh \
+  && dnf remove -y libnccl-devel \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# ====================== omni ec2 =========================================
+FROM omni-base AS vllm-omni-ec2-amzn2023
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+
+COPY ./scripts/vllm/omni_dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# ====================== omni sagemaker =========================================
+FROM omni-base AS vllm-omni-sagemaker-amzn2023
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+
+COPY ./scripts/vllm/omni_sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/vllm/omni_sagemaker_serve.py /usr/local/bin/omni_sagemaker_serve.py
+ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

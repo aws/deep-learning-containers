@@ -62,6 +62,7 @@ display_names:
 
   # Repositories
   base: "Base"
+  sagemaker-xgboost: "XGBoost"
   sglang: "SGLang"
   vllm: "vLLM"
   vllm-arm64: "vLLM ARM64"
@@ -110,6 +111,7 @@ display_names:
   torchtext: "TorchText"
   torchserve: "TorchServe"
   sgl-kernel: "SGLang Kernel"
+  sglang-kernel: "SGLang Kernel"
   transformers: "Transformers"
   transformer_engine: "Transformer Engine"
   flash_attn: "Flash Attention"
@@ -185,3 +187,4 @@ table_order:
   - sagemaker-tritonserver
   - stabilityai-pytorch-inference
   - pytorch-trcomp-training
+  - sagemaker-xgboost
