@@ -226,3 +226,68 @@ send_slack_notification() {
     return 1
   fi
 }
+
+###############################################################################
+# send_release_notification(webhook_url, framework_name, framework_version, platform, image_uri)
+#   Sends release notification to a Slack Workflow webhook after an image
+#   is published to the public registry.
+#
+#   Returns 0 (true) if HTTP 200, 1 (false) otherwise.
+#   NEVER fails the workflow — logs warnings on error.
+#
+#   Arguments:
+#     webhook_url       — Slack Workflow webhook URL (from SLACK_RELEASE_WEBHOOK_URL secret)
+#     framework_name    — Framework identifier (e.g., "vllm", "sglang")
+#     framework_version — Version string (e.g., "0.18.0")
+#     platform          — Platform (e.g., "ec2", "sagemaker")
+#     image_uri         — Published image URI
+#
+#   Usage:
+#     send_release_notification "${SLACK_RELEASE_WEBHOOK_URL}" "sglang" "0.5.9" "sagemaker" \
+#       "public.ecr.aws/deep-learning-containers/sglang:0.5.9-gpu-py312-cu129-ubuntu24.04-sagemaker"
+###############################################################################
+send_release_notification() {
+  local webhook_url="${1:-}"
+  local framework_name="${2:?Usage: send_release_notification WEBHOOK_URL FRAMEWORK_NAME FRAMEWORK_VERSION PLATFORM IMAGE_URI}"
+  local framework_version="${3:?Usage: send_release_notification WEBHOOK_URL FRAMEWORK_NAME FRAMEWORK_VERSION PLATFORM IMAGE_URI}"
+  local platform="${4:?Usage: send_release_notification WEBHOOK_URL FRAMEWORK_NAME FRAMEWORK_VERSION PLATFORM IMAGE_URI}"
+  local image_uri="${5:?Usage: send_release_notification WEBHOOK_URL FRAMEWORK_NAME FRAMEWORK_VERSION PLATFORM IMAGE_URI}"
+
+  # If webhook URL is missing or empty, skip silently
+  if [[ -z "${webhook_url}" ]]; then
+    echo "Release notifications: webhook URL not configured. Skipping."
+    return 0
+  fi
+
+  local payload
+  payload=$(jq -n \
+    --arg framework_name "${framework_name}" \
+    --arg framework_version "${framework_version}" \
+    --arg platform "${platform}" \
+    --arg image_uri "${image_uri}" \
+    '{
+      framework_name: $framework_name,
+      framework_version: $framework_version,
+      platform: $platform,
+      image_uri: $image_uri
+    }')
+
+  local http_code
+  http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+    --max-time 10 \
+    -X POST \
+    -H "Content-Type: application/json" \
+    -d "${payload}" \
+    "${webhook_url}" 2>/dev/null) || {
+    echo "Warning: Release notification failed (network error) for ${framework_name} ${framework_version}."
+    return 1
+  }
+
+  if [[ "${http_code}" == "200" ]]; then
+    echo "Release notification sent successfully for ${framework_name} ${framework_version} (${platform})."
+    return 0
+  else
+    echo "Warning: Release notification returned HTTP ${http_code} for ${framework_name} ${framework_version}."
+    return 1
+  fi
+}
