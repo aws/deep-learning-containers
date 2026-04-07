@@ -53,8 +53,7 @@ frameworks:
     docs_packages:
       pip:
         - name: sglang
-        - name: sgl_kernel
-          key: sgl-kernel
+        - name: sglang-kernel
         - name: torch
           key: pytorch
         - name: torchvision
