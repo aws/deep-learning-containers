@@ -34,7 +34,7 @@ jobs:
       runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Parse benchmark config
         id: parse
@@ -71,7 +71,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR authenticate
         uses: ./.github/actions/ecr-authenticate
@@ -135,7 +135,7 @@ jobs:
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-${{ matrix.name }}-${{ matrix.fleet }}
           path: benchmark_results/
@@ -159,7 +159,7 @@ jobs:
     runs-on: gpu-efa-runners
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR authenticate
         uses: ./.github/actions/ecr-authenticate
@@ -213,7 +213,7 @@ jobs:
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-${{ matrix.name }}-gpu-efa-runners
           path: benchmark_results/
@@ -236,10 +236,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Download all benchmark artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: benchmark-*
           path: results/

@@ -34,7 +34,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install dependencies
         run: |
@@ -55,7 +55,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -90,7 +90,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -125,7 +125,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -179,7 +179,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install test dependencies
         run: |
@@ -219,7 +219,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install test dependencies
         run: |

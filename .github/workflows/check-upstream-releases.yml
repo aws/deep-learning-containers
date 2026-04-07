@@ -38,13 +38,13 @@ jobs:
           echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
       - name: Generate GitHub App Token
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.ASIMOVBOT_APP_ID }}
           private-key: ${{ steps.decode.outputs.private-key }}
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: main
           fetch-depth: 0

@@ -47,7 +47,7 @@ jobs:
       prod-image: ${{ steps.parse.outputs.prod-image }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
@@ -84,7 +84,7 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build image
         id: build
@@ -186,7 +186,7 @@ jobs:
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Check if release is enabled
         id: check-release
