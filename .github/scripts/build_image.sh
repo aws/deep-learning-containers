@@ -26,6 +26,7 @@ CUSTOMER_TYPE="${CUSTOMER_TYPE:-}"
 INFERENCE_TOOLKIT_VERSION="${INFERENCE_TOOLKIT_VERSION:-}"
 TORCHSERVE_VERSION="${TORCHSERVE_VERSION:-}"
 TRANSFORMERS_VERSION="${TRANSFORMERS_VERSION:-}"
+RUNTIME_BASE="${RUNTIME_BASE:-}"
 
 # Resolve image URI
 CI_IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ci:${TAG_PR}"
@@ -66,6 +67,13 @@ BUILD_CMD="docker buildx build --progress plain \
   --build-arg CONTAINER_TYPE=\"${CONTAINER_TYPE}\" \
   --build-arg FRAMEWORK=\"${FRAMEWORK}\" \
   --build-arg FRAMEWORK_VERSION=\"${FRAMEWORK_VERSION}\""
+
+# Use pre-built runtime base if available (skips compile stages)
+if [[ -n "${RUNTIME_BASE}" ]]; then
+  echo "Using pre-built runtime base: ${RUNTIME_BASE}"
+  BUILD_CMD="${BUILD_CMD} \
+  --build-arg RUNTIME_BASE=\"${RUNTIME_BASE}\""
+fi
 
 # Add SageMaker labels if customer-type is 'sagemaker'
 if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then

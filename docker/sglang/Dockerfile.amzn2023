@@ -241,7 +241,8 @@ RUN uv pip install --system --no-cache \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32" \
-  "setuptools>=78.1.1"
+  "setuptools>=78.1.1" \
+  "aiohttp>=3.13.4"
 
 # Re-pin NCCL/cuDNN/cuSparseLt after CVE patches (transitive deps may downgrade or remove them)
 # cuSparseLt installed without --no-deps in case it wasn't present from builder
