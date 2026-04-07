@@ -36,7 +36,7 @@ smoke-test:
       route: "/v1/videos"
       content_type: "multipart/form-data"
       test_request: 'prompt=a dog running on a beach&num_frames=17&num_inference_steps=4&size=480x320&seed=42'
-      validate: "binary_size_gt:1000"
+      validate: "json_field:id"
 
     # --- Omni chat models (route: /v1/chat/completions, fallthrough) ---
     # - name: "bagel-7b-mot"
