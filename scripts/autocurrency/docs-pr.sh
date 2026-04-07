@@ -118,6 +118,11 @@ TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}
 # Build IMAGE_URI from parsed spec fields
 IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
 
+# Build upstream release URL from tracker config
+GITHUB_REPO=$(yq eval ".frameworks.${FRAMEWORK}.github_repo" "$TRACKER")
+TAG_PREFIX=$(yq eval ".frameworks.${FRAMEWORK}.tag_prefix // \"\"" "$TRACKER")
+UPSTREAM_RELEASE_URL="https://github.com/${GITHUB_REPO}/releases/tag/${TAG_PREFIX}${VERSION}"
+
 # -----------------------------------------------------------------
 # Early exit: skip unsupported platforms
 # -----------------------------------------------------------------
@@ -312,6 +317,7 @@ pr_body=$(cat <<PRBODY
 **Framework**: ${display_name}
 **Version**: ${VERSION}
 **Platform**: ${PLATFORM^^}
+**Upstream Release**: [${GITHUB_REPO} ${TAG_PREFIX}${VERSION}](${UPSTREAM_RELEASE_URL})
 
 ### What to Review
 - Verify the generated image tags
