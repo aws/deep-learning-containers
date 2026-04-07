@@ -115,7 +115,6 @@ class TestMiddleware:
         self._run(middleware(scope, None, None))
         assert captured["path"] == "/v1/audio/speech"
 
-
     def test_json_to_formdata_for_video_route(self, captured):
         """JSON payload on /v1/videos route should be converted to form-data."""
         body_captured = {}
@@ -183,7 +182,7 @@ class TestMiddleware:
             body_captured["body"] = msg["body"]
 
         middleware = SageMakerRouteMiddleware(app)
-        form_body = b"--boundary\r\nContent-Disposition: form-data; name=\"prompt\"\r\n\r\na dog\r\n--boundary--\r\n"
+        form_body = b'--boundary\r\nContent-Disposition: form-data; name="prompt"\r\n\r\na dog\r\n--boundary--\r\n'
 
         async def receive():
             return {"type": "http.request", "body": form_body, "more_body": False}

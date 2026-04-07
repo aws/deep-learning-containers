@@ -49,9 +49,7 @@ def _build_multipart_body(data: dict, boundary: str) -> bytes:
     parts = []
     for key, value in data.items():
         parts.append(
-            f"--{boundary}\r\n"
-            f'Content-Disposition: form-data; name="{key}"\r\n\r\n'
-            f"{value}\r\n"
+            f'--{boundary}\r\nContent-Disposition: form-data; name="{key}"\r\n\r\n{value}\r\n'
         )
     parts.append(f"--{boundary}--\r\n")
     return "".join(parts).encode()
