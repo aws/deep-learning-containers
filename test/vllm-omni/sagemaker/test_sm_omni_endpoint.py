@@ -233,5 +233,3 @@ def _parse_s3_uri(uri):
     """Parse s3://bucket/key into (bucket, key)."""
     parts = uri.replace("s3://", "").split("/", 1)
     return parts[0], parts[1] if len(parts) > 1 else ""
-
-
