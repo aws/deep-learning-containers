@@ -115,6 +115,12 @@ PUBLIC_REGISTRY=$(yq '.public_registry' "$RELEASE_SPEC")
 
 TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
 
+# Check if framework is defined in tracker config
+if [[ "$(yq eval ".frameworks.${FRAMEWORK}" "$TRACKER")" == "null" ]]; then
+  echo "${FRAMEWORK}: Not defined in tracker config. Skipping docs PR."
+  exit 0
+fi
+
 # Build IMAGE_URI from parsed spec fields
 IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
 

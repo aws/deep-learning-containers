@@ -305,7 +305,7 @@ jobs:
 
   step4-docs-pr:
     needs: [step1-publish-images, step3-publish-notifications]
-    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only && !inputs.skip-docs-pr
+    if: needs.step1-publish-images.outputs.images-published == '1' && inputs.environment == 'production' && !inputs.publish-only && !inputs.skip-docs-pr
     runs-on: ubuntu-latest
     steps:
       - name: Decode the GitHub App Private Key
@@ -347,14 +347,16 @@ jobs:
 
   step5-release-notification:
     needs: [step1-publish-images, step3-publish-notifications]
-    if: needs.step1-publish-images.outputs.images-published == '1'
+    if: needs.step1-publish-images.outputs.images-published == '1' && inputs.environment == 'production'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: main
-          sparse-checkout: scripts/autocurrency
+          sparse-checkout: |
+            scripts/autocurrency
+            .github/config/autocurrency-tracker.yml
 
       - name: Install dependencies
         run: |
@@ -374,6 +376,14 @@ jobs:
           source scripts/autocurrency/utils.sh
 
           FRAMEWORK=$(yq '.framework' /tmp/release-spec.yml)
+
+          # Skip frameworks not defined in tracker config
+          TRACKER=".github/config/autocurrency-tracker.yml"
+          if [[ "$(yq eval ".frameworks.${FRAMEWORK}" "$TRACKER")" == "null" ]]; then
+            echo "${FRAMEWORK}: Not defined in tracker config. Skipping release notification."
+            exit 0
+          fi
+
           VERSION=$(yq '.version' /tmp/release-spec.yml)
           PLATFORM=$(yq '.customer_type' /tmp/release-spec.yml)
           DEVICE=$(yq '.device_type' /tmp/release-spec.yml)
