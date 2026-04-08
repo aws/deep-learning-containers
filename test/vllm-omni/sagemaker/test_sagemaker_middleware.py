@@ -114,3 +114,85 @@ class TestMiddleware:
         )
         self._run(middleware(scope, None, None))
         assert captured["path"] == "/v1/audio/speech"
+
+    def test_json_to_formdata_for_video_route(self, captured):
+        """JSON payload on /v1/videos route should be converted to form-data."""
+        body_captured = {}
+
+        async def app(scope, receive, send):
+            captured["path"] = scope["path"]
+            captured["headers"] = dict(scope["headers"])
+            msg = await receive()
+            body_captured["body"] = msg["body"]
+
+        middleware = SageMakerRouteMiddleware(app)
+        json_body = b'{"prompt": "a dog", "size": "480x320", "num_frames": "17"}'
+
+        async def receive():
+            return {"type": "http.request", "body": json_body, "more_body": False}
+
+        scope = self._make_scope(
+            headers=[
+                (b"x-amzn-sagemaker-custom-attributes", b"route=/v1/videos"),
+                (b"content-type", b"application/json"),
+            ]
+        )
+        self._run(middleware(scope, receive, None))
+        assert captured["path"] == "/v1/videos"
+        body = body_captured["body"].decode()
+        assert "a dog" in body
+        assert "480x320" in body
+        assert "num_frames" in body
+        ct = captured["headers"][b"content-type"].decode()
+        assert "multipart/form-data" in ct
+
+    def test_json_passthrough_for_non_video_route(self, captured):
+        """JSON payload on non-video routes should NOT be converted."""
+        body_captured = {}
+
+        async def app(scope, receive, send):
+            captured["path"] = scope["path"]
+            captured["headers"] = dict(scope["headers"])
+            msg = await receive()
+            body_captured["body"] = msg["body"]
+
+        middleware = SageMakerRouteMiddleware(app)
+        json_body = b'{"input": "hello", "voice": "vivian"}'
+
+        async def receive():
+            return {"type": "http.request", "body": json_body, "more_body": False}
+
+        scope = self._make_scope(
+            headers=[
+                (b"x-amzn-sagemaker-custom-attributes", b"route=/v1/audio/speech"),
+                (b"content-type", b"application/json"),
+            ]
+        )
+        self._run(middleware(scope, receive, None))
+        assert captured["path"] == "/v1/audio/speech"
+        assert body_captured["body"] == json_body
+
+    def test_formdata_passthrough_for_video_route(self, captured):
+        """Form-data payload on /v1/videos should pass through unchanged."""
+        body_captured = {}
+
+        async def app(scope, receive, send):
+            captured["path"] = scope["path"]
+            msg = await receive()
+            body_captured["body"] = msg["body"]
+
+        middleware = SageMakerRouteMiddleware(app)
+        form_body = b'--boundary\r\nContent-Disposition: form-data; name="prompt"\r\n\r\na dog\r\n--boundary--\r\n'
+
+        async def receive():
+            return {"type": "http.request", "body": form_body, "more_body": False}
+
+        scope = self._make_scope(
+            headers=[
+                (b"x-amzn-sagemaker-custom-attributes", b"route=/v1/videos"),
+                (b"content-type", b"multipart/form-data; boundary=boundary"),
+            ]
+        )
+        self._run(middleware(scope, receive, None))
+        assert captured["path"] == "/v1/videos"
+        assert body_captured["body"] == form_body
