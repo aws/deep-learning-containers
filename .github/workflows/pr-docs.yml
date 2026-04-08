@@ -23,7 +23,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
@@ -42,7 +42,7 @@ jobs:
       docs-change: ${{ steps.changes.outputs.docs-change }}
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -56,7 +56,7 @@ jobs:
 
       - name: Detect file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             docs-change:
@@ -76,7 +76,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install test dependencies
         run: |

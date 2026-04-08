@@ -27,7 +27,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
@@ -54,7 +54,7 @@ jobs:
       ci-tag: ${{ steps.parse.outputs.ci-tag }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
@@ -97,7 +97,7 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -111,7 +111,7 @@ jobs:
 
       - name: Detect file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             build-change:
@@ -132,7 +132,7 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build image
         id: build
@@ -168,7 +168,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Clone sagemaker-xgboost-container (tests + source)
         run: rm -rf /tmp/xgboost-unit && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-unit
@@ -225,7 +225,7 @@ jobs:
       FRAMEWORK_VERSION: ${{ needs.load-config.outputs.framework-version }}
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Clone sagemaker-xgboost-container (tests + source)
         run: rm -rf /tmp/xgboost-integ && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-integ

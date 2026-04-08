@@ -33,7 +33,7 @@ jobs:
       prod-image: ${{ steps.parse.outputs.prod-image }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
@@ -70,7 +70,7 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build image
         id: build
@@ -106,7 +106,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Clone sagemaker-xgboost-container
         run: rm -rf /tmp/xgboost-unit && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-unit

@@ -38,7 +38,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
@@ -73,7 +73,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup for test dependencies on host machine
         run: |

@@ -26,7 +26,7 @@ jobs:
       config: ${{ steps.load.outputs.config }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Load configuration
         id: load
         uses: ./.github/actions/load-config
@@ -39,7 +39,7 @@ jobs:
       config: ${{ steps.load.outputs.config }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Load configuration
         id: load
         uses: ./.github/actions/load-config
@@ -52,7 +52,7 @@ jobs:
       config: ${{ steps.load.outputs.config }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Load configuration
         id: load
         uses: ./.github/actions/load-config
@@ -80,7 +80,7 @@ jobs:
           - { name: pytorch-py3, tag: gpu-pytorch-py3 }
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup buildkitd
         run: .github/scripts/buildkitd.sh
@@ -215,7 +215,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -241,7 +241,7 @@ jobs:
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check if release is enabled
         id: check-release
         run: |
@@ -283,7 +283,7 @@ jobs:
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check if release is enabled
         id: check-release
         run: |
@@ -325,7 +325,7 @@ jobs:
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check if release is enabled
         id: check-release
         run: |

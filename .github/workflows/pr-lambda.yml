@@ -30,7 +30,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
@@ -49,7 +49,7 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -63,7 +63,7 @@ jobs:
 
       - name: Detect file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             build-change:
@@ -97,7 +97,7 @@ jobs:
       base-py3: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup buildkitd
         run: .github/scripts/buildkitd.sh
@@ -221,7 +221,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate

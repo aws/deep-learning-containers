@@ -45,7 +45,7 @@ jobs:
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
       base-image: ${{ steps.parse.outputs.base-image }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: load
         uses: ./.github/actions/load-config
         with:
@@ -87,7 +87,7 @@ jobs:
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
       base-image: ${{ steps.parse.outputs.base-image }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: load
         uses: ./.github/actions/load-config
         with:
@@ -129,7 +129,7 @@ jobs:
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
       base-image: ${{ steps.parse.outputs.base-image }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: load
         uses: ./.github/actions/load-config
         with:
@@ -171,7 +171,7 @@ jobs:
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
       base-image: ${{ steps.parse.outputs.base-image }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: load
         uses: ./.github/actions/load-config
         with:
@@ -209,7 +209,7 @@ jobs:
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -243,7 +243,7 @@ jobs:
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -277,7 +277,7 @@ jobs:
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -311,7 +311,7 @@ jobs:
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -391,7 +391,7 @@ jobs:
       group: ${{ github.workflow }}-ec2-gpu-ffmpeg-${{ github.run_id }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -418,7 +418,7 @@ jobs:
       group: ${{ github.workflow }}-ec2-gpu-serve-${{ github.run_id }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -451,7 +451,7 @@ jobs:
       group: ${{ github.workflow }}-ec2-cpu-ffmpeg-${{ github.run_id }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -476,7 +476,7 @@ jobs:
       group: ${{ github.workflow }}-ec2-cpu-serve-${{ github.run_id }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -509,7 +509,7 @@ jobs:
       group: ${{ github.workflow }}-sm-gpu-local-${{ github.run_id }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -536,7 +536,7 @@ jobs:
       group: ${{ github.workflow }}-sm-gpu-endpoint-${{ github.run_id }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install test dependencies
         run: |
           uv venv --python 3.12
@@ -564,7 +564,7 @@ jobs:
       group: ${{ github.workflow }}-sm-cpu-local-${{ github.run_id }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -589,7 +589,7 @@ jobs:
       group: ${{ github.workflow }}-sm-cpu-endpoint-${{ github.run_id }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install test dependencies
         run: |
           uv venv --python 3.12
@@ -641,7 +641,7 @@ jobs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: check-release
         run: |
           echo '${{ needs.load-config-ec2-gpu.outputs.config }}' > config.json
@@ -660,7 +660,7 @@ jobs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: check-release
         run: |
           echo '${{ needs.load-config-ec2-cpu.outputs.config }}' > config.json
@@ -679,7 +679,7 @@ jobs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: check-release
         run: |
           echo '${{ needs.load-config-sagemaker-gpu.outputs.config }}' > config.json
@@ -698,7 +698,7 @@ jobs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - id: check-release
         run: |
           echo '${{ needs.load-config-sagemaker-cpu.outputs.config }}' > config.json
