@@ -118,24 +118,18 @@ PUBLIC_REGISTRY=$(yq '.public_registry' "$RELEASE_SPEC")
 
 TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
 
-# Check if framework is defined in tracker config
+# -----------------------------------------------------------------
+# Early exit: skip frameworks not in tracker config
+# -----------------------------------------------------------------
 if [[ "$(yq eval ".frameworks.${FRAMEWORK}" "$TRACKER")" == "null" ]]; then
   echo "${FRAMEWORK}: Not defined in tracker config. Skipping docs PR."
   exit 0
 fi
 
-# Build IMAGE_URI from parsed spec fields
-IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
-
-# Build upstream release URL from tracker config
-GITHUB_REPO=$(yq eval ".frameworks.${FRAMEWORK}.github_repo" "$TRACKER")
-TAG_PREFIX=$(yq eval ".frameworks.${FRAMEWORK}.tag_prefix // \"\"" "$TRACKER")
-UPSTREAM_RELEASE_URL="https://github.com/${GITHUB_REPO}/releases/tag/${TAG_PREFIX}${VERSION}"
-
 # -----------------------------------------------------------------
 # Early exit: skip unsupported platforms
 # -----------------------------------------------------------------
-if [ "$PLATFORM" = "rayserve_ec2" ] || [ "$FRAMEWORK" = "xgboost" ]; then
+if [ "$PLATFORM" = "rayserve_ec2" ]; then
   echo "${FRAMEWORK}: Platform '${PLATFORM}' is not supported for docs generation. Skipping."
   exit 0
 fi
@@ -157,6 +151,24 @@ if [ -f "$OUTPUT_FILE" ]; then
   echo "${FRAMEWORK}: Docs file '${OUTPUT_FILE}' already exists. Skipping."
   exit 0
 fi
+
+# -----------------------------------------------------------------
+# Build IMAGE_URI and upstream release URL
+# -----------------------------------------------------------------
+if [ -n "${METADATA_FILE}" ] && [ -f "${METADATA_FILE}" ]; then
+  REGISTRY=$(jq -r '.target_ecr_public_registry' "$METADATA_FILE")
+  REPO=$(jq -r '.target_ecr_repository' "$METADATA_FILE")
+  TAG=$(jq -r '.tag_with_dlc_version' "$METADATA_FILE")
+  IMAGE_URI="${REGISTRY}/${REPO}:${TAG}"
+else
+  IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
+  echo "::warning::Metadata file not available. Using constructed IMAGE_URI: ${IMAGE_URI}"
+fi
+echo "Image URI: ${IMAGE_URI}"
+
+GITHUB_REPO=$(yq eval ".frameworks.${FRAMEWORK}.github_repo" "$TRACKER")
+TAG_PREFIX=$(yq eval ".frameworks.${FRAMEWORK}.tag_prefix // \"\"" "$TRACKER")
+UPSTREAM_RELEASE_URL="https://github.com/${GITHUB_REPO}/releases/tag/${TAG_PREFIX}${VERSION}"
 
 # -----------------------------------------------------------------
 # Step 1: Pull image and extract package versions
@@ -376,20 +388,9 @@ echo "============================================================"
 echo "Step 5: Send release notification"
 echo "============================================================"
 
-if [ -n "${METADATA_FILE}" ] && [ -f "${METADATA_FILE}" ]; then
-  REGISTRY=$(jq -r '.target_ecr_public_registry' "$METADATA_FILE")
-  REPO=$(jq -r '.target_ecr_repository' "$METADATA_FILE")
-  TAG=$(jq -r '.tag_with_dlc_version' "$METADATA_FILE")
-  IMAGE_URI="${REGISTRY}/${REPO}:${TAG}"
-
-  echo "Image URI: ${IMAGE_URI}"
-
-  send_release_notification \
-    "${SLACK_RELEASE_WEBHOOK_URL:-}" \
-    "${FRAMEWORK}" \
-    "${VERSION}" \
-    "${PLATFORM}" \
-    "${IMAGE_URI}" || true
-else
-  echo "No metadata file provided. Skipping release notification."
-fi
+send_release_notification \
+  "${SLACK_RELEASE_WEBHOOK_URL:-}" \
+  "${FRAMEWORK}" \
+  "${VERSION}" \
+  "${PLATFORM}" \
+  "${IMAGE_URI}" || true
