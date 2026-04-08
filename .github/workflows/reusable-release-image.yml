@@ -334,77 +334,21 @@ jobs:
             https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
-      - name: Create docs PR
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          cat > /tmp/release-spec.yml <<'EOF'
-          ${{ inputs.release-spec }}
-          EOF
-
-          bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml
-
-  step5-release-notification:
-    needs: [step1-publish-images, step3-publish-notifications]
-    if: needs.step1-publish-images.outputs.images-published == '1' && inputs.environment == 'production'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          sparse-checkout: |
-            scripts/autocurrency
-            .github/config/autocurrency-tracker.yml
-
       - name: Download metadata artifact
         uses: actions/download-artifact@v4
         with:
           name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
           path: /tmp/
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y jq
-          sudo wget -qO /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-
-      - name: Send release notification
+      - name: Create docs PR
         env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_RELEASE_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
         run: |
           cat > /tmp/release-spec.yml <<'EOF'
           ${{ inputs.release-spec }}
           EOF
 
-          source scripts/autocurrency/utils.sh
-
-          FRAMEWORK=$(yq '.framework' /tmp/release-spec.yml)
-
-          # Skip frameworks not defined in tracker config
-          TRACKER=".github/config/autocurrency-tracker.yml"
-          if [[ "$(yq eval ".frameworks.${FRAMEWORK}" "$TRACKER")" == "null" ]]; then
-            echo "${FRAMEWORK}: Not defined in tracker config. Skipping release notification."
-            exit 0
-          fi
-
-          VERSION=$(yq '.version' /tmp/release-spec.yml)
-          PLATFORM=$(yq '.customer_type' /tmp/release-spec.yml)
-
-          # Build image URI from metadata file
           METADATA_FILE="/tmp/${{ needs.step1-publish-images.outputs.metadata-file-name }}"
-          REGISTRY=$(jq -r '.target_ecr_public_registry' "$METADATA_FILE")
-          REPO=$(jq -r '.target_ecr_repository' "$METADATA_FILE")
-          TAG=$(jq -r '.tag_with_dlc_version' "$METADATA_FILE")
-          IMAGE_URI="${REGISTRY}/${REPO}:${TAG}"
-
-          echo "Image URI: ${IMAGE_URI}"
-
-          send_release_notification \
-            "${SLACK_RELEASE_WEBHOOK_URL:-}" \
-            "${FRAMEWORK}" \
-            "${VERSION}" \
-            "${PLATFORM}" \
-            "${IMAGE_URI}" || true
+          bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml "$METADATA_FILE"

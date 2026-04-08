@@ -7,14 +7,16 @@
 # can source the helper functions without triggering execution).
 #
 # Usage:
-#   bash scripts/autocurrency/docs-pr.sh <release-spec-yaml>
+#   bash scripts/autocurrency/docs-pr.sh <release-spec-yaml> [metadata-file]
 #
 # Arguments:
 #   release-spec-yaml — Path to the release specification YAML file
+#   metadata-file     — Path to the release metadata file (optional, for release notification)
 #
 # Required environment variables (set by the workflow):
-#   GH_TOKEN          — GitHub App token for push/PR operations
-#   SLACK_WEBHOOK_URL — Slack webhook URL (optional)
+#   GH_TOKEN                 — GitHub App token for push/PR operations
+#   SLACK_WEBHOOK_URL        — Slack webhook URL (optional)
+#   SLACK_RELEASE_WEBHOOK_URL — Slack release notification webhook URL (optional)
 
 set -euo pipefail
 
@@ -98,7 +100,8 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
   return 0
 fi
 
-RELEASE_SPEC="${1:?Usage: docs-pr.sh <release-spec-yaml>}"
+RELEASE_SPEC="${1:?Usage: docs-pr.sh <release-spec-yaml> [metadata-file]}"
+METADATA_FILE="${2:-}"
 
 # -----------------------------------------------------------------
 # Parse release spec
@@ -364,3 +367,29 @@ send_slack_notification \
   "${FRAMEWORK}" \
   "${VERSION}" \
   "${PR_URL}" || true
+
+# -----------------------------------------------------------------
+# Step 5: Send release notification
+# -----------------------------------------------------------------
+echo ""
+echo "============================================================"
+echo "Step 5: Send release notification"
+echo "============================================================"
+
+if [ -n "${METADATA_FILE}" ] && [ -f "${METADATA_FILE}" ]; then
+  REGISTRY=$(jq -r '.target_ecr_public_registry' "$METADATA_FILE")
+  REPO=$(jq -r '.target_ecr_repository' "$METADATA_FILE")
+  TAG=$(jq -r '.tag_with_dlc_version' "$METADATA_FILE")
+  IMAGE_URI="${REGISTRY}/${REPO}:${TAG}"
+
+  echo "Image URI: ${IMAGE_URI}"
+
+  send_release_notification \
+    "${SLACK_RELEASE_WEBHOOK_URL:-}" \
+    "${FRAMEWORK}" \
+    "${VERSION}" \
+    "${PLATFORM}" \
+    "${IMAGE_URI}" || true
+else
+  echo "No metadata file provided. Skipping release notification."
+fi
