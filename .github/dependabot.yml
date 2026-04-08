@@ -40,51 +40,6 @@ updates:
       prefix: "build(deps)"
       include: "scope"
 
-  # Lambda base (uv)
-  - package-ecosystem: "uv"
-    directory: "/docker/lambda/base"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "lambda"
-    groups:
-      all:
-        patterns: ["*"]
-    commit-message:
-      prefix: "build(deps)"
-      include: "scope"
-
-  # Lambda CuPy (uv)
-  - package-ecosystem: "uv"
-    directory: "/docker/lambda/cupy"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "lambda"
-    groups:
-      all:
-        patterns: ["*"]
-    commit-message:
-      prefix: "build(deps)"
-      include: "scope"
-
-  # Lambda PyTorch (uv)
-  - package-ecosystem: "uv"
-    directory: "/docker/lambda/pytorch"
-    schedule:
-      interval: "weekly"
-    labels:
-      - "dependencies"
-      - "lambda"
-    groups:
-      all:
-        patterns: ["*"]
-    commit-message:
-      prefix: "build(deps)"
-      include: "scope"
-
   # PyTorch (uv)
   - package-ecosystem: "uv"
     directory: "/docker/pytorch"
