@@ -8,7 +8,7 @@ on:
       - "docker/lambda/**"
       - "scripts/lambda/**"
       - "scripts/common/**"
-      - "scripts/telemetry/**"
+      - "scripts/telemetry/bash_telemetry.sh.template"
       - "test/lambda/**"
       - "test/security/data/ecr_scan_allowlist/lambda/**"
       - ".github/workflows/pr-lambda.yml"
@@ -70,7 +70,7 @@ jobs:
               - "docker/lambda/**"
               - "scripts/lambda/**"
               - "scripts/common/**"
-              - "scripts/telemetry/**"
+              - "scripts/telemetry/bash_telemetry.sh.template"
               - "test/security/data/ecr_scan_allowlist/lambda/**"
 
   # ============================================================

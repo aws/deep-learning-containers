@@ -1,0 +1,139 @@
+# Dependabot configuration
+# Scoped per directory so each DLC image type gets its own PR,
+# avoiding cross-image blast radius in CI.
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+
+updates:
+  # ============================================================
+  # Production image directories (one entry per image type)
+  # ============================================================
+
+  # Base image v1 (uv)
+  - package-ecosystem: "uv"
+    directory: "/docker/base/v1"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "base"
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+
+  # Base image v2 (uv)
+  - package-ecosystem: "uv"
+    directory: "/docker/base/v2"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "base"
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+
+  # Lambda base (uv)
+  - package-ecosystem: "uv"
+    directory: "/docker/lambda/base"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "lambda"
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+
+  # Lambda CuPy (uv)
+  - package-ecosystem: "uv"
+    directory: "/docker/lambda/cupy"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "lambda"
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+
+  # Lambda PyTorch (uv)
+  - package-ecosystem: "uv"
+    directory: "/docker/lambda/pytorch"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "lambda"
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+
+  # PyTorch (uv)
+  - package-ecosystem: "uv"
+    directory: "/docker/pytorch"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "pytorch"
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+
+  # TODO: Add XGBoost (/docker/xgboost) once its dependency management is finalized.
+
+  # Ray (uv)
+  - package-ecosystem: "uv"
+    directory: "/scripts/ray"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ray"
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "build(deps)"
+      include: "scope"
+
+  # ============================================================
+  # TODO: Add update rules for test/, docs/, and root directories
+  # once their dependency management is finalized.
+  # ============================================================
+  # GitHub Actions
+  # ============================================================
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      all:
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci(deps)"
+      include: "scope"

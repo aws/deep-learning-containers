@@ -237,7 +237,7 @@ def parse_args():
             "sglang",
             "lambda",
             "ray",
-            "vllm-omni",
+            "vllm_omni",
         ],
         help="framework of container image.",
         required=True,
