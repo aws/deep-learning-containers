@@ -24,7 +24,7 @@ env:
 
 jobs:
   # ===========================================================================
-  # Container tests — commented out, running only e2e tests
+  # Container tests
   # ===========================================================================
   generate-models:
     timeout-minutes: 15
@@ -155,6 +155,7 @@ jobs:
   # E2E tests — SageMaker training/inference/transform jobs
   # ===========================================================================
   e2e-test:
+    needs: [container-test-training, container-test-scoring, container-test-batch-transform]
     timeout-minutes: 120
     strategy:
       fail-fast: false
@@ -196,7 +197,7 @@ jobs:
             xgboost/e2e/${{ matrix.test-module }}.py
 
   # ===========================================================================
-  # Benchmark tests — commented out, running only e2e tests
+  # Benchmark tests
   # ===========================================================================
   benchmark-test:
     needs: [e2e-test]

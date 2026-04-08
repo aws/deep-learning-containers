@@ -67,7 +67,7 @@ SageMaker training jobs that measure performance across different configurations
 | Workflow                            | Trigger                                   | What runs                                                           |
 | ----------------------------------- | ----------------------------------------- | ------------------------------------------------------------------- |
 | `pr-sagemaker-xgboost.yml`          | PR to `main` touching `docker/xgboost/**` | Build → unit tests → security → upstream integration                |
-| `release-sagemaker-xgboost.yml`     | `workflow_dispatch` / push                | Build → unit tests → security → `sagemaker-xgboost-integ-tests.yml` |
+| `release-sagemaker-xgboost.yml`     | `workflow_dispatch`                       | Build → unit tests → security → `sagemaker-xgboost-integ-tests.yml` |
 | `sagemaker-xgboost-integ-tests.yml` | Called by release workflow                | Container tests → E2E tests → benchmarks                            |
 
 ### Release build flow

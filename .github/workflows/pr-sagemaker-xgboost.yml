@@ -84,7 +84,7 @@ jobs:
           PY=$(jq -r '.common.python_version' config.json)
           CU=$(jq -r '.common.cuda_version' config.json)
           OS=$(jq -r '.common.os_version' config.json)
-          echo "ci-tag=${FW}-${FV}-${DT}-${PY}-${CU}-${OS}-sagemaker-pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "ci-tag=${FW}-${FV}-${DT}-${PY}-pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
 
   check-changes:
     needs: [gatekeeper]

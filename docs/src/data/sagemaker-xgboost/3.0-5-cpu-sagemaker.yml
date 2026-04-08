@@ -1,0 +1,11 @@
+framework: XGBoost
+version: "3.0-5"
+accelerator: cpu
+platform: sagemaker
+example_ecr_account: "<account-id>"
+
+tags:
+  - "3.0-5"
+
+ga: "2025-11-17"
+eop: "2026-11-17"
