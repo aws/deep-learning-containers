@@ -10,7 +10,7 @@ on:
       - "scripts/vllm/dockerd_entrypoint.sh"
       - "scripts/vllm/sagemaker_entrypoint.sh"
       - "scripts/common/**"
-      - "scripts/telemetry/**"
+      - "scripts/telemetry/bash_telemetry.sh.template"
       - ".github/config/vllm-ec2-amzn2023.yml"
       # - ".github/workflows/pr-vllm-ec2-amzn2023.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
@@ -120,7 +120,7 @@ jobs:
               - "scripts/vllm/dockerd_entrypoint.sh"
               - "scripts/vllm/sagemaker_entrypoint.sh"
               - "scripts/common/**"
-              - "scripts/telemetry/**"
+              - "scripts/telemetry/bash_telemetry.sh.template"
               - ".github/config/vllm-ec2-amzn2023.yml"
             sanity-test-change:
               - "test/sanity/**"
