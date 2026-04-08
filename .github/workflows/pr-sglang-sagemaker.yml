@@ -113,7 +113,7 @@ jobs:
               - "docker/sglang/**"
               - "scripts/sglang/**"
               - "scripts/common/**"
-              - "scripts/telemetry/**"
+              - "scripts/telemetry/bash_telemetry.sh.template"
               - ".github/config/sglang-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"

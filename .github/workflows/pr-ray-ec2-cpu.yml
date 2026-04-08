@@ -115,7 +115,7 @@ jobs:
               - "docker/ray/**"
               - "scripts/ray/**"
               - "scripts/common/**"
-              - "scripts/telemetry/**"
+              - "scripts/telemetry/bash_telemetry.sh.template"
               - ".github/workflows/pr-ray*"
             test-change:
               - "test/ray/**"
