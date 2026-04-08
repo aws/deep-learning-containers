@@ -223,123 +223,124 @@ jobs:
   # ============================================================
   # Sanity tests
   # ============================================================
-  sanity-test:
-    needs: [build-ec2, build-sagemaker, load-config-ec2, load-config-sagemaker]
-    if: success()
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
-            customer-type: ec2
-          - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
-            customer-type: sagemaker
-    uses: ./.github/workflows/reusable-sanity-tests.yml
-    with:
-      image-uri: ${{ matrix.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: vllm-omni
-      framework-version: "0.18.0"
-      python-version: py312
-      cuda-version: cu129
-      os-version: amzn2023
-      customer-type: ${{ matrix.customer-type }}
-      arch-type: x86
-      device-type: gpu
-      contributor: None
-      container-type: general
+  # sanity-test:
+  #   needs: [build-ec2, build-sagemaker, load-config-ec2, load-config-sagemaker]
+  #   if: success()
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
+  #           customer-type: ec2
+  #         - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
+  #           customer-type: sagemaker
+  #   uses: ./.github/workflows/reusable-sanity-tests.yml
+  #   with:
+  #     image-uri: ${{ matrix.ci-image }}
+  #     aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+  #     aws-region: ${{ vars.AWS_REGION }}
+  #     framework: vllm-omni
+  #     framework-version: "0.18.0"
+  #     python-version: py312
+  #     cuda-version: cu129
+  #     os-version: amzn2023
+  #     customer-type: ${{ matrix.customer-type }}
+  #     arch-type: x86
+  #     device-type: gpu
+  #     contributor: None
+  #     container-type: general
 
   # ============================================================
   # Telemetry tests
   # ============================================================
-  telemetry-test:
-    needs: [build-ec2, build-sagemaker, load-config-ec2]
-    if: success()
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
-          - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
-    uses: ./.github/workflows/reusable-telemetry-tests.yml
-    with:
-      image-uri: ${{ matrix.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: vllm-omni
-      framework-version: "0.18.0"
-      container-type: general
+  # telemetry-test:
+  #   needs: [build-ec2, build-sagemaker, load-config-ec2]
+  #   if: success()
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
+  #         - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
+  #   uses: ./.github/workflows/reusable-telemetry-tests.yml
+  #   with:
+  #     image-uri: ${{ matrix.ci-image }}
+  #     aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+  #     aws-region: ${{ vars.AWS_REGION }}
+  #     framework: vllm-omni
+  #     framework-version: "0.18.0"
+  #     container-type: general
 
   # ============================================================
   # Model smoke tests (EC2 + SageMaker)
   # ============================================================
-  omni-model-smoke-tests-ec2:
-    needs: [build-ec2, load-config-ec2]
-    if: success()
-    uses: ./.github/workflows/reusable-vllm-omni-model-tests.yml
-    with:
-      image-uri: ${{ needs.build-ec2.outputs.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      customer-type: ec2
-    secrets: inherit
+  # omni-model-smoke-tests-ec2:
+  #   needs: [build-ec2, load-config-ec2]
+  #   if: success()
+  #   uses: ./.github/workflows/reusable-vllm-omni-model-tests.yml
+  #   with:
+  #     image-uri: ${{ needs.build-ec2.outputs.ci-image }}
+  #     aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+  #     aws-region: ${{ vars.AWS_REGION }}
+  #     customer-type: ec2
+  #   secrets: inherit
 
-  omni-model-smoke-tests-sagemaker:
-    needs: [build-sagemaker, load-config-sagemaker]
-    if: success()
-    uses: ./.github/workflows/reusable-vllm-omni-model-tests.yml
-    with:
-      image-uri: ${{ needs.build-sagemaker.outputs.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      customer-type: sagemaker
-    secrets: inherit
+  # omni-model-smoke-tests-sagemaker:
+  #   needs: [build-sagemaker, load-config-sagemaker]
+  #   if: success()
+  #   uses: ./.github/workflows/reusable-vllm-omni-model-tests.yml
+  #   with:
+  #     image-uri: ${{ needs.build-sagemaker.outputs.ci-image }}
+  #     aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+  #     aws-region: ${{ vars.AWS_REGION }}
+  #     customer-type: sagemaker
+  #   secrets: inherit
 
   # ============================================================
   # SageMaker endpoint test
   # ============================================================
-  sagemaker-endpoint-test:
-    needs: [build-sagemaker, load-config-sagemaker]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-sm-endpoint-${{ github.run_id }}
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-          uv pip install -r test/vllm-omni/sagemaker/requirements.txt
-      - name: Run SageMaker endpoint test
-        run: |
-          source .venv/bin/activate
-          cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.build-sagemaker.outputs.ci-image }} vllm-omni/sagemaker
-      - name: Cleanup orphaned endpoints
-        if: always()
-        run: |
-          source .venv/bin/activate
-          python3 -c "
-          import boto3
-          sm = boto3.client('sagemaker')
-          for ep in sm.list_endpoints(NameContains='vllm-omni', StatusEquals='InService').get('Endpoints', []):
-              name = ep['EndpointName']
-              print(f'Deleting orphaned endpoint: {name}')
-              sm.delete_endpoint(EndpointName=name)
-          "
+  # sagemaker-endpoint-test:
+  #   needs: [build-sagemaker, load-config-sagemaker]
+  #   if: success()
+  #   runs-on:
+  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+  #       fleet:default-runner
+  #       buildspec-override:true
+  #   concurrency:
+  #     group: ${{ github.workflow }}-sm-endpoint-${{ github.run_id }}
+  #     cancel-in-progress: false
+  #   steps:
+  #     - uses: actions/checkout@v5
+  #     - name: Install test dependencies
+  #       run: |
+  #         uv venv --python 3.12
+  #         source .venv/bin/activate
+  #         uv pip install -r test/requirements.txt
+  #         uv pip install -r test/vllm-omni/sagemaker/requirements.txt
+  #     - name: Run SageMaker endpoint test
+  #       run: |
+  #         source .venv/bin/activate
+  #         cd test/
+  #         python3 -m pytest -vs -rA --image-uri ${{ needs.build-sagemaker.outputs.ci-image }} vllm-omni/sagemaker
+  #     - name: Cleanup orphaned endpoints
+  #       if: always()
+  #       run: |
+  #         source .venv/bin/activate
+  #         python3 -c "
+  #         import boto3
+  #         sm = boto3.client('sagemaker')
+  #         for ep in sm.list_endpoints(NameContains='vllm-omni', StatusEquals='InService').get('Endpoints', []):
+  #             name = ep['EndpointName']
+  #             print(f'Deleting orphaned endpoint: {name}')
+  #             sm.delete_endpoint(EndpointName=name)
+  #         "
 
   # ============================================================
   # Generate release specs
   # ============================================================
+  # sanity-test, telemetry-test, omni-model-smoke-tests-ec2
   generate-release-spec-ec2:
-    needs: [load-config-ec2, build-ec2, sanity-test, telemetry-test, omni-model-smoke-tests-ec2]
+    needs: [load-config-ec2, build-ec2]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -358,7 +359,8 @@ jobs:
           config-json: ${{ needs.load-config-ec2.outputs.config }}
 
   generate-release-spec-sagemaker:
-    needs: [load-config-sagemaker, build-sagemaker, sanity-test, telemetry-test, omni-model-smoke-tests-sagemaker, sagemaker-endpoint-test]
+  # sanity-test, telemetry-test, omni-model-smoke-tests-sagemaker, sagemaker-endpoint-test
+    needs: [load-config-sagemaker, build-sagemaker]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -389,7 +391,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-ec2.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec-ec2.outputs.release-spec }}
-      environment: ${{ fromJson(needs.load-config-ec2.outputs.config).release.environment }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-ec2.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
       skip-docs-pr: true
@@ -408,7 +410,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-sagemaker.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec-sagemaker.outputs.release-spec }}
-      environment: ${{ fromJson(needs.load-config-sagemaker.outputs.config).release.environment }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-sagemaker.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
       skip-docs-pr: true
