@@ -5,7 +5,7 @@ image:
   description: "vLLM-Omni for EC2 instances (AL2023, omni-modality serving)"
 
 common:
-  framework: "vllm-omni"
+  framework: "vllm_omni"
   framework_version: "0.18.0"
   job_type: "general"
   python_version: "py312"

@@ -223,53 +223,53 @@ jobs:
   # ============================================================
   # Sanity tests
   # ============================================================
-  # sanity-test:
-  #   needs: [build-ec2, build-sagemaker, load-config-ec2, load-config-sagemaker]
-  #   if: success()
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
-  #           customer-type: ec2
-  #         - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
-  #           customer-type: sagemaker
-  #   uses: ./.github/workflows/reusable-sanity-tests.yml
-  #   with:
-  #     image-uri: ${{ matrix.ci-image }}
-  #     aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #     aws-region: ${{ vars.AWS_REGION }}
-  #     framework: vllm-omni
-  #     framework-version: "0.18.0"
-  #     python-version: py312
-  #     cuda-version: cu129
-  #     os-version: amzn2023
-  #     customer-type: ${{ matrix.customer-type }}
-  #     arch-type: x86
-  #     device-type: gpu
-  #     contributor: None
-  #     container-type: general
+  sanity-test:
+    needs: [build-ec2, build-sagemaker, load-config-ec2, load-config-sagemaker]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
+            customer-type: ec2
+          - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
+            customer-type: sagemaker
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ matrix.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config-ec2.outputs.framework }}
+      framework-version: ${{ needs.load-config-ec2.outputs.framework-version }}
+      python-version: ${{ needs.load-config-ec2.outputs.python-version }}
+      cuda-version: ${{ needs.load-config-ec2.outputs.cuda-version }}
+      os-version: ${{ needs.load-config-ec2.outputs.os-version }}
+      customer-type: ${{ matrix.customer-type }}
+      arch-type: ${{ needs.load-config-ec2.outputs.arch-type }}
+      device-type: ${{ needs.load-config-ec2.outputs.device-type }}
+      contributor: ${{ needs.load-config-ec2.outputs.contributor }}
+      container-type: ${{ needs.load-config-ec2.outputs.container-type }}
 
   # ============================================================
   # Telemetry tests
   # ============================================================
-  # telemetry-test:
-  #   needs: [build-ec2, build-sagemaker, load-config-ec2]
-  #   if: success()
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
-  #         - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
-  #   uses: ./.github/workflows/reusable-telemetry-tests.yml
-  #   with:
-  #     image-uri: ${{ matrix.ci-image }}
-  #     aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #     aws-region: ${{ vars.AWS_REGION }}
-  #     framework: vllm-omni
-  #     framework-version: "0.18.0"
-  #     container-type: general
+  telemetry-test:
+    needs: [build-ec2, build-sagemaker, load-config-ec2]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
+          - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ matrix.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config-ec2.outputs.framework }}
+      framework-version: ${{ needs.load-config-ec2.outputs.framework-version }}
+      container-type: ${{ needs.load-config-ec2.outputs.container-type }}
 
   # ============================================================
   # Model smoke tests (EC2 + SageMaker)
