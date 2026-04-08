@@ -358,6 +358,12 @@ jobs:
             scripts/autocurrency
             .github/config/autocurrency-tracker.yml
 
+      - name: Download metadata artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
+          path: /tmp/
+
       - name: Install dependencies
         run: |
           sudo apt-get install -y jq
@@ -386,12 +392,15 @@ jobs:
 
           VERSION=$(yq '.version' /tmp/release-spec.yml)
           PLATFORM=$(yq '.customer_type' /tmp/release-spec.yml)
-          DEVICE=$(yq '.device_type' /tmp/release-spec.yml)
-          PYTHON=$(yq '.python_version' /tmp/release-spec.yml)
-          CUDA=$(yq '.cuda_version' /tmp/release-spec.yml)
-          OS=$(yq '.os_version' /tmp/release-spec.yml)
 
-          IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
+          # Build image URI from metadata file
+          METADATA_FILE="/tmp/${{ needs.step1-publish-images.outputs.metadata-file-name }}"
+          REGISTRY=$(jq -r '.target_ecr_public_registry' "$METADATA_FILE")
+          REPO=$(jq -r '.target_ecr_repository' "$METADATA_FILE")
+          TAG=$(jq -r '.tag_with_dlc_version' "$METADATA_FILE")
+          IMAGE_URI="${REGISTRY}/${REPO}:${TAG}"
+
+          echo "Image URI: ${IMAGE_URI}"
 
           send_release_notification \
             "${SLACK_RELEASE_WEBHOOK_URL:-}" \
