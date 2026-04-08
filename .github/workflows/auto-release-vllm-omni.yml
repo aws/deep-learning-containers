@@ -1,16 +1,9 @@
 name: Auto Release - vLLM-Omni
 
 on:
-  # schedule run must be on the default branch
-  # schedule:
-  #   # Runs at 12:00 PM PST / 1:00 PM PDT on Tuesday and Thursday
-  #   - cron: '00 20 * * 2,4'
-
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/workflows/auto-release-vllm-omni.yml"
+  schedule:
+    # Runs at 12:00 PM PST / 1:00 PM PDT on Tuesday and Thursday
+    - cron: '00 20 * * 2,4'
 
   workflow_dispatch:
 
@@ -40,7 +33,6 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
       build-target: ${{ steps.parse.outputs.build-target }}
-      ci-tag: ${{ steps.parse.outputs.ci-tag }}
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
       base-image: ${{ steps.parse.outputs.base-image }}
     steps:
@@ -63,7 +55,6 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "build-target=$(jq -r '.common.build_target // "vllm-omni-ec2-amzn2023"' config.json)" >> $GITHUB_OUTPUT
-          echo "ci-tag=$(jq -r '.common.ci_tag // "vllm-omni"' config.json)" >> $GITHUB_OUTPUT
           echo "dockerfile=$(jq -r '.common.dockerfile // "docker/vllm/Dockerfile.amzn2023"' config.json)" >> $GITHUB_OUTPUT
           echo "base-image=$(jq -r '.common.base_image // "nvidia/cuda:12.9.1-devel-amzn2023"' config.json)" >> $GITHUB_OUTPUT
 
@@ -82,7 +73,6 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
       build-target: ${{ steps.parse.outputs.build-target }}
-      ci-tag: ${{ steps.parse.outputs.ci-tag }}
       dockerfile: ${{ steps.parse.outputs.dockerfile }}
       base-image: ${{ steps.parse.outputs.base-image }}
     steps:
@@ -105,7 +95,6 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "build-target=$(jq -r '.common.build_target // "vllm-omni-sagemaker-amzn2023"' config.json)" >> $GITHUB_OUTPUT
-          echo "ci-tag=$(jq -r '.common.ci_tag // "vllm-omni"' config.json)" >> $GITHUB_OUTPUT
           echo "dockerfile=$(jq -r '.common.dockerfile // "docker/vllm/Dockerfile.amzn2023"' config.json)" >> $GITHUB_OUTPUT
           echo "base-image=$(jq -r '.common.base_image // "nvidia/cuda:12.9.1-devel-amzn2023"' config.json)" >> $GITHUB_OUTPUT
 
@@ -167,14 +156,14 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config-ec2.outputs.framework }}
-          target: vllm-omni-ec2-amzn2023
-          base-image: nvidia/cuda:12.9.1-devel-amzn2023
+          target: ${{ needs.load-config-ec2.outputs.build-target }}
+          base-image: ${{ needs.load-config-ec2.outputs.base-image }}
           framework-version: ${{ needs.load-config-ec2.outputs.framework-version }}
           container-type: ${{ needs.load-config-ec2.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: vllm-omni-${{ needs.load-config-ec2.outputs.framework-version }}-gpu-${{ needs.load-config-ec2.outputs.python-version }}-${{ needs.load-config-ec2.outputs.cuda-version }}-${{ needs.load-config-ec2.outputs.os-version }}-ec2-${{ github.run_id }}
-          dockerfile-path: docker/vllm/Dockerfile.amzn2023
+          dockerfile-path: ${{ needs.load-config-ec2.outputs.dockerfile }}
           arch-type: ${{ needs.load-config-ec2.outputs.arch-type }}
           device-type: ${{ needs.load-config-ec2.outputs.device-type }}
           cuda-version: ${{ needs.load-config-ec2.outputs.cuda-version }}
@@ -203,14 +192,14 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config-sagemaker.outputs.framework }}
-          target: vllm-omni-sagemaker-amzn2023
-          base-image: nvidia/cuda:12.9.1-devel-amzn2023
+          target: ${{ needs.load-config-sagemaker.outputs.build-target }}
+          base-image: ${{ needs.load-config-sagemaker.outputs.base-image }}
           framework-version: ${{ needs.load-config-sagemaker.outputs.framework-version }}
           container-type: ${{ needs.load-config-sagemaker.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: vllm-omni-${{ needs.load-config-sagemaker.outputs.framework-version }}-gpu-${{ needs.load-config-sagemaker.outputs.python-version }}-${{ needs.load-config-sagemaker.outputs.cuda-version }}-${{ needs.load-config-sagemaker.outputs.os-version }}-sagemaker-${{ github.run_id }}
-          dockerfile-path: docker/vllm/Dockerfile.amzn2023
+          dockerfile-path: ${{ needs.load-config-sagemaker.outputs.dockerfile }}
           arch-type: ${{ needs.load-config-sagemaker.outputs.arch-type }}
           device-type: ${{ needs.load-config-sagemaker.outputs.device-type }}
           cuda-version: ${{ needs.load-config-sagemaker.outputs.cuda-version }}
