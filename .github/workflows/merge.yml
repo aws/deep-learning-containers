@@ -16,9 +16,37 @@ jobs:
   enforce-all-checks:
     runs-on: ubuntu-latest
     steps:
-      - name: GitHub Workflow Checks
-        uses: poseidon/wait-for-status-checks@v0.6.0
+      - name: Wait for all checks to complete
+        uses: actions/github-script@v7
         with:
-          token: ${{ github.token }}
-          interval: 30s   # Reduce interval for quicker checks
-          timeout: 7200s  # Timeout should be adjusted according to the longest running workflow
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.payload.pull_request.head.sha;
+            const self = 'enforce-all-checks';
+            const ignoredChecks = new Set([self]);
+            const intervalMs = 30_000;
+            const timeoutMs = 7_200_000;
+            const deadline = Date.now() + timeoutMs;
+
+            while (Date.now() < deadline) {
+              const { data } = await github.rest.checks.listForRef({ owner, repo, ref: sha, per_page: 100 });
+              const runs = data.check_runs.filter(r => !ignoredChecks.has(r.name));
+
+              const failed = runs.filter(r => r.status === 'completed' && r.conclusion !== 'success' && r.conclusion !== 'skipped' && r.conclusion !== 'neutral');
+              if (failed.length > 0) {
+                for (const r of failed) core.info(`❌ ${r.name}: ${r.conclusion}`);
+                core.setFailed('One or more check runs failed.');
+                return;
+              }
+
+              const pending = runs.filter(r => r.status !== 'completed');
+              if (pending.length === 0) {
+                core.info(`✅ All ${runs.length} check runs passed.`);
+                return;
+              }
+
+              core.info(`⏳ ${pending.length} check(s) still running...`);
+              await new Promise(r => setTimeout(r, intervalMs));
+            }
+            core.setFailed('Timed out waiting for check runs.');
