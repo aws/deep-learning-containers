@@ -94,7 +94,7 @@ jobs:
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
   unit-test:
-    needs: [build-image, load-config]
+    needs: [security-test, build-image, load-config]
     if: success()
     timeout-minutes: 15
     runs-on:
@@ -149,7 +149,7 @@ jobs:
       framework-version: ${{ needs.load-config.outputs.framework-version }}
 
   xgboost-tests:
-    needs: [build-image, load-config]
+    needs: [security-test, build-image, load-config]
     if: success()
     uses: ./.github/workflows/sagemaker-xgboost-integ-tests.yml
     with:
