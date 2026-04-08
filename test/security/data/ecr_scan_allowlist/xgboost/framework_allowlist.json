@@ -4,11 +4,7 @@
         "reason": "protobuf pinned to 3.20.x \u2014 required by sagemaker-containers 2.8.6.post2. Cannot upgrade to 6.x.",
         "review_by": "2026-06-26"
     },
-    {
-        "vulnerability_id": "CVE-2026-2673",
-        "reason": "openssl 3.6.1 via conda-forge; 3.6.2 not yet available. Will auto-resolve.",
-        "review_by": "2026-06-26"
-    },
+
     {
         "vulnerability_id": "CVE-2025-27516",
         "reason": "Jinja2 pinned to 2.11.3 by sagemaker-containers/Flask 1.1.1. Cannot upgrade without breaking serving stack.",
