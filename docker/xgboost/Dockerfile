@@ -109,7 +109,7 @@ RUN conda config --system --set auto_update_conda false \
   && conda install -y --solver=libmamba \
     python=${PYTHON_VERSION} \
     requests=2.32.3 \
-    openssl=3.6.1 \
+    openssl=3.6.2 \
     "libcurl>=8.19.0" \
     pyarrow=${PYARROW_VERSION} \
   && conda clean -afy
