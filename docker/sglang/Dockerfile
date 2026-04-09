@@ -87,6 +87,7 @@ RUN rm -rf \
   /root/.rustup/ \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/ \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/python/Cargo.lock \
+  /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Run OSS compliance script
