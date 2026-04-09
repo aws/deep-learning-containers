@@ -2,9 +2,9 @@ name: Auto Release - Ray
 
 on:
   # schedule run must be on the default branch
-  schedule:
-    # Runs at 12:00 PM PST / 1:00 PM PDT on Tuesday and Thursday
-    - cron: '00 20 * * 2,4'
+  # schedule:
+  #   # Runs at 12:00 PM PST / 1:00 PM PDT on Tuesday and Thursday
+  #   - cron: '00 20 * * 2,4'
 
   # PR trigger for gamma testing
   # pull_request:
