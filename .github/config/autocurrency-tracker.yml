@@ -33,6 +33,7 @@ frameworks:
           key: pytorch
         - name: torchvision
         - name: torchaudio
+        - name: transformers
       system:
         - cuda
         - nccl

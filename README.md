@@ -14,7 +14,6 @@
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/auto-release-ray.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/auto-release-ray.yml/badge.svg" alt="Auto Release - Ray"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/auto-release-sglang-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/auto-release-sglang-ec2.yml/badge.svg" alt="Auto Release - SGLang EC2"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/auto-release-sglang-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/auto-release-sglang-sagemaker.yml/badge.svg" alt="Auto Release - SGLang SageMaker"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/auto-release-lambda.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/auto-release-lambda.yml/badge.svg" alt="Auto Release - Lambda"></a>
 </p>
 
 ______________________________________________________________________
