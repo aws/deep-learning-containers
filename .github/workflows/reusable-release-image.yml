@@ -52,9 +52,9 @@ jobs:
           ENVIRONMENT="${{ inputs.environment }}"
 
           # Validate environment input
-          if [[ "${ENVIRONMENT}" != "gamma" && "${ENVIRONMENT}" != "production" ]]; then
+          if [[ "${ENVIRONMENT}" != "gamma" && "${ENVIRONMENT}" != "production" && "${ENVIRONMENT}" != "preprod" ]]; then
             echo "❌ ERROR: Invalid environment '${ENVIRONMENT}'"
-            echo "Valid environments: gamma, production"
+            echo "Valid environments: gamma, preprod, production"
             exit 1
           fi
 
