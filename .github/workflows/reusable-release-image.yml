@@ -305,7 +305,7 @@ jobs:
 
   step4-docs-pr:
     needs: [step1-publish-images, step3-publish-notifications]
-    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only && !inputs.skip-docs-pr
+    if: needs.step1-publish-images.outputs.images-published == '1' && inputs.environment == 'production' && !inputs.publish-only && !inputs.skip-docs-pr
     runs-on: ubuntu-latest
     steps:
       - name: Decode the GitHub App Private Key
@@ -334,58 +334,21 @@ jobs:
             https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
+      - name: Download metadata artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
+          path: /tmp/
+
       - name: Create docs PR
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          cat > /tmp/release-spec.yml <<'EOF'
-          ${{ inputs.release-spec }}
-          EOF
-
-          bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml
-
-  step5-release-notification:
-    needs: [step1-publish-images, step3-publish-notifications]
-    if: needs.step1-publish-images.outputs.images-published == '1'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          sparse-checkout: scripts/autocurrency
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get install -y jq
-          sudo wget -qO /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-
-      - name: Send release notification
-        env:
           SLACK_RELEASE_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
         run: |
           cat > /tmp/release-spec.yml <<'EOF'
           ${{ inputs.release-spec }}
           EOF
 
-          source scripts/autocurrency/utils.sh
-
-          FRAMEWORK=$(yq '.framework' /tmp/release-spec.yml)
-          VERSION=$(yq '.version' /tmp/release-spec.yml)
-          PLATFORM=$(yq '.customer_type' /tmp/release-spec.yml)
-          DEVICE=$(yq '.device_type' /tmp/release-spec.yml)
-          PYTHON=$(yq '.python_version' /tmp/release-spec.yml)
-          CUDA=$(yq '.cuda_version' /tmp/release-spec.yml)
-          OS=$(yq '.os_version' /tmp/release-spec.yml)
-
-          IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
-
-          send_release_notification \
-            "${SLACK_RELEASE_WEBHOOK_URL:-}" \
-            "${FRAMEWORK}" \
-            "${VERSION}" \
-            "${PLATFORM}" \
-            "${IMAGE_URI}" || true
+          METADATA_FILE="/tmp/${{ needs.step1-publish-images.outputs.metadata-file-name }}"
+          bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml "$METADATA_FILE"
