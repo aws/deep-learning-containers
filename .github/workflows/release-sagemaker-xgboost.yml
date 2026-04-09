@@ -1,9 +1,6 @@
 name: Release - XGBoost SageMaker
 
 on:
-  # TODO: Remove push trigger after testing, keep only workflow_dispatch
-  push:
-    branches: [xgboost-migration]
   workflow_dispatch:
 
 permissions:
@@ -96,68 +93,67 @@ jobs:
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
-  # Tests commented out for gamma release testing
-  # unit-test:
-  #   needs: [security-test, build-image, load-config]
-  #   if: success()
-  #   timeout-minutes: 15
-  #   runs-on:
-  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:default-runner
-  #       buildspec-override:true
-  #   concurrency:
-  #     group: ${{ github.workflow }}-unit-test-${{ github.run_id }}
-  #     cancel-in-progress: true
-  #   steps:
-  #     - name: Checkout DLC source
-  #       uses: actions/checkout@v5
-  #     - name: Clone sagemaker-xgboost-container
-  #       run: rm -rf /tmp/xgboost-unit && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-unit
-  #     - name: ECR login
-  #       uses: ./.github/actions/ecr-authenticate
-  #       with:
-  #         aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #         aws-region: ${{ vars.AWS_REGION }}
-  #         image-uri: ${{ needs.build-image.outputs.ci-image }}
-  #     - name: Build test image
-  #       run: |
-  #         CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
-  #         cd /tmp/xgboost-unit
-  #         printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
-  #         docker build -t test-xgboost -f Dockerfile.test .
-  #     - name: Run unit tests
-  #       run: |
-  #         docker run --rm test-xgboost sh -c \
-  #           'python3 -m pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit'
-  #     - name: Run flake8
-  #       run: |
-  #         docker run --rm test-xgboost sh -c 'python3 -m flake8 setup.py src test'
+  unit-test:
+    needs: [security-test, build-image, load-config]
+    if: success()
+    timeout-minutes: 15
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+      - name: Clone sagemaker-xgboost-container
+        run: rm -rf /tmp/xgboost-unit && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-unit
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
+      - name: Build test image
+        run: |
+          CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
+          cd /tmp/xgboost-unit
+          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
+          docker build -t test-xgboost -f Dockerfile.test .
+      - name: Run unit tests
+        run: |
+          docker run --rm test-xgboost sh -c \
+            'python3 -m pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit'
+      - name: Run flake8
+        run: |
+          docker run --rm test-xgboost sh -c 'python3 -m flake8 setup.py src test'
 
-  # security-test:
-  #   needs: [build-image, load-config]
-  #   if: success()
-  #   concurrency:
-  #     group: ${{ github.workflow }}-security-test-${{ github.run_id }}
-  #     cancel-in-progress: true
-  #   uses: ./.github/workflows/reusable-security-tests.yml
-  #   with:
-  #     image-uri: ${{ needs.build-image.outputs.ci-image }}
-  #     aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #     aws-region: ${{ vars.AWS_REGION }}
-  #     framework: ${{ needs.load-config.outputs.framework }}
-  #     framework-version: ${{ needs.load-config.outputs.framework-version }}
+  security-test:
+    needs: [build-image, load-config]
+    if: success()
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
 
-  # xgboost-tests:
-  #   needs: [security-test, build-image, load-config]
-  #   if: success()
-  #   uses: ./.github/workflows/sagemaker-xgboost-integ-tests.yml
-  #   with:
-  #     image-uri: ${{ needs.build-image.outputs.ci-image }}
-  #     aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #     aws-region: ${{ vars.AWS_REGION }}
+  xgboost-tests:
+    needs: [security-test, build-image, load-config]
+    if: success()
+    uses: ./.github/workflows/sagemaker-xgboost-integ-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
 
   generate-release-spec:
-    needs: [load-config, build-image]
+    needs: [load-config, build-image, unit-test, security-test, xgboost-tests]
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-generate-release-spec-${{ github.run_id }}
