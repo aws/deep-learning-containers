@@ -32,7 +32,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
@@ -58,7 +58,7 @@ jobs:
       prod-image: ${{ steps.parse.outputs.prod-image }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
@@ -94,7 +94,7 @@ jobs:
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -108,7 +108,7 @@ jobs:
 
       - name: Detect file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             build-change:
@@ -134,7 +134,7 @@ jobs:
       runtime-base: ${{ steps.check.outputs.image }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup buildkitd
         run: .github/scripts/buildkitd.sh
@@ -179,7 +179,7 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build image
         id: build
@@ -284,7 +284,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install test dependencies
         run: |

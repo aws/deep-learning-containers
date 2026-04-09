@@ -33,13 +33,13 @@ jobs:
 
       - name: Generate GitHub App Token
         id: app-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.ASIMOVBOT_APP_ID }}
           private-key: ${{ steps.decode.outputs.private-key }}
 
       - name: Checkout PR branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0

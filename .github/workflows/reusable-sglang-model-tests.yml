@@ -28,7 +28,7 @@ jobs:
       bench-runner-scale-sets: ${{ steps.parse.outputs.bench-runner-scale-sets }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Parse model config
         id: parse
@@ -72,7 +72,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR authenticate
         uses: ./.github/actions/ecr-authenticate
@@ -124,7 +124,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR authenticate
         uses: ./.github/actions/ecr-authenticate
@@ -170,7 +170,7 @@ jobs:
     runs-on: gpu-efa-runners
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR authenticate
         uses: ./.github/actions/ecr-authenticate

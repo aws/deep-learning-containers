@@ -24,7 +24,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
@@ -40,7 +40,7 @@ jobs:
       config: ${{ steps.load.outputs.config }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
@@ -94,7 +94,7 @@ jobs:
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -108,7 +108,7 @@ jobs:
 
       - name: Detect file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             build-change:
@@ -137,7 +137,7 @@ jobs:
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Build image
         id: build
@@ -173,7 +173,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
@@ -204,7 +204,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate

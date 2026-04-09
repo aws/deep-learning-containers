@@ -39,7 +39,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
@@ -49,7 +49,7 @@ jobs:
           image-uri: ${{ inputs.image-uri }}
 
       - name: Checkout vLLM tests
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: vllm-project/vllm
           ref: v${{ inputs.framework-version }}
@@ -80,7 +80,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
@@ -90,7 +90,7 @@ jobs:
           image-uri: ${{ inputs.image-uri }}
 
       - name: Checkout vLLM tests
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: vllm-project/vllm
           ref: v${{ inputs.framework-version }}
@@ -121,7 +121,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
@@ -131,7 +131,7 @@ jobs:
           image-uri: ${{ inputs.image-uri }}
 
       - name: Checkout vLLM tests
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: vllm-project/vllm
           ref: v${{ inputs.framework-version }}
