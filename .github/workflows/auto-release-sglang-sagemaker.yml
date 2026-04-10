@@ -6,14 +6,17 @@ on:
     # Runs at 10:00 AM PST/PDT on Monday and Wednesday
     - cron: '00 17 * * 2,4' # Tuesday and Thursday at 10:00 AM PDT / 9:00 AM PST
 
-  # # PR triggers for testing
-  # pull_request:
-  #   paths:
-  #     - "**sglang**"
-  #     - "!docs/**"
+  # Trigger when an auto-update PR for sglang is merged
+  pull_request:
+    types: [closed]
+    branches: [main]
 
   # Manual trigger
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -27,7 +30,20 @@ env:
   CONFIG_FILE: '.github/config/sglang-sagemaker.yml'
 
 jobs:
+  # Gate: skip PR events unless it's a merged auto-update PR for sglang
+  autocurrency-pr-gate:
+    if: >-
+      github.event_name != 'pull_request' || (
+        github.event.pull_request.merged == true &&
+        contains(github.event.pull_request.labels.*.name, 'auto-update') &&
+        startsWith(github.event.pull_request.head.ref, 'auto-update/sglang-')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Gate passed"
+
   load-config:
+    needs: [autocurrency-pr-gate]
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-load-config-${{ github.event.pull_request.number || github.run_id }}
@@ -92,7 +108,7 @@ jobs:
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: sglang-sagemaker
-          base-image: lmsysorg/sglang:v${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.cuda-version }}-amd64
+          base-image: lmsysorg/sglang:v${{ needs.load-config.outputs.framework-version }}
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -213,7 +229,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
-      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
+      environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
     secrets: inherit

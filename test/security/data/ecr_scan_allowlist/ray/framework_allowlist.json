@@ -1,6 +1,18 @@
 [
     {
         "vulnerability_id": "GHSA-72hv-8253-57qq",
-        "reason": "ray 2.54.0 bundles jackson-core 2.16.1 in ray_dist.jar"
+        "reason": "ray 2.54.1 bundles jackson-core 2.16.1 in ray_dist.jar"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34520",
+        "reason": "ray 2.54.1 bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34516",
+        "reason": "ray 2.54.1 bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build"
+    },
+    {
+        "vulnerability_id": "CVE-2026-22815",
+        "reason": "ray 2.54.1 bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build"
     }
 ]

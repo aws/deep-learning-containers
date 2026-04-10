@@ -1,0 +1,32 @@
+framework: SGLang
+version: "0.5.10"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu24.04
+platform: ec2
+public_registry: true
+
+tags:
+  - "0.5.10-gpu-py312-cu129-ubuntu24.04-ec2"
+  - "0.5-gpu-py312-cu129-ubuntu24.04-ec2-v1"
+  - "0.5.10-gpu-py312-ec2"
+  - "0.5-gpu-py312-ec2"
+
+announcements:
+  - "Introduced SGLang 0.5.10 containers for EC2, ECS, EKS"
+
+packages:
+  sglang: "0.5.10"
+  sglang-kernel: "0.4.1"
+  pytorch: "2.9.1"
+  torchvision: "0.24.1"
+  torchaudio: "2.9.1"
+  torchao: "0.9.0"
+  transformers: "5.3.0"
+  flashinfer: "0.6.7.post2"
+  cuda: "12.9"
+  cudnn: "9.10.2.21"
+  nccl: "2.27.5"
+  efa: "1.46.0"
+  gdrcopy: "2.5.1"

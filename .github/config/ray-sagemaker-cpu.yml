@@ -15,15 +15,21 @@ common:
   os_version: "amzn2023"
   customer_type: "sagemaker"
   arch_type: "x86"
+  container_type: "serve-ml"
+  build_target: "ray-sagemaker-cpu"
+  ci_tag: "ray-cpu-sagemaker"
+  dockerfile: "docker/ray/Dockerfile.cpu"
+  base_image: "unused-ray-cpu-multistage"
+  platform: "sagemaker"
   prod_image: "ray:2.54-cpu-py313"
   device_type: "cpu"
   contributor: "None"
 
 # Release configuration
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: gamma
+  environment: production

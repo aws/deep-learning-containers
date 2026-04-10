@@ -246,6 +246,8 @@ def _collapse_minor_versions(
     for mm, indices in collapsible_groups.items():
         if mm in uncollapsible:
             continue
+        if len(indices) < 2:
+            continue
         group_imgs = [entries[idx][0] for idx in indices]
         ref_img = group_imgs[0]
         if dates_agree(group_imgs):
@@ -378,6 +380,8 @@ def generate_available_images(dry_run: bool = False) -> str:
             section += (
                 f"\nThese images are also available in ECR Public Gallery: [{repository}]({url})\n"
             )
+        if table_config.get("note"):
+            section += f"\n{table_config['note']}\n"
         section += f"\n{render_table(headers, rows)}"
         tables_content.append(section)
 

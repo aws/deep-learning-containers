@@ -115,7 +115,7 @@ jobs:
               - "scripts/common/install_efa.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/common/start_cuda_compat.sh"
-              - "scripts/telemetry/**"
+              - "scripts/telemetry/bash_telemetry.sh.template"
               - ".github/config/vllm-rayserve.yml"
             sanity-test-change:
               - "test/sanity/**"
