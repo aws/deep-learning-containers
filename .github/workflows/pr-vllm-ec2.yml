@@ -13,7 +13,7 @@ on:
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - "docker/vllm/Dockerfile"
       - "scripts/common/**"
-      - "scripts/telemetry/bash_telemetry.sh.template"
+      - "scripts/telemetry/**"
       - "scripts/vllm/**"
       - "test/sanity/**"
       - "test/telemetry/**"

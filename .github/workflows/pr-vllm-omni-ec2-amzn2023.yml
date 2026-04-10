@@ -13,6 +13,7 @@ on:
       - "scripts/common/**"
       - "scripts/telemetry/**"
       - "scripts/vllm/omni_*"
+      - "test/sanity/**"
       - "test/telemetry/**"
       - "test/vllm-omni/**"
 
