@@ -23,11 +23,11 @@ on:
         required: true
         type: string
       setup-script:
-        description: 'Path to test setup script (e.g., scripts/vllm/vllm_test_setup.sh)'
+        description: 'Path to test setup script (e.g., test/vllm/scripts/vllm_test_setup.sh)'
         required: true
         type: string
       example-test-script:
-        description: 'Path to example test script (e.g., scripts/vllm/vllm_ec2_examples_test.sh)'
+        description: 'Path to example test script (e.g., test/vllm/scripts/vllm_ec2_examples_test.sh)'
         required: true
         type: string
 
@@ -71,7 +71,7 @@ jobs:
 
       - name: Run vLLM regression tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
+          docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_regression_test.sh
 
   cuda-test:
     runs-on:
@@ -112,7 +112,7 @@ jobs:
 
       - name: Run vLLM CUDA tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_cuda_test.sh
+          docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_cuda_test.sh
 
   example-test:
     runs-on:

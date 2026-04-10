@@ -5,16 +5,16 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - "docker/vllm/Dockerfile.amzn2023"
-      - "scripts/vllm/omni_*"
-      - "scripts/common/**"
-      - "scripts/telemetry/**"
-      - ".github/config/vllm-omni-sagemaker-amzn2023.yml"
       - ".github/config/vllm-omni-model-tests.yml"
+      - ".github/config/vllm-omni-sagemaker-amzn2023.yml"
       - ".github/workflows/pr-vllm-omni-sagemaker-amzn2023.yml"
       - ".github/workflows/reusable-vllm-omni-model-tests.yml"
-      - "test/vllm-omni/**"
+      - "docker/vllm/Dockerfile.amzn2023"
+      - "scripts/common/**"
+      - "scripts/telemetry/**"
+      - "scripts/vllm/omni_*"
       - "test/telemetry/**"
+      - "test/vllm-omni/**"
 
 permissions:
   contents: read
