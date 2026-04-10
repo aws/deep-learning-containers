@@ -16,7 +16,7 @@ ARG EVALUATE_VERSION=0.4.6
 ARG ACCELERATE_VERSION=1.12.0
 ARG TRL_VERSION=0.28.0
 ARG PEFT_VERSION=0.18.1
-ARG TRACKIO_VERSION=0.15.0
+ARG TRACKIO_VERSION=0.21.2
 ARG FLASH_ATTN_VERSION=2.8.3
 ARG NINJA_VERSION=1.13.0
 ARG KERNELS_VERSION=0.10.5
@@ -61,16 +61,19 @@ RUN pip install --upgrade pip \
     pyarrow \
     cryptography \
     pyopenssl \
-    Pillow \
+    "Pillow>=10.3.0,<12.0.0" \
     wheel \
     setuptools \
-    "s3fs==2025.9.0" \
+    "s3fs>=2026.2.0" \
+    "awscli>=1.44.60,<2" \
+    "boto3>=1.42.70,<2" \
+    "botocore>=1.42.70,<1.43.0" \
     "werkzeug>=3.1.4" \
     "filelock>=3.20.1" \
     "numpy<2" \
     "shap<0.50.0" \
     "urllib3>=2.5.0" \
-    "protobuf>=6.33.5"
+    "protobuf>=6.33.5,<7.0"
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training"
 
