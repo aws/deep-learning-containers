@@ -408,6 +408,9 @@ def generate_index(dry_run: bool = False) -> str:
 
     readme_content = README_PATH.read_text()
     readme_content = readme_content.replace(SITE_URL, "")
+    # Fix empty links left after stripping SITE_URL (e.g. [text](SITE_URL) -> [text]())
+    readme_content = readme_content.replace("]()", "](./)")
+    readme_content = readme_content.replace('href=""', 'href="./"')
 
     # Expand single logo into MkDocs theme-aware light/dark logos
     readme_logo = '<img src="assets/logos/AWS_logo_RGB.svg" alt="AWS Logo" width="30%">'
