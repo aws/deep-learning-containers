@@ -123,20 +123,20 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/config/vllm-sagemaker.yml"
               - "docker/vllm/Dockerfile"
-              - "scripts/vllm/*"
-              - "test/vllm/scripts/**"
               - "scripts/common/install_efa.sh"
               - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - ".github/config/vllm-sagemaker.yml"
+              - "scripts/telemetry/deep_learning_container.py"
+              - "scripts/vllm/*"
+              - "test/vllm/scripts/**"
+            sagemaker-test-change:
+              - "test/vllm/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
-            sagemaker-test-change:
-              - "test/vllm/sagemaker/**"
 
   build-image:
     needs: [check-changes, load-config]

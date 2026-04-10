@@ -122,14 +122,14 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/config/vllm-ec2.yml"
               - "docker/vllm/Dockerfile"
-              - "scripts/vllm/*"
-              - "test/vllm/scripts/**"
               - "scripts/common/install_efa.sh"
               - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - ".github/config/vllm-ec2.yml"
+              - "scripts/telemetry/deep_learning_container.py"
+              - "scripts/vllm/*"
+              - "test/vllm/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
