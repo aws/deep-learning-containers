@@ -26,18 +26,16 @@ optional date string for pinning specific builds.
 The following version bump rules apply to product-versioned images. Framework-versioned images do not use DLC version numbers — see
 [Tag Aliases](#tag-aliases) below.
 
-- **MAJOR** — [Backwards-incompatible](#backwards-compatibility) changes. This includes core component major or minor version bumps (e.g., CUDA, Python, framework), API
-  removals, and changes to default behavior.
-- **MINOR** — [Backwards-compatible](#backwards-compatibility) feature updates and improvements. This includes core component patch version bumps (e.g., CUDA, Python, framework),
-  supporting dependency updates, and new functionality that does not alter existing behavior.
+- **MAJOR** — [Backwards-incompatible](#backwards-compatibility) changes. This includes core component major or minor version bumps (e.g., CUDA,
+  Python, framework), API removals, and changes to default behavior.
+- **MINOR** — [Backwards-compatible](#backwards-compatibility) feature updates and improvements. This includes core component patch version bumps
+  (e.g., CUDA, Python, framework), supporting dependency updates, and new functionality that does not alter existing behavior.
 - **PATCH** — Security patches and [backwards-compatible](#backwards-compatibility) bug fixes. No new features.
 
-!!! note
-    Existing DLC images use a legacy tag format that encodes processor, Python version, CUDA version, and OS in the tag (e.g.,
-    `vllm:0.17.0-gpu-py312-cu129-ubuntu22.04-ec2-v1.2`). New framework-versioned images use a simplified tag with framework version, CUDA version, and
-    OS (e.g., `vllm:0.19.1-cu130-amzn2023`). Product-versioned images use semantic versioning (`v<MAJOR>.<MINOR>.<PATCH>`). For framework-versioned
-    images, changes to framework version, CUDA, or OS create a new tag. For product-versioned images, all breaking changes result in a major version
-    bump.
+!!! note Existing DLC images use a legacy tag format that encodes processor, Python version, CUDA version, and OS in the tag (e.g.,
+`vllm:0.17.0-gpu-py312-cu129-ubuntu22.04-ec2-v1.2`). New framework-versioned images use a simplified tag with framework version, CUDA version, and OS
+(e.g., `vllm:0.19.1-cu130-amzn2023`). Product-versioned images use semantic versioning (`v<MAJOR>.<MINOR>.<PATCH>`). For framework-versioned images,
+changes to framework version, CUDA, or OS create a new tag. For product-versioned images, all breaking changes result in a major version bump.
 
 | Version Change | Framework-versioned | Product-versioned |
 | --- | --- | --- |
@@ -83,9 +81,10 @@ Each image is published with multiple tags at different levels of specificity. C
 
 - **`<image>`** — Always get the latest image, including new major versions. Use this when you want the newest features and dependencies and can adapt
   to breaking changes. Not recommended for production environments, as pulling this tag may introduce breaking changes without warning.
-- **`<image>-v<MAJOR>`** — Stay current within a major version. Includes [backwards-compatible](#backwards-compatibility) feature updates, security patches, and bug fixes.
-- **`<image>-v<MAJOR>.<MINOR>`** — Receive [backwards-compatible](#backwards-compatibility) security patches and bug fixes. No new features. Use this when stability matters more
-  than new features.
+- **`<image>-v<MAJOR>`** — Stay current within a major version. Includes [backwards-compatible](#backwards-compatibility) feature updates, security
+  patches, and bug fixes.
+- **`<image>-v<MAJOR>.<MINOR>`** — Receive [backwards-compatible](#backwards-compatibility) security patches and bug fixes. No new features. Use this
+  when stability matters more than new features.
 - **`<image>-v<MAJOR>.<MINOR>.<PATCH>`** — Pinned to an exact release. The image never changes. Use this when you need a fully reproducible
   environment or want to control exactly when upgrades happen.
 

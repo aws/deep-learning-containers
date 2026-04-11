@@ -36,8 +36,8 @@ Ray DLC uses [product versioning](../versioningstrategy/index.md). Image tags fo
 `ray:serve-ml-[<platform>-]{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`. The `<platform>` segment is omitted for default images and present for
 platform-specific images (e.g. `sagemaker`).
 
-Core components: **Ray**, **PyTorch**, **Transformers**, **CUDA**, **Python**. See [Versioning Strategy](../versioningstrategy/index.md) for
-version bump rules, tag aliases, and tag selection guidance.
+Core components: **Ray**, **PyTorch**, **Transformers**, **CUDA**, **Python**. See [Versioning Strategy](../versioningstrategy/index.md) for version
+bump rules, tag aliases, and tag selection guidance.
 
 ## Support Policy
 
