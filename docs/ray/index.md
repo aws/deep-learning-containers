@@ -32,19 +32,22 @@ For package versions included in each release, see the [Release Notes](../releas
 
 ## Versioning Strategy
 
-Image tags follow the format `ray:serve-ml-[<platform>-]{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`. The `<platform>` segment is omitted for default images
-and present for platform-specific images (e.g. `sagemaker`).
+Ray DLC uses [product versioning](../versioningstrategy/index.md). Image tags follow the format
+`ray:serve-ml-[<platform>-]{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`. The `<platform>` segment is omitted for default images and present for
+platform-specific images (e.g. `sagemaker`).
 
-Core components for Ray DLC: **Ray**, **PyTorch**, **Transformers**, **CUDA**, **Python**. Changes to these drive major and minor version bumps. See
-[Versioning Strategy](../versioningstrategy/index.md) for version bump rules, tag aliases, and tag selection guidance.
+Core components: **Ray**, **PyTorch**, **Transformers**, **CUDA**, **Python**. See [Versioning Strategy](../versioningstrategy/index.md) for
+version bump rules, tag aliases, and tag selection guidance.
 
 ## Support Policy
 
-| DLC Version | Ray | Python | CUDA | GA Date | End of Patch |
+| DLC Version | Ray | Python | CUDA | GA Date | EOP Date |
 | --- | --- | --- | --- | --- | --- |
 | v1.0.0 | 2.54.1 | 3.13 | 12.9.1 | 2026-03-25 | 2027-03-25 |
 
-See [Support Policy](../reference/support_policy.md) for the full lifecycle policy.
+**GA** = General Availability · **EOP** = End of Patch
+
+For more details, see [Support Policy](../reference/support_policy.md).
 
 ## Deployment Guide
 
