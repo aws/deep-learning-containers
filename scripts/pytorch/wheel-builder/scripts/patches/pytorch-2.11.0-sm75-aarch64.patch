@@ -1,0 +1,21 @@
+diff --git a/.ci/manywheel/build_cuda.sh b/.ci/manywheel/build_cuda.sh
+--- a/.ci/manywheel/build_cuda.sh
++++ b/.ci/manywheel/build_cuda.sh
+@@ -94,12 +94,13 @@ remove_archs() {
+ 
+ # Function to filter CUDA architectures for aarch64
+ # aarch64 ARM GPUs only support certain compute capabilities
+-# Keep: 8.0 (A100), 9.0+ (Hopper, Grace Hopper, newer)
+-# Remove: < 8.0 (no ARM GPUs), 8.6 (x86_64 RTX 3090/A6000 only)
++# Keep: 7.5 (T4/Graviton), 8.0 (A100), 9.0+ (Hopper+)
++# Remove: < 7.5 (no ARM GPUs), 8.6 (x86-only)
++# NOTE: AWS Graviton + T4 GPUs require SM 7.5
+ filter_aarch64_archs() {
+     local arch_list="$1"
+-    # Explicitly remove architectures not needed on aarch64
+-    arch_list=$(remove_archs "$arch_list" "5.0" "6.0" "7.0" "7.5" "8.6")
++    # Keep 7.5 for AWS Graviton + T4 GPU support
++    arch_list=$(remove_archs "$arch_list" "5.0" "6.0" "7.0" "8.6")
+     echo "$arch_list"
+ }
+ 
