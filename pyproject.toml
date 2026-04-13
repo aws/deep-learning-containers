@@ -1,6 +1,10 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = [
+    # Snippet appended to torch/__init__.py at build time, not standalone Python
+    "scripts/pytorch/wheel-builder/scripts/aws_telemetry.py",
+]
 
 [tool.ruff.format]
 quote-style = "double"

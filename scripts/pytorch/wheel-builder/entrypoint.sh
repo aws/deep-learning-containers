@@ -89,7 +89,7 @@ docker exec -t "${CONTAINER_ID}" bash -c \
 # ================= build tools =================
 if [ "$ARCH_TYPE" == "x86" ]; then
     # for x86, we need to use a new container for building tools
-    # becuase the devtools are removed by x86 torch build process
+    # because the devtools are removed by x86 torch build process
     docker kill ${CONTAINER_ID}
     CONTAINER_ID=$(docker run \
         --tty \
