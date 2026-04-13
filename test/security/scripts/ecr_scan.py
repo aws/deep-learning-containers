@@ -32,10 +32,12 @@ LOGGER = logging.getLogger("test").getChild("ecr_scan")
 LOGGER.setLevel(logging.INFO)
 
 SEVERITY_THRESHOLD = {"CRITICAL", "HIGH"}
-SCAN_WAIT_PERIOD = 20
+SCAN_WAIT_PERIOD = 40
 SCAN_WAIT_LENGTH = 30
 SCAN_COMPLETE = "COMPLETE"
-SCAN_POST_COMPLETE_WAIT = 120  # additional wait after scan completes before reading findings
+SCAN_POST_COMPLETE_WAIT = (
+    120  # additional wait seconds after scan completes before reading findings
+)
 GLOBAL_ALLOWLIST_FILE = "global_allowlist.json"
 FRAMEWORK_ALLOWLIST_FILE = "framework_allowlist.json"
 

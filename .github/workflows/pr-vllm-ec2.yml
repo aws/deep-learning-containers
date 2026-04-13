@@ -6,9 +6,21 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - "**vllm**"
+      - ".github/config/vllm-ec2.yml"
+      - ".github/config/vllm-model-tests.yml"
+      - ".github/workflows/pr-vllm-ec2.yml"
+      - ".github/workflows/reusable-vllm-model-tests.yml"
+      - ".github/workflows/reusable-vllm-upstream-tests.yml"
+      - "docker/vllm/Dockerfile"
+      - "scripts/common/**"
+      - "scripts/telemetry/**"
+      - "scripts/vllm/**"
+      - "test/sanity/**"
+      - "test/telemetry/**"
+      - "test/vllm/**"
       - "!docs/**"
-      - "!**amzn2023**"
+      - "!scripts/vllm/amzn2023/**"
+      - "!scripts/vllm/omni_*"
 
 permissions:
   contents: read
@@ -110,13 +122,14 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/config/vllm-ec2.yml"
               - "docker/vllm/Dockerfile"
-              - "scripts/vllm/*"
               - "scripts/common/install_efa.sh"
               - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - ".github/config/vllm-ec2.yml"
+              - "scripts/telemetry/deep_learning_container.py"
+              - "scripts/vllm/*"
+              - "test/vllm/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -226,6 +239,6 @@ jobs:
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
-      setup-script: scripts/vllm/vllm_test_setup.sh
-      example-test-script: scripts/vllm/vllm_ec2_examples_test.sh
+      setup-script: test/vllm/scripts/vllm_test_setup.sh
+      example-test-script: test/vllm/scripts/vllm_ec2_examples_test.sh
     secrets: inherit
