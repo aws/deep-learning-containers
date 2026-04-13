@@ -8,10 +8,10 @@ on:
         required: true
         type: string
       test_setup_script:
-        description: "Path to the test setup script inside the container (e.g. /scripts/vllm/vllm_test_setup.sh)"
+        description: "Path to the test setup script inside the container (e.g. /test/vllm/scripts/vllm_test_setup.sh)"
         required: true
         type: string
-        default: "/scripts/vllm/vllm_test_setup.sh"
+        default: "/test/vllm/scripts/vllm_test_setup.sh"
       image_version:
         description: "vLLM version tag used for checking out matching vLLM test source"
         required: true
@@ -58,6 +58,7 @@ jobs:
       - name: Copy workspace into container
         run: |
           docker cp scripts ${CONTAINER_ID}:/scripts
+          docker cp test ${CONTAINER_ID}:/test
           docker cp vllm_source ${CONTAINER_ID}:/vllm_source
 
       - name: Setup for vLLM tests
@@ -66,7 +67,7 @@ jobs:
 
       - name: Run vLLM regression tests
         run: |
-          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_regression_test.sh
+          docker exec ${CONTAINER_ID} bash /test/vllm/scripts/vllm_regression_test.sh
 
       - name: Cleanup
         if: always()
@@ -104,6 +105,7 @@ jobs:
       - name: Copy workspace into container
         run: |
           docker cp scripts ${CONTAINER_ID}:/scripts
+          docker cp test ${CONTAINER_ID}:/test
           docker cp vllm_source ${CONTAINER_ID}:/vllm_source
 
       - name: Setup for vLLM tests
@@ -112,7 +114,7 @@ jobs:
 
       - name: Run vLLM example tests
         run: |
-          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_ec2_examples_test.sh
+          docker exec ${CONTAINER_ID} bash /test/vllm/scripts/vllm_ec2_examples_test.sh
 
       - name: Cleanup
         if: always()

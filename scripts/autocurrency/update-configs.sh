@@ -129,7 +129,7 @@ update_dockerfiles() {
 #     new_version            — New version string (e.g., "0.17.0")
 #     test_setup_config_json — JSON object with "pattern" and "workflow_files":
 #       {
-#         "pattern": "scripts/vllm/vllm_{version_underscored}_test_setup.sh",
+#         "pattern": "test/vllm/scripts/vllm_{version_underscored}_test_setup.sh",
 #         "workflow_files": [
 #           ".github/workflows/auto-release-vllm-sagemaker.yml",
 #           ".github/workflows/auto-release-vllm-ec2.yml"
@@ -138,7 +138,7 @@ update_dockerfiles() {
 #
 #   Usage:
 #     updated=$(rename_test_setup_script "0.16.0" "0.17.0" '{
-#       "pattern": "scripts/vllm/vllm_{version_underscored}_test_setup.sh",
+#       "pattern": "test/vllm/scripts/vllm_{version_underscored}_test_setup.sh",
 #       "workflow_files": [
 #         ".github/workflows/auto-release-vllm-sagemaker.yml",
 #         ".github/workflows/auto-release-vllm-ec2.yml"

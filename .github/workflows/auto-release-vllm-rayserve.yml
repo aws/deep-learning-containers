@@ -153,8 +153,8 @@ jobs:
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
-      setup-script: scripts/vllm/vllm_0_10_2_test_setup.sh
-      example-test-script: scripts/vllm/vllm_rayserve_examples_test.sh
+      setup-script: test/vllm/scripts/vllm_0_10_2_test_setup.sh
+      example-test-script: test/vllm/scripts/vllm_rayserve_examples_test.sh
     secrets: inherit
 
   generate-release-spec:
