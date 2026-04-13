@@ -13,7 +13,7 @@ inputs:
   release-package-s3-prefix:
     description: 'S3 prefix/folder path to the package'
     required: false
-    default: 'DLContainersReleaseLogicV2/DLContainersReleaseLogic'
+    default: 'DLContainersReleaseLogicPython/dlc_release_dist'
 
 runs:
   using: 'composite'
