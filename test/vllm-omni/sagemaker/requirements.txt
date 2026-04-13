@@ -1,2 +1,2 @@
-sagemaker>=2,<3
+sagemaker>=2,<4
 starlette
