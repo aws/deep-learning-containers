@@ -15,9 +15,6 @@ if [[ "$PYTORCH_VERSION" == "2.11.0" && "$ARCH_TYPE" == "arm64" && "$PROCESSOR_T
     git -C /pytorch apply /scripts/patches/pytorch-2.11.0-sm75-aarch64.patch
 fi
 
-# inject telemetry
-cat /scripts/aws_telemetry.py >> /pytorch/torch/__init__.py
-
 # set common environment variables
 export PYTORCH_ROOT="/pytorch"
 export PACKAGE_TYPE="manywheel"
