@@ -6,8 +6,8 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/vllm-ec2.yml"
-      - ".github/config/vllm-model-tests.yml"
+      - ".github/config/image/vllm-ec2.yml"
+      - ".github/config/model-tests/vllm-model-tests.yml"
       - ".github/workflows/pr-vllm-ec2.yml"
       - ".github/workflows/reusable-vllm-model-tests.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
@@ -122,7 +122,7 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/vllm-ec2.yml"
+              - ".github/config/image/vllm-ec2.yml"
               - "docker/vllm/Dockerfile"
               - "scripts/common/install_efa.sh"
               - "scripts/common/setup_oss_compliance.sh"
