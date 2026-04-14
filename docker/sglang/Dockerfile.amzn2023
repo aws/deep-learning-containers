@@ -123,7 +123,6 @@ RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
     && export PATH="/root/.cargo/bin:${PATH}" \
     && uv pip install --system --no-cache maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
-    && sed -i '/\.map_err(|e| format!("Failed to initialize WASM module manager/d' src/app_context.rs \
     && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close(); print('Patch 2 applied')" \
     && cd bindings/python \
     && ulimit -n 65536 && maturin build --release --features vendored-openssl --out dist \
