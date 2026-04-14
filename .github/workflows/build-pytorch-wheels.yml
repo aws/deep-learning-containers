@@ -1,6 +1,12 @@
 name: Build PyTorch Wheels
 
 on:
+  # TODO: Remove pull_request trigger before merging — temporary for testing
+  pull_request:
+    branches: [main]
+    paths:
+      - "binary_build/pytorch/**"
+      - ".github/workflows/build-pytorch-wheels.yml"
   workflow_dispatch:
 
 concurrency:
