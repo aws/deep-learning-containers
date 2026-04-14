@@ -194,8 +194,7 @@ Save `cv-model/config.yaml`:
 --8<-- "examples/ray/cv-model/config.yaml"
 ```
 
-!!! note The `autoscaling_config` in `deployment.py` sets `max_replicas: 2`. Each replica requests 1 GPU, so this configuration requires a multi-GPU
-instance. On single-GPU instances, reduce `max_replicas` to 1.
+!!! note "Multi-GPU required: `max_replicas: 2` with 1 GPU each. Reduce to 1 on single-GPU instances."
 
 Save `cv-model/deployment.py`:
 
@@ -342,7 +341,7 @@ To deploy on SageMaker, package your model directory as a tarball, upload to S3,
 container starts. The container exposes a SageMaker-compatible adapter on port 8080 with `/ping` (health check) and `/invocations` (inference)
 endpoints.
 
-!!! warning SageMaker endpoint deployment takes several minutes and incurs costs for the running instance. Remember to delete endpoints when done.
+!!! warning "SageMaker endpoint deployment takes several minutes and incurs costs for the running instance. Remember to delete endpoints when done."
 
 #### Sentiment Analysis
 
