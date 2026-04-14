@@ -5,16 +5,17 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - "docker/vllm/Dockerfile.amzn2023"
-      - "scripts/vllm/omni_*"
-      - "scripts/common/**"
-      - "scripts/telemetry/**"
-      - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
-      - ".github/config/model-tests/vllm-omni-model-tests.yml"
+      - ".github/config/vllm-omni-model-tests.yml"
+      - ".github/config/vllm-omni-sagemaker-amzn2023.yml"
       - ".github/workflows/pr-vllm-omni-sagemaker-amzn2023.yml"
       - ".github/workflows/reusable-vllm-omni-model-tests.yml"
-      - "test/vllm-omni/**"
+      - "docker/vllm/Dockerfile.amzn2023"
+      - "scripts/common/**"
+      - "scripts/telemetry/**"
+      - "scripts/vllm/omni_*"
+      - "test/sanity/**"
       - "test/telemetry/**"
+      - "test/vllm-omni/**"
 
 permissions:
   contents: read
@@ -91,6 +92,7 @@ jobs:
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - name: Checkout DLC source
@@ -112,13 +114,17 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/config/vllm-omni-model-tests.yml"
+              - ".github/config/vllm-omni-sagemaker-amzn2023.yml"
               - "docker/vllm/Dockerfile.amzn2023"
+              - "scripts/common/install_efa_amzn2023.sh"
+              - "scripts/common/setup_oss_compliance.sh"
+              - "scripts/telemetry/bash_telemetry.sh.template"
+              - "scripts/telemetry/deep_learning_container.py"
               - "scripts/vllm/omni_*"
-              - "scripts/common/**"
-              - "scripts/telemetry/**"
-              - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
-              - ".github/config/model-tests/vllm-omni-model-tests.yml"
               - "test/vllm-omni/**"
+            sanity-test-change:
+              - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
 
@@ -207,7 +213,7 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.check-changes.outputs.build-change == 'true'
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true

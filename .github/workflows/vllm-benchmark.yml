@@ -111,7 +111,7 @@ jobs:
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/vllm/scripts/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
 
       - name: Run benchmark
         run: |
@@ -189,7 +189,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp ${{ steps.model.outputs.model-dir }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp scripts/vllm/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/vllm/scripts/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
 
       - name: Run benchmark
         run: |
@@ -245,4 +245,4 @@ jobs:
           path: results/
 
       - name: Generate report
-        run: python3 scripts/vllm/benchmark/benchmark_report.py results >> "$GITHUB_STEP_SUMMARY"
+        run: python3 test/vllm/scripts/benchmark/benchmark_report.py results >> "$GITHUB_STEP_SUMMARY"

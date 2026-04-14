@@ -93,7 +93,7 @@ jobs:
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/vllm/scripts/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
 
       - name: Run model smoke test
         run: |
@@ -156,7 +156,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp scripts/vllm/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/vllm/scripts/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
           rm -rf /dlc-models
 
       - name: Run model smoke test

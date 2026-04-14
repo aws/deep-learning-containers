@@ -169,8 +169,8 @@ jobs:
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
-      setup-script: scripts/vllm/vllm_test_setup.sh
-      example-test-script: scripts/vllm/vllm_sagemaker_examples_test.sh
+      setup-script: test/vllm/scripts/vllm_test_setup.sh
+      example-test-script: test/vllm/scripts/vllm_sagemaker_examples_test.sh
     secrets: inherit
 
   endpoint-test:
