@@ -4,8 +4,8 @@ accelerator: cpu
 python: py313
 os: ubuntu22.04
 platform: sagemaker
-ga: "2026-03-23"
-eop: "2027-03-23"
+ga: "2026-01-21"
+eop: "2027-01-21"
 public_registry: true
 
 tags:
