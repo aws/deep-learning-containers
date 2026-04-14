@@ -4,7 +4,7 @@ image:
   description: "SGLang for EC2 instances (AL2023, built from source)"
 common:
   framework: "sglang"
-  framework_version: "0.5.9"
+  framework_version: "0.5.10"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"

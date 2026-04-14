@@ -4,7 +4,7 @@ image:
   description: "SGLang for SageMaker on Amazon Linux 2023"
 common:
   framework: "sglang"
-  framework_version: "0.5.9"
+  framework_version: "0.5.10"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
