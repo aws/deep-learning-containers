@@ -110,7 +110,6 @@ docker exec -t "${CONTAINER_ID}" bash -c \
         ${PYTHON_VERSION}"
 
 # ================= upload wheels to s3 =================
-S3_URI="${S3_BINARY_STORE}/pytorch${PYTORCH_VERSION}/${PROCESSOR_TYPE}"
-aws s3 cp --recursive ${BUILDDIR}/artifacts ${S3_URI}
+aws s3 cp --recursive ${BUILDDIR}/artifacts ${S3_BINARY_STORE}
 
 docker kill ${CONTAINER_ID}

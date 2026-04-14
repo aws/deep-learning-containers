@@ -54,11 +54,11 @@ jobs:
             --torchaudio_version "${TORCHAUDIO_VERSION}" \
             --torchtext_version "${TORCHTEXT_VERSION}" \
             --torchdata_version "${TORCHDATA_VERSION}" \
-            --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
+            --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
 
       - name: List built wheels
         run: |
-          aws s3 ls "s3://${{ vars.WHEELS_BUCKET }}/pytorch/${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" --recursive
+          aws s3 ls "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" --recursive
 
   # ============================================================
   # Test wheels on GPU
@@ -77,7 +77,7 @@ jobs:
       - name: Download wheels from S3
         run: |
           mkdir -p /tmp/wheels
-          aws s3 cp "s3://${{ vars.WHEELS_BUCKET }}/pytorch/${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" /tmp/wheels/ --recursive
+          aws s3 cp "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" /tmp/wheels/ --recursive
 
       - name: Install and test wheels
         run: |
