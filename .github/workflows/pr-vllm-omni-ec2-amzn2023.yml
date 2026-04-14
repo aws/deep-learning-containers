@@ -9,8 +9,8 @@ on:
       - "scripts/vllm/omni_*"
       - "scripts/common/**"
       - "scripts/telemetry/**"
-      - ".github/config/vllm-omni-ec2-amzn2023.yml"
-      - ".github/config/vllm-omni-model-tests.yml"
+      - ".github/config/image/vllm-omni-ec2-amzn2023.yml"
+      - ".github/config/model-tests/vllm-omni-model-tests.yml"
       - ".github/workflows/pr-vllm-omni-ec2-amzn2023.yml"
       - ".github/workflows/reusable-vllm-omni-model-tests.yml"
       - "test/vllm-omni/**"
@@ -22,7 +22,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/vllm-omni-ec2-amzn2023.yml"
+  CONFIG_FILE: ".github/config/image/vllm-omni-ec2-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -116,8 +116,8 @@ jobs:
               - "scripts/vllm/omni_*"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/config/vllm-omni-ec2-amzn2023.yml"
-              - ".github/config/vllm-omni-model-tests.yml"
+              - ".github/config/image/vllm-omni-ec2-amzn2023.yml"
+              - ".github/config/model-tests/vllm-omni-model-tests.yml"
               - "test/vllm-omni/**"
             telemetry-test-change:
               - "test/telemetry/**"

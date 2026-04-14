@@ -41,7 +41,7 @@ jobs:
         run: |
           python3 -c "
           import yaml, json
-          with open('.github/config/vllm-model-tests.yml') as f:
+          with open('.github/config/model-tests/vllm-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
           bm = cfg.get('benchmark', {})
           prefix = cfg.get('s3_prefix', '')

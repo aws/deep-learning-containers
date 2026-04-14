@@ -27,7 +27,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: ".github/config/vllm-sagemaker.yml"
+  CONFIG_FILE: ".github/config/image/vllm-sagemaker.yml"
 
 jobs:
   # Gate: skip PR events unless it's a merged auto-update PR for vllm

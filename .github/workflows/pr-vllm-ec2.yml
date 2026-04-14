@@ -19,7 +19,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: ".github/config/vllm-ec2.yml"
+  CONFIG_FILE: ".github/config/image/vllm-ec2.yml"
 
 jobs:
   gatekeeper:
@@ -116,7 +116,7 @@ jobs:
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - ".github/config/vllm-ec2.yml"
+              - ".github/config/image/vllm-ec2.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

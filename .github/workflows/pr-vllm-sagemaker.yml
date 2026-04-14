@@ -19,7 +19,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: '.github/config/vllm-sagemaker.yml'
+  CONFIG_FILE: '.github/config/image/vllm-sagemaker.yml'
 
 jobs:
   gatekeeper:
@@ -117,7 +117,7 @@ jobs:
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - ".github/config/vllm-sagemaker.yml"
+              - ".github/config/image/vllm-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

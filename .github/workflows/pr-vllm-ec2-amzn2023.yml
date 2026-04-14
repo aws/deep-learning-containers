@@ -11,7 +11,7 @@ on:
       - "scripts/vllm/sagemaker_entrypoint.sh"
       - "scripts/common/**"
       - "scripts/telemetry/bash_telemetry.sh.template"
-      - ".github/config/vllm-ec2-amzn2023.yml"
+      - ".github/config/image/vllm-ec2-amzn2023.yml"
       # - ".github/workflows/pr-vllm-ec2-amzn2023.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - ".github/workflows/reusable-vllm-model-tests.yml"
@@ -24,7 +24,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/vllm-ec2-amzn2023.yml"
+  CONFIG_FILE: ".github/config/image/vllm-ec2-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -121,7 +121,7 @@ jobs:
               - "scripts/vllm/sagemaker_entrypoint.sh"
               - "scripts/common/**"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - ".github/config/vllm-ec2-amzn2023.yml"
+              - ".github/config/image/vllm-ec2-amzn2023.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

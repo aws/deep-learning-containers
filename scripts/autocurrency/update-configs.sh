@@ -21,8 +21,8 @@ source "${SCRIPT_DIR}/utils.sh"
 #
 #   Usage:
 #     updated=$(update_config_files "vllm" "0.17.0" '[
-#       {"path": ".github/config/vllm-ec2.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312-ec2"},
-#       {"path": ".github/config/vllm-sagemaker.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312"}
+#       {"path": ".github/config/image/vllm-ec2.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312-ec2"},
+#       {"path": ".github/config/image/vllm-sagemaker.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312"}
 #     ]')
 ###############################################################################
 update_config_files() {
