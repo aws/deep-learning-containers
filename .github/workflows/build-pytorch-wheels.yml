@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Build PyTorch wheels
-        working-directory: scripts/pytorch/wheel-builder
+        working-directory: binary_build/pytorch
         run: |
           bash entrypoint.sh \
             --arch_type "${ARCH_TYPE}" \
