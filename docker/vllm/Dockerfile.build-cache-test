@@ -3,25 +3,25 @@ ARG CUDA_VERSION=12.9.1
 # =============================================================================
 # STAGE: source — tiny C extension to simulate vLLM compilation
 # =============================================================================
-FROM amazonlinux:2023 AS source
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS source
 
-RUN dnf install -y --setopt=install_weak_deps=False python3.12 python3.12-devel gcc \
-  && dnf clean all
+RUN dnf install -y --setopt=install_weak_deps=False \
+  python3 python3-devel python3-pip python3-wheel python3-setuptools gcc \
+  && dnf clean all && rm -rf /var/cache/dnf
 
 WORKDIR /src
 COPY docker/vllm/build-cache-test/hello.c docker/vllm/build-cache-test/setup.py ./
-RUN python3.12 setup.py bdist_wheel --dist-dir=dist
+RUN python3 setup.py bdist_wheel --dist-dir=dist
 
 # =============================================================================
 # STAGE: build — tests prebuilt wheel + sccache paths
 # =============================================================================
-FROM amazonlinux:2023 AS build
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
 
 RUN dnf install -y --setopt=install_weak_deps=False \
-  python3.12 python3.12-devel python3-pip gcc curl tar gzip \
-  && dnf clean all
-
-RUN python3.12 -m pip install wheel setuptools
+  python3 python3-devel python3-pip python3-wheel python3-setuptools \
+  gcc curl tar gzip \
+  && dnf clean all && rm -rf /var/cache/dnf
 
 WORKDIR /workspace
 COPY --from=source /src/hello.c /src/setup.py ./
@@ -33,14 +33,13 @@ COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 ARG USE_SCCACHE=0
 ARG SCCACHE_BUCKET=dlc-cicd-wheels
 ARG SCCACHE_REGION=us-west-2
-ARG SCCACHE_S3_NO_CREDENTIALS=0
 
 RUN if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
-      echo "✅ PREBUILT WHEEL PATH — skipping compilation" \
+      echo "PREBUILT WHEEL PATH — skipping compilation" \
       && mkdir -p dist \
       && cp /tmp/prebuilt_wheels/*.whl dist/; \
     elif [ "$USE_SCCACHE" = "1" ]; then \
-      echo "🔧 SCCACHE PATH — building with sccache" \
+      echo "SCCACHE PATH — building with sccache" \
       && curl -L -o /tmp/sccache.tar.gz \
         "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
       && tar -xzf /tmp/sccache.tar.gz -C /tmp \
@@ -48,25 +47,24 @@ RUN if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       && rm -rf /tmp/sccache* \
       && export SCCACHE_BUCKET="${SCCACHE_BUCKET}" \
       && export SCCACHE_REGION="${SCCACHE_REGION}" \
-      && export SCCACHE_S3_NO_CREDENTIALS="${SCCACHE_S3_NO_CREDENTIALS}" \
       && export SCCACHE_IDLE_TIMEOUT=0 \
       && export CC="sccache gcc" \
       && sccache --show-stats \
-      && python3.12 setup.py bdist_wheel --dist-dir=dist \
+      && python3 setup.py bdist_wheel --dist-dir=dist \
       && sccache --show-stats; \
     else \
-      echo "🔧 DEFAULT PATH — building from source" \
-      && python3.12 setup.py bdist_wheel --dist-dir=dist; \
+      echo "DEFAULT PATH — building from source" \
+      && python3 setup.py bdist_wheel --dist-dir=dist; \
     fi
 
 # =============================================================================
 # STAGE: runtime — install and verify
 # =============================================================================
-FROM amazonlinux:2023 AS runtime
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 
-RUN dnf install -y --setopt=install_weak_deps=False python3.12 python3-pip \
-  && dnf clean all
+RUN dnf install -y --setopt=install_weak_deps=False python3 python3-pip \
+  && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=build /workspace/dist /tmp/dist
-RUN python3.12 -m pip install /tmp/dist/*.whl
-RUN python3.12 -c "import hello_ext; print(hello_ext.hello())"
+RUN python3 -m pip install /tmp/dist/*.whl
+RUN python3 -c "import hello_ext; print(hello_ext.hello())"
