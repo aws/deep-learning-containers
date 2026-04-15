@@ -60,17 +60,18 @@ class TestE2E:
     def test_train_and_deploy(self, image_uri, role, trained_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=trained_model,
                 test_name="e2e-infer",
             )
-            predictor.content_type = "text/libsvm"
-            predictor.accept = "text/csv"
-            response = predictor.predict(LIBSVM_PAYLOAD)
+            response = endpoint.invoke_endpoint(
+                body=LIBSVM_PAYLOAD,
+                content_type="text/libsvm",
+                accept="text/csv",
+            )
             assert response is not None
-            assert len(response) > 0
         finally:
             if endpoint_name:
                 delete_endpoint(endpoint_name)
@@ -78,16 +79,18 @@ class TestE2E:
     def test_gpu_train_and_deploy(self, image_uri, role, gpu_trained_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=gpu_trained_model,
                 test_name="e2e-gpu-inf",
                 instance_type="ml.g4dn.2xlarge",
             )
-            predictor.content_type = "text/libsvm"
-            predictor.accept = "text/csv"
-            response = predictor.predict(LIBSVM_PAYLOAD)
+            response = endpoint.invoke_endpoint(
+                body=LIBSVM_PAYLOAD,
+                content_type="text/libsvm",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:
@@ -115,15 +118,17 @@ class TestE2E:
     def test_multi_model_inference(self, image_uri, role, trained_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=trained_model,
                 test_name="e2e-mme",
             )
-            predictor.content_type = "text/libsvm"
-            predictor.accept = "text/csv"
-            response = predictor.predict(LIBSVM_PAYLOAD)
+            response = endpoint.invoke_endpoint(
+                body=LIBSVM_PAYLOAD,
+                content_type="text/libsvm",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:

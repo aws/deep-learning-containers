@@ -8,10 +8,13 @@ import time
 
 import boto3
 import pytest
-from sagemaker.estimator import Estimator
-from sagemaker.inputs import TrainingInput
-from sagemaker.model import Model
-from sagemaker.transformer import Transformer
+from sagemaker.train import ModelTrainer
+from sagemaker.train.configs import Compute, InputData
+from sagemaker.train.configs import StoppingCondition, OutputDataConfig, Networking
+from sagemaker.train.configs import CheckpointConfig
+from sagemaker.serve import ModelBuilder
+from sagemaker.serve.configs import InferenceSpec
+from sagemaker.core.resources import TransformJob
 from test_utils import random_suffix_name
 
 LOGGER = logging.getLogger(__name__)
@@ -83,42 +86,56 @@ def run_training_job(
     job_name = random_suffix_name(f"xgb-{test_name}", 32)
     output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
-    estimator = Estimator(
-        image_uri=image_uri,
-        role=role,
-        instance_count=instance_count,
+    compute = Compute(
         instance_type=instance_type,
-        output_path=output_path,
-        hyperparameters=hyperparameters,
-        volume_size=volume_size,
-        max_run=max_run,
-        input_mode=input_mode,
-        checkpoint_s3_uri=checkpoint_s3_uri,
-        enable_network_isolation=enable_network_isolation,
+        instance_count=instance_count,
+        volume_size_in_gb=volume_size,
     )
 
-    channels = {
-        "train": TrainingInput(
-            s3_data=data_uri(train_s3_key),
+    trainer_kwargs = dict(
+        training_image=image_uri,
+        role=role,
+        compute=compute,
+        hyperparameters=hyperparameters,
+        output_data_config=OutputDataConfig(s3_output_path=output_path),
+        stopping_condition=StoppingCondition(max_runtime_in_seconds=max_run),
+        training_input_mode=input_mode,
+    )
+
+    if checkpoint_s3_uri:
+        trainer_kwargs["checkpoint_config"] = CheckpointConfig(
+            s3_uri=checkpoint_s3_uri,
+        )
+
+    if enable_network_isolation:
+        trainer_kwargs["networking"] = Networking(
+            enable_network_isolation=True,
+        )
+
+    trainer = ModelTrainer(**trainer_kwargs)
+
+    input_data_config = [
+        InputData(
+            channel_name="train",
+            data_source=data_uri(train_s3_key),
             content_type=content_type,
-            distribution=train_distribution,
         ),
-        "validation": TrainingInput(
-            s3_data=data_uri(validation_s3_key),
+        InputData(
+            channel_name="validation",
+            data_source=data_uri(validation_s3_key),
             content_type=content_type,
-            distribution="FullyReplicated",
         ),
-    }
+    ]
 
     if extra_channels:
         for name, uri in extra_channels.items():
-            channels[name] = TrainingInput(s3_data=uri)
+            input_data_config.append(InputData(channel_name=name, data_source=uri))
 
     LOGGER.info(f"Starting job: {job_name} ({instance_count}x {instance_type})")
     sm = boto3.client("sagemaker")
     start = time.time()
     try:
-        estimator.fit(channels, job_name=job_name)
+        trainer.train(input_data_config=input_data_config, job_name=job_name)
     except Exception:
         try:
             sm.stop_training_job(TrainingJobName=job_name)
@@ -137,31 +154,32 @@ def run_training_job(
 def deploy_endpoint(
     image_uri, role, model_data, test_name="ep", instance_type="ml.m5.xlarge", env=None
 ):
-    """Deploy a real-time endpoint and return (predictor, endpoint_name, model_name)."""
-    from sagemaker.predictor import Predictor
-
+    """Deploy a real-time endpoint and return (endpoint, endpoint_name)."""
     endpoint_name = random_suffix_name(f"xgb-{test_name}", 32)
-    model = Model(
+
+    inference_spec = InferenceSpec(
         image_uri=image_uri,
-        model_data=model_data,
-        role=role,
-        env=env,
+        model_data_url=model_data,
     )
+    if env:
+        inference_spec.environment = env
+
+    builder = ModelBuilder(
+        inference_spec=inference_spec,
+        role=role,
+    )
+
     try:
-        model.deploy(
-            initial_instance_count=1,
+        endpoint = builder.deploy(
             instance_type=instance_type,
+            initial_instance_count=1,
             endpoint_name=endpoint_name,
         )
     except Exception:
-        # model may have been created even if deploy failed
-        if model.name:
-            _created_models.append(model.name)
         raise
-    _created_models.append(model.name)
+
     _created_endpoints.append(endpoint_name)
-    predictor = Predictor(endpoint_name=endpoint_name)
-    return predictor, endpoint_name
+    return endpoint, endpoint_name
 
 
 def delete_endpoint(endpoint_name):
@@ -209,33 +227,56 @@ def run_batch_transform(
     job_name = random_suffix_name(f"xgb-{test_name}", 32)
     output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
-    model = Model(image_uri=image_uri, model_data=model_data, role=role, env=env)
-    model.create(instance_type=instance_type)
-    _created_models.append(model.name)
+    # Create the model via boto3 for batch transform
+    sm = boto3.client("sagemaker")
+    model_name = random_suffix_name(f"xgb-{test_name}-model", 32)
+    create_model_params = {
+        "ModelName": model_name,
+        "PrimaryContainer": {
+            "Image": image_uri,
+            "ModelDataUrl": model_data,
+        },
+        "ExecutionRoleArn": role,
+    }
+    if env:
+        create_model_params["PrimaryContainer"]["Environment"] = env
+    sm.create_model(**create_model_params)
+    _created_models.append(model_name)
 
-    transformer = Transformer(
-        model_name=model.name,
-        instance_count=1,
-        instance_type=instance_type,
-        output_path=output_path,
-        accept=accept,
+    # Create and run transform job via boto3
+    sm.create_transform_job(
+        TransformJobName=job_name,
+        ModelName=model_name,
+        TransformInput={
+            "DataSource": {
+                "S3DataSource": {
+                    "S3DataType": "S3Prefix",
+                    "S3Uri": input_s3_uri,
+                }
+            },
+            "ContentType": content_type,
+            "SplitType": split_type,
+        },
+        TransformOutput={
+            "S3OutputPath": output_path,
+            "Accept": accept,
+        },
+        TransformResources={
+            "InstanceType": instance_type,
+            "InstanceCount": 1,
+        },
     )
+
+    # Wait for completion
+    waiter = sm.get_waiter("transform_job_completed_or_stopped")
     try:
-        transformer.transform(
-            data=input_s3_uri,
-            content_type=content_type,
-            split_type=split_type,
-            job_name=job_name,
-        )
-        transformer.wait()
+        waiter.wait(TransformJobName=job_name)
     except Exception:
-        sm = boto3.client("sagemaker")
         try:
             sm.stop_transform_job(TransformJobName=job_name)
         except Exception:
             pass
         raise
 
-    sm = boto3.client("sagemaker")
     desc = sm.describe_transform_job(TransformJobName=job_name)
     return desc

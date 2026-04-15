@@ -39,17 +39,19 @@ class TestInferenceMME:
     def test_csv_multimodel(self, image_uri, role, mme_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=mme_model,
                 test_name="mme-csv",
             )
-            predictor.content_type = "text/csv"
-            predictor.accept = "text/csv"
 
             payload = "5.1,3.5,1.4,0.2\n6.8,3.0,5.5,2.1"
-            response = predictor.predict(payload)
+            response = endpoint.invoke_endpoint(
+                body=payload,
+                content_type="text/csv",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:

@@ -43,16 +43,18 @@ class TestSelectableInference:
     def test_csv_accept(self, image_uri, role, selectable_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=selectable_model,
                 test_name="select-csv",
                 env={"SAGEMAKER_INFERENCE_OUTPUT": "predicted_label,labels"},
             )
-            predictor.content_type = "text/csv"
-            predictor.accept = "text/csv"
-            response = predictor.predict(INFERENCE_PAYLOAD)
+            response = endpoint.invoke_endpoint(
+                body=INFERENCE_PAYLOAD,
+                content_type="text/csv",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:
@@ -61,16 +63,18 @@ class TestSelectableInference:
     def test_json_accept(self, image_uri, role, selectable_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=selectable_model,
                 test_name="select-json",
                 env={"SAGEMAKER_INFERENCE_OUTPUT": "labels,probabilities"},
             )
-            predictor.content_type = "text/csv"
-            predictor.accept = "application/json"
-            response = predictor.predict(INFERENCE_PAYLOAD)
+            response = endpoint.invoke_endpoint(
+                body=INFERENCE_PAYLOAD,
+                content_type="text/csv",
+                accept="application/json",
+            )
             result = json.loads(response)
             assert "predictions" in result
             assert len(result["predictions"]) == 3
@@ -81,21 +85,20 @@ class TestSelectableInference:
     def test_jsonlines_accept(self, image_uri, role, selectable_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=selectable_model,
                 test_name="select-jl",
                 env={"SAGEMAKER_INFERENCE_OUTPUT": "predicted_label,probability"},
             )
-            predictor.content_type = "text/csv"
-            predictor.accept = "application/jsonlines"
-            response = predictor.predict(INFERENCE_PAYLOAD)
-            lines = (
-                response.decode().strip().splitlines()
-                if isinstance(response, bytes)
-                else response.strip().splitlines()
+            response = endpoint.invoke_endpoint(
+                body=INFERENCE_PAYLOAD,
+                content_type="text/csv",
+                accept="application/jsonlines",
             )
+            resp_str = response.decode() if isinstance(response, bytes) else response
+            lines = resp_str.strip().splitlines()
             assert len(lines) == 3
             for line in lines:
                 parsed = json.loads(line)
@@ -107,7 +110,7 @@ class TestSelectableInference:
     def test_csv_nans_misconfigured_keys(self, image_uri, role, selectable_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=selectable_model,
@@ -116,9 +119,11 @@ class TestSelectableInference:
                     "SAGEMAKER_INFERENCE_OUTPUT": "foo,predicted_label,predicted_score,porbabilitise"
                 },
             )
-            predictor.content_type = "text/csv"
-            predictor.accept = "text/csv"
-            response = predictor.predict(INFERENCE_PAYLOAD)
+            response = endpoint.invoke_endpoint(
+                body=INFERENCE_PAYLOAD,
+                content_type="text/csv",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:

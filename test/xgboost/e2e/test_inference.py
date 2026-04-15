@@ -39,15 +39,17 @@ class TestInference:
     def test_libsvm_inference(self, image_uri, role, model_data):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=model_data,
                 test_name="infer-libsvm",
             )
-            predictor.content_type = "text/libsvm"
-            predictor.accept = "text/csv"
-            response = predictor.predict("3 1:0.5 2:0.3")
+            response = endpoint.invoke_endpoint(
+                body="3 1:0.5 2:0.3",
+                content_type="text/libsvm",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:
@@ -56,15 +58,17 @@ class TestInference:
     def test_csv_inference(self, image_uri, role, model_data):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=model_data,
                 test_name="infer-csv",
             )
-            predictor.content_type = "text/csv"
-            predictor.accept = "text/csv"
-            response = predictor.predict("0.5,0.3")
+            response = endpoint.invoke_endpoint(
+                body="0.5,0.3",
+                content_type="text/csv",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:
@@ -74,18 +78,18 @@ class TestInference:
         """Inference with recordio-protobuf content type."""
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=model_data,
                 test_name="infer-pb",
             )
-            predictor.content_type = "application/x-recordio-protobuf"
-            predictor.accept = "text/csv"
             # Send a minimal CSV payload — the container accepts it even with protobuf content type
             # for simple regression models. Full protobuf testing is in container tests.
-            predictor.content_type = "text/csv"
-            response = predictor.predict("0.5,0.3")
+            response = endpoint.invoke_endpoint(
+                body="0.5,0.3",
+                content_type="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:
@@ -95,15 +99,17 @@ class TestInference:
         """Multi-model endpoint with libsvm input."""
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=model_data,
                 test_name="infer-mme-lib",
             )
-            predictor.content_type = "text/libsvm"
-            predictor.accept = "text/csv"
-            response = predictor.predict("3 1:0.5 2:0.3")
+            response = endpoint.invoke_endpoint(
+                body="3 1:0.5 2:0.3",
+                content_type="text/libsvm",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:

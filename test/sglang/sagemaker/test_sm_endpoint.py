@@ -5,9 +5,8 @@ import logging
 from pprint import pformat
 
 import pytest
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
+from sagemaker.serve import ModelBuilder
+from sagemaker.serve.configs import InferenceSpec
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
@@ -51,18 +50,19 @@ def model_package(aws_session, image_uri, model_id):
     try:
         LOGGER.info(f"Creating SageMaker model: {model_name}...")
         hf_token = get_hf_token(aws_session)
-        model = Model(
-            name=model_name,
+        inference_spec = InferenceSpec(
             image_uri=image_uri,
-            role=SAGEMAKER_ROLE,
-            predictor_cls=Predictor,
-            env={
+            environment={
                 "SM_SGLANG_MODEL_PATH": model_id,
                 "HF_TOKEN": hf_token,
             },
         )
-        LOGGER.info("Model created successfully")
-        yield model
+        builder = ModelBuilder(
+            inference_spec=inference_spec,
+            role=SAGEMAKER_ROLE,
+        )
+        LOGGER.info("ModelBuilder created successfully")
+        yield builder, model_name
     finally:
         LOGGER.info(f"Deleting model: {model_name}")
         sagemaker_client.delete_model(ModelName=model_name)
@@ -71,7 +71,7 @@ def model_package(aws_session, image_uri, model_id):
 @pytest.fixture(scope="function")
 def model_endpoint(aws_session, model_package, instance_type):
     sagemaker_client = aws_session.sagemaker
-    model = model_package
+    builder, _ = model_package
     cleaned_instance = clean_string(instance_type, "_./")
     endpoint_name = random_suffix_name(f"sglang-{cleaned_instance}-endpoint", 50)
 
@@ -79,12 +79,11 @@ def model_endpoint(aws_session, model_package, instance_type):
 
     try:
         LOGGER.info("Starting endpoint deployment (this may take 10-15 minutes)...")
-        predictor = model.deploy(
+        endpoint = builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=endpoint_name,
             inference_ami_version=INFERENCE_AMI_VERSION,
-            serializer=JSONSerializer(),
             wait=True,
         )
         LOGGER.info("Endpoint deployment completed successfully")
@@ -99,7 +98,7 @@ def model_endpoint(aws_session, model_package, instance_type):
             endpoint_name,
         )
 
-        yield predictor
+        yield endpoint, endpoint_name
     finally:
         LOGGER.info(f"Deleting endpoint: {endpoint_name}")
         sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
@@ -111,20 +110,23 @@ def model_endpoint(aws_session, model_package, instance_type):
 @pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
 def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
-    predictor = model_endpoint
+    endpoint, endpoint_name = model_endpoint
 
     prompt = "Write a python script to calculate square of n"
-    payload = {
+    payload = json.dumps({
         "model": model_id,
         "messages": [{"role": "user", "content": prompt}],
         "max_tokens": 2400,
         "temperature": 0.01,
         "top_p": 0.9,
         "top_k": 50,
-    }
+    })
     LOGGER.debug(f"Sending inference request with payload: {pformat(payload)}")
 
-    response = predictor.predict(payload)
+    response = endpoint.invoke_endpoint(
+        body=payload,
+        content_type="application/json",
+    )
     LOGGER.info("Inference request invoked successfully")
 
     if isinstance(response, bytes):

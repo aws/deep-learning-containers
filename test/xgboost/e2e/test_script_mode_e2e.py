@@ -46,7 +46,7 @@ class TestScriptModeE2E:
     def test_inference_single_model(self, image_uri, role, script_mode_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=script_mode_model,
@@ -56,11 +56,13 @@ class TestScriptModeE2E:
                     "SAGEMAKER_SUBMIT_DIRECTORY": SCRIPT_CODE_S3,
                 },
             )
-            predictor.content_type = "text/csv"
-            predictor.accept = "text/csv"
 
             payload = "0.455,0.365,0.095,0.514,0.2245,0.101,0.15,15"
-            response = predictor.predict(payload)
+            response = endpoint.invoke_endpoint(
+                body=payload,
+                content_type="text/csv",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:
@@ -69,7 +71,7 @@ class TestScriptModeE2E:
     def test_inference_multi_model(self, image_uri, role, script_mode_model):
         endpoint_name = None
         try:
-            predictor, endpoint_name = deploy_endpoint(
+            endpoint, endpoint_name = deploy_endpoint(
                 image_uri=image_uri,
                 role=role,
                 model_data=script_mode_model,
@@ -79,11 +81,13 @@ class TestScriptModeE2E:
                     "SAGEMAKER_SUBMIT_DIRECTORY": SCRIPT_CODE_S3,
                 },
             )
-            predictor.content_type = "text/csv"
-            predictor.accept = "text/csv"
 
             payload = "0.455,0.365,0.095,0.514,0.2245,0.101,0.15,15"
-            response = predictor.predict(payload)
+            response = endpoint.invoke_endpoint(
+                body=payload,
+                content_type="text/csv",
+                accept="text/csv",
+            )
             assert response is not None
         finally:
             if endpoint_name:

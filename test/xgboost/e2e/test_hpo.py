@@ -4,9 +4,11 @@ Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_hpo.py
 """
 
 import boto3
-from sagemaker.estimator import Estimator
-from sagemaker.inputs import TrainingInput
-from sagemaker.tuner import ContinuousParameter, HyperparameterTuner, IntegerParameter
+from sagemaker.train import ModelTrainer
+from sagemaker.train.configs import Compute, InputData
+from sagemaker.train.configs import StoppingCondition, OutputDataConfig
+from sagemaker.train.tuner import HyperparameterTuner
+from sagemaker.core.parameter import ContinuousParameter, IntegerParameter
 from test_utils import random_suffix_name
 
 from .conftest import E2E_TEST_BUCKET, data_uri, s3_uri
@@ -31,20 +33,23 @@ def _run_hpo(
     job_name = random_suffix_name(f"xgb-{test_name}", 32)
     output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
-    estimator = Estimator(
-        image_uri=image_uri,
-        role=role,
-        instance_count=1,
+    compute = Compute(
         instance_type=instance_type,
-        output_path=output_path,
+        instance_count=1,
+        volume_size_in_gb=10,
+    )
+
+    trainer = ModelTrainer(
+        training_image=image_uri,
+        role=role,
+        compute=compute,
         hyperparameters=hp,
-        volume_size=10,
-        max_run=2700,
-        metric_definitions=metric_defs,
+        output_data_config=OutputDataConfig(s3_output_path=output_path),
+        stopping_condition=StoppingCondition(max_runtime_in_seconds=2700),
     )
 
     tuner = HyperparameterTuner(
-        estimator=estimator,
+        model_trainer=trainer,
         objective_metric_name=objective_name,
         objective_type=objective_type,
         hyperparameter_ranges={
@@ -56,14 +61,16 @@ def _run_hpo(
         metric_definitions=metric_defs,
     )
 
-    channels = {
-        "train": TrainingInput(s3_data=data_uri(train_key), content_type=content_type),
-        "validation": TrainingInput(
-            s3_data=data_uri(val_key), content_type=content_type, distribution="FullyReplicated"
+    input_data_config = [
+        InputData(channel_name="train", data_source=data_uri(train_key), content_type=content_type),
+        InputData(
+            channel_name="validation",
+            data_source=data_uri(val_key),
+            content_type=content_type,
         ),
-    }
+    ]
 
-    tuner.fit(channels, job_name=job_name)
+    tuner.tune(input_data_config=input_data_config, hyper_parameter_tuning_job_name=job_name)
     tuner.wait()
 
     sm = boto3.client("sagemaker")
@@ -84,61 +91,33 @@ BASE_HP = {
 class TestHPO:
     def test_tuning_rmse(self, image_uri, role):
         _run_hpo(
-            image_uri,
-            role,
-            BASE_HP,
-            "train",
-            "test",
-            "text/libsvm",
-            "validation:rmse",
-            "Minimize",
-            RMSE_METRIC,
-            "hpo-rmse",
+            image_uri, role, BASE_HP,
+            "train", "test", "text/libsvm",
+            "validation:rmse", "Minimize", RMSE_METRIC, "hpo-rmse",
         )
 
     def test_tuning_aucpr(self, image_uri, role):
         hp = {**BASE_HP, "objective": "binary:hinge"}
         _run_hpo(
-            image_uri,
-            role,
-            hp,
-            "csv/binary_train",
-            "csv/binary_train",
-            "text/csv",
-            "validation:aucpr",
-            "Maximize",
-            AUCPR_METRIC,
-            "hpo-aucpr",
+            image_uri, role, hp,
+            "csv/binary_train", "csv/binary_train", "text/csv",
+            "validation:aucpr", "Maximize", AUCPR_METRIC, "hpo-aucpr",
         )
 
     def test_gpu_tuning_rmse(self, image_uri, role):
         hp = {**BASE_HP, "tree_method": "gpu_hist"}
         _run_hpo(
-            image_uri,
-            role,
-            hp,
-            "train",
-            "test",
-            "text/libsvm",
-            "validation:rmse",
-            "Minimize",
-            RMSE_METRIC,
-            "hpo-gpu",
+            image_uri, role, hp,
+            "train", "test", "text/libsvm",
+            "validation:rmse", "Minimize", RMSE_METRIC, "hpo-gpu",
             instance_type="ml.g4dn.2xlarge",
         )
 
     def test_gpu_tuning_aucpr(self, image_uri, role):
         hp = {**BASE_HP, "objective": "binary:hinge", "tree_method": "gpu_hist"}
         _run_hpo(
-            image_uri,
-            role,
-            hp,
-            "csv/binary_train",
-            "csv/binary_train",
-            "text/csv",
-            "validation:aucpr",
-            "Maximize",
-            AUCPR_METRIC,
-            "hpo-gpu-auc",
+            image_uri, role, hp,
+            "csv/binary_train", "csv/binary_train", "text/csv",
+            "validation:aucpr", "Maximize", AUCPR_METRIC, "hpo-gpu-auc",
             instance_type="ml.g4dn.2xlarge",
         )

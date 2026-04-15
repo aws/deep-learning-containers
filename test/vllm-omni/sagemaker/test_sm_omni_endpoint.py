@@ -5,10 +5,8 @@ import logging
 import time
 
 import pytest
-from sagemaker.async_inference import AsyncInferenceConfig
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
+from sagemaker.serve import ModelBuilder
+from sagemaker.serve.configs import InferenceSpec
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
@@ -45,17 +43,18 @@ def model_package(aws_session, image_uri, model_id):
     try:
         LOGGER.info(f"Creating SageMaker model: {model_name}")
         hf_token = get_hf_token(aws_session)
-        model = Model(
-            name=model_name,
+        inference_spec = InferenceSpec(
             image_uri=image_uri,
-            role=SAGEMAKER_ROLE,
-            predictor_cls=Predictor,
-            env={
+            environment={
                 "SM_VLLM_MODEL": model_id,
                 "HF_TOKEN": hf_token,
             },
         )
-        yield model
+        builder = ModelBuilder(
+            inference_spec=inference_spec,
+            role=SAGEMAKER_ROLE,
+        )
+        yield builder, model_name
     finally:
         LOGGER.info(f"Deleting model: {model_name}")
         sagemaker_client.delete_model(ModelName=model_name)
@@ -64,18 +63,17 @@ def model_package(aws_session, image_uri, model_id):
 @pytest.fixture(scope="function")
 def model_endpoint(aws_session, model_package, instance_type):
     sagemaker_client = aws_session.sagemaker
-    model = model_package
+    builder, _ = model_package
     cleaned_instance = clean_string(instance_type, "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-{cleaned_instance}", 50)
 
     try:
         LOGGER.info("Starting endpoint deployment...")
-        predictor = model.deploy(
+        endpoint = builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=endpoint_name,
             inference_ami_version=INFERENCE_AMI_VERSION,
-            serializer=JSONSerializer(),
             wait=True,
         )
 
@@ -88,7 +86,7 @@ def model_endpoint(aws_session, model_package, instance_type):
             sagemaker_client,
             endpoint_name,
         )
-        yield predictor
+        yield endpoint, endpoint_name
     finally:
         LOGGER.info(f"Deleting endpoint: {endpoint_name}")
         sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
@@ -97,10 +95,10 @@ def model_endpoint(aws_session, model_package, instance_type):
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
-def test_vllm_omni_tts_endpoint(model_endpoint):
+def test_vllm_omni_tts_endpoint(model_endpoint, aws_session):
     """TTS via /invocations routed to /v1/audio/speech by the serve proxy."""
-    predictor = model_endpoint
-    sm_runtime = predictor.sagemaker_session.sagemaker_runtime_client
+    endpoint, endpoint_name = model_endpoint
+    sm_runtime = aws_session.session.client("sagemaker-runtime")
 
     payload = json.dumps(
         {
@@ -113,13 +111,10 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
     LOGGER.info("Sending TTS request via /invocations with route=/v1/audio/speech")
     # First request triggers torch.compile + CUDA graph capture (~67s),
     # which exceeds SageMaker's 60s invoke timeout. Retry after warmup completes.
-    import time
-
-    # https://github.com/aws/sagemaker-python-sdk/issues/1119
     for attempt in range(3):
         try:
             response = sm_runtime.invoke_endpoint(
-                EndpointName=predictor.endpoint_name,
+                EndpointName=endpoint_name,
                 ContentType="application/json",
                 Body=payload,
                 CustomAttributes="route=/v1/audio/speech",
@@ -141,7 +136,7 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
 def async_endpoint(aws_session, model_package, instance_type):
     """Deploy an async inference endpoint (no 60s timeout limit)."""
     sagemaker_client = aws_session.sagemaker
-    model = model_package
+    builder, _ = model_package
     cleaned_instance = clean_string(instance_type, "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_instance}", 50)
     account_id = aws_session.sts.get_caller_identity()["Account"]
@@ -149,16 +144,24 @@ def async_endpoint(aws_session, model_package, instance_type):
 
     try:
         LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
-        predictor = model.deploy(
+        # For async inference in V3, use boto3 directly to create the async endpoint config
+        # since ModelBuilder.deploy() handles standard real-time endpoints
+        sm = aws_session.sagemaker
+
+        # First build the model
+        endpoint = builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=endpoint_name,
             inference_ami_version=INFERENCE_AMI_VERSION,
-            serializer=JSONSerializer(),
-            async_inference_config=AsyncInferenceConfig(
-                output_path=s3_output,
-                max_concurrent_invocations_per_instance=1,
-            ),
+            async_inference_config={
+                "OutputConfig": {
+                    "S3OutputPath": s3_output,
+                },
+                "ClientConfig": {
+                    "MaxConcurrentInvocationsPerInstance": 1,
+                },
+            },
             wait=True,
         )
 
@@ -171,7 +174,7 @@ def async_endpoint(aws_session, model_package, instance_type):
             sagemaker_client,
             endpoint_name,
         )
-        yield predictor, s3_output
+        yield endpoint, endpoint_name, s3_output
     finally:
         LOGGER.info(f"Deleting async endpoint: {endpoint_name}")
         sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
@@ -180,11 +183,11 @@ def async_endpoint(aws_session, model_package, instance_type):
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
-def test_vllm_omni_tts_async_endpoint(async_endpoint):
+def test_vllm_omni_tts_async_endpoint(async_endpoint, aws_session):
     """TTS via async inference — no 60s timeout, up to 1 hour."""
-    predictor, s3_output = async_endpoint
-    sm_runtime = predictor.sagemaker_session.sagemaker_runtime_client
-    s3_client = predictor.sagemaker_session.boto_session.client("s3")
+    endpoint, endpoint_name, s3_output = async_endpoint
+    sm_runtime = aws_session.session.client("sagemaker-runtime")
+    s3_client = aws_session.s3
 
     payload = json.dumps(
         {
@@ -196,9 +199,9 @@ def test_vllm_omni_tts_async_endpoint(async_endpoint):
 
     LOGGER.info("Sending async TTS request")
     response = sm_runtime.invoke_endpoint_async(
-        EndpointName=predictor.endpoint_name,
+        EndpointName=endpoint_name,
         ContentType="application/json",
-        InputLocation=_upload_payload_to_s3(s3_client, payload, s3_output, predictor.endpoint_name),
+        InputLocation=_upload_payload_to_s3(s3_client, payload, s3_output, endpoint_name),
         CustomAttributes="route=/v1/audio/speech",
     )
 
