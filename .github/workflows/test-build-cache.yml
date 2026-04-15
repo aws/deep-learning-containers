@@ -60,6 +60,8 @@ jobs:
           docker buildx build --progress=plain \
             --build-arg USE_SCCACHE=1 \
             --build-arg SCCACHE_BUCKET=${BUCKET} \
+            --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
+            --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI \
             --target runtime \
             -f docker/vllm/Dockerfile.build-cache-test .
 
