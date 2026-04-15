@@ -36,6 +36,7 @@ repos:
         name: "📁 filesystem/📝 file · Validate requirements.txt"
       - id: trailing-whitespace
         name: "📁 filesystem/📝 file · Validate empty whitespaces"
+        exclude: '\.patch$'
   # ----------------------------- 🔒 Security Tools ---------------------------- #
       - id: check-json
         name: "📁 filesystem/🔧 config · Validate JSON file"
