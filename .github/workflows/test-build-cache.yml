@@ -79,7 +79,8 @@ jobs:
             --target build -t test-build \
             -f docker/vllm/Dockerfile.build-cache-test .
           CID=$(docker create test-build /bin/true)
-          docker cp "${CID}:/workspace/dist/" /tmp/test-wheels/
+          mkdir -p /tmp/test-wheels
+          docker cp "${CID}:/workspace/dist/." /tmp/test-wheels/
           docker rm "${CID}"
           cp /tmp/test-wheels/*.whl docker/vllm/prebuilt_wheels/
           ls -la docker/vllm/prebuilt_wheels/
