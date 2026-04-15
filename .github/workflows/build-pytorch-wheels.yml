@@ -1,12 +1,6 @@
 name: Build PyTorch Wheels
 
 on:
-  # TODO: Remove pull_request trigger before merging — temporary for testing
-  pull_request:
-    branches: [main]
-    paths:
-      - "binary_build/pytorch/**"
-      - ".github/workflows/build-pytorch-wheels.yml"
   workflow_dispatch:
 
 concurrency:
@@ -30,41 +24,41 @@ env:
 
 jobs:
   # ============================================================
-  # Build wheels (commented out — S3 artifacts already uploaded)
+  # Build wheels
   # ============================================================
-  # build-wheels:
-  #   runs-on:
-  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:arm64-build-runner
-  #       buildspec-override:true
-  #   timeout-minutes: 1440
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v5
-  #
-  #     - name: Build PyTorch wheels
-  #       working-directory: binary_build/pytorch
-  #       run: |
-  #         bash entrypoint.sh \
-  #           --arch_type "${ARCH_TYPE}" \
-  #           --processor_type "${PROCESSOR_TYPE}" \
-  #           --pytorch_version "${PYTORCH_VERSION}" \
-  #           --python_version "${PYTHON_VERSION}" \
-  #           --torchvision_version "${TORCHVISION_VERSION}" \
-  #           --torchaudio_version "${TORCHAUDIO_VERSION}" \
-  #           --torchtext_version "${TORCHTEXT_VERSION}" \
-  #           --torchdata_version "${TORCHDATA_VERSION}" \
-  #           --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
-  #
-  #     - name: List built wheels
-  #       run: |
-  #         aws s3 ls "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" --recursive
+  build-wheels:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:arm64-build-runner
+        buildspec-override:true
+    timeout-minutes: 1440
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build PyTorch wheels
+        working-directory: binary_build/pytorch
+        run: |
+          bash entrypoint.sh \
+            --arch_type "${ARCH_TYPE}" \
+            --processor_type "${PROCESSOR_TYPE}" \
+            --pytorch_version "${PYTORCH_VERSION}" \
+            --python_version "${PYTHON_VERSION}" \
+            --torchvision_version "${TORCHVISION_VERSION}" \
+            --torchaudio_version "${TORCHAUDIO_VERSION}" \
+            --torchtext_version "${TORCHTEXT_VERSION}" \
+            --torchdata_version "${TORCHDATA_VERSION}" \
+            --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
+
+      - name: List built wheels
+        run: |
+          aws s3 ls "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" --recursive
 
   # ============================================================
   # Test wheels on GPU
   # ============================================================
   test-wheels:
-    # needs: [build-wheels]
+    needs: [build-wheels]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:arm64-g5g16xl-runner
