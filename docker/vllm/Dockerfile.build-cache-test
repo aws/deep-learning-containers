@@ -20,25 +20,23 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   python3.12 python3.12-devel python3.12-pip python3.12-setuptools python3.12-wheel \
-  gcc curl tar gzip awscli-2 \
+  gcc curl tar gzip \
   && dnf clean all && rm -rf /var/cache/dnf
 
 WORKDIR /workspace
 COPY --from=source /src/hello.c /src/setup.py ./
 
 # --- Pre-built wheel support (same pattern as vLLM Dockerfile) ---
-ARG VLLM_WHEEL_S3_URI=""
+# Fetch wheels into docker/vllm/prebuilt_wheels/ BEFORE docker build.
+COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
 # --- sccache support ---
 ARG USE_SCCACHE=0
-ARG SCCACHE_BUCKET=dlc-cicd-wheels
-ARG SCCACHE_REGION=us-west-2
 
-RUN if [ -n "${VLLM_WHEEL_S3_URI}" ]; then \
-      echo "PREBUILT WHEEL PATH — downloading from S3" \
+RUN if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+      echo "PREBUILT WHEEL PATH — skipping compilation" \
       && mkdir -p dist \
-      && aws s3 cp "${VLLM_WHEEL_S3_URI}" dist/ --recursive --exclude "*" --include "*.whl" \
-      && ls dist/*.whl; \
+      && cp /tmp/prebuilt_wheels/*.whl dist/; \
     elif [ "$USE_SCCACHE" = "1" ]; then \
       echo "SCCACHE PATH — verifying sccache install" \
       && curl -L -o /tmp/sccache.tar.gz \

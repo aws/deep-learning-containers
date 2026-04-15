@@ -86,10 +86,10 @@ ARG VLLM_VERSION=0.18.0
 ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
 # --- Pre-built wheel support ---
-# Set VLLM_WHEEL_S3_URI to an S3 prefix (e.g. s3://dlc-cicd-wheels/wheels/vllm/cu129/<hash>/)
-# to download a cached wheel and skip compilation. Empty = build from source.
-# On CodeBuild, AWS credentials come from the instance role automatically.
-ARG VLLM_WHEEL_S3_URI=""
+# Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
+#   bash scripts/vllm/amzn2023/fetch_cached_wheels.sh cu129 v0.18.0
+# The directory is empty by default so COPY always succeeds.
+COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
 # --- sccache support for CUDA compilation cache ---
 # Set USE_SCCACHE=1 and provide S3 bucket config to enable.
@@ -97,14 +97,12 @@ ARG USE_SCCACHE=0
 ARG SCCACHE_BUCKET=dlc-cicd-wheels
 ARG SCCACHE_REGION=us-west-2
 
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv   --mount=type=cache,target=/root/.cache/uv \
-    if [ -n "${VLLM_WHEEL_S3_URI}" ]; then \
-      echo "⬇️ Fetching pre-built wheel from ${VLLM_WHEEL_S3_URI} ..." \
-      && pip install awscli \
+RUN --mount=type=cache,target=/root/.cache/ccache \
+    --mount=type=cache,target=/root/.cache/uv \
+    if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+      echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && mkdir -p dist \
-      && aws s3 cp "${VLLM_WHEEL_S3_URI}" dist/ --recursive --exclude "*" --include "*.whl" \
-      && ls dist/*.whl \
-      && echo "✅ Using pre-built vLLM wheel — skipping compilation"; \
+      && cp /tmp/prebuilt_wheels/*.whl dist/; \
     elif [ "$USE_SCCACHE" = "1" ]; then \
       echo "🔧 Building vLLM with sccache..." \
       && curl -L -o /tmp/sccache.tar.gz \

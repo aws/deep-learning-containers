@@ -73,28 +73,21 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Build wheel from source and upload to S3
+      - name: Build wheel from source and copy to prebuilt_wheels
         run: |
           docker buildx build --progress=plain \
             --target build -t test-build \
             -f docker/vllm/Dockerfile.build-cache-test .
           CID=$(docker create test-build /bin/true)
-          mkdir -p /tmp/test-wheels
           docker cp "${CID}:/workspace/dist/" /tmp/test-wheels/
           docker rm "${CID}"
-          S3_PREFIX="s3://${BUCKET}/wheels/test-build-cache/${GITHUB_RUN_ID}/"
-          aws s3 cp /tmp/test-wheels/ "${S3_PREFIX}" --recursive --exclude "*" --include "*.whl"
-          echo "S3_PREFIX=${S3_PREFIX}" >> $GITHUB_ENV
+          cp /tmp/test-wheels/*.whl docker/vllm/prebuilt_wheels/
+          ls -la docker/vllm/prebuilt_wheels/
 
       - name: Build (prebuilt wheel path — should skip compilation)
         run: |
           docker buildx build --progress=plain \
-            --build-arg VLLM_WHEEL_S3_URI="${S3_PREFIX}" \
             --target runtime \
             -f docker/vllm/Dockerfile.build-cache-test . 2>&1 | tee /tmp/build.log
           grep -q "PREBUILT WHEEL PATH" /tmp/build.log || { echo "❌ Prebuilt wheel path was NOT taken"; exit 1; }
           echo "✅ Prebuilt wheel path confirmed"
-
-      - name: Cleanup test wheels from S3
-        if: always()
-        run: aws s3 rm "${S3_PREFIX}" --recursive
