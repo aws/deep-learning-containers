@@ -69,7 +69,8 @@ export WORKDIR=$(pwd)
 export BUILDDIR="${WORKDIR}/build/manywheel-linux-${ARCH_TYPE}-${PROCESSOR_TYPE}-py${PYTHON_VERSION}-$(date +'%Y%m%d-%H%M%S')"
 mkdir -p ${BUILDDIR}/artifacts                   # store pip wheels that are built
 mkdir -p ${BUILDDIR}/scripts                     # store scripts that will be used in the container
-cp -r ${WORKDIR}/scripts ${BUILDDIR}/            # copy scripts into the directory that'll be used in the container
+cp ${WORKDIR}/build_torch.sh ${WORKDIR}/build_tools.sh ${WORKDIR}/patch_nccl.sh ${BUILDDIR}/scripts/
+cp -r ${WORKDIR}/patches ${BUILDDIR}/scripts/
 
 # ================= build torch =================
 CONTAINER_ID=$(docker run \
