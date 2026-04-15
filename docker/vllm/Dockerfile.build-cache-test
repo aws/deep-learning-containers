@@ -20,7 +20,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   python3.12 python3.12-devel python3.12-pip python3.12-setuptools python3.12-wheel \
-  gcc curl \
+  gcc curl awscli-2 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 WORKDIR /workspace
@@ -36,7 +36,6 @@ ARG SCCACHE_REGION=us-west-2
 
 RUN if [ -n "${VLLM_WHEEL_S3_URI}" ]; then \
       echo "PREBUILT WHEEL PATH — downloading from S3" \
-      && dnf install -y --setopt=install_weak_deps=False awscli-2 \
       && mkdir -p dist \
       && aws s3 cp "${VLLM_WHEEL_S3_URI}" dist/ --recursive --exclude "*" --include "*.whl" \
       && ls dist/*.whl; \
