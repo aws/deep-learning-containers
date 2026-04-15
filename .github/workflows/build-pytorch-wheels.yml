@@ -1,0 +1,79 @@
+name: Build PyTorch Wheels
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FORCE_COLOR: "1"
+  # ── Version pins (update per release) ──
+  ARCH_TYPE: "arm64"
+  PROCESSOR_TYPE: "cu130"
+  PYTORCH_VERSION: "2.11.0"
+  PYTHON_VERSION: "3.13"
+  TORCHVISION_VERSION: "0.26.0"
+  TORCHAUDIO_VERSION: "2.11.0"
+  TORCHTEXT_VERSION: "0.18.0"
+  TORCHDATA_VERSION: "0.11.0"
+
+jobs:
+  # ============================================================
+  # Build wheels
+  # ============================================================
+  build-wheels:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:arm64-build-runner
+        buildspec-override:true
+    timeout-minutes: 1440
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build PyTorch wheels
+        working-directory: binary_build/pytorch
+        run: |
+          bash entrypoint.sh \
+            --arch_type "${ARCH_TYPE}" \
+            --processor_type "${PROCESSOR_TYPE}" \
+            --pytorch_version "${PYTORCH_VERSION}" \
+            --python_version "${PYTHON_VERSION}" \
+            --torchvision_version "${TORCHVISION_VERSION}" \
+            --torchaudio_version "${TORCHAUDIO_VERSION}" \
+            --torchtext_version "${TORCHTEXT_VERSION}" \
+            --torchdata_version "${TORCHDATA_VERSION}" \
+            --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
+
+      - name: List built wheels
+        run: |
+          aws s3 ls "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" --recursive
+
+  # ============================================================
+  # Test wheels on GPU
+  # ============================================================
+  test-wheels:
+    needs: [build-wheels]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:arm64-g5g16xl-runner
+        buildspec-override:true
+    timeout-minutes: 120
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Run wheel tests
+        working-directory: binary_build/pytorch/tests
+        run: |
+          bash entrypoint.sh \
+            --arch_type "${ARCH_TYPE}" \
+            --processor_type "${PROCESSOR_TYPE}" \
+            --pytorch_version "${PYTORCH_VERSION}" \
+            --python_version "${PYTHON_VERSION}" \
+            --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
