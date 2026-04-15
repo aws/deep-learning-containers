@@ -2,7 +2,7 @@ name: PR - vLLM EC2 AMZN2023
 
 on:
   pull_request:
-    branches: [main]
+    branches: [disabled-for-build-cache-testing]
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/vllm-ec2-amzn2023.yml"

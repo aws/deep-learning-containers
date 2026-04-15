@@ -2,7 +2,7 @@ name: PR - vLLM-Omni SageMaker AMZN2023
 
 on:
   pull_request:
-    branches: [main]
+    branches: [disabled-for-build-cache-testing]
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/vllm-omni-model-tests.yml"

@@ -86,24 +86,25 @@ ARG VLLM_VERSION=0.18.0
 ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
 # --- Pre-built wheel support ---
-# When pre-built wheels exist in docker/vllm/prebuilt_wheels/ (fetched from S3
-# before docker build), skip compilation entirely. The directory is created empty
-# by default so COPY always succeeds.
-COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
+# Set VLLM_WHEEL_S3_URI to an S3 prefix (e.g. s3://dlc-cicd-wheels/wheels/vllm/cu129/<hash>/)
+# to download a cached wheel and skip compilation. Empty = build from source.
+# On CodeBuild, AWS credentials come from the instance role automatically.
+ARG VLLM_WHEEL_S3_URI=""
 
 # --- sccache support for CUDA compilation cache ---
 # Set USE_SCCACHE=1 and provide S3 bucket config to enable.
-# On CodeBuild, credentials come from the instance role automatically.
 ARG USE_SCCACHE=0
 ARG SCCACHE_BUCKET=dlc-cicd-wheels
 ARG SCCACHE_REGION=us-west-2
-ARG SCCACHE_S3_NO_CREDENTIALS=0
 
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv \
-    if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
-      echo "✅ Using pre-built vLLM wheel — skipping compilation" \
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv   --mount=type=cache,target=/root/.cache/uv \
+    if [ -n "${VLLM_WHEEL_S3_URI}" ]; then \
+      echo "⬇️ Fetching pre-built wheel from ${VLLM_WHEEL_S3_URI} ..." \
+      && pip install awscli \
       && mkdir -p dist \
-      && cp /tmp/prebuilt_wheels/*.whl dist/; \
+      && aws s3 cp "${VLLM_WHEEL_S3_URI}" dist/ --recursive --exclude "*" --include "*.whl" \
+      && ls dist/*.whl \
+      && echo "✅ Using pre-built vLLM wheel — skipping compilation"; \
     elif [ "$USE_SCCACHE" = "1" ]; then \
       echo "🔧 Building vLLM with sccache..." \
       && curl -L -o /tmp/sccache.tar.gz \
@@ -113,7 +114,6 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && rm -rf /tmp/sccache* \
       && export SCCACHE_BUCKET="${SCCACHE_BUCKET}" \
       && export SCCACHE_REGION="${SCCACHE_REGION}" \
-      && export SCCACHE_S3_NO_CREDENTIALS="${SCCACHE_S3_NO_CREDENTIALS}" \
       && export SCCACHE_IDLE_TIMEOUT=0 \
       && export CMAKE_BUILD_TYPE=Release \
       && export CMAKE_C_COMPILER_LAUNCHER=sccache \
