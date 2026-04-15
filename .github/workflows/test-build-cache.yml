@@ -70,22 +70,23 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Build wheel from source first
+      - name: Build wheel from source and upload to S3
         run: |
           docker buildx build --progress=plain \
-            --target build \
-            --output type=local,dest=/tmp/build-out \
+            --target build -t test-build \
             -f docker/vllm/Dockerfile.build-cache-test .
-
-      - name: Copy wheel into prebuilt_wheels dir
-        run: |
-          cp /tmp/build-out/workspace/dist/*.whl docker/vllm/prebuilt_wheels/
-          echo "Wheels in prebuilt_wheels/:"
-          ls -la docker/vllm/prebuilt_wheels/
+          CID=$(docker create test-build /bin/true)
+          mkdir -p /tmp/test-wheels
+          docker cp "${CID}:/workspace/dist/" /tmp/test-wheels/
+          docker rm "${CID}"
+          S3_PREFIX="s3://${BUCKET}/wheels/test-build-cache/${GITHUB_RUN_ID}/"
+          aws s3 cp /tmp/test-wheels/ "${S3_PREFIX}" --recursive --exclude "*" --include "*.whl"
+          echo "S3_PREFIX=${S3_PREFIX}" >> $GITHUB_ENV
 
       - name: Build (prebuilt wheel path — should skip compilation)
         run: |
           docker buildx build --progress=plain \
+            --build-arg VLLM_WHEEL_S3_URI="${S3_PREFIX}" \
             --target runtime \
             -f docker/vllm/Dockerfile.build-cache-test . 2>&1 | tee /tmp/build.log
           grep -q "PREBUILT WHEEL PATH" /tmp/build.log || { echo "❌ Prebuilt wheel path was NOT taken"; exit 1; }

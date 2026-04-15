@@ -27,17 +27,19 @@ WORKDIR /workspace
 COPY --from=source /src/hello.c /src/setup.py ./
 
 # --- Pre-built wheel support (same pattern as vLLM Dockerfile) ---
-COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
+ARG VLLM_WHEEL_S3_URI=""
 
 # --- sccache support ---
 ARG USE_SCCACHE=0
 ARG SCCACHE_BUCKET=dlc-cicd-wheels
 ARG SCCACHE_REGION=us-west-2
 
-RUN if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
-      echo "PREBUILT WHEEL PATH — skipping compilation" \
+RUN if [ -n "${VLLM_WHEEL_S3_URI}" ]; then \
+      echo "PREBUILT WHEEL PATH — downloading from S3" \
+      && pip3.12 install awscli \
       && mkdir -p dist \
-      && cp /tmp/prebuilt_wheels/*.whl dist/; \
+      && aws s3 cp "${VLLM_WHEEL_S3_URI}" dist/ --recursive --exclude "*" --include "*.whl" \
+      && ls dist/*.whl; \
     elif [ "$USE_SCCACHE" = "1" ]; then \
       echo "SCCACHE PATH — building with sccache" \
       && curl -L -o /tmp/sccache.tar.gz \
