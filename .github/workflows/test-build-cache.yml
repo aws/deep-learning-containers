@@ -33,7 +33,10 @@ env:
 jobs:
   test-default:
     if: github.event_name == 'pull_request' || inputs.test-mode == 'default'
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-vllm-build-runner
+        buildspec-override:true
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
