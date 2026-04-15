@@ -15,7 +15,8 @@ ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
 ARG VLLM_VERSION=0.18.0
 ARG VLLM_REF=v${VLLM_VERSION}
 
-RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src
+RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
+  || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
 
 COPY scripts/vllm/amzn2023/patches/ /tmp/patches/
 RUN cd /src && \
@@ -37,7 +38,7 @@ RUN echo "vLLM AL2023 Image Source Manifest" >/src/SOURCE_MANIFEST \
   && cd /src && git log --oneline -10 | sed 's/^/  /' >>/src/SOURCE_MANIFEST
 
 # =============================================================================
-# STAGE 1: build — compile vLLM wheel from source
+# STAGE 1: build — compile vLLM wheel from source (or use pre-built wheel)
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
 
@@ -84,7 +85,47 @@ ARG VLLM_REF
 ARG VLLM_VERSION=0.18.0
 ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
+# --- Pre-built wheel support ---
+# When pre-built wheels exist in docker/vllm/prebuilt_wheels/ (fetched from S3
+# before docker build), skip compilation entirely. The directory is created empty
+# by default so COPY always succeeds.
+COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
+
+# --- sccache support for CUDA compilation cache ---
+# Set USE_SCCACHE=1 and provide S3 bucket config to enable.
+# On CodeBuild, credentials come from the instance role automatically.
+ARG USE_SCCACHE=0
+ARG SCCACHE_BUCKET=dlc-cicd-wheels
+ARG SCCACHE_REGION=us-west-2
+ARG SCCACHE_S3_NO_CREDENTIALS=0
+
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv \
+    if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+      echo "✅ Using pre-built vLLM wheel — skipping compilation" \
+      && mkdir -p dist \
+      && cp /tmp/prebuilt_wheels/*.whl dist/; \
+    elif [ "$USE_SCCACHE" = "1" ]; then \
+      echo "🔧 Building vLLM with sccache..." \
+      && curl -L -o /tmp/sccache.tar.gz \
+        "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
+      && tar -xzf /tmp/sccache.tar.gz -C /tmp \
+      && mv /tmp/sccache-v0.8.1-x86_64-unknown-linux-musl/sccache /usr/bin/sccache \
+      && rm -rf /tmp/sccache* \
+      && export SCCACHE_BUCKET="${SCCACHE_BUCKET}" \
+      && export SCCACHE_REGION="${SCCACHE_REGION}" \
+      && export SCCACHE_S3_NO_CREDENTIALS="${SCCACHE_S3_NO_CREDENTIALS}" \
+      && export SCCACHE_IDLE_TIMEOUT=0 \
+      && export CMAKE_BUILD_TYPE=Release \
+      && export CMAKE_C_COMPILER_LAUNCHER=sccache \
+      && export CMAKE_CXX_COMPILER_LAUNCHER=sccache \
+      && export CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
+      && sccache --show-stats \
+      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
+      && sccache --show-stats; \
+    else \
+      echo "🔧 Building vLLM from source (no sccache)..." \
+      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
+    fi
 
 # Build DeepGEMM wheel
 ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03
