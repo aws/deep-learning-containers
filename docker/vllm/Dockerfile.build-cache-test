@@ -18,7 +18,7 @@ RUN python3.12 setup.py bdist_wheel --dist-dir=dist
 FROM amazonlinux:2023 AS build
 
 RUN dnf install -y --setopt=install_weak_deps=False \
-  python3.12 python3.12-devel python3.12-pip gcc curl tar gzip \
+  python3.12 python3.12-devel python3-pip gcc curl tar gzip \
   && dnf clean all
 
 RUN python3.12 -m pip install wheel setuptools
@@ -64,7 +64,7 @@ RUN if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
 # =============================================================================
 FROM amazonlinux:2023 AS runtime
 
-RUN dnf install -y --setopt=install_weak_deps=False python3.12 python3.12-pip \
+RUN dnf install -y --setopt=install_weak_deps=False python3.12 python3-pip \
   && dnf clean all
 
 COPY --from=build /workspace/dist /tmp/dist
