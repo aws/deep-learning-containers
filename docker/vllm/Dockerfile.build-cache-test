@@ -51,6 +51,7 @@ RUN if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       && rm -rf /tmp/sccache* \
       && export SCCACHE_BUCKET="${SCCACHE_BUCKET}" \
       && export SCCACHE_REGION="${SCCACHE_REGION}" \
+      && export SCCACHE_S3_KEY_PREFIX="sccache/test" \
       && export SCCACHE_IDLE_TIMEOUT=0 \
       && sccache --show-stats \
       && export CC="sccache gcc" \

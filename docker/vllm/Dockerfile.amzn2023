@@ -118,6 +118,7 @@ RUN --mount=type=cache,target=/root/.cache/ccache \
       && rm -rf /tmp/sccache* \
       && export SCCACHE_BUCKET="${SCCACHE_BUCKET}" \
       && export SCCACHE_REGION="${SCCACHE_REGION}" \
+      && export SCCACHE_S3_KEY_PREFIX="sccache/vllm" \
       && export SCCACHE_IDLE_TIMEOUT=0 \
       && export CMAKE_BUILD_TYPE=Release \
       && export CMAKE_C_COMPILER_LAUNCHER=sccache \
