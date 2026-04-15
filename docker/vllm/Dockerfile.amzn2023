@@ -1,5 +1,9 @@
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
+ARG VLLM_VERSION=0.18.0
+ARG FLASHINFER_VERSION=0.6.6
+ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03
+ARG DEEPEP_COMMIT_HASH=73b6ea4
 
 # Pre-built runtime image. When set, skips the compile stages (source/build/deps)
 # and uses this image directly as the runtime base. Build it with:
@@ -12,7 +16,7 @@ ARG RUNTIME_BASE=""
 FROM alpine/git AS source
 
 ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
-ARG VLLM_VERSION=0.18.0
+ARG VLLM_VERSION
 ARG VLLM_REF=v${VLLM_VERSION}
 
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
@@ -82,7 +86,7 @@ ENV NVCC_THREADS=${nvcc_threads}
 
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
-ARG VLLM_VERSION=0.18.0
+ARG VLLM_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
 # --- Pre-built wheel support ---
@@ -133,7 +137,7 @@ RUN --mount=type=cache,target=/root/.cache/ccache \
     fi
 
 # Build DeepGEMM wheel
-ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03
+ARG DEEPGEMM_GIT_REF
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
   && VLLM_DOCKER_BUILD_CONTEXT=1 TORCH_CUDA_ARCH_LIST="9.0a 10.0a" \
     tools/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" \
@@ -143,7 +147,7 @@ RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
 RUN mkdir -p /tmp/deepgemm/dist
 
 # Build DeepEP wheels
-ARG DEEPEP_COMMIT_HASH=73b6ea4
+ARG DEEPEP_COMMIT_HASH
 ARG NVSHMEM_VER
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
@@ -191,7 +195,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install /tmp/vllm-dist/*.wh
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install FlashInfer cubin/jit-cache
-ARG FLASHINFER_VERSION=0.6.6
+ARG FLASHINFER_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==${FLASHINFER_VERSION} \
   flashinfer-jit-cache==${FLASHINFER_VERSION} \
   --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
