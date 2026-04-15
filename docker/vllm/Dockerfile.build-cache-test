@@ -50,9 +50,8 @@ RUN if [ -n "${VLLM_WHEEL_S3_URI}" ]; then \
       && export SCCACHE_REGION="${SCCACHE_REGION}" \
       && export SCCACHE_IDLE_TIMEOUT=0 \
       && export CC="sccache gcc" \
-      && sccache --show-stats \
       && python3.12 setup.py bdist_wheel --dist-dir=dist \
-      && sccache --show-stats; \
+      && (sccache --show-stats || true); \
     else \
       echo "DEFAULT PATH — building from source" \
       && python3.12 setup.py bdist_wheel --dist-dir=dist; \
