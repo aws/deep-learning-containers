@@ -30,71 +30,56 @@ env:
 
 jobs:
   # ============================================================
-  # Build wheels
+  # Build wheels (commented out — S3 artifacts already uploaded)
   # ============================================================
-  build-wheels:
+  # build-wheels:
+  #   runs-on:
+  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+  #       fleet:arm64-build-runner
+  #       buildspec-override:true
+  #   timeout-minutes: 1440
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v5
+  #
+  #     - name: Build PyTorch wheels
+  #       working-directory: binary_build/pytorch
+  #       run: |
+  #         bash entrypoint.sh \
+  #           --arch_type "${ARCH_TYPE}" \
+  #           --processor_type "${PROCESSOR_TYPE}" \
+  #           --pytorch_version "${PYTORCH_VERSION}" \
+  #           --python_version "${PYTHON_VERSION}" \
+  #           --torchvision_version "${TORCHVISION_VERSION}" \
+  #           --torchaudio_version "${TORCHAUDIO_VERSION}" \
+  #           --torchtext_version "${TORCHTEXT_VERSION}" \
+  #           --torchdata_version "${TORCHDATA_VERSION}" \
+  #           --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
+  #
+  #     - name: List built wheels
+  #       run: |
+  #         aws s3 ls "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" --recursive
+
+  # ============================================================
+  # Test wheels on GPU
+  # ============================================================
+  test-wheels:
+    # needs: [build-wheels]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:arm64-build-runner
+        fleet:arm64-g5g16xl-runner
         buildspec-override:true
-    timeout-minutes: 1440
+    timeout-minutes: 120
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Build PyTorch wheels
-        working-directory: binary_build/pytorch
+      - name: Run wheel tests
+        working-directory: binary_build/pytorch/tests
         run: |
           bash entrypoint.sh \
             --arch_type "${ARCH_TYPE}" \
             --processor_type "${PROCESSOR_TYPE}" \
             --pytorch_version "${PYTORCH_VERSION}" \
             --python_version "${PYTHON_VERSION}" \
-            --torchvision_version "${TORCHVISION_VERSION}" \
-            --torchaudio_version "${TORCHAUDIO_VERSION}" \
-            --torchtext_version "${TORCHTEXT_VERSION}" \
-            --torchdata_version "${TORCHDATA_VERSION}" \
             --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
-
-      - name: List built wheels
-        run: |
-          aws s3 ls "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" --recursive
-
-  # ============================================================
-  # Test wheels on GPU
-  # TODO: Migrate AwsPyTorchTests scripts (install_wheels.sh, run_tests.sh)
-  # to run full PyTorch unit tests instead of smoke tests.
-  # Current smoke test is a placeholder.
-  # ============================================================
-  test-wheels:
-    needs: [build-wheels]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:arm64-g5g16xl-runner
-        buildspec-override:true
-    timeout-minutes: 60
-    steps:
-      - name: Download wheels from S3
-        run: |
-          mkdir -p /tmp/wheels
-          aws s3 cp "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" /tmp/wheels/ --recursive
-
-      - name: Install and test wheels
-        run: |
-          pip install /tmp/wheels/*.whl
-
-          python -c "
-          import torch
-          print(f'PyTorch version: {torch.__version__}')
-          print(f'CUDA available: {torch.cuda.is_available()}')
-          if torch.cuda.is_available():
-              print(f'CUDA device: {torch.cuda.get_device_name(0)}')
-              x = torch.randn(2, 2).cuda()
-              print(f'CUDA tensor: {x}')
-
-          import torchvision
-          print(f'TorchVision version: {torchvision.__version__}')
-
-          import torchaudio
-          print(f'TorchAudio version: {torchaudio.__version__}')
-          "
