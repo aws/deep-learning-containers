@@ -75,6 +75,17 @@ if [[ -n "${RUNTIME_BASE}" ]]; then
   --build-arg RUNTIME_BASE=\"${RUNTIME_BASE}\""
 fi
 
+# Pass AWS credentials for sccache S3 access inside Docker build
+if [[ -n "${USE_SCCACHE:-}" ]]; then
+  echo "Enabling sccache with S3 backend"
+  eval $(aws configure export-credentials --format env 2>/dev/null) || true
+  BUILD_CMD="${BUILD_CMD} \
+  --build-arg USE_SCCACHE=\"${USE_SCCACHE}\" \
+  --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID:-}\" \
+  --build-arg AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY:-}\" \
+  --build-arg AWS_SESSION_TOKEN=\"${AWS_SESSION_TOKEN:-}\""
+fi
+
 # Add SageMaker labels if customer-type is 'sagemaker'
 if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
   BUILD_CMD="${BUILD_CMD} \

@@ -2,7 +2,7 @@ name: PR - vLLM EC2 AMZN2023
 
 on:
   pull_request:
-    branches: [disabled-for-build-cache-testing]
+    branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/vllm-ec2-amzn2023.yml"
@@ -148,6 +148,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Fetch cached vLLM wheel
+        id: wheel-cache
+        run: |
+          bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+            ${{ needs.load-config.outputs.cuda-version }} \
+            v${{ needs.load-config.outputs.framework-version }}
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -168,6 +175,14 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
+
+      - name: Upload vLLM wheel to cache
+        if: success()
+        run: |
+          bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
+            ${{ needs.load-config.outputs.cuda-version }} \
+            v${{ needs.load-config.outputs.framework-version }} \
+            ${{ steps.build.outputs.image-uri }}
 
 
   sanity-test:
