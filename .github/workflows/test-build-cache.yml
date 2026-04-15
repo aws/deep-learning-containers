@@ -94,3 +94,7 @@ jobs:
             -f docker/vllm/Dockerfile.build-cache-test . 2>&1 | tee /tmp/build.log
           grep -q "PREBUILT WHEEL PATH" /tmp/build.log || { echo "❌ Prebuilt wheel path was NOT taken"; exit 1; }
           echo "✅ Prebuilt wheel path confirmed"
+
+      - name: Cleanup test wheels from S3
+        if: always()
+        run: aws s3 rm "${S3_PREFIX}" --recursive
