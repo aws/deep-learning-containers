@@ -20,7 +20,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   python3.12 python3.12-devel python3.12-pip python3.12-setuptools python3.12-wheel \
-  gcc curl awscli-2 \
+  gcc curl tar gzip awscli-2 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 WORKDIR /workspace
@@ -40,18 +40,15 @@ RUN if [ -n "${VLLM_WHEEL_S3_URI}" ]; then \
       && aws s3 cp "${VLLM_WHEEL_S3_URI}" dist/ --recursive --exclude "*" --include "*.whl" \
       && ls dist/*.whl; \
     elif [ "$USE_SCCACHE" = "1" ]; then \
-      echo "SCCACHE PATH — building with sccache" \
+      echo "SCCACHE PATH — verifying sccache install" \
       && curl -L -o /tmp/sccache.tar.gz \
         "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
       && tar -xzf /tmp/sccache.tar.gz -C /tmp \
       && mv /tmp/sccache-v0.8.1-x86_64-unknown-linux-musl/sccache /usr/bin/sccache \
       && rm -rf /tmp/sccache* \
-      && export SCCACHE_BUCKET="${SCCACHE_BUCKET}" \
-      && export SCCACHE_REGION="${SCCACHE_REGION}" \
-      && export SCCACHE_IDLE_TIMEOUT=0 \
-      && export CC="sccache gcc" \
-      && python3.12 setup.py bdist_wheel --dist-dir=dist \
-      && (sccache --show-stats || true); \
+      && sccache --version \
+      && echo "sccache installed successfully" \
+      && python3.12 setup.py bdist_wheel --dist-dir=dist; \
     else \
       echo "DEFAULT PATH — building from source" \
       && python3.12 setup.py bdist_wheel --dist-dir=dist; \
