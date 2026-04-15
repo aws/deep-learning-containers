@@ -47,8 +47,7 @@ jobs:
             -f docker/vllm/Dockerfile.build-cache-test .
 
   test-sccache:
-    # Disabled: requires IAM credentials for S3 bucket access (use x86-vllm-build-runner fleet)
-    if: false
+    if: github.event_name == 'pull_request' || inputs.test-mode == 'sccache'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
