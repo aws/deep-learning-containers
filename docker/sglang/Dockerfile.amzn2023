@@ -8,7 +8,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
 ARG CUDA_VERSION
 ARG PYTHON_VERSION=3.12
 ARG SGL_VERSION=0.5.10
-ARG SGL_KERNEL_VERSION=0.3.21
+ARG SGLANG_KERNEL_VERSION=0.4.1
 ARG FLASHINFER_VERSION=0.6.7.post2
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
 ARG MOONCAKE_VERSION=0.3.9
@@ -77,8 +77,8 @@ WORKDIR /sgl-workspace
 # Clone sglang
 RUN git clone --depth=1 --branch v${SGL_VERSION} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang
 
-# Install sgl-kernel from pip (pre-built CUDA kernels)
-RUN uv pip install --system --no-cache sgl-kernel==${SGL_KERNEL_VERSION}
+# Install sglang-kernel from pip (pre-built CUDA kernels)
+RUN uv pip install --system --no-cache sglang-kernel==${SGLANG_KERNEL_VERSION}
 
 # Install sglang from source + flashinfer
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
@@ -183,6 +183,7 @@ RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
     cuda-nvcc-${CUDA_DASH} \
     cuda-cuobjdump-${CUDA_DASH} \
     cuda-cudart-devel-${CUDA_DASH} \
+    cuda-curand-devel-${CUDA_DASH} \
     gcc gcc-c++ make which hostname findutils \
   && dnf clean all && rm -rf /var/cache/dnf
 
