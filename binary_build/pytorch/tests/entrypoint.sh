@@ -77,10 +77,10 @@ docker cp run_tests.sh ${container_id}:/
 # =========== copy wheels into container and install them ==============
 docker exec ${container_id} mkdir -p /wheels/
 docker cp ${wheels_dir}/. ${container_id}:/wheels/
-docker exec -it ${container_id} bash -i /install_wheels.sh ${ARCH_TYPE} ${PROCESSOR_TYPE} ${PYTORCH_VERSION} ${PYTHON_VERSION}
+docker exec ${container_id} bash /install_wheels.sh ${ARCH_TYPE} ${PROCESSOR_TYPE} ${PYTORCH_VERSION} ${PYTHON_VERSION}
 
 # ========== run unit tests and generate reports in container ===========
-docker exec -it ${container_id} bash -i /run_tests.sh ${ARCH_TYPE} ${PROCESSOR_TYPE} ${PYTORCH_VERSION}
+docker exec ${container_id} bash /run_tests.sh ${ARCH_TYPE} ${PROCESSOR_TYPE} ${PYTORCH_VERSION}
 
 # =================== copy reports and upload to s3 =====================
 reports_dir="pytorch${PYTORCH_VERSION}_python${PYTHON_VERSION}_${ARCH_TYPE}_${PROCESSOR_TYPE}_reports"
