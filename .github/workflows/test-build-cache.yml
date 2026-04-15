@@ -35,7 +35,7 @@ jobs:
     if: github.event_name == 'pull_request' || inputs.test-mode == 'default'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
+        fleet:default-runner
         buildspec-override:true
     timeout-minutes: 10
     steps:
@@ -50,7 +50,7 @@ jobs:
     if: github.event_name == 'pull_request' || inputs.test-mode == 'sccache'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
+        fleet:default-runner
         buildspec-override:true
     timeout-minutes: 10
     steps:
@@ -67,7 +67,7 @@ jobs:
     if: github.event_name == 'pull_request' || inputs.test-mode == 'prebuilt-wheel'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
+        fleet:default-runner
         buildspec-override:true
     timeout-minutes: 10
     steps:
