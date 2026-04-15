@@ -183,7 +183,7 @@ RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
     cuda-nvcc-${CUDA_DASH} \
     cuda-cuobjdump-${CUDA_DASH} \
     cuda-cudart-devel-${CUDA_DASH} \
-    cuda-curand-devel-${CUDA_DASH} \
+    libcurand-devel-${CUDA_DASH} \
     gcc gcc-c++ make which hostname findutils \
   && dnf clean all && rm -rf /var/cache/dnf
 
