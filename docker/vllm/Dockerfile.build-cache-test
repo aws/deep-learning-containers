@@ -34,8 +34,9 @@ COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 ARG USE_SCCACHE=0
 ARG SCCACHE_BUCKET=dlc-cicd-wheels
 ARG SCCACHE_REGION=us-west-2
-ARG AWS_DEFAULT_REGION
-ARG AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG AWS_SESSION_TOKEN
 
 RUN if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "PREBUILT WHEEL PATH — skipping compilation" \

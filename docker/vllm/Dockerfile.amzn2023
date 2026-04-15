@@ -96,11 +96,12 @@ COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 ARG USE_SCCACHE=0
 ARG SCCACHE_BUCKET=dlc-cicd-wheels
 ARG SCCACHE_REGION=us-west-2
-# Pass CodeBuild credentials into Docker for sccache S3 access:
-#   --build-arg AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
-#   --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=$AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
-ARG AWS_DEFAULT_REGION
-ARG AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+# Pass resolved AWS credentials into Docker for sccache S3 access:
+#   eval $(aws configure export-credentials --format env)
+#   --build-arg AWS_ACCESS_KEY_ID --build-arg AWS_SECRET_ACCESS_KEY --build-arg AWS_SESSION_TOKEN
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG AWS_SESSION_TOKEN
 
 RUN --mount=type=cache,target=/root/.cache/ccache \
     --mount=type=cache,target=/root/.cache/uv \
