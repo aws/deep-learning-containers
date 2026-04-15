@@ -36,7 +36,7 @@ ARG SCCACHE_REGION=us-west-2
 
 RUN if [ -n "${VLLM_WHEEL_S3_URI}" ]; then \
       echo "PREBUILT WHEEL PATH — downloading from S3" \
-      && pip3.12 install awscli \
+      && python3.12 -m pip install awscli \
       && mkdir -p dist \
       && aws s3 cp "${VLLM_WHEEL_S3_URI}" dist/ --recursive --exclude "*" --include "*.whl" \
       && ls dist/*.whl; \
