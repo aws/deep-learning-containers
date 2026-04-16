@@ -76,15 +76,14 @@ if [[ -n "${RUNTIME_BASE}" ]]; then
 fi
 
 # Pass AWS credentials for sccache S3 access inside Docker build
+# Pass CodeBuild container credential URI so the build can fetch fresh tokens
 if [[ -n "${USE_SCCACHE:-}" ]]; then
   echo "Enabling sccache with S3 backend"
-  eval $(aws configure export-credentials --format env 2>/dev/null) || true
-  echo "Credential expiry: $(aws configure export-credentials --format json 2>/dev/null | jq -r .Expiration || echo unknown)"
   BUILD_CMD="${BUILD_CMD} \
+  --network=host \
   --build-arg USE_SCCACHE=\"${USE_SCCACHE}\" \
-  --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID:-}\" \
-  --build-arg AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY:-}\" \
-  --build-arg AWS_SESSION_TOKEN=\"${AWS_SESSION_TOKEN:-}\""
+  --build-arg AWS_DEFAULT_REGION=\"${AWS_DEFAULT_REGION:-us-west-2}\" \
+  --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=\"${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-}\""
 fi
 
 # Add SageMaker labels if customer-type is 'sagemaker'
