@@ -121,7 +121,7 @@ jobs:
         id: build-sagemaker
         run: |
           source docker/pytorch/versions.env
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-sagemaker-pr-${{ github.event.pull_request.number }}"
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-2.11.0-gpu-py312-cu130-sagemaker-pr-${{ github.event.pull_request.number }}"
 
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
@@ -247,8 +247,8 @@ jobs:
         run: |
           pytest test/sagemaker_tests/pytorch/training/integration/sagemaker/ -v \
             --region ${{ vars.AWS_REGION }} \
-            --docker-base-name pytorch-training \
-            --tag pytorch-sagemaker-pr-${{ github.event.pull_request.number }} \
+            --docker-base-name ci \
+            --tag pytorch-training-2.11.0-gpu-py312-cu130-sagemaker-pr-${{ github.event.pull_request.number }} \
             --framework-version 2.11.0 \
             --processor gpu \
             --aws-id ${{ vars.CI_AWS_ACCOUNT_ID }} \
