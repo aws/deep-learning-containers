@@ -159,6 +159,9 @@ jobs:
             ${{ needs.load-config.outputs.cuda-version }} \
             ${{ needs.load-config.outputs.vllm-ref }}
 
+      - name: Sync sccache from S3
+        run: bash scripts/common/sync_sccache.sh pull vllm
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -186,6 +189,15 @@ jobs:
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
             ${{ needs.load-config.outputs.vllm-ref }}
+
+      - name: Export and sync sccache to S3
+        if: success()
+        run: |
+          docker buildx build --progress=plain --target sccache-export \
+            --output "type=local,dest=/tmp/sccache-cache/vllm" \
+            --build-context sccache-cache=/tmp/sccache-cache/vllm \
+            -f docker/vllm/Dockerfile.amzn2023 . 2>/dev/null || true
+          bash scripts/common/sync_sccache.sh push vllm
 
 
   sanity-test:

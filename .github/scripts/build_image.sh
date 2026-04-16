@@ -75,11 +75,14 @@ if [[ -n "${RUNTIME_BASE}" ]]; then
   --build-arg RUNTIME_BASE=\"${RUNTIME_BASE}\""
 fi
 
-# Enable sccache for compilation caching (uses local disk via BuildKit cache mount)
+# Enable sccache for compilation caching (uses local disk, synced to/from S3 outside Docker)
 if [[ -n "${USE_SCCACHE:-}" ]]; then
-  echo "Enabling sccache with local disk cache"
+  SCCACHE_LOCAL="/tmp/sccache-cache/${FRAMEWORK}"
+  mkdir -p "${SCCACHE_LOCAL}"
+  echo "Enabling sccache with local cache at ${SCCACHE_LOCAL}"
   BUILD_CMD="${BUILD_CMD} \
-  --build-arg USE_SCCACHE=\"${USE_SCCACHE}\""
+  --build-arg USE_SCCACHE=\"${USE_SCCACHE}\" \
+  --build-context sccache-cache=\"${SCCACHE_LOCAL}\""
 fi
 
 # Add SageMaker labels if customer-type is 'sagemaker'
