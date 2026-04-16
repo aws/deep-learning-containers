@@ -20,6 +20,8 @@ from test_utils.constants import SAGEMAKER_ROLE
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 TRAINING_DATA_DIR = os.path.join(RESOURCE_DIR, "data", "training")
 INSTANCE_TYPE = "ml.g4dn.12xlarge"
+IMAGE_URI = os.environ["TEST_IMAGE_URI"]
+REGION = os.environ.get("TEST_REGION", "us-west-2")
 
 
 def _run_sm_training(
@@ -64,10 +66,10 @@ def _run_sm_training(
     model_trainer.train(input_data_config=input_data, wait=True)
 
 
-def test_mnist_distributed_gpu(image_uri, region):
+def test_mnist_distributed_gpu():
     """F1: 2-node distributed GPU training with nccl backend."""
     _run_sm_training(
-        image_uri=image_uri,
+        image_uri=IMAGE_URI,
         entry_script="mnist.py",
         source_dir=RESOURCE_DIR,
         instance_type=INSTANCE_TYPE,
@@ -77,10 +79,10 @@ def test_mnist_distributed_gpu(image_uri, region):
     )
 
 
-def test_dist_operations_gpu(image_uri, region):
+def test_dist_operations_gpu():
     """F2: torch.distributed primitives (all_reduce, broadcast, etc.) on GPU."""
     _run_sm_training(
-        image_uri=image_uri,
+        image_uri=IMAGE_URI,
         entry_script="distributed_operations.py",
         source_dir=RESOURCE_DIR,
         instance_type=INSTANCE_TYPE,

@@ -242,9 +242,7 @@ jobs:
       - name: Run SageMaker training tests
         env:
           PYTHONPATH: ${{ github.workspace }}/test
+          TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
+          TEST_REGION: ${{ vars.AWS_REGION }}
         run: |
-          cd test
-          pytest pytorch/sagemaker/test_sm_training.py -v \
-            --image-uri ${{ needs.build-image.outputs.sagemaker-image-uri }} \
-            --region ${{ vars.AWS_REGION }} \
-            --override-ini="rootdir=."
+          pytest test/pytorch/sagemaker/test_sm_training.py -v
