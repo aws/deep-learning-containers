@@ -65,11 +65,7 @@ def _run_sm_training(
 
 
 def test_mnist_distributed_gpu(image_uri, region):
-    """F1: 2-node distributed GPU training with nccl backend.
-
-    Validates: SageMaker can pull the image, launch a multi-node training job,
-    and complete MNIST distributed training with nccl.
-    """
+    """F1: 2-node distributed GPU training with nccl backend."""
     _run_sm_training(
         image_uri=image_uri,
         entry_script="mnist.py",
@@ -82,11 +78,7 @@ def test_mnist_distributed_gpu(image_uri, region):
 
 
 def test_dist_operations_gpu(image_uri, region):
-    """F2: torch.distributed primitives (all_reduce, broadcast, etc.) on GPU.
-
-    Validates: all collective communication operations work correctly
-    in a SageMaker multi-node GPU environment.
-    """
+    """F2: torch.distributed primitives (all_reduce, broadcast, etc.) on GPU."""
     _run_sm_training(
         image_uri=image_uri,
         entry_script="distributed_operations.py",
