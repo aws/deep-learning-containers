@@ -8,7 +8,6 @@ on:
       - "docker/pytorch/**"
       - "scripts/pytorch/**"
       - "test/pytorch/**"
-      - "test/sagemaker_tests/pytorch/**"
       - ".github/workflows/pr-pytorch-sagemaker.yml"
       - "!docs/**"
 
@@ -75,7 +74,6 @@ jobs:
               - "scripts/pytorch/**"
             test-only-change:
               - "test/pytorch/**"
-              - "test/sagemaker_tests/pytorch/**"
 
   # ============================================================
   # Build SageMaker image
@@ -239,18 +237,12 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install -r test/sagemaker_tests/pytorch/training/requirements.txt
+          pip install -r test/pytorch/sagemaker/requirements.txt
 
       - name: Run SageMaker training tests
         env:
           PYTHONPATH: ${{ github.workspace }}/test
         run: |
-          pytest test/sagemaker_tests/pytorch/training/integration/sagemaker/ -v \
-            --region ${{ vars.AWS_REGION }} \
-            --docker-base-name ci \
-            --tag pytorch-training-2.11.0-gpu-py312-cu130-sagemaker-pr-${{ github.event.pull_request.number }} \
-            --framework-version 2.11.0 \
-            --processor gpu \
-            --aws-id ${{ vars.CI_AWS_ACCOUNT_ID }} \
-            --instance-type ml.g4dn.12xlarge \
-            --sagemaker-regions ${{ vars.AWS_REGION }}
+          pytest test/pytorch/sagemaker/test_sm_training.py -v \
+            --image-uri ${{ needs.build-image.outputs.sagemaker-image-uri }} \
+            --region ${{ vars.AWS_REGION }}

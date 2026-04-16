@@ -2,10 +2,6 @@
 line-length = 100
 target-version = "py312"
 
-[tool.ruff.lint.per-file-ignores]
-# V1 SageMaker tests copied from master — will be refactored
-"test/sagemaker_tests/**" = ["E402", "F401", "F403", "F405", "F821", "E711", "E731", "E741"]
-
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
