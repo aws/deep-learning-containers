@@ -152,6 +152,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Test S3 access inside Docker build
+        run: |
+          echo "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-unset}"
+          docker buildx build --progress=plain --network=host \
+            --build-arg AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-west-2} \
+            --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-} \
+            -f - . <<'DOCKERFILE'
+          FROM amazonlinux:2023
+          ARG AWS_DEFAULT_REGION
+          ARG AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
+          RUN dnf install -y awscli-2 && \
+              echo "Testing S3 access..." && \
+              aws s3 ls s3://dlc-cicd-wheels/sccache/ --region us-west-2 && \
+              echo "SUCCESS: S3 access works inside Docker build"
+          DOCKERFILE
+
       - name: Fetch cached vLLM wheel
         id: wheel-cache
         run: |
@@ -193,11 +209,17 @@ jobs:
       - name: Export and sync sccache to S3
         if: success()
         run: |
-          docker buildx build --progress=plain --target sccache-export \
-            --output "type=local,dest=/sccache-cache/vllm" \
-            --build-context sccache-cache=/sccache-cache/vllm \
-            -f docker/vllm/Dockerfile.amzn2023 . 2>/dev/null || true
-          bash scripts/common/sync_sccache.sh push vllm
+          EXPORT_DIR=$(mktemp -d)
+          EXPORT_CMD=$(cat /tmp/docker-build-base.sh)
+          eval "${EXPORT_CMD} --target sccache-export --output type=local,dest=${EXPORT_DIR}" 2>/dev/null || true
+          if [ -f "${EXPORT_DIR}/sccache-cache.tar" ]; then
+            mkdir -p docker/vllm/sccache-cache
+            tar -xf "${EXPORT_DIR}/sccache-cache.tar" -C docker/vllm/sccache-cache/
+            rm -rf "${EXPORT_DIR}"
+            bash scripts/common/sync_sccache.sh push vllm
+          else
+            echo "⚠️  No sccache cache to export"
+          fi
 
 
   sanity-test:

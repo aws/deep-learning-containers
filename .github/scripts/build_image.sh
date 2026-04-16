@@ -75,11 +75,9 @@ if [[ -n "${RUNTIME_BASE}" ]]; then
   --build-arg RUNTIME_BASE=\"${RUNTIME_BASE}\""
 fi
 
-# sccache build context (always passed — empty dir when disabled, populated when enabled)
-SCCACHE_LOCAL="/sccache-cache/${FRAMEWORK}"
+# sccache: sync cache from S3 into build context before build
+SCCACHE_LOCAL="docker/vllm/sccache-cache"
 mkdir -p "${SCCACHE_LOCAL}"
-BUILD_CMD="${BUILD_CMD} \
-  --build-context sccache-cache=\"${SCCACHE_LOCAL}\""
 
 # Enable sccache for compilation caching (uses local disk, synced to/from S3 outside Docker)
 if [[ -n "${USE_SCCACHE:-}" ]]; then
@@ -126,6 +124,11 @@ if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
   --label \"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${LABEL_INFERENCE_TOOLKIT}=true\""
   fi
 fi
+
+# Save base build command for reuse by export scripts (wheel-export, sccache-export)
+# Contains all --build-arg, --build-context, --label flags but no --push/--target/--tag
+EXPORT_CMD="${BUILD_CMD} -f ${DOCKERFILE_PATH} ."
+echo "${EXPORT_CMD}" > /tmp/docker-build-base.sh
 
 # Complete the build command
 BUILD_CMD="${BUILD_CMD} \

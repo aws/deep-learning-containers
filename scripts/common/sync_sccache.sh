@@ -2,15 +2,15 @@
 # sync_sccache.sh — Sync sccache local cache to/from S3.
 #
 # Usage:
-#   sync_sccache.sh pull <framework> [bucket]   # S3 → local (before build)
-#   sync_sccache.sh push <framework> [bucket]   # local → S3 (after build)
+#   sync_sccache.sh pull <framework> [bucket]   # S3 → build context (before build)
+#   sync_sccache.sh push <framework> [bucket]   # build context → S3 (after build)
 #
-# Local cache: /tmp/sccache-cache/<framework>/
+# Local cache: docker/<framework>/sccache-cache/
 # S3 layout:   s3://<bucket>/sccache/<framework>/
 set -euo pipefail
 
 ACTION="$1"; FRAMEWORK="$2"; BUCKET="${3:-dlc-cicd-wheels}"
-LOCAL_DIR="/sccache-cache/${FRAMEWORK}"
+LOCAL_DIR="docker/${FRAMEWORK}/sccache-cache"
 S3_PREFIX="s3://${BUCKET}/sccache/${FRAMEWORK}/"
 
 mkdir -p "${LOCAL_DIR}"

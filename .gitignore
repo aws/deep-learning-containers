@@ -23,3 +23,5 @@ docs/reference/support_policy.md
 
 # Pre-built wheels (fetched from S3 at build time, not committed)
 docker/vllm/prebuilt_wheels/*.whl
+docker/vllm/sccache-cache/*
+!docker/vllm/sccache-cache/.gitkeep
