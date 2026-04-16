@@ -96,16 +96,11 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
 # --- sccache support for CUDA compilation cache ---
-# Set USE_SCCACHE=1 to enable. Credentials passed as static build-args.
-# CodeBuild tokens expire after ~1hr; cache warms up over multiple builds.
+# Uses local disk cache. Cache dir is synced to/from S3 outside Docker.
 ARG USE_SCCACHE=0
-ARG SCCACHE_BUCKET=dlc-cicd-wheels
-ARG SCCACHE_REGION=us-west-2
-ARG AWS_ACCESS_KEY_ID
-ARG AWS_SECRET_ACCESS_KEY
-ARG AWS_SESSION_TOKEN
 
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/sccache   --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=cache,target=/root/.cache/sccache \
     if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && mkdir -p dist \
@@ -117,9 +112,7 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && tar -xzf /tmp/sccache.tar.gz -C /tmp \
       && mv /tmp/sccache-v0.8.1-x86_64-unknown-linux-musl/sccache /usr/bin/sccache \
       && rm -rf /tmp/sccache* \
-      && export SCCACHE_BUCKET="${SCCACHE_BUCKET}" \
-      && export SCCACHE_REGION="${SCCACHE_REGION}" \
-      && export SCCACHE_S3_KEY_PREFIX="sccache/vllm" \
+      && export SCCACHE_DIR=/root/.cache/sccache \
       && export SCCACHE_IDLE_TIMEOUT=0 \
       && export SCCACHE_LOG=warn \
       && export CMAKE_BUILD_TYPE=Release \

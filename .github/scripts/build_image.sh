@@ -75,23 +75,11 @@ if [[ -n "${RUNTIME_BASE}" ]]; then
   --build-arg RUNTIME_BASE=\"${RUNTIME_BASE}\""
 fi
 
-# Pass AWS credentials for sccache S3 access inside Docker build
-# CodeBuild tokens expire after ~1hr; sccache gradually warms up over multiple builds
+# Enable sccache for compilation caching (uses local disk via BuildKit cache mount)
 if [[ -n "${USE_SCCACHE:-}" ]]; then
-  echo "Enabling sccache with S3 backend"
-  CREDS_ENV=$(aws configure export-credentials --format env 2>/dev/null || echo "")
-  if [[ -n "${CREDS_ENV}" ]]; then
-    eval "${CREDS_ENV}"
-    EXPIRY=$(aws configure export-credentials --format json 2>/dev/null | jq -r '.Expiration // "unknown"' || echo "unknown")
-    echo "Credential expiry: ${EXPIRY} (current time: $(date -u +%Y-%m-%dT%H:%M:%SZ))"
-  else
-    echo "Warning: could not export credentials, sccache S3 writes may fail"
-  fi
+  echo "Enabling sccache with local disk cache"
   BUILD_CMD="${BUILD_CMD} \
-  --build-arg USE_SCCACHE=\"${USE_SCCACHE}\" \
-  --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID:-}\" \
-  --build-arg AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY:-}\" \
-  --build-arg AWS_SESSION_TOKEN=\"${AWS_SESSION_TOKEN:-}\""
+  --build-arg USE_SCCACHE=\"${USE_SCCACHE}\""
 fi
 
 # Add SageMaker labels if customer-type is 'sagemaker'
