@@ -3,7 +3,9 @@
 #
 # Usage: upload_cached_wheels.sh <cuda_version> <vllm_ref> [bucket]
 #
-# Requires /tmp/docker-build-base.sh from build_image.sh (contains all build args).
+# Uses 'docker buildx build --target wheel-export' to extract wheel.
+# Docker layer cache from the main build means no recompilation.
+#
 # S3 layout: s3://<bucket>/wheels/vllm/<cuda>/<source_hash>/vllm-*.whl
 set -euo pipefail
 
@@ -12,15 +14,11 @@ CUDA="$1"; VLLM_REF="$2"; BUCKET="${3:-dlc-cicd-wheels}"
 
 SOURCE_HASH=$("${SCRIPT_DIR}/vllm_source_hash.sh" "${VLLM_REF}")
 
-if [ ! -f /tmp/docker-build-base.sh ]; then
-  echo "⚠️  /tmp/docker-build-base.sh not found — skipping wheel upload"
-  exit 0
-fi
-
 EXPORT_DIR=$(mktemp -d)
 echo "📦 Extracting wheel from wheel-export stage..."
-EXPORT_CMD=$(cat /tmp/docker-build-base.sh)
-eval "${EXPORT_CMD} --target wheel-export --output type=local,dest=${EXPORT_DIR}" 2>/dev/null \
+docker buildx build --progress=plain --target wheel-export \
+  --output "type=local,dest=${EXPORT_DIR}" \
+  -f docker/vllm/Dockerfile.amzn2023 . 2>/dev/null \
   || { echo "⚠️  Failed to extract wheel-export stage"; rm -rf "${EXPORT_DIR}"; exit 0; }
 
 for WHL in "${EXPORT_DIR}"/wheels/*.whl; do

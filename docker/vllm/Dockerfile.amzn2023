@@ -96,13 +96,10 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
 # --- sccache support for CUDA compilation cache ---
-# Local cache synced to/from S3 outside Docker (see scripts/common/sync_sccache.sh).
-# Place cache files in docker/vllm/sccache-cache/ before build to seed the cache.
+# Uses BuildKit cache mount for persistence across builds on the same runner.
 ARG USE_SCCACHE=0
 
-COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
-
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/sccache \
     if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && mkdir -p dist \
@@ -123,8 +120,7 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && export CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
       && sccache --show-stats \
       && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
-      && sccache --show-stats \
-      && tar -cf /tmp/sccache-cache.tar -C /root/.cache/sccache . ; \
+      && sccache --show-stats; \
     else \
       echo "🔧 Building vLLM from source (no sccache)..." \
       && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
@@ -158,14 +154,6 @@ RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace
 # =============================================================================
 FROM scratch AS wheel-export
 COPY --from=build /workspace/vllm/dist/ /wheels/
-
-# =============================================================================
-# STAGE: sccache-export — extract sccache cache for S3 upload
-# Usage: docker buildx build --target sccache-export --output type=local,dest=. ...
-# Then: tar -xf sccache-cache.tar -C /sccache-cache/vllm/
-# =============================================================================
-FROM scratch AS sccache-export
-COPY --from=build /tmp/sccache-cache.tar /
 
 # =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
