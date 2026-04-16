@@ -25,11 +25,6 @@ on:
         required: false
         type: boolean
         default: false
-      force-fail:
-        description: "Force the check-releases job to fail (for testing notifications)"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   actions: write
@@ -38,10 +33,6 @@ jobs:
   check-releases:
     runs-on: ubuntu-latest
     steps:
-      - name: Force failure (testing only)
-        if: ${{ inputs.force-fail }}
-        run: exit 1
-
       - name: Decode the GitHub App Private Key
         id: decode
         run: |
