@@ -79,9 +79,14 @@ fi
 # CodeBuild tokens expire after ~1hr; sccache gradually warms up over multiple builds
 if [[ -n "${USE_SCCACHE:-}" ]]; then
   echo "Enabling sccache with S3 backend"
-  eval $(aws configure export-credentials --format env 2>/dev/null) || true
-  EXPIRY=$(aws configure export-credentials --format json 2>/dev/null | jq -r '.Expiration // "unknown"')
-  echo "Credential expiry: ${EXPIRY} (current time: $(date -u +%Y-%m-%dT%H:%M:%SZ))"
+  CREDS_ENV=$(aws configure export-credentials --format env 2>/dev/null || echo "")
+  if [[ -n "${CREDS_ENV}" ]]; then
+    eval "${CREDS_ENV}"
+    EXPIRY=$(aws configure export-credentials --format json 2>/dev/null | jq -r '.Expiration // "unknown"' || echo "unknown")
+    echo "Credential expiry: ${EXPIRY} (current time: $(date -u +%Y-%m-%dT%H:%M:%SZ))"
+  else
+    echo "Warning: could not export credentials, sccache S3 writes may fail"
+  fi
   BUILD_CMD="${BUILD_CMD} \
   --build-arg USE_SCCACHE=\"${USE_SCCACHE}\" \
   --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID:-}\" \
