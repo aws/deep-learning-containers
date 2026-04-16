@@ -296,8 +296,45 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/
 # Keep openjdk-21-jdk and openjdk-21-jre-headless installed to avoid being removed by apt-get autoremove
 RUN apt-mark manual openjdk-21-jdk openjdk-21-jre-headless
 
-# CVE-2024-35366 / CVE-2024-35367 / CVE-2024-35368
+######################################################
+# Fix ffmpeg vulnerabilities by building from source #
+# CVE-2024-35366 / CVE-2024-35367 / CVE-2024-35368   #
+######################################################
 RUN apt-get purge -y ffmpeg libav* || true && apt-get autoremove -y
+
+ARG FFMPEG_TAG=n8.1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nasm \
+    yasm \
+    libmp3lame-dev \
+    libopus-dev \
+    libvorbis-dev \
+    libvpx-dev \
+    libx264-dev \
+    libx265-dev \
+ && git clone https://git.ffmpeg.org/ffmpeg.git /tmp/ffmpeg \
+ && cd /tmp/ffmpeg \
+ && git checkout "${FFMPEG_TAG}" \
+ && ./configure \
+      --prefix=/usr/local \
+      --disable-debug \
+      --disable-doc \
+      --enable-gpl \
+      --enable-libmp3lame \
+      --enable-libopus \
+      --enable-libvorbis \
+      --enable-libvpx \
+      --enable-libx264 \
+      --enable-libx265 \
+ && make -j"$(nproc)" \
+ && make install \
+ && which ffmpeg \
+ && ffmpeg -version \
+ && ffprobe -version \
+ && rm -rf /tmp/ffmpeg \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # Fix CVE-2024-53920 and CVE-2025-1244: emacs is not essential for core functionality and has known
 # vulnerabilities, so we remove it
