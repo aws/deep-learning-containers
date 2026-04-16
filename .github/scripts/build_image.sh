@@ -80,6 +80,8 @@ fi
 if [[ -n "${USE_SCCACHE:-}" ]]; then
   echo "Enabling sccache with S3 backend"
   eval $(aws configure export-credentials --format env 2>/dev/null) || true
+  EXPIRY=$(aws configure export-credentials --format json 2>/dev/null | jq -r '.Expiration // "unknown"')
+  echo "Credential expiry: ${EXPIRY} (current time: $(date -u +%Y-%m-%dT%H:%M:%SZ))"
   BUILD_CMD="${BUILD_CMD} \
   --build-arg USE_SCCACHE=\"${USE_SCCACHE}\" \
   --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID:-}\" \
