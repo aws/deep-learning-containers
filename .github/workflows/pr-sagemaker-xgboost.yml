@@ -6,7 +6,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "docker/xgboost/**"
-      - ".github/config/sagemaker-xgboost.yml"
+      - ".github/config/image/sagemaker-xgboost.yml"
       - ".github/workflows/pr-sagemaker-xgboost.yml"
       - "!docs/**"
 
@@ -16,7 +16,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/sagemaker-xgboost.yml"
+  CONFIG_FILE: ".github/config/image/sagemaker-xgboost.yml"
   XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
 
 jobs:
@@ -116,7 +116,7 @@ jobs:
           filters: |
             build-change:
               - "docker/xgboost/**"
-              - ".github/config/sagemaker-xgboost.yml"
+              - ".github/config/image/sagemaker-xgboost.yml"
 
   build-image:
     needs: [check-changes, load-config]

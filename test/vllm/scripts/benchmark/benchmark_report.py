@@ -7,7 +7,7 @@ import sys
 
 import yaml
 
-CONFIG = ".github/config/vllm-model-tests.yml"
+CONFIG = ".github/config/model-tests/vllm-model-tests.yml"
 
 
 def _parse_artifact_name(filename, prefix):
