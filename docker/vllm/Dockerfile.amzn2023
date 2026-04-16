@@ -97,10 +97,13 @@ COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
 # --- sccache support for CUDA compilation cache ---
 # Set USE_SCCACHE=1 and provide S3 bucket config to enable.
-# Credentials come from IMDS via --network=host in docker build.
+# Credentials resolved on host via: eval $(aws configure export-credentials --format env)
 ARG USE_SCCACHE=0
 ARG SCCACHE_BUCKET=dlc-cicd-wheels
 ARG SCCACHE_REGION=us-west-2
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG AWS_SESSION_TOKEN
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv \
     if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
