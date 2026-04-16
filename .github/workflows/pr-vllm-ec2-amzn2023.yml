@@ -183,8 +183,7 @@ jobs:
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            v${{ needs.load-config.outputs.framework-version }} \
-            ${{ steps.build.outputs.image-uri }}
+            v${{ needs.load-config.outputs.framework-version }}
 
 
   sanity-test:
