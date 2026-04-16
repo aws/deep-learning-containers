@@ -5,7 +5,9 @@ When necessary, use docstrings to explain the functions' mechanisms.
 """
 
 import logging
+import os
 import random
+import re
 import string
 import time
 from collections.abc import Callable
@@ -46,3 +48,52 @@ def wait_for_status(
 
     LOGGER.error(f"Wait for status: {expected_status} timed out. Actual status: {actual_status}")
     return False
+
+
+def get_repository_and_tag_from_image_uri(image_uri):
+    """
+    Return the name of the repository holding the image
+
+    :param image_uri: URI of the image
+    :return: <str> repository name, <str> tag
+    """
+    repository_uri, tag = image_uri.split(":")
+    _, repository_name = repository_uri.split("/")
+    return repository_name, tag
+
+
+def get_account_id_from_image_uri(image_uri):
+    """
+    Find the account ID where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Account ID
+    """
+    return image_uri.split(".")[0]
+
+
+def get_region_from_image_uri(image_uri):
+    """
+    Find the region where the image is located
+
+    :param image_uri: <str> ECR image URI
+    :return: <str> AWS Region Name
+    """
+    region_pattern = r"(us(-gov)?|af|ap|ca|cn|eu|il|me|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_search = re.search(region_pattern, image_uri)
+    assert region_search, f"{image_uri} must have region that matches {region_pattern}"
+    return region_search.group()
+
+
+def get_unique_name_from_tag(image_uri):
+    """
+    Return the unique from the image tag.
+    :param image_uri: ECR image URI
+    :return: unique name
+    """
+    return re.sub("[^A-Za-z0-9]+", "", image_uri)
+
+
+def get_repository_local_path():
+    git_repo_path = os.getcwd().split("/test/")[0]
+    return git_repo_path

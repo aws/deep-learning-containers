@@ -1,6 +1,10 @@
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = [
+    # V1 SageMaker tests copied from master branch — legacy code style
+    "test/sagemaker_tests/",
+]
 
 [tool.ruff.format]
 quote-style = "double"

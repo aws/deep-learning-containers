@@ -198,7 +198,8 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSC
 
 # Entrypoint
 COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+COPY scripts/pytorch/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 
 # PATH and LD_LIBRARY_PATH
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
@@ -208,6 +209,43 @@ EXPOSE 22
 WORKDIR /workspace
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
+
+
+# ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
+FROM runtime AS sagemaker
+
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+
+# SageMaker SDK and training packages
+RUN pip install --no-cache-dir -U \
+  smclarify \
+  "sagemaker>=3.0.0" \
+  sagemaker-pytorch-training \
+  sagemaker-training
+
+# Data science packages commonly used in SageMaker training jobs
+RUN pip install --no-cache-dir -U \
+  bokeh \
+  imageio \
+  numba \
+  pandas \
+  plotly \
+  shap \
+  scikit-learn \
+  seaborn \
+  cloudpickle \
+  "s3fs>=2026.2.0"
+
+# SageMaker hostname workaround — NCCL/MPI need correct hostname for multi-node
+COPY scripts/pytorch/changehostname.c /
+COPY scripts/pytorch/start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+# Security patch
+RUN dnf upgrade -y --security --releasever latest && dnf clean all
+
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]
 
 
 # ── Stage: runtime-eks ───────────────────────────────────────────────────────
