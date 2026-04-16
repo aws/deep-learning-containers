@@ -40,7 +40,7 @@ def memory_status(msg="", reset_max=True, sync=True):
     if rdp_rank != 0:
         return
 
-    if py3nvml != None:
+    if py3nvml is not None:
         py3nvml.nvmlInit()
         handle = py3nvml.nvmlDeviceGetHandleByIndex(local_rank)
         info = py3nvml.nvmlDeviceGetMemoryInfo(handle)
@@ -70,7 +70,7 @@ def memory_status(msg="", reset_max=True, sync=True):
     if reset_max:
         torch.cuda.reset_max_memory_cached()
         torch.cuda.reset_max_memory_allocated()
-    if py3nvml != None:
+    if py3nvml is not None:
         py3nvml.nvmlShutdown()
 
 

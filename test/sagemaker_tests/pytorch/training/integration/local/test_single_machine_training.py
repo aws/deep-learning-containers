@@ -70,7 +70,7 @@ def test_fastai_mnist(docker_image, instance_type, py_version, sagemaker_local_s
         output_path="file://{}".format(tmpdir),
     )
 
-    input_dir = os.path.join(fastai_path, "mnist_tiny")
+    os.path.join(fastai_path, "mnist_tiny")
     _train_and_assert_success(estimator, str(tmpdir))
 
 

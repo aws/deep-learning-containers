@@ -97,3 +97,11 @@ def get_unique_name_from_tag(image_uri):
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
+
+
+class CudaVersionTagNotFoundException(Exception):
+    """
+    When none of the tags of a GPU image have a Cuda version in them
+    """
+
+    pass
