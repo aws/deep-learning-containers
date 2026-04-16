@@ -85,7 +85,6 @@ cat <<EOF > "$TMP_CONFIG"
   enabled = true
   gc = true
   root = "$BUILD_ROOT"
-  networkMode = "host"
 
 [gc]
   enabled = true
