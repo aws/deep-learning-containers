@@ -18,7 +18,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: '.github/config/sglang-sagemaker.yml'
+  CONFIG_FILE: '.github/config/image/sglang-sagemaker.yml'
 
 jobs:
   gatekeeper:
@@ -114,7 +114,7 @@ jobs:
               - "scripts/sglang/**"
               - "scripts/common/**"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - ".github/config/sglang-sagemaker.yml"
+              - ".github/config/image/sglang-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

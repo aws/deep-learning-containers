@@ -9,7 +9,7 @@ on:
       - "scripts/common/**"
       - "test/cuda/**"
       - "test/security/data/ecr_scan_allowlist/base/**"
-      - ".github/config/base-v2.yml"
+      - ".github/config/image/base-v2.yml"
       - ".github/workflows/pr-base-v2.yml"
       - "!docs/**"
 
@@ -19,7 +19,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/base-v2.yml"
+  CONFIG_FILE: ".github/config/image/base-v2.yml"
   DOCKERFILE_PATH: "docker/base/v2/Dockerfile"
 
 jobs:
@@ -113,7 +113,7 @@ jobs:
             build-change:
               - "docker/base/**"
               - "scripts/common/**"
-              - ".github/config/base-v2.yml"
+              - ".github/config/image/base-v2.yml"
               - "test/security/data/ecr_scan_allowlist/base/**"
             sanity-test-change:
               - "test/sanity/**"

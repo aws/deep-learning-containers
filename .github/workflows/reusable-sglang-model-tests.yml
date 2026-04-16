@@ -35,7 +35,7 @@ jobs:
         run: |
           python3 -c "
           import yaml, json
-          with open('.github/config/sglang-model-tests.yml') as f:
+          with open('.github/config/model-tests/sglang-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
           prefix = cfg.get('s3_prefix', '')
           def resolve(section):

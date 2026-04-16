@@ -49,7 +49,7 @@ jobs:
       - id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: .github/config/ray-ec2-gpu.yml
+          config-file: .github/config/image/ray-ec2-gpu.yml
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
@@ -91,7 +91,7 @@ jobs:
       - id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: .github/config/ray-ec2-cpu.yml
+          config-file: .github/config/image/ray-ec2-cpu.yml
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
@@ -133,7 +133,7 @@ jobs:
       - id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: .github/config/ray-sagemaker-gpu.yml
+          config-file: .github/config/image/ray-sagemaker-gpu.yml
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
@@ -175,7 +175,7 @@ jobs:
       - id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: .github/config/ray-sagemaker-cpu.yml
+          config-file: .github/config/image/ray-sagemaker-cpu.yml
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json

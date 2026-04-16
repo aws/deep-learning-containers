@@ -40,7 +40,7 @@ jobs:
       - id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: .github/config/vllm-omni-ec2-amzn2023.yml
+          config-file: .github/config/image/vllm-omni-ec2-amzn2023.yml
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
@@ -80,7 +80,7 @@ jobs:
       - id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: .github/config/vllm-omni-sagemaker-amzn2023.yml
+          config-file: .github/config/image/vllm-omni-sagemaker-amzn2023.yml
       - id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json

@@ -7,9 +7,9 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
 
 ARG CUDA_VERSION
 ARG PYTHON_VERSION=3.12
-ARG SGL_VERSION=0.5.9
-ARG SGL_KERNEL_VERSION=0.3.21
-ARG FLASHINFER_VERSION=0.6.3
+ARG SGL_VERSION=0.5.10
+ARG SGLANG_KERNEL_VERSION=0.4.1
+ARG FLASHINFER_VERSION=0.6.7.post2
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
 ARG MOONCAKE_VERSION=0.3.9
 ARG GDRCOPY_VERSION=2.5.1
@@ -77,8 +77,8 @@ WORKDIR /sgl-workspace
 # Clone sglang
 RUN git clone --depth=1 --branch v${SGL_VERSION} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang
 
-# Install sgl-kernel from pip (pre-built CUDA kernels)
-RUN uv pip install --system --no-cache sgl-kernel==${SGL_KERNEL_VERSION}
+# Install sglang-kernel from pip (pre-built CUDA kernels)
+RUN uv pip install --system --no-cache sglang-kernel==${SGLANG_KERNEL_VERSION}
 
 # Install sglang from source + flashinfer
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
@@ -123,7 +123,6 @@ RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
     && export PATH="/root/.cargo/bin:${PATH}" \
     && uv pip install --system --no-cache maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
-    && sed -i '/\.map_err(|e| format!("Failed to initialize WASM module manager/d' src/app_context.rs \
     && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close(); print('Patch 2 applied')" \
     && cd bindings/python \
     && ulimit -n 65536 && maturin build --release --features vendored-openssl --out dist \
@@ -184,6 +183,7 @@ RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
     cuda-nvcc-${CUDA_DASH} \
     cuda-cuobjdump-${CUDA_DASH} \
     cuda-cudart-devel-${CUDA_DASH} \
+    libcurand-devel-${CUDA_DASH} \
     gcc gcc-c++ make which hostname findutils \
   && dnf clean all && rm -rf /var/cache/dnf
 
