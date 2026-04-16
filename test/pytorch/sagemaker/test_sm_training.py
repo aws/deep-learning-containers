@@ -15,13 +15,11 @@ from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
 from sagemaker.train.distributed import Torchrun
 from test_utils import random_suffix_name
-from test_utils.constants import SAGEMAKER_ROLE
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 TRAINING_DATA_DIR = os.path.join(RESOURCE_DIR, "data", "training")
 INSTANCE_TYPE = "ml.g4dn.12xlarge"
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
-REGION = os.environ.get("TEST_REGION", "us-west-2")
 
 
 def _run_sm_training(
@@ -48,7 +46,7 @@ def _run_sm_training(
         training_image=image_uri,
         source_code=source_code,
         compute=compute,
-        role=SAGEMAKER_ROLE,
+        role=os.environ.get("SM_ROLE_ARN"),  # Full ARN passed from workflow
         base_job_name=random_suffix_name(job_name_prefix, 32),
         hyperparameters=hyperparameters or {},
         distributed=Torchrun() if instance_count > 1 else None,
