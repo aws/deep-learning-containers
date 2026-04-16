@@ -96,7 +96,8 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
 # --- sccache support for CUDA compilation cache ---
-# Uses local disk cache. Cache dir is synced to/from S3 outside Docker.
+# Uses local disk cache via BuildKit cache mount (persists across builds on same runner).
+# For cross-runner persistence, use prebuilt wheel cache instead.
 ARG USE_SCCACHE=0
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/sccache   --mount=type=cache,target=/root/.cache/uv \
