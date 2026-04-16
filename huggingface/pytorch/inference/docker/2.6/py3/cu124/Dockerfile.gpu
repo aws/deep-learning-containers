@@ -91,7 +91,7 @@ RUN apt-get update \
     unzip \
     vim \
     wget \
-    openjdk-17-jdk \
+    openjdk-21-jdk \
     libjpeg-dev \
     libpng-dev \
     cuda-cudart-dev-12-4 \
@@ -292,6 +292,9 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
+
+# Keep openjdk-21-jdk and openjdk-21-jre-headless installed to avoid being removed by apt-get autoremove
+RUN apt-mark manual openjdk-21-jdk openjdk-21-jre-headless
 
 # CVE-2024-35366 / CVE-2024-35367 / CVE-2024-35368
 RUN apt-get purge -y ffmpeg libav* || true && apt-get autoremove -y
