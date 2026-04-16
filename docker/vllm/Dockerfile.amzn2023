@@ -102,7 +102,7 @@ ARG USE_SCCACHE=0
 
 COPY --from=sccache-cache / /root/.cache/sccache/
 
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv    --mount=type=cache,target=/root/.cache/uv \
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
     if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && mkdir -p dist \
