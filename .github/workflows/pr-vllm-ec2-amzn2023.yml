@@ -194,8 +194,8 @@ jobs:
         if: success()
         run: |
           docker buildx build --progress=plain --target sccache-export \
-            --output "type=local,dest=/tmp/sccache-cache/vllm" \
-            --build-context sccache-cache=/tmp/sccache-cache/vllm \
+            --output "type=local,dest=/sccache-cache/vllm" \
+            --build-context sccache-cache=/sccache-cache/vllm \
             -f docker/vllm/Dockerfile.amzn2023 . 2>/dev/null || true
           bash scripts/common/sync_sccache.sh push vllm
 

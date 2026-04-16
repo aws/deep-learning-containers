@@ -10,7 +10,7 @@
 set -euo pipefail
 
 ACTION="$1"; FRAMEWORK="$2"; BUCKET="${3:-dlc-cicd-wheels}"
-LOCAL_DIR="/tmp/sccache-cache/${FRAMEWORK}"
+LOCAL_DIR="/sccache-cache/${FRAMEWORK}"
 S3_PREFIX="s3://${BUCKET}/sccache/${FRAMEWORK}/"
 
 mkdir -p "${LOCAL_DIR}"

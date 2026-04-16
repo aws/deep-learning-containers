@@ -76,7 +76,7 @@ if [[ -n "${RUNTIME_BASE}" ]]; then
 fi
 
 # sccache build context (always passed — empty dir when disabled, populated when enabled)
-SCCACHE_LOCAL="/tmp/sccache-cache/${FRAMEWORK}"
+SCCACHE_LOCAL="/sccache-cache/${FRAMEWORK}"
 mkdir -p "${SCCACHE_LOCAL}"
 BUILD_CMD="${BUILD_CMD} \
   --build-context sccache-cache=\"${SCCACHE_LOCAL}\""
