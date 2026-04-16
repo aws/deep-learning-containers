@@ -60,7 +60,6 @@ def pytest_addoption(parser):
     parser.addoption("--aws-id")
     parser.addoption("--instance-type")
     parser.addoption("--docker-base-name", default="pytorch")
-    parser.addoption("--region", default="us-west-2")
     parser.addoption("--framework-version", default="")
     parser.addoption(
         "--py-version",
