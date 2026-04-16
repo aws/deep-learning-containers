@@ -99,7 +99,7 @@ jobs:
             -X POST "$SLACK_WEBHOOK_URL" \
             -H 'Content-Type: application/json' \
             -d '{
-              "workflow_name": "check-upstream-releases-failure",
+              "workflow_name": "autocurrency_failure",
               "run_url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             }'
 
