@@ -75,14 +75,17 @@ if [[ -n "${RUNTIME_BASE}" ]]; then
   --build-arg RUNTIME_BASE=\"${RUNTIME_BASE}\""
 fi
 
+# sccache build context (always passed — empty dir when disabled, populated when enabled)
+SCCACHE_LOCAL="/tmp/sccache-cache/${FRAMEWORK}"
+mkdir -p "${SCCACHE_LOCAL}"
+BUILD_CMD="${BUILD_CMD} \
+  --build-context sccache-cache=\"${SCCACHE_LOCAL}\""
+
 # Enable sccache for compilation caching (uses local disk, synced to/from S3 outside Docker)
 if [[ -n "${USE_SCCACHE:-}" ]]; then
-  SCCACHE_LOCAL="/tmp/sccache-cache/${FRAMEWORK}"
-  mkdir -p "${SCCACHE_LOCAL}"
   echo "Enabling sccache with local cache at ${SCCACHE_LOCAL}"
   BUILD_CMD="${BUILD_CMD} \
-  --build-arg USE_SCCACHE=\"${USE_SCCACHE}\" \
-  --build-context sccache-cache=\"${SCCACHE_LOCAL}\""
+  --build-arg USE_SCCACHE=\"${USE_SCCACHE}\""
 fi
 
 # Add SageMaker labels if customer-type is 'sagemaker'
