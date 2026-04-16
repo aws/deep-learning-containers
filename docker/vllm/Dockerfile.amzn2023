@@ -154,6 +154,13 @@ RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace
   && find /tmp/ep_kernels_workspace/nvshmem -name '*.a' -delete
 
 # =============================================================================
+# STAGE: wheel-export — scratch image with built wheels for S3 cache upload
+# Usage: docker buildx build --target wheel-export --output type=local,dest=./wheels ...
+# =============================================================================
+FROM scratch AS wheel-export
+COPY --from=build /workspace/vllm/dist/ /wheels/
+
+# =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS deps

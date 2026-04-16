@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# upload_cached_wheels.sh — Extract built vLLM wheel from the build stage and upload to S3.
+# upload_cached_wheels.sh — Extract built vLLM wheel via wheel-export stage and upload to S3.
 #
 # Usage: upload_cached_wheels.sh <cuda_version> <vllm_ref> [bucket]
 #
 # Must be run from the repo root after a successful docker build.
-# Uses --target build to extract the wheel from the intermediate build stage.
+# Uses Docker layer cache — no recompilation.
 #
 # S3 layout: s3://<bucket>/wheels/vllm/<cuda>/<source_hash>/vllm-*.whl
 set -euo pipefail
@@ -14,15 +14,14 @@ CUDA="$1"; VLLM_REF="$2"; BUCKET="${3:-dlc-cicd-wheels}"
 
 SOURCE_HASH=$("${SCRIPT_DIR}/vllm_source_hash.sh" "${VLLM_REF}")
 
-# Extract wheel from the cached build stage (no recompilation — uses Docker layer cache)
 EXPORT_DIR=$(mktemp -d)
-echo "📦 Extracting wheel from build stage..."
-docker buildx build --progress=plain --target build \
+echo "📦 Extracting wheel from wheel-export stage..."
+docker buildx build --progress=plain --target wheel-export \
   --output "type=local,dest=${EXPORT_DIR}" \
   -f docker/vllm/Dockerfile.amzn2023 . 2>/dev/null \
-  || { echo "⚠️  Failed to extract build stage"; rm -rf "${EXPORT_DIR}"; exit 0; }
+  || { echo "⚠️  Failed to extract wheel-export stage"; rm -rf "${EXPORT_DIR}"; exit 0; }
 
-for WHL in "${EXPORT_DIR}"/workspace/vllm/dist/*.whl; do
+for WHL in "${EXPORT_DIR}"/wheels/*.whl; do
   [ -f "${WHL}" ] || continue
   FNAME=$(basename "${WHL}")
   S3_KEY="wheels/vllm/${CUDA}/${SOURCE_HASH}/${FNAME}"
