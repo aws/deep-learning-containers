@@ -38,6 +38,10 @@ jobs:
   check-releases:
     runs-on: ubuntu-latest
     steps:
+      - name: Force failure (testing only)
+        if: ${{ inputs.force-fail }}
+        run: exit 1
+
       - name: Decode the GitHub App Private Key
         id: decode
         run: |
@@ -71,10 +75,6 @@ jobs:
           DRY_RUN: ${{ inputs.dry-run || false }}
           FRAMEWORK_FILTER: ${{ inputs.framework || '' }}
         run: bash scripts/autocurrency/check-upstream-releases.sh
-
-      - name: Force failure (testing only)
-        if: ${{ inputs.force-fail }}
-        run: exit 1
 
   notify-on-failure:
     runs-on: ubuntu-latest
