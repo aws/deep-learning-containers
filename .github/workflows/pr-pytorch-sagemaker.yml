@@ -242,6 +242,8 @@ jobs:
           pip install -r test/sagemaker_tests/pytorch/training/requirements.txt
 
       - name: Run SageMaker training tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/test
         run: |
           pytest test/sagemaker_tests/pytorch/training/integration/sagemaker/ -v \
             --region ${{ vars.AWS_REGION }} \
