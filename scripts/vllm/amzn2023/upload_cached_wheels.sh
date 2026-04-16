@@ -12,8 +12,11 @@ CUDA="$1"; VLLM_REF="$2"; IMAGE="$3"; BUCKET="${4:-dlc-cicd-wheels}"
 SOURCE_HASH=$("${SCRIPT_DIR}/vllm_source_hash.sh" "${VLLM_REF}")
 
 EXPORT_DIR=$(mktemp -d)
-CID=$(docker create "${IMAGE}" /bin/true)
-docker cp "${CID}:/workspace/vllm/dist/" "${EXPORT_DIR}/" 2>/dev/null || true
+
+# Image may only exist in registry after --push build
+docker pull "${IMAGE}" 2>/dev/null || true
+CID=$(docker create "${IMAGE}" /bin/true 2>/dev/null) || { echo "⚠️  Cannot create container from ${IMAGE}"; exit 0; }
+docker cp "${CID}:/workspace/vllm/dist/." "${EXPORT_DIR}/" 2>/dev/null || true
 docker rm "${CID}" &>/dev/null || true
 
 for WHL in "${EXPORT_DIR}"/*.whl; do
