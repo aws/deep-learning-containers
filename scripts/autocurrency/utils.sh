@@ -97,7 +97,7 @@ is_newer_version() {
 #   Reads common.framework_version from a config YAML using yq.
 #   Echoes the version string.
 #
-#   Usage: version=$(get_current_version ".github/config/vllm-ec2.yml")
+#   Usage: version=$(get_current_version ".github/config/image/vllm-ec2.yml")
 ###############################################################################
 get_current_version() {
   local config_file="${1:?Usage: get_current_version CONFIG_FILE}"

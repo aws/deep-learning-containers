@@ -24,7 +24,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: ".github/config/vllm-rayserve.yml"
+  CONFIG_FILE: ".github/config/image/vllm-rayserve.yml"
 
 jobs:
   load-config:

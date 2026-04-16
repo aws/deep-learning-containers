@@ -14,7 +14,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/ray-sagemaker-cpu.yml"
+  CONFIG_FILE: ".github/config/image/ray-sagemaker-cpu.yml"
 
 jobs:
   gatekeeper:

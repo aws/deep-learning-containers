@@ -10,8 +10,8 @@ on:
       - "scripts/sglang/sagemaker_entrypoint.sh"
       - "scripts/common/**"
       - "scripts/telemetry/bash_telemetry.sh.template"
-      - ".github/config/sglang-ec2-amzn2023.yml"
-      - ".github/config/sglang-model-tests.yml"
+      - ".github/config/image/sglang-ec2-amzn2023.yml"
+      - ".github/config/model-tests/sglang-model-tests.yml"
       - ".github/workflows/pr-sglang-ec2-amzn2023.yml"
       - ".github/workflows/reusable-sglang-model-tests.yml"
       - "test/sanity/**"
@@ -24,7 +24,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/sglang-ec2-amzn2023.yml"
+  CONFIG_FILE: ".github/config/image/sglang-ec2-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -120,8 +120,8 @@ jobs:
               - "scripts/sglang/sagemaker_entrypoint.sh"
               - "scripts/common/**"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - ".github/config/sglang-ec2-amzn2023.yml"
-              - ".github/config/sglang-model-tests.yml"
+              - ".github/config/image/sglang-ec2-amzn2023.yml"
+              - ".github/config/model-tests/sglang-model-tests.yml"
               - "test/sglang/scripts/**"
             sanity-test-change:
               - "test/sanity/**"

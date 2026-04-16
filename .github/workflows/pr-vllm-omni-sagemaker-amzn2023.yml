@@ -5,8 +5,8 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/vllm-omni-model-tests.yml"
-      - ".github/config/vllm-omni-sagemaker-amzn2023.yml"
+      - ".github/config/model-tests/vllm-omni-model-tests.yml"
+      - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
       - ".github/workflows/pr-vllm-omni-sagemaker-amzn2023.yml"
       - ".github/workflows/reusable-vllm-omni-model-tests.yml"
       - "docker/vllm/Dockerfile.amzn2023"
@@ -23,7 +23,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/vllm-omni-sagemaker-amzn2023.yml"
+  CONFIG_FILE: ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -114,8 +114,8 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/vllm-omni-model-tests.yml"
-              - ".github/config/vllm-omni-sagemaker-amzn2023.yml"
+              - ".github/config/model-tests/vllm-omni-model-tests.yml"
+              - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
               - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/common/install_efa_amzn2023.sh"
               - "scripts/common/setup_oss_compliance.sh"

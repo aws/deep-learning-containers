@@ -27,7 +27,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: ".github/config/sglang-ec2.yml"
+  CONFIG_FILE: ".github/config/image/sglang-ec2.yml"
 
 jobs:
   # Gate: skip PR events unless it's a merged auto-update PR for sglang
