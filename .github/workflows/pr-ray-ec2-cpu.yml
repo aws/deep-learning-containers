@@ -14,7 +14,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/ray-ec2-cpu.yml"
+  CONFIG_FILE: ".github/config/image/ray-ec2-cpu.yml"
 
 jobs:
   gatekeeper:

@@ -85,7 +85,7 @@ setup_sandbox() {
   SANDBOX=$(mktemp -d)
   export SANDBOX
 
-  mkdir -p "${SANDBOX}/.github/config"
+  mkdir -p "${SANDBOX}/.github/config/image"
   mkdir -p "${SANDBOX}/docker/vllm"
   mkdir -p "${SANDBOX}/docker/sglang"
   mkdir -p "${SANDBOX}/scripts/autocurrency"
@@ -93,10 +93,10 @@ setup_sandbox() {
 
   # Copy real files
   cp "${REPO_ROOT}/.github/config/autocurrency-tracker.yml" "${SANDBOX}/.github/config/"
-  cp "${REPO_ROOT}/.github/config/vllm-ec2.yml" "${SANDBOX}/.github/config/"
-  cp "${REPO_ROOT}/.github/config/vllm-sagemaker.yml" "${SANDBOX}/.github/config/"
-  cp "${REPO_ROOT}/.github/config/sglang-ec2.yml" "${SANDBOX}/.github/config/"
-  cp "${REPO_ROOT}/.github/config/sglang-sagemaker.yml" "${SANDBOX}/.github/config/"
+  cp "${REPO_ROOT}/.github/config/image/vllm-ec2.yml" "${SANDBOX}/.github/config/image/"
+  cp "${REPO_ROOT}/.github/config/image/vllm-sagemaker.yml" "${SANDBOX}/.github/config/image/"
+  cp "${REPO_ROOT}/.github/config/image/sglang-ec2.yml" "${SANDBOX}/.github/config/image/"
+  cp "${REPO_ROOT}/.github/config/image/sglang-sagemaker.yml" "${SANDBOX}/.github/config/image/"
   cp "${REPO_ROOT}/docker/vllm/Dockerfile" "${SANDBOX}/docker/vllm/"
   cp "${REPO_ROOT}/docker/sglang/Dockerfile" "${SANDBOX}/docker/sglang/"
 
@@ -145,7 +145,7 @@ p.write_text(t)
 }
 
 _absolutize_tracker_paths() {
-  # The tracker YAML has relative paths like ".github/config/vllm-ec2.yml"
+  # The tracker YAML has relative paths like ".github/config/image/vllm-ec2.yml"
   # and "docker/vllm/Dockerfile". Prefix them with the sandbox root so
   # detect-versions functions work from any CWD.
   local tracker="${SANDBOX}/.github/config/autocurrency-tracker.yml"
@@ -353,7 +353,7 @@ test_is_newer_version_two_segment() {
 
 test_get_current_version() {
   source "${SANDBOX}/scripts/autocurrency/utils.sh"
-  assert_eq "0.17.1" "$(get_current_version "${SANDBOX}/.github/config/vllm-ec2.yml")" "vllm current version"
+  assert_eq "0.17.1" "$(get_current_version "${SANDBOX}/.github/config/image/vllm-ec2.yml")" "vllm current version"
 }
 
 test_render_prod_image() {
@@ -375,13 +375,13 @@ test_update_config_files_version_bump() {
   source "${SANDBOX}/scripts/autocurrency/update-configs.sh"
 
   local current_ver
-  current_ver=$(get_current_version "${SANDBOX}/.github/config/vllm-ec2.yml")
+  current_ver=$(get_current_version "${SANDBOX}/.github/config/image/vllm-ec2.yml")
   local new_ver
   new_ver=$(_bump_patch_version "${current_ver}")
 
   local config_json='[
-    {"path": "'"${SANDBOX}"'/.github/config/vllm-ec2.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312-ec2"},
-    {"path": "'"${SANDBOX}"'/.github/config/vllm-sagemaker.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312"}
+    {"path": "'"${SANDBOX}"'/.github/config/image/vllm-ec2.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312-ec2"},
+    {"path": "'"${SANDBOX}"'/.github/config/image/vllm-sagemaker.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312"}
   ]'
 
   local expected_prod_image
@@ -394,10 +394,10 @@ test_update_config_files_version_bump() {
 
   assert_contains "${updated}" "vllm-ec2.yml"
   assert_contains "${updated}" "vllm-sagemaker.yml"
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.framework_version" "${new_ver}"
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.prod_image" "${expected_prod_image}"
-  assert_file_field "${SANDBOX}/.github/config/vllm-sagemaker.yml" ".common.framework_version" "${new_ver}"
-  assert_file_field "${SANDBOX}/.github/config/vllm-sagemaker.yml" ".common.prod_image" "${expected_prod_image_sm}"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.framework_version" "${new_ver}"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.prod_image" "${expected_prod_image}"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-sagemaker.yml" ".common.framework_version" "${new_ver}"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-sagemaker.yml" ".common.prod_image" "${expected_prod_image_sm}"
 }
 
 test_update_config_files_sglang() {
@@ -405,13 +405,13 @@ test_update_config_files_sglang() {
   source "${SANDBOX}/scripts/autocurrency/update-configs.sh"
 
   local current_ver
-  current_ver=$(get_current_version "${SANDBOX}/.github/config/sglang-ec2.yml")
+  current_ver=$(get_current_version "${SANDBOX}/.github/config/image/sglang-ec2.yml")
   local new_ver
   new_ver=$(_bump_patch_version "${current_ver}")
 
   local config_json='[
-    {"path": "'"${SANDBOX}"'/.github/config/sglang-ec2.yml", "prod_image_template": "sglang:{major}.{minor}-gpu-py312-ec2"},
-    {"path": "'"${SANDBOX}"'/.github/config/sglang-sagemaker.yml", "prod_image_template": "sglang:{major}.{minor}-gpu-py312"}
+    {"path": "'"${SANDBOX}"'/.github/config/image/sglang-ec2.yml", "prod_image_template": "sglang:{major}.{minor}-gpu-py312-ec2"},
+    {"path": "'"${SANDBOX}"'/.github/config/image/sglang-sagemaker.yml", "prod_image_template": "sglang:{major}.{minor}-gpu-py312"}
   ]'
 
   local expected_prod_image
@@ -419,8 +419,8 @@ test_update_config_files_sglang() {
 
   update_config_files "sglang" "${new_ver}" "${config_json}" > /dev/null
 
-  assert_file_field "${SANDBOX}/.github/config/sglang-ec2.yml" ".common.framework_version" "${new_ver}"
-  assert_file_field "${SANDBOX}/.github/config/sglang-ec2.yml" ".common.prod_image" "${expected_prod_image}"
+  assert_file_field "${SANDBOX}/.github/config/image/sglang-ec2.yml" ".common.framework_version" "${new_ver}"
+  assert_file_field "${SANDBOX}/.github/config/image/sglang-ec2.yml" ".common.prod_image" "${expected_prod_image}"
 }
 
 test_update_dockerfiles() {
@@ -428,7 +428,7 @@ test_update_dockerfiles() {
   source "${SANDBOX}/scripts/autocurrency/update-configs.sh"
 
   local current_ver
-  current_ver=$(get_current_version "${SANDBOX}/.github/config/vllm-ec2.yml")
+  current_ver=$(get_current_version "${SANDBOX}/.github/config/image/vllm-ec2.yml")
   local new_ver
   new_ver=$(_bump_patch_version "${current_ver}")
 
@@ -448,8 +448,8 @@ test_update_dockerfiles() {
 ###############################################################################
 
 test_detect_versions_updates_cuda() {
-  yq eval -i '.common.cuda_version = "cu124"' "${SANDBOX}/.github/config/vllm-ec2.yml"
-  yq eval -i '.common.cuda_version = "cu124"' "${SANDBOX}/.github/config/vllm-sagemaker.yml"
+  yq eval -i '.common.cuda_version = "cu124"' "${SANDBOX}/.github/config/image/vllm-ec2.yml"
+  yq eval -i '.common.cuda_version = "cu124"' "${SANDBOX}/.github/config/image/vllm-sagemaker.yml"
 
   create_docker_mock "12.9" "3.12" "ubuntu" "22.04"
   export PATH="${SANDBOX}/mock-bin:${PATH}"
@@ -461,13 +461,13 @@ test_detect_versions_updates_cuda() {
   # Run from sandbox so relative paths in tracker.yml resolve correctly
   detect_and_update_versions "vllm"
 
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.cuda_version" "cu129"
-  assert_file_field "${SANDBOX}/.github/config/vllm-sagemaker.yml" ".common.cuda_version" "cu129"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.cuda_version" "cu129"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-sagemaker.yml" ".common.cuda_version" "cu129"
 }
 
 test_detect_versions_updates_python() {
-  yq eval -i '.common.python_version = "py311"' "${SANDBOX}/.github/config/sglang-ec2.yml"
-  yq eval -i '.common.python_version = "py311"' "${SANDBOX}/.github/config/sglang-sagemaker.yml"
+  yq eval -i '.common.python_version = "py311"' "${SANDBOX}/.github/config/image/sglang-ec2.yml"
+  yq eval -i '.common.python_version = "py311"' "${SANDBOX}/.github/config/image/sglang-sagemaker.yml"
 
   create_docker_mock "12.9" "3.12" "ubuntu" "24.04"
   export PATH="${SANDBOX}/mock-bin:${PATH}"
@@ -478,13 +478,13 @@ test_detect_versions_updates_python() {
 
   detect_and_update_versions "sglang"
 
-  assert_file_field "${SANDBOX}/.github/config/sglang-ec2.yml" ".common.python_version" "py312"
-  assert_file_field "${SANDBOX}/.github/config/sglang-sagemaker.yml" ".common.python_version" "py312"
+  assert_file_field "${SANDBOX}/.github/config/image/sglang-ec2.yml" ".common.python_version" "py312"
+  assert_file_field "${SANDBOX}/.github/config/image/sglang-sagemaker.yml" ".common.python_version" "py312"
 }
 
 test_detect_versions_updates_os() {
-  yq eval -i '.common.os_version = "ubuntu20.04"' "${SANDBOX}/.github/config/vllm-ec2.yml"
-  yq eval -i '.common.os_version = "ubuntu20.04"' "${SANDBOX}/.github/config/vllm-sagemaker.yml"
+  yq eval -i '.common.os_version = "ubuntu20.04"' "${SANDBOX}/.github/config/image/vllm-ec2.yml"
+  yq eval -i '.common.os_version = "ubuntu20.04"' "${SANDBOX}/.github/config/image/vllm-sagemaker.yml"
 
   create_docker_mock "12.9" "3.12" "ubuntu" "22.04"
   export PATH="${SANDBOX}/mock-bin:${PATH}"
@@ -495,8 +495,8 @@ test_detect_versions_updates_os() {
 
   detect_and_update_versions "vllm"
 
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.os_version" "ubuntu22.04"
-  assert_file_field "${SANDBOX}/.github/config/vllm-sagemaker.yml" ".common.os_version" "ubuntu22.04"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.os_version" "ubuntu22.04"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-sagemaker.yml" ".common.os_version" "ubuntu22.04"
 }
 
 test_detect_versions_no_changes_when_current() {
@@ -513,12 +513,12 @@ test_detect_versions_no_changes_when_current() {
 }
 
 test_detect_versions_multiple_field_update() {
-  yq eval -i '.common.cuda_version = "cu118"'     "${SANDBOX}/.github/config/vllm-ec2.yml"
-  yq eval -i '.common.python_version = "py310"'   "${SANDBOX}/.github/config/vllm-ec2.yml"
-  yq eval -i '.common.os_version = "ubuntu20.04"' "${SANDBOX}/.github/config/vllm-ec2.yml"
-  yq eval -i '.common.cuda_version = "cu118"'     "${SANDBOX}/.github/config/vllm-sagemaker.yml"
-  yq eval -i '.common.python_version = "py310"'   "${SANDBOX}/.github/config/vllm-sagemaker.yml"
-  yq eval -i '.common.os_version = "ubuntu20.04"' "${SANDBOX}/.github/config/vllm-sagemaker.yml"
+  yq eval -i '.common.cuda_version = "cu118"'     "${SANDBOX}/.github/config/image/vllm-ec2.yml"
+  yq eval -i '.common.python_version = "py310"'   "${SANDBOX}/.github/config/image/vllm-ec2.yml"
+  yq eval -i '.common.os_version = "ubuntu20.04"' "${SANDBOX}/.github/config/image/vllm-ec2.yml"
+  yq eval -i '.common.cuda_version = "cu118"'     "${SANDBOX}/.github/config/image/vllm-sagemaker.yml"
+  yq eval -i '.common.python_version = "py310"'   "${SANDBOX}/.github/config/image/vllm-sagemaker.yml"
+  yq eval -i '.common.os_version = "ubuntu20.04"' "${SANDBOX}/.github/config/image/vllm-sagemaker.yml"
 
   create_docker_mock "12.9" "3.12" "ubuntu" "22.04"
   export PATH="${SANDBOX}/mock-bin:${PATH}"
@@ -529,9 +529,9 @@ test_detect_versions_multiple_field_update() {
 
   detect_and_update_versions "vllm"
 
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.cuda_version" "cu129"
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.python_version" "py312"
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.os_version" "ubuntu22.04"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.cuda_version" "cu129"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.python_version" "py312"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.os_version" "ubuntu22.04"
 }
 
 test_detect_versions_skips_disabled_framework() {
@@ -581,14 +581,14 @@ test_e2e_mock_older_current_version() {
   source "${SANDBOX}/scripts/autocurrency/utils.sh"
 
   local real_ver
-  real_ver=$(get_current_version "${SANDBOX}/.github/config/vllm-ec2.yml")
+  real_ver=$(get_current_version "${SANDBOX}/.github/config/image/vllm-ec2.yml")
   local older_ver
   older_ver=$(_decrement_minor_version "${real_ver}")
 
-  yq eval -i ".common.framework_version = \"${older_ver}\"" "${SANDBOX}/.github/config/vllm-ec2.yml"
+  yq eval -i ".common.framework_version = \"${older_ver}\"" "${SANDBOX}/.github/config/image/vllm-ec2.yml"
 
   local current
-  current=$(get_current_version "${SANDBOX}/.github/config/vllm-ec2.yml")
+  current=$(get_current_version "${SANDBOX}/.github/config/image/vllm-ec2.yml")
   assert_eq "${older_ver}" "${current}" "mocked current version"
 
   is_newer_version "${real_ver}" "${current}" || {
@@ -602,30 +602,30 @@ test_e2e_full_update_pipeline() {
   source "${SANDBOX}/scripts/autocurrency/update-configs.sh"
 
   local real_ver
-  real_ver=$(get_current_version "${SANDBOX}/.github/config/vllm-ec2.yml")
+  real_ver=$(get_current_version "${SANDBOX}/.github/config/image/vllm-ec2.yml")
   local older_ver
   older_ver=$(_decrement_minor_version "${real_ver}")
   local new_ver
   new_ver=$(_bump_patch_version "${real_ver}")
 
-  yq eval -i ".common.framework_version = \"${older_ver}\"" "${SANDBOX}/.github/config/vllm-ec2.yml"
-  yq eval -i ".common.framework_version = \"${older_ver}\"" "${SANDBOX}/.github/config/vllm-sagemaker.yml"
+  yq eval -i ".common.framework_version = \"${older_ver}\"" "${SANDBOX}/.github/config/image/vllm-ec2.yml"
+  yq eval -i ".common.framework_version = \"${older_ver}\"" "${SANDBOX}/.github/config/image/vllm-sagemaker.yml"
 
   local expected_prod_image
   expected_prod_image=$(render_prod_image "vllm:{major}.{minor}-gpu-py312-ec2" "${new_ver}")
 
   local config_json='[
-    {"path": "'"${SANDBOX}"'/.github/config/vllm-ec2.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312-ec2"},
-    {"path": "'"${SANDBOX}"'/.github/config/vllm-sagemaker.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312"}
+    {"path": "'"${SANDBOX}"'/.github/config/image/vllm-ec2.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312-ec2"},
+    {"path": "'"${SANDBOX}"'/.github/config/image/vllm-sagemaker.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312"}
   ]'
   update_config_files "vllm" "${new_ver}" "${config_json}" > /dev/null
 
   local dockerfile_json='[{"path": "'"${SANDBOX}"'/docker/vllm/Dockerfile", "base_image_template": "vllm/vllm-openai:v{version}"}]'
   update_dockerfiles "${new_ver}" "${dockerfile_json}" > /dev/null
 
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.framework_version" "${new_ver}"
-  assert_file_field "${SANDBOX}/.github/config/vllm-ec2.yml" ".common.prod_image" "${expected_prod_image}"
-  assert_file_field "${SANDBOX}/.github/config/vllm-sagemaker.yml" ".common.framework_version" "${new_ver}"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.framework_version" "${new_ver}"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-ec2.yml" ".common.prod_image" "${expected_prod_image}"
+  assert_file_field "${SANDBOX}/.github/config/image/vllm-sagemaker.yml" ".common.framework_version" "${new_ver}"
 
   assert_eq "vllm/vllm-openai:v${new_ver}" \
     "$(get_base_image_from_dockerfile "${SANDBOX}/docker/vllm/Dockerfile")" \

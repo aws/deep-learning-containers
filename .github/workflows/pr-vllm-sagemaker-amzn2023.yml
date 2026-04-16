@@ -5,7 +5,7 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/vllm-sagemaker-amzn2023.yml"
+      - ".github/config/image/vllm-sagemaker-amzn2023.yml"
       - ".github/workflows/pr-vllm-sagemaker-amzn2023.yml"
       - ".github/workflows/reusable-vllm-sagemaker-tests.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
@@ -27,7 +27,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/vllm-sagemaker-amzn2023.yml"
+  CONFIG_FILE: ".github/config/image/vllm-sagemaker-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -119,7 +119,7 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/vllm-sagemaker-amzn2023.yml"
+              - ".github/config/image/vllm-sagemaker-amzn2023.yml"
               - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/common/install_efa_amzn2023.sh"
               - "scripts/common/setup_oss_compliance.sh"
