@@ -76,32 +76,15 @@ if [[ -n "${RUNTIME_BASE}" ]]; then
 fi
 
 # Pass AWS credentials for sccache S3 access inside Docker build
-# Assume a dedicated role with 12hr session to avoid credential expiry during long builds
-SCCACHE_ROLE_ARN="${SCCACHE_ROLE_ARN:-}"
 if [[ -n "${USE_SCCACHE:-}" ]]; then
   echo "Enabling sccache with S3 backend"
-  if [[ -n "${SCCACHE_ROLE_ARN}" ]]; then
-    echo "Assuming role ${SCCACHE_ROLE_ARN} with 12hr session..."
-    CREDS=$(aws sts assume-role \
-      --role-arn "${SCCACHE_ROLE_ARN}" \
-      --role-session-name "sccache-$(date +%s)" \
-      --duration-seconds 43200 \
-      --output json)
-    SC_AK=$(echo "$CREDS" | jq -r .Credentials.AccessKeyId)
-    SC_SK=$(echo "$CREDS" | jq -r .Credentials.SecretAccessKey)
-    SC_ST=$(echo "$CREDS" | jq -r .Credentials.SessionToken)
-  else
-    echo "No SCCACHE_ROLE_ARN set, using current credentials"
-    eval $(aws configure export-credentials --format env 2>/dev/null) || true
-    SC_AK="${AWS_ACCESS_KEY_ID:-}"
-    SC_SK="${AWS_SECRET_ACCESS_KEY:-}"
-    SC_ST="${AWS_SESSION_TOKEN:-}"
-  fi
+  eval $(aws configure export-credentials --format env 2>/dev/null) || true
+  echo "Credential expiry: $(aws configure export-credentials --format json 2>/dev/null | jq -r .Expiration || echo unknown)"
   BUILD_CMD="${BUILD_CMD} \
   --build-arg USE_SCCACHE=\"${USE_SCCACHE}\" \
-  --build-arg AWS_ACCESS_KEY_ID=\"${SC_AK}\" \
-  --build-arg AWS_SECRET_ACCESS_KEY=\"${SC_SK}\" \
-  --build-arg AWS_SESSION_TOKEN=\"${SC_ST}\""
+  --build-arg AWS_ACCESS_KEY_ID=\"${AWS_ACCESS_KEY_ID:-}\" \
+  --build-arg AWS_SECRET_ACCESS_KEY=\"${AWS_SECRET_ACCESS_KEY:-}\" \
+  --build-arg AWS_SESSION_TOKEN=\"${AWS_SESSION_TOKEN:-}\""
 fi
 
 # Add SageMaker labels if customer-type is 'sagemaker'

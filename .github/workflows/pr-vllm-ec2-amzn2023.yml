@@ -146,7 +146,6 @@ jobs:
       cancel-in-progress: true
     env:
       USE_SCCACHE: "1"
-      SCCACHE_ROLE_ARN: "arn:aws:iam::404426647817:role/sccache-s3-cache"
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
