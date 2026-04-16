@@ -219,7 +219,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 # SageMaker SDK and training packages
 RUN pip install --no-cache-dir -U \
   smclarify \
-  "sagemaker>=2,<3" \
+  "sagemaker>=3.0.0" \
   sagemaker-pytorch-training \
   sagemaker-training
 
