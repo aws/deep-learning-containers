@@ -95,12 +95,14 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 # The directory is empty by default so COPY always succeeds.
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
-# --- sccache support for CUDA compilation cache ---
-# Uses BuildKit cache mount for persistence across builds on the same runner.
+# --- Build options ---
+# USE_PREBUILT_WHEEL: set to 0 to force source build even when prebuilt wheel exists
+# USE_SCCACHE: set to 1 to enable sccache compilation cache
+ARG USE_PREBUILT_WHEEL=1
 ARG USE_SCCACHE=0
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/sccache \
-    if ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+    if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && mkdir -p dist \
       && cp /tmp/prebuilt_wheels/*.whl dist/; \
