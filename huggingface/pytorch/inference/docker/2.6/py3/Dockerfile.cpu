@@ -216,6 +216,7 @@ RUN pip install --no-cache-dir \
     # until version 2.7.0 is released in PyPI.
     # sagemaker-huggingface-inference-toolkit==${SAGEMAKER_HF_INFERENCE_VERSION} \
     ${SAGEMAKER_HF_INFERENCE_VERSION} \
+    "opencv-python==4.11.0.86"
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:cpu:inference:regular"
 
