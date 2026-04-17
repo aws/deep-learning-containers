@@ -1,0 +1,255 @@
+name: PR - PyTorch SageMaker
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "docker/pytorch/**"
+      - "scripts/pytorch/**"
+      - "test/pytorch/**"
+      - ".github/workflows/pr-pytorch-sagemaker.yml"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  # ============================================================
+  # Gate: permission check on base branch
+  # ============================================================
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
+  # ============================================================
+  # Pre-commit + change detection
+  # ============================================================
+  check-changes:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      test-only-change: ${{ steps.changes.outputs.test-only-change }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            build-change:
+              - "docker/pytorch/**"
+              - "scripts/pytorch/**"
+            test-only-change:
+              - "test/pytorch/**"
+
+  # ============================================================
+  # Build SageMaker image
+  # ============================================================
+  build-image:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-only-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      sagemaker-image-uri: ${{ steps.build-sagemaker.outputs.image-uri }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Fetch cached wheels
+        run: |
+          source docker/pytorch/versions.env
+          mkdir -p docker/pytorch/wheels
+          bash scripts/pytorch/fetch_cached_wheels.sh \
+            docker/pytorch/wheels \
+            "${{ vars.WHEEL_CACHE_BUCKET }}" \
+            "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
+            "flash-attn:${FLASH_ATTN_VERSION}" \
+            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
+        continue-on-error: true
+
+      - name: Build sagemaker image
+        id: build-sagemaker
+        run: |
+          source docker/pytorch/versions.env
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-2.11.0-gpu-py312-cu130-sagemaker-pr-${{ github.event.pull_request.number }}"
+
+          docker buildx build --progress plain \
+            --build-arg CUDA_VERSION=${CUDA_VERSION} \
+            --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
+            --build-arg TORCH_VERSION=${TORCH_VERSION} \
+            --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
+            --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
+            --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
+            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
+            --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
+            --build-arg EFA_VERSION=${EFA_VERSION} \
+            --build-arg MAX_JOBS=${MAX_JOBS} \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.framework.pytorch.${TORCH_VERSION//./-}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.device.gpu.cu130=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.job.training=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.x86=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.os.amzn2023=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.py312=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.None=true" \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target sagemaker \
+            -f docker/pytorch/Dockerfile .
+
+          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Sanity tests
+  # ============================================================
+  sanity-test:
+    needs: [build-image]
+    if: success()
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.sagemaker-image-uri }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: pytorch
+      framework-version: "2.11.0"
+      python-version: py312
+      cuda-version: cu130
+      os-version: amzn2023
+      arch-type: x86
+      device-type: gpu
+      customer-type: sagemaker
+      contributor: None
+      container-type: training
+
+  # ============================================================
+  # Security tests
+  # ============================================================
+  security-test:
+    needs: [build-image]
+    if: success()
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.sagemaker-image-uri }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: pytorch
+      framework-version: "2.11.0"
+
+  # ============================================================
+  # Unit tests
+  # ============================================================
+  unit-test:
+    needs: [build-image]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-unit-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Run unit tests
+        run: |
+          IMAGE="${{ needs.build-image.outputs.sagemaker-image-uri }}"
+          docker pull ${IMAGE}
+          CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v
+          docker kill ${CONTAINER_ID}
+
+  # ============================================================
+  # SageMaker integration tests (launch real SM training jobs)
+  # ============================================================
+  sagemaker-test:
+    needs: [build-image, sanity-test, security-test, unit-test]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Install test dependencies
+        run: |
+          pip install -r test/pytorch/integration/sagemaker/requirements.txt
+
+      - name: Run SageMaker training tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/test
+          TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
+          SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
+        run: |
+          pytest test/pytorch/integration/sagemaker/test_sm_training.py -v
