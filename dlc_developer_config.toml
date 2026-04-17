@@ -189,5 +189,8 @@ dlc-pr-vllm = ""
 # HuggingFace vLLM
 dlc-pr-huggingface-vllm = ""
 
+# HuggingFace SGLang
+dlc-pr-huggingface-sglang = ""
+
 # sglang
 dlc-pr-sglang = ""

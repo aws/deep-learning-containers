@@ -360,8 +360,12 @@ def main():
     is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
     is_trcomp_image_present = any("trcomp" in image_uri for image_uri in all_image_list)
     is_vllm_image_present = any("vllm" in image_uri for image_uri in all_image_list)
+    is_sglang_image_present = any("sglang" in image_uri for image_uri in all_image_list)
     is_hf_image_present = (
-        is_hf_image_present and not is_trcomp_image_present and not is_vllm_image_present
+        is_hf_image_present
+        and not is_trcomp_image_present
+        and not is_vllm_image_present
+        and not is_sglang_image_present
     )
     is_hf_trcomp_image_present = is_hf_image_present and is_trcomp_image_present
     if (
@@ -597,7 +601,6 @@ def main():
             "habana": "Skipping SM tests because SM does not yet support Habana",
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
-            "sglang": "Skipping - there are no local mode tests for sglang",
         }
 
         for skip_condition, reason in sm_local_to_skip.items():
@@ -615,6 +618,15 @@ def main():
             )
             report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
             sm_utils.generate_empty_report(report, test_type, "vllm")
+            return
+
+        # Skip base sglang (not huggingface_sglang) - huggingface_sglang has local tests
+        if "sglang" in dlc_images and "huggingface" not in dlc_images:
+            LOGGER.info(
+                f"Skipping - there are no local mode tests for base SGLang. Images: {dlc_images}"
+            )
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "sglang")
             return
 
         testing_image_list = [
