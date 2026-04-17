@@ -126,7 +126,7 @@ docker buildx use default 2>/dev/null || true
 
 # Step 1: Extract wheel from build stage (if wheel-export target exists)
 # This caches all layers including the build stage for reuse in step 2
-WHEEL_DIR="/tmp/vllm-wheels"
+WHEEL_DIR="/tmp/${FRAMEWORK}-wheels"
 echo "Step 1: Extracting wheel from build stage..."
 eval ${BUILD_CMD} \
   --target wheel-export \

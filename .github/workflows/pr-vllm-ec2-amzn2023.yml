@@ -185,7 +185,8 @@ jobs:
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            ${{ needs.load-config.outputs.vllm-ref }}
+            ${{ needs.load-config.outputs.vllm-ref }} \
+            /tmp/vllm-wheels/wheels
 
 
   sanity-test:
