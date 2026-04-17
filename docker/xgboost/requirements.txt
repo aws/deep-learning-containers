@@ -1,7 +1,7 @@
 boto3==1.17.52
 botocore==1.20.52
 certifi==2023.7.22
-cryptography==45.0.5
+cryptography==46.0.7
 cuda-python==12.6.0
 dask-cuda==24.12.00
 dask[dataframe]==2024.11.2
