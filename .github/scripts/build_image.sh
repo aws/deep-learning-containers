@@ -121,22 +121,29 @@ if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
   fi
 fi
 
-# Complete the build command
-BUILD_CMD="${BUILD_CMD} \
+# Ensure default docker builder is used
+docker buildx use default 2>/dev/null || true
+
+# Step 1: Extract wheel from build stage (if wheel-export target exists)
+# This caches all layers including the build stage for reuse in step 2
+WHEEL_DIR="/tmp/vllm-wheels"
+echo "Step 1: Extracting wheel from build stage..."
+eval ${BUILD_CMD} \
+  --target wheel-export \
+  --output "type=local,dest=${WHEEL_DIR}" \
+  -f ${DOCKERFILE_PATH} . 2>/dev/null \
+  && echo "Wheels extracted: $(ls ${WHEEL_DIR}/wheels/*.whl 2>/dev/null)" \
+  || echo "No wheel-export target — skipping wheel extraction"
+
+# Step 2: Build and push final image (build stage is cached from step 1)
+echo "Step 2: Building and pushing final image..."
+eval ${BUILD_CMD} \
   --cache-to=type=inline \
   --cache-from=type=registry,ref=${CI_IMAGE_URI} \
   --tag ${CI_IMAGE_URI} \
   --push \
   --target ${TARGET} \
-  -f ${DOCKERFILE_PATH} ."
-
-# Ensure default docker builder is used
-docker buildx use default 2>/dev/null || true
-
-# Execute build
-echo "Executing build command..."
-echo "${BUILD_CMD}"
-eval ${BUILD_CMD}
+  -f ${DOCKERFILE_PATH} .
 
 # Clean up local image (may not exist when using remote buildkitd)
 docker rmi ${CI_IMAGE_URI} 2>/dev/null || true
