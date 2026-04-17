@@ -111,7 +111,6 @@ class TestE2E:
             content_type="application/x-parquet",
             test_name="e2e-dask",
             instance_type="ml.g4dn.2xlarge",
-            train_distribution="FullyReplicated",
         )
         assert desc["TrainingJobStatus"] == "Completed"
 

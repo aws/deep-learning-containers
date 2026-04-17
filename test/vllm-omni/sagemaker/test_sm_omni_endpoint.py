@@ -5,6 +5,7 @@ import logging
 import time
 
 import pytest
+from sagemaker.core.inference_config import AsyncInferenceConfig
 from sagemaker.serve.model_builder import ModelBuilder
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
@@ -65,6 +66,7 @@ def model_endpoint(aws_session, model_package, instance_type):
 
     try:
         LOGGER.info("Starting endpoint deployment...")
+        builder.build()
         endpoint = builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,
@@ -142,19 +144,16 @@ def async_endpoint(aws_session, model_package, instance_type):
         LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
 
         # First build the model
+        builder.build()
         endpoint = builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=endpoint_name,
             inference_ami_version=INFERENCE_AMI_VERSION,
-            async_inference_config={
-                "OutputConfig": {
-                    "S3OutputPath": s3_output,
-                },
-                "ClientConfig": {
-                    "MaxConcurrentInvocationsPerInstance": 1,
-                },
-            },
+            inference_config=AsyncInferenceConfig(
+                output_path=s3_output,
+                max_concurrent_invocations_per_instance=1,
+            ),
             wait=True,
         )
 

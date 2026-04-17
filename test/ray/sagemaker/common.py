@@ -159,6 +159,7 @@ def make_model_endpoint_fixture(device, instance_type):
         if device == "gpu":
             deploy_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION
             LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION}")
+        model_package.build()
         endpoint = model_package.deploy(**deploy_kwargs)
 
         LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status...")

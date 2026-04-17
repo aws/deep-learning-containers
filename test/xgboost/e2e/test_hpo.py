@@ -5,8 +5,8 @@ Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_hpo.py
 
 import boto3
 from sagemaker.core.parameter import ContinuousParameter, IntegerParameter
+from sagemaker.core.training.configs import Compute, InputData, OutputDataConfig, StoppingCondition
 from sagemaker.train import ModelTrainer
-from sagemaker.train.configs import Compute, InputData, OutputDataConfig, StoppingCondition
 from sagemaker.train.tuner import HyperparameterTuner
 from test_utils import random_suffix_name
 

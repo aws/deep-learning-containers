@@ -8,9 +8,7 @@ import time
 
 import boto3
 import pytest
-from sagemaker.serve.model_builder import ModelBuilder
-from sagemaker.train import ModelTrainer
-from sagemaker.train.configs import (
+from sagemaker.core.training.configs import (
     CheckpointConfig,
     Compute,
     InputData,
@@ -18,6 +16,8 @@ from sagemaker.train.configs import (
     OutputDataConfig,
     StoppingCondition,
 )
+from sagemaker.serve.model_builder import ModelBuilder
+from sagemaker.train import ModelTrainer
 from test_utils import random_suffix_name
 
 LOGGER = logging.getLogger(__name__)
@@ -80,7 +80,6 @@ def run_training_job(
     volume_size=10,
     max_run=1800,
     input_mode="File",
-    train_distribution="ShardedByS3Key",
     checkpoint_s3_uri=None,
     enable_network_isolation=False,
     extra_channels=None,
@@ -168,6 +167,7 @@ def deploy_endpoint(
     )
 
     try:
+        builder.build()
         endpoint = builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,

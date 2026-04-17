@@ -75,6 +75,7 @@ def model_endpoint(aws_session, model_package, instance_type):
 
     try:
         LOGGER.info("Starting endpoint deployment (this may take 10-15 minutes)...")
+        builder.build()
         endpoint = builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,

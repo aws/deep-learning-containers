@@ -85,7 +85,6 @@ class TestTrainingParquet:
             content_type="application/x-parquet",
             test_name="pq-dask-gpu",
             instance_type="ml.g4dn.2xlarge",
-            train_distribution="FullyReplicated",
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
@@ -101,6 +100,5 @@ class TestTrainingParquet:
             test_name="pq-dask-2x",
             instance_type="ml.g4dn.2xlarge",
             instance_count=2,
-            train_distribution="FullyReplicated",
         )
         assert desc["TrainingJobStatus"] == "Completed"
