@@ -155,9 +155,11 @@ jobs:
       - name: Fetch cached vLLM wheel
         id: wheel-cache
         run: |
-          bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+          OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            ${{ needs.load-config.outputs.vllm-ref }}
+            ${{ needs.load-config.outputs.vllm-ref }})
+          echo "$OUTPUT"
+          echo "hit=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)" >> $GITHUB_OUTPUT
 
       - name: Build image
         id: build
@@ -181,7 +183,7 @@ jobs:
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
       - name: Upload vLLM wheel to cache
-        if: success()
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \

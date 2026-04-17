@@ -2,10 +2,7 @@
 # fetch_cached_wheels.sh — Download pre-built vLLM wheel from S3 into the build context.
 #
 # Usage: fetch_cached_wheels.sh <cuda_version> <vllm_ref> [bucket]
-#
-# Run BEFORE docker build. Wheels go into docker/vllm/prebuilt_wheels/
-# which the Dockerfile COPYs. If no wheel found, the dir stays empty
-# and the Dockerfile falls back to building from source.
+# Exit code: 0 always. Prints "cache-hit=true" or "cache-hit=false" for CI.
 #
 # S3 layout: s3://<bucket>/wheels/vllm/<cuda>/<source_hash>/vllm-*.whl
 set -euo pipefail
@@ -21,6 +18,12 @@ mkdir -p "${DEST_DIR}"
 
 echo "⬇️  Looking for vLLM wheel (${CUDA}, src:${SOURCE_HASH}) in s3://${BUCKET}/${PREFIX} ..."
 aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" \
-  --recursive --exclude "*" --include "*.whl" 2>/dev/null \
-  && echo "✅ Cache hit (src:${SOURCE_HASH})" \
-  || echo "⚠️  Cache miss (src:${SOURCE_HASH}) — will build from source"
+  --recursive --exclude "*" --include "*.whl" 2>/dev/null || true
+
+if ls "${DEST_DIR}"/*.whl >/dev/null 2>&1; then
+  echo "✅ Cache hit (src:${SOURCE_HASH})"
+  echo "cache-hit=true"
+else
+  echo "⚠️  Cache miss (src:${SOURCE_HASH}) — will build from source"
+  echo "cache-hit=false"
+fi
