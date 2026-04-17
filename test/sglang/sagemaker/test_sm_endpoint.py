@@ -5,7 +5,7 @@ import logging
 from pprint import pformat
 
 import pytest
-from sagemaker.serve.model_builder import ModelBuilder, InferenceSpec
+from sagemaker.serve.model_builder import InferenceSpec, ModelBuilder
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token

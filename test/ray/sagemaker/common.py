@@ -35,7 +35,7 @@ from ray.utils import (
     validate_mnist_response,
     validate_sentiment_response,
 )
-from sagemaker.serve.model_builder import ModelBuilder, InferenceSpec
+from sagemaker.serve.model_builder import InferenceSpec, ModelBuilder
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 
