@@ -6,7 +6,8 @@
 #                  └── builder-oss          (OSS license generation — isolated)
 #   builder-gdrcopy ── (independent, parallel with all above)
 #
-#   runtime ── runtime-eks
+#   runtime-base ──┬── runtime      (EC2 / ECS)
+#                  └── sagemaker    (SageMaker Training)
 #
 #   wheel-export (CI-only — scratch image with built wheels for S3 cache upload)
 #
@@ -116,8 +117,8 @@ RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHO
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 
-# ── Stage: runtime (EC2 / ECS / Batch / SageMaker) ──────────────────────────
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+# ── Stage: runtime-base (shared base for all output stages) ─────────────────
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime-base
 ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG TORCH_VERSION
@@ -169,8 +170,10 @@ RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
 COPY scripts/pytorch/configure_nccl.sh /tmp/configure_nccl.sh
 RUN bash /tmp/configure_nccl.sh && rm /tmp/configure_nccl.sh
 
-# SageMaker BYOC paths
-RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
+
+# ── Stage: runtime (EC2 / ECS) ──────────────────────────────────────
+FROM runtime-base AS runtime
+ARG TORCH_VERSION
 
 # Telemetry
 COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -212,57 +215,63 @@ CMD ["bash"]
 
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
-FROM runtime AS sagemaker
+FROM runtime-base AS sagemaker
+ARG TORCH_VERSION
+
+# SageMaker BYOC paths
+RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-# SageMaker SDK and training packages
-RUN pip install --no-cache-dir -U \
-  smclarify \
-  "sagemaker>=3.0.0" \
-  sagemaker-pytorch-training \
-  sagemaker-training
-
-# Data science packages commonly used in SageMaker training jobs
-RUN pip install --no-cache-dir -U \
-  bokeh \
-  imageio \
-  numba \
-  pandas \
-  plotly \
-  shap \
-  scikit-learn \
-  seaborn \
-  cloudpickle \
-  "s3fs>=2026.2.0"
+# SageMaker packages (defined in pyproject.toml [project.optional-dependencies.sagemaker])
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
+COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
+WORKDIR /tmp/build
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra sagemaker --no-install-project
 
 # SageMaker hostname workaround — NCCL/MPI need correct hostname for multi-node
 COPY scripts/pytorch/changehostname.c /
 COPY scripts/pytorch/start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
+# Telemetry
+COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK="pytorch"
+ARG CONTAINER_TYPE="training"
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TORCH_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc
+
 # Security patch
 RUN dnf upgrade -y --security --releasever latest && dnf clean all
 
+# OSS compliance
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# Entrypoint
+COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/pytorch/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
+
+# PATH and LD_LIBRARY_PATH
+ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
+  LD_LIBRARY_PATH="/opt/venv/lib/python3.12/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
+
+EXPOSE 22
+WORKDIR /workspace
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
-
-
-# ── Stage: runtime-eks ───────────────────────────────────────────────────────
-FROM runtime AS runtime-eks
-
-# Non-root user
-RUN groupadd -g 1000 mluser \
-  && useradd -m -u 1000 -g 1000 mluser \
-  && chown -R mluser:mluser /opt/venv /opt/ml /workspace
-
-# SSH reconfigured for non-root (port 2222)
-COPY scripts/pytorch/configure_ssh_eks.sh /tmp/configure_ssh_eks.sh
-RUN bash /tmp/configure_ssh_eks.sh && rm /tmp/configure_ssh_eks.sh
-
-EXPOSE 2222
-USER mluser
-WORKDIR /home/mluser
 
 
 # ── Stage: wheel-export (CI-only — extracts built wheels for S3 cache upload) ─

@@ -15,6 +15,24 @@ dependencies = [
     "packaging",
 ]
 
+[project.optional-dependencies]
+sagemaker = [
+    "smclarify",
+    "sagemaker>=3.0.0",
+    "sagemaker-pytorch-training",
+    "sagemaker-training",
+    "bokeh",
+    "imageio",
+    "numba",
+    "pandas",
+    "plotly",
+    "shap",
+    "scikit-learn",
+    "seaborn",
+    "cloudpickle",
+    "s3fs>=2026.2.0",
+]
+
 [tool.uv]
 
 [[tool.uv.index]]
