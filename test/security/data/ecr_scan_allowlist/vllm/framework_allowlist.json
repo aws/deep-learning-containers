@@ -118,5 +118,33 @@
     {
         "vulnerability_id": "CVE-2026-34520",
         "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68121",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25679",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32280",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2025-61726",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32283",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33186",
+        "reason": "google.golang.org/grpc in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32281",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
     }
 ]
