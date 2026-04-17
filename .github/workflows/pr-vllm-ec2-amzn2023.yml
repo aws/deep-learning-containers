@@ -160,7 +160,7 @@ jobs:
           if [ "${SKIP_WHEEL}" = "true" ]; then
             echo "⚠️  USE_PREBUILT_WHEEL=0 — forcing source build"
             echo "hit=false" >> $GITHUB_OUTPUT
-            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels" >> $GITHUB_ENV
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
           else
             OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
               ${{ needs.load-config.outputs.cuda-version }} \
@@ -169,9 +169,12 @@ jobs:
             HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
             echo "hit=${HIT}" >> $GITHUB_OUTPUT
             if [ "${HIT}" != "true" ]; then
-              echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels" >> $GITHUB_ENV
+              echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
             fi
           fi
+
+      - name: Sync sccache cache from S3
+        run: bash scripts/common/sync_sccache.sh pull vllm
 
       - name: Build image
         id: build
@@ -201,6 +204,10 @@ jobs:
             ${{ needs.load-config.outputs.cuda-version }} \
             ${{ needs.load-config.outputs.vllm-ref }} \
             /tmp/vllm-wheels/wheels
+
+      - name: Sync sccache cache to S3
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: bash scripts/common/sync_sccache.sh push vllm
 
 
   sanity-test:

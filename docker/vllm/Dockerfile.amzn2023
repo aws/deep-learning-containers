@@ -101,7 +101,10 @@ COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 ARG USE_PREBUILT_WHEEL=1
 ARG USE_SCCACHE=0
 
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/sccache \
+# Seed sccache cache from build context (synced from S3 before build)
+COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
+
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
     if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && mkdir -p dist \
@@ -156,6 +159,13 @@ RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace
 # =============================================================================
 FROM scratch AS wheel-export
 COPY --from=build /workspace/vllm/dist/ /wheels/
+
+# =============================================================================
+# STAGE: sccache-export — extract sccache cache for S3 upload
+# Usage: docker buildx build --target sccache-export --output type=local,dest=./sccache-out ...
+# =============================================================================
+FROM scratch AS sccache-export
+COPY --from=build /root/.cache/sccache/ /
 
 # =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
