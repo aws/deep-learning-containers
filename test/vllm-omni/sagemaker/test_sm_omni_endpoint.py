@@ -5,8 +5,7 @@ import logging
 import time
 
 import pytest
-from sagemaker.serve import ModelBuilder
-from sagemaker.serve.configs import InferenceSpec
+from sagemaker.serve.model_builder import ModelBuilder, InferenceSpec
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
@@ -144,8 +143,6 @@ def async_endpoint(aws_session, model_package, instance_type):
 
     try:
         LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
-        # For async inference in V3, use boto3 directly to create the async endpoint config
-        # since ModelBuilder.deploy() handles standard real-time endpoints
 
         # First build the model
         endpoint = builder.deploy(

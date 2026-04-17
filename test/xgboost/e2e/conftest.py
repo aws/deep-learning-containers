@@ -8,8 +8,7 @@ import time
 
 import boto3
 import pytest
-from sagemaker.serve import ModelBuilder
-from sagemaker.serve.configs import InferenceSpec
+from sagemaker.serve.model_builder import ModelBuilder, InferenceSpec
 from sagemaker.train import ModelTrainer
 from sagemaker.train.configs import (
     CheckpointConfig,
