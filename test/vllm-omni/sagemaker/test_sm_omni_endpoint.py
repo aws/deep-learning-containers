@@ -5,7 +5,7 @@ import logging
 import time
 
 import pytest
-from sagemaker.serve.model_builder import InferenceSpec, ModelBuilder
+from sagemaker.serve.model_builder import ModelBuilder
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
@@ -42,16 +42,13 @@ def model_package(aws_session, image_uri, model_id):
     try:
         LOGGER.info(f"Creating SageMaker model: {model_name}")
         hf_token = get_hf_token(aws_session)
-        inference_spec = InferenceSpec(
+        builder = ModelBuilder(
             image_uri=image_uri,
-            environment={
+            env_vars={
                 "SM_VLLM_MODEL": model_id,
                 "HF_TOKEN": hf_token,
             },
-        )
-        builder = ModelBuilder(
-            inference_spec=inference_spec,
-            role=SAGEMAKER_ROLE,
+            role_arn=SAGEMAKER_ROLE,
         )
         yield builder, model_name
     finally:

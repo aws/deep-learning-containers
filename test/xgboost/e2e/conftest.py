@@ -8,7 +8,7 @@ import time
 
 import boto3
 import pytest
-from sagemaker.serve.model_builder import InferenceSpec, ModelBuilder
+from sagemaker.serve.model_builder import ModelBuilder
 from sagemaker.train import ModelTrainer
 from sagemaker.train.configs import (
     CheckpointConfig,
@@ -160,16 +160,11 @@ def deploy_endpoint(
     """Deploy a real-time endpoint and return (endpoint, endpoint_name)."""
     endpoint_name = random_suffix_name(f"xgb-{test_name}", 32)
 
-    inference_spec = InferenceSpec(
-        image_uri=image_uri,
-        model_data_url=model_data,
-    )
-    if env:
-        inference_spec.environment = env
-
     builder = ModelBuilder(
-        inference_spec=inference_spec,
-        role=role,
+        image_uri=image_uri,
+        s3_model_data_url=model_data,
+        env_vars=env or None,
+        role_arn=role,
     )
 
     try:

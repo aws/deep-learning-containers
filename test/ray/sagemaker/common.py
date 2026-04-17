@@ -35,7 +35,7 @@ from ray.utils import (
     validate_mnist_response,
     validate_sentiment_response,
 )
-from sagemaker.serve.model_builder import InferenceSpec, ModelBuilder
+from sagemaker.serve.model_builder import ModelBuilder
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 
@@ -124,14 +124,11 @@ def make_model_package_fixture(device, instance_type):
         LOGGER.info(f"  Image: {image_uri}")
         LOGGER.info(f"  Model data: {s3_uri}")
 
-        inference_spec = InferenceSpec(
-            image_uri=image_uri,
-            model_data_url=s3_uri,
-            environment=model_config["env"] or None,
-        )
         builder = ModelBuilder(
-            inference_spec=inference_spec,
-            role=SAGEMAKER_ROLE,
+            image_uri=image_uri,
+            s3_model_data_url=s3_uri,
+            env_vars=model_config["env"] or None,
+            role_arn=SAGEMAKER_ROLE,
         )
 
         yield builder
