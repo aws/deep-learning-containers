@@ -159,6 +159,7 @@ jobs:
       os-version: amzn2023
       arch-type: x86
       device-type: gpu
+      customer-type: sagemaker
       contributor: None
       container-type: training
 
