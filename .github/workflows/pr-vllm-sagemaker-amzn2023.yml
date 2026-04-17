@@ -2,7 +2,7 @@ name: PR - vLLM SageMaker AMZN2023
 
 on:
   pull_request:
-    branches: [disabled-for-build-cache-testing]
+    branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/vllm-sagemaker-amzn2023.yml"
