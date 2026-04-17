@@ -244,7 +244,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install -r test/pytorch/sagemaker/requirements.txt
+          pip install -r test/pytorch/integration/sagemaker/requirements.txt
 
       - name: Run SageMaker training tests
         env:
@@ -252,4 +252,4 @@ jobs:
           TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
         run: |
-          pytest test/pytorch/sagemaker/test_sm_training.py -v
+          pytest test/pytorch/integration/sagemaker/test_sm_training.py -v
