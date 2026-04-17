@@ -155,15 +155,11 @@ jobs:
       - name: Test S3 access with RUN --network=host
         run: |
           docker buildx build --progress=plain --allow network.host \
-            --build-arg AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-west-2} \
-            --build-arg AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI:-} \
             -f - . <<'EOF'
           FROM amazonlinux:2023
-          ARG AWS_DEFAULT_REGION
-          ARG AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
           RUN --network=host dnf install -y awscli-2 && \
               aws s3 ls s3://dlc-cicd-wheels/sccache/ --region us-west-2 && \
-              echo "SUCCESS: RUN --network=host works"
+              echo "SUCCESS: RUN --network=host works with IMDS"
           EOF
 
       - name: Fetch cached vLLM wheel
