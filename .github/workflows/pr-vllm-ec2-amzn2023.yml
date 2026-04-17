@@ -146,7 +146,7 @@ jobs:
       cancel-in-progress: true
     env:
       USE_SCCACHE: "1"
-      USE_PREBUILT_WHEEL: "1"
+      USE_PREBUILT_WHEEL: "0"
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
