@@ -131,7 +131,7 @@ echo "Step 1: Extracting wheel from build stage..."
 eval ${BUILD_CMD} \
   --target wheel-export \
   --output "type=local,dest=${WHEEL_DIR}" \
-  -f ${DOCKERFILE_PATH} . 2>/dev/null \
+  -f ${DOCKERFILE_PATH} . \
   && echo "Wheels extracted: $(ls ${WHEEL_DIR}/wheels/*.whl 2>/dev/null)" \
   || echo "No wheel-export target — skipping wheel extraction"
 
