@@ -159,7 +159,11 @@ jobs:
             ${{ needs.load-config.outputs.cuda-version }} \
             ${{ needs.load-config.outputs.vllm-ref }})
           echo "$OUTPUT"
-          echo "hit=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)" >> $GITHUB_OUTPUT
+          HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
+          echo "hit=${HIT}" >> $GITHUB_OUTPUT
+          if [ "${HIT}" != "true" ]; then
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels" >> $GITHUB_ENV
+          fi
 
       - name: Build image
         id: build
@@ -181,16 +185,6 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
-
-      - name: Extract vLLM wheel from build
-        if: success() && steps.wheel-cache.outputs.hit != 'true'
-        run: |
-          echo "Extracting wheel from wheel-export stage (layer cache from main build)..."
-          docker buildx build --progress=plain \
-            --build-arg USE_SCCACHE="${USE_SCCACHE:-0}" \
-            --target wheel-export \
-            --output "type=local,dest=/tmp/vllm-wheels" \
-            -f docker/vllm/Dockerfile.amzn2023 .
 
       - name: Upload vLLM wheel to cache
         if: success() && steps.wheel-cache.outputs.hit != 'true'

@@ -124,7 +124,24 @@ fi
 # Ensure default docker builder is used
 docker buildx use default 2>/dev/null || true
 
-# Execute build
+# Optional: export intermediate stages before the main build (e.g., wheel-export)
+# Set EXPORT_TARGETS="target1:dest1,target2:dest2" to enable
+if [[ -n "${EXPORT_TARGETS:-}" ]]; then
+  IFS=',' read -ra EXPORTS <<< "${EXPORT_TARGETS}"
+  for EXPORT in "${EXPORTS[@]}"; do
+    EXPORT_TARGET="${EXPORT%%:*}"
+    EXPORT_DEST="${EXPORT##*:}"
+    echo "Exporting stage '${EXPORT_TARGET}' to ${EXPORT_DEST}..."
+    eval ${BUILD_CMD} \
+      --target "${EXPORT_TARGET}" \
+      --output "type=local,dest=${EXPORT_DEST}" \
+      -f ${DOCKERFILE_PATH} . \
+      && echo "✅ Exported ${EXPORT_TARGET}" \
+      || echo "⚠️  Failed to export ${EXPORT_TARGET} (non-fatal)"
+  done
+fi
+
+# Execute build (reuses layer cache from exports above)
 echo "Executing build command..."
 eval ${BUILD_CMD} \
   --cache-to=type=inline \
