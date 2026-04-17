@@ -152,20 +152,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Test RUN --network=host entitlement
-        continue-on-error: true
-        run: |
-          echo "=== Restart buildkitd to pick up entitlement config ==="
-          sudo systemctl restart buildkitd 2>/dev/null || true
-          sleep 2
-          sudo cat /etc/buildkit/buildkitd.toml 2>/dev/null || echo "no config"
-          echo "=== Test IMDS with default builder ==="
-          docker buildx build --progress=plain --no-cache --allow network.host \
-            -f - . <<'EOF'
-          FROM amazonlinux:2023
-          RUN --network=host curl -sf -m 2 http://169.254.169.254/latest/meta-data/iam/ && echo "IMDS reachable" || echo "IMDS NOT reachable"
-          EOF
-
       - name: Fetch cached vLLM wheel
         id: wheel-cache
         run: |
