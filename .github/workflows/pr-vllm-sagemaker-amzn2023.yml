@@ -52,6 +52,7 @@ jobs:
     outputs:
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
+      vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
       python-version: ${{ steps.parse.outputs.python-version }}
       cuda-version: ${{ steps.parse.outputs.cuda-version }}
       os-version: ${{ steps.parse.outputs.os-version }}
@@ -77,6 +78,7 @@ jobs:
           echo '${{ steps.load.outputs.config }}' > config.json
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
@@ -161,7 +163,7 @@ jobs:
         run: |
           OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            v${{ needs.load-config.outputs.framework-version }})
+            ${{ needs.load-config.outputs.vllm-ref }})
           echo "$OUTPUT"
           HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
           echo "hit=${HIT}" >> $GITHUB_OUTPUT
@@ -203,7 +205,7 @@ jobs:
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            v${{ needs.load-config.outputs.framework-version }}
+            ${{ needs.load-config.outputs.vllm-ref }}
 
       - name: Sync sccache cache to S3
         if: success() && steps.wheel-cache.outputs.hit != 'true'

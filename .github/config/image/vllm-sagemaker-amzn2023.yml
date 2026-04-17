@@ -5,6 +5,7 @@ image:
 common:
   framework: "vllm"
   framework_version: "0.18.0"
+  vllm_ref: "v0.18.0"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
