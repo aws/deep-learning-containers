@@ -13,8 +13,7 @@ import time
 import boto3
 import pytest
 from sagemaker.train import ModelTrainer
-from sagemaker.train.configs import Compute, InputData
-from sagemaker.train.configs import StoppingCondition, OutputDataConfig
+from sagemaker.train.configs import Compute, InputData, OutputDataConfig, StoppingCondition
 from test_utils import random_suffix_name
 
 LOGGER = logging.getLogger(__name__)

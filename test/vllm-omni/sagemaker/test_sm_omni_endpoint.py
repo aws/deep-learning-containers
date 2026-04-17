@@ -146,7 +146,6 @@ def async_endpoint(aws_session, model_package, instance_type):
         LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
         # For async inference in V3, use boto3 directly to create the async endpoint config
         # since ModelBuilder.deploy() handles standard real-time endpoints
-        sm = aws_session.sagemaker
 
         # First build the model
         endpoint = builder.deploy(

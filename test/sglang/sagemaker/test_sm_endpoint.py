@@ -113,14 +113,16 @@ def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
     endpoint, endpoint_name = model_endpoint
 
     prompt = "Write a python script to calculate square of n"
-    payload = json.dumps({
-        "model": model_id,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 2400,
-        "temperature": 0.01,
-        "top_p": 0.9,
-        "top_k": 50,
-    })
+    payload = json.dumps(
+        {
+            "model": model_id,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 2400,
+            "temperature": 0.01,
+            "top_p": 0.9,
+            "top_k": 50,
+        }
+    )
     LOGGER.debug(f"Sending inference request with payload: {pformat(payload)}")
 
     response = endpoint.invoke_endpoint(

@@ -8,13 +8,17 @@ import time
 
 import boto3
 import pytest
-from sagemaker.train import ModelTrainer
-from sagemaker.train.configs import Compute, InputData
-from sagemaker.train.configs import StoppingCondition, OutputDataConfig, Networking
-from sagemaker.train.configs import CheckpointConfig
 from sagemaker.serve import ModelBuilder
 from sagemaker.serve.configs import InferenceSpec
-from sagemaker.core.resources import TransformJob
+from sagemaker.train import ModelTrainer
+from sagemaker.train.configs import (
+    CheckpointConfig,
+    Compute,
+    InputData,
+    Networking,
+    OutputDataConfig,
+    StoppingCondition,
+)
 from test_utils import random_suffix_name
 
 LOGGER = logging.getLogger(__name__)
