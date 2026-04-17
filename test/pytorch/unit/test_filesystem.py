@@ -19,6 +19,8 @@ EFA_BINARIES = [
 
 @pytest.mark.parametrize("path", SAGEMAKER_PATHS)
 def test_sagemaker_path_exists(path):
+    if not os.path.isdir("/opt/ml"):
+        pytest.skip("SageMaker paths only exist in sagemaker image")
     assert os.path.isdir(path), f"{path} does not exist"
 
 

@@ -227,8 +227,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
-WORKDIR /tmp/build
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
   && rm -rf /tmp/build /tmp/uv-*
 
 # SageMaker hostname workaround — NCCL/MPI need correct hostname for multi-node
