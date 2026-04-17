@@ -82,6 +82,12 @@ if [[ -n "${USE_SCCACHE:-}" ]]; then
   --build-arg USE_SCCACHE=\"${USE_SCCACHE}\""
 fi
 
+# Control prebuilt wheel usage (default 1 in Dockerfile)
+if [[ -n "${USE_PREBUILT_WHEEL:-}" ]]; then
+  BUILD_CMD="${BUILD_CMD} \
+  --build-arg USE_PREBUILT_WHEEL=\"${USE_PREBUILT_WHEEL}\""
+fi
+
 # Add SageMaker labels if customer-type is 'sagemaker'
 if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
   BUILD_CMD="${BUILD_CMD} \
