@@ -99,46 +99,10 @@ jobs:
           echo "base-image=$(jq -r '.common.base_image // "nvidia/cuda:12.9.1-devel-amzn2023"' config.json)" >> $GITHUB_OUTPUT
 
   # ============================================================
-  # Build runtime base (shared by both images)
-  # ============================================================
-  build-runtime:
-    needs: [load-config-ec2]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
-        buildspec-override:true
-    timeout-minutes: 720
-    outputs:
-      runtime-base: ${{ steps.check.outputs.image }}
-    steps:
-      - uses: actions/checkout@v5
-      - run: .github/scripts/buildkitd.sh
-      - uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-      - name: Check or build runtime base
-        id: check
-        run: |
-          TAG="vllm-runtime-v${{ needs.load-config-ec2.outputs.framework-version }}-${{ needs.load-config-ec2.outputs.cuda-version }}-${{ needs.load-config-ec2.outputs.python-version }}"
-          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${TAG}"
-          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
-          if docker manifest inspect "${IMAGE}" >/dev/null 2>&1; then
-            echo "Runtime base exists: ${IMAGE}"
-            exit 0
-          fi
-          echo "Building runtime base: ${IMAGE}"
-          docker buildx build --progress plain \
-            --target runtime-build \
-            --tag "${IMAGE}" \
-            --push \
-            -f docker/vllm/Dockerfile.amzn2023 .
-
-  # ============================================================
   # Build images
   # ============================================================
   build-ec2:
-    needs: [load-config-ec2, build-runtime]
+    needs: [load-config-ec2]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-vllm-build-runner
@@ -147,10 +111,35 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-build-ec2-${{ github.run_id }}
       cancel-in-progress: true
+    env:
+      USE_SCCACHE: "1"
+      USE_PREBUILT_WHEEL: "1"
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - uses: actions/checkout@v5
+
+      - name: Fetch cached vLLM wheel
+        id: wheel-cache
+        run: |
+          OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+            ${{ needs.load-config-ec2.outputs.cuda-version }} \
+            v${{ needs.load-config-ec2.outputs.framework-version }})
+          echo "$OUTPUT"
+          HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
+          echo "hit=${HIT}" >> $GITHUB_OUTPUT
+          if [ "${HIT}" != "true" ]; then
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
+          fi
+
+      - name: Sync sccache cache from S3
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
+
+      - name: Prepare build context
+        run: |
+          mkdir -p docker/vllm/prebuilt_wheels
+          mkdir -p docker/vllm/sccache-cache
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -171,10 +160,20 @@ jobs:
           os-version: ${{ needs.load-config-ec2.outputs.os-version }}
           contributor: ${{ needs.load-config-ec2.outputs.contributor }}
           customer-type: ${{ needs.load-config-ec2.outputs.customer-type }}
-          runtime-base: ${{ needs.build-runtime.outputs.runtime-base }}
+
+      - name: Upload vLLM wheel to cache
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: |
+          bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
+            ${{ needs.load-config-ec2.outputs.cuda-version }} \
+            v${{ needs.load-config-ec2.outputs.framework-version }}
+
+      - name: Sync sccache cache to S3
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
 
   build-sagemaker:
-    needs: [load-config-sagemaker, build-runtime]
+    needs: [load-config-sagemaker]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-vllm-build-runner
@@ -183,10 +182,35 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-build-sagemaker-${{ github.run_id }}
       cancel-in-progress: true
+    env:
+      USE_SCCACHE: "1"
+      USE_PREBUILT_WHEEL: "1"
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - uses: actions/checkout@v5
+
+      - name: Fetch cached vLLM wheel
+        id: wheel-cache
+        run: |
+          OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+            ${{ needs.load-config-sagemaker.outputs.cuda-version }} \
+            v${{ needs.load-config-sagemaker.outputs.framework-version }})
+          echo "$OUTPUT"
+          HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
+          echo "hit=${HIT}" >> $GITHUB_OUTPUT
+          if [ "${HIT}" != "true" ]; then
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
+          fi
+
+      - name: Sync sccache cache from S3
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
+
+      - name: Prepare build context
+        run: |
+          mkdir -p docker/vllm/prebuilt_wheels
+          mkdir -p docker/vllm/sccache-cache
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -207,7 +231,17 @@ jobs:
           os-version: ${{ needs.load-config-sagemaker.outputs.os-version }}
           contributor: ${{ needs.load-config-sagemaker.outputs.contributor }}
           customer-type: ${{ needs.load-config-sagemaker.outputs.customer-type }}
-          runtime-base: ${{ needs.build-runtime.outputs.runtime-base }}
+
+      - name: Upload vLLM wheel to cache
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: |
+          bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
+            ${{ needs.load-config-sagemaker.outputs.cuda-version }} \
+            v${{ needs.load-config-sagemaker.outputs.framework-version }}
+
+      - name: Sync sccache cache to S3
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
 
   # ============================================================
   # Sanity tests
