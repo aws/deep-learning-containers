@@ -124,22 +124,8 @@ fi
 # Ensure default docker builder is used
 docker buildx use default 2>/dev/null || true
 
-# Step 1: Extract wheel from build stage (skip if prebuilt wheel already exists)
-WHEEL_DIR="/tmp/${FRAMEWORK}-wheels"
-if ls docker/${FRAMEWORK}/prebuilt_wheels/*.whl >/dev/null 2>&1; then
-  echo "Step 1: Skipped — prebuilt wheel found"
-else
-  echo "Step 1: Extracting wheel from build stage..."
-  eval ${BUILD_CMD} \
-    --target wheel-export \
-    --output "type=local,dest=${WHEEL_DIR}" \
-    -f ${DOCKERFILE_PATH} . \
-    && echo "Wheels extracted: $(ls ${WHEEL_DIR}/wheels/*.whl 2>/dev/null)" \
-    || echo "No wheel-export target — skipping wheel extraction"
-fi
-
-# Step 2: Build and push final image (build stage is cached from step 1)
-echo "Step 2: Building and pushing final image..."
+# Execute build
+echo "Executing build command..."
 eval ${BUILD_CMD} \
   --cache-to=type=inline \
   --cache-from=type=registry,ref=${CI_IMAGE_URI} \

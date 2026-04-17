@@ -182,6 +182,16 @@ jobs:
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
+      - name: Extract vLLM wheel from build
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: |
+          echo "Extracting wheel from wheel-export stage (layer cache from main build)..."
+          docker buildx build --progress=plain \
+            --build-arg USE_SCCACHE="${USE_SCCACHE:-0}" \
+            --target wheel-export \
+            --output "type=local,dest=/tmp/vllm-wheels" \
+            -f docker/vllm/Dockerfile.amzn2023 .
+
       - name: Upload vLLM wheel to cache
         if: success() && steps.wheel-cache.outputs.hit != 'true'
         run: |
