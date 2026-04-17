@@ -86,6 +86,9 @@ cat <<EOF > "$TMP_CONFIG"
   gc = true
   root = "$BUILD_ROOT"
 
+[entitlements]
+  network-host = true
+
 [gc]
   enabled = true
   defaultKeepStorage = "$KEEP_HUMAN"
