@@ -29,6 +29,7 @@ def _run_sm_training(
     instance_type,
     instance_count,
     hyperparameters=None,
+    environment=None,
     job_name_prefix="pt-sm-test",
 ):
     """Launch a SageMaker training job using ModelTrainer (SDK v3) and wait for completion."""
@@ -49,6 +50,7 @@ def _run_sm_training(
         role=os.environ.get("SM_ROLE_ARN"),  # Full ARN passed from workflow
         base_job_name=random_suffix_name(job_name_prefix, 32),
         hyperparameters=hyperparameters or {},
+        environment=environment or {},
         distributed=Torchrun() if instance_count > 1 else None,
     )
 
@@ -73,6 +75,7 @@ def test_mnist_distributed_gpu():
         instance_type=INSTANCE_TYPE,
         instance_count=2,
         hyperparameters={"backend": "nccl", "epochs": "1"},
+        environment={"FI_EFA_FORK_SAFE": "1"},
         job_name_prefix="pt-mnist-nccl",
     )
 
@@ -86,5 +89,6 @@ def test_dist_operations_gpu():
         instance_type=INSTANCE_TYPE,
         instance_count=2,
         hyperparameters={"backend": "nccl"},
+        environment={"FI_EFA_FORK_SAFE": "1"},
         job_name_prefix="pt-dist-ops",
     )

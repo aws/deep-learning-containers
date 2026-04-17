@@ -41,66 +41,66 @@ There are 7 functionalities at 3 priority levels. "SM training job launch" is no
 
 ### test_mnist.py — 6 test cases
 
-| Test                                  | F1  | F2  | F3  | F4  | F5  | F6  |
-| ------------------------------------- | --- | --- | --- | --- | --- | --- |
-| `test_mnist_distributed_cpu[gloo]`    | ✅  |     | ✅  |     |     |     |
-| `test_mnist_distributed_gpu[gloo]`    | ✅  |     | ✅  |     |     |     |
-| `test_mnist_distributed_gpu[nccl]`    | ✅  | ✅  |     |     |     |     |
-| `test_hc_mnist_distributed_cpu[gloo]` | ✅  |     | ✅  |     |     | ✅  |
-| `test_hc_mnist_distributed_gpu[gloo]` | ✅  |     | ✅  |     |     | ✅  |
-| `test_hc_mnist_distributed_gpu[nccl]` | ✅  | ✅  |     |     |     | ✅  |
+| Test                                  | F1  | F2  | F6  | F7  |
+| ------------------------------------- | --- | --- | --- | --- |
+| `test_mnist_distributed_cpu[gloo]`    | ✅  |     |     |     |
+| `test_mnist_distributed_gpu[gloo]`    | ✅  |     |     |     |
+| `test_mnist_distributed_gpu[nccl]`    | ✅  | ✅  |     |     |
+| `test_hc_mnist_distributed_cpu[gloo]` | ✅  |     |     | ✅  |
+| `test_hc_mnist_distributed_gpu[gloo]` | ✅  |     |     | ✅  |
+| `test_hc_mnist_distributed_gpu[nccl]` | ✅  | ✅  |     | ✅  |
 
 ### test_mnist_inductor.py — 6 test cases
 
-| Test                                  | F1  | F2  | F3  | F4  | F5  | F6  |
-| ------------------------------------- | --- | --- | --- | --- | --- | --- |
-| `test_mnist_distributed_cpu[gloo]`    | ✅  |     | ✅  | ✅  |     |     |
-| `test_mnist_distributed_gpu[gloo]`    | ✅  |     | ✅  | ✅  |     |     |
-| `test_mnist_distributed_gpu[nccl]`    | ✅  | ✅  |     | ✅  |     |     |
-| `test_hc_mnist_distributed_cpu[gloo]` | ✅  |     | ✅  | ✅  |     | ✅  |
-| `test_hc_mnist_distributed_gpu[gloo]` | ✅  |     | ✅  | ✅  |     | ✅  |
-| `test_hc_mnist_distributed_gpu[nccl]` | ✅  | ✅  |     | ✅  |     | ✅  |
+| Test                                  | F1  | F2  | F6  | F7  |
+| ------------------------------------- | --- | --- | --- | --- |
+| `test_mnist_distributed_cpu[gloo]`    | ✅  |     | ✅  |     |
+| `test_mnist_distributed_gpu[gloo]`    | ✅  |     | ✅  |     |
+| `test_mnist_distributed_gpu[nccl]`    | ✅  | ✅  | ✅  |     |
+| `test_hc_mnist_distributed_cpu[gloo]` | ✅  |     | ✅  | ✅  |
+| `test_hc_mnist_distributed_gpu[gloo]` | ✅  |     | ✅  | ✅  |
+| `test_hc_mnist_distributed_gpu[nccl]` | ✅  | ✅  | ✅  | ✅  |
 
 ### test_distributed_operations.py — 11 test cases
 
-| Test                                   | F1  | F2  | F3  | F4  | F5  | F6  | Deprecated |
-| -------------------------------------- | --- | --- | --- | --- | --- | --- | ---------- |
-| `test_dist_operations_cpu[gloo]`       | ✅  |     | ✅  |     | ✅  |     |            |
-| `test_dist_operations_gpu[gloo]`       | ✅  |     | ✅  |     | ✅  |     |            |
-| `test_dist_operations_gpu[nccl]`       | ✅  | ✅  |     |     | ✅  |     |            |
-| `test_dist_operations_multi_gpu[gloo]` | ✅  |     | ✅  |     | ✅  |     |            |
-| `test_dist_operations_multi_gpu[nccl]` | ✅  | ✅  |     |     | ✅  |     |            |
-| `test_dist_operations_fastai_gpu`      |     |     |     |     |     |     | D2         |
-| `test_smmodelparallel_*` (6 tests)     |     |     |     |     |     |     | D1         |
-| `test_sanity_efa`                      | ✅  |     |     |     |     |     | F7         |
+| Test                                   | F1  | F2  |     | Deprecated |
+| -------------------------------------- | --- | --- | --- | ---------- |
+| `test_dist_operations_cpu[gloo]`       | ✅  | ✅  |     |            |
+| `test_dist_operations_gpu[gloo]`       | ✅  | ✅  |     |            |
+| `test_dist_operations_gpu[nccl]`       | ✅  | ✅  |     |            |
+| `test_dist_operations_multi_gpu[gloo]` | ✅  | ✅  |     |            |
+| `test_dist_operations_multi_gpu[nccl]` | ✅  | ✅  |     |            |
+| `test_dist_operations_fastai_gpu`      | ✅  | ✅  | F5  |            |
+| `test_smmodelparallel_*` (6 tests)     |     |     |     | D1         |
+| `test_sanity_efa`                      |     |     | F3  |            |
 
 ### test_torch_distributed.py — 1 test
 
-| Test                                    | F1  | F2  | F3  | F4  | F5  | F6  |
-| --------------------------------------- | --- | --- | --- | --- | --- | --- |
-| `test_torch_distributed_throughput_gpu` | ✅  | ✅  |     |     |     |     |
+| Test                                    | F1  | F2  |
+| --------------------------------------- | --- | --- |
+| `test_torch_distributed_throughput_gpu` | ✅  | ✅  |
 
 ### test_torch_distributed_inductor.py — 1 test
 
-| Test                                    | F1  | F2  | F3  | F4  | F5  | F6  |
-| --------------------------------------- | --- | --- | --- | --- | --- | --- |
-| `test_torch_distributed_throughput_gpu` | ✅  | ✅  |     | ✅  |     |     |
+| Test                                    | F1  | F2  | F6  |
+| --------------------------------------- | --- | --- | --- |
+| `test_torch_distributed_throughput_gpu` | ✅  | ✅  | ✅  |
 
 ### test_gdrcopy.py — 1 test
 
-| Test                  | F1  | F7  | F8  |
-| --------------------- | --- | --- | --- |
-| `test_sanity_gdrcopy` | ✅  |     | ✅  |
+| Test                  | F4  |
+| --------------------- | --- |
+| `test_sanity_gdrcopy` | ✅  |
 
 ## Summary
 
-- **36 total tests** covering **8 functionalities** at 3 priority levels
+- **36 total tests** covering **7 functionalities** at 3 priority levels
 - **6 tests** are for deprecated features (D1: SMP) → remove
 - **30 remaining tests** have heavy overlap — most functionalities are tested 3-6× across CPU/GPU, gloo/nccl, regular/HC, with/without inductor
 
 ## Minimum tests needed per functionality
 
-F5 (inductor) is covered by EC2 single-GPU tests. F6/F7/F8 are low value for SM-specific testing.
+F6 (inductor) is covered by EC2 single-GPU tests. F7 (HC) is low value for SM-specific testing.
 
 | Priority | Functionality                    | Min tests | Covered by                         |
 | -------- | -------------------------------- | --------- | ---------------------------------- |
@@ -116,18 +116,19 @@ F5 (inductor) is covered by EC2 single-GPU tests. F6/F7/F8 are low value for SM-
 
 Run 2 tests:
 
-| Test                               | F1  | F2  | F3  | F4  | F5  | F6  | F7  | F8  |
-| ---------------------------------- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `test_mnist_distributed_gpu[nccl]` | ✅  |     |     |     |     |     |     |     |
-| `test_dist_operations_gpu[nccl]`   | ✅  | ✅  |     |     |     |     |     |     |
+| Test                               | F1  | F2  |
+| ---------------------------------- | --- | --- |
+| `test_mnist_distributed_gpu[nccl]` | ✅  |     |
+| `test_dist_operations_gpu[nccl]`   | ✅  | ✅  |
 
-Covers: F1 (distributed nccl training) + F2 (torch.distributed primitives) = 2/8 functionalities directly tested in SM.
+Covers: F1 (distributed nccl training) + F2 (torch.distributed primitives) = 2/7 functionalities directly tested in SM.
 
 Remaining functionalities:
 
-- F3/F4 (EFA, GDRCopy): add later when p4d quota is available — nice to have
-- F5 (inductor): covered by EC2 single-GPU tests
-- F6 (gloo), F7 (HC), F8 (fastai): low value for SM-specific testing
+- F3/F4 (EFA, GDRCopy): add later when p4d quota is available
+- F5 (fastai): add later as follow-up
+- F6 (inductor): covered by EC2 single-GPU tests
+- F7 (HC): low value for SM-specific testing
 
 **36 tests → 2 tests. All P0 functionality covered.**
 
