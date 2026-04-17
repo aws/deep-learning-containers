@@ -174,7 +174,7 @@ jobs:
           fi
 
       - name: Sync sccache cache from S3
-        run: bash scripts/common/sync_sccache.sh pull vllm
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
 
       - name: Build image
         id: build
@@ -207,7 +207,7 @@ jobs:
 
       - name: Sync sccache cache to S3
         if: success() && steps.wheel-cache.outputs.hit != 'true'
-        run: bash scripts/common/sync_sccache.sh push vllm
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
 
 
   sanity-test:
