@@ -157,18 +157,19 @@ jobs:
         run: |
           echo "=== Check buildkitd config ==="
           sudo cat /etc/buildkit/buildkitd.toml 2>/dev/null || echo "no config"
+          echo "=== Restart buildkitd with entitlement ==="
+          sudo systemctl restart buildkitd || true
+          sleep 3
+          echo "=== Create builder using remote buildkitd ==="
+          docker buildx create --name host-network-test --driver remote unix:///run/buildkit/buildkitd.sock 2>/dev/null || true
+          docker buildx use host-network-test
           echo "=== Test IMDS reachability ==="
           docker buildx build --progress=plain --allow network.host \
             -f - . <<'EOF'
           FROM amazonlinux:2023
           RUN --network=host curl -sf -m 2 http://169.254.169.254/latest/meta-data/iam/ && echo "IMDS reachable" || echo "IMDS NOT reachable"
           EOF
-          echo "=== Test aws s3 ==="
-          docker buildx build --progress=plain --allow network.host \
-            -f - . <<'EOF'
-          FROM amazonlinux:2023
-          RUN --network=host dnf install -y awscli-2 && aws s3 ls s3://dlc-cicd-wheels/sccache/ --region us-west-2 && echo "S3 works"
-          EOF
+          docker buildx use default
 
       - name: Fetch cached vLLM wheel
         id: wheel-cache
