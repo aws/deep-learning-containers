@@ -1,4 +1,4 @@
-"""Verify SSH configuration for base and EKS images."""
+"""Verify SSH configuration."""
 
 import os
 
@@ -20,7 +20,6 @@ def test_sshd_port_22():
     """Port 22 must be the effective port (sshd default, not overridden)."""
     with open("/etc/ssh/sshd_config") as f:
         content = f.read()
-    # Ensure EKS override hasn't leaked into the base image
     assert "Port 2222" not in content
 
 

@@ -76,7 +76,7 @@ jobs:
               - "test/pytorch/**"
 
   # ============================================================
-  # Build base + eks images
+  # Build runtime image
   # ============================================================
   build-images:
     needs: [check-changes]
@@ -90,7 +90,6 @@ jobs:
       cancel-in-progress: true
     outputs:
       runtime-image-uri: ${{ steps.build-runtime.outputs.image-uri }}
-      runtime-eks-image-uri: ${{ steps.build-runtime-eks.outputs.image-uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -161,32 +160,6 @@ jobs:
             "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
         continue-on-error: true
 
-      - name: Build runtime-eks image
-        id: build-runtime-eks
-        run: |
-          source docker/pytorch/versions.env
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-eks-pr-${{ github.event.pull_request.number }}"
-
-          docker buildx build --progress plain \
-            --build-arg CUDA_VERSION=${CUDA_VERSION} \
-            --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
-            --build-arg TORCH_VERSION=${TORCH_VERSION} \
-            --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
-            --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
-            --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
-            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
-            --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
-            --build-arg EFA_VERSION=${EFA_VERSION} \
-            --build-arg MAX_JOBS=${MAX_JOBS} \
-            --cache-to=type=inline \
-            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-            --tag ${CI_IMAGE_URI} \
-            --push \
-            --target runtime-eks \
-            -f docker/pytorch/Dockerfile .
-
-          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
-
   # ============================================================
   # Sanity tests (labels, filesystem, OSS compliance)
   # ============================================================
@@ -245,7 +218,7 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Run unit tests (base image)
+      - name: Run unit tests
         run: |
           IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
           docker pull ${IMAGE}
@@ -254,20 +227,7 @@ jobs:
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
-          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v \
-            --ignore=/workdir/test/pytorch/unit/test_eks.py
-          docker kill ${CONTAINER_ID}
-
-      - name: Run unit tests (EKS image)
-        run: |
-          IMAGE="${{ needs.build-images.outputs.runtime-eks-image-uri }}"
-          docker pull ${IMAGE}
-          CONTAINER_ID=$(docker run -d --rm --user 1000:1000 --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir \
-            -v $(pwd):/workdir --workdir /workdir \
-            ${IMAGE} -c 'sleep infinity')
-          docker exec ${CONTAINER_ID} pip install pytest -q
-          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/test_eks.py -v
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v
           docker kill ${CONTAINER_ID}
 
   # ============================================================
