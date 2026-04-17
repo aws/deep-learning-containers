@@ -176,6 +176,11 @@ jobs:
       - name: Sync sccache cache from S3
         run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
 
+      - name: Prepare build context
+        run: |
+          mkdir -p docker/vllm/prebuilt_wheels
+          mkdir -p docker/vllm/sccache-cache
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image

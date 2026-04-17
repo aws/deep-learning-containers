@@ -20,8 +20,3 @@ docs/releasenotes/*/
 docs/reference/available_images.md
 docs/reference/support_policy.md
 .sisyphus/
-
-# Pre-built wheels and sccache cache (synced from S3 at build time, not committed)
-docker/vllm/prebuilt_wheels/*.whl
-docker/vllm/sccache-cache/*
-!docker/vllm/sccache-cache/.gitkeep
