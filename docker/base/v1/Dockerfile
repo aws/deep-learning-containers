@@ -56,7 +56,7 @@ ENV UV_PROJECT_ENVIRONMENT=/usr/local
 COPY ./docker/base/v1/pyproject.toml ./docker/base/v1/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
-  && rm -rf /tmp/deps
+  && rm -rf /tmp/deps /tmp/uv-*.lock
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
@@ -112,7 +112,7 @@ ENV UV_PROJECT_ENVIRONMENT=/usr/local
 COPY ./docker/base/v1/pyproject.toml ./docker/base/v1/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
-  && rm -rf /tmp/deps
+  && rm -rf /tmp/deps /tmp/uv-*.lock
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
