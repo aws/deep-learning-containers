@@ -49,11 +49,16 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
+  # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./docker/base/v2/requirements.lock /tmp/requirements.lock
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock \
-  && rm /tmp/requirements.lock
+COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
+COPY ./docker/base/v2/pyproject.toml ./docker/base/v2/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project \
+  && rm -rf /tmp/deps /tmp/uv-*.lock
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
@@ -102,11 +107,16 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   curl automake autoconf cmake gcc gcc-c++ git make tar \
   && dnf upgrade -y --security --releasever latest \
+  # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./docker/base/v2/requirements.lock /tmp/requirements.lock
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock \
-  && rm /tmp/requirements.lock
+COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
+COPY ./docker/base/v2/pyproject.toml ./docker/base/v2/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project \
+  && rm -rf /tmp/deps /tmp/uv-*.lock
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
