@@ -1,0 +1,32 @@
+# Base v1 runtime (CUDA 12.9.1, amzn2023) Image Configuration
+# This file contains all configuration for building, testing, and releasing the base-v1 runtime image
+
+# Image identification
+image:
+  name: "base-v1-runtime"
+  description: "Base v1 runtime GPU image with CUDA 12.9.1 and Python on amzn2023"
+
+# Build configuration
+common:
+  framework: "base_dlc"
+  framework_version: "12.9.1"
+  job_type: "general"
+  python_version: "py313"
+  cuda_version: "cu129"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  container_type: "runtime-cuda"
+  build_target: "runtime"
+  ci_tag: "cuda129-runtime-amzn2023"
+  device_type: "gpu"
+  contributor: "None"
+
+# Release configuration
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: gamma # gamma or production
