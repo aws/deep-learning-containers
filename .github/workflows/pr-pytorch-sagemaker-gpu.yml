@@ -334,4 +334,4 @@ jobs:
           TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
         run: |
-          pytest test/pytorch/integration/sagemaker/test_sm_training.py -v
+          pytest test/pytorch/integration/sagemaker/test_sm_training_gpu.py -v
