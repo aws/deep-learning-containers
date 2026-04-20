@@ -190,7 +190,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc
 
 # Security patch — run after all installers so every OS package is covered
-RUN dnf upgrade -y --security --releasever latest && dnf clean all
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
 
 # OSS compliance (runs in isolated stage to avoid polluting the venv)
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
@@ -250,7 +252,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc
 
 # Security patch
-RUN dnf upgrade -y --security --releasever latest && dnf clean all
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
 
 # OSS compliance
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
