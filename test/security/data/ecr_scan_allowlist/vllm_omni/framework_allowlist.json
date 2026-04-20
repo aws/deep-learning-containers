@@ -146,5 +146,13 @@
     {
         "vulnerability_id": "CVE-2026-32281",
         "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
     }
 ]
