@@ -73,7 +73,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip curl wget which findutils \
-  util-linux gcc gcc-c++ make openssh-server openssh-clients \
+  util-linux gcc gcc-c++ make perl openssh-server openssh-clients \
   && dnf clean all
 
 # Python venv

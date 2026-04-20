@@ -6,10 +6,11 @@ import subprocess
 
 import pytest
 
-# The workflow sets DLC_WORKDIR to the repo root inside the container.
-VERSIONS_ENV = os.path.join(
-    os.environ.get("DLC_WORKDIR", "/workdir"), "docker", "pytorch", "versions.env"
-)
+# Detect GPU vs CPU image by checking for CUDA, then pick the right versions file.
+_WORKDIR = os.environ.get("DLC_WORKDIR", "/workdir")
+_IS_GPU = os.path.isdir("/usr/local/cuda")
+_VERSIONS_FILE = "versions-gpu.env" if _IS_GPU else "versions-cpu.env"
+VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "pytorch", _VERSIONS_FILE)
 
 
 def _parse_versions_env():
