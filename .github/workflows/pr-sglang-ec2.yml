@@ -5,9 +5,20 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - "**sglang**"
+      - ".github/config/image/sglang-ec2.yml"
+      - ".github/config/model-tests/sglang-model-tests.yml"
+      - ".github/workflows/pr-sglang-ec2.yml"
+      - ".github/workflows/reusable-sglang-model-tests.yml"
+      - ".github/workflows/reusable-sglang-upstream-tests.yml"
+      - "docker/sglang/Dockerfile"
+      - "scripts/common/**"
+      - "scripts/sglang/**"
+      - "scripts/telemetry/**"
+      - "test/sanity/**"
+      - "test/sglang/**"
+      - "test/telemetry/**"
       - "!docs/**"
-      - "!**amzn2023**"
+      - "!docker/sglang/Dockerfile.amzn2023"
 
 permissions:
   contents: read
@@ -105,15 +116,18 @@ jobs:
 
       - name: Detect file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             build-change:
-              - "docker/sglang/**"
-              - "scripts/sglang/**"
-              - "scripts/common/**"
-              - "scripts/telemetry/bash_telemetry.sh.template"
               - ".github/config/image/sglang-ec2.yml"
+              - "docker/sglang/Dockerfile"
+              - "scripts/common/install_efa.sh"
+              - "scripts/common/start_cuda_compat.sh"
+              - "scripts/telemetry/bash_telemetry.sh.template"
+              - "scripts/telemetry/deep_learning_container.py"
+              - "scripts/sglang/*"
+              - "test/sglang/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
