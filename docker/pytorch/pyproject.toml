@@ -7,11 +7,31 @@ dependencies = [
     "torchvision==0.26.0",
     "torchaudio==2.11.0",
     "deepspeed==0.18.8",
+    "fastai",
     "boto3",
     "botocore",
     "pyyaml",
     "requests",
     "packaging",
+]
+
+[project.optional-dependencies]
+sagemaker = [
+    "smclarify",
+    "sagemaker>=3.4.0",
+    "sagemaker-pytorch-training",
+    "sagemaker-training",
+    "mlflow>=3.9.0",
+    "bokeh",
+    "imageio",
+    "numba",
+    "pandas",
+    "plotly",
+    "shap",
+    "scikit-learn",
+    "seaborn",
+    "cloudpickle",
+    "s3fs>=2026.2.0",
 ]
 
 [tool.uv]
