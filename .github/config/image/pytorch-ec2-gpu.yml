@@ -1,6 +1,6 @@
 image:
-  name: "pytorch-ec2"
-  description: "PyTorch training for EC2 instances"
+  name: "pytorch-ec2-gpu"
+  description: "PyTorch GPU training for EC2 instances"
 common:
   framework: "pytorch"
   framework_version: "2.11.0"

@@ -119,11 +119,13 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc
+  && rm /tmp/bash_telemetry.sh.template
 
 # Security patch
 RUN dnf upgrade -y --security --releasever latest && dnf clean all
+
+# Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # OSS compliance
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
@@ -178,11 +180,13 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc
+  && rm /tmp/bash_telemetry.sh.template
 
 # Security patch
 RUN dnf upgrade -y --security --releasever latest && dnf clean all
+
+# Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # OSS compliance
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
