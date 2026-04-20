@@ -192,6 +192,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 # Security patch — run after all installers so every OS package is covered
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest \
+  && dnf update -y --releasever latest cuda-compat-* \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/*
 
 # OSS compliance (runs in isolated stage to avoid polluting the venv)
@@ -254,6 +255,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 # Security patch
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest \
+  && dnf update -y --releasever latest cuda-compat-* \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/*
 
 # OSS compliance
