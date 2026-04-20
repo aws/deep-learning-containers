@@ -1,0 +1,205 @@
+# ============================================================================
+# PyTorch DLC — Amazon Linux 2023 (CPU)
+# Multi-stage build:
+#
+#   builder-base ── builder-oss (OSS license generation)
+#
+#   runtime-base ──┬── runtime      (EC2 / ECS)
+#                  └── sagemaker    (SageMaker Training)
+#
+# All version defaults match versions-cpu.env. Workflows pass --build-arg after
+# sourcing versions-cpu.env so there is a single source of truth.
+# ============================================================================
+
+# ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+ARG PYTHON_VERSION=3.12
+ARG TORCH_VERSION=2.11.0
+ARG OPEN_MPI_VERSION=4.1.7
+
+
+# ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
+FROM amazonlinux:2023 AS builder-base
+ARG PYTHON_VERSION
+
+RUN dnf install -y --allowerasing \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  gcc gcc-c++ make cmake git openssl-devel ninja-build \
+  tar xz curl wget \
+  && dnf clean all
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+COPY docker/pytorch/cpu/pyproject.toml docker/pytorch/cpu/uv.lock /tmp/build/
+WORKDIR /tmp/build
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
+
+
+# ── Stage: builder-oss (generates license files) ────────────────────────────
+FROM amazonlinux:2023 AS builder-oss
+ARG PYTHON_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=builder-base /opt/venv /opt/venv
+COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+
+# ── Stage: runtime-base (shared base for all output stages) ─────────────────
+FROM amazonlinux:2023 AS runtime-base
+ARG PYTHON_VERSION
+ARG TORCH_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+ARG OPEN_MPI_VERSION
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+LABEL framework="pytorch"
+LABEL framework_version="${TORCH_VERSION}"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=training
+
+RUN dnf install -y --allowerasing \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip curl wget which findutils \
+  util-linux gcc gcc-c++ make openssh-server openssh-clients \
+  && dnf clean all
+
+# Python venv
+COPY --from=builder-base /opt/venv /opt/venv
+
+# OpenMPI (built from source — no EFA dependency for CPU)
+RUN cd /tmp \
+  && wget -q "https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-${OPEN_MPI_VERSION}.tar.gz" \
+  && tar xf "openmpi-${OPEN_MPI_VERSION}.tar.gz" \
+  && cd "openmpi-${OPEN_MPI_VERSION}" \
+  && ./configure --prefix=/opt/amazon/openmpi --quiet \
+  && make -j "$(nproc)" --quiet \
+  && make install --quiet \
+  && cd / && rm -rf /tmp/openmpi-*
+
+# OpenMPI allow root
+RUN mv /opt/amazon/openmpi/bin/mpirun /opt/amazon/openmpi/bin/mpirun.real \
+  && printf '#!/bin/bash\n/opt/amazon/openmpi/bin/mpirun.real --allow-run-as-root "$@"\n' >/opt/amazon/openmpi/bin/mpirun \
+  && chmod +x /opt/amazon/openmpi/bin/mpirun \
+  && echo "hwloc_base_binding_policy = none" >>/opt/amazon/openmpi/etc/openmpi-mca-params.conf \
+  && echo "rmaps_base_mapping_policy = slot" >>/opt/amazon/openmpi/etc/openmpi-mca-params.conf
+
+# OpenSSH (root, port 22)
+COPY scripts/pytorch/configure_ssh.sh /tmp/configure_ssh.sh
+RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
+
+# ldconfig
+RUN ldconfig
+
+
+# ── Stage: runtime (EC2 / ECS) ──────────────────────────────────────────────
+FROM runtime-base AS runtime
+ARG TORCH_VERSION
+
+# Telemetry
+COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK="pytorch"
+ARG CONTAINER_TYPE="training"
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TORCH_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc
+
+# Security patch
+RUN dnf upgrade -y --security --releasever latest && dnf clean all
+
+# OSS compliance
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# Entrypoint
+COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# PATH and LD_LIBRARY_PATH
+ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:${PATH}" \
+  LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
+
+EXPOSE 22
+WORKDIR /workspace
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["bash"]
+
+
+# ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
+FROM runtime-base AS sagemaker
+ARG TORCH_VERSION
+
+# SageMaker BYOC paths
+RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
+
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+
+# SageMaker packages (defined in cpu/pyproject.toml [project.optional-dependencies.sagemaker])
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
+COPY docker/pytorch/cpu/pyproject.toml docker/pytorch/cpu/uv.lock /tmp/build/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
+  && rm -rf /tmp/build /tmp/uv-*
+
+# SageMaker hostname workaround
+COPY scripts/pytorch/changehostname.c /
+COPY scripts/pytorch/start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+# Telemetry
+COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK="pytorch"
+ARG CONTAINER_TYPE="training"
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TORCH_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc
+
+# Security patch
+RUN dnf upgrade -y --security --releasever latest && dnf clean all
+
+# OSS compliance
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# Entrypoint
+COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# PATH and LD_LIBRARY_PATH
+ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:${PATH}" \
+  LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
+
+EXPOSE 22
+WORKDIR /workspace
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]

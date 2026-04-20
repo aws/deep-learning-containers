@@ -1,0 +1,22 @@
+image:
+  name: "pytorch-ec2-cpu"
+  description: "PyTorch CPU training for EC2 instances"
+common:
+  framework: "pytorch"
+  framework_version: "2.11.0"
+  job_type: "training"
+  python_version: "py312"
+  cuda_version: ""
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  prod_image: "pytorch:2.11-cpu-py312-ec2"
+  device_type: "cpu"
+  contributor: "None"
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: false
+  enable_soci: false
+  environment: production

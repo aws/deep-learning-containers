@@ -1,12 +1,12 @@
-name: PR - PyTorch SageMaker
+name: PR - PyTorch CPU EC2
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/pytorch-sagemaker.yml"
-      - ".github/workflows/pr-pytorch-sagemaker.yml"
+      - ".github/config/image/pytorch-ec2-cpu.yml"
+      - ".github/workflows/pr-pytorch-ec2-cpu.yml"
       - "docker/pytorch/**"
       - "scripts/common/**"
       - "scripts/pytorch/**"
@@ -22,9 +22,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-
-  # Config file path
-  CONFIG_FILE: ".github/config/image/pytorch-sagemaker.yml"
+  CONFIG_FILE: ".github/config/image/pytorch-ec2-cpu.yml"
 
 jobs:
   # ============================================================
@@ -84,7 +82,7 @@ jobs:
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
           echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
-          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "cpu"' config.json)" >> $GITHUB_OUTPUT
           echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
@@ -124,10 +122,11 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/pytorch-sagemaker.yml"
-              - "docker/pytorch/Dockerfile"
+              - ".github/config/image/pytorch-ec2-cpu.yml"
+              - "docker/pytorch/Dockerfile.cpu"
+              - "docker/pytorch/cpu/**"
               - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/pytorch/*"
+              - "scripts/pytorch/configure_ssh.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
               - "scripts/telemetry/deep_learning_container.py"
             sanity-test-change:
@@ -136,20 +135,20 @@ jobs:
               - "test/telemetry/**"
 
   # ============================================================
-  # Build SageMaker image
+  # Build CPU runtime image
   # ============================================================
   build-image:
     needs: [check-changes]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
+        fleet:default-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-build-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
-      sagemaker-image-uri: ${{ steps.build-sagemaker.outputs.image-uri }}
+      runtime-image-uri: ${{ steps.build-runtime.outputs.image-uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -163,53 +162,29 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Fetch cached wheels
+      - name: Build runtime image
+        id: build-runtime
         run: |
-          source docker/pytorch/versions.env
-          mkdir -p docker/pytorch/wheels
-          bash scripts/pytorch/fetch_cached_wheels.sh \
-            docker/pytorch/wheels \
-            "${{ vars.WHEEL_CACHE_BUCKET }}" \
-            "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
-            "flash-attn:${FLASH_ATTN_VERSION}" \
-            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
-        continue-on-error: true
-
-      - name: Build sagemaker image
-        id: build-sagemaker
-        run: |
-          source docker/pytorch/versions.env
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-2.11.0-gpu-py312-cu130-sagemaker-pr-${{ github.event.pull_request.number }}"
+          source docker/pytorch/versions-cpu.env
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-cpu-runtime-pr-${{ github.event.pull_request.number }}"
 
           docker buildx build --progress plain \
-            --build-arg CUDA_VERSION=${CUDA_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
             --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
             --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
-            --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
-            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
-            --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
-            --build-arg EFA_VERSION=${EFA_VERSION} \
-            --build-arg MAX_JOBS=${MAX_JOBS} \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.framework.pytorch.${TORCH_VERSION//./-}=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.device.gpu.cu130=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.job.training=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.x86=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.os.amzn2023=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.py312=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.None=true" \
+            --build-arg OPEN_MPI_VERSION=${OPEN_MPI_VERSION} \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
             --push \
-            --target sagemaker \
-            -f docker/pytorch/Dockerfile .
+            --target runtime \
+            -f docker/pytorch/Dockerfile.cpu .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
   # ============================================================
-  # Sanity tests (labels, filesystem, OSS compliance)
+  # Sanity tests
   # ============================================================
   sanity-test:
     needs: [check-changes, build-image, load-config]
@@ -218,7 +193,7 @@ jobs:
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
-      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.sagemaker-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.runtime-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
@@ -233,21 +208,21 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   # ============================================================
-  # Security tests (ECR scan, CVE allowlist)
+  # Security tests
   # ============================================================
   security-test:
     needs: [build-image, load-config]
     if: success()
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
-      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.sagemaker-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.runtime-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
 
   # ============================================================
-  # Telemetry tests (opt-out, environment variables)
+  # Telemetry tests
   # ============================================================
   telemetry-test:
     needs: [check-changes, build-image, load-config]
@@ -259,7 +234,7 @@ jobs:
       cancel-in-progress: false
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
-      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.sagemaker-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.runtime-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
@@ -291,47 +266,14 @@ jobs:
 
       - name: Run unit tests
         run: |
-          IMAGE="${{ needs.build-image.outputs.sagemaker-image-uri }}"
+          IMAGE="${{ needs.build-image.outputs.runtime-image-uri }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
             -e DLC_WORKDIR=/workdir \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
-          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v \
+            --ignore=/workdir/test/pytorch/unit/test_cuda.py \
+            --ignore=/workdir/test/pytorch/unit/test_flash_attn.py
           docker kill ${CONTAINER_ID}
-
-  # ============================================================
-  # SageMaker integration tests (launch real SM training jobs)
-  # ============================================================
-  sagemaker-test:
-    needs: [build-image, sanity-test, security-test, unit-test]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-sagemaker-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Install test dependencies
-        run: |
-          pip install -r test/pytorch/integration/sagemaker/requirements.txt
-
-      - name: Run SageMaker training tests
-        env:
-          PYTHONPATH: ${{ github.workspace }}/test
-          TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
-          SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
-        run: |
-          pytest test/pytorch/integration/sagemaker/test_sm_training.py -v
