@@ -262,9 +262,7 @@ jobs:
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
-          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v \
-            --ignore=/workdir/test/pytorch/unit/test_cuda.py \
-            --ignore=/workdir/test/pytorch/unit/test_flash_attn.py
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v
           docker kill ${CONTAINER_ID}
 
   # ============================================================
