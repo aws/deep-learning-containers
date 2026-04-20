@@ -128,50 +128,8 @@ jobs:
             telemetry-test-change:
               - "test/telemetry/**"
 
-  build-runtime:
-    needs: [check-changes, load-config]
-    if: needs.check-changes.outputs.build-change == 'true'
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
-        buildspec-override:true
-    timeout-minutes: 720
-    outputs:
-      runtime-base: ${{ steps.check.outputs.image }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup buildkitd
-        run: .github/scripts/buildkitd.sh
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Check or build runtime base
-        id: check
-        run: |
-          TAG="vllm-runtime-v${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.python-version }}"
-          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:${TAG}"
-          echo "image=${IMAGE}" >> $GITHUB_OUTPUT
-
-          if docker manifest inspect "${IMAGE}" >/dev/null 2>&1; then
-            echo "Runtime base exists: ${IMAGE}"
-            exit 0
-          fi
-
-          echo "Building runtime base: ${IMAGE}"
-          docker buildx build --progress plain \
-            --target runtime-build \
-            --tag "${IMAGE}" \
-            --push \
-            -f docker/vllm/Dockerfile.amzn2023 .
-
   build-image:
-    needs: [check-changes, load-config, build-runtime]
+    needs: [check-changes, load-config]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -181,11 +139,35 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
+    env:
+      USE_SCCACHE: "1"
+      USE_PREBUILT_WHEEL: "1"
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - name: Fetch cached vLLM wheel
+        id: wheel-cache
+        run: |
+          OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+            ${{ needs.load-config.outputs.cuda-version }} \
+            v${{ needs.load-config.outputs.framework-version }})
+          echo "$OUTPUT"
+          HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
+          echo "hit=${HIT}" >> $GITHUB_OUTPUT
+          if [ "${HIT}" != "true" ]; then
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
+          fi
+
+      - name: Sync sccache cache from S3
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
+
+      - name: Prepare build context
+        run: |
+          mkdir -p docker/vllm/prebuilt_wheels
+          mkdir -p docker/vllm/sccache-cache
 
       - name: Build image
         id: build
@@ -207,7 +189,17 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
-          runtime-base: ${{ needs.build-runtime.outputs.runtime-base }}
+
+      - name: Upload vLLM wheel to cache
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: |
+          bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
+            ${{ needs.load-config.outputs.cuda-version }} \
+            v${{ needs.load-config.outputs.framework-version }}
+
+      - name: Sync sccache cache to S3
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
 
   sanity-test:
     needs: [check-changes, build-image, load-config]
