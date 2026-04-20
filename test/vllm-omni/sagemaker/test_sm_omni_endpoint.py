@@ -58,7 +58,10 @@ def model_package(aws_session, image_uri, model_id):
         yield model
     finally:
         LOGGER.info(f"Deleting model: {model_name}")
-        sagemaker_client.delete_model(ModelName=model_name)
+        try:
+            sagemaker_client.delete_model(ModelName=model_name)
+        except Exception as e:
+            LOGGER.warning(f"Model cleanup failed (may already be deleted): {e}")
 
 
 @pytest.fixture(scope="function")
@@ -91,8 +94,14 @@ def model_endpoint(aws_session, model_package, instance_type):
         yield predictor
     finally:
         LOGGER.info(f"Deleting endpoint: {endpoint_name}")
-        sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
-        sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+        try:
+            sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
+        except Exception as e:
+            LOGGER.warning(f"Endpoint cleanup failed: {e}")
+        try:
+            sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+        except Exception as e:
+            LOGGER.warning(f"Endpoint config cleanup failed: {e}")
 
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
@@ -174,8 +183,14 @@ def async_endpoint(aws_session, model_package, instance_type):
         yield predictor, s3_output
     finally:
         LOGGER.info(f"Deleting async endpoint: {endpoint_name}")
-        sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
-        sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+        try:
+            sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
+        except Exception as e:
+            LOGGER.warning(f"Endpoint cleanup failed: {e}")
+        try:
+            sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+        except Exception as e:
+            LOGGER.warning(f"Endpoint config cleanup failed: {e}")
 
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
