@@ -211,12 +211,14 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
     accelerate==${ACCELERATE_VERSION} \
-    "protobuf>=3.19.5,<=3.20.2" \
     # Install the latest version of the sagemaker-huggingface-inference-toolkit from the git repository
     # until version 2.7.0 is released in PyPI.
     # sagemaker-huggingface-inference-toolkit==${SAGEMAKER_HF_INFERENCE_VERSION} \
     ${SAGEMAKER_HF_INFERENCE_VERSION} \
     "opencv-python==4.11.0.86"
+
+# Safety 84961 / CVE-2026-24049 (wheel unpack); Safety 85151 (protobuf json_format recursion)
+RUN pip install --no-cache-dir -U "wheel>=0.46.2" "protobuf>=5.29.6"
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:cpu:inference:regular"
 
@@ -237,8 +239,7 @@ ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:cpu:inference:regular"
 
 # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
 # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
-RUN pip install --no-cache-dir \
-  "opencv-python==4.11.0.86"
+# RUN pip install --no-cache-dir \
 #     "numpy<1.25" \
 #     "pyyaml>=5.4"
 
