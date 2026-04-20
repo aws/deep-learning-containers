@@ -1,0 +1,12 @@
+[
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-nvdisasm-12-9 — NoFixPlanned upstream (fixed only in CUDA 13+).",
+        "review_by": "2026-10-18"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-cuobjdump-12-9 — NoFixPlanned upstream (fixed only in CUDA 13+).",
+        "review_by": "2026-10-18"
+    }
+]
