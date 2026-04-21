@@ -52,14 +52,13 @@ def generate_efa_network_interfaces(aws_session, instance_type, subnet_id, sg_id
     interfaces = []
     for idx in range(num_interfaces):
         iface = {
-            "DeviceIndex": idx,
+            "DeviceIndex": 0 if idx == 0 else 1,
+            "NetworkCardIndex": idx,
             "SubnetId": subnet_id,
             "Groups": [sg_id],
             "InterfaceType": "efa",
             "DeleteOnTermination": True,
         }
-        if idx == 0:
-            iface["AssociatePublicIpAddress"] = True
         interfaces.append(iface)
     return interfaces
 
