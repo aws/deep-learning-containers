@@ -1,12 +1,12 @@
-name: PR - PyTorch SageMaker GPU
+name: PR - PyTorch SageMaker CUDA
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/pytorch-sagemaker-gpu.yml"
-      - ".github/workflows/pr-pytorch-sagemaker-gpu.yml"
+      - ".github/config/image/pytorch-sagemaker-cuda.yml"
+      - ".github/workflows/pr-pytorch-sagemaker-cuda.yml"
       - "docker/pytorch/**"
       - "scripts/common/**"
       - "scripts/pytorch/**"
@@ -24,7 +24,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: ".github/config/image/pytorch-sagemaker-gpu.yml"
+  CONFIG_FILE: ".github/config/image/pytorch-sagemaker-cuda.yml"
 
 jobs:
   # ============================================================
@@ -124,8 +124,8 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/pytorch-sagemaker-gpu.yml"
-              - "docker/pytorch/Dockerfile.gpu"
+              - ".github/config/image/pytorch-sagemaker-cuda.yml"
+              - "docker/pytorch/Dockerfile.cuda"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/pytorch/*"
               - "scripts/telemetry/bash_telemetry.sh.template"
@@ -165,7 +165,7 @@ jobs:
 
       - name: Fetch cached wheels
         run: |
-          source docker/pytorch/versions-gpu.env
+          source docker/pytorch/versions-cuda.env
           mkdir -p docker/pytorch/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
             docker/pytorch/wheels \
@@ -178,7 +178,7 @@ jobs:
       - name: Build sagemaker image
         id: build-sagemaker
         run: |
-          source docker/pytorch/versions-gpu.env
+          source docker/pytorch/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-2.11.0-gpu-py312-cu130-sagemaker-pr-${{ github.event.pull_request.number }}"
 
           docker buildx build --progress plain \
@@ -204,7 +204,7 @@ jobs:
             --tag ${CI_IMAGE_URI} \
             --push \
             --target sagemaker \
-            -f docker/pytorch/Dockerfile.gpu .
+            -f docker/pytorch/Dockerfile.cuda .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
@@ -334,4 +334,4 @@ jobs:
           TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
         run: |
-          pytest test/pytorch/integration/sagemaker/test_sm_training_gpu.py -v
+          pytest test/pytorch/integration/sagemaker/test_sm_training_cuda.py -v

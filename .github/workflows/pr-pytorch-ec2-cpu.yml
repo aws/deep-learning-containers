@@ -1,4 +1,4 @@
-name: PR - PyTorch CPU EC2
+name: PR - PyTorch EC2 CPU
 
 on:
   pull_request:

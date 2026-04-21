@@ -9,7 +9,7 @@ import pytest
 # Detect GPU vs CPU image by checking for CUDA, then pick the right versions file.
 _WORKDIR = os.environ.get("DLC_WORKDIR", "/workdir")
 IS_GPU = os.path.isdir("/usr/local/cuda")
-_VERSIONS_FILE = "versions-gpu.env" if IS_GPU else "versions-cpu.env"
+_VERSIONS_FILE = "versions-cuda.env" if IS_GPU else "versions-cpu.env"
 VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "pytorch", _VERSIONS_FILE)
 gpu_only = pytest.mark.skipif(not IS_GPU, reason="GPU-only test")
 

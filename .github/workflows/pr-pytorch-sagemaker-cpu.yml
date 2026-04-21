@@ -1,4 +1,4 @@
-name: PR - PyTorch CPU SageMaker
+name: PR - PyTorch SageMaker CPU
 
 on:
   pull_request:
