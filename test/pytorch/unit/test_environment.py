@@ -7,8 +7,8 @@ import subprocess
 
 import pytest
 
-IS_GPU = os.path.isdir("/usr/local/cuda")
-gpu_only = pytest.mark.skipif(not IS_GPU, reason="GPU-only test")
+IS_CUDA = os.path.isdir("/usr/local/cuda")
+cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
 
 
 class TestContainerEnv:
@@ -34,7 +34,7 @@ class TestPath:
     def test_path_contains(self, directory):
         assert directory in os.environ["PATH"], f"{directory} not in PATH"
 
-    @gpu_only
+    @cuda_only
     @pytest.mark.parametrize("directory", ["/opt/amazon/efa/bin", "/usr/local/cuda/bin"])
     def test_path_contains_gpu(self, directory):
         assert directory in os.environ["PATH"], f"{directory} not in PATH"
@@ -44,7 +44,7 @@ class TestPath:
         ld = os.environ.get("LD_LIBRARY_PATH", "")
         assert directory in ld, f"{directory} not in LD_LIBRARY_PATH"
 
-    @gpu_only
+    @cuda_only
     @pytest.mark.parametrize(
         "directory", ["/opt/amazon/ofi-nccl/lib64", "/opt/amazon/efa/lib", "/usr/local/cuda/lib64"]
     )
@@ -60,13 +60,13 @@ class TestBinaries:
     def test_binary_on_path(self, binary):
         assert shutil.which(binary) is not None, f"{binary} not found on PATH"
 
-    @gpu_only
+    @cuda_only
     @pytest.mark.parametrize("binary", ["fi_info", "nvcc"])
     def test_binary_on_path_gpu(self, binary):
         assert shutil.which(binary) is not None, f"{binary} not found on PATH"
 
 
-@gpu_only
+@cuda_only
 class TestNCCLAndEFA:
     """Verify NCCL and OFI NCCL plugin are properly installed."""
 
@@ -78,7 +78,7 @@ class TestNCCLAndEFA:
         assert "libfabric" in out.lower()
 
 
-@gpu_only
+@cuda_only
 class TestCuDNN:
     """Verify cuDNN runtime libraries are present and loadable."""
 
@@ -86,7 +86,7 @@ class TestCuDNN:
         ctypes.CDLL("libcudnn.so.9")
 
 
-@gpu_only
+@cuda_only
 class TestCudaRuntime:
     """Verify CUDA runtime library is loadable (required by NCCL OFI plugin)."""
 

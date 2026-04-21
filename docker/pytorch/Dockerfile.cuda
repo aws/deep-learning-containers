@@ -227,7 +227,7 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-# SageMaker packages (defined in gpu/pyproject.toml [project.optional-dependencies.sagemaker])
+# SageMaker packages (defined in cuda/pyproject.toml [project.optional-dependencies.sagemaker])
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 COPY docker/pytorch/cuda/pyproject.toml docker/pytorch/cuda/uv.lock /tmp/build/

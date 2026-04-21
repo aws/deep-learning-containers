@@ -4,8 +4,8 @@ import os
 
 import pytest
 
-IS_GPU = os.path.isdir("/usr/local/cuda")
-gpu_only = pytest.mark.skipif(not IS_GPU, reason="GPU-only test")
+IS_CUDA = os.path.isdir("/usr/local/cuda")
+cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
 
 SAGEMAKER_PATHS = [
     "/opt/ml/input/data",
@@ -26,12 +26,12 @@ def test_openmpi_binary_exists():
     assert os.access("/opt/amazon/openmpi/bin/mpirun", os.X_OK)
 
 
-@gpu_only
+@cuda_only
 def test_efa_binary_exists():
     assert os.access("/opt/amazon/efa/bin/fi_info", os.X_OK)
 
 
-@gpu_only
+@cuda_only
 def test_nccl_config():
     with open("/etc/nccl.conf") as f:
         content = f.read()
@@ -39,7 +39,7 @@ def test_nccl_config():
     assert "NCCL_SOCKET_IFNAME" in content
 
 
-@gpu_only
+@cuda_only
 def test_gdrcopy_lib():
     assert os.path.isfile("/usr/local/lib/libgdrapi.so")
 

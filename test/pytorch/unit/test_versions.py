@@ -8,10 +8,10 @@ import pytest
 
 # Detect GPU vs CPU image by checking for CUDA, then pick the right versions file.
 _WORKDIR = os.environ.get("DLC_WORKDIR", "/workdir")
-IS_GPU = os.path.isdir("/usr/local/cuda")
-_VERSIONS_FILE = "versions-cuda.env" if IS_GPU else "versions-cpu.env"
+IS_CUDA = os.path.isdir("/usr/local/cuda")
+_VERSIONS_FILE = "versions-cuda.env" if IS_CUDA else "versions-cpu.env"
 VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "pytorch", _VERSIONS_FILE)
-gpu_only = pytest.mark.skipif(not IS_GPU, reason="GPU-only test")
+cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
 
 
 def _parse_versions_env():
@@ -48,7 +48,7 @@ def test_version(package, env_var):
     assert actual.startswith(expected), f"{package}: expected {expected}*, got {actual}"
 
 
-@gpu_only
+@cuda_only
 @pytest.mark.parametrize(
     "package,env_var",
     list(GPU_PACKAGE_VERSION_MAP.items()),
@@ -76,7 +76,7 @@ def test_python_version():
     assert expected in out, f"Expected Python {expected}, got {out}"
 
 
-@gpu_only
+@cuda_only
 def test_cuda_version():
     import torch
 
