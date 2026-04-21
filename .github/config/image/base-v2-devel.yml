@@ -1,0 +1,32 @@
+# Base v2 devel (CUDA 13.0.2, amzn2023) Image Configuration
+# This file contains all configuration for building, testing, and releasing the base-v2 devel image
+
+# Image identification
+image:
+  name: "base-v2-devel"
+  description: "Base v2 devel GPU image with CUDA 13.0.2, Python, and build tools on amzn2023"
+
+# Build configuration
+common:
+  framework: "base_dlc"
+  framework_version: "13.0.2"
+  job_type: "general"
+  python_version: "py313"
+  cuda_version: "cu130"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  container_type: "devel-cuda"
+  build_target: "devel"
+  ci_tag: "cuda130-devel-amzn2023"
+  device_type: "gpu"
+  contributor: "None"
+
+# Release configuration
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: production # gamma or production
