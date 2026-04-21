@@ -3,12 +3,11 @@ name: Auto Release - SGLang EC2
 on:
   # schedule run must be on the default branch
   schedule:
-    # Runs at 10:00 AM PST/PDT on Monday and Wednesday
-    - cron: '00 17 * * 2,4' # Tuesday and Thursday at 10:00 AM PDT / 9:00 AM PST
+    # Runs at 9AM/10AM PST/PDT on Tuesdays and Thursdays
+    - cron: '00 17 * * 2,4'
 
-  # Trigger when an auto-update PR for sglang is merged
-  pull_request:
-    types: [closed]
+  # Trigger when an auto-update PR is merged
+  push:
     branches: [main]
 
   # Manual trigger
@@ -20,7 +19,6 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: read
 
 env:
   # CI environment configuration
@@ -30,13 +28,12 @@ env:
   CONFIG_FILE: ".github/config/image/sglang-ec2.yml"
 
 jobs:
-  # Gate: skip PR events unless it's a merged auto-update PR for sglang
+  # Gate: skip push events unless it's a merged auto-update PR for sglang
   autocurrency-pr-gate:
     if: >-
-      github.event_name != 'pull_request' || (
-        github.event.pull_request.merged == true &&
-        contains(github.event.pull_request.labels.*.name, 'auto-update') &&
-        startsWith(github.event.pull_request.head.ref, 'auto-update/sglang-')
+      github.event_name != 'push' || (
+        contains(github.event.head_commit.message, '[Auto-Update] sglang') &&
+        github.event.head_commit.author.name == 'aws-deep-learning-containers-ci[bot]'
       )
     runs-on: ubuntu-latest
     steps:
@@ -45,9 +42,6 @@ jobs:
   load-config:
     needs: [autocurrency-pr-gate]
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-load-config-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     outputs:
       config: ${{ steps.load.outputs.config }}
       framework: ${{ steps.parse.outputs.framework }}
@@ -93,9 +87,6 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
@@ -125,9 +116,6 @@ jobs:
 
   sanity-test:
     needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -146,9 +134,6 @@ jobs:
 
   telemetry-test:
     needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: false
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -160,9 +145,6 @@ jobs:
 
   upstream-tests:
     needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-upstream-tests-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     uses: ./.github/workflows/reusable-sglang-upstream-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -185,9 +167,6 @@ jobs:
   generate-release-spec:
     needs: [load-config, build-image, sanity-test, upstream-tests]
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-generate-release-spec-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     outputs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
       should-release: ${{ steps.check-release.outputs.should-release }}
@@ -213,14 +192,11 @@ jobs:
   release-image:
     needs: [load-config, build-image, generate-release-spec]
     if: needs.generate-release-spec.outputs.should-release == 'true'
-    concurrency:
-      group: ${{ github.workflow }}-release-image-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: false
     uses: ./.github/workflows/reusable-release-image.yml
     with:
       source-image-uri: ${{ needs.build-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
-      environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
+      environment: ${{ fromJson(needs.load-config.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
     secrets: inherit
