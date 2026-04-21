@@ -1,0 +1,50 @@
+name: Reusable EFA Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: 'Image URI to test'
+        required: true
+        type: string
+      aws-account-id:
+        description: 'AWS account ID for ECR authentication'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region'
+        required: true
+        type: string
+      efa-instance-type:
+        description: 'EFA-enabled instance type (default: p4d.24xlarge)'
+        required: false
+        type: string
+        default: 'p4d.24xlarge'
+
+jobs:
+  efa-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    timeout-minutes: 60
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
+      - name: Run EFA integration test
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH \
+          TEST_IMAGE_URI=${{ inputs.image-uri }} \
+          EFA_INSTANCE_TYPE=${{ inputs.efa-instance-type }} \
+          python -m pytest test/efa/test_efa.py -v --tb=long
