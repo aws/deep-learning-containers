@@ -1,17 +1,17 @@
 image:
-  name: "pytorch-ec2"
-  description: "PyTorch training for EC2 instances"
+  name: "pytorch-sagemaker-cpu"
+  description: "PyTorch CPU training for SageMaker"
 common:
   framework: "pytorch"
   framework_version: "2.11.0"
   job_type: "training"
   python_version: "py312"
-  cuda_version: "cu130"
+  cuda_version: ""
   os_version: "amzn2023"
-  customer_type: "ec2"
+  customer_type: "sagemaker"
   arch_type: "x86"
-  prod_image: "pytorch:2.11-gpu-py312-ec2"
-  device_type: "gpu"
+  prod_image: "pytorch:2.11-cpu-py312-sagemaker"
+  device_type: "cpu"
   contributor: "None"
 release:
   release: false
