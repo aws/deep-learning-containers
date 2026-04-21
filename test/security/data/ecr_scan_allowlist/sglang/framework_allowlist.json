@@ -14,5 +14,13 @@
     {
         "vulnerability_id": "CVE-2026-27572",
         "reason": "sglang0.5.10 wasmtime 38.0.4 is a RUST dependency in sgl-model-gateway Cargo.lock, cannot be patched without upstream SGLang update"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34987",
+        "reason": "sglang0.5.10 wasmtime 38.0.4 is a RUST dependency in sgl-model-gateway Cargo.lock, cannot be patched without upstream SGLang update"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68263",
+        "reason": "linux-libc-dev 6.8.0 is a kernel header package from the Ubuntu base image, fix not yet available in upstream base image"
     }
 ]
