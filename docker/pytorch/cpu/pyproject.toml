@@ -1,0 +1,51 @@
+[project]
+name = "pytorch-dlc-cpu"
+version = "2.11.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "torch==2.11.0",
+    "torchvision==0.26.0",
+    "torchaudio==2.11.0",
+    "deepspeed==0.18.8",
+    "fastai",
+    "boto3",
+    "botocore",
+    "pyyaml",
+    "requests",
+    "packaging",
+    "mpi4py",
+    "scipy",
+    "scikit-learn",
+    "opencv-python",
+]
+
+[project.optional-dependencies]
+sagemaker = [
+    "smclarify",
+    "sagemaker>=3.4.0",
+    "sagemaker-pytorch-training",
+    "sagemaker-training",
+    "mlflow>=3.9.0",
+    "bokeh",
+    "imageio",
+    "numba",
+    "pandas",
+    "plotly",
+    "shap",
+    "scikit-learn",
+    "seaborn",
+    "cloudpickle",
+    "s3fs>=2026.2.0",
+]
+
+[tool.uv]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
+torchaudio = [{ index = "pytorch-cpu" }]
