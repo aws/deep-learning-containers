@@ -28,6 +28,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/04/20]** [vLLM v0.19.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.19-gpu-py312-ec2` · SageMaker: `0.19-gpu-py312` · This upgrades Transformers to 5.5.4, enabling Gemma 4 support.
 - **[2026/04/07]** [SGLang v0.5.10](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.10-gpu-py312-ec2` · SageMaker: `0.5.10-gpu-py312`
 - **[2026/04/07]** [vLLM v0.19.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.19-gpu-py312-ec2` · SageMaker: `0.19-gpu-py312`
 - **[2026/03/26]** [vLLM v0.18.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.18-gpu-py312-ec2` · SageMaker: `0.18-gpu-py312`
