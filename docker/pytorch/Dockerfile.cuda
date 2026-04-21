@@ -46,7 +46,7 @@ ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
+COPY docker/pytorch/cuda/pyproject.toml docker/pytorch/cuda/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
@@ -82,7 +82,7 @@ ARG MAX_JOBS
 # If a cached wheel exists in the build context, install it; otherwise build from source.
 # When building from source, the wheel is saved to /tmp/built_wheels/ for later S3 upload.
 # docker/pytorch/wheels/ is created by CI (fetch_cached_wheels.sh); may not exist locally.
-COPY docker/pytorch/pyproject.toml docker/pytorch/wheel[s]/ /tmp/wheels/
+COPY docker/pytorch/cuda/pyproject.toml docker/pytorch/wheel[s]/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
   mkdir -p /tmp/built_wheels && \
   WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \
@@ -186,15 +186,15 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+  && rm /tmp/bash_telemetry.sh.template
 
 # Security patch — run after all installers so every OS package is covered
-ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest \
-  && dnf update -y --releasever latest cuda-compat-* \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+  && dnf upgrade -y cuda-compat-* \
+  && dnf clean all
+
+# Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # OSS compliance (runs in isolated stage to avoid polluting the venv)
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
@@ -227,10 +227,10 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
-# SageMaker packages (defined in pyproject.toml [project.optional-dependencies.sagemaker])
+# SageMaker packages (defined in cuda/pyproject.toml [project.optional-dependencies.sagemaker])
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
-COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
+COPY docker/pytorch/cuda/pyproject.toml docker/pytorch/cuda/uv.lock /tmp/build/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
   && rm -rf /tmp/build /tmp/uv-*
 
@@ -250,15 +250,15 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+  && rm /tmp/bash_telemetry.sh.template
 
 # Security patch
-ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest \
-  && dnf update -y --releasever latest cuda-compat-* \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+  && dnf upgrade -y cuda-compat-* \
+  && dnf clean all
+
+# Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # OSS compliance
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS

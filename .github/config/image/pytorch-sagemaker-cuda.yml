@@ -1,6 +1,6 @@
 image:
-  name: "pytorch-sagemaker"
-  description: "PyTorch training for SageMaker"
+  name: "pytorch-sagemaker-cuda"
+  description: "PyTorch CUDA training for SageMaker"
 common:
   framework: "pytorch"
   framework_version: "2.11.0"
