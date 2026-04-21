@@ -126,7 +126,7 @@ RUN pip install --no-cache-dir \
     psutil \
     ipython \
     ipykernel \
-    "pillow>=12.1.1" \
+    "pillow>=12.2.0" \
     h5py \
     "fsspec>=2025.7.0" \
     "markupsafe>=3.0.2" \
