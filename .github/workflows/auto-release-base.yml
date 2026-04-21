@@ -258,7 +258,7 @@ jobs:
       environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config-v1-runtime.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
-      publish-only: true
+      publish-only: false
     secrets: inherit
 
   # ============================================================
@@ -296,7 +296,7 @@ jobs:
       environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config-v1-devel.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
-      publish-only: true
+      publish-only: false
     secrets: inherit
 
   # ============================================================
@@ -334,7 +334,7 @@ jobs:
       environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config-v2-runtime.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
-      publish-only: true
+      publish-only: false
     secrets: inherit
 
   # ============================================================
@@ -372,5 +372,5 @@ jobs:
       environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config-v2-devel.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
-      publish-only: true
+      publish-only: false
     secrets: inherit
