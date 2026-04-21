@@ -1,5 +1,6 @@
 # ============================================================================
 # PyTorch DLC — Amazon Linux 2023 (CUDA 13.0)
+# TODO: Remove this comment after EFA test PR passes — triggers build for testing
 # Multi-stage build with parallel builder stages:
 #
 #   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
