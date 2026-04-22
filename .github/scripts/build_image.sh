@@ -26,7 +26,6 @@ CUSTOMER_TYPE="${CUSTOMER_TYPE:-}"
 INFERENCE_TOOLKIT_VERSION="${INFERENCE_TOOLKIT_VERSION:-}"
 TORCHSERVE_VERSION="${TORCHSERVE_VERSION:-}"
 TRANSFORMERS_VERSION="${TRANSFORMERS_VERSION:-}"
-RUNTIME_BASE="${RUNTIME_BASE:-}"
 
 # Resolve image URI
 CI_IMAGE_URI="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ci:${TAG_PR}"
@@ -68,13 +67,6 @@ BUILD_CMD="docker buildx build --progress plain \
   --build-arg FRAMEWORK=\"${FRAMEWORK}\" \
   --build-arg FRAMEWORK_VERSION=\"${FRAMEWORK_VERSION}\""
 
-# Use pre-built runtime base if available (skips compile stages)
-if [[ -n "${RUNTIME_BASE}" ]]; then
-  echo "Using pre-built runtime base: ${RUNTIME_BASE}"
-  BUILD_CMD="${BUILD_CMD} \
-  --build-arg RUNTIME_BASE=\"${RUNTIME_BASE}\""
-fi
-
 # Enable sccache for compilation caching (BuildKit cache mount persists on same runner)
 if [[ -n "${USE_SCCACHE:-}" ]]; then
   echo "Enabling sccache with BuildKit cache mount"
@@ -87,6 +79,16 @@ if [[ -n "${USE_PREBUILT_WHEEL:-}" ]]; then
   BUILD_CMD="${BUILD_CMD} \
   --build-arg USE_PREBUILT_WHEEL=\"${USE_PREBUILT_WHEEL}\""
 fi
+
+# Forward any extra build-args listed in EXTRA_BUILD_ARGS (space/comma separated
+# env var names). Keeps build_image.sh framework-agnostic — callers declare what
+# they want forwarded (e.g. `EXTRA_BUILD_ARGS="VLLM_VERSION VLLM_OMNI_VERSION ..."`
+# set by the workflow when sourcing a versions.env file).
+for v in ${EXTRA_BUILD_ARGS//,/ }; do
+  if [[ -n "${!v:-}" ]]; then
+    BUILD_CMD="${BUILD_CMD} --build-arg ${v}=\"${!v}\""
+  fi
+done
 
 # Add SageMaker labels if customer-type is 'sagemaker'
 if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then

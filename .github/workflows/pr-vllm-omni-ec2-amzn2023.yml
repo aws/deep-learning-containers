@@ -169,6 +169,18 @@ jobs:
           mkdir -p docker/vllm/prebuilt_wheels
           mkdir -p docker/vllm/sccache-cache
 
+      - name: Load pinned omni versions
+        run: |
+          # Capture vars introduced by sourcing the env file and forward them
+          # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
+          before=$(compgen -v | sort)
+          set -a; source docker/vllm/versions-omni.env; set +a
+          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -v '^before$')
+          for v in $new; do
+            [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
+          done
+          echo "EXTRA_BUILD_ARGS=$(echo $new | xargs)" >> "$GITHUB_ENV"
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
