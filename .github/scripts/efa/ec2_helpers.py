@@ -390,12 +390,14 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
             connect_kwargs={"key_filename": [key_path]},
             connect_timeout=600,
         )
+        master_conn.config.run.in_stream = False
         worker_conn = LoggedConnection(
             host=worker_ip,
             user="ec2-user",
             connect_kwargs={"key_filename": [key_path]},
             connect_timeout=600,
         )
+        worker_conn.config.run.in_stream = False
 
         # Copy test scripts to instances
         master_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
