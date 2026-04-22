@@ -1,21 +1,8 @@
 name: PR - vLLM-Omni SageMaker AMZN2023
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/model-tests/vllm-omni-model-tests.yml"
-      - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
-      - ".github/workflows/pr-vllm-omni-sagemaker-amzn2023.yml"
-      - ".github/workflows/reusable-vllm-omni-model-tests.yml"
-      - "docker/vllm/Dockerfile.amzn2023"
-      - "scripts/common/**"
-      - "scripts/telemetry/**"
-      - "scripts/vllm/omni_*"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - "test/vllm-omni/**"
+  # Temporarily disabled — re-enable by restoring pull_request trigger.
+  workflow_dispatch:
 
 permissions:
   contents: read

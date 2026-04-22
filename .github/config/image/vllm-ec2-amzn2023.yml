@@ -7,9 +7,11 @@ image:
   description: "vLLM for EC2 instances (AL2023, built from source)"
 
 # Build configuration
+# NOTE: keep framework_version and vllm_ref in sync with docker/vllm/versions.env
+#       (VLLM_VERSION, VLLM_REF). They are used here for image tags/labels/wheel-cache keys.
 common:
   framework: "vllm"
-  framework_version: "0.18.0"
+  framework_version: "0.19.2rc0"
   vllm_ref: "6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e"
   job_type: "general"
   python_version: "py312"

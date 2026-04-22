@@ -77,6 +77,14 @@ jobs:
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          # Short form for image tag: truncate raw commit SHAs to 8 chars, sanitise other refs.
+          VLLM_REF="$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)"
+          if echo "$VLLM_REF" | grep -qE '^[0-9a-f]{12,}$'; then
+            VLLM_REF_SHORT=$(echo "$VLLM_REF" | cut -c1-8)
+          else
+            VLLM_REF_SHORT=$(echo "$VLLM_REF" | sed -E 's/[^A-Za-z0-9]/_/g')
+          fi
+          echo "vllm-ref-short=${VLLM_REF_SHORT}" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
