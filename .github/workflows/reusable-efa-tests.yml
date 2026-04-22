@@ -24,11 +24,17 @@ on:
         type: string
         default: 'p4d.24xlarge'
 
+# Serialize EFA tests across all PRs to avoid p4d capacity contention.
+# Only one EFA test runs at a time globally; subsequent runs queue (no cancel).
+concurrency:
+  group: efa-test-global
+  cancel-in-progress: false
+
 jobs:
   efa-test:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:efa-test-runner
+        fleet:default-runner
         buildspec-override:true
     timeout-minutes: 60
     steps:
