@@ -403,8 +403,8 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
         master_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
         worker_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
         # Scripts are at test/efa/scripts/ relative to repo root
-        # __file__ is at .github/scripts/efa/ec2_helpers.py, so go up 4 levels
-        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+        # ec2_helpers.py is at .github/scripts/efa/ — go up 3 levels to repo root
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
         scripts_dir = os.path.join(repo_root, "test", "efa", "scripts")
         for script in os.listdir(scripts_dir):
             master_conn.put(os.path.join(scripts_dir, script), f"~/test/efa/scripts/{script}")
