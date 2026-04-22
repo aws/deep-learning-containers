@@ -1,8 +1,7 @@
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
-ARG VLLM_VERSION=0.18.0
-ARG FLASHINFER_VERSION=0.6.6
-ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03
+ARG VLLM_VERSION=0.19.2rc0
+ARG FLASHINFER_VERSION=0.6.7
 ARG DEEPEP_COMMIT_HASH=73b6ea4
 
 # Pre-built runtime image. When set, skips the compile stages (source/build/deps)
@@ -72,7 +71,7 @@ WORKDIR /workspace/vllm
 COPY --from=source /src/ ./
 
 # Install PyTorch + build deps (slow-changing, cached)
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build.txt \
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build/cuda.txt \
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
@@ -87,7 +86,10 @@ ENV NVCC_THREADS=${nvcc_threads}
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
 ARG VLLM_VERSION
-ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
+# Wheel version tag — pass via --build-arg from workflow (see docker/vllm/versions.env).
+# Example: 0.19.2rc0+amzn2023.6ef1efd5
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${VLLM_VERSION}+amzn2023}
 
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
@@ -130,16 +132,6 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       echo "🔧 Building vLLM from source (no sccache)..." \
       && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
     fi
-
-# Build DeepGEMM wheel
-ARG DEEPGEMM_GIT_REF
-RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
-  && VLLM_DOCKER_BUILD_CONTEXT=1 TORCH_CUDA_ARCH_LIST="9.0a 10.0a" \
-    tools/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" \
-    ${DEEPGEMM_GIT_REF:+--ref "$DEEPGEMM_GIT_REF"} \
-    --wheel-dir /tmp/deepgemm/dist \
-  || echo "DeepGEMM build skipped (CUDA version requirement not met)"
-RUN mkdir -p /tmp/deepgemm/dist
 
 # Build DeepEP wheels
 ARG DEEPEP_COMMIT_HASH
@@ -210,17 +202,8 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==$
   --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install serving extras
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate hf_transfer modelscope \
-  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3"
-
-# Install DeepGEMM wheel from build stage
-COPY --from=build /tmp/deepgemm/dist /tmp/deepgemm/dist
-RUN --mount=type=cache,target=/root/.cache/uv \
-  if ls /tmp/deepgemm/dist/*.whl >/dev/null 2>&1; then \
-    uv pip install /tmp/deepgemm/dist/*.whl; \
-  else \
-    echo "No DeepGEMM wheels to install; skipping."; \
-  fi && rm -rf /tmp/deepgemm
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate modelscope \
+  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7"
 
 # Install DeepEP wheels from build stage
 COPY --from=build /tmp/ep_kernels_workspace/dist /tmp/ep_kernels/dist
@@ -282,7 +265,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM)
+# Runtime JIT compilation tools (Triton/Inductor, FlashInfer)
 RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --setopt=install_weak_deps=False \
     gcc python${PYTHON_VERSION}-devel \
@@ -292,6 +275,7 @@ RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
     cuda-cuobjdump-${CUDA_DASH} \
     libcurand-devel-${CUDA_DASH} \
     libcublas-${CUDA_DASH} \
+    numactl-libs \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=deps /opt/venv /opt/venv
@@ -301,7 +285,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 ENV VIRTUAL_ENV="/opt/venv"
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_USAGE_SOURCE=production-docker-image
-ENV HF_HUB_ENABLE_HF_TRANSFER=1
+ENV HF_XET_HIGH_PERFORMANCE=1
 
 # Pre-built runtime (fast path) — used when RUNTIME_BASE is set
 ARG RUNTIME_BASE
