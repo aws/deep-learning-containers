@@ -84,7 +84,7 @@ fi
 # env var names). Keeps build_image.sh framework-agnostic — callers declare what
 # they want forwarded (e.g. `EXTRA_BUILD_ARGS="VLLM_VERSION VLLM_OMNI_VERSION ..."`
 # set by the workflow when sourcing a versions.env file).
-for v in ${EXTRA_BUILD_ARGS//,/ }; do
+for v in ${EXTRA_BUILD_ARGS:-}; do
   if [[ -n "${!v:-}" ]]; then
     BUILD_CMD="${BUILD_CMD} --build-arg ${v}=\"${!v}\""
   fi
