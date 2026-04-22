@@ -1,7 +1,7 @@
 """Shared constants, helpers, fixtures, and test implementations for Ray SageMaker endpoint tests.
 
 CPU and GPU test modules import from here, setting only DEVICE and INSTANCE_TYPE.
-Migrated to SageMaker SDK v3 (ModelBuilder API).
+Uses boto3 directly for model/endpoint lifecycle (custom DLC containers).
 """
 
 import json
@@ -25,7 +25,6 @@ from ray.utils import (
     validate_sentiment_response,
 )
 from sagemaker.serializers import IdentitySerializer
-from sagemaker.serve import ModelBuilder
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 
@@ -96,7 +95,7 @@ def make_model_name_fixture():
 
 
 def make_model_endpoint_fixture(device, instance_type):
-    """Create the model_endpoint fixture using ModelBuilder (SDK v3)."""
+    """Create the model_endpoint fixture using boto3 directly."""
     models = build_models(device)
     prefix = f"ray-{device}-"
 
@@ -107,28 +106,41 @@ def make_model_endpoint_fixture(device, instance_type):
         s3_uri = f"s3://{S3_BUCKET}/{S3_PREFIX}/{model_config['s3_key']}"
         cleaned = clean_string(model_name, "_./")
         endpoint_name = random_suffix_name(f"{prefix}{cleaned}", 50)
+        sm_model_name = endpoint_name
 
         LOGGER.info(f"Deploying endpoint: {endpoint_name}")
         LOGGER.info(f"  Image: {image_uri}")
         LOGGER.info(f"  Model data: {s3_uri}")
 
-        model_builder = ModelBuilder(
-            image_uri=image_uri,
-            role_arn=SAGEMAKER_ROLE,
-            s3_model_data_url=s3_uri,
-            env_vars=model_config["env"] or {},
+        sagemaker_client.create_model(
+            ModelName=sm_model_name,
+            PrimaryContainer={
+                "Image": image_uri,
+                "ModelDataUrl": s3_uri,
+                "Environment": model_config["env"] or {},
+            },
+            ExecutionRoleArn=SAGEMAKER_ROLE,
         )
 
-        deploy_kwargs = dict(
-            instance_type=instance_type,
-            initial_instance_count=1,
-            endpoint_name=endpoint_name,
-        )
+        variant = {
+            "VariantName": "AllTraffic",
+            "ModelName": sm_model_name,
+            "InitialInstanceCount": 1,
+            "InstanceType": instance_type,
+        }
         if device == "gpu":
-            deploy_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION
+            variant["InferenceAmiVersion"] = INFERENCE_AMI_VERSION
             LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION}")
 
-        predictor = model_builder.deploy(**deploy_kwargs)
+        sagemaker_client.create_endpoint_config(
+            EndpointConfigName=endpoint_name,
+            ProductionVariants=[variant],
+        )
+
+        sagemaker_client.create_endpoint(
+            EndpointName=endpoint_name,
+            EndpointConfigName=endpoint_name,
+        )
 
         LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status...")
         assert wait_for_status(
@@ -140,19 +152,28 @@ def make_model_endpoint_fixture(device, instance_type):
             endpoint_name,
         )
 
+        # Create a lightweight predictor-like object for test compatibility
+        from sagemaker.predictor import Predictor
+
+        predictor = Predictor(endpoint_name=endpoint_name)
+
         yield predictor
 
         LOGGER.info(f"Deleting endpoint: {endpoint_name}")
-        sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
-        LOGGER.info(f"Deleting endpoint config: {endpoint_name}")
-        try:
-            ep_cfg = sagemaker_client.describe_endpoint_config(EndpointConfigName=endpoint_name)
-            for v in ep_cfg.get("ProductionVariants", []):
-                if v.get("ModelName"):
-                    sagemaker_client.delete_model(ModelName=v["ModelName"])
-        except Exception:
-            pass
-        sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+        for cleanup_fn, name in [
+            (lambda: sagemaker_client.delete_endpoint(EndpointName=endpoint_name), "endpoint"),
+            (
+                lambda: sagemaker_client.delete_endpoint_config(
+                    EndpointConfigName=endpoint_name
+                ),
+                "endpoint config",
+            ),
+            (lambda: sagemaker_client.delete_model(ModelName=sm_model_name), "model"),
+        ]:
+            try:
+                cleanup_fn()
+            except Exception as e:
+                LOGGER.warning(f"Cleanup {name} failed: {e}")
 
     return model_endpoint
 
@@ -258,7 +279,7 @@ def run_test_nlp(model_endpoint):
 
 
 def run_test_audio_ffmpeg(model_endpoint):
-    """Wav2Vec2 transcription — 3 sine waves (440/880/220 Hz), validate structure + ffmpeg backend."""
+    """Wav2Vec2 transcription — 3 sine waves, validate structure + ffmpeg backend."""
     wavs = make_all_sine_wavs()
     model_endpoint.serializer = IdentitySerializer(content_type="audio/wav")
 

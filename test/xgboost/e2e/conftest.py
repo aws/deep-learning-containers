@@ -9,7 +9,6 @@ import time
 import boto3
 import pytest
 from sagemaker.core.training.configs import Compute, InputData
-from sagemaker.serve import ModelBuilder
 from sagemaker.train import ModelTrainer
 from test_utils import random_suffix_name
 
@@ -143,30 +142,46 @@ def deploy_endpoint(
     image_uri, role, model_data, test_name="ep", instance_type="ml.m5.xlarge", env=None
 ):
     """Deploy a real-time endpoint and return (predictor, endpoint_name)."""
+    from sagemaker.predictor import Predictor
+
+    sm = boto3.client("sagemaker")
     endpoint_name = random_suffix_name(f"xgb-{test_name}", 32)
+    model_name = endpoint_name
 
-    model_builder = ModelBuilder(
-        image_uri=image_uri,
-        s3_model_data_url=model_data,
-        role_arn=role,
-        env_vars=env or {},
+    sm.create_model(
+        ModelName=model_name,
+        PrimaryContainer={
+            "Image": image_uri,
+            "ModelDataUrl": model_data,
+            "Environment": env or {},
+        },
+        ExecutionRoleArn=role,
+    )
+    _created_models.append(model_name)
+
+    sm.create_endpoint_config(
+        EndpointConfigName=endpoint_name,
+        ProductionVariants=[
+            {
+                "VariantName": "AllTraffic",
+                "ModelName": model_name,
+                "InitialInstanceCount": 1,
+                "InstanceType": instance_type,
+            },
+        ],
     )
 
-    predictor = model_builder.deploy(
-        instance_type=instance_type,
-        initial_instance_count=1,
-        endpoint_name=endpoint_name,
+    sm.create_endpoint(
+        EndpointName=endpoint_name,
+        EndpointConfigName=endpoint_name,
     )
-    # Track model for cleanup via endpoint config
-    try:
-        sm = boto3.client("sagemaker")
-        ep_cfg = sm.describe_endpoint_config(EndpointConfigName=endpoint_name)
-        for v in ep_cfg.get("ProductionVariants", []):
-            if v.get("ModelName"):
-                _created_models.append(v["ModelName"])
-    except Exception:
-        pass
+
+    # Wait for InService
+    waiter = sm.get_waiter("endpoint_in_service")
+    waiter.wait(EndpointName=endpoint_name, WaiterConfig={"Delay": 30, "MaxAttempts": 60})
+
     _created_endpoints.append(endpoint_name)
+    predictor = Predictor(endpoint_name=endpoint_name)
     return predictor, endpoint_name
 
 
