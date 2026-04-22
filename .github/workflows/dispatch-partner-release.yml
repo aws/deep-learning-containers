@@ -1,0 +1,72 @@
+name: Dispatch Partner Release
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-image-uri:
+        description: 'Source image URI in the DLC CI ECR (partner-pushed)'
+        required: true
+        type: string
+      release-config-s3-path:
+        description: 'S3 path to release config YAML (s3://dlc-release-logic-v2/DLContainersPartnerConfig/<team>/<image>.yml)'
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - gamma
+          - preprod
+          - production
+      aws-region:
+        description: 'AWS region'
+        required: false
+        type: string
+        default: 'us-west-2'
+
+jobs:
+  fetch-config:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      release-spec: ${{ steps.fetch.outputs.release-spec }}
+    steps:
+      - name: Fetch release config from S3
+        id: fetch
+        run: |
+          S3_PATH="${{ inputs.release-config-s3-path }}"
+
+          if [[ ! "${S3_PATH}" =~ ^s3:// ]]; then
+            echo "❌ ERROR: release-config-s3-path must start with s3://"
+            exit 1
+          fi
+
+          echo "Fetching release config from: ${S3_PATH}"
+          aws s3 cp "${S3_PATH}" /tmp/release-spec.yml --region "${{ inputs.aws-region }}"
+
+          echo "Release spec contents:"
+          cat /tmp/release-spec.yml
+
+          # Emit as multi-line output
+          {
+            echo "release-spec<<EOF_RELEASE_SPEC"
+            cat /tmp/release-spec.yml
+            echo "EOF_RELEASE_SPEC"
+          } >> "${GITHUB_OUTPUT}"
+
+  release-image:
+    needs: [fetch-config]
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ inputs.source-image-uri }}
+      release-spec: ${{ needs.fetch-config.outputs.release-spec }}
+      environment: ${{ inputs.environment }}
+      aws-region: ${{ inputs.aws-region }}
+      publish-only: true
+    secrets: inherit
