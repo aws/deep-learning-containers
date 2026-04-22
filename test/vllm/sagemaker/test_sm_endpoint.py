@@ -47,8 +47,8 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
     hf_token = get_hf_token(aws_session)
     model_builder = ModelBuilder(
         image_uri=image_uri,
-        role=SAGEMAKER_ROLE,
-        env={
+        role_arn=SAGEMAKER_ROLE,
+        env_vars={
             "SM_VLLM_MODEL": model_id,
             "HF_TOKEN": hf_token,
         },
@@ -83,15 +83,13 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
             LOGGER.warning(f"Endpoint cleanup failed: {e}")
         LOGGER.info(f"Deleting endpoint configuration: {endpoint_name}")
         try:
+            ep_cfg = sagemaker_client.describe_endpoint_config(EndpointConfigName=endpoint_name)
+            for v in ep_cfg.get("ProductionVariants", []):
+                if v.get("ModelName"):
+                    sagemaker_client.delete_model(ModelName=v["ModelName"])
             sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
         except Exception as e:
-            LOGGER.warning(f"Endpoint config cleanup failed: {e}")
-        if model_builder.model_name:
-            LOGGER.info(f"Deleting model: {model_builder.model_name}")
-            try:
-                sagemaker_client.delete_model(ModelName=model_builder.model_name)
-            except Exception as e:
-                LOGGER.warning(f"Model cleanup failed: {e}")
+            LOGGER.warning(f"Cleanup failed: {e}")
 
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)

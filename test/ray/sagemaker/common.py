@@ -114,9 +114,9 @@ def make_model_endpoint_fixture(device, instance_type):
 
         model_builder = ModelBuilder(
             image_uri=image_uri,
-            role=SAGEMAKER_ROLE,
-            model_data_url=s3_uri,
-            env=model_config["env"] or {},
+            role_arn=SAGEMAKER_ROLE,
+            s3_model_data_url=s3_uri,
+            env_vars=model_config["env"] or {},
         )
 
         deploy_kwargs = dict(
@@ -145,10 +145,14 @@ def make_model_endpoint_fixture(device, instance_type):
         LOGGER.info(f"Deleting endpoint: {endpoint_name}")
         sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
         LOGGER.info(f"Deleting endpoint config: {endpoint_name}")
+        try:
+            ep_cfg = sagemaker_client.describe_endpoint_config(EndpointConfigName=endpoint_name)
+            for v in ep_cfg.get("ProductionVariants", []):
+                if v.get("ModelName"):
+                    sagemaker_client.delete_model(ModelName=v["ModelName"])
+        except Exception:
+            pass
         sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
-        if model_builder.model_name:
-            LOGGER.info(f"Deleting model: {model_builder.model_name}")
-            sagemaker_client.delete_model(ModelName=model_builder.model_name)
 
     return model_endpoint
 

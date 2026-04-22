@@ -8,9 +8,9 @@ import time
 
 import boto3
 import pytest
+from sagemaker.core.training.configs import Compute, InputData
 from sagemaker.serve import ModelBuilder
 from sagemaker.train import ModelTrainer
-from sagemaker.train.configs import Compute, InputData
 from test_utils import random_suffix_name
 
 LOGGER = logging.getLogger(__name__)
@@ -147,9 +147,9 @@ def deploy_endpoint(
 
     model_builder = ModelBuilder(
         image_uri=image_uri,
-        model_data_url=model_data,
-        role=role,
-        env=env or {},
+        s3_model_data_url=model_data,
+        role_arn=role,
+        env_vars=env or {},
     )
 
     predictor = model_builder.deploy(
@@ -157,8 +157,15 @@ def deploy_endpoint(
         initial_instance_count=1,
         endpoint_name=endpoint_name,
     )
-    if model_builder.model_name:
-        _created_models.append(model_builder.model_name)
+    # Track model for cleanup via endpoint config
+    try:
+        sm = boto3.client("sagemaker")
+        ep_cfg = sm.describe_endpoint_config(EndpointConfigName=endpoint_name)
+        for v in ep_cfg.get("ProductionVariants", []):
+            if v.get("ModelName"):
+                _created_models.append(v["ModelName"])
+    except Exception:
+        pass
     _created_endpoints.append(endpoint_name)
     return predictor, endpoint_name
 
