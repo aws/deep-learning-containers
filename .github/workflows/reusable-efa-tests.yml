@@ -28,7 +28,7 @@ jobs:
   efa-test:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:efa-test-runner
         buildspec-override:true
     timeout-minutes: 60
     steps:
