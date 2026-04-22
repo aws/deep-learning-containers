@@ -126,55 +126,118 @@ def get_availability_zones(aws_session):
     return [az["ZoneName"] for az in response["AvailabilityZones"]]
 
 
+def get_available_reservations(aws_session, instance_type, min_count=1):
+    """Get capacity reservations with available instances, sorted by availability."""
+    response = aws_session.ec2.describe_capacity_reservations(
+        Filters=[
+            {"Name": "instance-type", "Values": [instance_type]},
+            {"Name": "state", "Values": ["active"]},
+        ]
+    )
+    reservations = [
+        r for r in response["CapacityReservations"] if r["AvailableInstanceCount"] >= min_count
+    ]
+    reservations.sort(key=lambda r: r["AvailableInstanceCount"])
+    return reservations
+
+
+def _build_efa_run_params(ami_id, instance_type, key_name, network_interfaces, az, name=""):
+    """Build common RunInstances params for EFA launch."""
+    return {
+        "ImageId": ami_id,
+        "InstanceType": instance_type,
+        "KeyName": key_name,
+        "NetworkInterfaces": network_interfaces,
+        "Placement": {"AvailabilityZone": az},
+        "MetadataOptions": {
+            "HttpTokens": "required",
+            "HttpEndpoint": "enabled",
+            "HttpPutResponseHopLimit": 2,
+        },
+        "BlockDeviceMappings": [
+            {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 300}},
+        ],
+        "TagSpecifications": [
+            {
+                "ResourceType": "instance",
+                "Tags": [{"Key": "Name", "Value": f"CI-CD EFA {name}"}],
+            },
+        ],
+        "IamInstanceProfile": {"Name": EC2_INSTANCE_ROLE_NAME},
+    }
+
+
 def launch_efa_instances(aws_session, ami_id, instance_type, key_name, sg_id, count=2, name=""):
-    """Launch EFA instances in the same AZ, trying multiple AZs on capacity errors.
+    """Launch EFA instances: try capacity reservations first, then on-demand across AZs.
 
     Returns list of instance IDs.
     """
     from botocore.exceptions import ClientError
 
-    azs = get_availability_zones(aws_session)
-    for az in azs:
+    # 1. Try capacity reservations first
+    reservations = get_available_reservations(aws_session, instance_type, min_count=count)
+    for reservation in reservations:
+        az = reservation["AvailabilityZone"]
+        cr_id = reservation["CapacityReservationId"]
         subnet_id = get_default_subnet(aws_session, az)
         network_interfaces = generate_efa_network_interfaces(
             aws_session, instance_type, subnet_id, sg_id
         )
-        params = {
-            "ImageId": ami_id,
-            "InstanceType": instance_type,
-            "KeyName": key_name,
-            "MinCount": count,
-            "MaxCount": count,
-            "NetworkInterfaces": network_interfaces,
-            "Placement": {"AvailabilityZone": az},
-            "MetadataOptions": {
-                "HttpTokens": "required",
-                "HttpEndpoint": "enabled",
-                "HttpPutResponseHopLimit": 2,
-            },
-            "BlockDeviceMappings": [
-                {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 300}},
-            ],
-            "TagSpecifications": [
-                {
-                    "ResourceType": "instance",
-                    "Tags": [{"Key": "Name", "Value": f"CI-CD EFA {name}"}],
-                },
-            ],
-            "IamInstanceProfile": {"Name": EC2_INSTANCE_ROLE_NAME},
+        params = _build_efa_run_params(
+            ami_id, instance_type, key_name, network_interfaces, az, name
+        )
+        params["MinCount"] = count
+        params["MaxCount"] = count
+        params["CapacityReservationSpecification"] = {
+            "CapacityReservationTarget": {"CapacityReservationId": cr_id},
         }
         try:
             response = aws_session.ec2.run_instances(**params)
             instance_ids = [inst["InstanceId"] for inst in response["Instances"]]
-            LOGGER.info(f"Launched {count}x {instance_type} in {az}: {instance_ids}")
+            LOGGER.info(
+                f"Launched {count}x {instance_type} in {az} via reservation {cr_id}: {instance_ids}"
+            )
             return instance_ids
         except ClientError as e:
-            if "InsufficientInstanceCapacity" in str(e) or "Unsupported" in str(e):
-                LOGGER.warning(f"No {instance_type} capacity in {az}, trying next AZ...")
-                continue
-            raise
+            LOGGER.warning(f"Failed to launch via reservation {cr_id} in {az}: {e}")
+            continue
 
-    raise RuntimeError(f"No {instance_type} capacity in any AZ")
+    # 2. Fall back to on-demand, trying each AZ with retries
+    LOGGER.info("No capacity reservations available, trying on-demand...")
+    max_attempts = 6
+    wait_seconds = 300
+
+    for attempt in range(max_attempts):
+        azs = get_availability_zones(aws_session)
+        for az in azs:
+            subnet_id = get_default_subnet(aws_session, az)
+            network_interfaces = generate_efa_network_interfaces(
+                aws_session, instance_type, subnet_id, sg_id
+            )
+            params = _build_efa_run_params(
+                ami_id, instance_type, key_name, network_interfaces, az, name
+            )
+            params["MinCount"] = count
+            params["MaxCount"] = count
+            try:
+                response = aws_session.ec2.run_instances(**params)
+                instance_ids = [inst["InstanceId"] for inst in response["Instances"]]
+                LOGGER.info(f"Launched {count}x {instance_type} in {az} on-demand: {instance_ids}")
+                return instance_ids
+            except ClientError as e:
+                if "InsufficientInstanceCapacity" in str(e) or "Unsupported" in str(e):
+                    LOGGER.warning(f"No {instance_type} capacity in {az}, trying next AZ...")
+                    continue
+                raise
+
+        if attempt < max_attempts - 1:
+            LOGGER.warning(
+                f"No {instance_type} capacity in any AZ (attempt {attempt + 1}/{max_attempts}). "
+                f"Retrying in {wait_seconds}s..."
+            )
+            time.sleep(wait_seconds)
+
+    raise RuntimeError(f"No {instance_type} capacity in any AZ after {max_attempts} attempts")
 
 
 def setup_container(conn, image_uri, container_name):
