@@ -41,7 +41,7 @@ on:
     outputs:
       run-identifier:
         description: 'Unique identifier for this release run'
-        value: ${{ jobs.step1-publish-images.outputs.run-identifier }}
+        value: ${{ jobs.publish-images.outputs.run-identifier }}
 
 jobs:
   validate-release:
@@ -62,7 +62,7 @@ jobs:
           echo "Ref: ${{ github.ref }}"
           echo "Environment: ${ENVIRONMENT}"
 
-  step1-publish-images:
+  publish-images:
     needs: [validate-release]
     environment: ${{ inputs.environment }}
     runs-on:
@@ -196,10 +196,10 @@ jobs:
           path: ${{ env.METADATA_FILE }}
           retention-days: 7
 
-  step2-generate-info:
-    needs: [step1-publish-images]
+  generate-info:
+    needs: [publish-images]
     environment: ${{ inputs.environment }}
-    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
+    if: needs.publish-images.outputs.images-published == '1' && !inputs.publish-only
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
@@ -216,7 +216,7 @@ jobs:
       - name: Download metadata artifact
         uses: actions/download-artifact@v4
         with:
-          name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
+          name: release-metadata-${{ needs.publish-images.outputs.run-identifier }}
           path: /tmp/
 
       - name: Install inspector-sbomgen
@@ -235,8 +235,8 @@ jobs:
 
       - name: Setup environment
         run: |
-          RUN_IDENTIFIER="${{ needs.step1-publish-images.outputs.run-identifier }}"
-          METADATA_FILE="/tmp/${{ needs.step1-publish-images.outputs.metadata-file-name }}"
+          RUN_IDENTIFIER="${{ needs.publish-images.outputs.run-identifier }}"
+          METADATA_FILE="/tmp/${{ needs.publish-images.outputs.metadata-file-name }}"
 
           echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
           echo "METADATA_FILE=${METADATA_FILE}" >> ${GITHUB_ENV}
@@ -264,10 +264,10 @@ jobs:
 
           echo "✅ Step 2 completed: Release information generated and uploaded to S3"
 
-  step3-publish-notifications:
-    needs: [step1-publish-images, step2-generate-info]
+  publish-notifications:
+    needs: [publish-images, generate-info]
     environment: ${{ inputs.environment }}
-    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
+    if: needs.publish-images.outputs.images-published == '1' && !inputs.publish-only
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
@@ -283,7 +283,7 @@ jobs:
 
       - name: Setup environment
         run: |
-          RUN_IDENTIFIER="${{ needs.step1-publish-images.outputs.run-identifier }}"
+          RUN_IDENTIFIER="${{ needs.publish-images.outputs.run-identifier }}"
           echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
           echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
           echo "SOURCE_STAGE=${{ vars.SOURCE_STAGE }}" >> ${GITHUB_ENV}
@@ -303,9 +303,9 @@ jobs:
           echo "🎉 All release steps completed successfully!"
           echo "=========================================="
 
-  step4-docs-pr:
-    needs: [step1-publish-images, step3-publish-notifications]
-    if: needs.step1-publish-images.outputs.images-published == '1' && inputs.environment == 'production' && !inputs.publish-only && !inputs.skip-docs-pr
+  docs-pr:
+    needs: [publish-images, publish-notifications]
+    if: needs.publish-images.outputs.images-published == '1' && inputs.environment == 'production' && !inputs.publish-only && !inputs.skip-docs-pr
     runs-on: ubuntu-latest
     steps:
       - name: Decode the GitHub App Private Key
@@ -337,7 +337,7 @@ jobs:
       - name: Download metadata artifact
         uses: actions/download-artifact@v4
         with:
-          name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
+          name: release-metadata-${{ needs.publish-images.outputs.run-identifier }}
           path: /tmp/
 
       - name: Create docs PR
@@ -350,5 +350,5 @@ jobs:
           ${{ inputs.release-spec }}
           EOF
 
-          METADATA_FILE="/tmp/${{ needs.step1-publish-images.outputs.metadata-file-name }}"
+          METADATA_FILE="/tmp/${{ needs.publish-images.outputs.metadata-file-name }}"
           bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml "$METADATA_FILE"
