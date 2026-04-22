@@ -163,9 +163,7 @@ def make_model_endpoint_fixture(device, instance_type):
         for cleanup_fn, name in [
             (lambda: sagemaker_client.delete_endpoint(EndpointName=endpoint_name), "endpoint"),
             (
-                lambda: sagemaker_client.delete_endpoint_config(
-                    EndpointConfigName=endpoint_name
-                ),
+                lambda: sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name),
                 "endpoint config",
             ),
             (lambda: sagemaker_client.delete_model(ModelName=sm_model_name), "model"),
