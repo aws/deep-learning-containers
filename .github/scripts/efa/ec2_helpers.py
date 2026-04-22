@@ -10,7 +10,7 @@ import time
 from contextlib import contextmanager
 
 from test_utils import random_suffix_name
-from test_utils.aws import AWSSessionManager
+from test_utils.aws import AWSSessionManager, LoggedConnection
 from test_utils.constants import DEFAULT_REGION, EC2_INSTANCE_ROLE_NAME
 
 LOGGER = logging.getLogger(__name__)
@@ -317,6 +317,40 @@ def get_private_ip(aws_session, instance_id):
     return response["Reservations"][0]["Instances"][0]["PrivateIpAddress"]
 
 
+def allocate_and_associate_eip(aws_session, instance_id):
+    """Allocate an Elastic IP and associate it with the instance's primary network interface.
+
+    Returns (allocation_id, public_ip).
+    """
+    eip = aws_session.ec2.allocate_address(Domain="vpc")
+    alloc_id = eip["AllocationId"]
+    public_ip = eip["PublicIp"]
+
+    # Get the primary network interface (DeviceIndex 0)
+    instance = aws_session.ec2.describe_instances(InstanceIds=[instance_id])
+    eni_id = None
+    for iface in instance["Reservations"][0]["Instances"][0]["NetworkInterfaces"]:
+        if iface["Attachment"]["DeviceIndex"] == 0:
+            eni_id = iface["NetworkInterfaceId"]
+            break
+
+    aws_session.ec2.associate_address(
+        AllocationId=alloc_id,
+        NetworkInterfaceId=eni_id,
+    )
+    LOGGER.info(f"Associated EIP {public_ip} ({alloc_id}) with instance {instance_id}")
+    return alloc_id, public_ip
+
+
+def release_eip(aws_session, alloc_id):
+    """Release an Elastic IP."""
+    try:
+        aws_session.ec2.release_address(AllocationId=alloc_id)
+        LOGGER.info(f"Released EIP {alloc_id}")
+    except Exception as e:
+        LOGGER.warning(f"Failed to release EIP {alloc_id}: {e}")
+
+
 @contextmanager
 def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION):
     """Context manager that launches 2 EFA instances, sets up containers + SSH, and cleans up.
@@ -330,6 +364,8 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
 
     master_id = None
     worker_id = None
+    master_eip_alloc = None
+    worker_eip_alloc = None
 
     try:
         # Launch both instances in the same AZ (tries each AZ on capacity errors)
@@ -343,9 +379,23 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
         aws_session.wait_for_instance_ready(master_id)
         aws_session.wait_for_instance_ready(worker_id)
 
-        # SSH connections
-        master_conn = aws_session.get_ssh_connection(master_id, key_path)
-        worker_conn = aws_session.get_ssh_connection(worker_id, key_path)
+        # Allocate Elastic IPs (EFA multi-NIC instances don't get auto public IPs)
+        master_eip_alloc, master_ip = allocate_and_associate_eip(aws_session, master_id)
+        worker_eip_alloc, worker_ip = allocate_and_associate_eip(aws_session, worker_id)
+
+        # SSH connections using EIP addresses
+        master_conn = LoggedConnection(
+            host=master_ip,
+            user="ec2-user",
+            connect_kwargs={"key_filename": [key_path]},
+            connect_timeout=600,
+        )
+        worker_conn = LoggedConnection(
+            host=worker_ip,
+            user="ec2-user",
+            connect_kwargs={"key_filename": [key_path]},
+            connect_timeout=600,
+        )
 
         # Copy test scripts to instances
         master_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
@@ -389,8 +439,13 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
             aws_session.terminate_instance(master_id)
         if worker_id:
             aws_session.terminate_instance(worker_id)
+        # Release Elastic IPs
+        if master_eip_alloc:
+            release_eip(aws_session, master_eip_alloc)
+        if worker_eip_alloc:
+            release_eip(aws_session, worker_eip_alloc)
         # Wait briefly for instances to start terminating before deleting SG
-        time.sleep(10)
+        time.sleep(30)
         try:
             aws_session.delete_security_group(sg_id)
         except Exception as e:
