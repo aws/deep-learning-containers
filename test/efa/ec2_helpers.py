@@ -118,41 +118,63 @@ def create_efa_security_group(aws_session, group_name=None):
     return sg_id
 
 
-def launch_efa_instance(aws_session, ami_id, instance_type, key_name, sg_id, subnet_id, name=""):
-    """Launch a single EFA-enabled EC2 instance."""
-    network_interfaces = generate_efa_network_interfaces(
-        aws_session, instance_type, subnet_id, sg_id
+def get_availability_zones(aws_session):
+    """Get all available AZs in the region."""
+    response = aws_session.ec2.describe_availability_zones(
+        Filters=[{"Name": "state", "Values": ["available"]}]
     )
-    params = {
-        "ImageId": ami_id,
-        "InstanceType": instance_type,
-        "KeyName": key_name,
-        "MinCount": 1,
-        "MaxCount": 1,
-        "NetworkInterfaces": network_interfaces,
-        "MetadataOptions": {
-            "HttpTokens": "required",
-            "HttpEndpoint": "enabled",
-            "HttpPutResponseHopLimit": 2,
-        },
-        "BlockDeviceMappings": [
-            {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 300}},
-        ],
-        "TagSpecifications": [
-            {
-                "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": f"CI-CD EFA {name}"}],
-            },
-        ],
-    }
-    # IamInstanceProfile can't be in NetworkInterfaces mode with AssociatePublicIpAddress
-    # Pass it at the top level
-    params["IamInstanceProfile"] = {"Name": EC2_INSTANCE_ROLE_NAME}
+    return [az["ZoneName"] for az in response["AvailabilityZones"]]
 
-    response = aws_session.ec2.run_instances(**params)
-    instance_id = response["Instances"][0]["InstanceId"]
-    LOGGER.info(f"Launched EFA instance {instance_id} ({instance_type})")
-    return instance_id
+
+def launch_efa_instances(aws_session, ami_id, instance_type, key_name, sg_id, count=2, name=""):
+    """Launch EFA instances in the same AZ, trying multiple AZs on capacity errors.
+
+    Returns list of instance IDs.
+    """
+    from botocore.exceptions import ClientError
+
+    azs = get_availability_zones(aws_session)
+    for az in azs:
+        subnet_id = get_default_subnet(aws_session, az)
+        network_interfaces = generate_efa_network_interfaces(
+            aws_session, instance_type, subnet_id, sg_id
+        )
+        params = {
+            "ImageId": ami_id,
+            "InstanceType": instance_type,
+            "KeyName": key_name,
+            "MinCount": count,
+            "MaxCount": count,
+            "NetworkInterfaces": network_interfaces,
+            "Placement": {"AvailabilityZone": az},
+            "MetadataOptions": {
+                "HttpTokens": "required",
+                "HttpEndpoint": "enabled",
+                "HttpPutResponseHopLimit": 2,
+            },
+            "BlockDeviceMappings": [
+                {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 300}},
+            ],
+            "TagSpecifications": [
+                {
+                    "ResourceType": "instance",
+                    "Tags": [{"Key": "Name", "Value": f"CI-CD EFA {name}"}],
+                },
+            ],
+            "IamInstanceProfile": {"Name": EC2_INSTANCE_ROLE_NAME},
+        }
+        try:
+            response = aws_session.ec2.run_instances(**params)
+            instance_ids = [inst["InstanceId"] for inst in response["Instances"]]
+            LOGGER.info(f"Launched {count}x {instance_type} in {az}: {instance_ids}")
+            return instance_ids
+        except ClientError as e:
+            if "InsufficientInstanceCapacity" in str(e) or "Unsupported" in str(e):
+                LOGGER.warning(f"No {instance_type} capacity in {az}, trying next AZ...")
+                continue
+            raise
+
+    raise RuntimeError(f"No {instance_type} capacity in any AZ")
 
 
 def setup_container(conn, image_uri, container_name):
@@ -242,19 +264,17 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     ami_id = aws_session.get_latest_ami()
     key_name, key_path = aws_session.create_key_pair()
     sg_id = create_efa_security_group(aws_session)
-    subnet_id = get_default_subnet(aws_session)
 
     master_id = None
     worker_id = None
 
     try:
-        # Launch instances
-        master_id = launch_efa_instance(
-            aws_session, ami_id, instance_type, key_name, sg_id, subnet_id, name="efa-master"
+        # Launch both instances in the same AZ (tries each AZ on capacity errors)
+        instance_ids = launch_efa_instances(
+            aws_session, ami_id, instance_type, key_name, sg_id, count=2, name="efa-test"
         )
-        worker_id = launch_efa_instance(
-            aws_session, ami_id, instance_type, key_name, sg_id, subnet_id, name="efa-worker"
-        )
+        master_id = instance_ids[0]
+        worker_id = instance_ids[1]
 
         # Wait for both
         aws_session.wait_for_instance_ready(master_id)
