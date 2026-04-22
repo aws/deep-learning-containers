@@ -1,14 +1,11 @@
-"""Integration test for vLLM-Omni SageMaker endpoint"""
+"""Integration test for vLLM-Omni SageMaker endpoint — SageMaker SDK v3"""
 
 import json
 import logging
 import time
 
 import pytest
-from sagemaker.async_inference import AsyncInferenceConfig
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
+from sagemaker.serve import ModelBuilder
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
@@ -37,49 +34,28 @@ def instance_type(request):
 
 
 @pytest.fixture(scope="function")
-def model_package(aws_session, image_uri, model_id):
+def model_endpoint(aws_session, image_uri, model_id, instance_type):
     sagemaker_client = aws_session.sagemaker
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
-    model_name = random_suffix_name(f"vllm-omni-{cleaned_id}", 50)
+    endpoint_name = random_suffix_name(f"vllm-omni-{cleaned_id}", 50)
+
+    hf_token = get_hf_token(aws_session)
+    model_builder = ModelBuilder(
+        image_uri=image_uri,
+        role=SAGEMAKER_ROLE,
+        env={
+            "SM_VLLM_MODEL": model_id,
+            "HF_TOKEN": hf_token,
+        },
+    )
 
     try:
-        LOGGER.info(f"Creating SageMaker model: {model_name}")
-        hf_token = get_hf_token(aws_session)
-        model = Model(
-            name=model_name,
-            image_uri=image_uri,
-            role=SAGEMAKER_ROLE,
-            predictor_cls=Predictor,
-            env={
-                "SM_VLLM_MODEL": model_id,
-                "HF_TOKEN": hf_token,
-            },
-        )
-        yield model
-    finally:
-        LOGGER.info(f"Deleting model: {model_name}")
-        try:
-            sagemaker_client.delete_model(ModelName=model_name)
-        except Exception as e:
-            LOGGER.warning(f"Model cleanup failed (may already be deleted): {e}")
-
-
-@pytest.fixture(scope="function")
-def model_endpoint(aws_session, model_package, instance_type):
-    sagemaker_client = aws_session.sagemaker
-    model = model_package
-    cleaned_instance = clean_string(instance_type, "_./")
-    endpoint_name = random_suffix_name(f"vllm-omni-{cleaned_instance}", 50)
-
-    try:
-        LOGGER.info("Starting endpoint deployment...")
-        predictor = model.deploy(
+        LOGGER.info(f"Deploying endpoint: {endpoint_name}")
+        predictor = model_builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=endpoint_name,
             inference_ami_version=INFERENCE_AMI_VERSION,
-            serializer=JSONSerializer(),
-            wait=True,
         )
 
         LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status...")
@@ -102,6 +78,11 @@ def model_endpoint(aws_session, model_package, instance_type):
             sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
         except Exception as e:
             LOGGER.warning(f"Endpoint config cleanup failed: {e}")
+        if model_builder.model_name:
+            try:
+                sagemaker_client.delete_model(ModelName=model_builder.model_name)
+            except Exception as e:
+                LOGGER.warning(f"Model cleanup failed: {e}")
 
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
@@ -122,9 +103,6 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
     LOGGER.info("Sending TTS request via /invocations with route=/v1/audio/speech")
     # First request triggers torch.compile + CUDA graph capture (~67s),
     # which exceeds SageMaker's 60s invoke timeout. Retry after warmup completes.
-    import time
-
-    # https://github.com/aws/sagemaker-python-sdk/issues/1119
     for attempt in range(3):
         try:
             response = sm_runtime.invoke_endpoint(
@@ -147,28 +125,35 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
 
 
 @pytest.fixture(scope="function")
-def async_endpoint(aws_session, model_package, instance_type):
+def async_endpoint(aws_session, image_uri, model_id, instance_type):
     """Deploy an async inference endpoint (no 60s timeout limit)."""
     sagemaker_client = aws_session.sagemaker
-    model = model_package
     cleaned_instance = clean_string(instance_type, "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_instance}", 50)
     account_id = aws_session.sts.get_caller_identity()["Account"]
     s3_output = f"s3://sagemaker-{aws_session.region}-{account_id}/vllm-omni-async-output/"
 
+    hf_token = get_hf_token(aws_session)
+    model_builder = ModelBuilder(
+        image_uri=image_uri,
+        role=SAGEMAKER_ROLE,
+        env={
+            "SM_VLLM_MODEL": model_id,
+            "HF_TOKEN": hf_token,
+        },
+    )
+
     try:
         LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
-        predictor = model.deploy(
+        predictor = model_builder.deploy(
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=endpoint_name,
             inference_ami_version=INFERENCE_AMI_VERSION,
-            serializer=JSONSerializer(),
-            async_inference_config=AsyncInferenceConfig(
-                output_path=s3_output,
-                max_concurrent_invocations_per_instance=1,
-            ),
-            wait=True,
+            async_inference_config={
+                "output_path": s3_output,
+                "max_concurrent_invocations_per_instance": 1,
+            },
         )
 
         LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status...")
@@ -191,6 +176,11 @@ def async_endpoint(aws_session, model_package, instance_type):
             sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
         except Exception as e:
             LOGGER.warning(f"Endpoint config cleanup failed: {e}")
+        if model_builder.model_name:
+            try:
+                sagemaker_client.delete_model(ModelName=model_builder.model_name)
+            except Exception as e:
+                LOGGER.warning(f"Model cleanup failed: {e}")
 
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)

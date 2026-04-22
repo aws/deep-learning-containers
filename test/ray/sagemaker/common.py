@@ -1,18 +1,7 @@
-# Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License"). You
-# may not use this file except in compliance with the License. A copy of
-# the License is located at
-#
-#     http://aws.amazon.com/apache2.0/
-#
-# or in the "license" file accompanying this file. This file is
-# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
-# ANY KIND, either express or implied. See the License for the specific
-# language governing permissions and limitations under the License.
 """Shared constants, helpers, fixtures, and test implementations for Ray SageMaker endpoint tests.
 
 CPU and GPU test modules import from here, setting only DEVICE and INSTANCE_TYPE.
+Migrated to SageMaker SDK v3 (ModelBuilder API).
 """
 
 import json
@@ -35,8 +24,7 @@ from ray.utils import (
     validate_mnist_response,
     validate_sentiment_response,
 )
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
+from sagemaker.serve import ModelBuilder
 from sagemaker.serializers import IdentitySerializer, JSONSerializer
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
@@ -107,62 +95,40 @@ def make_model_name_fixture():
     return model_name
 
 
-def make_model_package_fixture(device, instance_type):
-    """Create the model_package fixture parameterized by device."""
+def make_model_endpoint_fixture(device, instance_type):
+    """Create the model_endpoint fixture using ModelBuilder (SDK v3)."""
     models = build_models(device)
     prefix = f"ray-{device}-"
 
     @pytest.fixture(scope="function")
-    def model_package(aws_session, image_uri, model_name):
+    def model_endpoint(aws_session, image_uri, model_name):
         sagemaker_client = aws_session.sagemaker
         model_config = models[model_name]
         s3_uri = f"s3://{S3_BUCKET}/{S3_PREFIX}/{model_config['s3_key']}"
         cleaned = clean_string(model_name, "_./")
-        sm_model_name = random_suffix_name(f"{prefix}{cleaned}", 50)
+        endpoint_name = random_suffix_name(f"{prefix}{cleaned}", 50)
 
-        LOGGER.info(f"Creating model: {sm_model_name}")
+        LOGGER.info(f"Deploying endpoint: {endpoint_name}")
         LOGGER.info(f"  Image: {image_uri}")
         LOGGER.info(f"  Model data: {s3_uri}")
 
-        model = Model(
-            name=sm_model_name,
+        model_builder = ModelBuilder(
             image_uri=image_uri,
             role=SAGEMAKER_ROLE,
-            predictor_cls=Predictor,
-            model_data=s3_uri,
-            env=model_config["env"] or None,
+            model_data_url=s3_uri,
+            env=model_config["env"] or {},
         )
 
-        yield model
-
-        LOGGER.info(f"Deleting model: {sm_model_name}")
-        sagemaker_client.delete_model(ModelName=sm_model_name)
-
-    return model_package
-
-
-def make_model_endpoint_fixture(device, instance_type):
-    """Create the model_endpoint fixture parameterized by device and instance type."""
-    prefix = f"ray-{device}-"
-
-    @pytest.fixture(scope="function")
-    def model_endpoint(aws_session, model_package, model_name):
-        sagemaker_client = aws_session.sagemaker
-        cleaned = clean_string(model_name, "_./")
-        endpoint_name = random_suffix_name(f"{prefix}{cleaned}", 50)
-
-        LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_type}")
         deploy_kwargs = dict(
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=endpoint_name,
-            serializer=JSONSerializer(),
-            wait=True,
         )
         if device == "gpu":
             deploy_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION
             LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION}")
-        predictor = model_package.deploy(**deploy_kwargs)
+
+        predictor = model_builder.deploy(**deploy_kwargs)
 
         LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status...")
         assert wait_for_status(
@@ -180,6 +146,9 @@ def make_model_endpoint_fixture(device, instance_type):
         sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
         LOGGER.info(f"Deleting endpoint config: {endpoint_name}")
         sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+        if model_builder.model_name:
+            LOGGER.info(f"Deleting model: {model_builder.model_name}")
+            sagemaker_client.delete_model(ModelName=model_builder.model_name)
 
     return model_endpoint
 
@@ -242,11 +211,7 @@ def run_test_mnist_direct_app(model_endpoint):
 
 
 def run_test_tabular(model_endpoint, check_packages=False):
-    """Iris classification — 6 samples (2 per species), validate predicted species.
-
-    If check_packages=True, asserts that installed_packages appears in the
-    response (verifies entrypoint installed code/requirements.txt).
-    """
+    """Iris classification — 6 samples (2 per species), validate predicted species."""
     for features, expected, desc in IRIS_SAMPLES:
         payload = {"features": features}
         response = model_endpoint.predict(payload)

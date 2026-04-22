@@ -1,12 +1,10 @@
 """HPO (Hyperparameter Optimization) tests.
 
-Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_hpo.py
+Migrated to SageMaker SDK v3 using sagemaker-core HyperParameterTuningJob.
 """
 
 import boto3
-from sagemaker.estimator import Estimator
-from sagemaker.inputs import TrainingInput
-from sagemaker.tuner import ContinuousParameter, HyperparameterTuner, IntegerParameter
+from sagemaker.core.resources import HyperParameterTuningJob
 from test_utils import random_suffix_name
 
 from .conftest import E2E_TEST_BUCKET, data_uri, s3_uri
@@ -31,43 +29,82 @@ def _run_hpo(
     job_name = random_suffix_name(f"xgb-{test_name}", 32)
     output_path = s3_uri(E2E_TEST_BUCKET, f"e2e-output/{job_name}")
 
-    estimator = Estimator(
-        image_uri=image_uri,
-        role=role,
-        instance_count=1,
-        instance_type=instance_type,
-        output_path=output_path,
-        hyperparameters=hp,
-        volume_size=10,
-        max_run=2700,
-        metric_definitions=metric_defs,
-    )
-
-    tuner = HyperparameterTuner(
-        estimator=estimator,
-        objective_metric_name=objective_name,
-        objective_type=objective_type,
-        hyperparameter_ranges={
-            "num_round": IntegerParameter(5, 20),
-            "eta": ContinuousParameter(0.1, 0.5),
-        },
-        max_jobs=4,
-        max_parallel_jobs=2,
-        metric_definitions=metric_defs,
-    )
-
-    channels = {
-        "train": TrainingInput(s3_data=data_uri(train_key), content_type=content_type),
-        "validation": TrainingInput(
-            s3_data=data_uri(val_key), content_type=content_type, distribution="FullyReplicated"
-        ),
-    }
-
-    tuner.fit(channels, job_name=job_name)
-    tuner.wait()
+    # Static hyperparameters (not tuned)
+    static_hp = {k: str(v) for k, v in hp.items()}
 
     sm = boto3.client("sagemaker")
-    desc = sm.describe_hyper_parameter_tuning_job(HyperParameterTuningJobName=job_name)
+    sm.create_hyper_parameter_tuning_job(
+        HyperParameterTuningJobName=job_name,
+        HyperParameterTuningJobConfig={
+            "Strategy": "Bayesian",
+            "HyperParameterTuningJobObjective": {
+                "Type": objective_type,
+                "MetricName": objective_name,
+            },
+            "ResourceLimits": {"MaxNumberOfTrainingJobs": 4, "MaxParallelTrainingJobs": 2},
+            "ParameterRanges": {
+                "IntegerParameterRanges": [
+                    {"Name": "num_round", "MinValue": "5", "MaxValue": "20", "ScalingType": "Auto"}
+                ],
+                "ContinuousParameterRanges": [
+                    {"Name": "eta", "MinValue": "0.1", "MaxValue": "0.5", "ScalingType": "Auto"}
+                ],
+                "CategoricalParameterRanges": [],
+            },
+        },
+        TrainingJobDefinition={
+            "StaticHyperParameters": static_hp,
+            "AlgorithmSpecification": {
+                "TrainingImage": image_uri,
+                "TrainingInputMode": "File",
+                "MetricDefinitions": [
+                    {"Name": m["Name"], "Regex": m["Regex"]} for m in metric_defs
+                ],
+            },
+            "RoleArn": role,
+            "InputDataConfig": [
+                {
+                    "ChannelName": "train",
+                    "DataSource": {
+                        "S3DataSource": {
+                            "S3DataType": "S3Prefix",
+                            "S3Uri": data_uri(train_key),
+                        }
+                    },
+                    "ContentType": content_type,
+                },
+                {
+                    "ChannelName": "validation",
+                    "DataSource": {
+                        "S3DataSource": {
+                            "S3DataType": "S3Prefix",
+                            "S3Uri": data_uri(val_key),
+                            "S3DataDistributionType": "FullyReplicated",
+                        }
+                    },
+                    "ContentType": content_type,
+                },
+            ],
+            "OutputDataConfig": {"S3OutputPath": output_path},
+            "ResourceConfig": {
+                "InstanceType": instance_type,
+                "InstanceCount": 1,
+                "VolumeSizeInGB": 10,
+            },
+            "StoppingCondition": {"MaxRuntimeInSeconds": 2700},
+        },
+    )
+
+    # Wait for completion
+    import time
+
+    for _ in range(90):  # up to 45 minutes
+        desc = sm.describe_hyper_parameter_tuning_job(HyperParameterTuningJobName=job_name)
+        status = desc["HyperParameterTuningJobStatus"]
+        if status in ("Completed", "Failed", "Stopped"):
+            break
+        time.sleep(30)
+
     assert desc["HyperParameterTuningJobStatus"] == "Completed"
 
 
