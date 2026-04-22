@@ -4,7 +4,6 @@ Migrated to SageMaker SDK v3 using sagemaker-core HyperParameterTuningJob.
 """
 
 import boto3
-from sagemaker.core.resources import HyperParameterTuningJob
 from test_utils import random_suffix_name
 
 from .conftest import E2E_TEST_BUCKET, data_uri, s3_uri
