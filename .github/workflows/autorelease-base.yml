@@ -11,7 +11,7 @@ on:
   #   paths:
   #     - "docker/base/**"
   #     - ".github/config/image/base-*.yml"
-  #     - ".github/workflows/auto-release-base.yml"
+  #     - ".github/workflows/autorelease-base.yml"
   #     - "!docs/**"
 
   # Manual trigger

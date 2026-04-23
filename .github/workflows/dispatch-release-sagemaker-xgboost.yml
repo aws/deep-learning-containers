@@ -146,7 +146,7 @@ jobs:
   xgboost-tests:
     needs: [security-test, build-image, load-config]
     if: success()
-    uses: ./.github/workflows/sagemaker-xgboost-integ-tests.yml
+    uses: ./.github/workflows/reusable-sagemaker-xgboost-integ-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}

@@ -1,4 +1,4 @@
-# check-upstream-releases.yml — Automatically detects new upstream framework
+# scheduled-check-upstream-releases.yml — Automatically detects new upstream framework
 # releases and creates PRs to update version configurations.
 #
 # Runs on a cron schedule (every 60 minutes) or via manual dispatch.
