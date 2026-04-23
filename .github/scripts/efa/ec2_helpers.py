@@ -264,8 +264,10 @@ def setup_worker_ssh(conn, master_pub_key):
         conn,
         f"eval `ssh-agent -s` && ssh-add $HOME/.ssh/{WORKER_SSH_KEY_NAME}",
     )
-    run_on_container(WORKER_CONTAINER_NAME, conn, "service ssh start")
-    status = run_on_container(WORKER_CONTAINER_NAME, conn, "service ssh status", warn=True)
+    # Start sshd directly (AL2023 base image has no `service` wrapper / sysvinit).
+    # openssh-server is pre-installed by configure_ssh.sh in the Dockerfile.
+    run_on_container(WORKER_CONTAINER_NAME, conn, "/usr/sbin/sshd")
+    status = run_on_container(WORKER_CONTAINER_NAME, conn, "pgrep -x sshd", warn=True)
     if status.failed:
         raise RuntimeError("Failed to start SSH daemon on worker")
 
