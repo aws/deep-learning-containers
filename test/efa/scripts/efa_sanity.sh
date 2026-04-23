@@ -9,8 +9,8 @@ export PATH=/opt/amazon/efa/bin:$PATH
 fi_info -p efa
 fi_info -p efa -t FI_EP_RDM | grep 'FI_EP_RDM'
 
-# Check if ib_uverbs kernel module is loaded
-lsmod | grep ib_uverbs
+# Check if ib_uverbs kernel module is loaded (use /sys/module — AL2023 minimal has no `lsmod`)
+test -d /sys/module/ib_uverbs
 
 # Run fi_pingpong over EFA loopback
 /test/efa/scripts/efa_pingpong.sh
