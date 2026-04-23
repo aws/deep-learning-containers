@@ -9,6 +9,9 @@ CUDA_HOME=${CUDA_HOME:-/usr/local/cuda}
 CUDA_MAJOR_MINOR=$(nvcc --version | grep -oP 'V\K[0-9]+\.[0-9]+' | tr '.' '-')
 dnf install -y -q cuda-cudart-devel-${CUDA_MAJOR_MINOR}
 
+# NCCL is shipped via the nvidia-nccl pip package — headers live there, not /usr/local
+NCCL_HOME=$(python -c "import nvidia.nccl, os; print(os.path.dirname(nvidia.nccl.__file__))")
+
 echo "Building all_reduce_perf from nccl-tests"
 cd /tmp/
 rm -rf nccl-tests/
@@ -16,7 +19,7 @@ rm -rf nccl-tests/
 curl -fsSL https://github.com/NVIDIA/nccl-tests/archive/refs/heads/master.tar.gz | tar xz
 mv nccl-tests-master nccl-tests
 cd nccl-tests/
-make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=/usr/local CUDA_HOME=${CUDA_HOME}
+make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=${NCCL_HOME} CUDA_HOME=${CUDA_HOME}
 cp build/all_reduce_perf /all_reduce_perf
 cd /tmp/
 rm -rf nccl-tests/
