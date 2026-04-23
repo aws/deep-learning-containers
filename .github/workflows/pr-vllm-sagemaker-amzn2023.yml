@@ -291,6 +291,7 @@ jobs:
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
+      vllm-ref: ${{ needs.load-config.outputs.vllm-ref }}
       setup-script: test/vllm/scripts/vllm_test_setup.sh
       example-test-script: test/vllm/scripts/amzn2023/vllm_sagemaker_examples_test.sh
     secrets: inherit
