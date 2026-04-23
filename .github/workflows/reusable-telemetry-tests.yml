@@ -85,6 +85,8 @@ jobs:
           fi
 
   telemetry-instance:
+    needs: preflight
+    if: needs.preflight.outputs.image-exists == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

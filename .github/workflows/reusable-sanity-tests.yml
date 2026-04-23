@@ -186,7 +186,8 @@ jobs:
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
 
   sagemaker-only:
-    if: inputs.customer-type == 'sagemaker'
+    needs: preflight
+    if: needs.preflight.outputs.image-exists == 'true' && inputs.customer-type == 'sagemaker'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
