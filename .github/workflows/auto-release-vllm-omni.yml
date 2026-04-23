@@ -55,7 +55,7 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "build-target=$(jq -r '.common.build_target // "vllm-omni-ec2-amzn2023"' config.json)" >> $GITHUB_OUTPUT
-          echo "dockerfile=$(jq -r '.common.dockerfile // "docker/vllm/Dockerfile.amzn2023"' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(jq -r '.common.dockerfile // "docker/vllm_omni/Dockerfile.amzn2023"' config.json)" >> $GITHUB_OUTPUT
           echo "base-image=$(jq -r '.common.base_image // "nvidia/cuda:12.9.1-devel-amzn2023"' config.json)" >> $GITHUB_OUTPUT
 
   load-config-sagemaker:
@@ -95,7 +95,7 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "build-target=$(jq -r '.common.build_target // "vllm-omni-sagemaker-amzn2023"' config.json)" >> $GITHUB_OUTPUT
-          echo "dockerfile=$(jq -r '.common.dockerfile // "docker/vllm/Dockerfile.amzn2023"' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(jq -r '.common.dockerfile // "docker/vllm_omni/Dockerfile.amzn2023"' config.json)" >> $GITHUB_OUTPUT
           echo "base-image=$(jq -r '.common.base_image // "nvidia/cuda:12.9.1-devel-amzn2023"' config.json)" >> $GITHUB_OUTPUT
 
   # ============================================================
@@ -145,7 +145,7 @@ jobs:
           # Capture vars introduced by sourcing the env file and forward them
           # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
           before=$(compgen -v | sort)
-          set -a; source docker/vllm/versions-omni.env; set +a
+          set -a; source docker/vllm_omni/versions.env; set +a
           new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -v '^before$')
           for v in $new; do
             [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
@@ -228,7 +228,7 @@ jobs:
           # Capture vars introduced by sourcing the env file and forward them
           # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
           before=$(compgen -v | sort)
-          set -a; source docker/vllm/versions-omni.env; set +a
+          set -a; source docker/vllm_omni/versions.env; set +a
           new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -v '^before$')
           for v in $new; do
             [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
