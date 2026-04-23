@@ -10,7 +10,7 @@ CUDA_MAJOR_MINOR=$(nvcc --version | grep -oP 'V\K[0-9]+\.[0-9]+' | tr '.' '-')
 dnf install -y -q cuda-cudart-devel-${CUDA_MAJOR_MINOR}
 
 # NCCL is shipped via the nvidia-nccl pip package — headers live there, not /usr/local
-NCCL_HOME=$(python -c "import nvidia.nccl, os; print(os.path.dirname(nvidia.nccl.__file__))")
+NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])")
 
 echo "Building all_reduce_perf from nccl-tests"
 cd /tmp/
