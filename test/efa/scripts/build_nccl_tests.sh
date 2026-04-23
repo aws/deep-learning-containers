@@ -5,6 +5,10 @@ set -e
 
 CUDA_HOME=${CUDA_HOME:-/usr/local/cuda}
 
+# Runtime image has cuda-nvcc but not CUDA headers — install cuda-cudart-devel
+CUDA_MAJOR_MINOR=$(nvcc --version | grep -oP 'V\K[0-9]+\.[0-9]+' | tr '.' '-')
+dnf install -y -q cuda-cudart-devel-${CUDA_MAJOR_MINOR}
+
 echo "Building all_reduce_perf from nccl-tests"
 cd /tmp/
 rm -rf nccl-tests/
