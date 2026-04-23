@@ -1,7 +1,7 @@
-# detect-versions.yml — Detects CUDA/Python/OS version changes in upstream
+# prcheck-detect-versions.yml — Detects CUDA/Python/OS version changes in upstream
 # base images and updates config files on auto-update PR branches.
 #
-# Triggers when an auto-update PR is opened by check-upstream-releases.yml.
+# Triggers when an auto-update PR is opened by scheduled-check-upstream-releases.yml.
 # Pulls the upstream Docker base image, extracts runtime versions, and pushes
 # a follow-up commit if any config values need updating.
 
