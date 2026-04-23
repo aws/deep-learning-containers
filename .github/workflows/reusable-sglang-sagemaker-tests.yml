@@ -13,7 +13,10 @@ on:
 
 jobs:
   preflight:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       image-exists: ${{ steps.check.outputs.exists }}
     steps:
