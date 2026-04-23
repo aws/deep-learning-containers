@@ -64,21 +64,21 @@ SageMaker training jobs that measure performance across different configurations
 
 ## CI Workflows
 
-| Workflow                            | Trigger                                   | What runs                                                           |
-| ----------------------------------- | ----------------------------------------- | ------------------------------------------------------------------- |
-| `pr-sagemaker-xgboost.yml`          | PR to `main` touching `docker/xgboost/**` | Build → unit tests → security → upstream integration                |
-| `release-sagemaker-xgboost.yml`     | `workflow_dispatch`                       | Build → unit tests → security → `sagemaker-xgboost-integ-tests.yml` |
-| `sagemaker-xgboost-integ-tests.yml` | Called by release workflow                | Container tests → E2E tests → benchmarks                            |
+| Workflow                                     | Trigger                                   | What runs                                                                    |
+| -------------------------------------------- | ----------------------------------------- | ---------------------------------------------------------------------------- |
+| `pr-sagemaker-xgboost.yml`                   | PR to `main` touching `docker/xgboost/**` | Build → unit tests → security → upstream integration                         |
+| `dispatch-release-sagemaker-xgboost.yml`     | `workflow_dispatch`                       | Build → unit tests → security → `reusable-sagemaker-xgboost-integ-tests.yml` |
+| `reusable-sagemaker-xgboost-integ-tests.yml` | Called by release workflow                | Container tests → E2E tests → benchmarks                                     |
 
 ### Release build flow
 
 ```
-release-sagemaker-xgboost.yml
+dispatch-release-sagemaker-xgboost.yml
   ├── load-config
   ├── build-image
   ├── unit-test              (upstream sagemaker-xgboost-container tests + flake8)
   ├── security-test          (reusable-security-tests.yml)
-  └── xgboost-tests          (sagemaker-xgboost-integ-tests.yml)
+  └── xgboost-tests          (reusable-sagemaker-xgboost-integ-tests.yml)
         ├── generate-models              (XGBoost 3.0.5 model generation)
         ├── container-test-training      (parallel with generate-models)
         ├── container-test-scoring       (after generate-models)

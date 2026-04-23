@@ -131,8 +131,8 @@ update_dockerfiles() {
 #       {
 #         "pattern": "test/vllm/scripts/vllm_{version_underscored}_test_setup.sh",
 #         "workflow_files": [
-#           ".github/workflows/auto-release-vllm-sagemaker.yml",
-#           ".github/workflows/auto-release-vllm-ec2.yml"
+#           ".github/workflows/autorelease-vllm-sagemaker.yml",
+#           ".github/workflows/autorelease-vllm-ec2.yml"
 #         ]
 #       }
 #
@@ -140,8 +140,8 @@ update_dockerfiles() {
 #     updated=$(rename_test_setup_script "0.16.0" "0.17.0" '{
 #       "pattern": "test/vllm/scripts/vllm_{version_underscored}_test_setup.sh",
 #       "workflow_files": [
-#         ".github/workflows/auto-release-vllm-sagemaker.yml",
-#         ".github/workflows/auto-release-vllm-ec2.yml"
+#         ".github/workflows/autorelease-vllm-sagemaker.yml",
+#         ".github/workflows/autorelease-vllm-ec2.yml"
 #       ]
 #     }')
 ###############################################################################
