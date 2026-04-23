@@ -374,8 +374,9 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
         scripts_dir = os.path.join(repo_root, "test", "efa", "scripts")
         for script in os.listdir(scripts_dir):
-            master_conn.put(os.path.join(scripts_dir, script), f"~/test/efa/scripts/{script}")
-            worker_conn.put(os.path.join(scripts_dir, script), f"~/test/efa/scripts/{script}")
+            # SFTP does not expand ~ — use path relative to SSH home dir
+            master_conn.put(os.path.join(scripts_dir, script), f"test/efa/scripts/{script}")
+            worker_conn.put(os.path.join(scripts_dir, script), f"test/efa/scripts/{script}")
         master_conn.run("chmod +x ~/test/efa/scripts/*.sh")
         worker_conn.run("chmod +x ~/test/efa/scripts/*.sh")
 
