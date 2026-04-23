@@ -107,7 +107,6 @@ jobs:
               - "scripts/common/install_efa_amzn2023.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - "scripts/telemetry/deep_learning_container.py"
               - "scripts/vllm/omni_*"
               - "test/vllm-omni/**"
             sanity-test-change:
