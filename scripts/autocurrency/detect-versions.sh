@@ -2,7 +2,7 @@
 # detect-versions.sh — Detects CUDA, Python, and OS versions from upstream
 # base Docker images and updates config YAML files if they differ.
 #
-# Called by the detect-versions.yml workflow after an auto-update PR is created.
+# Called by the prcheck-detect-versions.yml workflow after an auto-update PR is created.
 #
 # Environment variables (set by the workflow):
 #   GITHUB_TOKEN    — GitHub token for pushing commits
