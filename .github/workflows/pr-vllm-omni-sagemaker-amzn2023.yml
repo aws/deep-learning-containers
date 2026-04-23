@@ -1,8 +1,21 @@
 name: PR - vLLM-Omni SageMaker AMZN2023
 
 on:
-  # Temporarily disabled — re-enable by restoring pull_request trigger.
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/model-tests/vllm-omni-model-tests.yml"
+      - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
+      - ".github/workflows/pr-vllm-omni-sagemaker-amzn2023.yml"
+      - ".github/workflows/reusable-vllm-omni-model-tests.yml"
+      - "docker/vllm_omni/Dockerfile.amzn2023"
+      - "scripts/common/**"
+      - "scripts/telemetry/**"
+      - "scripts/vllm/omni_*"
+      - "test/sanity/**"
+      - "test/telemetry/**"
+      - "test/vllm-omni/**"
 
 permissions:
   contents: read
@@ -103,10 +116,11 @@ jobs:
             build-change:
               - ".github/config/model-tests/vllm-omni-model-tests.yml"
               - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
-              - "docker/vllm/Dockerfile.amzn2023"
+              - "docker/vllm_omni/Dockerfile.amzn2023"
               - "scripts/common/install_efa_amzn2023.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
+              - "scripts/telemetry/deep_learning_container.py"
               - "scripts/vllm/omni_*"
               - "test/vllm-omni/**"
             sanity-test-change:
@@ -155,6 +169,18 @@ jobs:
           mkdir -p docker/vllm/prebuilt_wheels
           mkdir -p docker/vllm/sccache-cache
 
+      - name: Load pinned omni versions
+        run: |
+          # Capture vars introduced by sourcing the env file and forward them
+          # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
+          before=$(compgen -v | sort)
+          set -a; source docker/vllm_omni/versions.env; set +a
+          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -v '^before$')
+          for v in $new; do
+            [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
+          done
+          echo "EXTRA_BUILD_ARGS=$(echo $new | xargs)" >> "$GITHUB_ENV"
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -167,7 +193,7 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: vllm-omni-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/vllm/Dockerfile.amzn2023
+          dockerfile-path: docker/vllm_omni/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
