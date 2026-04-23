@@ -12,6 +12,12 @@ dnf install -y -q cuda-cudart-devel-${CUDA_MAJOR_MINOR}
 # NCCL is shipped via the nvidia-nccl pip package — headers live there, not /usr/local
 NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])")
 
+# pip package ships versioned libnccl.so.N only; linker needs the unversioned symlink
+if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then
+  NCCL_LIB=$(ls "${NCCL_HOME}/lib/"libnccl.so.* | head -1)
+  ln -s "$(basename "${NCCL_LIB}")" "${NCCL_HOME}/lib/libnccl.so"
+fi
+
 echo "Building all_reduce_perf from nccl-tests"
 cd /tmp/
 rm -rf nccl-tests/
