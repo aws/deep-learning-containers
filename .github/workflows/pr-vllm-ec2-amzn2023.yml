@@ -51,6 +51,7 @@ jobs:
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
+      vllm-ref-short: ${{ steps.parse.outputs.vllm-ref-short }}
       python-version: ${{ steps.parse.outputs.python-version }}
       cuda-version: ${{ steps.parse.outputs.cuda-version }}
       os-version: ${{ steps.parse.outputs.os-version }}
@@ -212,7 +213,7 @@ jobs:
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.vllm-ref-short }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
