@@ -36,7 +36,9 @@ validate_all_reduce_performance_logs(){
 }
 
 check_efa_nccl_all_reduce_performance(){
-    benchmark=$(cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{print $11}' | sed 's/ //' | sed 's/  5e-07//')
+    # Match data rows only: start with optional whitespace then the byte size
+    # Extract out-of-place busbw (column 11 in nccl-tests output)
+    benchmark=$(grep -E '^\s*1073741824\s' ${TRAINING_LOG} | tail -n1 | awk '{print $11}')
     echo "Benchmark throughput: ${benchmark}"
     if [[ -z "${benchmark}" ]]; then
         echo "benchmark variable is empty"
