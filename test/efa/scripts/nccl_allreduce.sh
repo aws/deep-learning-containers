@@ -36,7 +36,11 @@ validate_all_reduce_performance_logs(){
 }
 
 check_efa_nccl_all_reduce_performance(){
-    benchmark=$(grep -E '^\s*1073741824\s' ${TRAINING_LOG} | tail -n1 | awk '{print $11}')
+    # Data row format (from nccl-tests):
+    #      size       count     type  redop  root   time   algbw   busbw #wrong  time   algbw   busbw #wrong
+    # 1073741824  268435456    float    sum    -1 6060.2  177.18  348.82      0 6061.9  177.13  348.72      0
+    # Col 11 = in-place algbw (matches V1 parser metric). POSIX space class.
+    benchmark=$(grep -E '^[[:space:]]+1073741824[[:space:]]' ${TRAINING_LOG} | tail -n1 | awk '{print $11}')
     echo "Benchmark throughput: ${benchmark}"
     if [[ -z "${benchmark}" ]]; then
         echo "benchmark variable is empty"
