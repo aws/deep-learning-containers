@@ -176,7 +176,7 @@ jobs:
   sanity-test:
     needs: [check-changes, build-images, load-config]
     if: |
-      !failure() && !cancelled() &&
+      always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     strategy:
       fail-fast: false
@@ -209,7 +209,7 @@ jobs:
   base-sanity-test:
     needs: [check-changes, build-images, load-config]
     if: |
-      !failure() && !cancelled() &&
+      always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -274,7 +274,7 @@ jobs:
   cuda-test:
     needs: [check-changes, build-images]
     if: |
-      !failure() && !cancelled() &&
+      always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.cuda-test-change == 'true')
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
