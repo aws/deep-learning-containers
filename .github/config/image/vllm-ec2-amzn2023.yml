@@ -10,7 +10,7 @@ image:
 # NOTE: keep framework_version and vllm_ref in sync with docker/vllm/versions.env
 #       (VLLM_VERSION, VLLM_REF). They are used here for image tags/labels/wheel-cache keys.
 common:
-  framework: "vllm"
+  framework: "vllm_server"
   framework_version: "0.19.1"
   vllm_ref: "6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e"
   job_type: "general"
