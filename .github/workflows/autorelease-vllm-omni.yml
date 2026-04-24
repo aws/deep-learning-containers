@@ -132,7 +132,7 @@ jobs:
         run: |
           OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
             ${{ needs.load-config-ec2.outputs.cuda-version }} \
-            v${{ needs.load-config-ec2.outputs.framework-version }} \
+            ${{ needs.load-config-ec2.outputs.vllm-ref }} \
             ${{ needs.load-config-ec2.outputs.framework-version }})
           echo "$OUTPUT"
           HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
