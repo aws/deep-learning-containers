@@ -1,6 +1,5 @@
 # ============================================================================
 # PyTorch DLC — Amazon Linux 2023 (CUDA 13.0)
-# TODO: Remove this comment after EFA test PR passes — triggers build for testing
 # Multi-stage build with parallel builder stages:
 #
 #   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
@@ -138,7 +137,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   PYTHONIOENCODING=UTF-8 \
   LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
-  DLC_CONTAINER_TYPE=training
+  DLC_CONTAINER_TYPE=training \
+  CUDA_HOME=/usr/local/cuda
 
 # Derive cuda-nvcc package name: 12.8.1 → cuda-nvcc-12-8
 RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
