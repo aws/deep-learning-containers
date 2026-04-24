@@ -7,6 +7,12 @@ description: >
   job was skipped because only test files changed).
 
 inputs:
+  aws-account-id:
+    description: 'AWS account ID owning the ECR repo'
+    required: true
+  aws-region:
+    description: 'AWS region of the ECR repo'
+    required: true
   image-uri:
     description: 'Full ECR image URI (account.dkr.ecr.region.amazonaws.com/repo:tag)'
     required: true
@@ -24,17 +30,13 @@ runs:
       shell: bash
       run: |
         URI="${{ inputs.image-uri }}"
-        # Parse account, region, repo, tag from URI.
-        HOST="${URI%%/*}"                 # account.dkr.ecr.region.amazonaws.com
-        ACCOUNT="${HOST%%.*}"             # account
-        REGION="$(echo "$HOST" | cut -d. -f4)"
         REPO_TAG="${URI#*/}"
         REPO="${REPO_TAG%:*}"
         TAG="${REPO_TAG#*:}"
-        echo "Probing ECR: account=${ACCOUNT} region=${REGION} repo=${REPO} tag=${TAG}"
+        echo "Probing ECR: repo=${REPO} tag=${TAG}"
         if aws ecr describe-images \
-            --registry-id "${ACCOUNT}" \
-            --region "${REGION}" \
+            --registry-id "${{ inputs.aws-account-id }}" \
+            --region "${{ inputs.aws-region }}" \
             --repository-name "${REPO}" \
             --image-ids imageTag="${TAG}" >/dev/null 2>&1; then
           echo "::notice::ECR image found: ${URI}"

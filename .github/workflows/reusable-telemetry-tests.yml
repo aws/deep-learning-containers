@@ -42,6 +42,8 @@ jobs:
         id: check
         uses: ./.github/actions/check-image-exists
         with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
   telemetry-environment:
