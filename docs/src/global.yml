@@ -35,6 +35,7 @@ default_empty_field: "-"
 
 # Platform display mappings (config value -> table display)
 platforms:
+  default: "${ec2_short}"
   ec2: "${ec2_short}, ${ecs_short}, ${eks_short}"
   sagemaker: "${sm_short}"
 
@@ -62,6 +63,7 @@ display_names:
 
   # Repositories
   base: "Base"
+  ray: "Ray"
   sagemaker-xgboost: "XGBoost"
   sglang: "SGLang"
   vllm: "vLLM"
@@ -119,6 +121,9 @@ display_names:
   neuronx_sdk: "NeuronX SDK"
   openmpi: "OpenMPI"
   sagemaker_pytorch_inference: "SageMaker PyTorch Inference Toolkit"
+  ffmpeg: "FFmpeg"
+  "ray[serve]": "Ray Serve"
+  scikit_learn: "scikit-learn"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation
@@ -158,6 +163,7 @@ framework_groups:
 # =============================================================================
 table_order:
   - base
+  - ray
   - sglang
   - vllm
   - vllm-arm64
