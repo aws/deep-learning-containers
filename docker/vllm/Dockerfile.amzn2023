@@ -87,7 +87,10 @@ ENV NVCC_THREADS=${nvcc_threads}
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
 ARG VLLM_VERSION
-ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
+# Wheel version tag — pass via --build-arg from workflow (see docker/vllm/versions.env).
+# Example: 0.20.1.dev0+amzn2023.dsv4.bc34b25e
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${VLLM_VERSION}+amzn2023}
 
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:

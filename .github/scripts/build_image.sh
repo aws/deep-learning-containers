@@ -88,6 +88,16 @@ if [[ -n "${USE_PREBUILT_WHEEL:-}" ]]; then
   --build-arg USE_PREBUILT_WHEEL=\"${USE_PREBUILT_WHEEL}\""
 fi
 
+# Forward any extra build-args listed in EXTRA_BUILD_ARGS (space-separated
+# env var names). Keeps build_image.sh framework-agnostic — callers declare
+# what they want forwarded (e.g. `EXTRA_BUILD_ARGS="VLLM_REF VLLM_VERSION ..."`)
+# set by the workflow when sourcing a versions.env file.
+for v in ${EXTRA_BUILD_ARGS:-}; do
+  if [[ -n "${!v:-}" ]]; then
+    BUILD_CMD="${BUILD_CMD} --build-arg ${v}=\"${!v}\""
+  fi
+done
+
 # Add SageMaker labels if customer-type is 'sagemaker'
 if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
   BUILD_CMD="${BUILD_CMD} \
