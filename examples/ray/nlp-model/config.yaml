@@ -1,0 +1,8 @@
+applications:
+  - name: distilbert
+    route_prefix: /
+    import_path: deployment:app
+    deployments:
+      - name: DistilBERTSentiment
+        ray_actor_options:
+          num_gpus: 1

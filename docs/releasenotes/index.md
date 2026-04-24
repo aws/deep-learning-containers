@@ -5,6 +5,7 @@ This section contains release notes for AWS Deep Learning Containers organized b
 ## Frameworks
 
 - [Base](base/index.md) - Release notes for Base CUDA containers
+- [Ray](ray/index.md) - Release notes for Ray inference containers
 - [SGLang](sglang/index.md) - Release notes for SGLang inference containers
 - [vLLM](vllm/index.md) - Release notes for vLLM inference containers
 - [PyTorch](pytorch/index.md) - Release notes for PyTorch containers

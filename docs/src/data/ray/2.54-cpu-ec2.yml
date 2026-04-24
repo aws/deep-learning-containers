@@ -1,0 +1,23 @@
+framework: Ray
+version: "2.54"
+accelerator: cpu
+python: py313
+os: amzn2023
+platform: default
+public_registry: true
+
+tags:
+  - "serve-ml-cpu-v1.0.0"
+
+announcements:
+  - "Introduced Ray Serve 2.54 CPU containers for EC2"
+  - "Built on Amazon Linux 2023 with Python 3.13"
+
+packages:
+  "ray[serve]": "2.54.1"
+  pytorch: "2.10.0"
+  torchvision: "0.25.0"
+  torchaudio: "2.10.0"
+  transformers: "5.2.0"
+  scikit_learn: "1.8.0"
+  ffmpeg: "8.0.1"
