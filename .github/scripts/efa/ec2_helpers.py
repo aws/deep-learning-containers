@@ -36,24 +36,19 @@ def get_num_gpus(conn):
     return int(result.stdout.strip())
 
 
-def get_num_efa_interfaces(instance_type):
-    """Return number of EFA interfaces for known instance types."""
-    efa_map = {
-        "p4d.24xlarge": 4,
-        "p4de.24xlarge": 4,
-        "p5.48xlarge": 32,
-        # Dev-only — g6e has capacity reservations available when p4d doesn't
-        "g6e.4xlarge": 1,
-        "g6e.12xlarge": 1,
-        "g6e.24xlarge": 1,
-        "g6e.48xlarge": 4,
-    }
-    return efa_map.get(instance_type, 1)
+def get_num_efa_interfaces(aws_session, instance_type):
+    """Get the maximum number of EFA interfaces for an instance type (from EC2 API)."""
+    resp = aws_session.ec2.describe_instance_types(InstanceTypes=[instance_type])
+    info = resp["InstanceTypes"][0]
+    num = info.get("NetworkInfo", {}).get("EfaInfo", {}).get("MaximumEfaInterfaces")
+    if not num:
+        raise RuntimeError(f"{instance_type} does not support EFA")
+    return num
 
 
 def generate_efa_network_interfaces(aws_session, instance_type, subnet_id, sg_id):
     """Generate NetworkInterfaces config for EFA-enabled launch."""
-    num_interfaces = get_num_efa_interfaces(instance_type)
+    num_interfaces = get_num_efa_interfaces(aws_session, instance_type)
     interfaces = []
     for idx in range(num_interfaces):
         iface = {
