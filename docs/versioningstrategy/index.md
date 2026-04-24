@@ -1,22 +1,28 @@
-# Image Naming Conventions
+# Versioning Strategy
+
+## Image Naming Conventions
 
 AWS Deep Learning Containers (DLC) images fall into two naming categories based on their release model:
 
-**Product-versioned images** (Ray, model-based DLCs, etc.) use a product-level name without embedding the framework version. Framework upgrades are
-reflected as major version bumps rather than new image streams.
+**Product-versioned images** (Ray, model-based DLCs, etc.) These images use a product-level name without embedding the framework version. Framework
+upgrades are reflected as major version bumps rather than new image streams.
 
 | Image name | Tag example |
 | --- | --- |
 | `ray` | `serve-ml-cuda-v1.0.0` |
 
-**Framework-versioned images** (classic DLCs: vLLM, PyTorch Training/Inference, etc.) embed the framework version, CUDA version, and OS in the tag. A
-date string can be appended to pin a specific build.
+**Framework-versioned images** (classic DLCs: vLLM, PyTorch Training/Inference, etc.) These images embed the framework version, CUDA version, and OS
+in the tag. A date string can be appended to pin a specific build.
 
-| Image name | Tag example |
-| --- | --- |
-| `vllm` | `0.19.1-cu130-amzn2023` |
-| `vllm` | `0.19.1-cu130-amzn2023-20260430` |
-| `pytorch` | `training-2.11-cu130-amzn2023` |
+!!! note
+    The tag also encodes compute type and deployment target. A `cu<version>` component (e.g., `cu130`) indicates a GPU image; `cpu` indicates a
+    CPU-only image — for example, `2.11-cu130-amzn2023` and `2.11-cpu-amzn2023`. No platform suffix means the image targets EC2; a `sagemaker` suffix
+    indicates the image is built for SageMaker.
+
+    | Image name | Tag example |
+    | --- | --- |
+    | `pytorch` | `2.11-cu130-amzn2023` |
+    | `pytorch` | `2.11-cpu-amzn2023` |
 
 Product-versioned images follow semantic versioning. Framework-versioned images use the framework version, CUDA version, and OS as the tag, with an
 optional date string for pinning specific builds.
@@ -29,13 +35,15 @@ The following version bump rules apply to product-versioned images. Framework-ve
 - **MAJOR** — [Backwards-incompatible](#backwards-compatibility) changes. This includes core component major or minor version bumps (e.g., CUDA,
   Python, framework), API removals, and changes to default behavior.
 - **MINOR** — [Backwards-compatible](#backwards-compatibility) feature updates and improvements. This includes core component patch version bumps
-  (e.g., CUDA, Python, framework), supporting dependency updates, and new functionality that does not alter existing behavior.
+  (e.g., CUDA, Python, framework), supporting dependency updates, and new functionality that does not alter existing behavior. (See
+  [Backwards Compatibility](#backwards-compatibility) definition below)
 - **PATCH** — Security patches and [backwards-compatible](#backwards-compatibility) bug fixes. No new features.
 
-!!! note Existing DLC images use a legacy tag format that encodes processor, Python version, CUDA version, and OS in the tag (e.g.,
-`vllm:0.17.0-gpu-py312-cu129-ubuntu22.04-ec2-v1.2`). New framework-versioned images use a simplified tag with framework version, CUDA version, and OS
-(e.g., `vllm:0.19.1-cu130-amzn2023`). Product-versioned images use semantic versioning (`v<MAJOR>.<MINOR>.<PATCH>`). For framework-versioned images,
-changes to framework version, CUDA, or OS create a new tag. For product-versioned images, all breaking changes result in a major version bump.
+!!! note
+    Existing DLC images use a legacy tag format that encodes processor, Python version, CUDA version, and OS in the tag (e.g.,
+    `vllm:0.17.0-gpu-py312-cu129-ubuntu22.04-ec2-v1.2`). New framework-versioned images use a simplified tag with framework version, CUDA version, and OS
+    (e.g., `vllm:0.19.1-cu130-amzn2023`). Product-versioned images use semantic versioning (`v<MAJOR>.<MINOR>.<PATCH>`). For framework-versioned images,
+    changes to framework version, CUDA, or OS create a new tag. For product-versioned images, all breaking changes result in a major version bump.
 
 | Version Change | Framework-versioned | Product-versioned |
 | --- | --- | --- |
