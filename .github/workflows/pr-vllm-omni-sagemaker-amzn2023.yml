@@ -120,7 +120,6 @@ jobs:
               - "scripts/common/install_efa_amzn2023.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - "scripts/telemetry/deep_learning_container.py"
               - "scripts/vllm/omni_*"
               - "test/vllm-omni/**"
             sanity-test-change:
@@ -153,7 +152,8 @@ jobs:
         run: |
           OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            v${{ needs.load-config.outputs.framework-version }})
+            v${{ needs.load-config.outputs.framework-version }} \
+            ${{ needs.load-config.outputs.framework-version }})
           echo "$OUTPUT"
           HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
           echo "hit=${HIT}" >> $GITHUB_OUTPUT
@@ -207,7 +207,8 @@ jobs:
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            v${{ needs.load-config.outputs.framework-version }}
+            v${{ needs.load-config.outputs.framework-version }} \
+            ${{ needs.load-config.outputs.framework-version }}
 
       - name: Sync sccache cache to S3
         if: success() && steps.wheel-cache.outputs.hit != 'true'
