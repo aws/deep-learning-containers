@@ -78,7 +78,13 @@ class TestCudaJitDependencies(unittest.TestCase):
     def test_deep_gemm_imports(self):
         """deep_gemm must import without error."""
         try:
-            import deep_gemm  # noqa: F811
+            # Upstream now vendors DeepGEMM under vllm.third_party in the vLLM wheel
+            # (see cmake/external_projects/deepgemm.cmake). Fall back to top-level
+            # import for older builds that installed it as a separate wheel.
+            try:
+                from vllm.third_party import deep_gemm  # noqa: F811
+            except ImportError:
+                import deep_gemm  # noqa: F811
         except ImportError as e:
             if "libcuda" in str(e):
                 self.skipTest("libcuda not available (no GPU in test environment)")

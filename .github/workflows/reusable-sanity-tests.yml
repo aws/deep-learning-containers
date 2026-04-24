@@ -71,7 +71,25 @@ on:
         default: ''
 
 jobs:
+  preflight:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      image-exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ inputs.image-uri }}
+
   general-tests:
+    needs: preflight
+    if: needs.preflight.outputs.image-exists == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -168,7 +186,8 @@ jobs:
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
 
   sagemaker-only:
-    if: inputs.customer-type == 'sagemaker'
+    needs: preflight
+    if: needs.preflight.outputs.image-exists == 'true' && inputs.customer-type == 'sagemaker'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

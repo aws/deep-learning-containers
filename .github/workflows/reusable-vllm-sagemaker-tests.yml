@@ -12,7 +12,25 @@ on:
         type: string
 
 jobs:
+  preflight:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      image-exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ inputs.image-uri }}
+
   endpoint-test:
+    needs: preflight
+    if: needs.preflight.outputs.image-exists == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

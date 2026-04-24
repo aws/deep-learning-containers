@@ -7,9 +7,20 @@ if [ -z "${VIRTUAL_ENV:-}" ]; then
   UV_FLAGS="--system"
 fi
 
+# Upstream PR #39024 (merged Apr 2026) moved requirements/{build,test}.{in,txt}
+# into requirements/{build,test}/{cuda,rocm,cpu,xpu}.{in,txt}. Pick whichever
+# layout the checked-out vllm_source has.
+if [ -f vllm_source/requirements/test/cuda.in ]; then
+  TEST_IN="vllm_source/requirements/test/cuda.in"
+  TEST_TXT="vllm_source/requirements/test/cuda.txt"
+else
+  TEST_IN="vllm_source/requirements/test.in"
+  TEST_TXT="vllm_source/requirements/test.txt"
+fi
+
 # delete old test dependencies file and regen
-rm vllm_source/requirements/test.txt
-uv pip compile vllm_source/requirements/test.in -o vllm_source/requirements/test.txt --index-strategy unsafe-best-match --torch-backend cu129 --python-platform x86_64-manylinux_2_28 --python-version 3.12
+rm -f "${TEST_TXT}"
+uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu129 --python-platform x86_64-manylinux_2_28 --python-version 3.12
 # uv pip install $UV_FLAGS -r vllm_source/requirements/common.txt --torch-backend=auto
 uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt
 uv pip install $UV_FLAGS pytest pytest-asyncio
