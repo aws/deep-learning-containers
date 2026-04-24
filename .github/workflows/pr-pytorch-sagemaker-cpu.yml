@@ -130,7 +130,6 @@ jobs:
               - "scripts/pytorch/changehostname.c"
               - "scripts/pytorch/start_with_right_hostname.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - "scripts/telemetry/deep_learning_container.py"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
