@@ -8,6 +8,7 @@
 # Workflow parsers construct s3_path from s3_prefix + s3_model.
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
+test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 smoke-test:
   codebuild-fleet:
@@ -16,10 +17,44 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
+    - name: "qwen3-asr-1.7b"
+      s3_model: "qwen3-asr-1.7b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      test_script: "vllm_asr_smoke_test.sh"
+      test_fixtures:
+        - "audio/asr_en.wav"
+        - "audio/asr_zh.wav"
+      test_cases:
+        - name: "english-chat-completions"
+          route: "/v1/chat/completions"
+          audio_fixture: "asr_en.wav"
+          validate: "contains:<asr_text>"
+        - name: "chinese-chat-completions"
+          route: "/v1/chat/completions"
+          audio_fixture: "asr_zh.wav"
+          validate: "contains:<asr_text>"
+        - name: "english-transcription"
+          route: "/v1/audio/transcriptions"
+          audio_fixture: "asr_en.wav"
+          validate: "json_field:text"
+
   runner-scale-sets: []
 
 benchmark:
   codebuild-fleet:
+    - name: "qwen3-asr-1.7b"
+      s3_model: "qwen3-asr-1.7b.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      test_script: "vllm_asr_benchmark_test.sh"
+      test_fixtures:
+        - "audio/asr_en.wav"
+        - "audio/asr_zh.wav"
+      benchmark_audio_fixture: "asr_en.wav"
+      min_throughput: 30
+      min_rps: 1
+
     - name: "gpt-oss-20b"
       s3_model: "gpt-oss-20b.tar.gz"
       fleet: "x86-g6exl-runner"

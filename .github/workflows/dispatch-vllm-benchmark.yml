@@ -45,8 +45,12 @@ jobs:
               cfg = yaml.safe_load(f)
           bm = cfg.get('benchmark', {})
           prefix = cfg.get('s3_prefix', '')
+          fixtures_prefix = cfg.get('test_fixtures_prefix', '')
           for m in bm.get('codebuild-fleet', []) + bm.get('runner-scale-sets', []):
               m['s3_path'] = prefix + '/' + m.pop('s3_model')
+              fixtures = m.pop('test_fixtures', [])
+              m['test_fixtures_paths'] = ' '.join(fixtures_prefix + '/' + f for f in fixtures) if fixtures else ''
+              m.pop('test_cases', None)
           print('codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
           print('runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', [])))
           " > parsed.txt
@@ -112,9 +116,22 @@ jobs:
       - name: Copy scripts into container
         run: |
           docker cp test/vllm/scripts/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/vllm/scripts/benchmark/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/vllm/scripts/benchmark/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
+
+      - name: Download and copy test fixtures
+        if: ${{ matrix.test_fixtures_paths != '' }}
+        run: |
+          mkdir -p /tmp/test-fixtures
+          for s3_path in ${{ matrix.test_fixtures_paths }}; do
+            aws s3 cp "${s3_path}" /tmp/test-fixtures/
+          done
+          docker cp /tmp/test-fixtures ${CONTAINER_ID}:/models/test-fixtures
 
       - name: Run benchmark
         run: |
+          TEST_SCRIPT="${{ matrix.test_script || 'vllm_benchmark_test.sh' }}"
           docker exec \
             -e MIN_THROUGHPUT_TOKENS_PER_SEC=${{ matrix.min_throughput || 100 }} \
             -e MIN_REQUESTS_PER_SEC=${{ matrix.min_rps || 1 }} \
@@ -122,7 +139,15 @@ jobs:
             -e BENCHMARK_INPUT_LEN=${{ matrix.input_len || 512 }} \
             -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
             -e BENCHMARK_BATCH_SIZE=${{ matrix.batch_size || 4 }} \
-            ${CONTAINER_ID} bash /models/vllm_benchmark_test.sh \
+            -e BENCHMARK_AUDIO_FIXTURE=${{ matrix.benchmark_audio_fixture || '' }} \
+            -e MODEL_DIR="/models/${{ matrix.name }}" \
+            -e RESULTS_DIR=/tmp/benchmark_results \
+            -e ARTIFACT_PREFIX="${{ matrix.name }}_${{ matrix.fleet }}" \
+            -e VLLM_PORT=8000 \
+            -e NUM_REQUESTS=50 \
+            -e MIN_THROUGHPUT=${{ matrix.min_throughput || 100 }} \
+            -e MIN_RPS=${{ matrix.min_rps || 1 }} \
+            ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
               "${{ matrix.fleet }}" \
@@ -190,9 +215,22 @@ jobs:
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp ${{ steps.model.outputs.model-dir }} ${CONTAINER_ID}:/models/${{ matrix.name }}
           docker cp test/vllm/scripts/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/vllm/scripts/benchmark/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/vllm/scripts/benchmark/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
+
+      - name: Download and copy test fixtures
+        if: ${{ matrix.test_fixtures_paths != '' }}
+        run: |
+          mkdir -p /tmp/test-fixtures
+          for s3_path in ${{ matrix.test_fixtures_paths }}; do
+            aws s3 cp "${s3_path}" /tmp/test-fixtures/
+          done
+          docker cp /tmp/test-fixtures ${CONTAINER_ID}:/models/test-fixtures
 
       - name: Run benchmark
         run: |
+          TEST_SCRIPT="${{ matrix.test_script || 'vllm_benchmark_test.sh' }}"
           docker exec \
             -e MIN_THROUGHPUT_TOKENS_PER_SEC=${{ matrix.min_throughput || 100 }} \
             -e MIN_REQUESTS_PER_SEC=${{ matrix.min_rps || 1 }} \
@@ -200,7 +238,15 @@ jobs:
             -e BENCHMARK_INPUT_LEN=${{ matrix.input_len || 512 }} \
             -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
             -e BENCHMARK_BATCH_SIZE=${{ matrix.batch_size || 4 }} \
-            ${CONTAINER_ID} bash /models/vllm_benchmark_test.sh \
+            -e BENCHMARK_AUDIO_FIXTURE=${{ matrix.benchmark_audio_fixture || '' }} \
+            -e MODEL_DIR="/models/${{ matrix.name }}" \
+            -e RESULTS_DIR=/tmp/benchmark_results \
+            -e ARTIFACT_PREFIX="${{ matrix.name }}_gpu-efa-runners" \
+            -e VLLM_PORT=8000 \
+            -e NUM_REQUESTS=50 \
+            -e MIN_THROUGHPUT=${{ matrix.min_throughput || 100 }} \
+            -e MIN_RPS=${{ matrix.min_rps || 1 }} \
+            ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
               "gpu-efa-runners" \
