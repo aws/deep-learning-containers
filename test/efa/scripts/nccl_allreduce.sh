@@ -36,10 +36,14 @@ validate_all_reduce_performance_logs(){
 }
 
 check_efa_nccl_all_reduce_performance(){
-    # Debug: show last 40 lines of log to see actual format if parse fails
-    echo "=== Log tail (last 40 lines) ==="
-    tail -n 40 ${TRAINING_LOG}
-    echo "=== End log tail ==="
+    # Debug: show log file size and full content when parse fails
+    echo "=== Log file info ==="
+    ls -la ${TRAINING_LOG}
+    echo "=== Log wc -l ==="
+    wc -l ${TRAINING_LOG}
+    echo "=== Full log content ==="
+    cat ${TRAINING_LOG}
+    echo "=== End full log ==="
 
     # Match data rows only: start with optional whitespace then the byte size
     # Extract out-of-place busbw (column 11 in nccl-tests output)
@@ -66,11 +70,14 @@ mpirun -x FI_PROVIDER="efa" -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
     /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
 
 RETURN_VAL=${PIPESTATUS[0]}
-if [ ${RETURN_VAL} -eq 0 ]; then
-    echo "check_efa_nccl_all_reduce passed"
-else
-    echo "check_efa_nccl_all_reduce failed"
+if [ ${RETURN_VAL} -ne 0 ]; then
+    echo "check_efa_nccl_all_reduce failed — mpirun exited ${RETURN_VAL}"
+    echo "=== Full log content ==="
+    cat ${TRAINING_LOG}
+    echo "=== End full log ==="
+    exit 1
 fi
+echo "check_efa_nccl_all_reduce passed"
 
 validate_all_reduce_performance_logs
 check_efa_nccl_all_reduce_performance
