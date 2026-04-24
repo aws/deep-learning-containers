@@ -36,17 +36,6 @@ validate_all_reduce_performance_logs(){
 }
 
 check_efa_nccl_all_reduce_performance(){
-    # Debug: show log file size and full content when parse fails
-    echo "=== Log file info ==="
-    ls -la ${TRAINING_LOG}
-    echo "=== Log wc -l ==="
-    wc -l ${TRAINING_LOG}
-    echo "=== Full log content ==="
-    cat ${TRAINING_LOG}
-    echo "=== End full log ==="
-
-    # Match data rows only: start with optional whitespace then the byte size
-    # Extract out-of-place busbw (column 11 in nccl-tests output)
     benchmark=$(grep -E '^\s*1073741824\s' ${TRAINING_LOG} | tail -n1 | awk '{print $11}')
     echo "Benchmark throughput: ${benchmark}"
     if [[ -z "${benchmark}" ]]; then
@@ -64,27 +53,17 @@ check_efa_nccl_all_reduce_performance(){
 
 echo "Running all_reduce_perf test"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
-    --tag-output --output-filename /test/efa/logs/per-rank \
     -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
     -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
     -x NCCL_SOCKET_IFNAME=^lo --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
-    stdbuf -oL -eL /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
+    /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
 
 RETURN_VAL=${PIPESTATUS[0]}
-if [ ${RETURN_VAL} -ne 0 ]; then
-    echo "check_efa_nccl_all_reduce failed — mpirun exited ${RETURN_VAL}"
-    echo "=== Full log content ==="
-    cat ${TRAINING_LOG}
-    echo "=== End full log ==="
-    echo "=== Per-rank stdout/stderr (if any) ==="
-    find /test/efa/logs/per-rank -type f 2>/dev/null | while read f; do
-        echo "--- $f ---"
-        cat "$f"
-    done
-    echo "=== End per-rank ==="
-    exit 1
+if [ ${RETURN_VAL} -eq 0 ]; then
+    echo "check_efa_nccl_all_reduce passed"
+else
+    echo "check_efa_nccl_all_reduce failed"
 fi
-echo "check_efa_nccl_all_reduce passed"
 
 validate_all_reduce_performance_logs
 check_efa_nccl_all_reduce_performance

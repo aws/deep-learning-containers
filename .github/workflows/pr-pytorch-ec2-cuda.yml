@@ -352,8 +352,6 @@ jobs:
 
   # ============================================================
   # EFA integration test (2x p4d.24xlarge, NCCL over EFA)
-  # TODO(kwanggg): Using g6e.12xlarge temporarily due to p4d capacity shortage.
-  # Revert to default (p4d.24xlarge) once p4d capacity is restored.
   # ============================================================
   efa-test:
     needs: [build-images, sanity-test, security-test, unit-test]
@@ -363,7 +361,6 @@ jobs:
       image-uri: ${{ needs.build-images.outputs.runtime-image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      efa-instance-type: g6e.12xlarge
 
   # ============================================================
   # Multi-GPU tests (need >=2 GPUs)
