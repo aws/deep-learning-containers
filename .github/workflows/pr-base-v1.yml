@@ -119,7 +119,6 @@ jobs:
               - "test/security/data/ecr_scan_allowlist/base/**"
             sanity-test-change:
               - "test/sanity/**"
-              - "!test/sanity/scripts/test_sanity_vllm_sglang.py"
             cuda-test-change:
               - "test/cuda/**"
 

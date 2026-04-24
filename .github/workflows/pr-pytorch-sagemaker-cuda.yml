@@ -13,7 +13,6 @@ on:
       - "scripts/telemetry/**"
       - "test/pytorch/**"
       - "test/sanity/**"
-      - "!test/sanity/scripts/test_sanity_vllm_sglang.py"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -133,7 +132,6 @@ jobs:
               - "scripts/telemetry/deep_learning_container.py"
             sanity-test-change:
               - "test/sanity/**"
-              - "!test/sanity/scripts/test_sanity_vllm_sglang.py"
             telemetry-test-change:
               - "test/telemetry/**"
 
