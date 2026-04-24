@@ -72,7 +72,7 @@ WORKDIR /workspace/vllm
 COPY --from=source /src/ ./
 
 # Install PyTorch + build deps (slow-changing, cached)
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build.txt \
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build/cuda.txt \
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
@@ -87,7 +87,10 @@ ENV NVCC_THREADS=${nvcc_threads}
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
 ARG VLLM_VERSION
-ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
+# Wheel version tag — pass via --build-arg from workflow (see docker/vllm/versions.env).
+# Example: 0.20.1.dev0+amzn2023.dsv4.bc34b25e
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${VLLM_VERSION}+amzn2023}
 
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
