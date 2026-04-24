@@ -257,7 +257,7 @@ def parse_args():
 
     args, _unknown = parser.parse_known_args()
 
-    fw_version_pattern = r"\d+(\.\d+){1,2}([.-]?rc\d+)?"
+    fw_version_pattern = r"\d+(\.\d+){1,2}(-rc\d)?"
 
     # PT 1.10 and above has +cpu or +cu113 string, so handle accordingly
     if args.framework == "pytorch":
