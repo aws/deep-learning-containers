@@ -122,9 +122,8 @@ display_names:
   openmpi: "OpenMPI"
   sagemaker_pytorch_inference: "SageMaker PyTorch Inference Toolkit"
   ffmpeg: "FFmpeg"
-  opencv: "OpenCV"
+  "ray[serve]": "Ray Serve"
   scikit_learn: "scikit-learn"
-  numpy: "NumPy"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation

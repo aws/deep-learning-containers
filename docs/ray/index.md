@@ -5,7 +5,7 @@ variants, built on Amazon Linux 2023 with Python 3.13.
 
 ## Latest Announcements
 
-*No announcements at this time.*
+**April 23, 2026** — Initial release of AWS Deep Learning Containers for Ray Serve.
 
 ## Pull Commands
 
@@ -29,25 +29,6 @@ Default images are tested on EC2 instances. See [Available Images](../reference/
 ## Packages
 
 For package versions included in each release, see the [Release Notes](../releasenotes/ray/index.md).
-
-## Versioning Strategy
-
-Ray DLC uses [product versioning](../versioningstrategy/index.md). Image tags follow the format
-`ray:serve-ml-[<platform>-]{cpu|cuda}-v<MAJOR>.<MINOR>.<PATCH>`. The `<platform>` segment is omitted for default images and present for
-platform-specific images (e.g. `sagemaker`).
-
-Core components: **Ray**, **PyTorch**, **Transformers**, **CUDA**, **Python**. See [Versioning Strategy](../versioningstrategy/index.md) for version
-bump rules, tag aliases, and tag selection guidance.
-
-## Support Policy
-
-| DLC Version | Ray | Python | CUDA | GA Date | EOP Date |
-| --- | --- | --- | --- | --- | --- |
-| v1.0.0 | 2.54.1 | 3.13 | 12.9.1 | 2026-03-25 | 2027-03-25 |
-
-**GA** = General Availability · **EOP** = End of Patch
-
-For more details, see [Support Policy](../reference/support_policy.md).
 
 ## Deployment Guide
 
@@ -330,11 +311,32 @@ curl -X POST http://localhost:8000/ \
 
 ### SageMaker Deployment
 
-Install the SageMaker Python SDK v2 (v3 drops the `Model`, `Predictor`, and `Serializer` APIs used below):
+#### Prerequisites
+
+- AWS CLI configured with appropriate permissions
+- An IAM execution role with SageMaker and ECR permissions:
+
+```bash
+# Create role
+aws iam create-role --role-name SageMakerExecutionRole \
+    --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"Service":"sagemaker.amazonaws.com"},"Action":"sts:AssumeRole"}]}'
+
+# Attach policies
+aws iam attach-role-policy --role-name SageMakerExecutionRole \
+    --policy-arn arn:aws:iam::aws:policy/AmazonSageMakerFullAccess
+aws iam attach-role-policy --role-name SageMakerExecutionRole \
+    --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+aws iam attach-role-policy --role-name SageMakerExecutionRole \
+    --policy-arn arn:aws:iam::aws:policy/AmazonElasticContainerRegistryPublicFullAccess
+```
+
+- SageMaker Python SDK v2 (v3 drops the `Model`, `Predictor`, and `Serializer` APIs used below):
 
 ```bash
 pip install 'sagemaker>=2,<3'
 ```
+
+#### Deploy
 
 To deploy on SageMaker, package your model directory as a tarball, upload to S3, and deploy using the
 [SageMaker Python SDK](https://sagemaker.readthedocs.io/en/v2/). The tarball is automatically downloaded and extracted to `/opt/ml/model/` before the

@@ -1,4 +1,4 @@
-framework: Ray Serve
+framework: Ray
 version: "2.54"
 accelerator: gpu
 python: py313
@@ -15,13 +15,11 @@ announcements:
   - "Built on Amazon Linux 2023 with Python 3.13"
 
 packages:
-  ray: "2.54.1"
+  "ray[serve]": "2.54.1"
   pytorch: "2.10.0"
   torchvision: "0.25.0"
   torchaudio: "2.10.0"
   transformers: "5.2.0"
   scikit_learn: "1.8.0"
-  numpy: "2.4.2"
-  opencv: "4.13.0.92"
   ffmpeg: "8.0.1"
   cuda: "12.9.1"
