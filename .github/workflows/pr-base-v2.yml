@@ -118,8 +118,13 @@ jobs:
               - ".github/config/image/base-v2-devel.yml"
               - "test/security/data/ecr_scan_allowlist/base/**"
             sanity-test-change:
-              - "test/sanity/**"
-              - "!test/sanity/scripts/test_sanity_vllm_sglang.py"
+              - "test/sanity/scripts/check_anaconda.sh"
+              - "test/sanity/scripts/check_base_image.sh"
+              - "test/sanity/scripts/check_credentials.sh"
+              - "test/sanity/scripts/check_filesystem.sh"
+              - "test/sanity/scripts/check_labels.py"
+              - "test/sanity/scripts/inspect_docker.py"
+              - "test/sanity/scripts/upload_oss_source.py"
             cuda-test-change:
               - "test/cuda/**"
 

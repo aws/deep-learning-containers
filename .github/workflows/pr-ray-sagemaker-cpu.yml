@@ -130,8 +130,13 @@ jobs:
             sagemaker-test-change:
               - "test/ray/sagemaker/**"
             sanity-test-change:
-              - "test/sanity/**"
-              - "!test/sanity/scripts/test_sanity_vllm_sglang.py"
+              - "test/sanity/scripts/check_anaconda.sh"
+              - "test/sanity/scripts/check_base_image.sh"
+              - "test/sanity/scripts/check_credentials.sh"
+              - "test/sanity/scripts/check_filesystem.sh"
+              - "test/sanity/scripts/check_labels.py"
+              - "test/sanity/scripts/inspect_docker.py"
+              - "test/sanity/scripts/upload_oss_source.py"
             telemetry-test-change:
               - "test/telemetry/**"
 
