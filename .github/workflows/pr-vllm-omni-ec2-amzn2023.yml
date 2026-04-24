@@ -48,6 +48,7 @@ jobs:
     outputs:
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
+      vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
       python-version: ${{ steps.parse.outputs.python-version }}
       cuda-version: ${{ steps.parse.outputs.cuda-version }}
       os-version: ${{ steps.parse.outputs.os-version }}
@@ -152,7 +153,7 @@ jobs:
         run: |
           OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            v${{ needs.load-config.outputs.framework-version }} \
+            ${{ needs.load-config.outputs.vllm-ref }} \
             ${{ needs.load-config.outputs.framework-version }})
           echo "$OUTPUT"
           HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
@@ -207,7 +208,7 @@ jobs:
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            v${{ needs.load-config.outputs.framework-version }} \
+            ${{ needs.load-config.outputs.vllm-ref }} \
             ${{ needs.load-config.outputs.framework-version }}
 
       - name: Sync sccache cache to S3
