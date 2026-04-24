@@ -1,0 +1,27 @@
+# vLLM DeepseekV4 EC2 AL2023 Image Configuration
+image:
+  name: "vllm-dsv4-ec2-amzn2023"
+  description: "vLLM with DeepseekV4 support for EC2 (AL2023, built from source)"
+
+# NOTE: keep framework_version and vllm_ref in sync with docker/vllm/versions.dsv4.env
+common:
+  framework: "vllm"
+  framework_version: "0.20.1.dev0"
+  vllm_ref: "3602f14f0e146b234be911d916e381b4e6a4dc0c"
+  job_type: "general"
+  python_version: "py312"
+  cuda_version: "cu129"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  prod_image: "vllm:0.20.1.dev0-dsv4-gpu-py312-ec2"
+  device_type: "gpu"
+  contributor: "None"
+
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: production

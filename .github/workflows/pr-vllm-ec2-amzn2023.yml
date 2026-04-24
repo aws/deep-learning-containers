@@ -77,14 +77,6 @@ jobs:
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
-          # Short form for image tag: truncate raw commit SHAs to 8 chars, sanitise other refs.
-          VLLM_REF="$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)"
-          if echo "$VLLM_REF" | grep -qE '^[0-9a-f]{12,}$'; then
-            VLLM_REF_SHORT=$(echo "$VLLM_REF" | cut -c1-8)
-          else
-            VLLM_REF_SHORT=$(echo "$VLLM_REF" | sed -E 's/[^A-Za-z0-9]/_/g')
-          fi
-          echo "vllm-ref-short=${VLLM_REF_SHORT}" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
@@ -189,18 +181,6 @@ jobs:
           mkdir -p docker/vllm/prebuilt_wheels
           mkdir -p docker/vllm/sccache-cache
 
-      - name: Load pinned vLLM versions
-        run: |
-          # Capture vars introduced by sourcing the env file and forward them
-          # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
-          before=$(compgen -v | sort)
-          set -a; source docker/vllm/versions.env; set +a
-          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -Ev '^(before|PIPESTATUS|_)$')
-          for v in $new; do
-            [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
-          done
-          echo "EXTRA_BUILD_ARGS=$(echo $new | xargs)" >> "$GITHUB_ENV"
-
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -236,7 +216,9 @@ jobs:
 
   sanity-test:
     needs: [check-changes, build-image, load-config]
-    if: false # Disabled — dedicated DeepseekV4 build
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -272,7 +254,9 @@ jobs:
 
   telemetry-test:
     needs: [check-changes, build-image, load-config]
-    if: false # Disabled — dedicated DeepseekV4 build
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number }}
       cancel-in-progress: false
