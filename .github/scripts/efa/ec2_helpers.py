@@ -42,6 +42,11 @@ def get_num_efa_interfaces(instance_type):
         "p4d.24xlarge": 4,
         "p4de.24xlarge": 4,
         "p5.48xlarge": 32,
+        # Dev-only — g6e has capacity reservations available when p4d doesn't
+        "g6e.4xlarge": 1,
+        "g6e.12xlarge": 1,
+        "g6e.24xlarge": 1,
+        "g6e.48xlarge": 4,
     }
     return efa_map.get(instance_type, 1)
 
