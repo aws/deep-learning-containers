@@ -2082,6 +2082,7 @@ def get_job_type_from_image(image_uri):
         "base": "general",
         "vllm": "general",
         "sglang": "general",
+        "llamacpp": "general",
     }
 
     for key, job_type in job_type_mapping.items():
