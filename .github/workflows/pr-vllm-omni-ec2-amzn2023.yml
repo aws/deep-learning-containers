@@ -9,7 +9,7 @@ on:
       - ".github/config/model-tests/vllm-omni-model-tests.yml"
       - ".github/workflows/pr-vllm-omni-ec2-amzn2023.yml"
       - ".github/workflows/reusable-vllm-omni-model-tests.yml"
-      - "docker/vllm/Dockerfile.amzn2023"
+      - "docker/vllm_omni/Dockerfile.amzn2023"
       - "scripts/common/**"
       - "scripts/telemetry/**"
       - "scripts/vllm/omni_*"
@@ -116,7 +116,7 @@ jobs:
             build-change:
               - ".github/config/image/vllm-omni-ec2-amzn2023.yml"
               - ".github/config/model-tests/vllm-omni-model-tests.yml"
-              - "docker/vllm/Dockerfile.amzn2023"
+              - "docker/vllm_omni/Dockerfile.amzn2023"
               - "scripts/common/install_efa_amzn2023.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
@@ -169,6 +169,18 @@ jobs:
           mkdir -p docker/vllm/prebuilt_wheels
           mkdir -p docker/vllm/sccache-cache
 
+      - name: Load pinned omni versions
+        run: |
+          # Capture vars introduced by sourcing the env file and forward them
+          # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
+          before=$(compgen -v | sort)
+          set -a; source docker/vllm_omni/versions.env; set +a
+          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -v '^before$')
+          for v in $new; do
+            [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
+          done
+          echo "EXTRA_BUILD_ARGS=$(echo $new | xargs)" >> "$GITHUB_ENV"
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
@@ -181,7 +193,7 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: vllm-omni-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/vllm/Dockerfile.amzn2023
+          dockerfile-path: docker/vllm_omni/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
