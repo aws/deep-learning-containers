@@ -32,10 +32,7 @@ on:
         type: string
 jobs:
   preflight:
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
+    runs-on: ubuntu-latest
     outputs:
       image-exists: ${{ steps.check.outputs.exists }}
     steps:
