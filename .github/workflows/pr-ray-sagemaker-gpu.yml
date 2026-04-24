@@ -126,6 +126,7 @@ jobs:
               - "scripts/common/install_python.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
+              - "scripts/telemetry/deep_learning_container.py"
               - "scripts/ray/*"
             sagemaker-test-change:
               - "test/ray/sagemaker/**"
