@@ -212,7 +212,7 @@ jobs:
   ray-ec2-gpu-serve-test:
     needs: [check-changes, build-ray-ec2-gpu-image, parse-config]
     if: |
-      always() && !failure() && !cancelled() &&
+      !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ec2-test-change == 'true')
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -250,7 +250,7 @@ jobs:
   sanity-test:
     needs: [check-changes, build-ray-ec2-gpu-image, parse-config]
     if: |
-      always() && !failure() && !cancelled() &&
+      !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
@@ -288,7 +288,7 @@ jobs:
   telemetry-test:
     needs: [check-changes, build-ray-ec2-gpu-image, parse-config]
     if: |
-      always() && !failure() && !cancelled() &&
+      !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number }}
