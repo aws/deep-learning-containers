@@ -64,10 +64,11 @@ check_efa_nccl_all_reduce_performance(){
 
 echo "Running all_reduce_perf test"
 mpirun -x FI_PROVIDER="efa" -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
+    --tag-output --output-filename /test/efa/logs/per-rank \
     -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
     -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
     -x NCCL_SOCKET_IFNAME=^lo --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
-    /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
+    stdbuf -oL -eL /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
 
 RETURN_VAL=${PIPESTATUS[0]}
 if [ ${RETURN_VAL} -ne 0 ]; then
@@ -75,6 +76,12 @@ if [ ${RETURN_VAL} -ne 0 ]; then
     echo "=== Full log content ==="
     cat ${TRAINING_LOG}
     echo "=== End full log ==="
+    echo "=== Per-rank stdout/stderr (if any) ==="
+    find /test/efa/logs/per-rank -type f 2>/dev/null | while read f; do
+        echo "--- $f ---"
+        cat "$f"
+    done
+    echo "=== End per-rank ==="
     exit 1
 fi
 echo "check_efa_nccl_all_reduce passed"
