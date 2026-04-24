@@ -5,6 +5,12 @@ on:
     # Runs at 12:00 PM PST / 1:00 PM PDT on Tuesday and Thursday
     - cron: '00 20 * * 2,4'
 
+  # PR triggers for testing
+  pull_request:
+    paths:
+      - "**vllm**"
+      - "!docs/**"
+
   workflow_dispatch:
 
 permissions:
@@ -124,7 +130,8 @@ jobs:
         run: |
           OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
             ${{ needs.load-config-ec2.outputs.cuda-version }} \
-            v${{ needs.load-config-ec2.outputs.framework-version }})
+            v${{ needs.load-config-ec2.outputs.framework-version }} \
+            ${{ needs.load-config-ec2.outputs.framework-version }})
           echo "$OUTPUT"
           HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
           echo "hit=${HIT}" >> $GITHUB_OUTPUT
@@ -178,7 +185,8 @@ jobs:
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config-ec2.outputs.cuda-version }} \
-            v${{ needs.load-config-ec2.outputs.framework-version }}
+            v${{ needs.load-config-ec2.outputs.framework-version }} \
+            ${{ needs.load-config-ec2.outputs.framework-version }}
 
       - name: Sync sccache cache to S3
         if: success() && steps.wheel-cache.outputs.hit != 'true'
@@ -207,7 +215,8 @@ jobs:
         run: |
           OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
             ${{ needs.load-config-sagemaker.outputs.cuda-version }} \
-            v${{ needs.load-config-sagemaker.outputs.framework-version }})
+            v${{ needs.load-config-sagemaker.outputs.framework-version }} \
+            ${{ needs.load-config-sagemaker.outputs.framework-version }})
           echo "$OUTPUT"
           HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
           echo "hit=${HIT}" >> $GITHUB_OUTPUT
@@ -261,7 +270,8 @@ jobs:
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config-sagemaker.outputs.cuda-version }} \
-            v${{ needs.load-config-sagemaker.outputs.framework-version }}
+            v${{ needs.load-config-sagemaker.outputs.framework-version }} \
+            ${{ needs.load-config-sagemaker.outputs.framework-version }}
 
       - name: Sync sccache cache to S3
         if: success() && steps.wheel-cache.outputs.hit != 'true'
