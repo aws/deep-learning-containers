@@ -36,6 +36,11 @@ validate_all_reduce_performance_logs(){
 }
 
 check_efa_nccl_all_reduce_performance(){
+    # Debug: show last 40 lines of log to see actual format if parse fails
+    echo "=== Log tail (last 40 lines) ==="
+    tail -n 40 ${TRAINING_LOG}
+    echo "=== End log tail ==="
+
     # Match data rows only: start with optional whitespace then the byte size
     # Extract out-of-place busbw (column 11 in nccl-tests output)
     benchmark=$(grep -E '^\s*1073741824\s' ${TRAINING_LOG} | tail -n1 | awk '{print $11}')
