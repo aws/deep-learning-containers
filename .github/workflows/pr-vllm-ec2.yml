@@ -127,7 +127,6 @@ jobs:
               - "scripts/common/install_efa.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - "scripts/telemetry/deep_learning_container.py"
               - "scripts/vllm/*"
               - "test/vllm/scripts/**"
             sanity-test-change:

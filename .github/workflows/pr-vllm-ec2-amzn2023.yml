@@ -132,7 +132,6 @@ jobs:
               - "scripts/common/install_efa_amzn2023.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - "scripts/telemetry/deep_learning_container.py"
               - "scripts/vllm/amzn2023/**"
               - "scripts/vllm/dockerd_entrypoint.sh"
               - "scripts/vllm/sagemaker_entrypoint.sh"
@@ -173,7 +172,8 @@ jobs:
           else
             OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
               ${{ needs.load-config.outputs.cuda-version }} \
-              ${{ needs.load-config.outputs.vllm-ref }})
+              ${{ needs.load-config.outputs.vllm-ref }} \
+              ${{ needs.load-config.outputs.framework-version }})
             echo "$OUTPUT"
             HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
             echo "hit=${HIT}" >> $GITHUB_OUTPUT
@@ -214,7 +214,7 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.vllm-ref-short }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
+          dockerfile-path: docker/vllm/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
@@ -228,7 +228,8 @@ jobs:
         run: |
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            ${{ needs.load-config.outputs.vllm-ref }}
+            ${{ needs.load-config.outputs.vllm-ref }} \
+            ${{ needs.load-config.outputs.framework-version }}
 
       - name: Sync sccache cache to S3
         if: success() && steps.wheel-cache.outputs.hit != 'true'

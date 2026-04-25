@@ -125,7 +125,6 @@ jobs:
               - "scripts/common/install_efa.sh"
               - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - "scripts/telemetry/deep_learning_container.py"
               - "scripts/sglang/*"
               - "test/sglang/scripts/**"
             sanity-test-change:

@@ -1,54 +1,40 @@
-name: PR - vLLM-Omni SageMaker AMZN2023
+name: Auto Release - vLLM EC2 AMZN2023
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/model-tests/vllm-omni-model-tests.yml"
-      - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
-      - ".github/workflows/pr-vllm-omni-sagemaker-amzn2023.yml"
-      - ".github/workflows/reusable-vllm-omni-model-tests.yml"
-      - "docker/vllm_omni/Dockerfile.amzn2023"
-      - "scripts/common/**"
-      - "scripts/telemetry/**"
-      - "scripts/vllm/omni_*"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - "test/vllm-omni/**"
+  # schedule run must be on the default branch
+  schedule:
+    # Runs at 9AM/10AM PST/PDT on Mondays and Wednesdays
+    - cron: '00 17 * * 1,3'
+
+  # PR triggers for testing
+  # pull_request:
+  #   paths:
+  #     - "**vllm**"
+  #     - "!docs/**"
+
+  # Manual trigger
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
-  pull-requests: read
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
+  CONFIG_FILE: ".github/config/image/vllm-ec2-amzn2023.yml"
 
 jobs:
-  gatekeeper:
-    runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout base branch (safe)
-        uses: actions/checkout@v5
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          fetch-depth: 1
-
-      - name: Run permission gate (from base)
-        uses: ./.github/actions/pr-permission-gate
-
   load-config:
-    needs: [gatekeeper]
-    if: success()
     runs-on: ubuntu-latest
     outputs:
+      config: ${{ steps.load.outputs.config }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
+      vllm-ref-short: ${{ steps.parse.outputs.vllm-ref-short }}
       python-version: ${{ steps.parse.outputs.python-version }}
       cuda-version: ${{ steps.parse.outputs.cuda-version }}
       os-version: ${{ steps.parse.outputs.os-version }}
@@ -75,6 +61,13 @@ jobs:
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          VLLM_REF="$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)"
+          if echo "$VLLM_REF" | grep -qE '^[0-9a-f]{12,}$'; then
+            VLLM_REF_SHORT=$(echo "$VLLM_REF" | cut -c1-8)
+          else
+            VLLM_REF_SHORT=$(echo "$VLLM_REF" | sed -E 's/[^A-Za-z0-9]/_/g')
+          fi
+          echo "vllm-ref-short=${VLLM_REF_SHORT}" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
@@ -85,61 +78,13 @@ jobs:
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
-  check-changes:
-    needs: [gatekeeper]
-    if: success()
-    runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    outputs:
-      build-change: ${{ steps.changes.outputs.build-change }}
-      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Setup python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
-
-      - name: Detect file changes
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            build-change:
-              - ".github/config/model-tests/vllm-omni-model-tests.yml"
-              - ".github/config/image/vllm-omni-sagemaker-amzn2023.yml"
-              - "docker/vllm_omni/Dockerfile.amzn2023"
-              - "scripts/common/install_efa_amzn2023.sh"
-              - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/telemetry/bash_telemetry.sh.template"
-              - "scripts/vllm/omni_*"
-              - "test/vllm-omni/**"
-            sanity-test-change:
-              - "test/sanity/**"
-            telemetry-test-change:
-              - "test/telemetry/**"
-
   build-image:
-    needs: [check-changes, load-config]
-    if: needs.check-changes.outputs.build-change == 'true'
+    needs: [load-config]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-vllm-build-runner
         buildspec-override:true
     timeout-minutes: 720
-    concurrency:
-      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
     env:
       USE_SCCACHE: "1"
       USE_PREBUILT_WHEEL: "1"
@@ -171,13 +116,11 @@ jobs:
           mkdir -p docker/vllm/prebuilt_wheels
           mkdir -p docker/vllm/sccache-cache
 
-      - name: Load pinned omni versions
+      - name: Load pinned vLLM versions
         run: |
-          # Capture vars introduced by sourcing the env file and forward them
-          # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
           before=$(compgen -v | sort)
-          set -a; source docker/vllm_omni/versions.env; set +a
-          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -v '^before$')
+          set -a; source docker/vllm/versions.env; set +a
+          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -Ev '^(before|PIPESTATUS|_)$')
           for v in $new; do
             [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
           done
@@ -188,14 +131,14 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config.outputs.framework }}
-          target: vllm-omni-sagemaker-amzn2023
+          target: vllm-ec2-amzn2023
           base-image: nvidia/cuda:12.9.1-devel-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: vllm-omni-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/vllm_omni/Dockerfile.amzn2023
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.vllm-ref-short }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-${{ github.run_id }}
+          dockerfile-path: docker/vllm/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
@@ -217,13 +160,7 @@ jobs:
         run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
 
   sanity-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
-    concurrency:
-      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
+    needs: [build-image, load-config]
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -240,28 +177,8 @@ jobs:
       contributor: ${{ needs.load-config.outputs.contributor }}
       container-type: ${{ needs.load-config.outputs.container-type }}
 
-  security-test:
-    needs: [build-image, load-config]
-    if: success()
-    concurrency:
-      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/reusable-security-tests.yml
-    with:
-      image-uri: ${{ needs.build-image.outputs.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-
   telemetry-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
-    concurrency:
-      group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: false
+    needs: [build-image, load-config]
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -271,43 +188,52 @@ jobs:
       framework-version: ${{ needs.load-config.outputs.framework-version }}
       container-type: ${{ needs.load-config.outputs.container-type }}
 
-  omni-model-smoke-tests:
+  upstream-tests:
     needs: [build-image, load-config]
-    if: success()
-    concurrency:
-      group: ${{ github.workflow }}-omni-model-tests-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/reusable-vllm-omni-model-tests.yml
+    uses: ./.github/workflows/reusable-vllm-upstream-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      customer-type: ${{ needs.load-config.outputs.customer-type }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      vllm-ref: ${{ needs.load-config.outputs.vllm-ref }}
+      setup-script: test/vllm/scripts/vllm_test_setup.sh
+      example-test-script: test/vllm/scripts/vllm_ec2_examples_test.sh
     secrets: inherit
 
-  sagemaker-endpoint-test:
-    needs: [build-image, load-config]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-sm-endpoint-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
+  generate-release-spec:
+    needs: [load-config, build-image, sanity-test, upstream-tests]
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Install test dependencies
+      - name: Check if release is enabled
+        id: check-release
         run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-          uv pip install -r test/vllm-omni/sagemaker/requirements.txt
+          echo '${{ needs.load-config.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
 
-      - name: Run SageMaker endpoint test
-        run: |
-          source .venv/bin/activate
-          cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.build-image.outputs.ci-image }} vllm-omni/sagemaker
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.config }}
+
+  release-image:
+    needs: [load-config, build-image, generate-release-spec]
+    if: needs.generate-release-spec.outputs.should-release == 'true'
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-image.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+    secrets: inherit

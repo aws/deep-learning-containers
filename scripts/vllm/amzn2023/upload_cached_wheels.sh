@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # upload_cached_wheels.sh — Upload vLLM wheel to S3.
 #
-# Usage: upload_cached_wheels.sh <cuda_version> <vllm_ref> [bucket]
+# Usage: upload_cached_wheels.sh <cuda_version> <vllm_ref> <vllm_version> [bucket]
 #
 # Reads wheels from /tmp/vllm-wheels/wheels/ (exported by build_image.sh).
 # S3 layout: s3://<bucket>/wheels/vllm/<cuda>/<source_hash>/vllm-*.whl
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-CUDA="$1"; VLLM_REF="$2"; BUCKET="${3:-dlc-cicd-wheels}"
+CUDA="$1"; VLLM_REF="$2"; VLLM_VERSION="$3"; BUCKET="${4:-dlc-cicd-wheels}"
 WHEEL_DIR="/tmp/vllm-wheels/wheels"
 
-SOURCE_HASH=$("${SCRIPT_DIR}/vllm_source_hash.sh" "${VLLM_REF}")
+SOURCE_HASH=$("${SCRIPT_DIR}/vllm_source_hash.sh" "${VLLM_REF}" "${VLLM_VERSION}")
 
 for WHL in "${WHEEL_DIR}"/*.whl; do
   [ -f "${WHL}" ] || { echo "⚠️  No wheels found in ${WHEEL_DIR}"; exit 0; }
