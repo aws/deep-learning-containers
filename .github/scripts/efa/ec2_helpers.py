@@ -104,8 +104,21 @@ def create_efa_security_group(aws_session, group_name=None):
         ],
     )
 
-    # Allow all traffic within the security group (required for EFA + MPI)
+    # Allow all traffic within the security group (required for EFA + MPI).
+    # Per AWS EFA docs, BOTH ingress and egress rules must be SG-scoped — the default
+    # wide-open egress rule (0.0.0.0/0) is not sufficient for EFA's SRD protocol to
+    # complete handshakes across nodes.
+    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start-nccl.html
     aws_session.ec2.authorize_security_group_ingress(
+        GroupId=sg_id,
+        IpPermissions=[
+            {
+                "IpProtocol": "-1",
+                "UserIdGroupPairs": [{"GroupId": sg_id}],
+            },
+        ],
+    )
+    aws_session.ec2.authorize_security_group_egress(
         GroupId=sg_id,
         IpPermissions=[
             {
