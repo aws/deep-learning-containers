@@ -14,6 +14,7 @@ from test_utils.aws import AWSSessionManager, LoggedConnection
 from test_utils.constants import DEFAULT_REGION, EC2_INSTANCE_ROLE_NAME
 
 LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 MASTER_CONTAINER_NAME = "master_container"
 WORKER_CONTAINER_NAME = "worker_container"
