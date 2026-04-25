@@ -9,7 +9,6 @@ Usage:
     pytest test/efa/test_efa.py --image-uri <ecr-image-uri> -v
 """
 
-import logging
 import os
 
 from efa.ec2_helpers import (
@@ -20,9 +19,6 @@ from efa.ec2_helpers import (
     efa_instances,
     run_on_container,
 )
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
 
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 EFA_INSTANCE_TYPE = os.environ.get("EFA_INSTANCE_TYPE", "p4d.24xlarge")
@@ -68,11 +64,9 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         )
 
         # Run NCCL all_reduce across 2 nodes
-        nccl_result = run_on_container(
+        run_on_container(
             MASTER_CONTAINER_NAME,
             master_conn,
             f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
             timeout=DEFAULT_TIMEOUT,
         )
-        LOGGER.info("nccl_allreduce.sh stdout:\n%s", nccl_result.stdout)
-        LOGGER.info("nccl_allreduce.sh stderr:\n%s", nccl_result.stderr)

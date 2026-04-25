@@ -36,17 +36,24 @@ validate_all_reduce_performance_logs(){
 }
 
 check_efa_nccl_all_reduce_performance(){
-    # TMP DEBUG: grep for warmup marker instead of 1 GiB row.
-    # nccl-tests prints "# Warmup" after the header and before any benchmark rows.
-    # If this is present, the benchmark started. Revert to '1073741824' / $11 once we confirm.
-    benchmark=$(cat $TRAINING_LOG | grep -i 'warmup' | head -n1)
+    # Match V1: col 11 on the 1 GiB row (in-place algbw). Inherits V1's sed cleanup
+    # that strips trailing whitespace / noise tokens seen with older nccl-tests builds.
+    benchmark=$(cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{print $11}' | sed 's/ //' | sed 's/  5e-07//')
     echo "Benchmark throughput: ${benchmark}"
     if [[ -z "${benchmark}" ]]; then
         echo "benchmark variable is empty"
         exit 1
     fi
-    # TMP DEBUG: skip numeric threshold check while we're validating that the benchmark starts.
-    echo "check_efa_nccl_all_reduce_performance passed (warmup marker found)"
+    # The standard throughput should be at least 41 GB/s for 2 p4d with 4 EFA devices.
+    # Threshold set to 3 GB/s — enough to distinguish EFA (10s of GB/s) from TCP
+    # fallback (~1 GB/s). Matches V1.
+    PERFORMANCE_THRESHOLD="3"
+    if [[ $(echo "$benchmark $PERFORMANCE_THRESHOLD" | awk '{print ($1 >= $2)}') == 1 ]]; then
+        echo "check_efa_nccl_all_reduce_performance passed"
+    else
+        echo "check_efa_nccl_all_reduce_performance failed"
+        exit 1
+    fi
 }
 
 echo "Running all_reduce_perf test"
@@ -62,12 +69,6 @@ if [ ${RETURN_VAL} -eq 0 ]; then
 else
     echo "check_efa_nccl_all_reduce failed"
 fi
-
-# DEBUG: dump full training log so we can see exactly what mpirun produced
-# regardless of whether later assertions pass or fail.
-echo "==================== FULL testEFA.log ===================="
-cat "${TRAINING_LOG}" 2>/dev/null || echo "(testEFA.log missing or unreadable)"
-echo "==================== END testEFA.log ===================="
 
 validate_all_reduce_performance_logs
 check_efa_nccl_all_reduce_performance
