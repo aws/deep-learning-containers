@@ -106,27 +106,22 @@ def create_efa_security_group(aws_session, group_name=None):
 
     # Allow all traffic within the security group (required for EFA + MPI).
     # Per AWS EFA docs, BOTH ingress and egress rules must be SG-scoped — the default
-    # wide-open egress rule (0.0.0.0/0) is not sufficient for EFA's SRD protocol to
+    # wide-open egress (0.0.0.0/0) is not sufficient for EFA's SRD protocol to
     # complete handshakes across nodes.
     # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start-nccl.html
-    aws_session.ec2.authorize_security_group_ingress(
-        GroupId=sg_id,
-        IpPermissions=[
-            {
-                "IpProtocol": "-1",
-                "UserIdGroupPairs": [{"GroupId": sg_id}],
-            },
-        ],
-    )
-    aws_session.ec2.authorize_security_group_egress(
-        GroupId=sg_id,
-        IpPermissions=[
-            {
-                "IpProtocol": "-1",
-                "UserIdGroupPairs": [{"GroupId": sg_id}],
-            },
-        ],
-    )
+    for authorize in (
+        aws_session.ec2.authorize_security_group_ingress,
+        aws_session.ec2.authorize_security_group_egress,
+    ):
+        authorize(
+            GroupId=sg_id,
+            IpPermissions=[
+                {
+                    "IpProtocol": "-1",
+                    "UserIdGroupPairs": [{"GroupId": sg_id}],
+                },
+            ],
+        )
 
     LOGGER.info(f"Created EFA security group {sg_id} ({group_name})")
     return sg_id
@@ -351,22 +346,20 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     worker_eip_alloc = None
 
     try:
-        # Launch both instances in the same AZ (tries each AZ on capacity errors)
+        # Launch both instances in the same AZ (tries each reservation on capacity errors)
         instance_ids = launch_efa_instances(
             aws_session, ami_id, instance_type, key_name, sg_id, count=2, name="efa-test"
         )
         master_id = instance_ids[0]
         worker_id = instance_ids[1]
 
-        # Wait for both
         aws_session.wait_for_instance_ready(master_id)
         aws_session.wait_for_instance_ready(worker_id)
 
-        # Allocate Elastic IPs (EFA multi-NIC instances don't get auto public IPs)
+        # Multi-NIC EFA instances don't get auto-assigned public IPs — use EIPs for SSH.
         master_eip_alloc, master_ip = allocate_and_associate_eip(aws_session, master_id)
         worker_eip_alloc, worker_ip = allocate_and_associate_eip(aws_session, worker_id)
 
-        # SSH connections using EIP addresses
         master_conn = LoggedConnection(
             host=master_ip,
             user="ec2-user",
@@ -382,21 +375,19 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
         )
         worker_conn.config.run.in_stream = False
 
-        # Copy test scripts to instances
         master_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
         worker_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
-        # Scripts are at test/efa/scripts/ relative to repo root
-        # ec2_helpers.py is at .github/scripts/efa/ — go up 3 levels to repo root
+        # SFTP scripts from runner to both hosts. ec2_helpers.py is at .github/scripts/efa/;
+        # go up 3 levels to reach the repo root, then into test/efa/scripts/.
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
         scripts_dir = os.path.join(repo_root, "test", "efa", "scripts")
         for script in os.listdir(scripts_dir):
-            # SFTP does not expand ~ — use path relative to SSH home dir
+            # SFTP does not expand ~ — use path relative to SSH home dir.
             master_conn.put(os.path.join(scripts_dir, script), f"test/efa/scripts/{script}")
             worker_conn.put(os.path.join(scripts_dir, script), f"test/efa/scripts/{script}")
         master_conn.run("chmod +x ~/test/efa/scripts/*.sh")
         worker_conn.run("chmod +x ~/test/efa/scripts/*.sh")
 
-        # ECR login + pull image on both
         account_id = image_uri.split(".")[0]
         ecr_login = f"aws ecr get-login-password --region {region} | docker login --username AWS --password-stdin {account_id}.dkr.ecr.{region}.amazonaws.com"
         master_conn.run(ecr_login)
@@ -404,11 +395,9 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
         master_conn.run(f"docker pull {image_uri}")
         worker_conn.run(f"docker pull {image_uri}")
 
-        # Start containers with EFA devices
         setup_container(master_conn, image_uri, MASTER_CONTAINER_NAME)
         setup_container(worker_conn, image_uri, WORKER_CONTAINER_NAME)
 
-        # Configure SSH between containers
         setup_master_ssh(master_conn)
         worker_private_ip = get_private_ip(aws_session, worker_id)
         master_pub_key = run_on_container(
@@ -416,24 +405,23 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
         ).stdout.strip()
         setup_worker_ssh(worker_conn, master_pub_key)
 
-        # Create MPI hosts file
         num_gpus = get_num_gpus(master_conn)
         create_hosts_file(master_conn, worker_private_ip, num_gpus)
 
         yield master_conn, worker_conn, aws_session
 
     finally:
-        # Guaranteed cleanup
         if master_id:
             aws_session.terminate_instance(master_id)
         if worker_id:
             aws_session.terminate_instance(worker_id)
-        # Release Elastic IPs
         if master_eip_alloc:
             release_eip(aws_session, master_eip_alloc)
         if worker_eip_alloc:
             release_eip(aws_session, worker_eip_alloc)
-        # Wait briefly for instances to start terminating before deleting SG
+        # Wait briefly for ENIs to detach before deleting the SG.
+        # TODO: replace with an instance_terminated waiter — 30s is not always enough
+        # and leaks SGs on DependencyViolation. Tracked for follow-up via permanent SG.
         time.sleep(30)
         try:
             aws_session.delete_security_group(sg_id)

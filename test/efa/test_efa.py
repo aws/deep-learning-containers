@@ -29,20 +29,20 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
 
     Verifies:
     - EFA provider detected (fi_info -p efa)
-    - fi_pingpong over EFA loopback
+    - fi_pingpong over EFA loopback works
     - RDMA devices present (ibv_devinfo)
     - GPU Direct RDMA (GDR) available
-    - NCCL uses EFA transport (NET/OFI, Selected provider is efa)
-    - NCCL uses Libfabric (Using network Libfabric)
-    - NCCL uses GDRDMA on p4d/p5
-    - all_reduce bandwidth >= 3 Gbps
+    - NCCL uses EFA transport (NET/OFI, "Selected provider is efa")
+    - NCCL uses Libfabric ("Using network Libfabric")
+    - NCCL uses GDRDMA on p4d/p5 ("NET/Libfabric/0/GDRDMA")
+    - all_reduce bandwidth >= 3 GB/s on the 1 GiB message size
     """
     with efa_instances(image_uri=image_uri, instance_type=EFA_INSTANCE_TYPE) as (
         master_conn,
         worker_conn,
         aws_session,
     ):
-        # Build nccl-tests on both nodes (parallel)
+        # Build nccl-tests on both nodes
         run_on_container(
             MASTER_CONTAINER_NAME,
             master_conn,
@@ -56,14 +56,14 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             timeout=DEFAULT_TIMEOUT,
         )
 
-        # Run EFA sanity on master
+        # EFA sanity on master
         run_on_container(
             MASTER_CONTAINER_NAME,
             master_conn,
             "/test/efa/scripts/efa_sanity.sh",
         )
 
-        # Run NCCL all_reduce across 2 nodes
+        # NCCL all_reduce across 2 nodes
         run_on_container(
             MASTER_CONTAINER_NAME,
             master_conn,
