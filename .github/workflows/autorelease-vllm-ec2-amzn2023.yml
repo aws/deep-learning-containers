@@ -7,10 +7,10 @@ on:
     - cron: '00 17 * * 1,3'
 
   # PR triggers for testing
-  pull_request:
-    paths:
-      - "**vllm**"
-      - "!docs/**"
+  # pull_request:
+  #   paths:
+  #     - "**vllm**"
+  #     - "!docs/**"
 
   # Manual trigger
   workflow_dispatch:
