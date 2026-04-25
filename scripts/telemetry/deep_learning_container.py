@@ -234,6 +234,7 @@ def parse_args():
             "pytorch",
             "base",
             "vllm",
+            "vllm_server",
             "sglang",
             "lambda",
             "ray",
