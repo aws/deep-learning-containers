@@ -53,4 +53,4 @@ jobs:
           PYTHONPATH=$(pwd)/test:$(pwd)/.github/scripts:$PYTHONPATH \
           TEST_IMAGE_URI=${{ inputs.image-uri }} \
           EFA_INSTANCE_TYPE=${{ inputs.efa-instance-type }} \
-          python -m pytest test/efa/test_efa.py -v --tb=long
+          python -m pytest test/efa/test_efa.py -vs -rA --tb=long
