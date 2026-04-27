@@ -67,7 +67,6 @@ display_names:
   sagemaker-xgboost: "XGBoost"
   sglang: "SGLang"
   vllm: "vLLM"
-  vllm_omni: "vLLM-Omni"
   vllm-arm64: "vLLM ARM64"
   vllm-omni: "vLLM-Omni"
   pytorch-training: "PyTorch Training"
@@ -101,6 +100,11 @@ display_names:
   known_issues: "Known Issues"
 
   # Packages
+  # Package keys use the same string as the YAML `packages:` field (underscored
+  # where applicable), which is distinct from repository keys in the section
+  # above (hyphenated, matching the data-dir name). For example, `vllm-omni`
+  # is the repo key (display: "vLLM-Omni" in tables/headings) while `vllm_omni`
+  # is the package key used in release notes package tables.
   python: "Python"
   cuda: "CUDA"
   cudnn: "cuDNN"

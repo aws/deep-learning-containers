@@ -18,7 +18,7 @@ announcements:
 
 packages:
   vllm: "0.18.0"
-  vllm_omni: "0.18.0"
+  vllm-omni: "0.18.0"
   pytorch: "2.10.0"
   torchvision: "0.25.0"
   torchaudio: "2.10.0"
