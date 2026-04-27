@@ -46,6 +46,13 @@ class ImageConfig:
         return self._repository
 
     @property
+    def ecr_repository(self) -> str:
+        """ECR repository name for image URIs. Defaults to repository, but can be overridden
+        via the optional 'ecr_repository' YAML field when the data-directory key differs from
+        the actual ECR repo name (e.g., data dir 'vllm-omni' -> ECR repo 'vllm')."""
+        return self._data.get("ecr_repository") or self._repository
+
+    @property
     def framework_group(self) -> str:
         """Framework group key (or repository if not in a group)."""
         for group_key, group_config in GLOBAL_CONFIG.get("framework_groups", {}).items():
@@ -91,11 +98,11 @@ class ImageConfig:
 
         uris = []
         for tag in tags:
-            uris.append(build_ecr_uri(account, self._repository, tag, region))
+            uris.append(build_ecr_uri(account, self.ecr_repository, tag, region))
 
         if self.get("public_registry"):
             for tag in tags:
-                uris.append(build_public_ecr_uri(self._repository, tag))
+                uris.append(build_public_ecr_uri(self.ecr_repository, tag))
 
         return uris
 
@@ -126,7 +133,7 @@ class ImageConfig:
     def display_example_url(self) -> str:
         """Example ECR URL for table display."""
         account = self.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
-        return f"`{build_ecr_uri(account, self._repository, self.display_tag)}`"
+        return f"`{build_ecr_uri(account, self.ecr_repository, self.display_tag)}`"
 
     @property
     def display_platform(self) -> str:
@@ -277,4 +284,4 @@ def get_latest_image_uri(repo: str, platform: str) -> str:
 
     latest = sort_by_version(matching)[0]
     account = latest.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
-    return build_ecr_uri(account, repo, latest.display_tag, "us-west-2")
+    return build_ecr_uri(account, latest.ecr_repository, latest.display_tag, "us-west-2")

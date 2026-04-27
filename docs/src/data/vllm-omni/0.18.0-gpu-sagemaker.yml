@@ -1,0 +1,27 @@
+framework: vLLM-Omni
+version: "0.18.0"
+ecr_repository: vllm
+accelerator: gpu
+python: py312
+cuda: cu129
+os: amzn2023
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "omni-sagemaker-cuda-v1"
+
+announcements:
+  - "Initial release of vLLM-Omni containers for SageMaker"
+  - "Includes ASGI routing middleware for /invocations dispatch via CustomAttributes"
+  - "Built on Amazon Linux 2023 with Python 3.12 and CUDA 12.9"
+
+packages:
+  vllm: "0.18.0"
+  vllm-omni: "0.18.0"
+  pytorch: "2.10.0"
+  torchvision: "0.25.0"
+  torchaudio: "2.10.0"
+  cuda: "12.9.1"
+  flashinfer: "0.6.6"
+  efa: "1.47.0"
