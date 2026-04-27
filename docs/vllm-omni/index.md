@@ -54,17 +54,26 @@ starts the container, waits for readiness, submits a request, and writes the out
 
 ### Text-to-Speech
 
+**Model:** [Qwen3-TTS-12Hz-1.7B-CustomVoice](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice) — a 1.7B-parameter Qwen3 text-to-speech
+model supporting multiple voices and languages, runs on a single 24 GB GPU (A10G / L4).
+
 ```bash
 --8<-- "examples/vllm-omni/tts/run.sh"
 ```
 
 ### Image Generation
 
+**Model:** [FLUX.2-klein-4B](https://huggingface.co/black-forest-labs/FLUX.2-klein-4B) — a 4B-parameter rectified-flow transformer from Black Forest
+Labs, produces high-quality 512×512 images from text prompts, runs on a single 24 GB GPU.
+
 ```bash
 --8<-- "examples/vllm-omni/image/run.sh"
 ```
 
 ### Video Generation
+
+**Model:** [Wan2.1-T2V-1.3B](https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B-Diffusers) — a 1.3B-parameter text-to-video diffusion model from the Wan
+team, generates short clips at up to 480×832 resolution. Needs a 48 GB GPU (L40S) or 2× 24 GB GPUs with `--tensor-parallel-size 2`.
 
 The `/v1/videos` endpoint is asynchronous — it returns a job ID immediately and generates the video in the background. The script below submits the
 job, polls until it completes, then downloads the MP4.
@@ -77,11 +86,46 @@ job, polls until it completes, then downloads the MP4.
 
 Use the standard OpenAI chat-completions API. Multimodal inputs (images, audio) are supplied as URL or base64 content parts in the message list.
 
+**Example model:** [Qwen2.5-Omni-3B](https://huggingface.co/Qwen/Qwen2.5-Omni-3B) — a 3B-parameter omni model accepting text, image, and audio inputs
+and generating text or speech outputs. Multi-stage architecture (thinker + talker + code2wav) requires **≥ 4 GPUs**: `g5.12xlarge` / `g6.12xlarge` (4×
+A10G) or `g6e.12xlarge` (4× L40S).
+
+Start the server:
+
 ```bash
-curl -X POST http://localhost:8080/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'
+docker run -d --name omni3b --gpus all --shm-size=16g -p 8080:8080 \
+  -v ~/hf-cache:/root/.cache/huggingface \
+  -e HF_HUB_ENABLE_HF_TRANSFER=1 \
+  {{ images.latest_vllm_omni_ec2 }} \
+  --model Qwen/Qwen2.5-Omni-3B \
+  --host 0.0.0.0 --port 8080 \
+  --max-model-len 16384 --dtype bfloat16
+
+until curl -sf http://localhost:8080/health >/dev/null; do sleep 10; done
 ```
+
+Three things are **required** on `/v1/chat/completions` to produce clean audio from Qwen2.5-Omni:
+
+1. `"modalities": ["audio"]` — not `["text","audio"]` (that returns empty audio).
+2. `"sampling_params_list"` — a 3-element list (thinker, talker, code2wav). The image's built-in per-stage defaults produce noise; use the values from
+   the official Qwen docs.
+3. The exact Qwen system prompt.
+
+!!! warning "Omitting `sampling_params_list` returns 200 with valid WAV bytes that sound like noise — the single most common footgun."
+
+Run the included client (supports local and remote via `OMNI_ENDPOINT`):
+
+```python
+--8<-- "examples/vllm-omni/qwen2.5-omni/offline_inference.py"
+```
+
+```bash
+python3 offline_inference.py
+aplay out/lullaby.wav   # afplay on macOS
+```
+
+The `/v1/audio/speech` shortcut (voices: `Chelsie`, `Ethan`) bypasses the thinker and does not apply the correct sampling params in v1.0.0, so it
+produces noisy output for Qwen2.5-Omni. Prefer `/v1/chat/completions` for this model.
 
 ## SageMaker Deployment
 
