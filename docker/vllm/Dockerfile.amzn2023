@@ -1,7 +1,7 @@
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
-ARG VLLM_VERSION=0.19.1
-ARG FLASHINFER_VERSION=0.6.7
+ARG VLLM_VERSION=0.20.1rc0
+ARG FLASHINFER_VERSION=0.6.8.post1
 ARG DEEPEP_COMMIT_HASH=73b6ea4
 
 # =============================================================================
