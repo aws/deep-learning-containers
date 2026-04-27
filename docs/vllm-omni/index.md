@@ -48,45 +48,73 @@ For package versions included in each release, see the [Release Notes](../releas
 
 ## EC2 Deployment
 
-The container runs `vllm serve --omni` and exposes the OpenAI-compatible API on port 8080.
+The container runs `vllm serve --omni` and exposes the OpenAI-compatible API on port 8080. Each example below picks a representative model for its
+modality — any `vllm serve` flag may be appended to `docker run` (e.g., `--tensor-parallel-size 2`, `--max-model-len 2048`, `--enforce-eager`).
 
-### Start the Server
+All three examples below use the same Python client pattern. Install the one dependency:
 
 ```bash
-docker run -d --gpus all \
-  --shm-size=2g \
-  -p 8080:8080 \
-  {{ images.latest_vllm_omni_ec2 }} \
-  --model Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
-
-until curl -sf http://localhost:8080/health > /dev/null; do sleep 5; done
+pip install requests
 ```
-
-Any flag accepted by `vllm serve` may be appended to `docker run` (e.g., `--tensor-parallel-size 2`, `--max-model-len 2048`, `--enforce-eager`).
 
 ### Text-to-Speech
 
-Returns raw audio bytes (WAV).
+Start the server with a TTS model:
 
 ```bash
---8<-- "examples/vllm-omni/tts/invoke_tts.sh"
+docker run -d --gpus all --shm-size=2g -p 8080:8080 \
+  {{ images.latest_vllm_omni_ec2 }} \
+  --model Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice
+
+until curl -sf http://localhost:8080/health >/dev/null; do sleep 5; done
+```
+
+Submit a request and write the returned WAV bytes to disk:
+
+```python
+--8<-- "examples/vllm-omni/tts/inference.py"
+```
+
+```bash
+python3 inference.py
+aplay out/speech.wav   # afplay on macOS
 ```
 
 ### Image Generation
 
-Returns a JSON response with a base64-encoded image in `data[0].b64_json`.
+Start the server with an image-generation model:
 
 ```bash
---8<-- "examples/vllm-omni/image/invoke_image.sh"
+docker run -d --gpus all --shm-size=2g -p 8080:8080 \
+  {{ images.latest_vllm_omni_ec2 }} \
+  --model black-forest-labs/FLUX.2-klein-4B
+
+until curl -sf http://localhost:8080/health >/dev/null; do sleep 5; done
+```
+
+The response JSON contains a base64-encoded PNG in `data[0].b64_json`:
+
+```python
+--8<-- "examples/vllm-omni/image/inference.py"
 ```
 
 ### Video Generation
 
 The `/v1/videos` endpoint is asynchronous by design — it returns a job ID immediately and generates the video in the background. The request must use
-`multipart/form-data`.
+`multipart/form-data`. The client below submits the job, polls until it completes, then downloads the MP4.
+
+Start the server with a video-generation model:
 
 ```bash
---8<-- "examples/vllm-omni/video/invoke_video.sh"
+docker run -d --gpus all --shm-size=8g -p 8080:8080 \
+  {{ images.latest_vllm_omni_ec2 }} \
+  --model Wan-AI/Wan2.1-T2V-1.3B-Diffusers
+
+until curl -sf http://localhost:8080/health >/dev/null; do sleep 5; done
+```
+
+```python
+--8<-- "examples/vllm-omni/video/inference.py"
 ```
 
 ### Multimodal Chat
