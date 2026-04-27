@@ -118,7 +118,7 @@ def _test_diffusion_model(
         model_server_workers=1,
     )
 
-    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
+    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=60):
         predictor = hf_model.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
