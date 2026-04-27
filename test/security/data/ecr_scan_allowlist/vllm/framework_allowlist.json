@@ -162,5 +162,10 @@
     {
         "vulnerability_id": "CVE-2025-23308",
         "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34480",
+        "reason": "log4j-core 2.17.1 bundled in ray_dist.jar, unpatchable without Ray upgrade. Fix: >=2.25.4",
+        "review_by": "2026-05-04"
     }
 ]
