@@ -87,7 +87,7 @@ def pytest_addoption(parser):
     parser.addoption("--aws-id")
     parser.addoption("--instance-type")
     parser.addoption("--accelerator-type", default=None)
-    parser.addoption("--docker-base-name", default="huggingface_sglang")
+    parser.addoption("--docker-base-name", default="huggingface_llamacpp")
     parser.addoption("--region", default="us-west-2")
     parser.addoption("--framework-version", default="")
     parser.addoption(
@@ -140,7 +140,7 @@ def pytest_collection_modifyitems(session, config, items):
         from test.test_utils.test_reporting import TestReportGenerator
 
         report_generator = TestReportGenerator(items, is_sagemaker=True)
-        report_generator.generate_coverage_doc(framework="huggingface_sglang", job_type="inference")
+        report_generator.generate_coverage_doc(framework="huggingface_llamacpp", job_type="inference")
 
 
 @pytest.fixture(scope="session", name="docker_base_name")
