@@ -8,7 +8,6 @@ on:
     paths:
       - ".github/config/image/vllm-ec2.yml"
       - ".github/workflows/pr-vllm-ec2.yml"
-      - ".github/workflows/reusable-vllm-model-tests.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - "docker/vllm/Dockerfile"
       - "scripts/common/**"
