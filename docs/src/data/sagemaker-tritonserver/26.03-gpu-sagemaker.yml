@@ -1,0 +1,10 @@
+framework: Triton
+version: "26.03"
+accelerator: gpu
+python: py3
+platform: sagemaker
+example_ecr_account: "007439368137"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "26.03-py3"
