@@ -230,6 +230,25 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         ); \
     fi
 
+# Override LMCache with commit containing bidirectional NIXL cache probe (PR #2972).
+# Built from source against the torch already installed above.
+ARG LMCACHE_COMMIT=7f60057ce37102bf7e7a519901930d6b9a874136
+RUN --mount=type=cache,target=/root/.cache/uv \
+    CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
+    dnf install -y --setopt=install_weak_deps=False \
+        git \
+        libcusparse-devel-${CUDA_DASH} \
+        libcublas-devel-${CUDA_DASH} \
+        libcusolver-devel-${CUDA_DASH} \
+    && export SETUPTOOLS_SCM_PRETEND_VERSION="0.4.5.dev0+amzn2023.$(echo $LMCACHE_COMMIT | cut -c1-8)" \
+    && uv pip install --no-deps --force-reinstall --no-build-isolation \
+        "lmcache @ git+https://github.com/LMCache/LMCache.git@${LMCACHE_COMMIT}" \
+    && dnf remove -y git \
+        libcusparse-devel-${CUDA_DASH} \
+        libcublas-devel-${CUDA_DASH} \
+        libcusolver-devel-${CUDA_DASH} \
+    && dnf clean all && rm -rf /var/cache/dnf
+
 # =============================================================================
 # STAGE: builder-oss — generates license files without modifying runtime venv
 # =============================================================================
