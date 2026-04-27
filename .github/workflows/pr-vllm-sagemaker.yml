@@ -17,6 +17,8 @@ on:
       - "test/sanity/**"
       - "test/telemetry/**"
       - "test/vllm/**"
+      - "!test/vllm/scripts/amzn2023/**"
+      - "!test/vllm/scripts/benchmark/**"
       - "!docs/**"
       - "!scripts/vllm/amzn2023/**"
       - "!scripts/vllm/omni_*"
