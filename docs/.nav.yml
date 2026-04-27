@@ -6,7 +6,6 @@ nav:
     - Release Notifications: get_started/release_notifications.md
     - Ray: ray/index.md
     - vLLM-Omni: vllm-omni/index.md
-    - Qwen2.5-Omni on EC2: vllm-omni/qwen2.5-omni.md
   - Release Notes:
     - releasenotes/index.md
     - Base: releasenotes/base/index.md
