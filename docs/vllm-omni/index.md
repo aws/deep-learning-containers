@@ -177,6 +177,10 @@ the container directly — SageMaker async inference only captures the initial J
 
 See [vLLM-Omni Release Notes](../releasenotes/vllm-omni/index.md) for version history and changelogs.
 
+## Model Tutorials
+
+- [Qwen2.5-Omni-3B on EC2 GPU](qwen2.5-omni.md) — multi-GPU setup, audio output gotchas, offline + online inference
+
 ## Resources
 
 - [vLLM-Omni Documentation](https://github.com/vllm-project/vllm-omni)
