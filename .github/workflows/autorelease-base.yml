@@ -2,9 +2,9 @@ name: Auto Release - Base
 
 on:
   # schedule run must be on the default branch
-  # schedule:
-  #   # Runs at 2:00 PM PDT / 1:00 PM PST on Monday and Wednesday
-  #   - cron: '00 21 * * 1,3'
+  schedule:
+    # Runs at 2:00 PM PDT / 1:00 PM PST on Monday and Wednesday
+    - cron: '00 21 * * 1,3'
 
   # PR trigger for gamma testing — uncomment to re-enable
   # pull_request:
