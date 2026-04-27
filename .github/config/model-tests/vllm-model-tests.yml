@@ -16,6 +16,11 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
+    - name: "gemma-4-26b-a4b-it"
+      s3_model: "gemma-4-26b-a4b-it.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+
   runner-scale-sets: []
 
 benchmark:

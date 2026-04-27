@@ -6,6 +6,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/vllm-ec2-amzn2023.yml"
+      - ".github/config/model-tests/vllm-model-tests.yml"
       - ".github/workflows/pr-vllm-ec2-amzn2023.yml"
       - ".github/workflows/reusable-vllm-model-tests.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
@@ -107,6 +108,7 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -140,6 +142,9 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            model-test-change:
+              - ".github/config/model-tests/vllm-model-tests.yml"
+              - ".github/workflows/reusable-vllm-model-tests.yml"
 
   build-image:
     needs: [check-changes, load-config]
@@ -309,8 +314,10 @@ jobs:
     secrets: inherit
 
   model-smoke-tests:
-    needs: [build-image, load-config]
-    if: success()
+    needs: [check-changes, build-image, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.build-image.result == 'success' || needs.check-changes.outputs.model-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-model-smoke-tests-${{ github.event.pull_request.number }}
       cancel-in-progress: true
