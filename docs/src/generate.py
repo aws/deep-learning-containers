@@ -376,9 +376,12 @@ def generate_available_images(dry_run: bool = False) -> str:
 
         section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
         if has_public_registry:
-            url = f"{PUBLIC_GALLERY_URL}/{repository}"
+            # Use ecr_repository from images (falls back to data-dir key when unset) so display
+            # reflects the actual ECR repo when the data-dir key differs (e.g., vllm-omni -> vllm).
+            ecr_repo = images[0].ecr_repository if images else repository
+            url = f"{PUBLIC_GALLERY_URL}/{ecr_repo}"
             section += (
-                f"\nThese images are also available in ECR Public Gallery: [{repository}]({url})\n"
+                f"\nThese images are also available in ECR Public Gallery: [{ecr_repo}]({url})\n"
             )
         if table_config.get("note"):
             section += f"\n{table_config['note']}\n"
