@@ -17,7 +17,7 @@ release_images:
       # has already been published. Re-released image will have minor version incremented by 1.
   2:
     framework: "triton"
-    version: "25.09"
+    version: "26.03"
     arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
@@ -103,7 +103,7 @@ release_images:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
-    hf_transformers: "4.51.3"
+    hf_transformers: "5.5.3"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py312" ]
