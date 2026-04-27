@@ -217,6 +217,9 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+# Upgrade black to fix CVE-2026-32274 in spacy bundled test requirements
+RUN pip install --no-cache-dir awscli "black>=26.3.1"
+
 ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
 
