@@ -7,7 +7,7 @@ IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda
 MODEL="${MODEL:-Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice}"
 NAME="${NAME:-omni-tts}"
 
-docker run -d --name "${NAME}" --gpus all --shm-size=2g -p 8080:8080 \
+docker run -d --name "${NAME}" --gpus all --shm-size=2g -p 8080:8000 \
   -v "${HOME}/hf-cache:/root/.cache/huggingface" \
   "${IMAGE}" --model "${MODEL}"
 

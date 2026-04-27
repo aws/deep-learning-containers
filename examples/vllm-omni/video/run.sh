@@ -7,7 +7,7 @@ IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda
 MODEL="${MODEL:-Wan-AI/Wan2.1-T2V-1.3B-Diffusers}"
 NAME="${NAME:-omni-video}"
 
-docker run -d --name "${NAME}" --gpus all --shm-size=8g -p 8080:8080 \
+docker run -d --name "${NAME}" --gpus all --shm-size=8g -p 8080:8000 \
   -v "${HOME}/hf-cache:/root/.cache/huggingface" \
   "${IMAGE}" --model "${MODEL}"
 

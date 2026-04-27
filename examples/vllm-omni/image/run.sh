@@ -6,7 +6,7 @@ IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda
 MODEL="${MODEL:-black-forest-labs/FLUX.2-klein-4B}"
 NAME="${NAME:-omni-image}"
 
-docker run -d --name "${NAME}" --gpus all --shm-size=2g -p 8080:8080 \
+docker run -d --name "${NAME}" --gpus all --shm-size=2g -p 8080:8000 \
   -v "${HOME}/hf-cache:/root/.cache/huggingface" \
   "${IMAGE}" --model "${MODEL}"
 
