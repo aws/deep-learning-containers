@@ -6,10 +6,8 @@ setting up multi-node containers with SSH, and guaranteed cleanup.
 
 import logging
 import os
-import time
 from contextlib import contextmanager
 
-from test_utils import random_suffix_name
 from test_utils.aws import AWSSessionManager, LoggedConnection
 from test_utils.constants import DEFAULT_REGION, EC2_INSTANCE_ROLE_NAME
 
@@ -22,6 +20,9 @@ MASTER_SSH_KEY_NAME = "master_id_rsa"
 WORKER_SSH_KEY_NAME = "worker_id_rsa"
 HOSTS_FILE_LOCATION = "/root/hosts"
 DEFAULT_TIMEOUT = 600
+
+# Permanent SG looked up by name.
+EFA_SG_NAME = "dlc-cicd-efa-test"
 
 
 def get_efa_devices(conn):
@@ -75,56 +76,20 @@ def get_default_subnet(aws_session, az=None):
     return subnets[0]["SubnetId"]
 
 
-def create_efa_security_group(aws_session, group_name=None):
-    """Create a security group allowing SSH from runner + all traffic within the group (for EFA)."""
-    if not group_name:
-        group_name = random_suffix_name("dlc-efa", 36)
+def get_efa_security_group_id(aws_session, name=EFA_SG_NAME):
+    """Look up the permanent EFA SG in the default VPC by name."""
     vpc_id = aws_session.ec2.describe_vpcs(Filters=[{"Name": "is-default", "Values": ["true"]}])[
         "Vpcs"
     ][0]["VpcId"]
-
-    response = aws_session.ec2.create_security_group(
-        GroupName=group_name,
-        Description="Ephemeral EFA test security group",
-        VpcId=vpc_id,
-    )
-    sg_id = response["GroupId"]
-
-    # Allow SSH from CodeBuild runner
-    runner_ip = aws_session.get_codebuild_runner_public_ip()
-    aws_session.ec2.authorize_security_group_ingress(
-        GroupId=sg_id,
-        IpPermissions=[
-            {
-                "IpProtocol": "tcp",
-                "FromPort": 22,
-                "ToPort": 22,
-                "IpRanges": [{"CidrIp": f"{runner_ip}/32"}],
-            },
+    resp = aws_session.ec2.describe_security_groups(
+        Filters=[
+            {"Name": "group-name", "Values": [name]},
+            {"Name": "vpc-id", "Values": [vpc_id]},
         ],
     )
-
-    # Allow all traffic within the security group (required for EFA + MPI).
-    # Per AWS EFA docs, BOTH ingress and egress rules must be SG-scoped — the default
-    # wide-open egress (0.0.0.0/0) is not sufficient for EFA's SRD protocol to
-    # complete handshakes across nodes.
-    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start-nccl.html
-    for authorize in (
-        aws_session.ec2.authorize_security_group_ingress,
-        aws_session.ec2.authorize_security_group_egress,
-    ):
-        authorize(
-            GroupId=sg_id,
-            IpPermissions=[
-                {
-                    "IpProtocol": "-1",
-                    "UserIdGroupPairs": [{"GroupId": sg_id}],
-                },
-            ],
-        )
-
-    LOGGER.info(f"Created EFA security group {sg_id} ({group_name})")
-    return sg_id
+    if not resp["SecurityGroups"]:
+        raise RuntimeError(f"SG {name!r} not found in default VPC {vpc_id}")
+    return resp["SecurityGroups"][0]["GroupId"]
 
 
 def get_available_reservations(aws_session, instance_type, min_count=1):
@@ -273,8 +238,7 @@ def setup_worker_ssh(conn, master_pub_key):
         conn,
         f"eval `ssh-agent -s` && ssh-add $HOME/.ssh/{WORKER_SSH_KEY_NAME}",
     )
-    # Start sshd directly (AL2023 base image has no `service` wrapper / sysvinit).
-    # openssh-server is pre-installed by configure_ssh.sh in the Dockerfile.
+    # Start sshd directly (AL2023 base image has no sysvinit).
     run_on_container(WORKER_CONTAINER_NAME, conn, "/usr/sbin/sshd")
     status = run_on_container(WORKER_CONTAINER_NAME, conn, "pgrep -x sshd", warn=True)
     if status.failed:
@@ -338,7 +302,7 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     aws_session = AWSSessionManager(region=region)
     ami_id = aws_session.get_latest_ami()
     key_name, key_path = aws_session.create_key_pair()
-    sg_id = create_efa_security_group(aws_session)
+    sg_id = get_efa_security_group_id(aws_session)
 
     master_id = None
     worker_id = None
@@ -346,7 +310,7 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     worker_eip_alloc = None
 
     try:
-        # Launch both instances in the same AZ (tries each reservation on capacity errors)
+        # Tries each reservation on capacity errors.
         instance_ids = launch_efa_instances(
             aws_session, ami_id, instance_type, key_name, sg_id, count=2, name="efa-test"
         )
@@ -356,7 +320,7 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
         aws_session.wait_for_instance_ready(master_id)
         aws_session.wait_for_instance_ready(worker_id)
 
-        # Multi-NIC EFA instances don't get auto-assigned public IPs — use EIPs for SSH.
+        # EIPs: multi-NIC EFA instances don't get auto public IPs.
         master_eip_alloc, master_ip = allocate_and_associate_eip(aws_session, master_id)
         worker_eip_alloc, worker_ip = allocate_and_associate_eip(aws_session, worker_id)
 
@@ -377,12 +341,10 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
 
         master_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
         worker_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
-        # SFTP scripts from runner to both hosts. ec2_helpers.py is at .github/scripts/efa/;
-        # go up 3 levels to reach the repo root, then into test/efa/scripts/.
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
         scripts_dir = os.path.join(repo_root, "test", "efa", "scripts")
         for script in os.listdir(scripts_dir):
-            # SFTP does not expand ~ — use path relative to SSH home dir.
+            # SFTP does not expand ~; use paths relative to SSH home.
             master_conn.put(os.path.join(scripts_dir, script), f"test/efa/scripts/{script}")
             worker_conn.put(os.path.join(scripts_dir, script), f"test/efa/scripts/{script}")
         master_conn.run("chmod +x ~/test/efa/scripts/*.sh")
@@ -419,12 +381,4 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
             release_eip(aws_session, master_eip_alloc)
         if worker_eip_alloc:
             release_eip(aws_session, worker_eip_alloc)
-        # Wait briefly for ENIs to detach before deleting the SG.
-        # TODO: replace with an instance_terminated waiter — 30s is not always enough
-        # and leaks SGs on DependencyViolation. Tracked for follow-up via permanent SG.
-        time.sleep(30)
-        try:
-            aws_session.delete_security_group(sg_id)
-        except Exception as e:
-            LOGGER.warning(f"Failed to delete security group {sg_id}: {e}")
         aws_session.delete_key_pair(key_name, key_path)
