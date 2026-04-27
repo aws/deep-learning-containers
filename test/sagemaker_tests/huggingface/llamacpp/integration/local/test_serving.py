@@ -37,7 +37,7 @@ def _predictor(image, sagemaker_local_session, instance_type):
     model_data_path = ensure_model_downloaded()
 
     env = {
-        "SM_LLAMACPP_MODEL": "/opt/ml/model",
+        "SM_LLAMACPP_MODEL": "/opt/ml/model/Qwen3.5-0.8B-UD-IQ2_XXS.gguf",
     }
 
     model = Model(

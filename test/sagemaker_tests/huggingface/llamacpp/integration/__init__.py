@@ -25,24 +25,44 @@ resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 
 # Model artifacts for local mode tests - downloaded from HuggingFace Hub at runtime
 MODEL_ID = "unsloth/Qwen3.5-0.8B-GGUF"
+MODEL_FILENAME = "Qwen3.5-0.8B-UD-IQ2_XXS.gguf"
 model_dir = os.path.join(resources_path, "qwen3.5-0.8b")
 model_data = "qwen3.5-0.8b.tar.gz"
 model_data_path = os.path.join(model_dir, model_data)
 
 
+def _tar_contains_expected_model(tar_path):
+    if not os.path.exists(tar_path):
+        return False
+    try:
+        with tarfile.open(tar_path, "r:gz") as tar:
+            return any(
+                os.path.basename(member.name) == MODEL_FILENAME
+                for member in tar.getmembers()
+                if member.isfile()
+            )
+    except tarfile.TarError:
+        return False
+
+
 def ensure_model_downloaded():
     """Download model from HuggingFace Hub and create tarball if not already present."""
-    if os.path.exists(model_data_path):
+    if _tar_contains_expected_model(model_data_path):
         return model_data_path
 
-    from huggingface_hub import snapshot_download
+    from huggingface_hub import hf_hub_download
 
     os.makedirs(model_dir, exist_ok=True)
     local_model_dir = os.path.join(model_dir, "model")
+    if os.path.exists(local_model_dir):
+        shutil.rmtree(local_model_dir)
+    os.makedirs(local_model_dir, exist_ok=True)
 
-    print(f"Downloading {MODEL_ID} from HuggingFace Hub...")
-    snapshot_download(
-        repo_id=MODEL_ID, local_dir=local_model_dir, ignore_patterns=["*.onnx"]
+    print(f"Downloading {MODEL_FILENAME} from {MODEL_ID} on HuggingFace Hub...")
+    hf_hub_download(
+        repo_id=MODEL_ID,
+        filename=MODEL_FILENAME,
+        local_dir=local_model_dir,
     )
 
     # Remove cache folder if present

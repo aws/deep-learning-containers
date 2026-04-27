@@ -68,7 +68,7 @@ def _test_llamacpp_model(
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-hf-llamacpp-serving")
 
     env = {
-        "SM_LLAMACPP_MODEL": model_id,
+        "SM_LLAMACPP_HF_REPO": model_id,
     }
 
     model = Model(
