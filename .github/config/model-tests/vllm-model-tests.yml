@@ -54,6 +54,7 @@ benchmark:
       benchmark_audio_fixture: "asr_en.wav"
       min_throughput: 30
       min_rps: 1
+      benchmark_profiles: "baseline,high_concurrency,sustained_load,burst"
 
     - name: "gpt-oss-20b"
       s3_model: "gpt-oss-20b.tar.gz"

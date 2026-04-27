@@ -147,6 +147,7 @@ jobs:
             -e NUM_REQUESTS=50 \
             -e MIN_THROUGHPUT=${{ matrix.min_throughput || 100 }} \
             -e MIN_RPS=${{ matrix.min_rps || 1 }} \
+            -e BENCHMARK_PROFILES=${{ matrix.benchmark_profiles || 'baseline' }} \
             ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
@@ -246,6 +247,7 @@ jobs:
             -e NUM_REQUESTS=50 \
             -e MIN_THROUGHPUT=${{ matrix.min_throughput || 100 }} \
             -e MIN_RPS=${{ matrix.min_rps || 1 }} \
+            -e BENCHMARK_PROFILES=${{ matrix.benchmark_profiles || 'baseline' }} \
             ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
