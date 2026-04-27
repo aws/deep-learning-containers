@@ -90,21 +90,7 @@ Use the standard OpenAI chat-completions API. Multimodal inputs (images, audio) 
 and generating text or speech outputs. Multi-stage architecture (thinker + talker + code2wav) requires **≥ 4 GPUs**: `g5.12xlarge` / `g6.12xlarge` (4×
 A10G) or `g6e.12xlarge` (4× L40S).
 
-Start the server:
-
-```bash
-docker run -d --name omni3b --gpus all --shm-size=16g -p 8080:8080 \
-  -v ~/hf-cache:/root/.cache/huggingface \
-  -e HF_HUB_ENABLE_HF_TRANSFER=1 \
-  {{ images.latest_vllm_omni_ec2 }} \
-  --model Qwen/Qwen2.5-Omni-3B \
-  --host 0.0.0.0 --port 8080 \
-  --max-model-len 16384 --dtype bfloat16
-
-until curl -sf http://localhost:8080/health >/dev/null; do sleep 10; done
-```
-
-Three things are **required** on `/v1/chat/completions` to produce clean audio from Qwen2.5-Omni:
+Start the server, then submit a request. Three things are **required** on `/v1/chat/completions` to produce clean audio from Qwen2.5-Omni:
 
 1. `"modalities": ["audio"]` — not `["text","audio"]` (that returns empty audio).
 2. `"sampling_params_list"` — a 3-element list (thinker, talker, code2wav). The image's built-in per-stage defaults produce noise; use the values from
@@ -113,15 +99,8 @@ Three things are **required** on `/v1/chat/completions` to produce clean audio f
 
 !!! warning "Omitting `sampling_params_list` returns 200 with valid WAV bytes that sound like noise — the single most common footgun."
 
-Run the included client (supports local and remote via `OMNI_ENDPOINT`):
-
-```python
---8<-- "examples/vllm-omni/qwen2.5-omni/offline_inference.py"
-```
-
 ```bash
-python3 offline_inference.py
-aplay out/lullaby.wav   # afplay on macOS
+--8<-- "examples/vllm-omni/qwen2.5-omni/run.sh"
 ```
 
 The `/v1/audio/speech` shortcut (voices: `Chelsie`, `Ethan`) bypasses the thinker and does not apply the correct sampling params in v1.0.0, so it
