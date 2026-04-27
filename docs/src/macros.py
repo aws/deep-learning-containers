@@ -42,4 +42,6 @@ def define_env(env):
         "latest_ray_default_cpu": _get_latest_ray_uri("default", "cpu"),
         "latest_ray_sagemaker_gpu": _get_latest_ray_uri("sagemaker", "gpu"),
         "latest_ray_sagemaker_cpu": _get_latest_ray_uri("sagemaker", "cpu"),
+        "latest_vllm_omni_ec2": get_latest_image_uri("vllm-omni", "default"),
+        "latest_vllm_omni_sagemaker": get_latest_image_uri("vllm-omni", "sagemaker"),
     }
