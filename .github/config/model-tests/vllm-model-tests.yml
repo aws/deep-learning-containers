@@ -36,6 +36,17 @@ benchmark:
       min_throughput: 1200
       min_rps: 5
 
+    - name: "gemma-4-26b-a4b-it"
+      s3_model: "gemma-4-26b-a4b-it.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 20
+      min_rps: 0.15
+
     - name: "qwen3.5-9b"
       s3_model: "qwen3.5-9b.tar.gz"
       fleet: "x86-g6xl-runner"
