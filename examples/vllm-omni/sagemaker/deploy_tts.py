@@ -5,7 +5,7 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 
 model = Model(
-    image_uri="763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda-sagemaker-v1.0.0",
+    image_uri="763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-sagemaker-cuda-v1",
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
     env={"SM_VLLM_MODEL": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"},
     predictor_cls=Predictor,

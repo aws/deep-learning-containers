@@ -9,24 +9,24 @@ NAME="${NAME:-omni-video}"
 
 docker run -d --name "${NAME}" --gpus all --shm-size=8g -p 8080:8000 \
   -v "${HOME}/hf-cache:/root/.cache/huggingface" \
-  "${IMAGE}" --model "${MODEL}"
+  "${IMAGE}" --model "${MODEL}" --tensor-parallel-size 2
 
 until curl -sf http://localhost:8080/health >/dev/null; do sleep 5; done
 
 # /v1/videos requires multipart/form-data.
 JOB_ID=$(curl -sf -X POST http://localhost:8080/v1/videos \
   -F "prompt=a dog running on a beach at sunset" \
-  -F "num_frames=17" -F "num_inference_steps=4" \
+  -F "num_frames=17" -F "num_inference_steps=30" \
   -F "size=480x320" -F "seed=42" \
   | python3 -c "import json,sys;print(json.load(sys.stdin)['id'])")
 
 echo "submitted job ${JOB_ID}"
 
-# Poll until succeeded (5s interval, 10 min timeout).
+# Poll until completed (5s interval, 10 min timeout).
 for _ in $(seq 1 120); do
   STATUS=$(curl -sf "http://localhost:8080/v1/videos/${JOB_ID}" \
     | python3 -c "import json,sys;print(json.load(sys.stdin)['status'])")
-  [ "${STATUS}" = "succeeded" ] && break
+  [ "${STATUS}" = "completed" ] && break
   [ "${STATUS}" = "failed" ] && { echo "job failed"; exit 1; }
   sleep 5
 done
