@@ -232,6 +232,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Override LMCache with commit containing bidirectional NIXL cache probe (PR #2972).
 # Built from source against the torch already installed above.
+# TORCH_CUDA_ARCH_LIST matches upstream LMCache Dockerfile
+# (https://github.com/LMCache/LMCache/blob/dev/docker/Dockerfile).
 ARG LMCACHE_COMMIT=7f60057ce37102bf7e7a519901930d6b9a874136
 RUN --mount=type=cache,target=/root/.cache/uv \
     CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
@@ -241,6 +243,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         libcublas-devel-${CUDA_DASH} \
         libcusolver-devel-${CUDA_DASH} \
     && export SETUPTOOLS_SCM_PRETEND_VERSION="0.4.5.dev0+amzn2023.$(echo $LMCACHE_COMMIT | cut -c1-8)" \
+    && export TORCH_CUDA_ARCH_LIST="7.0 7.5 8.0 8.6 8.9 9.0 10.0 12.0+PTX" \
     && uv pip install --no-deps --force-reinstall --no-build-isolation \
         "lmcache @ git+https://github.com/LMCache/LMCache.git@${LMCACHE_COMMIT}" \
     && dnf remove -y git \
