@@ -7,9 +7,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/vllm-ec2.yml"
-      - ".github/config/model-tests/vllm-model-tests.yml"
       - ".github/workflows/pr-vllm-ec2.yml"
-      - ".github/workflows/reusable-vllm-model-tests.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - "docker/vllm/Dockerfile"
       - "scripts/common/**"
@@ -18,6 +16,8 @@ on:
       - "test/sanity/**"
       - "test/telemetry/**"
       - "test/vllm/**"
+      - "!test/vllm/scripts/amzn2023/**"
+      - "!test/vllm/scripts/benchmark/**"
       - "!docs/**"
       - "!scripts/vllm/amzn2023/**"
       - "!scripts/vllm/omni_*"
