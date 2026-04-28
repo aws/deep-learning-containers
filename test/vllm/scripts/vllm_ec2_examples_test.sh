@@ -16,11 +16,23 @@ python3 ${BASIC_DIR}/generate.py --model facebook/opt-125m
 python3 ${BASIC_DIR}/chat.py
 python3 offline_inference/prefix_caching.py
 python3 offline_inference/llm_engine_example.py
-python3 offline_inference/audio_language.py --seed 0
-python3 offline_inference/vision_language.py --seed 0
-python3 offline_inference/vision_language_multi_image.py --seed 0
+# vLLM v0.20.1rc0 moved multimodal examples to generate/multimodal/
+if [ -d "generate/multimodal" ]; then
+  MM_DIR="generate/multimodal"
+  python3 ${MM_DIR}/audio_language_offline.py --seed 0
+  python3 ${MM_DIR}/vision_language_offline.py --seed 0
+  python3 ${MM_DIR}/vision_language_multi_image_offline.py --seed 0
+else
+  python3 offline_inference/audio_language.py --seed 0
+  python3 offline_inference/vision_language.py --seed 0
+  python3 offline_inference/vision_language_multi_image.py --seed 0
+fi
 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
-python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
+if [ -d "generate/multimodal" ]; then
+  python3 generate/multimodal/encoder_decoder_multimodal_offline.py --model-type whisper --seed 0
+else
+  python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
+fi
 python3 ${BASIC_DIR}/classify.py
 python3 ${BASIC_DIR}/embed.py
 python3 ${BASIC_DIR}/score.py
