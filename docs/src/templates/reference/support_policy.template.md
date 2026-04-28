@@ -9,6 +9,7 @@
 
 ## Notice
 
+- We cannot guarantee security patching on Ubuntu-based vLLM and SGLang images due to the lack of Ubuntu Pro licensing. Customers may continue using these images at their own discretion and risk. We recommend migrating to our Amazon Linux-based images.
 - We are extending support for PyTorch 2.6 Inference images until end of June 2026 as these are the last available PyTorch inference images with torchserve support.
 
 ## Supported Frameworks
