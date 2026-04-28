@@ -7,7 +7,6 @@ PD feature from LMCache/LMCache#2972 (commit 7f60057).
 These are lightweight unit tests — no GPU or multi-node setup required.
 """
 
-import sys
 
 
 def test_config_fields():
@@ -64,6 +63,7 @@ def test_cache_query_messages():
 def test_probe_method_exists():
     """_probe_decoder_cache method exists in the vLLM adapter."""
     import inspect
+
     from lmcache.integration.vllm import vllm_v1_adapter
 
     src = inspect.getsource(vllm_v1_adapter)
