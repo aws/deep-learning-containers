@@ -1,0 +1,12 @@
+framework: PyTorch
+version: "2.9"
+accelerator: gpu
+python: py312
+cuda: cu130
+transformers: "5.3.0"
+os: ubuntu22.04
+platform: sagemaker
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.9.0-transformers5.3.0-gpu-py312-cu130-ubuntu22.04"
