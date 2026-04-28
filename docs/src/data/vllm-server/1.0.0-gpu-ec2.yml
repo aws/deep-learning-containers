@@ -17,7 +17,7 @@ announcements:
   - "Built on Amazon Linux 2023 with Python 3.12 and CUDA 12.9"
 
 packages:
-  vllm: "0.19.1"
+  vllm: "0.19.1+amzn2023.6ef1efd5"
   pytorch: "2.10.0"
   torchvision: "0.25.0"
   torchaudio: "2.10.0"
