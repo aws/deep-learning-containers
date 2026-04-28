@@ -1,0 +1,376 @@
+name: Auto Release - Base
+
+on:
+  # schedule run must be on the default branch
+  schedule:
+    # Runs at 2:00 PM PDT / 1:00 PM PST on Monday and Wednesday
+    - cron: '00 21 * * 1,3'
+
+  # PR trigger for gamma testing — uncomment to re-enable
+  # pull_request:
+  #   paths:
+  #     - "docker/base/**"
+  #     - ".github/config/image/base-*.yml"
+  #     - ".github/workflows/autorelease-base.yml"
+  #     - "!docs/**"
+
+  # Manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  # ============================================================
+  # Load config for each base image variant
+  # ============================================================
+  load-config-v1-runtime:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-v1-runtime.yml
+
+  load-config-v1-devel:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-v1-devel.yml
+
+  load-config-v2-runtime:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-v2-runtime.yml
+
+  load-config-v2-devel:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-v2-devel.yml
+
+  # ============================================================
+  # Build all 4 base images
+  # ============================================================
+  build-images:
+    needs: [load-config-v1-runtime, load-config-v1-devel, load-config-v2-runtime, load-config-v2-devel]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { target: runtime, tag: cuda129-runtime-amzn2023, dockerfile: docker/base/v1/Dockerfile }
+          - { target: devel,   tag: cuda129-devel-amzn2023,   dockerfile: docker/base/v1/Dockerfile }
+          - { target: runtime, tag: cuda130-runtime-amzn2023, dockerfile: docker/base/v2/Dockerfile }
+          - { target: devel,   tag: cuda130-devel-amzn2023,   dockerfile: docker/base/v2/Dockerfile }
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build ${{ matrix.target.tag }}
+        run: |
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-${{ github.run_id }}"
+          echo "Building ${CI_IMAGE_URI}"
+          docker buildx build --progress plain \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target ${{ matrix.target.target }} \
+            -f ${{ matrix.target.dockerfile }} .
+
+  # ============================================================
+  # Sanity tests — all 4 images
+  # ============================================================
+  sanity-test:
+    needs: [build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: cuda129-runtime-amzn2023, framework-version: "12.9.1", cuda-version: cu129 }
+          - { tag: cuda129-devel-amzn2023,   framework-version: "12.9.1", cuda-version: cu129 }
+          - { tag: cuda130-runtime-amzn2023, framework-version: "13.0.2", cuda-version: cu130 }
+          - { tag: cuda130-devel-amzn2023,   framework-version: "13.0.2", cuda-version: cu130 }
+    concurrency:
+      group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-${{ github.run_id }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: base_dlc
+      framework-version: ${{ matrix.target.framework-version }}
+      python-version: py313
+      cuda-version: ${{ matrix.target.cuda-version }}
+      os-version: amzn2023
+      customer-type: ec2
+      arch-type: x86
+      device-type: gpu
+      contributor: None
+      container-type: general
+
+  # ============================================================
+  # Base-specific sanity tests (CPU only — Python, compiler flags)
+  # ============================================================
+  base-sanity-test:
+    needs: [build-images]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: cuda129-runtime-amzn2023, py: "3.13", cuda: "12.9" }
+          - { tag: cuda129-devel-amzn2023,   py: "3.13", cuda: "12.9" }
+          - { tag: cuda130-runtime-amzn2023, py: "3.13", cuda: "13.0" }
+          - { tag: cuda130-devel-amzn2023,   py: "3.13", cuda: "13.0" }
+    concurrency:
+      group: ${{ github.workflow }}-base-sanity-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-${{ github.run_id }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-${{ github.run_id }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run base image checks
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh ${{ matrix.target.py }} ${{ matrix.target.cuda }}
+
+  # ============================================================
+  # CUDA tests — GPU sanity checks for all 4 images
+  # ============================================================
+  cuda-test:
+    needs: [build-images]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: cuda129-runtime-amzn2023, script: cuda_runtime_test.sh, cuda: "12.9" }
+          - { tag: cuda129-devel-amzn2023,   script: cuda_devel_test.sh,   cuda: "12.9" }
+          - { tag: cuda130-runtime-amzn2023, script: cuda_runtime_test.sh, cuda: "13.0" }
+          - { tag: cuda130-devel-amzn2023,   script: cuda_devel_test.sh,   cuda: "13.0" }
+    concurrency:
+      group: ${{ github.workflow }}-cuda-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-${{ github.run_id }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-${{ github.run_id }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run CUDA test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/cuda/scripts/${{ matrix.target.script }} ${{ matrix.target.cuda }}
+
+  # ============================================================
+  # Release — v1 runtime
+  # ============================================================
+  generate-release-spec-v1-runtime:
+    needs: [load-config-v1-runtime, build-images, sanity-test, base-sanity-test, cuda-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-v1-runtime.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-v1-runtime.outputs.config }}
+
+  release-v1-runtime:
+    needs: [load-config-v1-runtime, generate-release-spec-v1-runtime]
+    if: needs.generate-release-spec-v1-runtime.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-v1-runtime-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-cuda129-runtime-amzn2023-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-v1-runtime.outputs.release-spec }}
+      environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config-v1-runtime.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: false
+    secrets: inherit
+
+  # ============================================================
+  # Release — v1 devel
+  # ============================================================
+  generate-release-spec-v1-devel:
+    needs: [load-config-v1-devel, build-images, sanity-test, base-sanity-test, cuda-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-v1-devel.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-v1-devel.outputs.config }}
+
+  release-v1-devel:
+    needs: [load-config-v1-devel, generate-release-spec-v1-devel]
+    if: needs.generate-release-spec-v1-devel.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-v1-devel-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-cuda129-devel-amzn2023-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-v1-devel.outputs.release-spec }}
+      environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config-v1-devel.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: false
+    secrets: inherit
+
+  # ============================================================
+  # Release — v2 runtime
+  # ============================================================
+  generate-release-spec-v2-runtime:
+    needs: [load-config-v2-runtime, build-images, sanity-test, base-sanity-test, cuda-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-v2-runtime.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-v2-runtime.outputs.config }}
+
+  release-v2-runtime:
+    needs: [load-config-v2-runtime, generate-release-spec-v2-runtime]
+    if: needs.generate-release-spec-v2-runtime.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-v2-runtime-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-cuda130-runtime-amzn2023-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-v2-runtime.outputs.release-spec }}
+      environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config-v2-runtime.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: false
+    secrets: inherit
+
+  # ============================================================
+  # Release — v2 devel
+  # ============================================================
+  generate-release-spec-v2-devel:
+    needs: [load-config-v2-devel, build-images, sanity-test, base-sanity-test, cuda-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-v2-devel.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-v2-devel.outputs.config }}
+
+  release-v2-devel:
+    needs: [load-config-v2-devel, generate-release-spec-v2-devel]
+    if: needs.generate-release-spec-v2-devel.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-v2-devel-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-cuda130-devel-amzn2023-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-v2-devel.outputs.release-spec }}
+      environment: ${{ (github.event_name == 'pull_request' && github.event.action != 'closed') && 'gamma' || fromJson(needs.load-config-v2-devel.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: false
+    secrets: inherit

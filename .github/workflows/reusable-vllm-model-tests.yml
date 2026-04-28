@@ -34,12 +34,17 @@ jobs:
         run: |
           python3 -c "
           import yaml, json
-          with open('.github/config/vllm-model-tests.yml') as f:
+          with open('.github/config/model-tests/vllm-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
           st = cfg.get('smoke-test', {})
           prefix = cfg.get('s3_prefix', '')
+          fixtures_prefix = cfg.get('test_fixtures_prefix', '')
           for m in st.get('codebuild-fleet', []) + st.get('runner-scale-sets', []):
               m['s3_path'] = prefix + '/' + m.pop('s3_model')
+              fixtures = m.pop('test_fixtures', [])
+              m['test_fixtures_paths'] = ' '.join(fixtures_prefix + '/' + f for f in fixtures) if fixtures else ''
+              if 'test_cases' in m:
+                  m['test_cases_json'] = json.dumps(m.pop('test_cases'))
           print('codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
           print('runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
           " > parsed.txt
@@ -93,11 +98,26 @@ jobs:
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/vllm/scripts/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/vllm/scripts/amzn2023/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/vllm/scripts/amzn2023/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
+
+      - name: Download and copy test fixtures
+        if: ${{ matrix.test_fixtures_paths != '' }}
+        run: |
+          mkdir -p /tmp/test-fixtures
+          for s3_path in ${{ matrix.test_fixtures_paths }}; do
+            aws s3 cp "${s3_path}" /tmp/test-fixtures/
+          done
+          docker cp /tmp/test-fixtures ${CONTAINER_ID}:/models/test-fixtures
 
       - name: Run model smoke test
         run: |
-          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+          TEST_SCRIPT="${{ matrix.test_script || 'vllm_model_smoke_test.sh' }}"
+          docker exec \
+            -e TEST_CASES_JSON='${{ matrix.test_cases_json || '' }}' \
+            ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
@@ -156,12 +176,27 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp scripts/vllm/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/vllm/scripts/amzn2023/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/vllm/scripts/amzn2023/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/vllm/scripts/amzn2023/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
           rm -rf /dlc-models
+
+      - name: Download and copy test fixtures
+        if: ${{ matrix.test_fixtures_paths != '' }}
+        run: |
+          mkdir -p /tmp/test-fixtures
+          for s3_path in ${{ matrix.test_fixtures_paths }}; do
+            aws s3 cp "${s3_path}" /tmp/test-fixtures/
+          done
+          docker cp /tmp/test-fixtures ${CONTAINER_ID}:/models/test-fixtures
 
       - name: Run model smoke test
         run: |
-          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+          TEST_SCRIPT="${{ matrix.test_script || 'vllm_model_smoke_test.sh' }}"
+          docker exec \
+            -e TEST_CASES_JSON='${{ matrix.test_cases_json || '' }}' \
+            ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}

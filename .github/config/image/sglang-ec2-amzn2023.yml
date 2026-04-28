@@ -1,0 +1,23 @@
+# SGLang EC2 AL2023 Image Configuration
+image:
+  name: "sglang-ec2-amzn2023"
+  description: "SGLang for EC2 instances (AL2023, built from source)"
+common:
+  framework: "sglang"
+  framework_version: "0.5.10"
+  job_type: "general"
+  python_version: "py312"
+  cuda_version: "cu129"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  prod_image: "sglang:0.5-gpu-py312-amzn2023-ec2"
+  device_type: "gpu"
+  contributor: "None"
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: false
+  enable_soci: false
+  environment: gamma

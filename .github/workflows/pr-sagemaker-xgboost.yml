@@ -6,7 +6,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "docker/xgboost/**"
-      - ".github/config/sagemaker-xgboost.yml"
+      - ".github/config/image/sagemaker-xgboost.yml"
       - ".github/workflows/pr-sagemaker-xgboost.yml"
       - "!docs/**"
 
@@ -16,7 +16,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/sagemaker-xgboost.yml"
+  CONFIG_FILE: ".github/config/image/sagemaker-xgboost.yml"
   XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
 
 jobs:
@@ -84,7 +84,7 @@ jobs:
           PY=$(jq -r '.common.python_version' config.json)
           CU=$(jq -r '.common.cuda_version' config.json)
           OS=$(jq -r '.common.os_version' config.json)
-          echo "ci-tag=${FW}-${FV}-${DT}-${PY}-${CU}-${OS}-sagemaker-pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "ci-tag=${FW}-${FV}-${DT}-${PY}-pr-${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
 
   check-changes:
     needs: [gatekeeper]
@@ -116,7 +116,7 @@ jobs:
           filters: |
             build-change:
               - "docker/xgboost/**"
-              - ".github/config/sagemaker-xgboost.yml"
+              - ".github/config/image/sagemaker-xgboost.yml"
 
   build-image:
     needs: [check-changes, load-config]

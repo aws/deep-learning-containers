@@ -20,9 +20,8 @@ These tests require real multi-node infrastructure (placement groups, EFA device
 
 ### SageMaker Integration
 
-- [ ] Training job launch with custom image URI
-- [ ] Multi-node SageMaker training job (2+ instances)
-- [ ] SageMaker distributed data parallel (SMDDP) if applicable
+- [x] Training job launch with custom image URI
+- [x] Multi-node SageMaker training job (2+ instances)
 - [ ] S3 checkpoint upload/download during training
 
 ### EKS Integration

@@ -1,0 +1,424 @@
+ARG CUDA_VERSION=12.9.1
+ARG PYTHON_VERSION=3.12
+ARG VLLM_VERSION=0.18.0
+ARG FLASHINFER_VERSION=0.6.6
+ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03
+ARG DEEPEP_COMMIT_HASH=73b6ea4
+
+# =============================================================================
+# STAGE 0: source — clone vLLM and apply patches
+# =============================================================================
+FROM alpine/git AS source
+
+ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
+ARG VLLM_VERSION
+ARG VLLM_REF=v${VLLM_VERSION}
+
+RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
+  || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
+
+COPY scripts/vllm/amzn2023/patches/ /tmp/patches/
+RUN cd /src && \
+    for p in /tmp/patches/*.patch; do \
+      [ -f "$p" ] && [ "$(basename "$p")" != ".gitkeep" ] && \
+        git apply "$p" && echo "Applied $(basename $p)"; \
+    done; true
+
+# Generate source manifest
+RUN echo "vLLM AL2023 Image Source Manifest" >/src/SOURCE_MANIFEST \
+  && echo "Base: ${VLLM_REPO} @ ${VLLM_REF}" >>/src/SOURCE_MANIFEST \
+  && echo "HEAD: $(cd /src && git rev-parse HEAD)" >>/src/SOURCE_MANIFEST \
+  && echo "Built: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >>/src/SOURCE_MANIFEST \
+  && echo "" >>/src/SOURCE_MANIFEST \
+  && echo "Patches:" >>/src/SOURCE_MANIFEST \
+  && (ls /tmp/patches/*.patch 2>/dev/null | xargs -I{} basename {} | sed 's/^/  - /' >>/src/SOURCE_MANIFEST || echo "  (none)" >>/src/SOURCE_MANIFEST) \
+  && echo "" >>/src/SOURCE_MANIFEST \
+  && echo "Git log:" >>/src/SOURCE_MANIFEST \
+  && cd /src && git log --oneline -10 | sed 's/^/  /' >>/src/SOURCE_MANIFEST
+
+# =============================================================================
+# STAGE 1: build — compile vLLM wheel from source (or use pre-built wheel)
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+  tar gzip xz git gcc gcc-c++ make cmake ninja-build \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  libibverbs-devel \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+ENV UV_HTTP_TIMEOUT=500
+ENV UV_INDEX_STRATEGY="unsafe-best-match"
+ENV UV_LINK_MODE=copy
+
+WORKDIR /workspace/vllm
+
+# Copy source from stage 0
+COPY --from=source /src/ ./
+
+# Install PyTorch + build deps (slow-changing, cached)
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build.txt \
+  --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
+ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
+
+ARG max_jobs=32
+ENV MAX_JOBS=${max_jobs}
+
+ARG nvcc_threads=2
+ENV NVCC_THREADS=${nvcc_threads}
+
+ENV VLLM_TARGET_DEVICE=cuda
+ARG VLLM_REF
+ARG VLLM_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
+
+# --- Pre-built wheel support ---
+# Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
+#   bash scripts/vllm/amzn2023/fetch_cached_wheels.sh cu129 v0.18.0
+# The directory is empty by default so COPY always succeeds.
+COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
+
+# --- Build options ---
+# USE_PREBUILT_WHEEL: set to 0 to force source build even when prebuilt wheel exists
+# USE_SCCACHE: set to 1 to enable sccache compilation cache
+ARG USE_PREBUILT_WHEEL=1
+ARG USE_SCCACHE=0
+
+# Seed sccache cache from build context (synced from S3 before build)
+COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
+
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
+    if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+      echo "✅ Using pre-built vLLM wheel — skipping compilation" \
+      && mkdir -p dist \
+      && cp /tmp/prebuilt_wheels/*.whl dist/; \
+    elif [ "$USE_SCCACHE" = "1" ]; then \
+      echo "🔧 Building vLLM with sccache..." \
+      && curl -L -o /tmp/sccache.tar.gz \
+        "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
+      && tar -xzf /tmp/sccache.tar.gz -C /tmp \
+      && mv /tmp/sccache-v0.8.1-x86_64-unknown-linux-musl/sccache /usr/bin/sccache \
+      && rm -rf /tmp/sccache* \
+      && export SCCACHE_DIR=/root/.cache/sccache \
+      && export SCCACHE_IDLE_TIMEOUT=0 \
+      && export SCCACHE_LOG=warn \
+      && export CMAKE_BUILD_TYPE=Release \
+      && export CMAKE_C_COMPILER_LAUNCHER=sccache \
+      && export CMAKE_CXX_COMPILER_LAUNCHER=sccache \
+      && export CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
+      && sccache --show-stats \
+      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
+      && sccache --show-stats; \
+    else \
+      echo "🔧 Building vLLM from source (no sccache)..." \
+      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
+    fi
+
+# Build DeepGEMM wheel
+ARG DEEPGEMM_GIT_REF
+RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
+  && VLLM_DOCKER_BUILD_CONTEXT=1 TORCH_CUDA_ARCH_LIST="9.0a 10.0a" \
+    tools/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" \
+    ${DEEPGEMM_GIT_REF:+--ref "$DEEPGEMM_GIT_REF"} \
+    --wheel-dir /tmp/deepgemm/dist \
+  || echo "DeepGEMM build skipped (CUDA version requirement not met)"
+RUN mkdir -p /tmp/deepgemm/dist
+
+# Build DeepEP wheels
+ARG DEEPEP_COMMIT_HASH
+ARG NVSHMEM_VER
+RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
+  && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
+  && tools/ep_kernels/install_python_libraries.sh \
+    --workspace /tmp/ep_kernels_workspace \
+    --mode wheel \
+    ${DEEPEP_COMMIT_HASH:+--deepep-ref "$DEEPEP_COMMIT_HASH"} \
+    ${NVSHMEM_VER:+--nvshmem-ver "$NVSHMEM_VER"} \
+  && find /tmp/ep_kernels_workspace/nvshmem -name '*.a' -delete
+
+# =============================================================================
+# STAGE: wheel-export — scratch image with built wheels for S3 cache upload
+# Usage: docker buildx build --target wheel-export --output type=local,dest=./wheels ...
+# =============================================================================
+FROM scratch AS wheel-export
+COPY --from=build /workspace/vllm/dist/ /wheels/
+
+# =============================================================================
+# STAGE: sccache-export — extract sccache cache for S3 upload
+# Usage: docker buildx build --target sccache-export --output type=local,dest=./sccache-out ...
+# =============================================================================
+FROM scratch AS sccache-export
+COPY --from=build /root/.cache/sccache/ /
+
+# =============================================================================
+# STAGE 2: deps — clean venv with only runtime packages
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS deps
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+  tar gzip gcc gcc-c++ \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  libibverbs-devel \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+ENV UV_HTTP_TIMEOUT=500
+ENV UV_INDEX_STRATEGY="unsafe-best-match"
+ENV UV_LINK_MODE=copy
+
+# Install PyTorch
+COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
+COPY --from=build /workspace/vllm/requirements/cuda.txt /tmp/cuda.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r /tmp/cuda.txt \
+  --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+# Install vLLM wheel
+COPY --from=build /workspace/vllm/dist /tmp/vllm-dist
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install /tmp/vllm-dist/*.whl \
+  --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+# Install FlashInfer cubin/jit-cache
+ARG FLASHINFER_VERSION
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==${FLASHINFER_VERSION} \
+  flashinfer-jit-cache==${FLASHINFER_VERSION} \
+  --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+# Install serving extras
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate hf_transfer modelscope \
+  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3"
+
+# Install DeepGEMM wheel from build stage
+COPY --from=build /tmp/deepgemm/dist /tmp/deepgemm/dist
+RUN --mount=type=cache,target=/root/.cache/uv \
+  if ls /tmp/deepgemm/dist/*.whl >/dev/null 2>&1; then \
+    uv pip install /tmp/deepgemm/dist/*.whl; \
+  else \
+    echo "No DeepGEMM wheels to install; skipping."; \
+  fi && rm -rf /tmp/deepgemm
+
+# Install DeepEP wheels from build stage
+COPY --from=build /tmp/ep_kernels_workspace/dist /tmp/ep_kernels/dist
+RUN --mount=type=cache,target=/root/.cache/uv \
+  if ls /tmp/ep_kernels/dist/*.whl >/dev/null 2>&1; then \
+    uv pip install /tmp/ep_kernels/dist/*.whl; \
+  else \
+    echo "No DeepEP wheels to install; skipping."; \
+  fi && rm -rf /tmp/ep_kernels
+
+# Install KV connectors (lmcache, nixl) if requested
+ARG INSTALL_KV_CONNECTORS=true
+COPY --from=source /src/requirements/kv_connectors.txt /tmp/kv_connectors.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
+    CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
+    if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
+        if [ "$CUDA_MAJOR" -ge 13 ]; then \
+            uv pip install nixl-cu13; \
+        fi; \
+        uv pip install -r /tmp/kv_connectors.txt --no-build || ( \
+            dnf install -y --setopt=install_weak_deps=False \
+                libcusparse-devel-${CUDA_DASH} \
+                libcublas-devel-${CUDA_DASH} \
+                libcusolver-devel-${CUDA_DASH} \
+            && uv pip install -r /tmp/kv_connectors.txt --no-build-isolation \
+            && dnf remove -y libcusparse-devel-${CUDA_DASH} libcublas-devel-${CUDA_DASH} libcusolver-devel-${CUDA_DASH} \
+            && dnf clean all && rm -rf /var/cache/dnf \
+        ); \
+    fi
+
+# =============================================================================
+# STAGE 3: runtime — minimal image with clean venv
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION=3.12
+
+WORKDIR /vllm-workspace
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+  python${PYTHON_VERSION} libibverbs shadow-utils tar gzip \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
+# Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM)
+RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
+  && dnf install -y --setopt=install_weak_deps=False \
+    gcc python${PYTHON_VERSION}-devel \
+    cuda-nvcc-${CUDA_DASH} \
+    cuda-cudart-devel-${CUDA_DASH} \
+    cuda-nvrtc-${CUDA_DASH} \
+    cuda-cuobjdump-${CUDA_DASH} \
+    libcurand-devel-${CUDA_DASH} \
+    libcublas-${CUDA_DASH} \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+COPY --from=deps /opt/venv /opt/venv
+COPY --from=source /src/SOURCE_MANIFEST /vllm-workspace/
+
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+ENV VLLM_USAGE_SOURCE=production-docker-image
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
+
+
+# =============================================================================
+# STAGE: omni-deps — install vllm-omni on top of runtime venv
+# =============================================================================
+FROM runtime AS omni-deps
+
+ARG VLLM_OMNI_VERSION=0.18.0
+
+# System deps for omni-modality (TTS, audio, image/video)
+# Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, sox, ffmpeg
+RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
+  && dnf install -y spal-release \
+  && dnf install -y --setopt=install_weak_deps=False espeak-ng sox ffmpeg-free \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# Install vllm-omni (pure Python, no compilation)
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_OMNI_VERSION}
+
+# =============================================================================
+# STAGE: builder-oss-omni — OSS compliance for omni venv
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss-omni
+ARG PYTHON_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=omni-deps /opt/venv /opt/venv
+COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+# =============================================================================
+# STAGE: omni-base — DLC overlay for vLLM-Omni
+# =============================================================================
+FROM omni-deps AS omni-base
+
+ARG PYTHON="python3"
+ARG PYTHON_VERSION=3.12
+ARG CUDA_VERSION
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=general \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
+
+WORKDIR /
+
+# Install DLC Python dependencies
+RUN uv pip install --no-cache-dir botocore
+
+# Patch CVEs
+RUN uv pip install --no-cache-dir \
+  "pillow>=12.1.1" \
+  "xgrammar>=0.1.32" \
+  "PyJWT>=2.12.0" \
+  "cbor2>=5.9.0" \
+  "gradio>=6.7.0" \
+  "model-hosting-container-standards>=0.1.14,<1.0.0"
+
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+
+# telemetry
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /tmp/uv* \
+  && rm -rf /var/cache/dnf \
+  && rm -rf /root/.cache || true
+
+# OSS compliance (from omni-specific builder)
+COPY --from=builder-oss-omni /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss-omni /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss-omni /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss-omni /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss-omni /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# install EFA
+COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
+ARG EFA_VERSION="1.47.0"
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
+  && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
+  && ldconfig \
+  && bash install_efa_amzn2023.sh ${EFA_VERSION} \
+  && rm install_efa_amzn2023.sh \
+  && dnf remove -y libnccl-devel \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# ====================== omni ec2 =========================================
+FROM omni-base AS vllm-omni-ec2-amzn2023
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+
+COPY ./scripts/vllm/omni_dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# ====================== omni sagemaker =========================================
+FROM omni-base AS vllm-omni-sagemaker-amzn2023
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+
+COPY ./scripts/vllm/omni_sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/vllm/omni_sagemaker_serve.py /usr/local/bin/omni_sagemaker_serve.py
+ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

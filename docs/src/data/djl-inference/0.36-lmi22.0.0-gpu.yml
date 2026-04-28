@@ -1,4 +1,4 @@
-framework: DJLServing 0.36
+framework: DJLServing
 version: "0.36"
 accelerator: gpu
 cuda: cu129

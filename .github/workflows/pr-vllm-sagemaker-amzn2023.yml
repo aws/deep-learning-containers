@@ -5,20 +5,21 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
+      - ".github/config/image/vllm-sagemaker-amzn2023.yml"
+      - ".github/workflows/pr-vllm-sagemaker-amzn2023.yml"
+      - ".github/workflows/reusable-vllm-sagemaker-tests.yml"
+      - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - "docker/vllm/Dockerfile.amzn2023"
-      - "scripts/vllm/amzn2023/**"
-      - "!scripts/vllm/amzn2023/vllm_model_smoke_test.sh"
-      - "scripts/vllm/dockerd_entrypoint.sh"
-      - "scripts/vllm/sagemaker_entrypoint.sh"
       - "scripts/common/**"
       - "scripts/telemetry/**"
-      - ".github/config/vllm-sagemaker-amzn2023.yml"
-      # - ".github/workflows/pr-vllm-sagemaker-amzn2023.yml"
-      - ".github/workflows/reusable-vllm-upstream-tests.yml"
-      - ".github/workflows/reusable-vllm-sagemaker-tests.yml"
-      # - "test/sanity/**"
+      - "scripts/vllm/amzn2023/**"
+      - "scripts/vllm/dockerd_entrypoint.sh"
+      - "scripts/vllm/sagemaker_entrypoint.sh"
+      - "test/sanity/**"
       - "test/telemetry/**"
       - "test/vllm/sagemaker/**"
+      - "test/vllm/scripts/amzn2023/**"
+      - "!test/vllm/scripts/amzn2023/vllm_model_smoke_test.sh"
 
 permissions:
   contents: read
@@ -26,7 +27,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/vllm-sagemaker-amzn2023.yml"
+  CONFIG_FILE: ".github/config/image/vllm-sagemaker-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -51,6 +52,8 @@ jobs:
     outputs:
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
+      vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
+      vllm-ref-short: ${{ steps.parse.outputs.vllm-ref-short }}
       python-version: ${{ steps.parse.outputs.python-version }}
       cuda-version: ${{ steps.parse.outputs.cuda-version }}
       os-version: ${{ steps.parse.outputs.os-version }}
@@ -76,6 +79,15 @@ jobs:
           echo '${{ steps.load.outputs.config }}' > config.json
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          # Short form for image tag: truncate raw commit SHAs to 8 chars, sanitise other refs.
+          VLLM_REF="$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)"
+          if echo "$VLLM_REF" | grep -qE '^[0-9a-f]{12,}$'; then
+            VLLM_REF_SHORT=$(echo "$VLLM_REF" | cut -c1-8)
+          else
+            VLLM_REF_SHORT=$(echo "$VLLM_REF" | sed -E 's/[^A-Za-z0-9]/_/g')
+          fi
+          echo "vllm-ref-short=${VLLM_REF_SHORT}" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
@@ -118,20 +130,21 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/config/image/vllm-sagemaker-amzn2023.yml"
               - "docker/vllm/Dockerfile.amzn2023"
+              - "scripts/common/install_efa_amzn2023.sh"
+              - "scripts/common/setup_oss_compliance.sh"
+              - "scripts/telemetry/bash_telemetry.sh.template"
               - "scripts/vllm/amzn2023/**"
-              - "!scripts/vllm/amzn2023/vllm_model_smoke_test.sh"
               - "scripts/vllm/dockerd_entrypoint.sh"
               - "scripts/vllm/sagemaker_entrypoint.sh"
-              - "scripts/common/**"
-              - "scripts/telemetry/**"
-              - ".github/config/vllm-sagemaker-amzn2023.yml"
+              - "test/vllm/scripts/amzn2023/**"
+            sagemaker-test-change:
+              - "test/vllm/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
-            sagemaker-test-change:
-              - "test/vllm/sagemaker/**"
 
   build-image:
     needs: [check-changes, load-config]
@@ -144,11 +157,48 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
+    env:
+      USE_SCCACHE: "1"
+      USE_PREBUILT_WHEEL: "1"
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - name: Fetch cached vLLM wheel
+        id: wheel-cache
+        run: |
+          OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+            ${{ needs.load-config.outputs.cuda-version }} \
+            ${{ needs.load-config.outputs.vllm-ref }} \
+            ${{ needs.load-config.outputs.framework-version }})
+          echo "$OUTPUT"
+          HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
+          echo "hit=${HIT}" >> $GITHUB_OUTPUT
+          if [ "${HIT}" != "true" ]; then
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
+          fi
+
+      - name: Sync sccache cache from S3
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
+
+      - name: Prepare build context
+        run: |
+          mkdir -p docker/vllm/prebuilt_wheels
+          mkdir -p docker/vllm/sccache-cache
+
+      - name: Load pinned vLLM versions
+        run: |
+          # Capture vars introduced by sourcing the env file and forward them
+          # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
+          before=$(compgen -v | sort)
+          set -a; source docker/vllm/versions.env; set +a
+          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -Ev '^(before|PIPESTATUS|_)$')
+          for v in $new; do
+            [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
+          done
+          echo "EXTRA_BUILD_ARGS=$(echo $new | xargs)" >> "$GITHUB_ENV"
 
       - name: Build image
         id: build
@@ -161,8 +211,8 @@ jobs:
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.vllm-ref-short }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/vllm/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
@@ -170,6 +220,18 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
+
+      - name: Upload vLLM wheel to cache
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: |
+          bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
+            ${{ needs.load-config.outputs.cuda-version }} \
+            ${{ needs.load-config.outputs.vllm-ref }} \
+            ${{ needs.load-config.outputs.framework-version }}
+
+      - name: Sync sccache cache to S3
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
 
   sanity-test:
     needs: [check-changes, build-image, load-config]
@@ -238,8 +300,9 @@ jobs:
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
-      setup-script: scripts/vllm/amzn2023/vllm_test_setup.sh
-      example-test-script: scripts/vllm/amzn2023/vllm_sagemaker_examples_test.sh
+      vllm-ref: ${{ needs.load-config.outputs.vllm-ref }}
+      setup-script: test/vllm/scripts/vllm_test_setup.sh
+      example-test-script: test/vllm/scripts/amzn2023/vllm_sagemaker_examples_test.sh
     secrets: inherit
 
   endpoint-test:

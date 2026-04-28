@@ -1,0 +1,158 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-25537",
+        "reason": "vllm0.17.0 jsonwebtoken 9.3.1 is a RUST package bundled with uv(https://github.com/astral-sh/uv/blob/1cf6247447f9a9e48d65283d85e6b11aa4a6fdfd/Cargo.lock#L2498) cannot be patched"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27482",
+        "reason": "vllm0.15.1 Base image ray version 2.53.0"
+    },
+    {
+        "vulnerability_id": "CVE-2025-69227",
+        "reason": "vllm0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+    },
+    {
+        "vulnerability_id": "CVE-2025-69228",
+        "reason": "vllm 0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+    },
+    {
+        "vulnerability_id": "CVE-2025-69223",
+        "reason": "vllm 0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+    },
+    {
+        "vulnerability_id": "GHSA-72hv-8253-57qq",
+        "reason": "vllm 0.15.1 Nested in ray, unpatchable /usr/local/lib/python3.12/dist-packages/ray/jars/ray_dist.jar/META-INF/maven/com.fasterxml.jackson.core/jackson-core/pom.properties"
+    },
+    {
+        "vulnerability_id": "CVE-2025-59425",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-22773",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24486",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66448",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-62164",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66418",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "GHSA-mcmc-2m55-j8jj",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68131",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23949",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-6242",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-62727",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-22807",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66471",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-22778",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-0994",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-62593",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2025-58446",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24779",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21441",
+        "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31812",
+        "reason": "Coming in as a dependency from the latest uv 0.10.9"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27893",
+        "reason": "vllm 0.10.2 RayServe image - trust_remote_code=True hardcoded, fixed in vllm>=0.18.0. RayServe image not updated in this PR."
+    },
+    {
+        "vulnerability_id": "CVE-2026-22815",
+        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34516",
+        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34520",
+        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68121",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25679",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32280",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2025-61726",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32283",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33186",
+        "reason": "google.golang.org/grpc in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32281",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+    }
+]

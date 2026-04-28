@@ -1,5 +1,8 @@
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
+ARG VLLM_VERSION=0.19.1
+ARG FLASHINFER_VERSION=0.6.7
+ARG DEEPEP_COMMIT_HASH=73b6ea4
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -7,10 +10,11 @@ ARG PYTHON_VERSION=3.12
 FROM alpine/git AS source
 
 ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
-ARG VLLM_VERSION=0.18.0
+ARG VLLM_VERSION
 ARG VLLM_REF=v${VLLM_VERSION}
 
-RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src
+RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
+  || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
 
 COPY scripts/vllm/amzn2023/patches/ /tmp/patches/
 RUN cd /src && \
@@ -32,7 +36,7 @@ RUN echo "vLLM AL2023 Image Source Manifest" >/src/SOURCE_MANIFEST \
   && cd /src && git log --oneline -10 | sed 's/^/  /' >>/src/SOURCE_MANIFEST
 
 # =============================================================================
-# STAGE 1: build — compile vLLM wheel from source
+# STAGE 1: build — compile vLLM wheel from source (or use pre-built wheel)
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
 
@@ -62,7 +66,7 @@ WORKDIR /workspace/vllm
 COPY --from=source /src/ ./
 
 # Install PyTorch + build deps (slow-changing, cached)
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build.txt \
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build/cuda.txt \
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
@@ -76,23 +80,56 @@ ENV NVCC_THREADS=${nvcc_threads}
 
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
-ARG VLLM_VERSION=0.18.0
-ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
+ARG VLLM_VERSION
+# Wheel version tag — pass via --build-arg from workflow (see docker/vllm/versions.env).
+# Example: 0.19.2rc0+amzn2023.6ef1efd5
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${VLLM_VERSION}+amzn2023}
 
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
+# --- Pre-built wheel support ---
+# Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
+#   bash scripts/vllm/amzn2023/fetch_cached_wheels.sh cu129 v0.18.0
+# The directory is empty by default so COPY always succeeds.
+COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
-# Build DeepGEMM wheel
-ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03
-RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
-  && VLLM_DOCKER_BUILD_CONTEXT=1 TORCH_CUDA_ARCH_LIST="9.0a 10.0a" \
-    tools/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" \
-    ${DEEPGEMM_GIT_REF:+--ref "$DEEPGEMM_GIT_REF"} \
-    --wheel-dir /tmp/deepgemm/dist \
-  || echo "DeepGEMM build skipped (CUDA version requirement not met)"
-RUN mkdir -p /tmp/deepgemm/dist
+# --- Build options ---
+# USE_PREBUILT_WHEEL: set to 0 to force source build even when prebuilt wheel exists
+# USE_SCCACHE: set to 1 to enable sccache compilation cache
+ARG USE_PREBUILT_WHEEL=1
+ARG USE_SCCACHE=0
+
+# Seed sccache cache from build context (synced from S3 before build)
+COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
+
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
+    if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+      echo "✅ Using pre-built vLLM wheel — skipping compilation" \
+      && mkdir -p dist \
+      && cp /tmp/prebuilt_wheels/*.whl dist/; \
+    elif [ "$USE_SCCACHE" = "1" ]; then \
+      echo "🔧 Building vLLM with sccache..." \
+      && curl -L -o /tmp/sccache.tar.gz \
+        "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
+      && tar -xzf /tmp/sccache.tar.gz -C /tmp \
+      && mv /tmp/sccache-v0.8.1-x86_64-unknown-linux-musl/sccache /usr/bin/sccache \
+      && rm -rf /tmp/sccache* \
+      && export SCCACHE_DIR=/root/.cache/sccache \
+      && export SCCACHE_IDLE_TIMEOUT=0 \
+      && export SCCACHE_LOG=warn \
+      && export CMAKE_BUILD_TYPE=Release \
+      && export CMAKE_C_COMPILER_LAUNCHER=sccache \
+      && export CMAKE_CXX_COMPILER_LAUNCHER=sccache \
+      && export CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
+      && sccache --show-stats \
+      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
+      && sccache --show-stats; \
+    else \
+      echo "🔧 Building vLLM from source (no sccache)..." \
+      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
+    fi
 
 # Build DeepEP wheels
-ARG DEEPEP_COMMIT_HASH=73b6ea4
+ARG DEEPEP_COMMIT_HASH
 ARG NVSHMEM_VER
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
@@ -102,6 +139,20 @@ RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace
     ${DEEPEP_COMMIT_HASH:+--deepep-ref "$DEEPEP_COMMIT_HASH"} \
     ${NVSHMEM_VER:+--nvshmem-ver "$NVSHMEM_VER"} \
   && find /tmp/ep_kernels_workspace/nvshmem -name '*.a' -delete
+
+# =============================================================================
+# STAGE: wheel-export — scratch image with built wheels for S3 cache upload
+# Usage: docker buildx build --target wheel-export --output type=local,dest=./wheels ...
+# =============================================================================
+FROM scratch AS wheel-export
+COPY --from=build /workspace/vllm/dist/ /wheels/
+
+# =============================================================================
+# STAGE: sccache-export — extract sccache cache for S3 upload
+# Usage: docker buildx build --target sccache-export --output type=local,dest=./sccache-out ...
+# =============================================================================
+FROM scratch AS sccache-export
+COPY --from=build /root/.cache/sccache/ /
 
 # =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
@@ -140,23 +191,14 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install /tmp/vllm-dist/*.wh
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install FlashInfer cubin/jit-cache
-ARG FLASHINFER_VERSION=0.6.6
+ARG FLASHINFER_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==${FLASHINFER_VERSION} \
   flashinfer-jit-cache==${FLASHINFER_VERSION} \
   --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install serving extras
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate hf_transfer modelscope \
-  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3"
-
-# Install DeepGEMM wheel from build stage
-COPY --from=build /tmp/deepgemm/dist /tmp/deepgemm/dist
-RUN --mount=type=cache,target=/root/.cache/uv \
-  if ls /tmp/deepgemm/dist/*.whl >/dev/null 2>&1; then \
-    uv pip install /tmp/deepgemm/dist/*.whl; \
-  else \
-    echo "No DeepGEMM wheels to install; skipping."; \
-  fi && rm -rf /tmp/deepgemm
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate modelscope \
+  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7"
 
 # Install DeepEP wheels from build stage
 COPY --from=build /tmp/ep_kernels_workspace/dist /tmp/ep_kernels/dist
@@ -217,7 +259,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM)
+# Runtime JIT compilation tools (Triton/Inductor, FlashInfer)
 RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --setopt=install_weak_deps=False \
     gcc python${PYTHON_VERSION}-devel \
@@ -227,6 +269,7 @@ RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
     cuda-cuobjdump-${CUDA_DASH} \
     libcurand-devel-${CUDA_DASH} \
     libcublas-${CUDA_DASH} \
+    numactl-libs \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=deps /opt/venv /opt/venv
@@ -236,7 +279,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 ENV VIRTUAL_ENV="/opt/venv"
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_USAGE_SOURCE=production-docker-image
-ENV HF_HUB_ENABLE_HF_TRANSFER=1
+ENV HF_XET_HIGH_PERFORMANCE=1
 
 # =============================================================================
 # STAGE 4: DLC overlay — Amazon DLC customizations on top of vLLM runtime
@@ -246,9 +289,12 @@ FROM runtime AS base
 ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 
 ENV LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
@@ -269,7 +315,8 @@ RUN uv pip install --no-cache-dir \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
-  "cbor2>=5.9.0"
+  "cbor2>=5.9.0" \
+  "model-hosting-container-standards>=0.1.14,<1.0.0"
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template

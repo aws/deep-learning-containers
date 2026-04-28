@@ -14,11 +14,11 @@ frameworks:
     github_repo: "vllm-project/vllm"
     tag_prefix: "v"
     config_files:
-      - path: ".github/config/vllm-ec2.yml"
+      - path: ".github/config/image/vllm-ec2.yml"
         prod_image_template: "vllm:{major}.{minor}-gpu-py312-ec2"
-      - path: ".github/config/vllm-sagemaker.yml"
+      - path: ".github/config/image/vllm-sagemaker.yml"
         prod_image_template: "vllm:{major}.{minor}-gpu-py312"
-      # ".github/config/vllm-rayserve.yml" is excluded because we currently do not follow currency for rayserve
+      # ".github/config/image/vllm-rayserve.yml" is excluded because we currently do not follow currency for rayserve
     dockerfiles:
       - path: "docker/vllm/Dockerfile"
         base_image_template: "vllm/vllm-openai:v{version}"
@@ -33,6 +33,7 @@ frameworks:
           key: pytorch
         - name: torchvision
         - name: torchaudio
+        - name: transformers
       system:
         - cuda
         - nccl
@@ -42,9 +43,9 @@ frameworks:
     github_repo: "sgl-project/sglang"
     tag_prefix: "v"
     config_files:
-      - path: ".github/config/sglang-ec2.yml"
+      - path: ".github/config/image/sglang-ec2.yml"
         prod_image_template: "sglang:{major}.{minor}-gpu-py312-ec2"
-      - path: ".github/config/sglang-sagemaker.yml"
+      - path: ".github/config/image/sglang-sagemaker.yml"
         prod_image_template: "sglang:{major}.{minor}-gpu-py312"
     dockerfiles:
       - path: "docker/sglang/Dockerfile"
@@ -53,8 +54,7 @@ frameworks:
     docs_packages:
       pip:
         - name: sglang
-        - name: sgl_kernel
-          key: sgl-kernel
+        - name: sglang-kernel
         - name: torch
           key: pytorch
         - name: torchvision

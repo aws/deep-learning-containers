@@ -1,0 +1,180 @@
+name: Reusable vLLM-Omni Model Smoke Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: "Image URI to test"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR authentication"
+        required: true
+        type: string
+      aws-region:
+        description: "AWS region for ECR authentication"
+        required: true
+        type: string
+      customer-type:
+        description: "Customer type: ec2 or sagemaker"
+        required: true
+        type: string
+    secrets:
+      HF_TOKEN:
+        description: "HuggingFace token for downloading models"
+        required: false
+
+jobs:
+  load-models:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.parse.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Parse model config
+        id: parse
+        run: |
+          python3 -c "
+          import yaml, json
+          with open('.github/config/model-tests/vllm-omni-model-tests.yml') as f:
+              cfg = yaml.safe_load(f)
+          prefix = cfg.get('s3_prefix', '')
+          models = cfg.get('smoke-test', {}).get('codebuild-fleet', [])
+          for m in models:
+              if 's3_model' in m:
+                  m['s3_path'] = prefix + '/' + m.pop('s3_model')
+                  m['model_source'] = 's3'
+              elif 'hf_model' in m:
+                  m['model_source'] = 'hf'
+          print(f'matrix={json.dumps(models)}')
+          " >> "$GITHUB_OUTPUT"
+
+  smoke-test:
+    name: smoke-test (${{ matrix.model.name }})
+    needs: load-models
+    if: needs.load-models.outputs.matrix != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        model: ${{ fromJson(needs.load-models.outputs.matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.model.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Download model from S3
+        if: matrix.model.model_source == 's3'
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.model.s3_path }}
+          model-name: ${{ matrix.model.name }}
+
+      - name: Resolve model path
+        id: resolve
+        run: |
+          if [ "${{ matrix.model.model_source }}" = "s3" ]; then
+            echo "model_path=/models/${{ matrix.model.name }}" >> $GITHUB_OUTPUT
+            echo "volume=-v /dlc-models:/models" >> $GITHUB_OUTPUT
+          else
+            echo "model_path=${{ matrix.model.hf_model }}" >> $GITHUB_OUTPUT
+            echo "volume=" >> $GITHUB_OUTPUT
+          fi
+
+      # EC2: entrypoint accepts CLI args directly
+      - name: Start container (EC2)
+        if: inputs.customer-type == 'ec2'
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d --gpus all --shm-size=4g \
+            ${{ steps.resolve.outputs.volume }} \
+            -e HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            -p 8080:8080 \
+            ${{ inputs.image-uri }} \
+            --model ${{ steps.resolve.outputs.model_path }} \
+            --port 8080 \
+            --stage-init-timeout 600 \
+            ${{ matrix.model.extra_args }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Convert extra_args to SM env vars
+        if: inputs.customer-type == 'sagemaker'
+        id: sm-env
+        run: |
+          # Convert --key value pairs to SM_VLLM_KEY=value env vars
+          EXTRA_ENV=""
+          ARGS="${{ matrix.model.extra_args }}"
+          while [[ -n "$ARGS" ]]; do
+            if [[ "$ARGS" =~ ^--([a-z][a-z0-9-]*)[[:space:]]*(.*) ]]; then
+              KEY=$(echo "${BASH_REMATCH[1]}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+              REST="${BASH_REMATCH[2]}"
+              if [[ "$REST" =~ ^--[a-z] ]] || [[ -z "$REST" ]]; then
+                EXTRA_ENV="$EXTRA_ENV -e SM_VLLM_${KEY}=true"
+                ARGS="$REST"
+              else
+                VALUE="${REST%% --*}"
+                EXTRA_ENV="$EXTRA_ENV -e SM_VLLM_${KEY}=${VALUE}"
+                ARGS="${REST#"$VALUE"}"
+              fi
+              ARGS="${ARGS# }"
+            else
+              break
+            fi
+          done
+          echo "env_flags=$EXTRA_ENV" >> $GITHUB_OUTPUT
+
+      # SageMaker: entrypoint reads SM_VLLM_* env vars
+      - name: Start container (SageMaker)
+        if: inputs.customer-type == 'sagemaker'
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d --gpus all --shm-size=4g \
+            ${{ steps.resolve.outputs.volume }} \
+            -e SM_VLLM_MODEL=${{ steps.resolve.outputs.model_path }} \
+            -e SM_VLLM_STAGE_INIT_TIMEOUT=600 \
+            -e HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            ${{ steps.sm-env.outputs.env_flags }} \
+            -p 8080:8080 \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy test scripts
+        run: |
+          docker cp test/vllm-omni/scripts/vllm_omni_${{ inputs.customer-type }}_smoke_test.sh \
+            ${CONTAINER_ID}:/tmp/smoke_test.sh
+
+      - name: Run smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /tmp/smoke_test.sh \
+            "${{ matrix.model.route }}" \
+            '${{ matrix.model.test_request }}' \
+            "${{ matrix.model.validate }}" \
+            "${{ matrix.model.content_type || 'application/json' }}"
+
+      - name: Dump container logs
+        if: always()
+        run: |
+          docker logs ${CONTAINER_ID} 2>&1 | tail -500 || true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true

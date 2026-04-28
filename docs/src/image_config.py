@@ -49,7 +49,8 @@ class ImageConfig:
     def ecr_repository(self) -> str:
         """ECR repository name for image URIs. Defaults to repository, but can be overridden
         via the optional 'ecr_repository' YAML field when the data-directory key differs from
-        the actual ECR repo name (e.g., data dir 'vllm-server' -> ECR repo 'vllm')."""
+        the actual ECR repo name (e.g., data dirs 'vllm-omni' and 'vllm-server' both map to
+        ECR repo 'vllm')."""
         return self._data.get("ecr_repository") or self._repository
 
     @property

@@ -1,0 +1,196 @@
+name: Release - XGBoost SageMaker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+  CONFIG_FILE: ".github/config/image/sagemaker-xgboost.yml"
+  XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
+
+jobs:
+  load-config:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-load-config-${{ github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      prod-image: ${{ steps.parse.outputs.prod-image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: ${{ env.CONFIG_FILE }}
+
+      - name: Parse configuration
+        id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "cpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+
+  build-image:
+    needs: [load-config]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-image-${{ github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config.outputs.framework }}
+          target: xgboost-sagemaker
+          base-image: nvidia/cuda:12.6.3-base-ubuntu20.04
+          framework-version: ${{ needs.load-config.outputs.framework-version }}
+          container-type: ${{ needs.load-config.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.device-type }}-${{ needs.load-config.outputs.python-version }}-${{ github.run_id }}
+          dockerfile-path: docker/xgboost/Dockerfile
+          arch-type: ${{ needs.load-config.outputs.arch-type }}
+          device-type: ${{ needs.load-config.outputs.device-type }}
+          cuda-version: ${{ needs.load-config.outputs.cuda-version }}
+          python-version: ${{ needs.load-config.outputs.python-version }}
+          os-version: ${{ needs.load-config.outputs.os-version }}
+          contributor: ${{ needs.load-config.outputs.contributor }}
+          customer-type: ${{ needs.load-config.outputs.customer-type }}
+
+  unit-test:
+    needs: [security-test, build-image, load-config]
+    if: success()
+    timeout-minutes: 15
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+      - name: Clone sagemaker-xgboost-container
+        run: rm -rf /tmp/xgboost-unit && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-unit
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
+      - name: Build test image
+        run: |
+          CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
+          cd /tmp/xgboost-unit
+          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
+          docker build -t test-xgboost -f Dockerfile.test .
+      - name: Run unit tests
+        run: |
+          docker run --rm test-xgboost sh -c \
+            'python3 -m pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit'
+      - name: Run flake8
+        run: |
+          docker run --rm test-xgboost sh -c 'python3 -m flake8 setup.py src test'
+
+  security-test:
+    needs: [build-image, load-config]
+    if: success()
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+
+  xgboost-tests:
+    needs: [security-test, build-image, load-config]
+    if: success()
+    uses: ./.github/workflows/reusable-sagemaker-xgboost-integ-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+
+  generate-release-spec:
+    needs: [load-config, build-image, unit-test, security-test, xgboost-tests]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-generate-release-spec-${{ github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.config }}
+
+  release-image:
+    needs: [load-config, build-image, generate-release-spec]
+    if: needs.generate-release-spec.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-image-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-image.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+    secrets: inherit

@@ -35,7 +35,7 @@ default_empty_field: "-"
 
 # Platform display mappings (config value -> table display)
 platforms:
-  default: "${ec2_short}, ${ecs_short}, ${eks_short}"
+  default: "${ec2_short}"
   ec2: "${ec2_short}, ${ecs_short}, ${eks_short}"
   sagemaker: "${sm_short}"
 
@@ -67,10 +67,13 @@ display_names:
 
     # Repositories
     base: "Base"
+    ray: "Ray"
+    sagemaker-xgboost: "XGBoost"
     sglang: "SGLang"
     vllm: "vLLM (Ubuntu)"
     vllm-server: "vLLM"
     vllm-arm64: "vLLM ARM64"
+    vllm-omni: "vLLM-Omni"
     pytorch-training: "PyTorch Training"
     pytorch-training-arm64: "PyTorch Training ARM64"
     pytorch-inference: "PyTorch Inference"
@@ -107,6 +110,7 @@ display_names:
   # the repository display name).
   packages:
     vllm: "vLLM"
+    vllm-omni: "vLLM-Omni"
     python: "Python"
     cuda: "CUDA"
     cudnn: "cuDNN"
@@ -122,6 +126,7 @@ display_names:
     torchtext: "TorchText"
     torchserve: "TorchServe"
     sgl-kernel: "SGLang Kernel"
+    sglang-kernel: "SGLang Kernel"
     sglang: "SGLang"
     transformers: "Transformers"
     transformer_engine: "Transformer Engine"
@@ -130,6 +135,9 @@ display_names:
     neuronx_sdk: "NeuronX SDK"
     openmpi: "OpenMPI"
     sagemaker_pytorch_inference: "SageMaker PyTorch Inference Toolkit"
+    ffmpeg: "FFmpeg"
+    "ray[serve]": "Ray Serve"
+    scikit_learn: "scikit-learn"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation
@@ -169,10 +177,12 @@ framework_groups:
 # =============================================================================
 table_order:
   - base
+  - ray
   - sglang
   - vllm
   - vllm-server
   - vllm-arm64
+  - vllm-omni
   - pytorch-training
   - pytorch-inference
   - pytorch-training-arm64
@@ -199,3 +209,4 @@ table_order:
   - sagemaker-tritonserver
   - stabilityai-pytorch-inference
   - pytorch-trcomp-training
+  - sagemaker-xgboost

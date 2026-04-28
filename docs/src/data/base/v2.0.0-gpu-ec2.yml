@@ -1,0 +1,25 @@
+framework: Base
+version: "2.0.0"
+accelerator: gpu
+python: py313
+cuda: cu130
+os: amzn2023
+platform: ec2
+public_registry: true
+
+tags:
+  - "devel-cuda-v2.0.0"
+  - "devel-cuda-v2.0"
+  - "devel-cuda-v2"
+  - "runtime-cuda-v2.0.0"
+  - "runtime-cuda-v2.0"
+  - "runtime-cuda-v2"
+
+announcements:
+  - "Introduced lightweight Base containers on Amazon Linux 2023 with CUDA 13.0.2 for EC2, ECS, EKS"
+  - "Available in `devel-cuda` (with build tools) and `runtime-cuda` (minimal runtime) variants"
+
+packages:
+  python: "3.13.12"
+  cuda: "13.0.2"
+  os: "Amazon Linux 2023"

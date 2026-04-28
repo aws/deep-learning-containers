@@ -5,9 +5,20 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - "**sglang**"
+      - ".github/config/image/sglang-sagemaker.yml"
+      - ".github/config/model-tests/sglang-model-tests.yml"
+      - ".github/workflows/pr-sglang-sagemaker.yml"
+      - ".github/workflows/reusable-sglang-sagemaker-tests.yml"
+      - ".github/workflows/reusable-sglang-upstream-tests.yml"
+      - "docker/sglang/Dockerfile"
+      - "scripts/common/**"
+      - "scripts/sglang/**"
+      - "scripts/telemetry/**"
+      - "test/sanity/**"
+      - "test/sglang/**"
+      - "test/telemetry/**"
       - "!docs/**"
-      - "!**amzn2023**"
+      - "!docker/sglang/Dockerfile.amzn2023"
 
 permissions:
   contents: read
@@ -18,7 +29,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: '.github/config/sglang-sagemaker.yml'
+  CONFIG_FILE: '.github/config/image/sglang-sagemaker.yml'
 
 jobs:
   gatekeeper:
@@ -106,15 +117,17 @@ jobs:
 
       - name: Detect file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             build-change:
-              - "docker/sglang/**"
-              - "scripts/sglang/**"
-              - "scripts/common/**"
-              - "scripts/telemetry/**"
-              - ".github/config/sglang-sagemaker.yml"
+              - ".github/config/image/sglang-sagemaker.yml"
+              - "docker/sglang/Dockerfile"
+              - "scripts/common/install_efa.sh"
+              - "scripts/common/start_cuda_compat.sh"
+              - "scripts/telemetry/bash_telemetry.sh.template"
+              - "scripts/sglang/*"
+              - "test/sglang/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -144,7 +157,7 @@ jobs:
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: sglang-sagemaker
-          base-image: lmsysorg/sglang:v${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.cuda-version }}-amd64
+          base-image: lmsysorg/sglang:v${{ needs.load-config.outputs.framework-version }}
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}

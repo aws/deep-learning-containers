@@ -1,0 +1,464 @@
+name: Auto Release - vLLM-Omni
+
+on:
+  schedule:
+    # Runs at 12:00 PM PST / 1:00 PM PDT on Tuesday and Thursday
+    - cron: '00 20 * * 2,4'
+
+  # PR triggers for testing
+  # pull_request:
+  #   paths:
+  #     - "**vllm**"
+  #     - "!docs/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  # ============================================================
+  # Load configs for EC2 and SageMaker
+  # ============================================================
+  load-config-ec2:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      build-target: ${{ steps.parse.outputs.build-target }}
+      dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/vllm-omni-ec2-amzn2023.yml
+      - id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "build-target=$(jq -r '.common.build_target // "vllm-omni-ec2-amzn2023"' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(jq -r '.common.dockerfile // "docker/vllm_omni/Dockerfile.amzn2023"' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image // "nvidia/cuda:12.9.1-devel-amzn2023"' config.json)" >> $GITHUB_OUTPUT
+
+  load-config-sagemaker:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      build-target: ${{ steps.parse.outputs.build-target }}
+      dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      base-image: ${{ steps.parse.outputs.base-image }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/vllm-omni-sagemaker-amzn2023.yml
+      - id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "build-target=$(jq -r '.common.build_target // "vllm-omni-sagemaker-amzn2023"' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(jq -r '.common.dockerfile // "docker/vllm_omni/Dockerfile.amzn2023"' config.json)" >> $GITHUB_OUTPUT
+          echo "base-image=$(jq -r '.common.base_image // "nvidia/cuda:12.9.1-devel-amzn2023"' config.json)" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Build images
+  # ============================================================
+  build-ec2:
+    needs: [load-config-ec2]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-vllm-build-runner
+        buildspec-override:true
+    timeout-minutes: 720
+    concurrency:
+      group: ${{ github.workflow }}-build-ec2-${{ github.run_id }}
+      cancel-in-progress: true
+    env:
+      USE_SCCACHE: "1"
+      USE_PREBUILT_WHEEL: "1"
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch cached vLLM wheel
+        id: wheel-cache
+        run: |
+          OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+            ${{ needs.load-config-ec2.outputs.cuda-version }} \
+            ${{ needs.load-config-ec2.outputs.vllm-ref }} \
+            ${{ needs.load-config-ec2.outputs.framework-version }})
+          echo "$OUTPUT"
+          HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
+          echo "hit=${HIT}" >> $GITHUB_OUTPUT
+          if [ "${HIT}" != "true" ]; then
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
+          fi
+
+      - name: Sync sccache cache from S3
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
+
+      - name: Prepare build context
+        run: |
+          mkdir -p docker/vllm/prebuilt_wheels
+          mkdir -p docker/vllm/sccache-cache
+
+      - name: Load pinned omni versions
+        run: |
+          # Capture vars introduced by sourcing the env file and forward them
+          # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
+          before=$(compgen -v | sort)
+          set -a; source docker/vllm_omni/versions.env; set +a
+          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -v '^before$')
+          for v in $new; do
+            [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
+          done
+          echo "EXTRA_BUILD_ARGS=$(echo $new | xargs)" >> "$GITHUB_ENV"
+
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config-ec2.outputs.framework }}
+          target: ${{ needs.load-config-ec2.outputs.build-target }}
+          base-image: ${{ needs.load-config-ec2.outputs.base-image }}
+          framework-version: ${{ needs.load-config-ec2.outputs.framework-version }}
+          container-type: ${{ needs.load-config-ec2.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: vllm-omni-${{ needs.load-config-ec2.outputs.framework-version }}-gpu-${{ needs.load-config-ec2.outputs.python-version }}-${{ needs.load-config-ec2.outputs.cuda-version }}-${{ needs.load-config-ec2.outputs.os-version }}-ec2-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-ec2.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-ec2.outputs.arch-type }}
+          device-type: ${{ needs.load-config-ec2.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-ec2.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-ec2.outputs.python-version }}
+          os-version: ${{ needs.load-config-ec2.outputs.os-version }}
+          contributor: ${{ needs.load-config-ec2.outputs.contributor }}
+          customer-type: ${{ needs.load-config-ec2.outputs.customer-type }}
+
+      - name: Upload vLLM wheel to cache
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: |
+          bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
+            ${{ needs.load-config-ec2.outputs.cuda-version }} \
+            ${{ needs.load-config-ec2.outputs.vllm-ref }} \
+            ${{ needs.load-config-ec2.outputs.framework-version }}
+
+      - name: Sync sccache cache to S3
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
+
+  build-sagemaker:
+    needs: [load-config-sagemaker]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-vllm-build-runner
+        buildspec-override:true
+    timeout-minutes: 720
+    concurrency:
+      group: ${{ github.workflow }}-build-sagemaker-${{ github.run_id }}
+      cancel-in-progress: true
+    env:
+      USE_SCCACHE: "1"
+      USE_PREBUILT_WHEEL: "1"
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Fetch cached vLLM wheel
+        id: wheel-cache
+        run: |
+          OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+            ${{ needs.load-config-sagemaker.outputs.cuda-version }} \
+            ${{ needs.load-config-sagemaker.outputs.vllm-ref }} \
+            ${{ needs.load-config-sagemaker.outputs.framework-version }})
+          echo "$OUTPUT"
+          HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
+          echo "hit=${HIT}" >> $GITHUB_OUTPUT
+          if [ "${HIT}" != "true" ]; then
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
+          fi
+
+      - name: Sync sccache cache from S3
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
+
+      - name: Prepare build context
+        run: |
+          mkdir -p docker/vllm/prebuilt_wheels
+          mkdir -p docker/vllm/sccache-cache
+
+      - name: Load pinned omni versions
+        run: |
+          # Capture vars introduced by sourcing the env file and forward them
+          # to $GITHUB_ENV. EXTRA_BUILD_ARGS is auto-derived (no manual list).
+          before=$(compgen -v | sort)
+          set -a; source docker/vllm_omni/versions.env; set +a
+          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -v '^before$')
+          for v in $new; do
+            [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
+          done
+          echo "EXTRA_BUILD_ARGS=$(echo $new | xargs)" >> "$GITHUB_ENV"
+
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config-sagemaker.outputs.framework }}
+          target: ${{ needs.load-config-sagemaker.outputs.build-target }}
+          base-image: ${{ needs.load-config-sagemaker.outputs.base-image }}
+          framework-version: ${{ needs.load-config-sagemaker.outputs.framework-version }}
+          container-type: ${{ needs.load-config-sagemaker.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: vllm-omni-${{ needs.load-config-sagemaker.outputs.framework-version }}-gpu-${{ needs.load-config-sagemaker.outputs.python-version }}-${{ needs.load-config-sagemaker.outputs.cuda-version }}-${{ needs.load-config-sagemaker.outputs.os-version }}-sagemaker-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config-sagemaker.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config-sagemaker.outputs.arch-type }}
+          device-type: ${{ needs.load-config-sagemaker.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-sagemaker.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-sagemaker.outputs.python-version }}
+          os-version: ${{ needs.load-config-sagemaker.outputs.os-version }}
+          contributor: ${{ needs.load-config-sagemaker.outputs.contributor }}
+          customer-type: ${{ needs.load-config-sagemaker.outputs.customer-type }}
+
+      - name: Upload vLLM wheel to cache
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: |
+          bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
+            ${{ needs.load-config-sagemaker.outputs.cuda-version }} \
+            ${{ needs.load-config-sagemaker.outputs.vllm-ref }} \
+            ${{ needs.load-config-sagemaker.outputs.framework-version }}
+
+      - name: Sync sccache cache to S3
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
+
+  # ============================================================
+  # Sanity tests
+  # ============================================================
+  sanity-test:
+    needs: [build-ec2, build-sagemaker, load-config-ec2, load-config-sagemaker]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
+            customer-type: ec2
+          - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
+            customer-type: sagemaker
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ matrix.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config-ec2.outputs.framework }}
+      framework-version: ${{ needs.load-config-ec2.outputs.framework-version }}
+      python-version: ${{ needs.load-config-ec2.outputs.python-version }}
+      cuda-version: ${{ needs.load-config-ec2.outputs.cuda-version }}
+      os-version: ${{ needs.load-config-ec2.outputs.os-version }}
+      customer-type: ${{ matrix.customer-type }}
+      arch-type: ${{ needs.load-config-ec2.outputs.arch-type }}
+      device-type: ${{ needs.load-config-ec2.outputs.device-type }}
+      contributor: ${{ needs.load-config-ec2.outputs.contributor }}
+      container-type: ${{ needs.load-config-ec2.outputs.container-type }}
+
+  # ============================================================
+  # Telemetry tests
+  # ============================================================
+  telemetry-test:
+    needs: [build-ec2, build-sagemaker, load-config-ec2]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ci-image: ${{ needs.build-ec2.outputs.ci-image }}
+          - ci-image: ${{ needs.build-sagemaker.outputs.ci-image }}
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ matrix.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config-ec2.outputs.framework }}
+      framework-version: ${{ needs.load-config-ec2.outputs.framework-version }}
+      container-type: ${{ needs.load-config-ec2.outputs.container-type }}
+
+  # ============================================================
+  # Model smoke tests (EC2 + SageMaker)
+  # ============================================================
+  omni-model-smoke-tests-ec2:
+    needs: [build-ec2, load-config-ec2]
+    if: success()
+    uses: ./.github/workflows/reusable-vllm-omni-model-tests.yml
+    with:
+      image-uri: ${{ needs.build-ec2.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      customer-type: ec2
+    secrets: inherit
+
+  omni-model-smoke-tests-sagemaker:
+    needs: [build-sagemaker, load-config-sagemaker]
+    if: success()
+    uses: ./.github/workflows/reusable-vllm-omni-model-tests.yml
+    with:
+      image-uri: ${{ needs.build-sagemaker.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      customer-type: sagemaker
+    secrets: inherit
+
+  # ============================================================
+  # SageMaker endpoint test
+  # ============================================================
+  sagemaker-endpoint-test:
+    needs: [build-sagemaker, load-config-sagemaker]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sm-endpoint-${{ github.run_id }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/vllm-omni/sagemaker/requirements.txt
+      - name: Run SageMaker endpoint test
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ needs.build-sagemaker.outputs.ci-image }} vllm-omni/sagemaker
+
+  # ============================================================
+  # Generate release specs
+  # ============================================================
+  generate-release-spec-ec2:
+    needs: [load-config-ec2, build-ec2, sanity-test, telemetry-test, omni-model-smoke-tests-ec2]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-ec2.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-ec2.outputs.config }}
+
+  generate-release-spec-sagemaker:
+    needs: [load-config-sagemaker, build-sagemaker, sanity-test, telemetry-test, omni-model-smoke-tests-sagemaker, sagemaker-endpoint-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check-release
+        run: |
+          echo '${{ needs.load-config-sagemaker.outputs.config }}' > config.json
+          echo "should-release=$(jq -r '.release.release // false' config.json)" >> $GITHUB_OUTPUT
+      - id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-sagemaker.outputs.config }}
+
+  # ============================================================
+  # Release — EC2
+  # ============================================================
+  release-ec2:
+    needs: [load-config-ec2, build-ec2, generate-release-spec-ec2]
+    if: needs.generate-release-spec-ec2.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-ec2-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-ec2.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec-ec2.outputs.release-spec }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-ec2.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      skip-docs-pr: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — SageMaker
+  # ============================================================
+  release-sagemaker:
+    needs: [load-config-sagemaker, build-sagemaker, generate-release-spec-sagemaker]
+    if: needs.generate-release-spec-sagemaker.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-sagemaker-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-sagemaker.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec-sagemaker.outputs.release-spec }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config-sagemaker.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      skip-docs-pr: true
+    secrets: inherit

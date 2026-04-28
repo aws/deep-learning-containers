@@ -67,6 +67,30 @@ BUILD_CMD="docker buildx build --progress plain \
   --build-arg FRAMEWORK=\"${FRAMEWORK}\" \
   --build-arg FRAMEWORK_VERSION=\"${FRAMEWORK_VERSION}\""
 
+# Enable sccache for compilation caching (BuildKit cache mount persists on same runner)
+if [[ -n "${USE_SCCACHE:-}" ]]; then
+  echo "Enabling sccache with BuildKit cache mount"
+  BUILD_CMD="${BUILD_CMD} \
+  --build-arg USE_SCCACHE=\"${USE_SCCACHE}\""
+fi
+
+# Control prebuilt wheel usage (default 1 in Dockerfile)
+if [[ -n "${USE_PREBUILT_WHEEL:-}" ]]; then
+  BUILD_CMD="${BUILD_CMD} \
+  --build-arg USE_PREBUILT_WHEEL=\"${USE_PREBUILT_WHEEL}\""
+fi
+
+# Forward any extra build-args listed in EXTRA_BUILD_ARGS (space/comma separated
+# env var names). Keeps build_image.sh framework-agnostic — callers declare what
+# they want forwarded (e.g. `EXTRA_BUILD_ARGS="VLLM_REF VLLM_VERSION ..."` for
+# vLLM, `EXTRA_BUILD_ARGS="VLLM_VERSION VLLM_OMNI_VERSION ..."` for vLLM-Omni)
+# set by the workflow when sourcing a versions.env file.
+for v in ${EXTRA_BUILD_ARGS:-}; do
+  if [[ -n "${!v:-}" ]]; then
+    BUILD_CMD="${BUILD_CMD} --build-arg ${v}=\"${!v}\""
+  fi
+done
+
 # Add SageMaker labels if customer-type is 'sagemaker'
 if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
   BUILD_CMD="${BUILD_CMD} \
@@ -106,22 +130,35 @@ if [[ "${CUSTOMER_TYPE}" == "sagemaker" ]]; then
   fi
 fi
 
-# Complete the build command
-BUILD_CMD="${BUILD_CMD} \
+# Ensure default docker builder is used
+docker buildx use default 2>/dev/null || true
+
+# Optional: export intermediate stages before the main build (e.g., wheel-export)
+# Set EXPORT_TARGETS="target1:dest1,target2:dest2" to enable
+if [[ -n "${EXPORT_TARGETS:-}" ]]; then
+  IFS=',' read -ra EXPORTS <<< "${EXPORT_TARGETS}"
+  for EXPORT in "${EXPORTS[@]}"; do
+    EXPORT_TARGET="${EXPORT%%:*}"
+    EXPORT_DEST="${EXPORT##*:}"
+    echo "Exporting stage '${EXPORT_TARGET}' to ${EXPORT_DEST}..."
+    eval ${BUILD_CMD} \
+      --target "${EXPORT_TARGET}" \
+      --output "type=local,dest=${EXPORT_DEST}" \
+      -f ${DOCKERFILE_PATH} . \
+      && echo "✅ Exported ${EXPORT_TARGET}" \
+      || echo "⚠️  Failed to export ${EXPORT_TARGET} (non-fatal)"
+  done
+fi
+
+# Execute build (reuses layer cache from exports above)
+echo "Executing build command..."
+eval ${BUILD_CMD} \
   --cache-to=type=inline \
   --cache-from=type=registry,ref=${CI_IMAGE_URI} \
   --tag ${CI_IMAGE_URI} \
   --push \
   --target ${TARGET} \
-  -f ${DOCKERFILE_PATH} ."
-
-# Ensure default docker builder is used
-docker buildx use default 2>/dev/null || true
-
-# Execute build
-echo "Executing build command..."
-echo "${BUILD_CMD}"
-eval ${BUILD_CMD}
+  -f ${DOCKERFILE_PATH} .
 
 # Clean up local image (may not exist when using remote buildkitd)
 docker rmi ${CI_IMAGE_URI} 2>/dev/null || true

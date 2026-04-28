@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.9
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.10
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -87,6 +87,8 @@ RUN rm -rf \
   /root/.rustup/ \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/ \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/python/Cargo.lock \
+  /sgl-workspace/sglang/sgl-model-gateway/Cargo.lock \
+  /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Run OSS compliance script

@@ -1,0 +1,121 @@
+name: Manual - vLLM EFA Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_uri:
+        description: "Full ECR image URI to test"
+        required: true
+        type: string
+      test_setup_script:
+        description: "Path to the test setup script inside the container (e.g. /test/vllm/scripts/vllm_test_setup.sh)"
+        required: true
+        type: string
+        default: "/test/vllm/scripts/vllm_test_setup.sh"
+      image_version:
+        description: "vLLM version tag used for checking out matching vLLM test source"
+        required: true
+        type: string
+        default: "0.15.1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vllm-efa-${{ github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  regression-test:
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: ECR login and pull image
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ inputs.image_uri }}
+
+      - name: Checkout vLLM tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v${{ inputs.image_version }}
+          path: vllm_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ inputs.image_uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy workspace into container
+        run: |
+          docker cp scripts ${CONTAINER_ID}:/scripts
+          docker cp test ${CONTAINER_ID}:/test
+          docker cp vllm_source ${CONTAINER_ID}:/vllm_source
+
+      - name: Setup for vLLM tests
+        run: |
+          docker exec ${CONTAINER_ID} bash ${{ inputs.test_setup_script }}
+
+      - name: Run vLLM regression tests
+        run: |
+          docker exec ${CONTAINER_ID} bash /test/vllm/scripts/vllm_regression_test.sh
+
+      - name: Cleanup
+        if: always()
+        run: docker stop ${CONTAINER_ID} || true
+
+  example-test:
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: ECR login and pull image
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ inputs.image_uri }}
+
+      - name: Checkout vLLM tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v${{ inputs.image_version }}
+          path: vllm_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ inputs.image_uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy workspace into container
+        run: |
+          docker cp scripts ${CONTAINER_ID}:/scripts
+          docker cp test ${CONTAINER_ID}:/test
+          docker cp vllm_source ${CONTAINER_ID}:/vllm_source
+
+      - name: Setup for vLLM tests
+        run: |
+          docker exec ${CONTAINER_ID} bash ${{ inputs.test_setup_script }}
+
+      - name: Run vLLM example tests
+        run: |
+          docker exec ${CONTAINER_ID} bash /test/vllm/scripts/vllm_ec2_examples_test.sh
+
+      - name: Cleanup
+        if: always()
+        run: docker stop ${CONTAINER_ID} || true

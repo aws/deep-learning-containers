@@ -1,0 +1,34 @@
+# Ray EC2 CPU Image Configuration
+# This file contains all configuration for building, testing, and releasing the Ray EC2 CPU image
+
+# Image identification
+image:
+  name: "ray-ec2-cpu"
+  description: "Ray for EC2 instances (CPU)"
+
+# Build configuration
+common:
+  framework: "ray"
+  framework_version: "2.54.1"
+  job_type: "inference"
+  python_version: "py313"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  container_type: "serve-ml"
+  build_target: "ray-ec2-cpu"
+  ci_tag: "ray-cpu-ec2"
+  dockerfile: "docker/ray/Dockerfile.cpu"
+  base_image: "unused-ray-cpu-multistage"
+  prod_image: "ray:2.54-cpu-py313-ec2"
+  device_type: "cpu"
+  contributor: "None"
+
+# Release configuration
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: production

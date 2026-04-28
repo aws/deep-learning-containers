@@ -6,10 +6,12 @@ import subprocess
 
 import pytest
 
-# The workflow sets DLC_WORKDIR to the repo root inside the container.
-VERSIONS_ENV = os.path.join(
-    os.environ.get("DLC_WORKDIR", "/workdir"), "docker", "pytorch", "versions.env"
-)
+# Detect GPU vs CPU image by checking for CUDA, then pick the right versions file.
+_WORKDIR = os.environ.get("DLC_WORKDIR", "/workdir")
+IS_CUDA = os.path.isdir("/usr/local/cuda")
+_VERSIONS_FILE = "versions-cuda.env" if IS_CUDA else "versions-cpu.env"
+VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "pytorch", _VERSIONS_FILE)
+cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
 
 
 def _parse_versions_env():
@@ -24,10 +26,11 @@ def _parse_versions_env():
 
 ENV = _parse_versions_env()
 
-PACKAGE_VERSION_MAP = {
+COMMON_PACKAGE_VERSION_MAP = {
     "torch": "TORCH_VERSION",
-    "torchvision": "TORCHVISION_VERSION",
-    "torchaudio": "TORCHAUDIO_VERSION",
+}
+
+GPU_PACKAGE_VERSION_MAP = {
     "flash_attn": "FLASH_ATTN_VERSION",
     "transformer_engine": "TRANSFORMER_ENGINE_VERSION",
 }
@@ -35,10 +38,23 @@ PACKAGE_VERSION_MAP = {
 
 @pytest.mark.parametrize(
     "package,env_var",
-    list(PACKAGE_VERSION_MAP.items()),
-    ids=list(PACKAGE_VERSION_MAP.keys()),
+    list(COMMON_PACKAGE_VERSION_MAP.items()),
+    ids=list(COMMON_PACKAGE_VERSION_MAP.keys()),
 )
 def test_version(package, env_var):
+    mod = __import__(package)
+    actual = mod.__version__
+    expected = ENV[env_var]
+    assert actual.startswith(expected), f"{package}: expected {expected}*, got {actual}"
+
+
+@cuda_only
+@pytest.mark.parametrize(
+    "package,env_var",
+    list(GPU_PACKAGE_VERSION_MAP.items()),
+    ids=list(GPU_PACKAGE_VERSION_MAP.keys()),
+)
+def test_version_gpu(package, env_var):
     mod = __import__(package)
     actual = mod.__version__
     expected = ENV[env_var]
@@ -60,6 +76,7 @@ def test_python_version():
     assert expected in out, f"Expected Python {expected}, got {out}"
 
 
+@cuda_only
 def test_cuda_version():
     import torch
 

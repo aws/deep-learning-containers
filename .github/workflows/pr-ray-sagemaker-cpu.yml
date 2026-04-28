@@ -5,7 +5,15 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - "**ray**"
+      - ".github/config/image/ray-sagemaker-cpu.yml"
+      - ".github/workflows/pr-ray-sagemaker-cpu.yml"
+      - "docker/ray/Dockerfile.cpu"
+      - "scripts/common/**"
+      - "scripts/ray/**"
+      - "scripts/telemetry/**"
+      - "test/ray/**"
+      - "test/sanity/**"
+      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -14,7 +22,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/ray-sagemaker-cpu.yml"
+  CONFIG_FILE: ".github/config/image/ray-sagemaker-cpu.yml"
 
 jobs:
   gatekeeper:
@@ -88,7 +96,7 @@ jobs:
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
-      test-change: ${{ steps.changes.outputs.test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
@@ -107,17 +115,18 @@ jobs:
 
       - name: Detect file changes
         id: changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             build-change:
-              - "docker/ray/**"
-              - "scripts/ray/**"
-              - "scripts/common/**"
-              - "scripts/telemetry/**"
-              - ".github/workflows/pr-ray*"
-            test-change:
-              - "test/ray/**"
+              - ".github/config/image/ray-sagemaker-cpu.yml"
+              - "docker/ray/Dockerfile.cpu"
+              - "scripts/common/install_python.sh"
+              - "scripts/common/setup_oss_compliance.sh"
+              - "scripts/telemetry/bash_telemetry.sh.template"
+              - "scripts/ray/*"
+            sagemaker-test-change:
+              - "test/ray/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -193,7 +202,9 @@ jobs:
 
   ray-sagemaker-cpu-endpoint-test:
     needs: [check-changes, build-ray-sagemaker-cpu-image, parse-config]
-    if: needs.check-changes.outputs.build-change == 'true'
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true')
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

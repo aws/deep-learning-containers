@@ -1,0 +1,296 @@
+name: vLLM Benchmark Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-uri:
+        description: "Image URI to benchmark (ECR URI)"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR auth (defaults to CI account)"
+        required: false
+        type: string
+        default: ""
+      aws-region:
+        description: "AWS region for ECR auth (defaults to repo var)"
+        required: false
+        type: string
+        default: ""
+
+env:
+  IMAGE_URI: ${{ inputs.image-uri }}
+  ACCOUNT_ID: ${{ inputs.aws-account-id || vars.CI_AWS_ACCOUNT_ID }}
+  REGION: ${{ inputs.aws-region || vars.AWS_REGION }}
+
+jobs:
+  load-benchmarks:
+    runs-on: ubuntu-latest
+    outputs:
+      codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
+      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Parse benchmark config
+        id: parse
+        run: |
+          python3 -c "
+          import yaml, json
+          with open('.github/config/model-tests/vllm-model-tests.yml') as f:
+              cfg = yaml.safe_load(f)
+          bm = cfg.get('benchmark', {})
+          prefix = cfg.get('s3_prefix', '')
+          fixtures_prefix = cfg.get('test_fixtures_prefix', '')
+          for m in bm.get('codebuild-fleet', []) + bm.get('runner-scale-sets', []):
+              m['s3_path'] = prefix + '/' + m.pop('s3_model')
+              fixtures = m.pop('test_fixtures', [])
+              m['test_fixtures_paths'] = ' '.join(fixtures_prefix + '/' + f for f in fixtures) if fixtures else ''
+              m.pop('test_cases', None)
+          print('codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
+          print('runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', [])))
+          " > parsed.txt
+          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
+          grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
+          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
+          echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
+
+  benchmark-codebuild-fleet:
+    name: benchmark (${{ matrix.name }} / ${{ matrix.fleet }})
+    if: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix)[0] != null }}
+    needs: [load-benchmarks]
+    strategy:
+      fail-fast: false
+      # we only have 1 g6e12xl 4 models need it action only schedules once for the same label
+      max-parallel: 2
+      matrix:
+        include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Pre-cleanup GPU state ==="
+          nvidia-smi
+          echo ""
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+          echo "=== Clearing GPU memory ==="
+          nvidia-smi --gpu-reset 2>/dev/null || true
+          echo ""
+          echo "=== Post-cleanup GPU state ==="
+          nvidia-smi
+
+      - name: Download model from S3
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
+
+      - name: Start container
+        run: |
+          docker pull ${{ env.IMAGE_URI }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            --ipc=host --shm-size=10g \
+            -v /dlc-models:/models \
+            ${{ env.IMAGE_URI }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy scripts into container
+        run: |
+          docker cp test/vllm/scripts/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/vllm/scripts/benchmark/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/vllm/scripts/benchmark/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
+
+      - name: Download and copy test fixtures
+        if: ${{ matrix.test_fixtures_paths != '' }}
+        run: |
+          mkdir -p /tmp/test-fixtures
+          for s3_path in ${{ matrix.test_fixtures_paths }}; do
+            aws s3 cp "${s3_path}" /tmp/test-fixtures/
+          done
+          docker cp /tmp/test-fixtures ${CONTAINER_ID}:/models/test-fixtures
+
+      - name: Run benchmark
+        run: |
+          TEST_SCRIPT="${{ matrix.test_script || 'vllm_benchmark_test.sh' }}"
+          docker exec \
+            -e MIN_THROUGHPUT_TOKENS_PER_SEC=${{ matrix.min_throughput || 100 }} \
+            -e MIN_REQUESTS_PER_SEC=${{ matrix.min_rps || 1 }} \
+            -e BENCHMARK_NUM_PROMPTS=${{ matrix.num_prompts || 64 }} \
+            -e BENCHMARK_INPUT_LEN=${{ matrix.input_len || 512 }} \
+            -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
+            -e BENCHMARK_BATCH_SIZE=${{ matrix.batch_size || 4 }} \
+            -e BENCHMARK_AUDIO_FIXTURE=${{ matrix.benchmark_audio_fixture || '' }} \
+            -e MODEL_DIR="/models/${{ matrix.name }}" \
+            -e RESULTS_DIR=/tmp/benchmark_results \
+            -e ARTIFACT_PREFIX="${{ matrix.name }}_${{ matrix.fleet }}" \
+            -e VLLM_PORT=8000 \
+            -e NUM_REQUESTS=50 \
+            -e MIN_THROUGHPUT=${{ matrix.min_throughput || 100 }} \
+            -e MIN_RPS=${{ matrix.min_rps || 1 }} \
+            -e BENCHMARK_PROFILES=${{ matrix.benchmark_profiles || 'baseline' }} \
+            ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
+              "/models/${{ matrix.name }}" \
+              "${{ matrix.name }}" \
+              "${{ matrix.fleet }}" \
+              ${{ matrix.extra_args }}
+
+      - name: Extract results
+        if: always()
+        run: |
+          docker cp ${CONTAINER_ID}:/tmp/benchmark_results/. ./benchmark_results/ 2>/dev/null || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.name }}-${{ matrix.fleet }}
+          path: benchmark_results/
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+
+  benchmark-runner-scale-sets:
+    name: benchmark (${{ matrix.name }} / gpu-efa-runners)
+    if: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix)[0] != null }}
+    needs: [load-benchmarks]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix) }}
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Download model from S3
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
+
+      - name: Start container
+        run: |
+          # Get GPU UUIDs visible to this pod (k8s assigns a subset of host GPUs)
+          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
+          echo "Pod GPU UUIDs: ${POD_GPUS}"
+          docker pull ${{ env.IMAGE_URI }}
+          CONTAINER_ID=$(docker run -d -it --gpus "\"device=${POD_GPUS}\"" --entrypoint /bin/bash \
+            --ipc=host --shm-size=10g \
+            ${{ env.IMAGE_URI }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy files into container
+        run: |
+          docker exec ${CONTAINER_ID} mkdir -p /models
+          docker cp ${{ steps.model.outputs.model-dir }} ${CONTAINER_ID}:/models/${{ matrix.name }}
+          docker cp test/vllm/scripts/benchmark/vllm_benchmark_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/vllm/scripts/benchmark/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/vllm/scripts/benchmark/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
+
+      - name: Download and copy test fixtures
+        if: ${{ matrix.test_fixtures_paths != '' }}
+        run: |
+          mkdir -p /tmp/test-fixtures
+          for s3_path in ${{ matrix.test_fixtures_paths }}; do
+            aws s3 cp "${s3_path}" /tmp/test-fixtures/
+          done
+          docker cp /tmp/test-fixtures ${CONTAINER_ID}:/models/test-fixtures
+
+      - name: Run benchmark
+        run: |
+          TEST_SCRIPT="${{ matrix.test_script || 'vllm_benchmark_test.sh' }}"
+          docker exec \
+            -e MIN_THROUGHPUT_TOKENS_PER_SEC=${{ matrix.min_throughput || 100 }} \
+            -e MIN_REQUESTS_PER_SEC=${{ matrix.min_rps || 1 }} \
+            -e BENCHMARK_NUM_PROMPTS=${{ matrix.num_prompts || 64 }} \
+            -e BENCHMARK_INPUT_LEN=${{ matrix.input_len || 512 }} \
+            -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
+            -e BENCHMARK_BATCH_SIZE=${{ matrix.batch_size || 4 }} \
+            -e BENCHMARK_AUDIO_FIXTURE=${{ matrix.benchmark_audio_fixture || '' }} \
+            -e MODEL_DIR="/models/${{ matrix.name }}" \
+            -e RESULTS_DIR=/tmp/benchmark_results \
+            -e ARTIFACT_PREFIX="${{ matrix.name }}_gpu-efa-runners" \
+            -e VLLM_PORT=8000 \
+            -e NUM_REQUESTS=50 \
+            -e MIN_THROUGHPUT=${{ matrix.min_throughput || 100 }} \
+            -e MIN_RPS=${{ matrix.min_rps || 1 }} \
+            -e BENCHMARK_PROFILES=${{ matrix.benchmark_profiles || 'baseline' }} \
+            ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
+              "/models/${{ matrix.name }}" \
+              "${{ matrix.name }}" \
+              "gpu-efa-runners" \
+              ${{ matrix.extra_args }}
+
+      - name: Extract results
+        if: always()
+        run: |
+          docker cp ${CONTAINER_ID}:/tmp/benchmark_results/. ./benchmark_results/ 2>/dev/null || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.name }}-gpu-efa-runners
+          path: benchmark_results/
+          retention-days: 30
+
+      # Do NOT docker rmi on shared runner-scale-sets nodes — multiple pods
+      # share the same host Docker daemon, removing an image could break a
+      # parallel job's container. Image cleanup is handled by DaemonSet.
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+
+  benchmark-report:
+    name: benchmark-report
+    if: always()
+    needs: [benchmark-codebuild-fleet, benchmark-runner-scale-sets]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download all benchmark artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: benchmark-*
+          path: results/
+
+      - name: Generate report
+        run: python3 test/vllm/scripts/benchmark/benchmark_report.py results >> "$GITHUB_STEP_SUMMARY"

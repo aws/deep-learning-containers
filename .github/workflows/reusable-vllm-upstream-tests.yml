@@ -22,12 +22,17 @@ on:
         description: 'vLLM framework version (e.g., 0.15.1)'
         required: true
         type: string
+      vllm-ref:
+        description: 'vLLM git ref to check out for tests (tag or commit SHA). Defaults to v${framework-version}.'
+        required: false
+        type: string
+        default: ''
       setup-script:
-        description: 'Path to test setup script (e.g., scripts/vllm/vllm_test_setup.sh)'
+        description: 'Path to test setup script (e.g., test/vllm/scripts/vllm_test_setup.sh)'
         required: true
         type: string
       example-test-script:
-        description: 'Path to example test script (e.g., scripts/vllm/vllm_ec2_examples_test.sh)'
+        description: 'Path to example test script (e.g., test/vllm/scripts/vllm_ec2_examples_test.sh)'
         required: true
         type: string
 
@@ -52,7 +57,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ inputs.framework-version }}
+          ref: ${{ inputs.vllm-ref != '' && inputs.vllm-ref || format('v{0}', inputs.framework-version) }}
           path: vllm_source
 
       - name: Start container
@@ -71,7 +76,7 @@ jobs:
 
       - name: Run vLLM regression tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
+          docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_regression_test.sh
 
   cuda-test:
     runs-on:
@@ -93,7 +98,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ inputs.framework-version }}
+          ref: ${{ inputs.vllm-ref != '' && inputs.vllm-ref || format('v{0}', inputs.framework-version) }}
           path: vllm_source
 
       - name: Start container
@@ -112,7 +117,7 @@ jobs:
 
       - name: Run vLLM CUDA tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_cuda_test.sh
+          docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_cuda_test.sh
 
   example-test:
     runs-on:
@@ -134,7 +139,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ inputs.framework-version }}
+          ref: ${{ inputs.vllm-ref != '' && inputs.vllm-ref || format('v{0}', inputs.framework-version) }}
           path: vllm_source
 
       - name: Start container

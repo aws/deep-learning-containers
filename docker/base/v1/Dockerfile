@@ -40,6 +40,8 @@ COPY --from=python-builder /usr/local/lib/python${PYTHON_SHORT_VERSION} /usr/loc
 COPY --from=python-builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr/local/include/python${PYTHON_SHORT_VERSION}
 COPY --from=python-builder /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python${PYTHON_SHORT_VERSION}
 COPY --from=python-builder /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip${PYTHON_SHORT_VERSION}
+COPY --from=python-builder /usr/local/lib/libpython${PYTHON_SHORT_VERSION}* /usr/local/lib/
+RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/python.conf && ldconfig
 RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
@@ -49,9 +51,12 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./docker/base/v1/requirements.lock /tmp/requirements.lock
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock \
-  && rm /tmp/requirements.lock
+COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
+COPY ./docker/base/v1/pyproject.toml ./docker/base/v1/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project \
+  && rm -rf /tmp/deps /tmp/uv-*.lock
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
@@ -90,6 +95,8 @@ COPY --from=python-builder /usr/local/lib/python${PYTHON_SHORT_VERSION} /usr/loc
 COPY --from=python-builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr/local/include/python${PYTHON_SHORT_VERSION}
 COPY --from=python-builder /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python${PYTHON_SHORT_VERSION}
 COPY --from=python-builder /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip${PYTHON_SHORT_VERSION}
+COPY --from=python-builder /usr/local/lib/libpython${PYTHON_SHORT_VERSION}* /usr/local/lib/
+RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/python.conf && ldconfig
 RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
@@ -100,9 +107,12 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./docker/base/v1/requirements.lock /tmp/requirements.lock
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock \
-  && rm /tmp/requirements.lock
+COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
+COPY ./docker/base/v1/pyproject.toml ./docker/base/v1/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project \
+  && rm -rf /tmp/deps /tmp/uv-*.lock
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
