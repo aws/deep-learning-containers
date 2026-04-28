@@ -104,10 +104,6 @@
         "reason": "Coming in as a dependency from the latest uv 0.10.9"
     },
     {
-        "vulnerability_id": "CVE-2026-27893",
-        "reason": "vllm 0.10.2 RayServe image - trust_remote_code=True hardcoded, fixed in vllm>=0.18.0. RayServe image not updated in this PR."
-    },
-    {
         "vulnerability_id": "CVE-2026-22815",
         "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
     },
