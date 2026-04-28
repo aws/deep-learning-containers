@@ -19,5 +19,9 @@
         "vulnerability_id": "CVE-2026-34480",
         "reason": "ray 2.54.1 bundles log4j-core 2.17.1 in ray_dist.jar. Fix: upgrade to >=2.25.4",
         "review_by": "2026-05-04"
+    },
+    {
+        "vulnerability_id": "CVE-2026-1839",
+        "reason": "ray pins transformers 4.56.1; fix requires >=5.0.0rc3 which is incompatible with ray"
     }
 ]
