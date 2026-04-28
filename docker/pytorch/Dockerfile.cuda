@@ -144,7 +144,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip curl which findutils \
-    util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} gcc gcc-c++ \
+    util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} gcc gcc-c++ make \
   && dnf clean all
 
 # Python venv (base packages from builder-base, then overlay compiled packages)
@@ -173,7 +173,7 @@ RUN bash /tmp/configure_nccl.sh && rm /tmp/configure_nccl.sh
 
 # NCCL tests binary (all_reduce_perf) — used by CI EFA tests and available to
 # customers for verifying EFA/NCCL connectivity before training.
-RUN NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
+RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
     if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
       ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
     fi && \
