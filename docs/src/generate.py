@@ -96,9 +96,8 @@ def _generate_framework_index(
     # Build ordered version list: AL2023 versions first (descending), then legacy (descending)
     amzn2023_by_version = _group_by_version(amzn2023_images)
     legacy_by_version = _group_by_version(legacy_images)
-    sorted_versions = (
-        sorted(amzn2023_by_version.keys(), key=parse_version, reverse=True)
-        + sorted(legacy_by_version.keys(), key=parse_version, reverse=True)
+    sorted_versions = sorted(amzn2023_by_version.keys(), key=parse_version, reverse=True) + sorted(
+        legacy_by_version.keys(), key=parse_version, reverse=True
     )
     images_by_version = {**amzn2023_by_version, **legacy_by_version}
 
