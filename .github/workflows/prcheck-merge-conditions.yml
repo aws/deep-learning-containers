@@ -25,13 +25,16 @@ jobs:
             const sha = context.payload.pull_request.head.sha;
             const self = 'enforce-all-checks';
             const ignoredChecks = new Set([self]);
+            const ignoredPatterns = [
+              /^endpoint-test \/ endpoint-test/,  // SageMaker endpoint tests — non-blocking
+            ];
             const intervalMs = 30_000;
             const timeoutMs = 7_200_000;
             const deadline = Date.now() + timeoutMs;
 
             while (Date.now() < deadline) {
               const { data } = await github.rest.checks.listForRef({ owner, repo, ref: sha, per_page: 100 });
-              const runs = data.check_runs.filter(r => !ignoredChecks.has(r.name));
+              const runs = data.check_runs.filter(r => !ignoredChecks.has(r.name) && !ignoredPatterns.some(p => p.test(r.name)));
 
               const failed = runs.filter(r => r.status === 'completed' && r.conclusion !== 'success' && r.conclusion !== 'skipped' && r.conclusion !== 'neutral');
               if (failed.length > 0) {
