@@ -6,9 +6,7 @@ Python 3.12.
 ## Latest Announcements
 
 **April 25, 2026** — vLLM 1.0.0 initial release on Amazon Linux 2023 with the simplified `server-cuda` tag family. Source is pinned to upstream vLLM
-commit [`6ef1efd5`](https://github.com/vllm-project/vllm/commit/6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e) (first included in upstream tags
-`v0.19.2rc0` / `v0.20.0rc1`); wheel reports as `0.19.1+amzn2023.6ef1efd5`. Coexists with the legacy Ubuntu-based vLLM images (see
-[vLLM (Ubuntu) Release Notes](../releasenotes/vllm/index.md)).
+commit [6ef1efd5](https://github.com/vllm-project/vllm/commit/6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e); wheel reports as `0.19.1+amzn2023.6ef1efd5`.
 
 ## Pull Commands
 
@@ -328,8 +326,7 @@ Notes on FP8: A100 GPUs lack native FP8 support (requires compute capability 8.9
 
 ## Release Notes
 
-See [vLLM Release Notes](../releasenotes/vllm-server/index.md) for version history and changelogs. Legacy Ubuntu-based images are tracked separately
-in [vLLM (Ubuntu) Release Notes](../releasenotes/vllm/index.md).
+See [vLLM Release Notes](../releasenotes/vllm-server/index.md) for version history and changelogs.
 
 ## Resources
 
