@@ -58,53 +58,6 @@ release_images:
       force_release: False
       public_registry: True
 
-  # PyTorch 2.7 Images
-  5:
-    framework: "pytorch"
-    version: "2.7.0"
-    customer_type: "ec2"
-    arch_type: "arm64"
-    training:
-      device_types: [ "gpu" ]
-      python_versions: [ "py312" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu128"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-      public_registry: True
-      enable_soci: True
-  6:
-    framework: "pytorch"
-    version: "2.7.1"
-    customer_type: "ec2"
-    arch_type: "x86"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: [ "py312" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu128"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-      public_registry: True
-      enable_soci: True
-  7:
-    framework: "pytorch"
-    version: "2.7.1"
-    customer_type: "sagemaker"
-    arch_type: "x86"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: [ "py312" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu128"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-      public_registry: True
-      enable_soci: True
-
   # PyTorch 2.8 Images
   8:
     framework: "pytorch"
