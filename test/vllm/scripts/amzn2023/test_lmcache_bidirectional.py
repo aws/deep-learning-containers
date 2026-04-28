@@ -8,7 +8,6 @@ These are lightweight unit tests — no GPU or multi-node setup required.
 """
 
 
-
 def test_config_fields():
     """pd_bidirectional and pd_peer_query_port config options exist."""
     from lmcache.v1.config import LMCacheEngineConfig
