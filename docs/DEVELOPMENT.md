@@ -130,13 +130,14 @@ Release notes are generated automatically for images with `announcements` and `p
 
    ```yaml
    display_names:
-     deprecation_notice: "Deprecation Notice"
+     repositories:
+       deprecation_notice: "Deprecation Notice"
    ```
 
 Sections render in YAML order as bullet lists.
 
 Section headers in optional sections are rendered via the section key.
-To format your optional section headers, add a new field in `docs/src/global.yml` under `display_names` section.
+To format your optional section headers, add a new field in `docs/src/global.yml` under `display_names.repositories`.
 Eg: deprecation_notice section will render its header as `## deprecation_notice` unless a formatted string is provided in `docs/src/global.yml`.
 
 ---
@@ -161,7 +162,8 @@ Eg: deprecation_notice section will render its header as `## deprecation_notice`
 
    ```yaml
    display_names:
-     my-repo: "My Repository"
+     repositories:
+       my-repo: "My Repository"
 
    table_order:
      - my-repo
@@ -208,7 +210,8 @@ Generally, this is only required if an image configuration file does not already
 `docs/src/global.yml` contains:
 
 - **Terminology:** `aws`, `dlc_long`, `sagemaker`, etc.
-- **display_names:** Repository and package display names
+- **display_names.repositories:** Repository and section-header display names (used in available_images.md, support_policy.md, and release-note titles)
+- **display_names.packages:** Package display labels rendered in the Core Packages table of release notes
 - **framework_groups:** Support policy consolidation groups
 - **table_order:** Order of tables displayed within the documentations website (eg: available_images.md and support_policy.md)
 - **platforms/accelerators:** Display mappings
@@ -230,7 +233,7 @@ For any changes required to the tutorial pages, create a new PR in
 
 | Error | Solution |
 | --- | --- |
-| "Display name not found" | Add repository to `display_names` in `global.yml` |
+| "Display name not found" | Add repository to `display_names.repositories` in `global.yml` |
 | "Inconsistent dates" | Ensure all images in same framework group/version have identical GA/EOP |
 | Images not appearing | Check repository is in `table_order` |
 | Release notes not generating | Ensure `announcements` and `packages` fields are present |

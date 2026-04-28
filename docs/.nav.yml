@@ -4,13 +4,9 @@ nav:
     - get_started/index.md
     - Using Deep Learning Containers: get_started/using_dlcs.md
     - Release Notifications: get_started/release_notifications.md
-  - Release Notes:
-    - releasenotes/index.md
-    - Base: releasenotes/base/index.md
-    - SGLang: releasenotes/sglang/index.md
-    - vLLM: releasenotes/vllm/index.md
-    - PyTorch: releasenotes/pytorch/index.md
-    - Tensorflow: releasenotes/tensorflow/index.md
+    - Ray: ray/index.md
+    - vLLM: vllm/index.md
+    - vLLM-Omni: vllm-omni/index.md
   - vLLM:
     - vllm/index.md
     - Quickstart: vllm/quickstart.md
@@ -18,9 +14,16 @@ nav:
     - Deployment: vllm/deployment.md
     - Supported Models: vllm/supported_models.md
     - Benchmarks: vllm/benchmarks.md
-    - Releases: vllm/releases.md
-    - Versioning: vllm/versioning.md
-    - Support Policy: vllm/support_policy.md
+  - Release Notes:
+    - releasenotes/index.md
+    - Base: releasenotes/base/index.md
+    - Ray: releasenotes/ray/index.md
+    - SGLang: releasenotes/sglang/index.md
+    - vLLM: releasenotes/vllm-server/index.md
+    - vLLM (Ubuntu): releasenotes/vllm/index.md
+    - vLLM-Omni: releasenotes/vllm-omni/index.md
+    - PyTorch: releasenotes/pytorch/index.md
+    - Tensorflow: releasenotes/tensorflow/index.md
   - Tutorials: tutorials
   - Reference:
     - reference/index.md

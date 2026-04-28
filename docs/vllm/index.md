@@ -37,9 +37,9 @@ Each vLLM {{ dlc_short }} image ships with:
 - [Deployment](deployment.md) — Deploy on {{ ec2 }}, {{ ecs }}, {{ eks }}, or {{ sagemaker }}
 - [Supported Models](supported_models.md) — Models tested with the {{ dlc_short }} images
 - [Benchmarks](benchmarks.md) — Performance numbers on {{ aws }} GPU instances
-- [Releases](releases.md) — Release history and release notes
-- [Versioning](versioning.md) — Simplified tag format and how to pick the right image
-- [Support Policy](support_policy.md) — GA/EOP lifecycle and patching
+- [Release Notes](../releasenotes/vllm-server/index.md) — Version history and release notes
+- [Available Images](../reference/available_images.md) — All published image URIs
+- [Support Policy](../reference/support_policy.md) — GA/EOP lifecycle and patching
 
 ## Upstream Documentation
 

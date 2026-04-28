@@ -29,7 +29,9 @@ aws ecr get-login-password --region us-west-2 | \
 docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:server-cuda
 ```
 
-For version pinning options (e.g., `server-cuda-v1.0.0`), see [Versioning](versioning.md).
+For version pinning options, see [Available Images](../reference/available_images.md). Tags follow the format `server-cuda[-vMAJOR[.MINOR[.PATCH]]]`:
+use `server-cuda` for the rolling latest, or pin with `server-cuda-v1`, `server-cuda-v1.0`, or `server-cuda-v1.0.0` for progressively stricter
+versions.
 
 ## Run on {{ ec2 }}
 

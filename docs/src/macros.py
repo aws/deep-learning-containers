@@ -16,5 +16,7 @@ def define_env(env):
         "latest_pytorch_training_ec2": get_latest_image_uri("pytorch-training", "ec2"),
         "latest_vllm_ec2": get_latest_image_uri("vllm", "ec2"),
         "latest_vllm_sagemaker": get_latest_image_uri("vllm", "sagemaker"),
+        "latest_vllm_server_ec2": get_latest_image_uri("vllm-server", "default"),
+        "latest_vllm_server_sagemaker": get_latest_image_uri("vllm-server", "sagemaker"),
         "latest_sglang_sagemaker": get_latest_image_uri("sglang", "sagemaker"),
     }
