@@ -21,6 +21,16 @@ smoke-test:
       fleet: "x86-g6e12xl-runner"
       extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
 
+    - name: "gemma-4-31b-it"
+      s3_model: "gemma-4-31b-it.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
+
+    - name: "gemma-4-e4b-it"
+      s3_model: "gemma-4-e4b-it.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+
   runner-scale-sets: []
 
 benchmark:
@@ -40,6 +50,28 @@ benchmark:
       s3_model: "gemma-4-26b-a4b-it.tar.gz"
       fleet: "x86-g6e12xl-runner"
       extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 20
+      min_rps: 0.15
+
+    - name: "gemma-4-31b-it"
+      s3_model: "gemma-4-31b-it.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 20
+      min_rps: 0.15
+
+    - name: "gemma-4-e4b-it"
+      s3_model: "gemma-4-e4b-it.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
       input_len: 512
       output_len: 128
       num_prompts: 64
