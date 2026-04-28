@@ -5,8 +5,8 @@ Python 3.12.
 
 ## Latest Announcements
 
-**vLLM 1.0.0** — Initial release on Amazon Linux 2023 with the simplified `server-cuda` tag family. Coexists with the legacy Ubuntu-based vLLM images
-(see [vLLM (Ubuntu) Release Notes](../releasenotes/vllm/index.md)).
+**vLLM 1.0.0** — Initial release on Amazon Linux 2023 with the simplified `server-cuda` tag family, bundling vLLM 0.19.1. Coexists with the legacy
+Ubuntu-based vLLM images (see [vLLM (Ubuntu) Release Notes](../releasenotes/vllm/index.md)).
 
 ## Pull Commands
 
@@ -35,7 +35,7 @@ The vLLM {{ dlc_short }} images are **curated builds**, not simple repackages of
 - **Opinionated testing** — validated against a selected suite of model-serving use cases relevant to {{ aws }} customers.
 - **Faster access with higher confidence** — delivers the latest advancements while maintaining reliability for real-world workloads.
 
-Each image ships with vLLM (OpenAI-compatible API server), PyTorch, CUDA, NCCL (multi-GPU), EFA (multi-node on EC2), and security patches from
+Each image ships with vLLM (OpenAI-compatible API server), PyTorch, CUDA, NCCL (multi-GPU), and security patches from
 {{ aws }}.
 
 For package versions included in each release, see the [Release Notes](../releasenotes/vllm-server/index.md).
@@ -90,20 +90,6 @@ Use `--ipc=host` for multi-GPU to enable shared memory between processes.
 | `g5.12xlarge` | 4× A10G (24 GB) | 96 GB | Medium models (8B–30B) |
 | `p4d.24xlarge` | 8× A100 (40 GB) | 320 GB | Large models (30B–70B) |
 | `p5.48xlarge` | 8× H100 (80 GB) | 640 GB | Very large models (70B+) |
-
-### Multi-Node Deployment
-
-For models that exceed a single node's memory, use pipeline parallelism with EFA networking on EFA-enabled instances (`p4d.24xlarge`, `p5.48xlarge`):
-
-```bash
-docker run --gpus all --ipc=host --network=host --privileged \
-  -e HF_TOKEN=<your_hf_token> \
-  -e NCCL_DEBUG=INFO \
-  {{ images.latest_vllm_server_ec2 }} \
-  --model meta-llama/Llama-3.1-405B-Instruct \
-  --tensor-parallel-size 8 --pipeline-parallel-size 2 \
-  --host 0.0.0.0 --port 8000
-```
 
 ### ECS / EKS
 
@@ -274,7 +260,6 @@ Any `SM_VLLM_*` env var is converted to a `--<name>` vLLM server argument (e.g.,
 | `--host` | Bind address | `localhost` |
 | `--port` | Server port | `8000` |
 | `--tensor-parallel-size` | Number of GPUs for tensor parallelism | `1` |
-| `--pipeline-parallel-size` | Number of pipeline parallel stages | `1` |
 | `--max-model-len` | Maximum sequence length | Model default |
 | `--gpu-memory-utilization` | Fraction of GPU memory to use | `0.9` |
 | `--enforce-eager` | Disable CUDA graph for debugging | `false` |
@@ -326,8 +311,8 @@ docker run --gpus all -p 8000:8000 \
 ## Benchmarks
 
 Sample throughput numbers produced by the
-[vllm_benchmark_test.sh](https://github.com/aws/deep-learning-containers/blob/main/scripts/vllm/benchmark/vllm_benchmark_test.sh) script with input
-length 1024, output length 128, saturated concurrency.
+[vllm_benchmark_test.sh](https://github.com/aws/deep-learning-containers/blob/main/test/vllm/scripts/benchmark/vllm_benchmark_test.sh) script with
+input length 1024, output length 128, saturated concurrency.
 
 | Model | Instance Type | TP | Output tok/s |
 | --- | --- | --- | --- |
