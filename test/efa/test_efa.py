@@ -15,7 +15,6 @@ from efa.ec2_helpers import (
     DEFAULT_TIMEOUT,
     HOSTS_FILE_LOCATION,
     MASTER_CONTAINER_NAME,
-    WORKER_CONTAINER_NAME,
     efa_instances,
     run_on_container,
 )
@@ -42,20 +41,6 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         worker_conn,
         aws_session,
     ):
-        # Build nccl-tests on both nodes
-        run_on_container(
-            MASTER_CONTAINER_NAME,
-            master_conn,
-            "/test/efa/scripts/build_nccl_tests.sh",
-            timeout=DEFAULT_TIMEOUT,
-        )
-        run_on_container(
-            WORKER_CONTAINER_NAME,
-            worker_conn,
-            "/test/efa/scripts/build_nccl_tests.sh",
-            timeout=DEFAULT_TIMEOUT,
-        )
-
         # EFA sanity on master
         run_on_container(
             MASTER_CONTAINER_NAME,

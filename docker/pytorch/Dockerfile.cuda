@@ -171,6 +171,19 @@ RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
 COPY scripts/pytorch/configure_nccl.sh /tmp/configure_nccl.sh
 RUN bash /tmp/configure_nccl.sh && rm /tmp/configure_nccl.sh
 
+# NCCL tests binary (all_reduce_perf) — used by CI EFA tests and available to
+# customers for verifying EFA/NCCL connectivity before training.
+RUN NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
+    if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
+      ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
+    fi && \
+    cd /tmp && \
+    curl -fsSL https://github.com/NVIDIA/nccl-tests/archive/refs/heads/master.tar.gz | tar xz && \
+    cd nccl-tests-master && \
+    make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=${NCCL_HOME} CUDA_HOME=/usr/local/cuda && \
+    cp build/all_reduce_perf /usr/local/bin/all_reduce_perf && \
+    cd / && rm -rf /tmp/nccl-tests-master
+
 
 # ── Stage: runtime (EC2 / ECS) ──────────────────────────────────────
 FROM runtime-base AS runtime
