@@ -1,5 +1,5 @@
 framework: vLLM
-version: "1.0.0"
+version: "0.19.1+amzn2023.6ef1efd5"
 ecr_repository: vllm
 accelerator: gpu
 python: py312
