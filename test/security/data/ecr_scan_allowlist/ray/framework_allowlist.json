@@ -14,5 +14,10 @@
     {
         "vulnerability_id": "CVE-2026-22815",
         "reason": "ray 2.54.1 bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34480",
+        "reason": "ray 2.54.1 bundles log4j-core 2.17.1 in ray_dist.jar. Fix: upgrade to >=2.25.4",
+        "review_by": "2026-05-04"
     }
 ]
