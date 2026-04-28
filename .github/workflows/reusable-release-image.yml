@@ -306,7 +306,10 @@ jobs:
   step4-docs-pr:
     needs: [step1-publish-images, step3-publish-notifications]
     if: needs.step1-publish-images.outputs.images-published == '1' && inputs.environment == 'production' && !inputs.publish-only && !inputs.skip-docs-pr
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
     steps:
       - name: Decode the GitHub App Private Key
         id: decode
