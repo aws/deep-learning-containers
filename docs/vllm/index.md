@@ -22,9 +22,8 @@ docker pull {{ images.latest_vllm_server_ec2 }}
 docker pull {{ images.latest_vllm_server_sagemaker }}
 ```
 
-Tags follow `server-cuda[-vMAJOR[.MINOR[.PATCH]]]` — use `server-cuda` for the rolling latest, or pin with `server-cuda-v1`, `server-cuda-v1.0`, or
-`server-cuda-v1.0.0` for progressively stricter versions. See [Available Images](../reference/available_images.md) for all image URIs and
-[Getting Started](../get_started/index.md) for authentication instructions.
+See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication
+instructions.
 
 ## How We Build
 
