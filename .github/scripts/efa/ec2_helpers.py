@@ -92,6 +92,52 @@ def get_efa_security_group_id(aws_session, name=EFA_SG_NAME):
     return resp["SecurityGroups"][0]["GroupId"]
 
 
+def authorize_runner_ssh(aws_session, sg_id, runner_ip, description):
+    """Add ingress rule allowing SSH from the runner's IP to the permanent SG.
+
+    Idempotent: if the rule already exists, logs and continues.
+    """
+    from botocore.exceptions import ClientError
+
+    try:
+        aws_session.ec2.authorize_security_group_ingress(
+            GroupId=sg_id,
+            IpPermissions=[
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "IpRanges": [{"CidrIp": f"{runner_ip}/32", "Description": description}],
+                }
+            ],
+        )
+        LOGGER.info(f"Authorized SSH from {runner_ip}/32 on SG {sg_id} ({description})")
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "InvalidPermission.Duplicate":
+            LOGGER.info(f"SSH ingress from {runner_ip}/32 already exists on SG {sg_id}")
+        else:
+            raise
+
+
+def revoke_runner_ssh(aws_session, sg_id, runner_ip):
+    """Remove the SSH ingress rule for the runner's IP. Silent on error (cleanup path)."""
+    try:
+        aws_session.ec2.revoke_security_group_ingress(
+            GroupId=sg_id,
+            IpPermissions=[
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "IpRanges": [{"CidrIp": f"{runner_ip}/32"}],
+                }
+            ],
+        )
+        LOGGER.info(f"Revoked SSH from {runner_ip}/32 on SG {sg_id}")
+    except Exception as e:
+        LOGGER.warning(f"Failed to revoke SSH from {runner_ip}/32 on SG {sg_id}: {e}")
+
+
 def get_available_reservations(aws_session, instance_type, min_count=1):
     """Get capacity reservations with available instances, sorted by availability."""
     response = aws_session.ec2.describe_capacity_reservations(
@@ -301,15 +347,24 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     """
     aws_session = AWSSessionManager(region=region)
     ami_id = aws_session.get_latest_ami()
-    key_name, key_path = aws_session.create_key_pair()
     sg_id = get_efa_security_group_id(aws_session)
 
+    key_name = None
+    key_path = None
+    runner_ip = None
     master_id = None
     worker_id = None
     master_eip_alloc = None
     worker_eip_alloc = None
 
     try:
+        key_name, key_path = aws_session.create_key_pair()
+
+        # Authorize SSH from this runner's public IP on the permanent SG.
+        # Permanent SG allows corp prefix list only; CodeBuild runner IPs aren't in it.
+        runner_ip = aws_session.get_codebuild_runner_public_ip()
+        ssh_rule_description = f"efa-test-runner-{key_name}"
+        authorize_runner_ssh(aws_session, sg_id, runner_ip, ssh_rule_description)
         # Tries each reservation on capacity errors.
         instance_ids = launch_efa_instances(
             aws_session, ami_id, instance_type, key_name, sg_id, count=2, name="efa-test"
@@ -381,4 +436,7 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
             release_eip(aws_session, master_eip_alloc)
         if worker_eip_alloc:
             release_eip(aws_session, worker_eip_alloc)
-        aws_session.delete_key_pair(key_name, key_path)
+        if runner_ip:
+            revoke_runner_ssh(aws_session, sg_id, runner_ip)
+        if key_name:
+            aws_session.delete_key_pair(key_name, key_path)
