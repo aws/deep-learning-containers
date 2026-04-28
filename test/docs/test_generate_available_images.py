@@ -57,7 +57,15 @@ def test_empty_repo_skipped(mock_paths):
     patched_config = {
         **GLOBAL_CONFIG,
         "table_order": ["nonexistent-repo"],
-        "display_names": {**GLOBAL_CONFIG.get("display_names", {}), "nonexistent-repo": "None"},
+        "display_names": {
+            "repositories": {
+                **GLOBAL_CONFIG.get("display_names", {}).get("repositories", {}),
+                "nonexistent-repo": "None",
+            },
+            "packages": {
+                **GLOBAL_CONFIG.get("display_names", {}).get("packages", {}),
+            },
+        },
     }
     with patch("generate.GLOBAL_CONFIG", patched_config):
         with patch("utils.GLOBAL_CONFIG", patched_config):
