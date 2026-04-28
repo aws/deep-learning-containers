@@ -36,17 +36,13 @@ validate_all_reduce_performance_logs(){
 }
 
 check_efa_nccl_all_reduce_performance(){
-    # Match V1: col 11 on the 1 GiB row (in-place algbw). Inherits V1's sed cleanup
-    # that strips trailing whitespace / noise tokens seen with older nccl-tests builds.
+    # Match V1: col 11 on the 1 GiB row (in-place algbw).
     benchmark=$(cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{print $11}' | sed 's/ //' | sed 's/  5e-07//')
     echo "Benchmark throughput: ${benchmark}"
     if [[ -z "${benchmark}" ]]; then
         echo "benchmark variable is empty"
         exit 1
     fi
-    # The standard throughput should be at least 41 GB/s for 2 p4d with 4 EFA devices.
-    # Threshold set to 3 GB/s — enough to distinguish EFA (10s of GB/s) from TCP
-    # fallback (~1 GB/s). Matches V1.
     PERFORMANCE_THRESHOLD="3"
     if [[ $(echo "$benchmark $PERFORMANCE_THRESHOLD" | awk '{print ($1 >= $2)}') == 1 ]]; then
         echo "check_efa_nccl_all_reduce_performance passed"

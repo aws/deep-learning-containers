@@ -29,10 +29,10 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
 
     Verifies:
     - EFA provider detected (fi_info -p efa)
-    - fi_pingpong over EFA loopback works
+    - fi_pingpong over EFA loopback
     - RDMA devices present (ibv_devinfo)
     - GPU Direct RDMA (GDR) available
-    - NCCL uses EFA transport (NET/OFI, "Selected provider is efa")
+    - NCCL uses EFA transport ("Selected provider is efa")
     - NCCL uses Libfabric ("Using network Libfabric")
     - NCCL uses GDRDMA on p4d/p5 ("NET/Libfabric/0/GDRDMA")
     - all_reduce bandwidth >= 3 GB/s on the 1 GiB message size

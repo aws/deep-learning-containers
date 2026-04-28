@@ -9,12 +9,11 @@ export PATH=/opt/amazon/efa/bin:$PATH
 fi_info -p efa
 fi_info -p efa -t FI_EP_RDM | grep 'FI_EP_RDM'
 
-# Check if ib_uverbs kernel module is loaded (use /sys/module — AL2023 minimal has no `lsmod`)
+# Check ib_uverbs kernel module is loaded.
 test -d /sys/module/ib_uverbs
 
 # Run fi_pingpong over EFA loopback
-# TMP: disabled — loopback pingpong is flaky; cross-node NCCL test is the real validation.
-# /test/efa/scripts/efa_pingpong.sh
+/test/efa/scripts/efa_pingpong.sh
 
 # Query local RDMA devices
 ibv_devinfo
