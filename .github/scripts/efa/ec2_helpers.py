@@ -138,6 +138,53 @@ def revoke_runner_ssh(aws_session, sg_id, runner_ip):
         LOGGER.warning(f"Failed to revoke SSH from {runner_ip}/32 on SG {sg_id}: {e}")
 
 
+def cleanup_stale_runner_ssh_rules(aws_session, sg_id, description_prefix="efa-test-runner-"):
+    """Revoke stale port-22 ingress CIDR rules left by killed/crashed previous runs.
+
+    Only touches rules whose Description starts with `description_prefix`. Leaves
+    prefix-list rules, self-referencing rules, and any manually-added rules intact.
+    """
+    resp = aws_session.ec2.describe_security_groups(GroupIds=[sg_id])
+    if not resp["SecurityGroups"]:
+        return
+
+    stale_cidrs = []
+    for perm in resp["SecurityGroups"][0].get("IpPermissions", []):
+        if (
+            perm.get("IpProtocol") != "tcp"
+            or perm.get("FromPort") != 22
+            or perm.get("ToPort") != 22
+        ):
+            continue
+        for ip_range in perm.get("IpRanges", []):
+            desc = ip_range.get("Description", "")
+            cidr = ip_range.get("CidrIp")
+            if cidr and desc.startswith(description_prefix):
+                stale_cidrs.append(cidr)
+
+    if not stale_cidrs:
+        LOGGER.info(f"No stale runner SSH rules on SG {sg_id}")
+        return
+
+    LOGGER.info(f"Cleaning up {len(stale_cidrs)} stale runner SSH rule(s) on SG {sg_id}")
+    for cidr in stale_cidrs:
+        try:
+            aws_session.ec2.revoke_security_group_ingress(
+                GroupId=sg_id,
+                IpPermissions=[
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "IpRanges": [{"CidrIp": cidr}],
+                    }
+                ],
+            )
+            LOGGER.info(f"Revoked stale rule {cidr} on SG {sg_id}")
+        except Exception as e:
+            LOGGER.warning(f"Failed to revoke stale rule {cidr} on SG {sg_id}: {e}")
+
+
 def get_available_reservations(aws_session, instance_type, min_count=1):
     """Get capacity reservations with available instances, sorted by availability."""
     response = aws_session.ec2.describe_capacity_reservations(
@@ -360,12 +407,16 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     try:
         key_name, key_path = aws_session.create_key_pair()
 
+        # Clean up stale runner SSH rules from any previous test that failed to clean up
+        # (e.g., runner process killed). Only touches rules our test created.
+        cleanup_stale_runner_ssh_rules(aws_session, sg_id)
+
         # Authorize SSH from this runner's public IP on the permanent SG.
         # Permanent SG allows corp prefix list only; CodeBuild runner IPs aren't in it.
         runner_ip = aws_session.get_codebuild_runner_public_ip()
         ssh_rule_description = f"efa-test-runner-{key_name}"
         authorize_runner_ssh(aws_session, sg_id, runner_ip, ssh_rule_description)
-        # Tries each reservation on capacity errors.
+
         instance_ids = launch_efa_instances(
             aws_session, ami_id, instance_type, key_name, sg_id, count=2, name="efa-test"
         )
