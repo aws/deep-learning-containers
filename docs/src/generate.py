@@ -80,15 +80,26 @@ def _generate_framework_index(
     columns = table_config["columns"]
     headers = [col["header"] for col in columns]
 
-    # Group images by major.minor version
-    images_by_version: dict[str, list[ImageConfig]] = {}
-    for img in images:
-        ver = parse_version(img.version)
-        major_minor = f"{ver.major}.{ver.minor}"
-        images_by_version.setdefault(major_minor, []).append(img)
+    # Split images by OS: AL2023 images first, then legacy (Ubuntu etc.)
+    amzn2023_images = [img for img in images if img.get("os", "") == "amzn2023"]
+    legacy_images = [img for img in images if img.get("os", "") != "amzn2023"]
 
-    # Sort framework versions descending
-    sorted_versions = sorted(images_by_version.keys(), key=parse_version, reverse=True)
+    # Group images by major.minor version within each OS group
+    def _group_by_version(img_list):
+        by_version: dict[str, list[ImageConfig]] = {}
+        for img in img_list:
+            ver = parse_version(img.version)
+            major_minor = f"{ver.major}.{ver.minor}"
+            by_version.setdefault(major_minor, []).append(img)
+        return by_version
+
+    # Build ordered version list: AL2023 versions first (descending), then legacy (descending)
+    amzn2023_by_version = _group_by_version(amzn2023_images)
+    legacy_by_version = _group_by_version(legacy_images)
+    sorted_versions = sorted(amzn2023_by_version.keys(), key=parse_version, reverse=True) + sorted(
+        legacy_by_version.keys(), key=parse_version, reverse=True
+    )
+    images_by_version = {**amzn2023_by_version, **legacy_by_version}
 
     # Build version-separated content for supported and deprecated
     supported_sections, deprecated_sections = [], []
@@ -105,16 +116,27 @@ def _generate_framework_index(
         supported = [img for img in sorted_images if img.is_supported]
         deprecated = [img for img in sorted_images if not img.is_supported]
 
+        # Add OS label to header if images have mixed OS types in this framework
+        os_label = ""
+        version_display = version
+        if amzn2023_images and legacy_images:
+            sample_os = sorted_images[0].get("os", "")
+            if sample_os == "amzn2023":
+                os_label = " (Amazon Linux 2023)"
+                version_display = f"v{version.split('.')[0]}"
+            else:
+                os_label = " (Ubuntu)"
+
         if supported:
             table = render_table(headers, [build_image_row(img, columns) for img in supported])
             supported_sections.append(
-                f"{RELEASE_NOTES_TABLE_HEADER} {framework_display} {version}\n\n{table}"
+                f"{RELEASE_NOTES_TABLE_HEADER} {framework_display} {version_display}{os_label}\n\n{table}"
             )
 
         if deprecated:
             table = render_table(headers, [build_image_row(img, columns) for img in deprecated])
             deprecated_sections.append(
-                f"{RELEASE_NOTES_TABLE_HEADER} {framework_display} {version}\n\n{table}"
+                f"{RELEASE_NOTES_TABLE_HEADER} {framework_display} {version_display}{os_label}\n\n{table}"
             )
 
     content = template.render(
@@ -376,9 +398,12 @@ def generate_available_images(dry_run: bool = False) -> str:
 
         section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
         if has_public_registry:
-            url = f"{PUBLIC_GALLERY_URL}/{repository}"
+            # Use ecr_repository from images (falls back to data-dir key when unset) so display
+            # reflects the actual ECR repo when the data-dir key differs (e.g., vllm-omni -> vllm).
+            ecr_repo = images[0].ecr_repository if images else repository
+            url = f"{PUBLIC_GALLERY_URL}/{ecr_repo}"
             section += (
-                f"\nThese images are also available in ECR Public Gallery: [{repository}]({url})\n"
+                f"\nThese images are also available in ECR Public Gallery: [{ecr_repo}]({url})\n"
             )
         if table_config.get("note"):
             section += f"\n{table_config['note']}\n"

@@ -137,13 +137,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   PYTHONIOENCODING=UTF-8 \
   LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
-  DLC_CONTAINER_TYPE=training
+  DLC_CONTAINER_TYPE=training \
+  CUDA_HOME=/usr/local/cuda
 
 # Derive cuda-nvcc package name: 12.8.1 → cuda-nvcc-12-8
 RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip curl which findutils \
-    util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} gcc gcc-c++ \
+    util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} gcc gcc-c++ make \
   && dnf clean all
 
 # Python venv (base packages from builder-base, then overlay compiled packages)
@@ -169,6 +170,19 @@ RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
 # NCCL config
 COPY scripts/pytorch/configure_nccl.sh /tmp/configure_nccl.sh
 RUN bash /tmp/configure_nccl.sh && rm /tmp/configure_nccl.sh
+
+# NCCL tests binary (all_reduce_perf) — used by CI EFA tests and available to
+# customers for verifying EFA/NCCL connectivity before training.
+RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
+    if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
+      ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
+    fi && \
+    cd /tmp && \
+    curl -fsSL https://github.com/NVIDIA/nccl-tests/archive/refs/heads/master.tar.gz | tar xz && \
+    cd nccl-tests-master && \
+    make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=${NCCL_HOME} CUDA_HOME=/usr/local/cuda && \
+    cp build/all_reduce_perf /usr/local/bin/all_reduce_perf && \
+    cd / && rm -rf /tmp/nccl-tests-master
 
 
 # ── Stage: runtime (EC2 / ECS) ──────────────────────────────────────
@@ -210,7 +224,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 
 # PATH and LD_LIBRARY_PATH
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
-  LD_LIBRARY_PATH="/opt/venv/lib/python3.12/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
+  LD_LIBRARY_PATH="/opt/venv/lib/python3.12/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
 EXPOSE 22
 WORKDIR /workspace
@@ -274,7 +288,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 
 # PATH and LD_LIBRARY_PATH
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
-  LD_LIBRARY_PATH="/opt/venv/lib/python3.12/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
+  LD_LIBRARY_PATH="/opt/venv/lib/python3.12/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
 EXPOSE 22
 WORKDIR /workspace
