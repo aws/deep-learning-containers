@@ -107,6 +107,12 @@ jobs:
           source docker/pytorch/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-${TORCH_VERSION}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-${{ github.run_id }}"
 
+          # Derive label values to match check_labels.py expectations
+          FRAMEWORK_LABEL=$(echo "${{ needs.load-config.outputs.framework }}" | tr '_' '-')
+          FWK_VER_LABEL=$(echo "${{ needs.load-config.outputs.framework-version }}" | tr '.' '-')
+          CUDA_LABEL="${{ needs.load-config.outputs.cuda-version }}"
+          OS_LABEL=$(echo "${{ needs.load-config.outputs.os-version }}" | tr '.' '-')
+
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
@@ -118,13 +124,13 @@ jobs:
             --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
             --build-arg EFA_VERSION=${EFA_VERSION} \
             --build-arg MAX_JOBS=${MAX_JOBS} \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.framework.pytorch.${TORCH_VERSION//./-}=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.device.gpu.cu130=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.job.training=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.x86=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.os.amzn2023=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.py312=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.None=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.framework.${FRAMEWORK_LABEL}.${FWK_VER_LABEL}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.device.gpu.${CUDA_LABEL}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.job.${{ needs.load-config.outputs.container-type }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.${{ needs.load-config.outputs.arch-type }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.os.${OS_LABEL}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.${{ needs.load-config.outputs.python-version }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.${{ needs.load-config.outputs.contributor }}=true" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
