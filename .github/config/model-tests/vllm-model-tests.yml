@@ -90,8 +90,8 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 20
-      min_rps: 0.15
+      min_throughput: 300
+      min_rps: 2.4
 
     - name: "gemma-4-31b-it"
       s3_model: "gemma-4-31b-it.tar.gz"
@@ -101,8 +101,8 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 20
-      min_rps: 0.15
+      min_throughput: 150
+      min_rps: 1.2
 
     - name: "gemma-4-e4b-it"
       s3_model: "gemma-4-e4b-it.tar.gz"
@@ -112,8 +112,8 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 20
-      min_rps: 0.15
+      min_throughput: 680
+      min_rps: 5.3
 
     - name: "qwen3.5-9b"
       s3_model: "qwen3.5-9b.tar.gz"
