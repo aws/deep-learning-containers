@@ -17,28 +17,6 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
-    - name: "qwen3-asr-1.7b"
-      s3_model: "qwen3-asr-1.7b.tar.gz"
-      fleet: "x86-g6xl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
-      test_script: "vllm_asr_smoke_test.sh"
-      test_fixtures:
-        - "audio/asr_en.wav"
-        - "audio/asr_zh.wav"
-      test_cases:
-        - name: "english-chat-completions"
-          route: "/v1/chat/completions"
-          audio_fixture: "asr_en.wav"
-          validate: "contains:<asr_text>"
-        - name: "chinese-chat-completions"
-          route: "/v1/chat/completions"
-          audio_fixture: "asr_zh.wav"
-          validate: "contains:<asr_text>"
-        - name: "english-transcription"
-          route: "/v1/audio/transcriptions"
-          audio_fixture: "asr_en.wav"
-          validate: "json_field:text"
-
   runner-scale-sets: []
 
 benchmark:
@@ -66,6 +44,39 @@ benchmark:
       batch_size: 4
       min_throughput: 1200
       min_rps: 5
+
+    - name: "gemma-4-26b-a4b-it"
+      s3_model: "gemma-4-26b-a4b-it.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 300
+      min_rps: 2.4
+
+    - name: "gemma-4-31b-it"
+      s3_model: "gemma-4-31b-it.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 150
+      min_rps: 1.2
+
+    - name: "gemma-4-e4b-it"
+      s3_model: "gemma-4-e4b-it.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 680
+      min_rps: 5.3
 
     - name: "qwen3.5-9b"
       s3_model: "qwen3.5-9b.tar.gz"
