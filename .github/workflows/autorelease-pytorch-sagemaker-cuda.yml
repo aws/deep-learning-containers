@@ -118,6 +118,13 @@ jobs:
             --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
             --build-arg EFA_VERSION=${EFA_VERSION} \
             --build-arg MAX_JOBS=${MAX_JOBS} \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.framework.pytorch.${TORCH_VERSION//./-}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.device.gpu.cu130=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.job.training=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.x86=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.os.amzn2023=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.py312=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.None=true" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
