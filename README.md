@@ -28,14 +28,15 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/04/28]** [vLLM v0.20.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.20-gpu-py312-ec2` · SageMaker: `0.20-gpu-py312` · Introduces support for DeepSeek V4.
 - **[2026/04/20]** [vLLM v0.19.1](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.19-gpu-py312-ec2` · SageMaker: `0.19-gpu-py312` · This upgrades Transformers to 5.5.4, enabling Gemma 4 support.
 - **[2026/04/07]** [SGLang v0.5.10](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.10-gpu-py312-ec2` · SageMaker: `0.5.10-gpu-py312`
 - **[2026/04/07]** [vLLM v0.19.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.19-gpu-py312-ec2` · SageMaker: `0.19-gpu-py312`
 - **[2026/03/26]** [vLLM v0.18.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.18-gpu-py312-ec2` · SageMaker: `0.18-gpu-py312`
-- **[2026/03/23]** [PyTorch Training v2.10.0](https://gallery.ecr.aws/deep-learning-containers/pytorch-training) — EC2: `2.10.0-gpu-py313-cu130-ubuntu22.04-ec2` · SageMaker: `2.10.0-gpu-py313-cu130-ubuntu22.04-sagemaker`
 
 ### 📢 Support Updates
 
+- **[2026/04/28]** We cannot guarantee security patching on Ubuntu-based vLLM and SGLang images due to the lack of Ubuntu Pro licensing. Customers may continue using these images at their own discretion and risk. We recommend migrating to our Amazon Linux-based images.
 - **[2026/02/10]** Extended support for PyTorch 2.6 Inference containers until June 30, 2026
   - PyTorch 2.6 Inference images will continue to receive security patches and updates through end of June 2026
   - For complete framework support timelines, see our [Support Policy](https://aws.github.io/deep-learning-containers/reference/support_policy/)
