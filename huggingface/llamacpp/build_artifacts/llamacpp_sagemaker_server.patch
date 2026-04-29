@@ -1,0 +1,133 @@
+--- a/tools/server/server.cpp
++++ b/tools/server/server.cpp
+@@ -11,7 +11,9 @@
+ #include "llama.h"
+ #include "log.h"
+ 
++#include <algorithm>
+ #include <atomic>
++#include <cctype>
+ #include <clocale>
+ #include <exception>
+ #include <signal.h>
+@@ -69,6 +71,81 @@
+         }
+         return res;
+     };
++}
++
++static std::string sagemaker_header(const server_http_req & req, const std::string & name) {
++    for (const auto & h : req.headers) {
++        std::string key = h.first;
++        std::transform(key.begin(), key.end(), key.begin(), [](unsigned char c) { return std::tolower(c); });
++        if (key == name) {
++            return h.second;
++        }
++    }
++    return "";
++}
++
++static std::string sagemaker_route_from_attrs(const server_http_req & req) {
++    const std::string attrs = sagemaker_header(req, "x-amzn-sagemaker-custom-attributes");
++    const std::string key = "route=";
++    const size_t pos = attrs.find(key);
++    if (pos == std::string::npos) {
++        return "";
++    }
++    const size_t start = pos + key.size();
++    const size_t end = attrs.find_first_of(",; \t\r\n", start);
++    return attrs.substr(start, end == std::string::npos ? std::string::npos : end - start);
++}
++
++static bool sagemaker_route_syntax_ok(const std::string & route) {
++    return !route.empty() && route[0] == '/' && route.find("..") == std::string::npos &&
++           route.find("://") == std::string::npos && route.find('?') == std::string::npos &&
++           route.find('#') == std::string::npos;
++}
++
++static std::string sagemaker_default_route(const server_http_req & req) {
++    const json body = json::parse(req.body, nullptr, false);
++    if (body.is_object()) {
++        if (body.contains("messages")) {
++            return "/v1/chat/completions";
++        }
++        if (body.contains("prompt")) {
++            return "/v1/completions";
++        }
++        if (body.contains("input")) {
++            return "/v1/embeddings";
++        }
++    }
++    return "/v1/chat/completions";
++}
++
++static server_http_res_ptr sagemaker_error(int status, const std::string & message) {
++    auto res = std::make_unique<server_http_res>();
++    res->status = status;
++    res->data = safe_json_to_str({
++        { "error", {
++            { "code", status },
++            { "message", message },
++            { "type", "invalid_request_error" },
++        } },
++    });
++    return res;
++}
++
++static server_http_res_ptr sagemaker_invocations(
++        const server_http_req & req,
++        const std::map<std::string, server_http_context::handler_t> & routes) {
++    const std::string requested = sagemaker_route_from_attrs(req);
++    const std::string route = requested.empty() ? sagemaker_default_route(req) : requested;
++    if (!sagemaker_route_syntax_ok(route)) {
++        return sagemaker_error(400, "invalid SageMaker route: " + route);
++    }
++    const auto it = routes.find(route);
++    if (it == routes.end()) {
++        return sagemaker_error(400, "unsupported SageMaker route: " + route);
++    }
++    server_http_req routed_req = req;
++    routed_req.path = route;
++    return it->second(routed_req);
+ }
+ 
+ int main(int argc, char ** argv) {
+@@ -169,6 +246,38 @@
+         ctx_http.post("/models/unload",        ex_wrapper(models_routes->post_router_models_unload));
+     }
+ 
++
++    const std::map<std::string, server_http_context::handler_t> sagemaker_routes = {
++        {"/props", routes.post_props},
++        {"/completion", routes.post_completions},
++        {"/completions", routes.post_completions},
++        {"/v1/completions", routes.post_completions_oai},
++        {"/chat/completions", routes.post_chat_completions},
++        {"/v1/chat/completions", routes.post_chat_completions},
++        {"/v1/responses", routes.post_responses_oai},
++        {"/responses", routes.post_responses_oai},
++        {"/v1/audio/transcriptions", routes.post_transcriptions_oai},
++        {"/audio/transcriptions", routes.post_transcriptions_oai},
++        {"/v1/messages", routes.post_anthropic_messages},
++        {"/v1/messages/count_tokens", routes.post_anthropic_count_tokens},
++        {"/infill", routes.post_infill},
++        {"/embedding", routes.post_embeddings},
++        {"/embeddings", routes.post_embeddings},
++        {"/v1/embeddings", routes.post_embeddings_oai},
++        {"/rerank", routes.post_rerank},
++        {"/reranking", routes.post_rerank},
++        {"/v1/rerank", routes.post_rerank},
++        {"/v1/reranking", routes.post_rerank},
++        {"/tokenize", routes.post_tokenize},
++        {"/detokenize", routes.post_detokenize},
++        {"/apply-template", routes.post_apply_template},
++        {"/lora-adapters", routes.post_lora_adapters},
++    };
++
++    ctx_http.get ("/ping", ex_wrapper(routes.get_health)); // SageMaker health endpoint
++    ctx_http.post("/invocations", ex_wrapper([&sagemaker_routes](const server_http_req & req) {
++        return sagemaker_invocations(req, sagemaker_routes);
++    }));
+     ctx_http.get ("/health",                   ex_wrapper(routes.get_health)); // public endpoint (no API key check)
+     ctx_http.get ("/v1/health",                ex_wrapper(routes.get_health)); // public endpoint (no API key check)
+     ctx_http.get ("/metrics",                  ex_wrapper(routes.get_metrics));

@@ -30,8 +30,8 @@ def _predictor(image, sagemaker_local_session, instance_type):
     """Context manager for Llama.cpp model deployment and cleanup.
 
     Model is extracted to /opt/ml/model by SageMaker from model_data tar.gz.
-    The container entrypoint runs llama-server behind a SageMaker-compatible
-    proxy on port 8080 (/ping, /invocations -> OpenAI routes on llama-server).
+    The container entrypoint runs a custom llama-server build with
+    SageMaker-compatible /ping and /invocations routes on port 8080.
     """
     # Download model from HuggingFace Hub if not already present
     model_data_path = ensure_model_downloaded()
@@ -81,7 +81,7 @@ def _assert_llamacpp_chat_prediction(predictor):
 
 
 def _assert_llamacpp_chat_prediction_explicit_route(predictor):
-    """Same as chat test but forces target path via SageMaker CustomAttributes (proxy route=)."""
+    """Same as chat test but forces target path via SageMaker CustomAttributes route=."""
     predictor.serializer = JSONSerializer()
     predictor.deserializer = JSONDeserializer()
 

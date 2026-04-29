@@ -28,9 +28,9 @@ context:
     sagemaker_entrypoint:
       source: build_artifacts/sagemaker_entrypoint.sh
       target: sagemaker_entrypoint.sh
-    llamacpp_sagemaker_serve:
-      source: build_artifacts/llamacpp_sagemaker_serve.py
-      target: llamacpp_sagemaker_serve.py
+    llamacpp_sagemaker_server_patch:
+      source: build_artifacts/llamacpp_sagemaker_server.patch
+      target: llamacpp_sagemaker_server.patch
 
 
 images:

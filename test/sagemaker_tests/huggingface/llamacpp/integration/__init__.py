@@ -86,10 +86,8 @@ def ensure_model_downloaded():
 ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 45
 
-# Llama.cpp SageMaker images listen on port 8080 with a small HTTP shim (/ping,
-# /invocations) that proxies to llama-server on loopback (see llamacpp_sagemaker_serve).
-# Do not set SM_LLAMACPP_HOST or SM_LLAMACPP_PORT expecting external access to
-# llama-server; the entrypoint pins the server to localhost and exposes the shim on 8080.
+# Llama.cpp SageMaker images listen on port 8080 with a custom llama-server build
+# that serves SageMaker-compatible /ping and /invocations routes directly.
 
 
 class NoLogStreamFoundError(Exception):

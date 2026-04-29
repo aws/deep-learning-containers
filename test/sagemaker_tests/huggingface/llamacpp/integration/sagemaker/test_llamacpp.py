@@ -106,7 +106,7 @@ def _test_llamacpp_model(
         assert output is not None
         assert "choices" in output
 
-        # Explicit route= mirrors vLLM-Omni-style CustomAttributes routing in the container proxy.
+        # Explicit route= uses SageMaker CustomAttributes routing in the custom llama-server build.
         output_routed = predictor.predict(
             data,
             custom_attributes="route=/v1/chat/completions",

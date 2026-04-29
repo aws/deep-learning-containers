@@ -1,0 +1,74 @@
+ARG UBUNTU_VERSION=24.04
+ARG LLAMACPP_VERSION=b8882
+
+FROM ubuntu:${UBUNTU_VERSION} AS build
+
+ARG LLAMACPP_VERSION
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        cmake \
+        gcc-14 \
+        g++-14 \
+        git \
+        libgomp1 \
+        libssl-dev \
+        patch \
+        python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CC=gcc-14 \
+    CXX=g++-14
+
+WORKDIR /src/llama.cpp
+
+RUN git clone --branch "${LLAMACPP_VERSION}" --depth 1 https://github.com/ggml-org/llama.cpp.git .
+
+COPY llamacpp_sagemaker_server.patch /tmp/llamacpp_sagemaker_server.patch
+
+RUN patch -p1 < /tmp/llamacpp_sagemaker_server.patch
+RUN cmake -B build \
+    -DGGML_NATIVE=OFF \
+    -DGGML_BACKEND_DL=ON \
+    -DGGML_CPU_ALL_VARIANTS=ON \
+    -DLLAMA_BUILD_TESTS=OFF \
+    . \
+    && cmake --build build --config Release -j"$(nproc)" --target llama-server
+
+RUN mkdir -p /app/lib \
+    && find build -name "*.so*" -exec cp -P {} /app/lib \; \
+    && cp build/bin/llama-server /app/llama-server
+
+FROM ubuntu:${UBUNTU_VERSION} AS base
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+WORKDIR /app
+
+ENV LD_LIBRARY_PATH=/app:${LD_LIBRARY_PATH}
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        libgomp1 \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /tmp/* /var/tmp/* \
+    && find /var/cache/apt/archives /var/lib/apt/lists -not -name lock -type f -delete \
+    && find /var/cache -type f -delete \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=build /app/lib/ /app/
+COPY --from=build /app/llama-server /app/llama-server
+
+FROM base AS sagemaker
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+COPY --chmod=0755 sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
