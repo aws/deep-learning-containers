@@ -49,7 +49,8 @@ class ImageConfig:
     def ecr_repository(self) -> str:
         """ECR repository name for image URIs. Defaults to repository, but can be overridden
         via the optional 'ecr_repository' YAML field when the data-directory key differs from
-        the actual ECR repo name (e.g., data dir 'vllm-omni' -> ECR repo 'vllm')."""
+        the actual ECR repo name (e.g., data dirs 'vllm-omni' and 'vllm-server' both map to
+        ECR repo 'vllm')."""
         return self._data.get("ecr_repository") or self._repository
 
     @property
@@ -109,7 +110,7 @@ class ImageConfig:
     @property
     def display_repository(self) -> str:
         """Get human-readable display name for the repository."""
-        return GLOBAL_CONFIG["display_names"][self._repository]
+        return GLOBAL_CONFIG["display_names"]["repositories"][self._repository]
 
     @property
     def display_tag(self) -> str:
@@ -122,7 +123,7 @@ class ImageConfig:
     @property
     def display_framework_group(self) -> str:
         """Get human-readable display name for the framework group."""
-        return GLOBAL_CONFIG["display_names"][self.framework_group]
+        return GLOBAL_CONFIG["display_names"]["repositories"][self.framework_group]
 
     @property
     def display_framework_version(self) -> str:

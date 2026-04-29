@@ -67,10 +67,15 @@ class TestDateConsistencyValidation:
             **GLOBAL_CONFIG,
             "table_order": ["repo-a", "repo-b"],
             "display_names": {
-                **GLOBAL_CONFIG.get("display_names", {}),
-                "test-group": "Test Group",
-                "repo-a": "Repo A",
-                "repo-b": "Repo B",
+                "repositories": {
+                    **GLOBAL_CONFIG.get("display_names", {}).get("repositories", {}),
+                    "test-group": "Test Group",
+                    "repo-a": "Repo A",
+                    "repo-b": "Repo B",
+                },
+                "packages": {
+                    **GLOBAL_CONFIG.get("display_names", {}).get("packages", {}),
+                },
             },
             "framework_groups": {"test-group": ["repo-a", "repo-b"]},
         }

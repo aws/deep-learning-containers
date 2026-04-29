@@ -76,7 +76,9 @@ def _generate_framework_index(
     dry_run: bool = False,
 ) -> str:
     """Generate the index page for a framework group's release notes."""
-    framework_display = GLOBAL_CONFIG["display_names"].get(framework_group, framework_group)
+    framework_display = GLOBAL_CONFIG["display_names"]["repositories"].get(
+        framework_group, framework_group
+    )
     columns = table_config["columns"]
     headers = [col["header"] for col in columns]
 
@@ -227,7 +229,9 @@ def _consolidate_framework_version(
     entries: list[tuple[ImageConfig, dict[str, str]]] = []
     for subgroup_name, images in subgroup_imgs.items():
         if dates_agree(images):
-            display_name = GLOBAL_CONFIG["display_names"].get(subgroup_name, subgroup_name)
+            display_name = GLOBAL_CONFIG["display_names"]["repositories"].get(
+                subgroup_name, subgroup_name
+            )
             entries.append((images[0], {"version": full_ver, "framework_group": display_name}))
         else:
             entries.extend(
@@ -364,7 +368,7 @@ def generate_available_images(dry_run: bool = False) -> str:
     template_path = TEMPLATES_DIR / "reference" / "available_images.template.md"
     LOGGER.debug(f"Generating {output_path}")
 
-    display_names = GLOBAL_CONFIG["display_names"]
+    display_names = GLOBAL_CONFIG["display_names"]["repositories"]
     table_order = GLOBAL_CONFIG["table_order"]
     tables_content = []
 
@@ -399,7 +403,8 @@ def generate_available_images(dry_run: bool = False) -> str:
         section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
         if has_public_registry:
             # Use ecr_repository from images (falls back to data-dir key when unset) so display
-            # reflects the actual ECR repo when the data-dir key differs (e.g., vllm-omni -> vllm).
+            # reflects the actual ECR repo when the data-dir key differs (e.g., vllm-omni and
+            # vllm-server both map to ECR repo 'vllm').
             ecr_repo = images[0].ecr_repository if images else repository
             url = f"{PUBLIC_GALLERY_URL}/{ecr_repo}"
             section += (

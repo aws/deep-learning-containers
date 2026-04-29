@@ -56,80 +56,88 @@ example_region: "us-west-2"
 # Used in available_images.md, support_policy.md, and release notes
 # =============================================================================
 display_names:
-  # Framework groups
-  pytorch: "PyTorch"
-  tensorflow: "TensorFlow"
-  autogluon: "AutoGluon"
+  # Repository / section-header display names (used in available_images.md,
+  # support_policy.md, release-note titles, and table section headings).
+  # Also includes framework-group keys used for consolidation display.
+  repositories:
+    # Framework groups
+    pytorch: "PyTorch"
+    tensorflow: "TensorFlow"
+    autogluon: "AutoGluon"
 
-  # Repositories
-  base: "Base"
-  ray: "Ray"
-  sagemaker-xgboost: "XGBoost"
-  sglang: "SGLang"
-  vllm: "vLLM"
-  vllm-arm64: "vLLM ARM64"
-  vllm-omni: "vLLM-Omni"
-  pytorch-training: "PyTorch Training"
-  pytorch-training-arm64: "PyTorch Training ARM64"
-  pytorch-inference: "PyTorch Inference"
-  pytorch-inference-arm64: "PyTorch Inference ARM64"
-  tensorflow-training: "TensorFlow Training"
-  tensorflow-inference: "TensorFlow Inference"
-  tensorflow-inference-arm64: "TensorFlow Inference ARM64"
-  pytorch-training-neuronx: "PyTorch Training NeuronX"
-  pytorch-inference-neuronx: "PyTorch Inference NeuronX"
-  tensorflow-inference-neuronx: "TensorFlow Inference NeuronX"
-  huggingface-pytorch-training: "HuggingFace PyTorch Training"
-  huggingface-pytorch-inference: "HuggingFace PyTorch Inference"
-  huggingface-vllm: "HuggingFace vLLM Inference"
-  huggingface-sglang: "HuggingFace SGLang Inference"
-  huggingface-vllm-inference-neuronx: "HuggingFace vLLM Inference NeuronX"
-  huggingface-pytorch-training-neuronx: "HuggingFace PyTorch Training NeuronX"
-  huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
-  huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
-  huggingface-tensorflow-inference: "HuggingFace TensorFlow Inference"
-  autogluon-training: "AutoGluon Training"
-  autogluon-inference: "AutoGluon Inference"
-  djl-inference: "DJL Inference"
-  sagemaker-tritonserver: "NVIDIA Triton Server for SageMaker"
-  stabilityai-pytorch-inference: "StabilityAI PyTorch Inference"
-  pytorch-trcomp-training: "PyTorch Training Compiler"
-  huggingface-pytorch-trcomp-training: "HuggingFace PyTorch Training Compiler"
+    # Repositories
+    base: "Base"
+    ray: "Ray"
+    sagemaker-xgboost: "XGBoost"
+    sglang: "SGLang"
+    vllm: "vLLM (Ubuntu)"
+    vllm-server: "vLLM"
+    vllm-arm64: "vLLM ARM64"
+    vllm-omni: "vLLM-Omni"
+    pytorch-training: "PyTorch Training"
+    pytorch-training-arm64: "PyTorch Training ARM64"
+    pytorch-inference: "PyTorch Inference"
+    pytorch-inference-arm64: "PyTorch Inference ARM64"
+    tensorflow-training: "TensorFlow Training"
+    tensorflow-inference: "TensorFlow Inference"
+    tensorflow-inference-arm64: "TensorFlow Inference ARM64"
+    pytorch-training-neuronx: "PyTorch Training NeuronX"
+    pytorch-inference-neuronx: "PyTorch Inference NeuronX"
+    tensorflow-inference-neuronx: "TensorFlow Inference NeuronX"
+    huggingface-pytorch-training: "HuggingFace PyTorch Training"
+    huggingface-pytorch-inference: "HuggingFace PyTorch Inference"
+    huggingface-vllm: "HuggingFace vLLM Inference"
+    huggingface-sglang: "HuggingFace SGLang Inference"
+    huggingface-vllm-inference-neuronx: "HuggingFace vLLM Inference NeuronX"
+    huggingface-pytorch-training-neuronx: "HuggingFace PyTorch Training NeuronX"
+    huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
+    huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
+    huggingface-tensorflow-inference: "HuggingFace TensorFlow Inference"
+    autogluon-training: "AutoGluon Training"
+    autogluon-inference: "AutoGluon Inference"
+    djl-inference: "DJL Inference"
+    sagemaker-tritonserver: "NVIDIA Triton Server for SageMaker"
+    stabilityai-pytorch-inference: "StabilityAI PyTorch Inference"
+    pytorch-trcomp-training: "PyTorch Training Compiler"
+    huggingface-pytorch-trcomp-training: "HuggingFace PyTorch Training Compiler"
 
-  # Release notes optional section names
-  known_issues: "Known Issues"
+    # Release notes optional section names
+    known_issues: "Known Issues"
 
-  # Packages
-  # Package keys use the same string as the YAML `packages:` field (underscored
-  # where applicable), which is distinct from repository keys in the section
-  # above (hyphenated, matching the data-dir name). For example, `vllm-omni`
-  # is the repo key (display: "vLLM-Omni" in tables/headings) while `vllm_omni`
-  # is the package key used in release notes package tables.
-  python: "Python"
-  cuda: "CUDA"
-  cudnn: "cuDNN"
-  nccl: "NCCL"
-  efa: "EFA"
-  gdrcopy: "GDRCopy"
-  torchvision: "TorchVision"
-  torchaudio: "TorchAudio"
-  torchdata: "TorchData"
-  torchao: "TorchAO"
-  torchtnt: "TorchTNT"
-  torchtext: "TorchText"
-  torchserve: "TorchServe"
-  sgl-kernel: "SGLang Kernel"
-  sglang-kernel: "SGLang Kernel"
-  transformers: "Transformers"
-  transformer_engine: "Transformer Engine"
-  flash_attn: "Flash Attention"
-  flashinfer: "FlashInfer"
-  neuronx_sdk: "NeuronX SDK"
-  openmpi: "OpenMPI"
-  sagemaker_pytorch_inference: "SageMaker PyTorch Inference Toolkit"
-  ffmpeg: "FFmpeg"
-  "ray[serve]": "Ray Serve"
-  scikit_learn: "scikit-learn"
+  # Package labels rendered in the Core Packages table of release notes.
+  # Keys match the YAML `packages:` field in data/*.yml (so the vllm PyPI
+  # package is keyed `vllm` here and stays labeled "vLLM" regardless of
+  # the repository display name).
+  packages:
+    vllm: "vLLM"
+    vllm-omni: "vLLM-Omni"
+    python: "Python"
+    cuda: "CUDA"
+    cudnn: "cuDNN"
+    nccl: "NCCL"
+    efa: "EFA"
+    gdrcopy: "GDRCopy"
+    pytorch: "PyTorch"
+    torchvision: "TorchVision"
+    torchaudio: "TorchAudio"
+    torchdata: "TorchData"
+    torchao: "TorchAO"
+    torchtnt: "TorchTNT"
+    torchtext: "TorchText"
+    torchserve: "TorchServe"
+    sgl-kernel: "SGLang Kernel"
+    sglang-kernel: "SGLang Kernel"
+    sglang: "SGLang"
+    transformers: "Transformers"
+    transformer_engine: "Transformer Engine"
+    flash_attn: "Flash Attention"
+    flashinfer: "FlashInfer"
+    neuronx_sdk: "NeuronX SDK"
+    openmpi: "OpenMPI"
+    sagemaker_pytorch_inference: "SageMaker PyTorch Inference Toolkit"
+    ffmpeg: "FFmpeg"
+    "ray[serve]": "Ray Serve"
+    scikit_learn: "scikit-learn"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation
@@ -172,6 +180,7 @@ table_order:
   - ray
   - sglang
   - vllm
+  - vllm-server
   - vllm-arm64
   - vllm-omni
   - pytorch-training

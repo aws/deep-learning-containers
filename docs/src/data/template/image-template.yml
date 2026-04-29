@@ -75,7 +75,7 @@ announcements:
   - "Added Python 3.12 support"
 
 # Package versions displayed in Core Packages table
-# Keys should match entries in global.yml display_names for proper formatting
+# Keys should match entries in global.yml display_names.packages for proper formatting
 packages:
   python: "3.12"
   pytorch: "2.9.0"
@@ -87,7 +87,7 @@ packages:
 # Optional Sections
 # -----------------------------------------------------------------------------
 # Dynamic optional sections rendered at the end of release notes
-# Section keys are looked up in global.yml display_names for headers
+# Section keys are looked up in global.yml display_names.repositories for headers
 # Each section renders as a bullet list
 
 optional:

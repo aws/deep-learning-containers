@@ -1,0 +1,28 @@
+framework: vLLM
+version: "0.19.1+amzn2023.6ef1efd5"
+ecr_repository: vllm
+accelerator: gpu
+python: py312
+cuda: cu129
+os: amzn2023
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "server-sagemaker-cuda-v1"
+
+announcements:
+  - "Initial release of vLLM Server containers on Amazon Linux 2023 for SageMaker"
+  - "Simplified tag format: server-sagemaker-cuda[-vMAJOR[.MINOR[.PATCH]]]"
+  - "Built on Amazon Linux 2023 with Python 3.12 and CUDA 12.9"
+
+packages:
+  vllm: "0.19.1+amzn2023.6ef1efd5"
+  pytorch: "2.10.0"
+  torchvision: "0.25.0"
+  torchaudio: "2.10.0"
+  transformers: "5.5.4"
+  cuda: "12.9.1"
+  nccl: "2.27.5"
+  flashinfer: "0.6.7"
+  efa: "1.47.0"

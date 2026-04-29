@@ -12,7 +12,7 @@
 | Package | Version |
 | ------- | ------- |
 {% for key, value in packages.items() -%}
-| {{ display_names.get(key, key) }} | {{ value }} |
+| {{ display_names.packages.get(key, key) }} | {{ value }} |
 {% endfor %}
 
 ## Security Advisory
@@ -35,7 +35,7 @@
 - [GitHub Repository](https://github.com/aws/deep-learning-containers)
 {% for section_key, items in optional.items() %}
 
-## {{ display_names.get(section_key, section_key) }}
+## {{ display_names.repositories.get(section_key, section_key) }}
 {% for item in items %}
 - {{ item }}
 {% endfor %}

@@ -86,9 +86,14 @@ def mock_display_names(mock_paths):
     patched_config = {
         **GLOBAL_CONFIG,
         "display_names": {
-            **GLOBAL_CONFIG.get("display_names", {}),
-            "mock-repo": "Mock Repository",
-            "mock-framework": "Mock Framework",
+            "repositories": {
+                **GLOBAL_CONFIG.get("display_names", {}).get("repositories", {}),
+                "mock-repo": "Mock Repository",
+                "mock-framework": "Mock Framework",
+            },
+            "packages": {
+                **GLOBAL_CONFIG.get("display_names", {}).get("packages", {}),
+            },
         },
         "table_order": ["mock-repo"],
         "framework_groups": {},
