@@ -104,7 +104,7 @@ COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
     if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
-      && mkdir -p dist \
+      && rm -rf dist && mkdir -p dist \
       && cp /tmp/prebuilt_wheels/*.whl dist/; \
     elif [ "$USE_SCCACHE" = "1" ]; then \
       echo "🔧 Building vLLM with sccache..." \
@@ -187,12 +187,17 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r /tmp/cuda.txt \
 
 # Install vLLM wheel
 COPY --from=build /workspace/vllm/dist /tmp/vllm-dist
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install /tmp/vllm-dist/*.whl \
-  --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+RUN --mount=type=cache,target=/root/.cache/uv ls /tmp/vllm-dist/*.whl \
+  && VLLM_WHL=$(ls -t /tmp/vllm-dist/vllm-*.whl | head -1) \
+  && echo "Installing ${VLLM_WHL}" \
+  && uv pip install "${VLLM_WHL}" \
+    --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-# Install FlashInfer jit-cache
+# Install FlashInfer jit-cache after vllm wheel (pin both flashinfer-python and
+# flashinfer-jit-cache to ensure version match for flashinfer download-cubin)
 ARG FLASHINFER_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-jit-cache==${FLASHINFER_VERSION} \
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
+  flashinfer-python==${FLASHINFER_VERSION} flashinfer-jit-cache==${FLASHINFER_VERSION} \
   --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install serving extras
