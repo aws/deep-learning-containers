@@ -14,7 +14,12 @@ fi
 
 python3 ${BASIC_DIR}/generate.py --model facebook/opt-125m
 python3 ${BASIC_DIR}/chat.py
-python3 offline_inference/prefix_caching.py
+# vLLM post-v0.20.0 moved prefix_caching and spec_decode examples
+if [ -f "features/automatic_prefix_caching/prefix_caching_offline.py" ]; then
+  python3 features/automatic_prefix_caching/prefix_caching_offline.py
+else
+  python3 offline_inference/prefix_caching.py
+fi
 python3 offline_inference/llm_engine_example.py
 # vLLM v0.20.1rc0 moved multimodal examples to generate/multimodal/
 if [ -d "generate/multimodal" ]; then
@@ -36,6 +41,11 @@ fi
 python3 ${BASIC_DIR}/classify.py
 python3 ${BASIC_DIR}/embed.py
 python3 ${BASIC_DIR}/score.py
-python3 offline_inference/spec_decode.py --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048
+if [ -f "features/speculative_decoding/spec_decode_offline.py" ]; then
+  SPEC_DECODE="features/speculative_decoding/spec_decode_offline.py"
+else
+  SPEC_DECODE="offline_inference/spec_decode.py"
+fi
+python3 ${SPEC_DECODE} --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048
 # https://github.com/vllm-project/vllm/pull/26682 uses slightly more memory in PyTorch 2.9+ causing this test to OOM in 1xL4 GPU
-python3 offline_inference/spec_decode.py --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536
+python3 ${SPEC_DECODE} --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536
