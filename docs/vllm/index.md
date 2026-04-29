@@ -272,12 +272,15 @@ For the complete list, see the [vLLM engine arguments documentation](https://doc
 
 The following models have been validated on the bundled vLLM version:
 
-| Model | Instance Type | TP | Min GPUs |
-| --- | --- | --- | --- |
-| GPT-OSS-20B | `g6e.xlarge` | 1 | 1 |
-| Qwen3-32B | `p4d.24xlarge` | 4 | 4 |
-| Llama 3.3 70B Instruct | `p4d.24xlarge` | 4 | 4 |
-| Qwen3.5-35B-A3B (FP8) | `g6e.12xlarge` | 4 | 4 |
+| Model Family | Example Models | Tested Instance |
+| --- | --- | --- |
+| Qwen3 | `Qwen/Qwen3-32B` | `p4d.24xlarge` |
+| Llama 3.x | `meta-llama/Llama-3.3-70B-Instruct` | `p4d.24xlarge` |
+| Gemma 4 | `google/gemma-4-e4b-it`, `google/gemma-4-31b-it` | `g6e.xlarge`, `g6e.12xlarge` |
+| Qwen3-ASR (speech recognition) | `Qwen/Qwen3-ASR-1.7B` | `g6e.12xlarge` |
+| GPT-OSS | `openai/gpt-oss-20b` | `g6e.xlarge` |
+| Qwen3.5 (MoE, FP8) | `Qwen/Qwen3.5-35B-A3B-FP8` | `g6e.12xlarge` |
+| Gemma 4 (MoE) | `google/gemma-4-26b-a4b-it` | `g6e.12xlarge` |
 
 ### Using Custom Models
 
