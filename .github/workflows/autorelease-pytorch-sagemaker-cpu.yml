@@ -212,6 +212,7 @@ jobs:
 
   generate-release-spec:
     needs: [load-config, build-image, sanity-test, security-test, unit-test, sagemaker-test]
+    if: success()
     runs-on: ubuntu-latest
     outputs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
