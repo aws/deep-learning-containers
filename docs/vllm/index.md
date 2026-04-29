@@ -270,22 +270,14 @@ For the complete list, see the [vLLM engine arguments documentation](https://doc
 
 ## Supported Models
 
-Any model compatible with the bundled vLLM version can be served. Common model families include:
+The following models have been validated on the bundled vLLM version:
 
-| Model Family | Example Models | Min GPUs |
-| --- | --- | --- |
-| Llama 3.x | `meta-llama/Llama-3.2-1B-Instruct`, `meta-llama/Llama-3.1-8B-Instruct` | 1 |
-| Qwen 2.5 / 3 | `Qwen/Qwen2.5-0.5B-Instruct`, `Qwen/Qwen3-8B` | 1 |
-| Mistral / Mixtral | `mistralai/Mistral-7B-Instruct-v0.1`, `mistralai/Mixtral-8x7B-Instruct-v0.1` | 1 (7B), 2 (8x7B) |
-| DeepSeek | `deepseek-ai/DeepSeek-V2-Lite-Chat`, `deepseek-ai/DeepSeek-V3` | 1 (Lite), 8+ (V3) |
-| Gemma | `google/gemma-3-1b-it`, `google/gemma-2-9b` | 1 |
-| Phi | `microsoft/Phi-3-mini-4k-instruct`, `microsoft/phi-2` | 1 |
-| LLaVA (vision) | `llava-hf/llava-1.5-7b-hf`, `llava-hf/llava-onevision-qwen2-0.5b-ov-hf` | 1 |
-| Qwen-VL (vision) | `Qwen/Qwen2-VL-2B-Instruct`, `Qwen/Qwen2.5-VL-3B-Instruct` | 1 |
-| Pixtral (vision) | `mistralai/Pixtral-12B-2409` | 1 |
-
-For the full list of supported architectures, see the
-[vLLM supported models documentation](https://docs.vllm.ai/en/latest/models/supported_models.html).
+| Model | Instance Type | TP | Min GPUs |
+| --- | --- | --- | --- |
+| GPT-OSS-20B | `g6e.xlarge` | 1 | 1 |
+| Qwen3-32B | `p4d.24xlarge` | 4 | 4 |
+| Llama 3.3 70B Instruct | `p4d.24xlarge` | 4 | 4 |
+| Qwen3.5-35B-A3B (FP8) | `g6e.12xlarge` | 4 | 4 |
 
 ### Using Custom Models
 
@@ -306,22 +298,6 @@ docker run --gpus all -p 8000:8000 \
   {{ images.latest_vllm_server_ec2 }} \
   --model /model
 ```
-
-## Benchmarks
-
-Sample throughput numbers produced by the
-[vllm_benchmark_test.sh](https://github.com/aws/deep-learning-containers/blob/main/test/vllm/scripts/benchmark/vllm_benchmark_test.sh) script with
-input length 1024, output length 128, saturated concurrency.
-
-| Model | Instance Type | TP | Output tok/s |
-| --- | --- | --- | --- |
-| GPT-OSS-20B | `g6e.xlarge` | 1 | 1,393.03 |
-| Qwen3-32B | `p4d.24xlarge` | 4 | 768.82 |
-| Llama 3.3 70B Instruct | `p4d.24xlarge` | 4 | 215.54 |
-| Qwen3.5-35B-A3B (FP8) | `g6e.12xlarge` | 4 | 115.24 |
-
-Notes on FP8: A100 GPUs lack native FP8 support (requires compute capability 8.9+); vLLM dequantizes to BF16 at load, doubling weight memory on
-`p4d.24xlarge`.
 
 ## Release Notes
 
