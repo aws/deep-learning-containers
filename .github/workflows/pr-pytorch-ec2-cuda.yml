@@ -12,6 +12,7 @@ on:
       - "scripts/pytorch/**"
       - "scripts/telemetry/**"
       - "test/pytorch/**"
+      - "test/efa/**"
       - "test/sanity/**"
       - "test/telemetry/**"
       - "!docs/**"
@@ -347,6 +348,18 @@ jobs:
           docker exec ${CONTAINER_ID} pip install pytest -q
           docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/single_gpu/ -v
           docker kill ${CONTAINER_ID}
+
+  # ============================================================
+  # EFA integration test (2x p4d.24xlarge, NCCL over EFA)
+  # ============================================================
+  efa-test:
+    needs: [build-images, sanity-test, security-test, unit-test]
+    if: success()
+    uses: ./.github/workflows/reusable-efa-tests.yml
+    with:
+      image-uri: ${{ needs.build-images.outputs.runtime-image-uri }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
 
   # ============================================================
   # Multi-GPU tests (need >=2 GPUs)

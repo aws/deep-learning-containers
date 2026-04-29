@@ -198,7 +198,7 @@ jobs:
       framework-version: ${{ needs.load-config.outputs.framework-version }}
       vllm-ref: ${{ needs.load-config.outputs.vllm-ref }}
       setup-script: test/vllm/scripts/vllm_test_setup.sh
-      example-test-script: test/vllm/scripts/vllm_ec2_examples_test.sh
+      example-test-script: test/vllm/scripts/amzn2023/vllm_ec2_examples_test.sh
     secrets: inherit
 
   generate-release-spec:
