@@ -6,8 +6,8 @@ image:
 #       (VLLM_VERSION, VLLM_REF). They are used here for image tags/labels/wheel-cache keys.
 common:
   framework: "vllm_server"
-  framework_version: "0.20.1rc0"
-  vllm_ref: "ebf862c351dc4bcaf65de34c3caebe6df6e9e214"
+  framework_version: "0.20.0.dev60"
+  vllm_ref: "8a8c9b564ef015c76cf398200b8f0891e6e51bb8"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"

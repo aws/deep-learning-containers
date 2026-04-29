@@ -1,6 +1,6 @@
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
-ARG VLLM_VERSION=0.20.1rc0
+ARG VLLM_VERSION=0.20.0.dev60
 ARG FLASHINFER_VERSION=0.6.8.post1
 ARG DEEPEP_COMMIT_HASH=73b6ea4
 
@@ -190,10 +190,9 @@ COPY --from=build /workspace/vllm/dist /tmp/vllm-dist
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install /tmp/vllm-dist/*.whl \
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-# Install FlashInfer cubin/jit-cache
+# Install FlashInfer jit-cache
 ARG FLASHINFER_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==${FLASHINFER_VERSION} \
-  flashinfer-jit-cache==${FLASHINFER_VERSION} \
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-jit-cache==${FLASHINFER_VERSION} \
   --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install serving extras
@@ -251,6 +250,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         libcublas-devel-${CUDA_DASH} \
         libcusolver-devel-${CUDA_DASH} \
     && dnf clean all && rm -rf /var/cache/dnf
+
+# Download FlashInfer precompiled cubins after all pip installs are done
+RUN flashinfer show-config && flashinfer download-cubin
 
 # =============================================================================
 # STAGE: builder-oss — generates license files without modifying runtime venv
