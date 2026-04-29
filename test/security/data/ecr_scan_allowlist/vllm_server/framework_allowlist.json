@@ -24,82 +24,6 @@
         "reason": "vllm 0.15.1 Nested in ray, unpatchable /usr/local/lib/python3.12/dist-packages/ray/jars/ray_dist.jar/META-INF/maven/com.fasterxml.jackson.core/jackson-core/pom.properties"
     },
     {
-        "vulnerability_id": "CVE-2025-59425",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-22773",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-24486",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66448",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-62164",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66418",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "GHSA-mcmc-2m55-j8jj",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-68131",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-23949",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-6242",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-62727",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-22807",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66471",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-22778",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-0994",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-62593",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-58446",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-24779",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-21441",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
         "vulnerability_id": "CVE-2026-31812",
         "reason": "Coming in as a dependency from the latest uv 0.10.9"
     },
@@ -153,10 +77,14 @@
     },
     {
         "vulnerability_id": "CVE-2025-23339",
-        "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+        "reason": "cuda-toolkit-config-common (12.9.79 \u2192 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
     },
     {
         "vulnerability_id": "CVE-2025-23308",
-        "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+        "reason": "cuda-toolkit-config-common (12.9.79 \u2192 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+    },
+    {
+        "vulnerability_id": "CVE-2026-1839",
+        "reason": "transformers 4.57.6 Trainer RCE; fix requires >=5.0.0rc3 which is incompatible with current stack"
     }
 ]

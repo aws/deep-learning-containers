@@ -18,7 +18,7 @@ mkdir -p "${DEST_DIR}"
 
 echo "⬇️  Looking for vLLM wheel (${CUDA}, src:${SOURCE_HASH}) in s3://${BUCKET}/${PREFIX} ..."
 aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" \
-  --recursive --exclude "*" --include "*.whl" 2>/dev/null || true
+  --recursive --exclude "*" --include "vllm-${VLLM_VERSION}*.whl" 2>/dev/null || true
 
 if ls "${DEST_DIR}"/*.whl >/dev/null 2>&1; then
   echo "✅ Cache hit (src:${SOURCE_HASH})"
