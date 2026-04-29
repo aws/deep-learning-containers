@@ -232,6 +232,7 @@ def parse_args():
             "tensorflow",
             "mxnet",
             "pytorch",
+            "pytorch_runtime",
             "base",
             "vllm",
             "vllm_server",

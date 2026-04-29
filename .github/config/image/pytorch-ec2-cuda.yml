@@ -2,7 +2,7 @@ image:
   name: "pytorch-ec2-cuda"
   description: "PyTorch CUDA training for EC2 instances"
 common:
-  framework: "pytorch"
+  framework: "pytorch_runtime"
   framework_version: "2.11.0"
   job_type: "training"
   python_version: "py312"
@@ -10,7 +10,7 @@ common:
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "pytorch:2.11-gpu-py312-ec2"
+  prod_image: "pytorch:2.11-cu130-amzn2023"
   device_type: "gpu"
   contributor: "None"
 release:

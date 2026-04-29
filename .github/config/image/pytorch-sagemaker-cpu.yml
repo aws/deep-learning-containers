@@ -2,15 +2,16 @@ image:
   name: "pytorch-sagemaker-cpu"
   description: "PyTorch CPU training for SageMaker"
 common:
-  framework: "pytorch"
+  framework: "pytorch_runtime"
   framework_version: "2.11.0"
   job_type: "training"
   python_version: "py312"
   cuda_version: ""
   os_version: "amzn2023"
   customer_type: "sagemaker"
+  platform: "sagemaker"
   arch_type: "x86"
-  prod_image: "pytorch:2.11-cpu-py312-sagemaker"
+  prod_image: "pytorch:2.11-cpu-amzn2023-sagemaker"
   device_type: "cpu"
   contributor: "None"
 release:
