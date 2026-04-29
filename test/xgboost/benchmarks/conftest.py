@@ -1,6 +1,6 @@
 """Benchmark test fixtures and helpers.
 
-Replaces ai_algorithms_qa orchestration with direct SageMaker SDK v3 calls.
+Replaces ai_algorithms_qa orchestration with direct SageMaker SDK calls.
 All jobs run in the CI account using SageMakerRole (same as vLLM/SGLang tests).
 
 Benchmark data must be available in the CI account's S3 bucket.
@@ -12,8 +12,8 @@ import time
 
 import boto3
 import pytest
-from sagemaker.core.training.configs import Compute, InputData
-from sagemaker.train import ModelTrainer
+from sagemaker.estimator import Estimator
+from sagemaker.inputs import TrainingInput
 from test_utils import random_suffix_name
 
 LOGGER = logging.getLogger(__name__)
@@ -59,42 +59,35 @@ def run_training_job(
     job_name = random_suffix_name("xgb-bench", 32)
     output_path = s3_uri(benchmark_bucket, f"benchmark-output/{job_name}")
 
-    compute = Compute(
-        instance_type=instance_type,
-        instance_count=instance_count,
-        volume_size_in_gb=volume_size,
-    )
-
-    model_trainer = ModelTrainer(
-        training_image=image_uri,
+    estimator = Estimator(
+        image_uri=image_uri,
         role=role,
-        compute=compute,
+        instance_count=instance_count,
+        instance_type=instance_type,
+        output_path=output_path,
         hyperparameters=hyperparameters,
-        output_data_config={"s3_output_path": output_path},
-        base_job_name=job_name,
-        stopping_condition={"max_runtime_in_seconds": max_run},
+        volume_size=volume_size,
+        max_run=max_run,
+        input_mode=input_mode,
     )
 
-    input_data_config = [
-        InputData(
-            channel_name="train",
-            data_source=s3_uri(benchmark_bucket, train_s3_key),
+    channels = {
+        "train": TrainingInput(
+            s3_data=s3_uri(benchmark_bucket, train_s3_key), content_type=content_type
+        ),
+        "validation": TrainingInput(
+            s3_data=s3_uri(benchmark_bucket, validation_s3_key),
             content_type=content_type,
         ),
-        InputData(
-            channel_name="validation",
-            data_source=s3_uri(benchmark_bucket, validation_s3_key),
-            content_type=content_type,
-        ),
-    ]
+    }
 
     LOGGER.info(f"Starting benchmark job: {job_name} ({instance_count}x {instance_type})")
     sm = boto3.client("sagemaker")
     start = time.time()
     try:
-        model_trainer.train(input_data_config=input_data_config, wait=True)
+        estimator.fit(channels, job_name=job_name)
     except Exception:
-        # Stop the training job if train() fails (timeout, capacity, etc.)
+        # Stop the training job if fit() fails (timeout, capacity, etc.)
         try:
             sm.stop_training_job(TrainingJobName=job_name)
         except Exception:
