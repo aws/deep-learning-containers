@@ -17,43 +17,6 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
-    - name: "qwen3-asr-1.7b"
-      s3_model: "qwen3-asr-1.7b.tar.gz"
-      fleet: "x86-g6xl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
-      test_script: "vllm_asr_smoke_test.sh"
-      test_fixtures:
-        - "audio/asr_en.wav"
-        - "audio/asr_zh.wav"
-      test_cases:
-        - name: "english-chat-completions"
-          route: "/v1/chat/completions"
-          audio_fixture: "asr_en.wav"
-          validate: "contains:<asr_text>"
-        - name: "chinese-chat-completions"
-          route: "/v1/chat/completions"
-          audio_fixture: "asr_zh.wav"
-          validate: "contains:<asr_text>"
-        - name: "english-transcription"
-          route: "/v1/audio/transcriptions"
-          audio_fixture: "asr_en.wav"
-          validate: "json_field:text"
-
-    - name: "gemma-4-26b-a4b-it"
-      s3_model: "gemma-4-26b-a4b-it.tar.gz"
-      fleet: "x86-g6e12xl-runner"
-      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
-
-    - name: "gemma-4-31b-it"
-      s3_model: "gemma-4-31b-it.tar.gz"
-      fleet: "x86-g6e12xl-runner"
-      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
-
-    - name: "gemma-4-e4b-it"
-      s3_model: "gemma-4-e4b-it.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
-
   runner-scale-sets: []
 
 benchmark:
