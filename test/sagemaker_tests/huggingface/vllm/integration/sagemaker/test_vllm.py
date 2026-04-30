@@ -45,7 +45,7 @@ def test_vllm_bloom(framework_version, ecr_image, instance_type, sagemaker_regio
     )
 
 
-@pytest.mark.model("qwen3-8b")
+@pytest.mark.model("qwen3-5-0-8b")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
@@ -57,7 +57,7 @@ def test_vllm_qwen(framework_version, ecr_image, instance_type, sagemaker_region
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
         framework_version=framework_version,
         instance_type=instance_type,
-        model_id="Qwen/Qwen3-8B",
+        model_id="Qwen/Qwen3.5-0.8B",
     )
 
 
