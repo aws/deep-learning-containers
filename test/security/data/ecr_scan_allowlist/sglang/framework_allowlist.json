@@ -22,5 +22,25 @@
     {
         "vulnerability_id": "CVE-2025-68263",
         "reason": "linux-libc-dev 6.8.0 is a kernel header package from the Ubuntu base image, fix not yet available in upstream base image"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68121",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32283",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32281",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32280",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25679",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+"
     }
 ]
