@@ -123,6 +123,7 @@ def make_model_endpoint_fixture(device, instance_type):
         LOGGER.info(f"  Image: {image_uri}")
         LOGGER.info(f"  Model data: {s3_uri}")
 
+        role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
         model = endpoint_config = endpoint = None
         try:
             model = Model.create(
@@ -132,7 +133,7 @@ def make_model_endpoint_fixture(device, instance_type):
                     model_data_url=s3_uri,
                     environment=model_config["env"] or {},
                 ),
-                execution_role_arn=SAGEMAKER_ROLE,
+                execution_role_arn=role_arn,
             )
 
             variant_kwargs = dict(

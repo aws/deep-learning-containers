@@ -43,13 +43,13 @@ def _cleanup(resources):
             LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
 
 
-def _create_model(model_name, image_uri, env):
+def _create_model(model_name, image_uri, env, role_arn):
     """Create a v3 Model resource pointing at the DLC image."""
     LOGGER.info(f"Creating model: {model_name}")
     return Model.create(
         model_name=model_name,
         primary_container=ContainerDefinition(image=image_uri, environment=env),
-        execution_role_arn=SAGEMAKER_ROLE,
+        execution_role_arn=role_arn,
     )
 
 
@@ -61,10 +61,11 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
 
     hf_token = get_hf_token(aws_session)
     env = {"SM_VLLM_MODEL": model_id, "HF_TOKEN": hf_token}
+    role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
 
     model = endpoint_config = endpoint = None
     try:
-        model = _create_model(model_name, image_uri, env)
+        model = _create_model(model_name, image_uri, env, role_arn)
 
         LOGGER.info(f"Creating endpoint config: {endpoint_name}")
         endpoint_config = EndpointConfig.create(
@@ -141,10 +142,11 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
 
     hf_token = get_hf_token(aws_session)
     env = {"SM_VLLM_MODEL": model_id, "HF_TOKEN": hf_token}
+    role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
 
     model = endpoint_config = endpoint = None
     try:
-        model = _create_model(model_name, image_uri, env)
+        model = _create_model(model_name, image_uri, env, role_arn)
 
         LOGGER.info(f"Creating async endpoint config: {endpoint_name}")
         endpoint_config = EndpointConfig.create(

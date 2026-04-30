@@ -47,6 +47,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
     LOGGER.debug(f"Model ID: {model_id}")
 
     hf_token = get_hf_token(aws_session)
+    role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
 
     model = endpoint_config = endpoint = None
     try:
@@ -60,7 +61,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     "HF_TOKEN": hf_token,
                 },
             ),
-            execution_role_arn=SAGEMAKER_ROLE,
+            execution_role_arn=role_arn,
         )
 
         LOGGER.info(f"Creating endpoint config: {endpoint_name}")

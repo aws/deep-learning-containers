@@ -54,6 +54,17 @@ class AWSSessionManager:
         self.s3_resource = self.session.resource("s3")
         self.ssm = self.session.client("ssm")
 
+    def resolve_role_arn(self, role_name_or_arn):
+        """Return the full IAM role ARN.
+
+        SageMaker SDK v3 APIs (e.g. Model.create) require a full ARN. In v2, a bare role
+        name was accepted and auto-resolved. This helper passes ARNs through unchanged
+        and resolves role names by looking them up via the IAM client.
+        """
+        if role_name_or_arn.startswith("arn:"):
+            return role_name_or_arn
+        return self.iam.get_role(RoleName=role_name_or_arn)["Role"]["Arn"]
+
     # ===========================================
     # ===== EC2 Instance Lifecycle ==============
     # ===========================================
