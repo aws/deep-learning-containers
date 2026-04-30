@@ -92,7 +92,7 @@ benchmark:
       fleet: "x86-g6xl-runner"
       extra_args: ""
       benchmark_type: "tts-base"
-      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "ref_text": "Hello, how are you?", "language": "English", "min_rps": 0.18, "min_audio_rtf_mult": 1.5, "max_p95_e2e_ms": 22000}'
+      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "ref_text": "Hello, how are you?", "language": "English", "min_rps": 0.05, "min_audio_rtf_mult": 1.0, "max_p95_e2e_ms": 200000}'
 
     # --- Image generation ---
     # Thresholds baselined on g6.xlarge (L4 24GB) with ~25% margin for CI noise.

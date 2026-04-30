@@ -80,21 +80,30 @@ async def send_request(session, url, payload, req_id):
                     "error": body[:300],
                     "e2e_ms": (time.perf_counter() - t0) * 1000,
                 }
-            async for line in resp.content:
-                line = line.strip()
-                if not line:
+            # Read chunks manually to avoid aiohttp's 128KB line-size limit
+            # (omni models can emit very large SSE frames with audio tokens).
+            buf = b""
+            async for chunk in resp.content.iter_any():
+                buf += chunk
+                while b"\n" in buf:
+                    line, buf = buf.split(b"\n", 1)
+                    line = line.strip()
+                    if not line:
+                        continue
+                    done, delta, u = parse_sse_chunk(line)
+                    if u is not None:
+                        usage = u
+                    if delta:
+                        now = time.perf_counter()
+                        if ttft is None:
+                            ttft = now - t0
+                        token_times.append(now)
+                        output_text_parts.append(delta)
+                    if done:
+                        break
+                else:
                     continue
-                done, delta, u = parse_sse_chunk(line)
-                if u is not None:
-                    usage = u
-                if delta:
-                    now = time.perf_counter()
-                    if ttft is None:
-                        ttft = now - t0
-                    token_times.append(now)
-                    output_text_parts.append(delta)
-                if done:
-                    break
+                break
     except Exception as e:
         return {
             "req_id": req_id,
