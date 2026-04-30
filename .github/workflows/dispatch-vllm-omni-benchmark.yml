@@ -37,7 +37,7 @@ env:
   # For pull_request: fall back to the DLC vllm-omni staging image used in the
   # baseline devbox runs. Override per-run by triggering workflow_dispatch
   # after the PR is merged.
-  IMAGE_URI: ${{ inputs.image-uri || '763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1' }}
+  IMAGE_URI: ${{ inputs.image-uri || '404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-omni-0.18.0-gpu-py312-cu129-amzn2023-ec2-pr-6022' }}
   ACCOUNT_ID: ${{ inputs.aws-account-id || vars.CI_AWS_ACCOUNT_ID }}
   REGION: ${{ inputs.aws-region || vars.AWS_REGION }}
 
