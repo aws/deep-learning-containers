@@ -252,6 +252,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         libcusolver-devel-${CUDA_DASH} \
     && dnf clean all && rm -rf /var/cache/dnf
 
+# Override NIXL to include libfabric plugin for disaggregated P/D over EFA.
+# Upstream vLLM caps nixl at <=0.10.1; this force-reinstall is intentional.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu12>=1.0.1"
+
 # =============================================================================
 # STAGE: builder-oss — generates license files without modifying runtime venv
 # =============================================================================
