@@ -1822,6 +1822,7 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_pytorch",
         "huggingface_vllm",
         "huggingface_sglang",
+        "huggingface_llamacpp",
         "stabilityai_pytorch",
         "pytorch_trcomp",
         "tensorflow",
@@ -1939,6 +1940,7 @@ def get_framework_from_image_uri(image_uri):
         "huggingface-pytorch": "huggingface_pytorch",
         "huggingface-vllm": "huggingface_vllm",
         "huggingface-sglang": "huggingface_sglang",
+        "huggingface-llamacpp": "huggingface_llamacpp",
         "stabilityai-pytorch": "stabilityai_pytorch",
         "mxnet": "mxnet",
         "pytorch": "pytorch",
@@ -2080,6 +2082,7 @@ def get_job_type_from_image(image_uri):
         "base": "general",
         "vllm": "general",
         "sglang": "general",
+        "llamacpp": "general",
     }
 
     for key, job_type in job_type_mapping.items():

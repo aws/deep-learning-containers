@@ -1,0 +1,100 @@
+ARG UBUNTU_VERSION=24.04
+ARG CUDA_VERSION=13.0.2
+ARG LLAMACPP_VERSION=b8882
+ARG BASE_CUDA_DEV_CONTAINER=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION}
+ARG BASE_CUDA_RUN_CONTAINER=nvidia/cuda:${CUDA_VERSION}-runtime-ubuntu${UBUNTU_VERSION}
+
+FROM ${BASE_CUDA_DEV_CONTAINER} AS build
+
+ARG LLAMACPP_VERSION
+ARG CUDA_DOCKER_ARCH=default
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        cmake \
+        gcc-14 \
+        g++-14 \
+        git \
+        libgomp1 \
+        libssl-dev \
+        patch \
+        python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV CC=gcc-14 \
+    CXX=g++-14 \
+    CUDAHOSTCXX=g++-14
+
+WORKDIR /src/llama.cpp
+
+RUN git clone --branch "${LLAMACPP_VERSION}" --depth 1 https://github.com/ggml-org/llama.cpp.git .
+COPY llamacpp_sagemaker_server.patch /tmp/llamacpp_sagemaker_server.patch
+RUN patch -p1 < /tmp/llamacpp_sagemaker_server.patch
+RUN if [ "${CUDA_DOCKER_ARCH}" != "default" ]; then \
+        export CMAKE_ARGS="-DCMAKE_CUDA_ARCHITECTURES=${CUDA_DOCKER_ARCH}"; \
+    fi \
+    && cmake -B build \
+        -DGGML_NATIVE=OFF \
+        -DGGML_CUDA=ON \
+        -DGGML_BACKEND_DL=ON \
+        -DGGML_CPU_ALL_VARIANTS=ON \
+        -DLLAMA_BUILD_TESTS=OFF \
+        ${CMAKE_ARGS:-} \
+        -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined \
+        . \
+    && cmake --build build --config Release -j"$(nproc)" --target llama-server
+
+RUN mkdir -p /app/lib \
+    && find build -name "*.so*" -exec cp -P {} /app/lib \; \
+    && cp build/bin/llama-server /app/llama-server
+
+FROM ${BASE_CUDA_RUN_CONTAINER} AS base
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+WORKDIR /app
+ENV LD_LIBRARY_PATH=/app:${LD_LIBRARY_PATH}
+
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        libgomp1 \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* /var/tmp/* \
+    && find /var/cache/apt/archives /var/lib/apt/lists -not -name lock -type f -delete \
+    && find /var/cache -type f -delete
+
+COPY --from=build /app/lib/ /app/
+COPY --from=build /app/llama-server /app/llama-server
+
+FROM base AS sagemaker
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+COPY --chmod=0755 start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY --chmod=0755 sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+
+# Fix several CVEs:
+# CVE-2026-31789, CVE-2025-15467, CVE-2025-13151, CVE-2025-15281,
+# CVE-2025-69419, CVE-2025-68973, CVE-2025-69421, CVE-2026-28390,
+# CVE-2025-69420, CVE-2026-0915, CVE-2026-0861, CVE-2026-28388,
+# CVE-2026-31790, CVE-2026-28387, CVE-2026-28389
+RUN apt-get update \
+    && apt-get install -y --only-upgrade \
+        libssl3t64 \
+        openssl \
+        libtasn1-6 \
+        libc6 \
+        libc-bin \
+        gnupg \
+        gpg \
+        gpgv \
+    && rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
