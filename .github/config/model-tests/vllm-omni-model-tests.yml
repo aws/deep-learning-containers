@@ -86,13 +86,14 @@ benchmark:
     # --- TTS voice-cloning (Base) ---
     # Requires a reference audio clip staged in S3. Re-use the CustomVoice
     # output as the reference so both tests share vocabulary.
-    # Thresholds baselined on g6.xlarge (L4 24GB) with ~25% margin for CI noise.
+    # Must run on L40S — model produces corrupt output on L4 (Code2Wav
+    # malformed input_ids due to ONNX/CUDA graph issues on Ada Lovelace).
     - name: "qwen3-tts-12hz-1.7b-base"
       s3_model: "qwen3-tts-12hz-1.7b-base.tar.gz"
-      fleet: "x86-g6xl-runner"
+      fleet: "x86-g6exl-runner"
       extra_args: ""
       benchmark_type: "tts-base"
-      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "ref_text": "Hello, how are you?", "language": "English", "min_rps": 0.05, "min_audio_rtf_mult": 1.0, "max_p95_e2e_ms": 200000}'
+      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "ref_text": "Hello, how are you?", "language": "English", "min_rps": 1.3, "min_audio_rtf_mult": 4.5, "max_p95_e2e_ms": 3000}'
 
     # --- Image generation ---
     # Thresholds baselined on g6.xlarge (L4 24GB) with ~25% margin for CI noise.
