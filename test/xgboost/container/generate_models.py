@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Generate XGBoost 3.0.5-compatible inference models and upload to S3.
+"""Generate XGBoost 3.2.0-compatible inference models and upload to S3.
 
 Uses inference input data to create models with matching feature dimensions.
 This is valid for container tests — we're testing the container's ability to
 load models and serve predictions, not model accuracy.
 
-Run on CI host with: pip install xgboost==3.0.5 boto3 numpy
+Run on CI host with: pip install xgboost==3.2.0 boto3 numpy
 """
 
 import os
-import pickle
 import tempfile
 
 import boto3
@@ -63,7 +62,7 @@ def main():
     dtrain = xgb.DMatrix(features, label=labels)
     bst = xgb.train({"objective": "multi:softmax", "num_class": 10, "max_depth": 6}, dtrain, 10)
     bst.save_model(os.path.join(out_dir, "mnist-xgb-model"))
-    pickle.dump(bst, open(os.path.join(out_dir, "mnist-pkl-model"), "wb"))
+    bst.save_model(os.path.join(out_dir, "mnist-pkl-model"))
     print(f"  {features.shape[0]} rows x {features.shape[1]} features")
 
     # --- diabetes-binary-xgb-model ---
@@ -81,7 +80,7 @@ def main():
     dtrain_ins = xgb.DMatrix(csv_train[:, 1:], label=csv_train[:, 0])
     bst_ins = xgb.train({"objective": "reg:squarederror", "max_depth": 6}, dtrain_ins, 10)
     bst_ins.save_model(os.path.join(out_dir, "insurance-xgb-model"))
-    pickle.dump(bst_ins, open(os.path.join(out_dir, "insurance-pkl-model"), "wb"))
+    bst_ins.save_model(os.path.join(out_dir, "insurance-pkl-model"))
     print(f"  {csv_train.shape[0]} rows x {csv_train.shape[1] - 1} cols")
 
     # --- salary-pkl-model (single feature, from salary-30.csv dims) ---
@@ -91,7 +90,7 @@ def main():
     y_sal = X_sal[:, 0] * 50000 + np.random.randn(100) * 5000
     dtrain_sal = xgb.DMatrix(X_sal, label=y_sal)
     bst_sal = xgb.train({"objective": "reg:squarederror", "max_depth": 3}, dtrain_sal, 10)
-    pickle.dump(bst_sal, open(os.path.join(out_dir, "salary-pkl-model"), "wb"))
+    bst_sal.save_model(os.path.join(out_dir, "salary-pkl-model"))
     print("  100 rows x 1 feature")
 
     # --- Upload to S3 ---

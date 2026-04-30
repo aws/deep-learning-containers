@@ -1,353 +1,247 @@
 [
     {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common from NVIDIA CUDA repo — cuobjdump not used in XGBoost serving/training.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common from NVIDIA CUDA repo — nvdisasm not used in XGBoost serving/training.",
+        "review_by": "2026-08-30"
+    },
+    {
         "vulnerability_id": "CVE-2026-0994",
-        "reason": "protobuf pinned to 3.20.x \u2014 required by sagemaker-containers 2.8.6.post2. Cannot upgrade to 6.x.",
-        "review_by": "2026-06-26"
-    },
-
-    {
-        "vulnerability_id": "CVE-2025-27516",
-        "reason": "Jinja2 pinned to 2.11.3 by sagemaker-containers/Flask 1.1.1. Cannot upgrade without breaking serving stack.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-56326",
-        "reason": "Jinja2 pinned to 2.11.3 by sagemaker-containers/Flask 1.1.1. Cannot upgrade without breaking serving stack.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2023-30861",
-        "reason": "Flask pinned to 1.1.1 by sagemaker-containers 2.8.6.post2. Cannot upgrade.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2022-29361",
-        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2023-46136",
-        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-34069",
-        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-49767",
-        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2023-25577",
-        "reason": "Werkzeug pinned to 0.15.6 by sagemaker-containers/Flask 1.1.1. Cannot upgrade.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2026-21441",
-        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Cannot upgrade without breaking AWS SDK.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66418",
-        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Cannot upgrade without breaking AWS SDK.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66471",
-        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Cannot upgrade without breaking AWS SDK.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2023-43804",
-        "reason": "urllib3 pinned to 1.26.5 by botocore 1.20.52. Cannot upgrade without breaking AWS SDK.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-30749",
-        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u462 update yet.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-50106",
-        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u462 update yet.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-53066",
-        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u472 update yet.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2026-21945",
-        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u482 update yet.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2026-21932",
-        "reason": "openjdk-8 \u2014 Ubuntu 20.04 APT has not published the 8u482 update yet.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-38000",
-        "reason": "linux-libc-dev 5.4.0 \u2014 Ubuntu 20.04 kernel header package. Build-time only, not in runtime image attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-37838",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-37752",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2023-52757",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2022-49698",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-38352",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-37797",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-39735",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-50073",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-21855",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-58093",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-22020",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-38666",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-56664",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-21991",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-50047",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-37890",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-21780",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-35867",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-56640",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2023-53034",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-49950",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-37798",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-21993",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-50067",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-38618",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-53168",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-37785",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-21726",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-38541",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-38350",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-22035",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2023-52854",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-22079",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-47691",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-53218",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-56551",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2022-49390",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2022-49026",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2023-52975",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-22004",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2024-50061",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-21796",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2022-49267",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
-    },
-    {
-        "vulnerability_id": "CVE-2025-21727",
-        "reason": "linux-libc-dev \u2014 build-time kernel headers, not runtime attack surface.",
-        "review_by": "2026-06-26"
+        "reason": "protobuf pinned to 3.20.x — required by smdebug. Cannot upgrade to 6.x.",
+        "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-23949",
-        "reason": "jaraco.context vendored inside setuptools. setuptools upgrade to >=80.9.0 did not update the vendored copy. Low risk \u2014 tarball() not used in serving/training.",
-        "review_by": "2026-06-26"
+        "reason": "jaraco.context vendored inside setuptools. tarball() not used in serving/training.",
+        "review_by": "2026-08-30"
     },
     {
-        "vulnerability_id": "CVE-2026-25990",
-        "reason": "Pillow pinned to 9.1.1 \u2014 upstream sagemaker-xgboost-container enforces exact version at runtime. PSD loading not in XGBoost inference/training path.",
-        "review_by": "2026-06-26"
+        "vulnerability_id": "CVE-2026-28387",
+        "reason": "openssl from CUDA base image pins 3.2.2 — AL2023 repo patch not yet available for this epoch.",
+        "review_by": "2026-08-30"
     },
     {
-        "vulnerability_id": "CVE-2023-50447",
-        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
-        "review_by": "2026-06-26"
+        "vulnerability_id": "CVE-2025-15468",
+        "reason": "openssl from CUDA base image pins 3.2.2 — QUIC not used in XGBoost container.",
+        "review_by": "2026-08-30"
     },
     {
-        "vulnerability_id": "CVE-2023-44271",
-        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
-        "review_by": "2026-06-26"
+        "vulnerability_id": "CVE-2025-15467",
+        "reason": "openssl from CUDA base image pins 3.2.2 — CMS not used in XGBoost container.",
+        "review_by": "2026-08-30"
     },
     {
-        "vulnerability_id": "CVE-2023-4863",
-        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
-        "review_by": "2026-06-26"
+        "vulnerability_id": "CVE-2025-69421",
+        "reason": "openssl from CUDA base image pins 3.2.2 — PKCS12 parsing not in serving/training path.",
+        "review_by": "2026-08-30"
     },
     {
-        "vulnerability_id": "CVE-2022-45198",
-        "reason": "Pillow pinned to 9.1.1 \u2014 upstream enforces exact version at runtime.",
-        "review_by": "2026-06-26"
+        "vulnerability_id": "CVE-2026-22796",
+        "reason": "openssl from CUDA base image pins 3.2.2.",
+        "review_by": "2026-08-30"
     },
     {
-        "vulnerability_id": "CVE-2024-39689",
-        "reason": "certifi pinned to 2023.7.22 \u2014 upstream enforces exact version at runtime.",
-        "review_by": "2026-06-26"
+        "vulnerability_id": "CVE-2026-31790",
+        "reason": "openssl from CUDA base image pins 3.2.2.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27654",
+        "reason": "nginx — dnf update did not pull latest. ngx_http_dav_module not enabled.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32647",
+        "reason": "nginx — ngx_http_mp4_module not used in XGBoost serving.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27651",
+        "reason": "nginx — ngx_mail_auth_http_module not enabled.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27784",
+        "reason": "nginx — 32-bit mp4 module vulnerability, container is 64-bit.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-49794",
+        "reason": "libxml2 — dnf update did not pull latest patch from AL2023 repo.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-49795",
+        "reason": "libxml2 — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-49796",
+        "reason": "libxml2 — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-7425",
+        "reason": "libxml2/libxslt — XSLT not used in XGBoost container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33416",
+        "reason": "libpng — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66293",
+        "reason": "libpng — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-65018",
+        "reason": "libpng — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33636",
+        "reason": "libpng — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-50059",
+        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-50106",
+        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-30749",
+        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21945",
+        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21932",
+        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-13151",
+        "reason": "libtasn1 — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68973",
+        "reason": "gnupg2-minimal — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24882",
+        "reason": "gnupg2-minimal — tpm2daemon not used in container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-13601",
+        "reason": "glib2 — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-14087",
+        "reason": "glib2 — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-47912",
+        "reason": "libcap — Go net/url vulnerability, Go not used in container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-58188",
+        "reason": "libcap — Go crypto/x509 vulnerability, Go not used in container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-27614",
+        "reason": "git — dnf update did not pull latest. gitk not used in container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-48384",
+        "reason": "git — dnf update did not pull latest.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-48385",
+        "reason": "git — dnf update did not pull latest.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-59375",
+        "reason": "expat — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-0966",
+        "reason": "libssh — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27135",
+        "reason": "libnghttp2 — dnf update did not pull latest patch.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-8194",
+        "reason": "python3.12 — tarfile vulnerability, not exploitable in serving/training path.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-4519",
+        "reason": "python3.12 — webbrowser.open() not used in container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21441",
+        "reason": "urllib3 2.4.0 — streaming API vulnerability. Pinned by dask-cuda compatibility.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66471",
+        "reason": "urllib3 2.4.0 — streaming API vulnerability. Pinned by dask-cuda compatibility.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66418",
+        "reason": "urllib3 2.4.0 — decompression chain vulnerability. Pinned by dask-cuda compatibility.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-35385",
+        "reason": "openssh — scp setuid/setgid issue with -O flag. Legacy scp protocol not used in container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-4046",
+        "reason": "glibc — iconv() crash with IBM1390/IBM1399 charsets. Not used in serving/training path.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-4786",
+        "reason": "python3.12 — webbrowser.open() bypass of CVE-2026-4519 mitigation. webbrowser not used in container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-6100",
+        "reason": "python3.12 — UAF in lzma/bz2/gzip decompressor on MemoryError. Not exploitable in serving/training path.",
+        "review_by": "2026-08-30"
     }
 ]
