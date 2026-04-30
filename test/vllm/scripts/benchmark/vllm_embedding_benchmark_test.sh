@@ -118,16 +118,17 @@ def make_text_payload(text):
 
 
 def make_vl_payload(text, image_url=None):
-    """Multimodal payload for VL embedding models via /v1/embeddings.
-    Uses chat-messages format as input per vLLM multimodal embedding spec.
+    """Multimodal payload for VL embedding models via /pooling endpoint.
+    Per Qwen3-VL-Embedding docs: system instruction + user content with typed blocks.
     """
+    content = []
     if image_url:
-        messages = [{"role": "user", "content": [
-            {"type": "image_url", "image_url": {"url": image_url}},
-            {"type": "text", "text": text},
-        ]}]
-    else:
-        messages = [{"role": "user", "content": text}]
+        content.append({"type": "image_url", "image_url": {"url": image_url}})
+    content.append({"type": "text", "text": text})
+    messages = [
+        {"role": "system", "content": [{"type": "text", "text": "Represent the user's input."}]},
+        {"role": "user", "content": content},
+    ]
     return {"model": MODEL_DIR, "messages": messages}
 
 
@@ -154,7 +155,8 @@ async def send_request(session, request_id):
             result = await resp.json()
             latency = time.perf_counter() - start
         data = result.get("data", [])
-        embedding_dim = len(data[0]["embedding"]) if data else 0
+        vec_key = "data" if IS_VL else "embedding"
+        embedding_dim = len(data[0][vec_key]) if data else 0
         return {"latency": latency, "status": resp.status, "dim": embedding_dim}
     except Exception as e:
         return {"latency": time.perf_counter() - start, "status": 0, "dim": 0, "error": str(e)}

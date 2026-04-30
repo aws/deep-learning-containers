@@ -58,20 +58,30 @@ BASE = f"http://localhost:{port}"
 IS_VL = "vl" in model_name.lower()
 
 def get_embeddings(inputs):
-    """Call embedding endpoint. Uses /pooling with messages for VL models."""
+    """Call embedding endpoint. Uses /pooling with chat messages for VL models."""
     if IS_VL:
-        # VL models need messages format via /pooling endpoint
-        messages = [{"role": "user", "content": text} for text in inputs]
-        resp = httpx.post(f"{BASE}/pooling",
-            json={"model": model_dir, "messages": messages},
-            timeout=120)
+        # VL model: each input is a separate /pooling request with chat format
+        # Per Qwen3-VL-Embedding docs: system instruction + user content
+        results = []
+        for text in inputs:
+            messages = [
+                {"role": "system", "content": [{"type": "text", "text": "Represent the user's input."}]},
+                {"role": "user", "content": [{"type": "text", "text": text}]},
+            ]
+            resp = httpx.post(f"{BASE}/pooling",
+                json={"model": model_dir, "messages": messages},
+                timeout=120)
+            resp.raise_for_status()
+            data = resp.json()["data"]
+            results.append(np.array(data[0]["data"]))
+        return results
     else:
         resp = httpx.post(f"{BASE}/v1/embeddings",
             json={"model": model_dir, "input": inputs},
             timeout=120)
-    resp.raise_for_status()
-    data = resp.json()["data"]
-    return [np.array(d["embedding"]) for d in data]
+        resp.raise_for_status()
+        data = resp.json()["data"]
+        return [np.array(d["embedding"]) for d in data]
 
 def cosine_sim(a, b):
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
