@@ -1,7 +1,7 @@
 """Shared constants, helpers, fixtures, and test implementations for Ray SageMaker endpoint tests.
 
 CPU and GPU test modules import from here, setting only DEVICE and INSTANCE_TYPE.
-Uses boto3 directly for model/endpoint lifecycle (custom DLC containers).
+Uses SageMaker SDK v3 core resources (Model/EndpointConfig/Endpoint) for resource lifecycle.
 """
 
 import json
@@ -24,27 +24,39 @@ from ray.utils import (
     validate_mnist_response,
     validate_sentiment_response,
 )
-from sagemaker.serializers import IdentitySerializer
-from test_utils import clean_string, random_suffix_name, wait_for_status
+from sagemaker.core.resources import Endpoint, EndpointConfig, Model
+from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
+from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-ENDPOINT_WAIT_PERIOD = 60  # seconds between status checks
-ENDPOINT_WAIT_LENGTH = 30  # max number of retries
-ENDPOINT_INSERVICE = "InService"
-
 
 def _parse_response(response):
-    """Parse SageMaker predictor response to dict/list."""
+    """Parse raw endpoint response body to dict/list."""
     return json.loads(response) if isinstance(response, (str, bytes)) else response
 
 
-def get_endpoint_status(sagemaker_client, endpoint_name):
-    response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
-    LOGGER.debug(f"Describe endpoint response: {pformat(response)}")
-    return response["EndpointStatus"]
+def _cleanup(resources):
+    """Best-effort delete for a list of v3 resource objects (None-safe)."""
+    for resource in resources:
+        if resource is None:
+            continue
+        try:
+            resource.delete()
+        except Exception as e:
+            LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
+
+
+def _invoke(endpoint, data, content_type="application/json"):
+    """Invoke endpoint, returning raw response bytes. Handles JSON serialization."""
+    if content_type == "application/json" and not isinstance(data, (str, bytes)):
+        body = json.dumps(data)
+    else:
+        body = data
+    result = endpoint.invoke(body=body, content_type=content_type)
+    return result.body.read()
 
 
 def build_models(device):
@@ -95,13 +107,12 @@ def make_model_name_fixture():
 
 
 def make_model_endpoint_fixture(device, instance_type):
-    """Create the model_endpoint fixture using boto3 directly."""
+    """Create the model_endpoint fixture using v3 core resources."""
     models = build_models(device)
     prefix = f"ray-{device}-"
 
     @pytest.fixture(scope="function")
     def model_endpoint(aws_session, image_uri, model_name):
-        sagemaker_client = aws_session.sagemaker
         model_config = models[model_name]
         s3_uri = f"s3://{S3_BUCKET}/{S3_PREFIX}/{model_config['s3_key']}"
         cleaned = clean_string(model_name, "_./")
@@ -112,66 +123,42 @@ def make_model_endpoint_fixture(device, instance_type):
         LOGGER.info(f"  Image: {image_uri}")
         LOGGER.info(f"  Model data: {s3_uri}")
 
-        sagemaker_client.create_model(
-            ModelName=sm_model_name,
-            PrimaryContainer={
-                "Image": image_uri,
-                "ModelDataUrl": s3_uri,
-                "Environment": model_config["env"] or {},
-            },
-            ExecutionRoleArn=SAGEMAKER_ROLE,
-        )
+        model = endpoint_config = endpoint = None
+        try:
+            model = Model.create(
+                model_name=sm_model_name,
+                primary_container=ContainerDefinition(
+                    image=image_uri,
+                    model_data_url=s3_uri,
+                    environment=model_config["env"] or {},
+                ),
+                execution_role_arn=SAGEMAKER_ROLE,
+            )
 
-        variant = {
-            "VariantName": "AllTraffic",
-            "ModelName": sm_model_name,
-            "InitialInstanceCount": 1,
-            "InstanceType": instance_type,
-        }
-        if device == "gpu":
-            variant["InferenceAmiVersion"] = INFERENCE_AMI_VERSION
-            LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION}")
+            variant_kwargs = dict(
+                variant_name="AllTraffic",
+                model_name=sm_model_name,
+                initial_instance_count=1,
+                instance_type=instance_type,
+            )
+            if device == "gpu":
+                variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION
+                LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION}")
 
-        sagemaker_client.create_endpoint_config(
-            EndpointConfigName=endpoint_name,
-            ProductionVariants=[variant],
-        )
+            endpoint_config = EndpointConfig.create(
+                endpoint_config_name=endpoint_name,
+                production_variants=[ProductionVariant(**variant_kwargs)],
+            )
 
-        sagemaker_client.create_endpoint(
-            EndpointName=endpoint_name,
-            EndpointConfigName=endpoint_name,
-        )
+            endpoint = Endpoint.create(
+                endpoint_name=endpoint_name,
+                endpoint_config_name=endpoint_name,
+            )
+            endpoint.wait_for_status("InService")
 
-        LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status...")
-        assert wait_for_status(
-            ENDPOINT_INSERVICE,
-            ENDPOINT_WAIT_PERIOD,
-            ENDPOINT_WAIT_LENGTH,
-            get_endpoint_status,
-            sagemaker_client,
-            endpoint_name,
-        )
-
-        # Create a lightweight predictor-like object for test compatibility
-        from sagemaker.predictor import Predictor
-
-        predictor = Predictor(endpoint_name=endpoint_name)
-
-        yield predictor
-
-        LOGGER.info(f"Deleting endpoint: {endpoint_name}")
-        for cleanup_fn, name in [
-            (lambda: sagemaker_client.delete_endpoint(EndpointName=endpoint_name), "endpoint"),
-            (
-                lambda: sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name),
-                "endpoint config",
-            ),
-            (lambda: sagemaker_client.delete_model(ModelName=sm_model_name), "model"),
-        ]:
-            try:
-                cleanup_fn()
-            except Exception as e:
-                LOGGER.warning(f"Cleanup {name} failed: {e}")
+            yield endpoint
+        finally:
+            _cleanup([endpoint, endpoint_config, model])
 
     return model_endpoint
 
@@ -181,13 +168,12 @@ def make_model_endpoint_fixture(device, instance_type):
 # ---------------------------------------------------------------------------
 
 
-def run_test_cv_densenet(model_endpoint):
+def run_test_cv_densenet(endpoint):
     """DenseNet image classification — both kitten and flower images, validate top-5 structure."""
     images = download_all_test_images()
-    model_endpoint.serializer = IdentitySerializer(content_type="image/jpeg")
 
     for img_name, img_data in images.items():
-        response = model_endpoint.predict(img_data)
+        response = _invoke(endpoint, img_data, content_type="image/jpeg")
         result = _parse_response(response)
         LOGGER.info(f"cv-densenet {img_name} response: {result}")
 
@@ -201,15 +187,14 @@ def run_test_cv_densenet(model_endpoint):
         )
 
 
-def run_test_mnist_direct_app(model_endpoint):
+def run_test_mnist_direct_app(endpoint):
     """MNIST via SM_RAYSERVE_APP — classify all 10 digits, enforce accuracy threshold."""
     digit_pngs = make_all_digit_pngs()
     correct = 0
     total = len(digit_pngs)
-    model_endpoint.serializer = IdentitySerializer(content_type="image/png")
 
     for digit_id, png_data in sorted(digit_pngs.items()):
-        response = model_endpoint.predict(png_data)
+        response = _invoke(endpoint, png_data, content_type="image/png")
         result = _parse_response(response)
         LOGGER.info(f"mnist-direct-app digit_{digit_id} response: {result}")
 
@@ -233,11 +218,10 @@ def run_test_mnist_direct_app(model_endpoint):
     )
 
 
-def run_test_tabular(model_endpoint, check_packages=False):
+def run_test_tabular(endpoint, check_packages=False):
     """Iris classification — 6 samples (2 per species), validate predicted species."""
     for features, expected, desc in IRIS_SAMPLES:
-        payload = {"features": features}
-        response = model_endpoint.predict(payload)
+        response = _invoke(endpoint, {"features": features})
         result = _parse_response(response)
         LOGGER.info(f"tabular {desc} response: {result}")
 
@@ -250,18 +234,17 @@ def run_test_tabular(model_endpoint, check_packages=False):
         LOGGER.info(f"  {desc} -> {pred} ({conf:.4f})")
 
     if check_packages:
-        response = model_endpoint.predict({"features": IRIS_SAMPLES[0][0]})
+        response = _invoke(endpoint, {"features": IRIS_SAMPLES[0][0]})
         result = _parse_response(response)
         pkgs = result.get("installed_packages", {})
         assert pkgs, "Expected installed_packages in response (requirements.txt not installed?)"
         LOGGER.info(f"  requirements.txt packages: {pkgs}")
 
 
-def run_test_nlp(model_endpoint):
+def run_test_nlp(endpoint):
     """DistilBERT sentiment — 6 samples (3 pos, 3 neg), validate predicted label."""
     for text, expected_label in SENTIMENT_SAMPLES:
-        payload = {"text": text}
-        response = model_endpoint.predict(payload)
+        response = _invoke(endpoint, {"text": text})
         result = _parse_response(response)
         LOGGER.info(f"nlp response for '{text}': {result}")
 
@@ -276,15 +259,14 @@ def run_test_nlp(model_endpoint):
         LOGGER.info(f"  '{text}' -> {label} ({score:.4f})")
 
 
-def run_test_audio_ffmpeg(model_endpoint):
+def run_test_audio_ffmpeg(endpoint):
     """Wav2Vec2 transcription — 3 sine waves, validate structure + ffmpeg backend."""
     wavs = make_all_sine_wavs()
-    model_endpoint.serializer = IdentitySerializer(content_type="audio/wav")
 
     for name, wav_data in wavs:
-        response = model_endpoint.predict(wav_data)
+        response = _invoke(endpoint, wav_data, content_type="audio/wav")
         result = _parse_response(response)
-        LOGGER.info(f"audio-ffmpeg {name} response: {result}")
+        LOGGER.info(f"audio-ffmpeg {name} response: {pformat(result)}")
 
         err = validate_audio_response(result, check_ffmpeg_backend=True)
         assert not err, f"audio-ffmpeg {name}: {err}"

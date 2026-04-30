@@ -4,25 +4,16 @@ import json
 import logging
 from pprint import pformat
 
-import boto3
 import pytest
-from test_utils import clean_string, random_suffix_name, wait_for_status
+from sagemaker.core.resources import Endpoint, EndpointConfig, Model
+from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
+from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-
-ENDPOINT_WAIT_PERIOD = 60
-ENDPOINT_WAIT_LENGTH = 30
-ENDPOINT_INSERVICE = "InService"
-
-
-def get_endpoint_status(sagemaker_client, endpoint_name):
-    response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
-    LOGGER.debug(f"Describe endpoint response: {pformat(response)}")
-    return response["EndpointStatus"]
 
 
 @pytest.fixture(scope="function")
@@ -35,84 +26,74 @@ def instance_type(request):
     return request.param
 
 
+def _cleanup(resources):
+    """Best-effort delete for a list of v3 resource objects (None-safe)."""
+    for resource in resources:
+        if resource is None:
+            continue
+        try:
+            resource.delete()
+        except Exception as e:
+            LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
+
+
 @pytest.fixture(scope="function")
 def model_endpoint(aws_session, image_uri, model_id, instance_type):
-    sagemaker_client = aws_session.sagemaker
-    sm_runtime = boto3.client("sagemaker-runtime")
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
     endpoint_name = random_suffix_name(f"sglang-{cleaned_id}", 50)
-    model_name = endpoint_name  # reuse as model name
+    model_name = endpoint_name
 
     LOGGER.debug(f"Using image: {image_uri}")
     LOGGER.debug(f"Model ID: {model_id}")
 
     hf_token = get_hf_token(aws_session)
 
+    model = endpoint_config = endpoint = None
     try:
         LOGGER.info(f"Creating model: {model_name}")
-        sagemaker_client.create_model(
-            ModelName=model_name,
-            PrimaryContainer={
-                "Image": image_uri,
-                "Environment": {
+        model = Model.create(
+            model_name=model_name,
+            primary_container=ContainerDefinition(
+                image=image_uri,
+                environment={
                     "SM_SGLANG_MODEL_PATH": model_id,
                     "HF_TOKEN": hf_token,
                 },
-            },
-            ExecutionRoleArn=SAGEMAKER_ROLE,
+            ),
+            execution_role_arn=SAGEMAKER_ROLE,
         )
 
         LOGGER.info(f"Creating endpoint config: {endpoint_name}")
-        sagemaker_client.create_endpoint_config(
-            EndpointConfigName=endpoint_name,
-            ProductionVariants=[
-                {
-                    "VariantName": "AllTraffic",
-                    "ModelName": model_name,
-                    "InitialInstanceCount": 1,
-                    "InstanceType": instance_type,
-                    "InferenceAmiVersion": INFERENCE_AMI_VERSION,
-                },
+        endpoint_config = EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=model_name,
+                    initial_instance_count=1,
+                    instance_type=instance_type,
+                    inference_ami_version=INFERENCE_AMI_VERSION,
+                ),
             ],
         )
 
         LOGGER.info(f"Deploying endpoint: {endpoint_name} (this may take 10-15 minutes)...")
-        sagemaker_client.create_endpoint(
-            EndpointName=endpoint_name,
-            EndpointConfigName=endpoint_name,
+        endpoint = Endpoint.create(
+            endpoint_name=endpoint_name,
+            endpoint_config_name=endpoint_name,
         )
-
-        LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status ...")
-        assert wait_for_status(
-            ENDPOINT_INSERVICE,
-            ENDPOINT_WAIT_PERIOD,
-            ENDPOINT_WAIT_LENGTH,
-            get_endpoint_status,
-            sagemaker_client,
-            endpoint_name,
-        )
+        endpoint.wait_for_status("InService")
         LOGGER.info("Endpoint deployment completed successfully")
 
-        yield endpoint_name, sm_runtime
+        yield endpoint
     finally:
-        for cleanup_fn, name in [
-            (lambda: sagemaker_client.delete_endpoint(EndpointName=endpoint_name), "endpoint"),
-            (
-                lambda: sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name),
-                "endpoint config",
-            ),
-            (lambda: sagemaker_client.delete_model(ModelName=model_name), "model"),
-        ]:
-            try:
-                cleanup_fn()
-            except Exception as e:
-                LOGGER.warning(f"Cleanup {name} failed: {e}")
+        _cleanup([endpoint, endpoint_config, model])
 
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
 def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
-    endpoint_name, sm_runtime = model_endpoint
+    endpoint = model_endpoint
 
     prompt = "Write a python script to calculate square of n"
     payload = json.dumps(
@@ -127,12 +108,8 @@ def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
     )
     LOGGER.debug(f"Sending inference request with payload: {payload}")
 
-    response = sm_runtime.invoke_endpoint(
-        EndpointName=endpoint_name,
-        ContentType="application/json",
-        Body=payload,
-    )
-    body = json.loads(response["Body"].read())
+    result = endpoint.invoke(body=payload, content_type="application/json")
+    body = json.loads(result.body.read())
     LOGGER.info("Inference request invoked successfully")
 
     assert body, "Model response is empty, failing endpoint test!"
