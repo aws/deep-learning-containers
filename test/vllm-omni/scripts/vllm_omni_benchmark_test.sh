@@ -86,7 +86,7 @@ case "${BENCHMARK_TYPE}" in
       # See: https://github.com/vllm-project/vllm-omni/issues/3124
       REF_TEXT_S3="${REF_AUDIO_S3%.wav}.txt"
       if aws s3 cp "${REF_TEXT_S3}" "${REF_TEXT_LOCAL}" 2>/dev/null; then
-        REF_TEXT="$(cat "${REF_TEXT_LOCAL}")"
+        REF_TEXT="$(cat "${REF_TEXT_LOCAL}" | tr -d '\n')"
       else
         REF_TEXT="$(get_cfg ref_text)"
         if [ -z "${REF_TEXT}" ]; then
