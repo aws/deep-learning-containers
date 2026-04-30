@@ -20,7 +20,9 @@ fi
 
 # delete old test dependencies file and regen
 rm -f "${TEST_TXT}"
-uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
+# terratorch requires 'lightning' which doesn't exist under our platform constraints — exclude it
+sed '/^terratorch/Id' "${TEST_IN}" > /tmp/filtered_test.in
+uv pip compile /tmp/filtered_test.in -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
 # uv pip install $UV_FLAGS -r vllm_source/requirements/common.txt --torch-backend=auto
 uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt --torch-backend=auto
 uv pip install $UV_FLAGS pytest pytest-asyncio
