@@ -253,9 +253,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     && dnf clean all && rm -rf /var/cache/dnf
 
 # Override NIXL to include libfabric plugin for disaggregated P/D over EFA.
-# Upstream vLLM caps nixl at <=0.10.1; this force-reinstall is intentional.
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu12>=1.0.1"
+# This is specific to v1.1.x — upstream vLLM caps nixl at <=0.10.1.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip uninstall nixl-cu13 || true \
+  && uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu12>=1.0.1"
 
 # =============================================================================
 # STAGE: builder-oss — generates license files without modifying runtime venv
