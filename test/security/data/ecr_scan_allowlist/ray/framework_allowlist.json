@@ -26,5 +26,9 @@
   {
     "vulnerability_id": "CVE-2026-34480",
     "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
+  },
+  {
+    "vulnerability_id": "CVE-2026-39892",
+    "reason": "cryptography 46.0.6 transitively pinned; upgrade to 46.0.7 pending dependency bump"
   }
 ]
