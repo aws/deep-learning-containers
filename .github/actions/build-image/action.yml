@@ -54,7 +54,7 @@ inputs:
     required: false
     default: 'None'
   customer-type:
-    description: 'Customer type (e.g., sagemaker, ec2, rayserve_ec2)'
+    description: 'Customer type (e.g., sagemaker, ec2)'
     required: false
     default: ''
   inference-toolkit-version:

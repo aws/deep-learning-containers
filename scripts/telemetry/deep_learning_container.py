@@ -258,7 +258,8 @@ def parse_args():
 
     args, _unknown = parser.parse_known_args()
 
-    fw_version_pattern = r"\d+(\.\d+){1,2}(-rc\d)?"
+    # Validate framework_version using PEP 440 parsing (handles rc, post, dev, local versions)
+    from packaging.version import InvalidVersion, Version
 
     # PT 1.10 and above has +cpu or +cu113 string, so handle accordingly
     if args.framework == "pytorch":
@@ -267,10 +268,13 @@ def parse_args():
         if pt_fw_version_match:
             args.framework_version = pt_fw_version_match.group(1)
     if args.framework_version:
-        assert re.fullmatch(fw_version_pattern, args.framework_version), (
-            f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
-            f"Please specify framework version as X.Y.Z or X.Y."
-        )
+        try:
+            Version(args.framework_version)
+        except InvalidVersion:
+            raise AssertionError(
+                f"args.framework_version = {args.framework_version} is not a valid PEP 440 version.\n"
+                f"Please specify framework version as X.Y.Z, X.Y, or X.Y.ZrcN."
+            )
     # TFS 2.12.1 still uses TF 2.12.0 and breaks the telemetry check as it is checking TF version
     # instead of TFS version. WE are forcing the version we want.
     if (

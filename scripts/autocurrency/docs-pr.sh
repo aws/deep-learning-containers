@@ -127,14 +127,6 @@ if [[ "$(yq eval ".frameworks.${FRAMEWORK}" "$TRACKER")" == "null" ]]; then
 fi
 
 # -----------------------------------------------------------------
-# Early exit: skip unsupported platforms
-# -----------------------------------------------------------------
-if [ "$PLATFORM" = "rayserve_ec2" ]; then
-  echo "${FRAMEWORK}: Platform '${PLATFORM}' is not supported for docs generation. Skipping."
-  exit 0
-fi
-
-# -----------------------------------------------------------------
 # Early exit: check if docs PR branch already exists
 # -----------------------------------------------------------------
 branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
