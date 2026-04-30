@@ -126,8 +126,10 @@ case "${BENCHMARK_TYPE}" in
     NUM_PROMPTS="$(get_cfg num_prompts 16)"
     MAX_TOKENS="$(get_cfg max_tokens 128)"
     IGNORE_EOS="$(get_cfg ignore_eos)"
+    MODEL="$(get_cfg model)"
     EXTRA=""
     [ "${IGNORE_EOS}" = "true" ] && EXTRA="--ignore-eos"
+    [ -n "${MODEL}" ] && EXTRA="${EXTRA} --model ${MODEL}"
     python3 "${SCRIPT_DIR}/benchmark/chat_omni_benchmark_client.py" \
       --base-url "${BASE_URL}" \
       --num-prompts "${NUM_PROMPTS}" --concurrency "${CONCURRENCY}" --warmup 2 \
