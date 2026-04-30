@@ -1,0 +1,32 @@
+# vLLM HyperPod AL2023 Image Configuration
+# This file contains all configuration for building, testing, and releasing the vLLM HyperPod AL2023 Image
+
+# Image identification
+image:
+  name: "vllm-hyperpod-amzn2023"
+  description: "vLLM for HyperPod"
+
+common:
+  framework: "vllm_server"
+  # NOTE: keep framework_version and vllm_ref in sync with docker/vllm/versions.env
+  #       (VLLM_VERSION, VLLM_REF). They are used here for image tags/labels/wheel-cache keys.
+  framework_version: "0.20.0.dev60"
+  vllm_ref: "8a8c9b564ef015c76cf398200b8f0891e6e51bb8"
+  job_type: "general"
+  python_version: "py312"
+  cuda_version: "cu129"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  platform: "hyperpod"
+  arch_type: "x86"
+  prod_image: "vllm:server-hyperpod-cuda"
+  device_type: "gpu"
+  contributor: "None"
+
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: false
+  enable_soci: false
+  environment: gamma

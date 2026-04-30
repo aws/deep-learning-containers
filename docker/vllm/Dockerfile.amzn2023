@@ -416,3 +416,22 @@ COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
+
+# ====================== hyperpod =========================================
+FROM base AS vllm-hyperpod-amzn2023
+
+# Override NIXL to include libfabric plugin for disaggregated P/D over EFA,
+# upstream vLLM caps nixl at <=0.10.1.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip uninstall nixl-cu13 || true \
+  && uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu12>=1.0.1"
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  # dnf needs system python 3.9
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+
+COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
