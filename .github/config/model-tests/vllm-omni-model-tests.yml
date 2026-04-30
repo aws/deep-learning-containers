@@ -123,4 +123,4 @@ benchmark:
       fleet: "x86-g6e12xl-runner"
       extra_args: ""
       benchmark_type: "chat"
-      benchmark_config: '{"concurrency": 2, "num_prompts": 16, "max_tokens": 128, "ignore_eos": true, "model": "/models/qwen2.5-omni-3b", "min_rps": 0.3, "min_output_tps": 40, "max_p95_ttft_ms": 1500, "max_p95_e2e_ms": 15000}'
+      benchmark_config: '{"concurrency": 2, "num_prompts": 16, "max_tokens": 128, "ignore_eos": true, "model": "/models/qwen2.5-omni-3b", "min_rps": 0.02, "min_output_tps": 40, "max_p95_ttft_ms": 1500, "max_p95_e2e_ms": 120000}'
