@@ -3,7 +3,7 @@ set -euo pipefail
 
 # vLLM Embedding Smoke Test
 # Tests Qwen3-Embedding (text) and Qwen3-VL-Embedding (multimodal) models.
-# Validates: model loads, embeddings returned, cosine similarity ordering correct.
+# Validates: model loads, embeddings returned, cosine similarity ordering correct
 #
 # Usage: vllm_embedding_smoke_test.sh <model_dir> <model_name> [extra_args...]
 
