@@ -71,4 +71,21 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 COPY --chmod=0755 sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 
+# Fix several CVEs:
+# CVE-2026-31789, CVE-2025-15467, CVE-2025-13151, CVE-2025-15281,
+# CVE-2025-69419, CVE-2025-68973, CVE-2025-69421, CVE-2026-28390,
+# CVE-2025-69420, CVE-2026-0915, CVE-2026-0861, CVE-2026-28388,
+# CVE-2026-31790, CVE-2026-28387, CVE-2026-28389
+RUN apt-get update \
+    && apt-get install -y --only-upgrade \
+        libssl3t64 \
+        openssl \
+        libtasn1-6 \
+        libc6 \
+        libc-bin \
+        gnupg \
+        gpg \
+        gpgv \
+    && rm -rf /var/lib/apt/lists/*
+
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
