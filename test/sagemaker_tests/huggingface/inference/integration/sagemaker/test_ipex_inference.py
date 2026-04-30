@@ -86,7 +86,7 @@ def _test_pt_ipex(
     )
     hf_model._is_compiled_model = True
 
-    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):
+    with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=60):
         predictor = hf_model.deploy(
             initial_instance_count=1,
             instance_type=instance_type,

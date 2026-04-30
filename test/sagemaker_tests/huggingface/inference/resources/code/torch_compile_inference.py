@@ -29,7 +29,7 @@ def predict_fn(data, model):
         truncation=True,
     )
     with torch.no_grad():
-        predictions = model["model"](*tuple(inputs.values()))[0]
+        predictions = model["model"](*tuple(inputs.values()), return_dict=False)[0]
         outputs = predictions.cpu().numpy()
 
     maxes = np.max(outputs, axis=-1, keepdims=True)
