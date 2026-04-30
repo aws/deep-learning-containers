@@ -114,6 +114,7 @@ jobs:
           OS_LABEL=$(echo "${{ needs.load-config.outputs.os-version }}" | tr '.' '-')
 
           docker buildx build --progress plain \
+            --build-arg FRAMEWORK=${{ needs.load-config.outputs.framework }} \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \

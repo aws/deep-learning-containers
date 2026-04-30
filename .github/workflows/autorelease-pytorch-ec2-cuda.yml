@@ -117,6 +117,7 @@ jobs:
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-${{ github.run_id }}"
 
           docker buildx build --progress plain \
+            --build-arg FRAMEWORK=${{ needs.load-config.outputs.framework }} \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \

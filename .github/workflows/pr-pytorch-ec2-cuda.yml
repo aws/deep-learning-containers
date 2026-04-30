@@ -139,7 +139,7 @@ jobs:
   # Build runtime image
   # ============================================================
   build-images:
-    needs: [check-changes]
+    needs: [check-changes, load-config]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -190,6 +190,7 @@ jobs:
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-pr-${{ github.event.pull_request.number }}"
 
           docker buildx build --progress plain \
+            --build-arg FRAMEWORK=${{ needs.load-config.outputs.framework }} \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
