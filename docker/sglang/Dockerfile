@@ -34,7 +34,7 @@ WORKDIR /
 RUN pip install \
   botocore
 
-# patch CVEs
+# patch CVEs (rebuild to pick up latest OS patches)
 RUN pip install \
   "black>=26.3.1" \
   "pillow>=12.1.1" \
