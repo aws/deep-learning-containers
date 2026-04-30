@@ -205,6 +205,13 @@ for name, actual, op, expected in checks:
     if not passed:
         ok = False
 
+# Write threshold result back into the JSON so the report can read it.
+with open(result_path) as f:
+    doc = json.load(f)
+doc.setdefault("summary", {})["threshold_passed"] = ok
+with open(result_path, "w") as f:
+    json.dump(doc, f, indent=2)
+
 if not ok:
     sys.exit(1)
 print("ALL THRESHOLDS PASSED")

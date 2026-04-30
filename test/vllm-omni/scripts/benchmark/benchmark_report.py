@@ -38,7 +38,8 @@ def main(root: str) -> int:
         summary = doc.get("summary", doc)
 
         failed = summary.get("failed", 0) or 0
-        status = "FAIL" if failed else "PASS"
+        threshold_passed = summary.get("threshold_passed", True)
+        status = "FAIL" if (failed or not threshold_passed) else "PASS"
 
         rps = summary.get("requests_per_second", "-")
         # Pick the most informative throughput metric available
