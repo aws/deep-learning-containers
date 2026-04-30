@@ -77,11 +77,23 @@ case "${BENCHMARK_TYPE}" in
     CONCURRENCY="$(get_cfg concurrency 4)"
     NUM_PROMPTS="$(get_cfg num_prompts 20)"
     REF_AUDIO_S3="$(get_cfg ref_audio_s3)"
-    REF_TEXT="$(get_cfg ref_text "Hello, how are you?")"
     LANGUAGE="$(get_cfg language English)"
     REF_LOCAL=/tmp/ref_audio.wav
+    REF_TEXT_LOCAL=/tmp/ref_audio.txt
     if [ -n "${REF_AUDIO_S3}" ]; then
       aws s3 cp "${REF_AUDIO_S3}" "${REF_LOCAL}"
+      # Download transcript (.txt next to .wav) — ref_text MUST match the audio exactly.
+      # See: https://github.com/vllm-project/vllm-omni/issues/3124
+      REF_TEXT_S3="${REF_AUDIO_S3%.wav}.txt"
+      if aws s3 cp "${REF_TEXT_S3}" "${REF_TEXT_LOCAL}" 2>/dev/null; then
+        REF_TEXT="$(cat "${REF_TEXT_LOCAL}")"
+      else
+        REF_TEXT="$(get_cfg ref_text)"
+        if [ -z "${REF_TEXT}" ]; then
+          echo "ERROR: tts-base requires ref_text in config or a .txt file next to the .wav in S3"
+          exit 1
+        fi
+      fi
     else
       echo "ERROR: tts-base requires ref_audio_s3 in config"
       exit 1
