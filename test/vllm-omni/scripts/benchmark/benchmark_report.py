@@ -19,9 +19,9 @@ import sys
 def main(root: str) -> int:
     print("# vLLM-Omni Benchmark Report\n")
     print(
-        "| Model / Fleet | Status | Req/s | Throughput | p50 E2E (ms) | p95 E2E (ms) | p99 E2E (ms) |"
+        "| Model / Fleet | Status | Req/s | Throughput | p50 E2E (ms) | p95 E2E (ms) | p99 E2E (ms) | TTFT p95 (ms) |"
     )
-    print("|---|---|---:|---:|---:|---:|---:|")
+    print("|---|---|---:|---:|---:|---:|---:|---:|")
 
     for artifact_dir in sorted(glob.glob(os.path.join(root, "omni-benchmark-*"))):
         name = os.path.basename(artifact_dir).replace("omni-benchmark-", "")
@@ -30,7 +30,7 @@ def main(root: str) -> int:
         # of artifact_dir (when upload-artifact uploads benchmark_results/ directly).
         jsons = sorted(glob.glob(os.path.join(artifact_dir, "**", "*.json"), recursive=True))
         if not jsons:
-            print(f"| {name} | NO_RESULT | - | - | - | - | - |")
+            print(f"| {name} | NO_RESULT | - | - | - | - | - | - |")
             continue
 
         with open(jsons[0]) as f:
@@ -56,9 +56,9 @@ def main(root: str) -> int:
         p50 = e2e.get("median", "-")
         p95 = e2e.get("p95", "-")
         p99 = e2e.get("p99", "-")
-        extra = f" (TTFT p95 {ttft_p95} ms)" if ttft_p95 is not None else ""
+        ttft_col = ttft_p95 if ttft_p95 is not None else "-"
 
-        print(f"| {name} | {status} | {rps} | {tput} | {p50}{extra} | {p95} | {p99} |")
+        print(f"| {name} | {status} | {rps} | {tput} | {p50} | {p95} | {p99} | {ttft_col} |")
 
     return 0  # report is informational; workflow already fails individual jobs on threshold miss
 
