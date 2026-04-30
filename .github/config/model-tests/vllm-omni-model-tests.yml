@@ -96,7 +96,7 @@ benchmark:
       fleet: "x86-g6exl-runner"
       extra_args: ""
       benchmark_type: "tts-base"
-      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "language": "English", "min_rps": 1.0, "min_audio_rtf_mult": 4.0, "max_p95_e2e_ms": 4500}'
+      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "ref_text": "The quick brown fox jumps over the lazy dog near the riverbank at sunset.", "language": "English", "min_rps": 1.0, "min_audio_rtf_mult": 4.0, "max_p95_e2e_ms": 4500}'
 
     # --- Image generation ---
     # Thresholds baselined on g6.xlarge (L4 24GB) with ~25% margin for CI noise.

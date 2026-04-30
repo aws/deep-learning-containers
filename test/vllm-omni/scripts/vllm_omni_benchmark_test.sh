@@ -98,6 +98,7 @@ case "${BENCHMARK_TYPE}" in
       echo "ERROR: tts-base requires ref_audio_s3 in config"
       exit 1
     fi
+    echo "ref_text='${REF_TEXT}'"
     python3 "${SCRIPT_DIR}/benchmark/tts_benchmark_client.py" \
       --base-url "${BASE_URL}" \
       --num-prompts "${NUM_PROMPTS}" --concurrency "${CONCURRENCY}" --warmup 2 \
