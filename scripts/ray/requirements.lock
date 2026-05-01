@@ -35,7 +35,7 @@ botocore==1.42.59
     #   awscli
     #   boto3
     #   s3transfer
-certifi==2026.2.25
+certifi==2026.4.22
     # via
     #   httpcore
     #   httpx
@@ -46,7 +46,7 @@ cffi==2.0.0
     #   soundfile
 charset-normalizer==3.4.7
     # via requests
-click==8.3.2
+click==8.3.3
     # via
     #   ray
     #   typer
@@ -60,11 +60,11 @@ colorama==0.4.6
     #   uvicorn
 colorful==0.5.8
     # via ray
-cryptography==46.0.6
+cryptography==47.0.0
     # via google-auth
 cuda-bindings==12.9.4 ; platform_machine == 'x86_64' and sys_platform == 'linux'
     # via torch
-cuda-pathfinder==1.5.1 ; platform_machine == 'x86_64' and sys_platform == 'linux'
+cuda-pathfinder==1.5.4 ; platform_machine == 'x86_64' and sys_platform == 'linux'
     # via cuda-bindings
 distlib==0.4.0
     # via virtualenv
@@ -74,7 +74,7 @@ fastapi==0.133.1
     # via
     #   dlc-ray
     #   ray
-filelock==3.25.2
+filelock==3.29.0
     # via
     #   huggingface-hub
     #   python-discovery
@@ -85,13 +85,13 @@ frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
-fsspec==2026.3.0
+fsspec==2026.4.0
     # via
     #   huggingface-hub
     #   torch
-google-api-core==2.30.2
+google-api-core==2.30.3
     # via opencensus
-google-auth==2.49.1
+google-auth==2.50.0
     # via google-api-core
 googleapis-common-protos==1.74.0
     # via google-api-core
@@ -111,11 +111,11 @@ httpx==0.28.1
     # via
     #   dlc-ray
     #   huggingface-hub
-huggingface-hub==1.9.0
+huggingface-hub==1.13.0
     # via
     #   tokenizers
     #   transformers
-idna==3.11
+idna==3.13
     # via
     #   anyio
     #   httpx
@@ -206,22 +206,22 @@ opencensus-context==0.1.3
     # via opencensus
 opencv-python==4.13.0.92
     # via dlc-ray
-opentelemetry-api==1.40.0
+opentelemetry-api==1.41.1
     # via
     #   opentelemetry-exporter-prometheus
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
-opentelemetry-exporter-prometheus==0.61b0
+opentelemetry-exporter-prometheus==0.62b1
     # via ray
-opentelemetry-proto==1.40.0
+opentelemetry-proto==1.41.1
     # via ray
-opentelemetry-sdk==1.40.0
+opentelemetry-sdk==1.41.1
     # via
     #   opentelemetry-exporter-prometheus
     #   ray
-opentelemetry-semantic-conventions==0.61b0
+opentelemetry-semantic-conventions==0.62b1
     # via opentelemetry-sdk
-packaging==26.0
+packaging==26.2
     # via
     #   huggingface-hub
     #   ray
@@ -234,11 +234,11 @@ pillow==12.2.0
     #   torchvision
 pip==26.0.1
     # via dlc-ray
-platformdirs==4.9.4
+platformdirs==4.9.6
     # via
     #   python-discovery
     #   virtualenv
-prometheus-client==0.24.1
+prometheus-client==0.25.0
     # via
     #   opentelemetry-exporter-prometheus
     #   ray
@@ -255,7 +255,7 @@ protobuf==6.33.6
     #   opentelemetry-proto
     #   proto-plus
     #   ray
-py-spy==0.4.1
+py-spy==0.4.2
     # via ray
 pyasn1==0.6.3
     # via
@@ -265,11 +265,11 @@ pyasn1-modules==0.4.2
     # via google-auth
 pycparser==3.0 ; implementation_name != 'PyPy'
     # via cffi
-pydantic==2.12.5
+pydantic==2.13.3
     # via
     #   fastapi
     #   ray
-pydantic-core==2.41.5
+pydantic-core==2.46.3
     # via pydantic
 pygments==2.20.0
     # via rich
@@ -277,7 +277,7 @@ python-dateutil==2.9.0.post0
     # via
     #   botocore
     #   pandas
-python-discovery==1.2.1
+python-discovery==1.2.2
     # via virtualenv
 python-dotenv==1.2.2
     # via uvicorn
@@ -301,7 +301,7 @@ requests==2.33.1
     # via
     #   google-api-core
     #   ray
-rich==14.3.3
+rich==15.0.0
     # via typer
 rpds-py==0.30.0
     # via
@@ -309,7 +309,7 @@ rpds-py==0.30.0
     #   referencing
 rsa==4.7.2
     # via awscli
-s3transfer==0.16.0
+s3transfer==0.16.1
     # via
     #   awscli
     #   boto3
@@ -327,7 +327,7 @@ six==1.17.0
     # via
     #   opencensus
     #   python-dateutil
-smart-open==7.5.1
+smart-open==7.6.0
     # via ray
 soundfile==0.13.1
     # via dlc-ray
@@ -360,7 +360,7 @@ transformers==5.2.0
     # via dlc-ray
 triton==3.6.0 ; platform_machine == 'x86_64' and sys_platform == 'linux'
     # via torch
-typer==0.24.1
+typer==0.25.1
     # via
     #   huggingface-hub
     #   typer-slim
@@ -382,7 +382,7 @@ typing-inspection==0.4.2
     # via
     #   fastapi
     #   pydantic
-tzdata==2026.1 ; sys_platform == 'emscripten' or sys_platform == 'win32'
+tzdata==2026.2 ; sys_platform == 'emscripten' or sys_platform == 'win32'
     # via pandas
 urllib3==2.6.3
     # via
@@ -394,7 +394,7 @@ uvicorn==0.41.0
     #   ray
 uvloop==0.22.1 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
     # via uvicorn
-virtualenv==21.2.0
+virtualenv==21.3.0
     # via ray
 watchfiles==1.1.1
     # via
@@ -406,5 +406,5 @@ wrapt==2.1.2
     # via smart-open
 yarl==1.23.0
     # via aiohttp
-zipp==3.23.0
+zipp==3.23.1
     # via importlib-metadata
