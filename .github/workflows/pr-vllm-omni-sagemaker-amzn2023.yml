@@ -1,10 +1,6 @@
 name: PR - vLLM-Omni SageMaker AMZN2023
 
 on:
-  # TEMPORARILY DISABLED while PR #6022 (vllm-omni benchmark) is in flight.
-  # Restore the pull_request: block below before merging anything else that
-  # touches vllm-omni SageMaker.
-  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]

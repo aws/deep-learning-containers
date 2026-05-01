@@ -1,10 +1,6 @@
 name: PR - vLLM-Omni EC2 AMZN2023
 
 on:
-  # TEMPORARILY DISABLED while PR #6022 (vllm-omni benchmark) is in flight.
-  # Restore the pull_request: block below before merging anything else that
-  # touches vllm-omni EC2.
-  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
