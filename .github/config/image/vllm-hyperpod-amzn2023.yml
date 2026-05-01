@@ -24,9 +24,9 @@ common:
   contributor: "None"
 
 release:
-  release: false
+  release: true
   force_release: false
-  public_registry: false
-  private_registry: false
-  enable_soci: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
   environment: gamma
