@@ -21,7 +21,7 @@ common:
   ci_tag: "ray-gpu-ec2"
   dockerfile: "docker/ray/Dockerfile.gpu"
   base_image: "unused-ray-gpu-multistage"
-  prod_image: "ray:2.54-gpu-py313-ec2"
+  prod_image: "ray:serve-ml-cuda"
   device_type: "gpu"
   contributor: "None"
 
