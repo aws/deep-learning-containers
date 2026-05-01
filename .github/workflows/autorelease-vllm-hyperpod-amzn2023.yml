@@ -9,8 +9,8 @@ on:
   # PR triggers for testing
   pull_request:
     paths:
-      - "**vllm**"
-      - "!docs/**"
+      - ".github/config/image/vllm-hyperpod-amzn2023.yml"
+      - ".github/workflows/autorelease-vllm-hyperpod-amzn2023.yml"
 
   # Manual trigger
   workflow_dispatch:
