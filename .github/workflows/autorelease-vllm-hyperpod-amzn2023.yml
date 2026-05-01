@@ -7,10 +7,10 @@ on:
   #   - cron: '00 17 * * 1,3'
 
   # PR triggers for testing
-  # pull_request:
-  #   paths:
-  #     - ".github/config/image/vllm-hyperpod-amzn2023.yml"
-  #     - ".github/workflows/autorelease-vllm-hyperpod-amzn2023.yml"
+  pull_request:
+    paths:
+      - ".github/config/image/vllm-hyperpod-amzn2023.yml"
+      - ".github/workflows/autorelease-vllm-hyperpod-amzn2023.yml"
 
   # Manual trigger
   workflow_dispatch:
