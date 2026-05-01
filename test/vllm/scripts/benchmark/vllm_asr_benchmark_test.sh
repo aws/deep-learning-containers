@@ -32,7 +32,7 @@ HEALTH_INTERVAL=10
 
 echo "=== Qwen3-ASR Benchmark: ${MODEL_NAME} ==="
 
-pip install -q aiohttp httpx > /dev/null 2>&1
+# aiohttp, httpx already installed in vLLM container
 
 echo "=== Starting vLLM server ==="
 # shellcheck disable=SC2086

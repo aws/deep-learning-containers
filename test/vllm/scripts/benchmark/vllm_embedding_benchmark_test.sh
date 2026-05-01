@@ -32,7 +32,7 @@ HEALTH_INTERVAL=10
 
 echo "=== Embedding Benchmark: ${MODEL_NAME} ==="
 
-pip install -q aiohttp httpx numpy > /dev/null 2>&1
+# aiohttp, httpx, numpy already installed in vLLM container
 
 echo "=== Starting vLLM server ==="
 # shellcheck disable=SC2086

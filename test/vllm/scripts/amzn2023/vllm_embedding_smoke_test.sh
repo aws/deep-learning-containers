@@ -16,7 +16,7 @@ VLLM_PORT=8000
 HEALTH_TIMEOUT=600
 HEALTH_INTERVAL=10
 
-pip install -q httpx numpy > /dev/null 2>&1
+# httpx, numpy already installed in vLLM container
 
 echo "=== Embedding Smoke Test: ${MODEL_NAME} ==="
 echo "=== Model directory: ${MODEL_DIR} ==="
