@@ -26,17 +26,5 @@
   {
     "vulnerability_id": "CVE-2026-34480",
     "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-39892",
-    "reason": "cryptography 46.0.6 transitively pinned; upgrade to 46.0.7 pending dependency bump"
-  },
-  {
-    "vulnerability_id": "CVE-2025-23308",
-    "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
-  },
-  {
-    "vulnerability_id": "CVE-2025-23339",
-    "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
   }
 ]
