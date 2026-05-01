@@ -23,14 +23,14 @@ on:
   # TEMPORARY: trigger on PRs that touch this workflow or its scripts so we
   # can validate the benchmark wiring before merging to main. Remove this
   # pull_request: block once the workflow has run successfully against a PR.
-  pull_request:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/dispatch-vllm-omni-benchmark.yml"
-      - ".github/config/model-tests/vllm-omni-model-tests.yml"
-      - "test/vllm-omni/scripts/vllm_omni_benchmark_test.sh"
-      - "test/vllm-omni/scripts/benchmark/**"
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - ".github/workflows/dispatch-vllm-omni-benchmark.yml"
+  #     - ".github/config/model-tests/vllm-omni-model-tests.yml"
+  #     - "test/vllm-omni/scripts/vllm_omni_benchmark_test.sh"
+  #     - "test/vllm-omni/scripts/benchmark/**"
 
 env:
   # For workflow_dispatch: use the user-provided input.
