@@ -22,7 +22,6 @@ import pytest
 from ray.sagemaker.common import (
     make_model_endpoint_fixture,
     make_model_name_fixture,
-    make_model_package_fixture,
     run_test_audio_ffmpeg,
     run_test_cv_densenet,
     run_test_mnist_direct_app,
@@ -35,7 +34,6 @@ INSTANCE_TYPE = "ml.g4dn.xlarge"
 
 # Register fixtures for this module
 model_name = make_model_name_fixture()
-model_package = make_model_package_fixture(DEVICE, INSTANCE_TYPE)
 model_endpoint = make_model_endpoint_fixture(DEVICE, INSTANCE_TYPE)
 
 

@@ -1,14 +1,13 @@
-"""Integration test for serving endpoint with SGLang DLC"""
+"""Integration test for serving endpoint with SGLang DLC — SageMaker SDK v3"""
 
 import json
 import logging
 from pprint import pformat
 
 import pytest
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
-from test_utils import clean_string, random_suffix_name, wait_for_status
+from sagemaker.core.resources import Endpoint, EndpointConfig, Model
+from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
+from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
 
@@ -16,127 +15,105 @@ from test_utils.huggingface_helper import get_hf_token
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-ENDPOINT_WAIT_PERIOD = 60
-ENDPOINT_WAIT_LENGTH = 30
-ENDPOINT_INSERVICE = "InService"
-
-
-def get_endpoint_status(sagemaker_client, endpoint_name):
-    response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
-    LOGGER.debug(f"Describe endpoint response: {pformat(response)}")
-    return response["EndpointStatus"]
-
 
 @pytest.fixture(scope="function")
 def model_id(request):
-    # Return the model_id given by the test parameter
     return request.param
 
 
 @pytest.fixture(scope="function")
 def instance_type(request):
-    # Return the instance_type given by the test parameter
     return request.param
 
 
+def _cleanup(resources):
+    """Best-effort delete for a list of v3 resource objects (None-safe)."""
+    for resource in resources:
+        if resource is None:
+            continue
+        try:
+            resource.delete()
+        except Exception as e:
+            LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
+
+
 @pytest.fixture(scope="function")
-def model_package(aws_session, image_uri, model_id):
-    sagemaker_client = aws_session.sagemaker
+def model_endpoint(aws_session, image_uri, model_id, instance_type):
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
-    model_name = random_suffix_name(f"sglang-{cleaned_id}-model-package", 50)
+    endpoint_name = random_suffix_name(f"sglang-{cleaned_id}", 50)
+    model_name = endpoint_name
 
     LOGGER.debug(f"Using image: {image_uri}")
     LOGGER.debug(f"Model ID: {model_id}")
 
+    hf_token = get_hf_token(aws_session)
+    role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
+
+    model = endpoint_config = endpoint = None
     try:
-        LOGGER.info(f"Creating SageMaker model: {model_name}...")
-        hf_token = get_hf_token(aws_session)
-        model = Model(
-            name=model_name,
-            image_uri=image_uri,
-            role=SAGEMAKER_ROLE,
-            predictor_cls=Predictor,
-            env={
-                "SM_SGLANG_MODEL_PATH": model_id,
-                "HF_TOKEN": hf_token,
-            },
+        LOGGER.info(f"Creating model: {model_name}")
+        model = Model.create(
+            model_name=model_name,
+            primary_container=ContainerDefinition(
+                image=image_uri,
+                environment={
+                    "SM_SGLANG_MODEL_PATH": model_id,
+                    "HF_TOKEN": hf_token,
+                },
+            ),
+            execution_role_arn=role_arn,
         )
-        LOGGER.info("Model created successfully")
-        yield model
-    finally:
-        LOGGER.info(f"Deleting model: {model_name}")
-        sagemaker_client.delete_model(ModelName=model_name)
 
+        LOGGER.info(f"Creating endpoint config: {endpoint_name}")
+        endpoint_config = EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=model_name,
+                    initial_instance_count=1,
+                    instance_type=instance_type,
+                    inference_ami_version=INFERENCE_AMI_VERSION,
+                ),
+            ],
+        )
 
-@pytest.fixture(scope="function")
-def model_endpoint(aws_session, model_package, instance_type):
-    sagemaker_client = aws_session.sagemaker
-    model = model_package
-    cleaned_instance = clean_string(instance_type, "_./")
-    endpoint_name = random_suffix_name(f"sglang-{cleaned_instance}-endpoint", 50)
-
-    LOGGER.debug(f"Using instance type: {instance_type}")
-
-    try:
-        LOGGER.info("Starting endpoint deployment (this may take 10-15 minutes)...")
-        predictor = model.deploy(
-            instance_type=instance_type,
-            initial_instance_count=1,
+        LOGGER.info(f"Deploying endpoint: {endpoint_name} (this may take 10-15 minutes)...")
+        endpoint = Endpoint.create(
             endpoint_name=endpoint_name,
-            inference_ami_version=INFERENCE_AMI_VERSION,
-            serializer=JSONSerializer(),
-            wait=True,
+            endpoint_config_name=endpoint_name,
         )
+        endpoint.wait_for_status("InService")
         LOGGER.info("Endpoint deployment completed successfully")
 
-        LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status ...")
-        assert wait_for_status(
-            ENDPOINT_INSERVICE,
-            ENDPOINT_WAIT_PERIOD,
-            ENDPOINT_WAIT_LENGTH,
-            get_endpoint_status,
-            sagemaker_client,
-            endpoint_name,
-        )
-
-        yield predictor
+        yield endpoint
     finally:
-        LOGGER.info(f"Deleting endpoint: {endpoint_name}")
-        sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
-
-        LOGGER.info(f"Deleting endpoint configuration: {endpoint_name}")
-        sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+        _cleanup([endpoint, endpoint_config, model])
 
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
 def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
-    predictor = model_endpoint
+    endpoint = model_endpoint
 
     prompt = "Write a python script to calculate square of n"
-    payload = {
-        "model": model_id,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": 2400,
-        "temperature": 0.01,
-        "top_p": 0.9,
-        "top_k": 50,
-    }
-    LOGGER.debug(f"Sending inference request with payload: {pformat(payload)}")
+    payload = json.dumps(
+        {
+            "model": model_id,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 2400,
+            "temperature": 0.01,
+            "top_p": 0.9,
+            "top_k": 50,
+        }
+    )
+    LOGGER.debug(f"Sending inference request with payload: {payload}")
 
-    response = predictor.predict(payload)
+    result = endpoint.invoke(body=payload, content_type="application/json")
+    body = json.loads(result.body.read())
     LOGGER.info("Inference request invoked successfully")
 
-    if isinstance(response, bytes):
-        response = response.decode("utf-8")
+    assert body, "Model response is empty, failing endpoint test!"
 
-    if isinstance(response, str):
-        try:
-            response = json.loads(response)
-        except json.JSONDecodeError:
-            LOGGER.warning("Response is not valid JSON. Returning as string.")
-
-    assert response, "Model response is empty, failing endpoint test!"
-
-    LOGGER.info(f"Model response: {pformat(response)}")
+    LOGGER.info(f"Model response: {pformat(body)}")
     LOGGER.info("Inference test successful!")
