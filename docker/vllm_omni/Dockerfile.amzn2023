@@ -344,7 +344,7 @@ WORKDIR /
 # Install DLC Python dependencies
 RUN uv pip install --no-cache-dir botocore
 
-# Patch CVEs
+# Patch CVEs (rebuild to pick up latest scans)
 RUN uv pip install --no-cache-dir \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
