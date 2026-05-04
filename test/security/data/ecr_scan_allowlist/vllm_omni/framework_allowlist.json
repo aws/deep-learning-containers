@@ -150,9 +150,5 @@
     {
         "vulnerability_id": "CVE-2025-23308",
         "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
-    },
-    {
-        "vulnerability_id": "CVE-2026-1839",
-        "reason": "transformers 4.57.6 Trainer._load_rng_state() arbitrary code execution. Fix is transformers>=5.0.0rc3. Inference-only serving path does not expose Trainer."
     }
 ]
