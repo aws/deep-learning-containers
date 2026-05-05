@@ -1,25 +1,55 @@
 name: "PR Analytics"
+
 on:
   workflow_dispatch:
     inputs:
       report_date_start:
-        description: "Report date start(d/MM/yyyy)"
+        description: "Report date start (d/MM/yyyy)"
+        required: false
       report_date_end:
-        description: "Report date end(d/MM/yyyy)"
+        description: "Report date end (d/MM/yyyy)"
+        required: false
+  # TEMPORARY: pull_request trigger for testing the workflow on a PR branch.
+  # Remove this pull_request: block and the hardcoded inputs below once the
+  # workflow has run successfully and is ready to be used via workflow_dispatch.
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pull-request-analytics.yml"
+
+permissions:
+  contents: read
+
 jobs:
   create-report:
     name: "Create report"
     runs-on: ubuntu-latest
     steps:
       - name: "Run script for analytics"
+        id: analytics
         uses: AlexSim93/pull-request-analytics-action@v4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # In the case of a personal access token, it needs to be added to the repository's secrets and used in this field.
-          GITHUB_REPO_FOR_ISSUE: # Make sure to specify the name of the repository where the issue will be created
-          GITHUB_OWNER_FOR_ISSUE: # Make sure to specify the owner of the repository where the issue will be created
-          GITHUB_OWNERS_REPOS: aws/deep-learning-containers # Be sure to list the owner and repository name in the format owner/repo
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_OWNERS_REPOS: aws/deep-learning-containers
+          # Render report to the workflow run summary instead of creating
+          # an issue — avoids stale issues piling up and needing issues:write.
+          EXECUTION_OUTCOME: markdown
           CORE_HOURS_START: "9:00"
-          CORE_HOURS_END: "19:00"
-          TIMEZONE: "Europe/Berlin"
-          REPORT_DATE_START: ${{ inputs.report_date_start }}
-          REPORT_DATE_END: ${{ inputs.report_date_end }}
+          CORE_HOURS_END: "18:00"
+          TIMEZONE: "America/Los_Angeles"
+          # Matches branch protection on main (1 approving review required,
+          # plus CODEOWNERS review).
+          REQUIRED_APPROVALS: "1"
+          # Hardcoded during PR validation — scope to Yadan-Wei's PRs from
+          # 2025-08-19 through today. Remove these once the pull_request
+          # trigger is dropped; the workflow_dispatch inputs will drive dates.
+          REPORT_DATE_START: ${{ inputs.report_date_start || '19/08/2025' }}
+          REPORT_DATE_END: ${{ inputs.report_date_end || '5/05/2026' }}
+          INCLUDE_USERS: "Yadan-Wei"
+
+      - name: "Render report to step summary"
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ${{ steps.analytics.outputs.MARKDOWN }}
+          EOF
