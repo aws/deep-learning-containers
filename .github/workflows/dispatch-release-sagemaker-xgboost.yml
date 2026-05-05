@@ -119,7 +119,7 @@ jobs:
         run: |
           CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
           cd /tmp/xgboost-unit
-          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
+          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN pip install --no-deps -e . && pip install black coverage docker flake8 isort mock pytest pytest-cov pytest-xdist 'sagemaker>=2.0,<3.0' 'protobuf>=3.20.0,<=3.20.3' tox setuptools" > Dockerfile.test
           docker build -t test-xgboost -f Dockerfile.test .
       - name: Run unit tests
         run: |
