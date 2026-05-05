@@ -120,11 +120,14 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
-            # our CI suffers the same issue
-            export IS_BLACKWELL=1
 
-            bash scripts/ci/cuda/ci_install_dependency.sh
+            # The upstream ci_install_dependency.sh is designed for bare-metal CI
+            # runners and does a full source install requiring Rust (for the gRPC
+            # extension added in v0.5.11). The DLC image already has sglang
+            # installed, so we only need test dependencies and the source tree on
+            # PYTHONPATH for test registration modules (sglang.test.ci).
+            pip install --break-system-packages \
+              pytest tabulate parameterized scipy
           '
 
       - name: Run SGLang tests
@@ -132,6 +135,10 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
+
+            # Make the source tree importable so test registration modules
+            # (sglang.test.ci) from this version are used.
+            export PYTHONPATH=/workdir/python:${PYTHONPATH:-}
 
             # SRT backend Test with increased timeout
             cd /workdir/test
