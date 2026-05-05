@@ -1,0 +1,25 @@
+name: "PR Analytics"
+on:
+  workflow_dispatch:
+    inputs:
+      report_date_start:
+        description: "Report date start(d/MM/yyyy)"
+      report_date_end:
+        description: "Report date end(d/MM/yyyy)"
+jobs:
+  create-report:
+    name: "Create report"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Run script for analytics"
+        uses: AlexSim93/pull-request-analytics-action@v4
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # In the case of a personal access token, it needs to be added to the repository's secrets and used in this field.
+          GITHUB_REPO_FOR_ISSUE: # Make sure to specify the name of the repository where the issue will be created
+          GITHUB_OWNER_FOR_ISSUE: # Make sure to specify the owner of the repository where the issue will be created
+          GITHUB_OWNERS_REPOS: aws/deep-learning-containers # Be sure to list the owner and repository name in the format owner/repo
+          CORE_HOURS_START: "9:00"
+          CORE_HOURS_END: "19:00"
+          TIMEZONE: "Europe/Berlin"
+          REPORT_DATE_START: ${{ inputs.report_date_start }}
+          REPORT_DATE_END: ${{ inputs.report_date_end }}
