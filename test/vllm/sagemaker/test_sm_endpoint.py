@@ -91,7 +91,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)
+@pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"], indirect=True)
 def test_vllm_sagemaker_endpoint(model_endpoint):
     endpoint = model_endpoint
