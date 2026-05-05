@@ -24,88 +24,8 @@
         "reason": "vllm 0.15.1 Nested in ray, unpatchable /usr/local/lib/python3.12/dist-packages/ray/jars/ray_dist.jar/META-INF/maven/com.fasterxml.jackson.core/jackson-core/pom.properties"
     },
     {
-        "vulnerability_id": "CVE-2025-59425",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-22773",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-24486",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66448",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-62164",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66418",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "GHSA-mcmc-2m55-j8jj",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-68131",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-23949",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-6242",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-62727",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-22807",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66471",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-22778",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-0994",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-62593",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2025-58446",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-24779",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
-        "vulnerability_id": "CVE-2026-21441",
-        "reason": "vllm 0.10.2 TODO"
-    },
-    {
         "vulnerability_id": "CVE-2026-31812",
         "reason": "Coming in as a dependency from the latest uv 0.10.9"
-    },
-    {
-        "vulnerability_id": "CVE-2026-27893",
-        "reason": "vllm 0.10.2 RayServe image - trust_remote_code=True hardcoded, fixed in vllm>=0.18.0. RayServe image not updated in this PR."
     },
     {
         "vulnerability_id": "CVE-2026-22815",
@@ -167,5 +87,9 @@
         "vulnerability_id": "CVE-2026-34480",
         "reason": "log4j-core 2.17.1 bundled in ray_dist.jar, unpatchable without Ray upgrade. Fix: >=2.25.4",
         "review_by": "2026-05-04"
+    },
+    {
+        "vulnerability_id": "CVE-2026-1839",
+        "reason": "transformers Trainer._load_rng_state() RCE — only triggered when resuming training from checkpoint. DLC vLLM is inference-only, Trainer is never invoked. Fix requires transformers>=5.0.0rc3 (pre-release)."
     }
 ]

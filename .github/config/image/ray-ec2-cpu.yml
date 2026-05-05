@@ -20,7 +20,7 @@ common:
   ci_tag: "ray-cpu-ec2"
   dockerfile: "docker/ray/Dockerfile.cpu"
   base_image: "unused-ray-cpu-multistage"
-  prod_image: "ray:2.54-cpu-py313-ec2"
+  prod_image: "ray:serve-ml-cpu"
   device_type: "cpu"
   contributor: "None"
 

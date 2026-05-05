@@ -1,41 +1,40 @@
-name: Auto Release - vLLM RayServe
+name: Auto Release - vLLM HyperPod AMZN2023
 
 on:
   # schedule run must be on the default branch
-  schedule:
-    # Runs at 10:00 AM PST/PDT on Monday and Wednesday
-    - cron: '00 17 * * 1,3' # Monday and Wednesday at 10:00 AM PDT / 9:00 AM PST
+  # schedule:
+  #   # Runs at 9AM/10AM PST/PDT on Mondays and Wednesdays
+  #   - cron: '00 17 * * 1,3'
 
-  # # PR triggers for testing
+  # PR triggers for testing
   # pull_request:
   #   paths:
-  #     - "**vllm**"
-  #     - "!docs/**"
+  #     - ".github/config/image/vllm-hyperpod-amzn2023.yml"
+  #     - ".github/workflows/autorelease-vllm-hyperpod-amzn2023.yml"
 
   # Manual trigger
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
-  pull-requests: read
 
 env:
-  # CI environment configuration
   FORCE_COLOR: "1"
-
-  # Config file path
-  CONFIG_FILE: ".github/config/image/vllm-rayserve.yml"
+  CONFIG_FILE: ".github/config/image/vllm-hyperpod-amzn2023.yml"
 
 jobs:
   load-config:
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-load-config-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     outputs:
       config: ${{ steps.load.outputs.config }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
+      vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
+      vllm-ref-short: ${{ steps.parse.outputs.vllm-ref-short }}
       python-version: ${{ steps.parse.outputs.python-version }}
       cuda-version: ${{ steps.parse.outputs.cuda-version }}
       os-version: ${{ steps.parse.outputs.os-version }}
@@ -61,6 +60,14 @@ jobs:
           echo '${{ steps.load.outputs.config }}' > config.json
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          VLLM_REF="$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)"
+          if echo "$VLLM_REF" | grep -qE '^[0-9a-f]{12,}$'; then
+            VLLM_REF_SHORT=$(echo "$VLLM_REF" | cut -c1-8)
+          else
+            VLLM_REF_SHORT=$(echo "$VLLM_REF" | sed -E 's/[^A-Za-z0-9]/_/g')
+          fi
+          echo "vllm-ref-short=${VLLM_REF_SHORT}" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
@@ -75,30 +82,63 @@ jobs:
     needs: [load-config]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
+        fleet:x86-vllm-build-runner
         buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
+    timeout-minutes: 720
+    env:
+      USE_SCCACHE: "1"
+      USE_PREBUILT_WHEEL: "1"
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Fetch cached vLLM wheel
+        id: wheel-cache
+        run: |
+          OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
+            ${{ needs.load-config.outputs.cuda-version }} \
+            ${{ needs.load-config.outputs.vllm-ref }} \
+            ${{ needs.load-config.outputs.framework-version }})
+          echo "$OUTPUT"
+          HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
+          echo "hit=${HIT}" >> $GITHUB_OUTPUT
+          if [ "${HIT}" != "true" ]; then
+            echo "EXPORT_TARGETS=wheel-export:/tmp/vllm-wheels,sccache-export:docker/vllm/sccache-cache" >> $GITHUB_ENV
+          fi
+
+      - name: Sync sccache cache from S3
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh pull vllm
+
+      - name: Prepare build context
+        run: |
+          mkdir -p docker/vllm/prebuilt_wheels
+          mkdir -p docker/vllm/sccache-cache
+
+      - name: Load pinned vLLM versions
+        run: |
+          before=$(compgen -v | sort)
+          set -a; source docker/vllm/versions.env; set +a
+          new=$(comm -13 <(echo "$before") <(compgen -v | sort) | grep -Ev '^(before|PIPESTATUS|_)$')
+          for v in $new; do
+            [ -n "${!v:-}" ] && echo "${v}=$(echo "${!v}" | xargs)" >> "$GITHUB_ENV"
+          done
+          echo "EXTRA_BUILD_ARGS=$(echo $new | xargs)" >> "$GITHUB_ENV"
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config.outputs.framework }}
-          target: vllm-rayserve-ec2
-          base-image: vllm/vllm-openai:v${{ needs.load-config.outputs.framework-version }}
+          target: vllm-hyperpod-amzn2023
+          base-image: nvidia/cuda:12.9.1-devel-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-rayserve-ec2-${{ github.run_id }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.vllm-ref-short }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-hyperpod-${{ github.run_id }}
+          dockerfile-path: docker/vllm/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
@@ -107,11 +147,20 @@ jobs:
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
+      - name: Upload vLLM wheel to cache
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: |
+          bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
+            ${{ needs.load-config.outputs.cuda-version }} \
+            ${{ needs.load-config.outputs.vllm-ref }} \
+            ${{ needs.load-config.outputs.framework-version }}
+
+      - name: Sync sccache cache to S3
+        if: success() && steps.wheel-cache.outputs.hit != 'true'
+        run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
+
   sanity-test:
     needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -130,9 +179,6 @@ jobs:
 
   telemetry-test:
     needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: false
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -144,25 +190,20 @@ jobs:
 
   upstream-tests:
     needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-upstream-tests-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     uses: ./.github/workflows/reusable-vllm-upstream-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
-      setup-script: test/vllm/scripts/vllm_0_10_2_test_setup.sh
-      example-test-script: test/vllm/scripts/vllm_rayserve_examples_test.sh
+      vllm-ref: ${{ needs.load-config.outputs.vllm-ref }}
+      setup-script: test/vllm/scripts/vllm_test_setup.sh
+      example-test-script: test/vllm/scripts/amzn2023/vllm_ec2_examples_test.sh
     secrets: inherit
 
   generate-release-spec:
     needs: [load-config, build-image, sanity-test, upstream-tests]
     runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-generate-release-spec-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     outputs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
       should-release: ${{ steps.check-release.outputs.should-release }}
@@ -188,9 +229,6 @@ jobs:
   release-image:
     needs: [load-config, build-image, generate-release-spec]
     if: needs.generate-release-spec.outputs.should-release == 'true'
-    concurrency:
-      group: ${{ github.workflow }}-release-image-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
     uses: ./.github/workflows/reusable-release-image.yml
     with:
       source-image-uri: ${{ needs.build-image.outputs.ci-image }}

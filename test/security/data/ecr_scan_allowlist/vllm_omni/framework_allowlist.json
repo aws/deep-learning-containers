@@ -104,10 +104,6 @@
         "reason": "Coming in as a dependency from the latest uv 0.10.9"
     },
     {
-        "vulnerability_id": "CVE-2026-27893",
-        "reason": "vllm 0.10.2 RayServe image - trust_remote_code=True hardcoded, fixed in vllm>=0.18.0. RayServe image not updated in this PR."
-    },
-    {
         "vulnerability_id": "CVE-2026-22815",
         "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
     },
@@ -157,6 +153,6 @@
     },
     {
         "vulnerability_id": "CVE-2026-1839",
-        "reason": "transformers (4.57.6 → 5.0.0rc3) is a key dependency that cannot be upgraded"
+        "reason": "transformers 4.57.6 Trainer._load_rng_state() arbitrary code execution. Fix is transformers>=5.0.0rc3. Inference-only serving path does not expose Trainer."
     }
 ]

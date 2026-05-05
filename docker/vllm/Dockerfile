@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.20.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.20.1
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -56,8 +56,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
-  # create symlink for python
-  && ln -s /usr/bin/python3 /usr/bin/python \
+  # create symlink for python (must target /usr/local/bin/python3 which is 3.12;
+  # /usr/bin/python3 is the Ubuntu system 3.10 and lacks DLC dependencies)
+  && ln -sf /usr/local/bin/python3 /usr/bin/python \
   # clean up
   && rm -rf ${HOME_DIR}/oss_compliance* \
   && rm -rf /tmp/tmp* \
@@ -82,24 +83,6 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
-
-ARG CACHE_REFRESH=0
-RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
-  && apt-get update \
-  && apt-get upgrade -y \
-  && apt-get clean \
-  && rm -rf /tmp/*
-
-COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
-
-# ====================== ray serve =========================================
-FROM base AS vllm-rayserve-ec2
-
-RUN uv pip install --system ray[serve]==2.49.0 "aiohttp>=3.13.4" \
-  && uv cache clean
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \

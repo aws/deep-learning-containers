@@ -22,7 +22,7 @@ common:
   dockerfile: "docker/ray/Dockerfile.gpu"
   base_image: "unused-ray-gpu-multistage"
   platform: "sagemaker"
-  prod_image: "ray:2.54-gpu-py313"
+  prod_image: "ray:serve-ml-sagemaker-cuda"
   device_type: "gpu"
   contributor: "None"
 

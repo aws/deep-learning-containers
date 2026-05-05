@@ -50,6 +50,7 @@ LOGGER.setLevel(logging.INFO)
 DEFAULT_SERVE_PORT = 8000
 HEALTH_TIMEOUT = 180  # seconds to wait for Ray Serve to become healthy
 HEALTH_INTERVAL = 5  # seconds between health checks
+REQUEST_TIMEOUT = 180  # seconds to wait for a serve inference response
 
 
 # ---------------------------------------------------------------------------
@@ -260,7 +261,7 @@ def post_json(payload, port=DEFAULT_SERVE_PORT):
     resp = requests.post(
         f"http://localhost:{port}/",
         json=payload,
-        timeout=60,
+        timeout=REQUEST_TIMEOUT,
     )
     resp.raise_for_status()
     return resp.json()
@@ -272,7 +273,7 @@ def post_bytes(data, content_type, port=DEFAULT_SERVE_PORT):
         f"http://localhost:{port}/",
         data=data,
         headers={"Content-Type": content_type},
-        timeout=60,
+        timeout=REQUEST_TIMEOUT,
     )
     resp.raise_for_status()
     return resp.json()
