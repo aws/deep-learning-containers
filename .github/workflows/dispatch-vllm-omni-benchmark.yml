@@ -1,0 +1,172 @@
+name: vLLM-Omni Benchmark Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-uri:
+        description: "Image URI to benchmark (ECR URI)"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR auth (defaults to CI account)"
+        required: false
+        type: string
+        default: ""
+      aws-region:
+        description: "AWS region for ECR auth (defaults to repo var)"
+        required: false
+        type: string
+        default: ""
+  # TEMPORARY: trigger on PRs that touch this workflow or its scripts so we
+  # can validate the benchmark wiring before merging to main. Remove this
+  # pull_request: block once the workflow has run successfully against a PR.
+  # pull_request:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - ".github/workflows/dispatch-vllm-omni-benchmark.yml"
+  #     - ".github/config/model-tests/vllm-omni-model-tests.yml"
+  #     - "test/vllm-omni/scripts/vllm_omni_benchmark_test.sh"
+  #     - "test/vllm-omni/scripts/benchmark/**"
+
+env:
+  # For workflow_dispatch: use the user-provided input.
+  # For pull_request: fall back to the DLC vllm-omni staging image used in the
+  # baseline devbox runs. Override per-run by triggering workflow_dispatch
+  # after the PR is merged.
+  IMAGE_URI: ${{ inputs.image-uri || '404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-omni-0.18.0-gpu-py312-cu129-amzn2023-ec2-pr-6022' }}
+  ACCOUNT_ID: ${{ inputs.aws-account-id || vars.CI_AWS_ACCOUNT_ID }}
+  REGION: ${{ inputs.aws-region || vars.AWS_REGION }}
+
+jobs:
+  load-benchmarks:
+    runs-on: ubuntu-latest
+    outputs:
+      codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Parse benchmark config
+        id: parse
+        run: |
+          python3 -c "
+          import yaml, json
+          with open('.github/config/model-tests/vllm-omni-model-tests.yml') as f:
+              cfg = yaml.safe_load(f)
+          bm = cfg.get('benchmark', {})
+          prefix = cfg.get('s3_prefix', '')
+          for m in bm.get('codebuild-fleet', []):
+              m['s3_path'] = prefix + '/' + m.pop('s3_model')
+          print('codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
+          " > parsed.txt
+          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
+          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
+
+  benchmark-codebuild-fleet:
+    name: omni-benchmark (${{ matrix.name }} / ${{ matrix.fleet }})
+    if: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix)[0] != null }}
+    needs: [load-benchmarks]
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Pre-cleanup GPU state ==="
+          nvidia-smi || true
+          echo ""
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+
+      - name: Download model from S3
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
+
+      # Start the container as a server (same pattern as vllm-omni EC2 smoke test).
+      # The container's default entrypoint runs `vllm-omni serve ...`.
+      - name: Start container (server)
+        run: |
+          docker pull ${{ env.IMAGE_URI }}
+          CONTAINER_ID=$(docker run -d --gpus all --shm-size=10g \
+            -v /dlc-models:/models \
+            -p 8080:8080 \
+            --name vllm-omni-bench \
+            ${{ env.IMAGE_URI }} \
+            --model /models/${{ matrix.name }} \
+            --port 8080 \
+            --stage-init-timeout 900 \
+            ${{ matrix.extra_args }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run benchmark
+        env:
+          ARTIFACT_PREFIX: "${{ matrix.name }}_${{ matrix.fleet }}"
+          VLLM_PORT: "8080"
+          RESULTS_DIR: "${{ github.workspace }}/benchmark_results"
+        run: |
+          mkdir -p "${RESULTS_DIR}"
+          bash test/vllm-omni/scripts/vllm_omni_benchmark_test.sh \
+            "${{ matrix.benchmark_type }}" \
+            '${{ matrix.benchmark_config }}'
+
+      - name: Dump container logs
+        if: always()
+        run: |
+          docker logs ${CONTAINER_ID} 2>&1 | tail -500 || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: omni-benchmark-${{ matrix.name }}-${{ matrix.fleet }}
+          path: benchmark_results/
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+
+  benchmark-report:
+    name: omni-benchmark-report
+    if: always()
+    needs: [benchmark-codebuild-fleet]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Download all benchmark artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: omni-benchmark-*
+          path: results/
+
+      - name: Summarize results
+        run: |
+          python3 test/vllm-omni/scripts/benchmark/benchmark_report.py results/ >> "$GITHUB_STEP_SUMMARY"
