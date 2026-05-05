@@ -1,0 +1,25 @@
+framework: PyTorch
+version: "2.11"
+accelerator: cpu
+python: py312
+os: amzn2023
+platform: sagemaker
+ga: "2026-04-30"
+eop: "2027-04-30"
+public_registry: true
+
+tags:
+  - "2.11.0-cpu-amzn2023-sagemaker"
+  - "2.11-cpu-amzn2023-sagemaker"
+
+announcements:
+  - "Introduced PyTorch 2.11 CPU Training containers on Amazon Linux 2023 for SageMaker"
+  - "Python 3.12"
+
+packages:
+  python: "3.12"
+  pytorch: "2.11.0"
+  torchvision: "0.26.0"
+  torchaudio: "2.11.0"
+  deepspeed: "0.18.8"
+  openmpi: "4.1.7"

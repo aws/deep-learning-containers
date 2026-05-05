@@ -153,6 +153,8 @@ display_names:
 # =============================================================================
 framework_groups:
   pytorch:
+    pytorch:
+      - pytorch
     pytorch-training:
       - pytorch-training
       - pytorch-training-arm64
@@ -183,6 +185,7 @@ table_order:
   - vllm-server
   - vllm-arm64
   - vllm-omni
+  - pytorch
   - pytorch-training
   - pytorch-inference
   - pytorch-training-arm64
