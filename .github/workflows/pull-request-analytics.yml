@@ -44,7 +44,7 @@ jobs:
           # Hardcoded during PR validation — scope to Yadan-Wei's PRs from
           # 2025-08-19 through today. Remove these once the pull_request
           # trigger is dropped; the workflow_dispatch inputs will drive dates.
-          REPORT_DATE_START: ${{ inputs.report_date_start || '19/08/2025' }}
+          REPORT_DATE_START: ${{ inputs.report_date_start || '5/05/2025' }}
           REPORT_DATE_END: ${{ inputs.report_date_end || '5/05/2026' }}
           INCLUDE_USERS: "Yadan-Wei"
 
