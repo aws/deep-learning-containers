@@ -404,6 +404,9 @@ FROM omni-base AS vllm-omni-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
+  # (NVIDIA repo — not flagged in AL2023 security advisories, so --security misses it)
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
@@ -417,6 +420,9 @@ FROM omni-base AS vllm-omni-sagemaker-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
+  # (NVIDIA repo — not flagged in AL2023 security advisories, so --security misses it)
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
