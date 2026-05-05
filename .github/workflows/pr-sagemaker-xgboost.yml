@@ -18,7 +18,7 @@ env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/image/sagemaker-xgboost.yml"
   XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
-  XGBOOST_CONTAINER_BRANCH: "upgrade-xgboost-3.2.0-remove-mlio"
+  XGBOOST_CONTAINER_BRANCH: "master"
 
 jobs:
   gatekeeper:
