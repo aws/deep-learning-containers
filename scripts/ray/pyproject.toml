@@ -4,7 +4,7 @@ version = "1.0.0"
 requires-python = "==3.13.*"
 dependencies = [
     "awscli==1.44.49",
-    "pip==26.0.1",
+    "pip==26.1",
     "boto3==1.42.59",
     "fastapi==0.133.1",
     "httpx==0.28.1",
@@ -13,7 +13,7 @@ dependencies = [
     "pandas==3.0.1",
     "pillow==12.2.0",
     "pyyaml==6.0.3",
-    "ray[serve]==2.54.1",
+    "ray[serve]==2.55.0",
     "scikit-learn==1.8.0",
     "soundfile==0.13.1",
     "torch==2.10.0",
