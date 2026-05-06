@@ -1,0 +1,33 @@
+framework: PyTorch
+version: "2.11"
+accelerator: gpu
+python: py312
+cuda: cu130
+os: amzn2023
+platform: sagemaker
+ga: "2026-04-30"
+eop: "2027-04-30"
+public_registry: true
+
+tags:
+  - "2.11.0-cu130-amzn2023-sagemaker"
+  - "2.11-cu130-amzn2023-sagemaker"
+
+announcements:
+  - "Introduced PyTorch 2.11 Training containers on Amazon Linux 2023 for SageMaker"
+  - "Added EFA support with optimized NCCL collective operations"
+  - "Includes flash-attn 2.8.3 and transformer-engine 2.12.0"
+  - "CUDA 13.0, Python 3.12"
+
+packages:
+  python: "3.12"
+  pytorch: "2.11.0"
+  torchvision: "0.26.0"
+  torchaudio: "2.11.0"
+  cuda: "13.0.2"
+  nccl: "2.26.2"
+  efa: "1.47.0"
+  flash_attn: "2.8.3"
+  transformer_engine: "2.12.0"
+  deepspeed: "0.18.8"
+  gdrcopy: "2.4.4"
