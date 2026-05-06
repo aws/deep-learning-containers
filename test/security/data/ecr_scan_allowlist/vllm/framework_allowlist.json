@@ -91,5 +91,10 @@
     {
         "vulnerability_id": "CVE-2026-1839",
         "reason": "transformers Trainer._load_rng_state() RCE — only triggered when resuming training from checkpoint. DLC vLLM is inference-only, Trainer is never invoked. Fix requires transformers>=5.0.0rc3 (pre-release)."
+    },
+    {
+        "vulnerability_id": "GHSA-82j2-j2ch-gfr8",
+        "reason": "rustls-webpki 0.103.12 bundled in /usr/local/bin/uv (Rust binary). Fix requires uv rebuild with rustls-webpki>=0.104.0-alpha.7 (pre-release). Not exploitable in our usage — uv only connects to PyPI over TLS.",
+        "review_by": "2026-06-04"
     }
 ]
