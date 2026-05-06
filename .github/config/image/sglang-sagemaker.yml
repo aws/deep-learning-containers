@@ -8,10 +8,10 @@ image:
 # Build configuration
 common:
   framework: "sglang"
-  framework_version: "0.5.10"
+  framework_version: "0.5.11"
   job_type: "general"
   python_version: "py312"
-  cuda_version: "cu129"
+  cuda_version: "cu130"
   os_version: "ubuntu24.04"
   customer_type: "sagemaker"
   arch_type: "x86"
