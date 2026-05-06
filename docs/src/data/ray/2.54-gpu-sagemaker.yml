@@ -8,7 +8,7 @@ platform: sagemaker
 public_registry: true
 
 tags:
-  - "serve-ml-sagemaker-cuda-v1.0.0"
+  - "serve-ml-sagemaker-cuda-v1"
 
 announcements:
   - "Introduced Ray Serve 2.54 GPU containers for SageMaker"
