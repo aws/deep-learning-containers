@@ -679,7 +679,7 @@ def test_pip_check(image):
         )
 
     # tox and pyproject-api are installed as transitive dependencies in the container
-    # and require packaging>=25, but packaging may be constrained to an older version by other deps.
+    # and require packaging>=25, but the container has an older version of packaging.
     allowed_exceptions.append(
         r"^(tox|pyproject-api) \d+(\.\d+)* requires packaging>=\d+, but you have packaging \d+(\.\d+)* which is incompatible\.$"
     )
