@@ -39,8 +39,12 @@ COPY ./scripts/common/install_python.sh /tmp/install_python.sh
 RUN bash /tmp/install_python.sh ${PYTHON_VERSION} && rm /tmp/install_python.sh
 
 # Install pinned dependencies
-COPY ./scripts/ray/requirements.lock /tmp/requirements.lock
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock
+COPY --from=ghcr.io/astral-sh/uv:0.11.10 /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT=/usr/local
+COPY ./docker/ray/pyproject.toml ./docker/ray/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project \
+  && rm -rf /tmp/deps
 
 
 #############
