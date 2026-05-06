@@ -8,13 +8,13 @@ platform: ec2
 public_registry: true
 
 tags:
-  - "0.20.1-gpu-py312-cu130-ubuntu22.04-ec2"
-  - "0.20-gpu-py312-cu130-ubuntu22.04-ec2-v1"
-  - "0.20.1-gpu-py312-ec2"
-  - "0.20-gpu-py312-ec2"
+  - "0.20.1-gpu-py312-cu130-ubuntu22.04-sagemaker"
+  - "0.20-gpu-py312-cu130-ubuntu22.04-sagemaker-v1"
+  - "0.20.1-gpu-py312"
+  - "0.20-gpu-py312"
 
 announcements:
-  - "Introduced vLLM 0.20.1 containers for EC2, ECS, EKS"
+  - "Introduced vLLM 0.20.1 containers for SageMaker"
 
 packages:
   vllm: "0.20.1"
