@@ -678,10 +678,13 @@ def test_pip_check(image):
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
 
-    # tox and pyproject-api are installed as transitive dependencies in the container
-    # and require packaging>=25, but the container has an older version of packaging.
+    # ipython requires psutil>=7, but TorchServe's common.txt pins psutil==5.9.8.
+    # This is a version conflict between TorchServe and ipython's transitive deps.
     allowed_exceptions.append(
-        r"^(tox|pyproject-api) \d+(\.\d+)* requires packaging>=\d+, but you have packaging \d+(\.\d+)* which is incompatible\.$"
+        r"^ipython \d+(\.\d+)* has requirement psutil>=\d+, but you have psutil \d+(\.\d+)*\.$"
+    )
+    allowed_exceptions.append(
+        r"^ipython \d+(\.\d+)* requires psutil>=\d+, but you have psutil \d+(\.\d+)* which is incompatible\.$"
     )
 
     if framework in ["pytorch"]:
