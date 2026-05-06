@@ -286,7 +286,7 @@ class ServingContainer:
                 if resp.status_code == 200:
                     LOGGER.info("Serving container healthy")
                     return
-            except (requests.ConnectionError, RuntimeError):
+            except (requests.ConnectionError, requests.exceptions.ReadTimeout, RuntimeError):
                 pass
             time.sleep(HEALTH_CHECK_INTERVAL)
         raise TimeoutError("Serving container did not become healthy")
