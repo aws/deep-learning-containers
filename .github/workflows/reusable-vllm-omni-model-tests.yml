@@ -108,7 +108,7 @@ jobs:
             ${{ inputs.image-uri }} \
             --model ${{ steps.resolve.outputs.model_path }} \
             --port 8080 \
-            --stage-init-timeout 600 \
+            --stage-init-timeout 900 \
             ${{ matrix.model.extra_args }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
