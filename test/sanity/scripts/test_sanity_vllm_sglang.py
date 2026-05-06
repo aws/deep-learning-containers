@@ -142,7 +142,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
         with open(self.SAGEMAKER_ENTRYPOINT) as f:
             script = f.read()
         script = re.sub(
-            r"^exec python3 .*$",
+            r"^exec\s+(standard-supervisor\s+)?python3\s+.*$",
             'echo "__ARGS__${ARGS[@]}__END__"',
             script,
             flags=re.MULTILINE,
