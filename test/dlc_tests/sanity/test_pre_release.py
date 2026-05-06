@@ -678,6 +678,15 @@ def test_pip_check(image):
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
 
+    # ipython requires psutil>=7, but TorchServe's common.txt pins psutil==5.9.8.
+    # This is a version conflict between TorchServe and ipython's transitive deps.
+    allowed_exceptions.append(
+        r"^ipython \d+(\.\d+)* has requirement psutil>=\d+, but you have psutil \d+(\.\d+)*\.$"
+    )
+    allowed_exceptions.append(
+        r"^ipython \d+(\.\d+)* requires psutil>=\d+, but you have psutil \d+(\.\d+)* which is incompatible\.$"
+    )
+
     if framework in ["pytorch"]:
         exception_strings = []
 
