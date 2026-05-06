@@ -140,7 +140,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
-    runs-on: gpu-efa-runners
+    runs-on: gpu-p4d-runners
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
