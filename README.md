@@ -28,12 +28,12 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/05/06]** [SGLang v0.5.11](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.11-gpu-py312-ec2` · SageMaker: `0.5.11-gpu-py312` · Model support for Gemma 4, GLM-5.1, Qwen 3.4, and more
 - **[2026/05/05]** [vLLM v0.20.1](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.20-gpu-py312-ec2` · SageMaker: `0.20-gpu-py312` · Bug fixes for DeepSeek V4.
 - **[2026/04/30]** [PyTorch v2.11.0](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.11.0-cu130-amzn2023` · SageMaker: `2.11.0-cu130-amzn2023-sagemaker` · Amazon Linux 2023 with EFA, flash-attn, and transformer-engine.
 - **[2026/04/28]** [vLLM v0.20.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.20-gpu-py312-ec2` · SageMaker: `0.20-gpu-py312` · Introduces support for DeepSeek V4.
 - **[2026/04/20]** [vLLM v0.19.1](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.19-gpu-py312-ec2` · SageMaker: `0.19-gpu-py312` · This upgrades Transformers to 5.5.4, enabling Gemma 4 support.
 - **[2026/04/07]** [SGLang v0.5.10](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.10-gpu-py312-ec2` · SageMaker: `0.5.10-gpu-py312`
-- **[2026/04/07]** [vLLM v0.19.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.19-gpu-py312-ec2` · SageMaker: `0.19-gpu-py312`
 
 ### 📢 Support Updates
 
