@@ -1,30 +1,12 @@
 [
   {
-    "vulnerability_id": "CVE-2026-22815",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
+    "vulnerability_id": "CVE-2025-23339",
+    "reason": "cuda-toolkit-config-common cuobjdump vulnerability. Fix requires CUDA 13.x, container uses 12.9. Not exploitable in serving container (requires user to run cuobjdump on malicious ELF).",
+    "review_by": "2026-07-01"
   },
   {
-    "vulnerability_id": "CVE-2026-34513",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34515",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34516",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34520",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34478",
-    "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34480",
-    "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
+    "vulnerability_id": "CVE-2025-23308",
+    "reason": "cuda-toolkit-config-common nvdisasm vulnerability. Fix requires CUDA 13.x, container uses 12.9. Not exploitable in serving container (requires user to run nvdisasm on malicious ELF).",
+    "review_by": "2026-07-01"
   }
 ]

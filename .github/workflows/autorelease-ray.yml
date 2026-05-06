@@ -368,7 +368,7 @@ jobs:
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ray
-      framework-version: "2.54.1"
+      framework-version: "2.55.1"
       python-version: py313
       cuda-version: ${{ matrix.cuda-version }}
       os-version: amzn2023
@@ -627,7 +627,7 @@ jobs:
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ray
-      framework-version: "2.54.1"
+      framework-version: "2.55.1"
       container-type: inference
 
   # ============================================================
