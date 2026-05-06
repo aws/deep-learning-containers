@@ -1,6 +1,6 @@
 [project]
 name = "dlc-ray"
-version = "1.0.0"
+version = "1.1.0"
 requires-python = "==3.13.*"
 dependencies = [
     "awscli==1.44.49",
@@ -20,6 +20,6 @@ dependencies = [
     "torchaudio==2.10.0",
     "torchcodec==0.10.0",
     "torchvision==0.25.0",
-    "transformers==5.2.0",
+    "transformers==5.8.0",
     "uvicorn[standard]==0.41.0",
 ]
