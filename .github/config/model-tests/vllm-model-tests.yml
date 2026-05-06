@@ -17,6 +17,16 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
+    - name: "qwen3.5-2b"
+      s3_model: "qwen3.5-2b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+
+    - name: "qwen3.5-27b-fp8"
+      s3_model: "qwen3.5-27b-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
+
     - name: "qwen3-embedding-0.6b"
       s3_model: "qwen3-embedding-0.6b.tar.gz"
       fleet: "x86-g6xl-runner"
@@ -29,7 +39,14 @@ smoke-test:
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 8192 --trust-remote-code"
       test_script: "vllm_embedding_smoke_test.sh"
 
-  runner-scale-sets: []
+  runner-scale-sets:
+    - name: "qwen3.6-27b"
+      s3_model: "qwen3.6-27b.tar.gz"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
+
+    - name: "qwen3.6-35b-a3b"
+      s3_model: "qwen3.6-35b-a3b.tar.gz"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
 
 benchmark:
   codebuild-fleet:
