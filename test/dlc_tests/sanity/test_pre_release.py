@@ -678,6 +678,12 @@ def test_pip_check(image):
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
 
+    # tox and pyproject-api are installed by the OSS compliance tooling (generate_oss_compliance.sh)
+    # and require packaging>=25, but packaging may be constrained to an older version by other deps.
+    allowed_exceptions.append(
+        r"^(tox|pyproject-api) \d+(\.\d+)* has requirement packaging>=\d+, but you have packaging \d+(\.\d+)* which is incompatible\.$"
+    )
+
     if framework in ["pytorch"]:
         exception_strings = []
 
