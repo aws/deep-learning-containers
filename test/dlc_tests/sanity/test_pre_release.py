@@ -680,11 +680,18 @@ def test_pip_check(image):
 
     # ipython requires psutil>=7, but TorchServe's common.txt pins psutil==5.9.8.
     # This is a version conflict between TorchServe and ipython's transitive deps.
+    # Note: don't use ^...$ anchors — re.findall without re.MULTILINE won't match non-first lines.
     allowed_exceptions.append(
-        r"^ipython \d+(\.\d+)* has requirement psutil>=\d+, but you have psutil \d+(\.\d+)*\.$"
+        r"ipython \d+(\.\d+)* has requirement psutil>=\d+, but you have psutil \d+(\.\d+)*\."
     )
     allowed_exceptions.append(
-        r"^ipython \d+(\.\d+)* requires psutil>=\d+, but you have psutil \d+(\.\d+)* which is incompatible\.$"
+        r"ipython \d+(\.\d+)* requires psutil>=\d+, but you have psutil \d+(\.\d+)* which is incompatible\."
+    )
+
+    # tox and pyproject-api require packaging>=25, but packaging is pinned to 24.2 in some images
+    # (e.g., arm64 sagemaker). These are transitive deps present in certain image variants.
+    allowed_exceptions.append(
+        r"(tox|pyproject-api) \d+(\.\d+)* requires packaging>=\d+, but you have packaging \d+(\.\d+)* which is incompatible\."
     )
 
     if framework in ["pytorch"]:
