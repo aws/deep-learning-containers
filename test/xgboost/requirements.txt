@@ -1,1 +1,1 @@
-sagemaker>=2,<3
+sagemaker>=3.10.0,<4
