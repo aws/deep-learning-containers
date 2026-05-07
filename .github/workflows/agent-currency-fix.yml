@@ -103,8 +103,14 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_branch }}
           fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
+          token: ${{ github.token }}
           path: workdir
+
+      - name: Configure push credentials
+        if: steps.exhausted.outputs.cache-hit != 'true'
+        working-directory: workdir
+        run: |
+          git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git"
 
       # --- Count previous attempts ---
       - name: Count previous attempts
