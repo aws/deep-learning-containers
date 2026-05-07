@@ -1,5 +1,8 @@
 self-hosted-runner:
   labels:
-    - gpu-standard-runners
+    - gpu-l4-1gpu-runners
+    - gpu-l4-4gpu-runners
+    - gpu-l40s-1gpu-runners
+    - gpu-l40s-4gpu-runners
     - gpu-efa-runners
     - gpu-p4d-runners
