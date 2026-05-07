@@ -17,12 +17,12 @@ smoke-test:
     - name: "qwen3.5-0.8b"
       s3_model: "qwen3.5-0.8b.tar.gz"
       runner_label: "gpu-l4-2gpu-runners"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      extra_args: "--tensor-parallel-size 2 --max-model-len 4096 --dtype bfloat16"
 
     - name: "qwen3.5-2b"
       s3_model: "qwen3.5-2b.tar.gz"
       runner_label: "gpu-l4-2gpu-runners"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      extra_args: "--tensor-parallel-size 2 --max-model-len 4096 --dtype bfloat16"
 
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
