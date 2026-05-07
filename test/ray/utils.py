@@ -52,6 +52,30 @@ SENTIMENT_SAMPLES = [
     ("Absolutely perfect, highly recommend!", "POSITIVE"),
 ]
 
+# Privacy filter samples: (text, expected_entity_groups)
+PRIVACY_FILTER_SAMPLES = [
+    (
+        "My name is Alice Smith and my email is alice@example.com",
+        {"private_person", "private_email"},
+    ),
+    (
+        "Call John at 555-123-4567 or visit 123 Main Street, Springfield IL",
+        {"private_person", "private_phone", "private_address"},
+    ),
+    (
+        "My name is Harry Potter and my email is harry.potter@hogwarts.edu.",
+        {"private_person", "private_email"},
+    ),
+    (
+        "Her birthday is March 15, 1990 and her profile is at https://example.com/users/jdoe",
+        {"private_date", "private_url"},
+    ),
+    (
+        "Account number 1111-2222-3333-4444 belongs to Jane Doe",
+        {"account_number", "private_person"},
+    ),
+]
+
 
 def download_test_image(url, path):
     """Download a test image if not already cached."""
@@ -313,4 +337,27 @@ def validate_audio_response(result, check_ffmpeg_backend=False):
         backend = result.get("audio_backend", "MISSING")
         if backend != "ffmpeg":
             return f"Expected audio_backend='ffmpeg', got '{backend}'"
+    return ""
+
+
+def validate_privacy_filter_response(result, expected_entities):
+    """Validate privacy filter token-classification response."""
+    if "predictions" not in result:
+        return "Missing 'predictions' field"
+    predictions = result["predictions"]
+    if not isinstance(predictions, list):
+        return "predictions is not a list"
+    # predictions is a list of lists (one per input text)
+    entities = predictions[0] if predictions else []
+    found_groups = {e["entity_group"] for e in entities if "entity_group" in e}
+    if expected_entities and not expected_entities.issubset(found_groups):
+        missing = expected_entities - found_groups
+        return f"Missing expected entities: {missing}, found: {found_groups}"
+    for e in entities:
+        if e.get("entity_group") not in expected_entities:
+            continue
+        if "score" not in e:
+            return f"Entity missing 'score': {e}"
+        if e["score"] < 0.5:
+            return f"Low confidence on expected entity: {e}"
     return ""

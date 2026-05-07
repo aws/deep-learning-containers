@@ -12,8 +12,8 @@
 # language governing permissions and limitations under the License.
 """SageMaker endpoint integration tests for Ray DLC (CPU).
 
-Tests 5 models on ml.m5.xlarge:
-  - cv-densenet, mnist-direct-app, tabular, nlp, audio-ffmpeg
+Tests 6 models on ml.m5.4xlarge:
+  - cv-densenet, mnist-direct-app, tabular, nlp, audio-ffmpeg, privacy-filter
 
 All shared logic lives in common.py; this file only sets device config.
 """
@@ -26,11 +26,12 @@ from ray.sagemaker.common import (
     run_test_cv_densenet,
     run_test_mnist_direct_app,
     run_test_nlp,
+    run_test_privacy_filter,
     run_test_tabular,
 )
 
 DEVICE = "cpu"
-INSTANCE_TYPE = "ml.m5.xlarge"
+INSTANCE_TYPE = "ml.m5.4xlarge"
 
 # Register fixtures for this module
 model_name = make_model_name_fixture()
@@ -60,3 +61,8 @@ def test_nlp(model_endpoint, model_name):
 @pytest.mark.parametrize("model_name", ["audio-ffmpeg"], indirect=True)
 def test_audio_ffmpeg(model_endpoint, model_name):
     run_test_audio_ffmpeg(model_endpoint)
+
+
+@pytest.mark.parametrize("model_name", ["privacy-filter"], indirect=True)
+def test_privacy_filter(model_endpoint, model_name):
+    run_test_privacy_filter(model_endpoint)
