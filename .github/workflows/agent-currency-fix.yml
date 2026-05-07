@@ -5,6 +5,10 @@
 # Triggers when any PR CI workflow completes with failure on an auto-update/* branch.
 # Pushes fix commits to the PR branch, which re-triggers CI naturally.
 # Stops after 3 attempts or when CI passes.
+#
+# Security: branch name is validated against a strict pattern before use to prevent
+# code injection via crafted branch names. The workflow only operates on branches
+# created by the autocurrency bot (auto-update/<framework>-<semver>).
 
 name: Currency Fix Agent
 
@@ -16,10 +20,6 @@ on:
       - "PR - SGLang EC2"
       - "PR - SGLang SageMaker"
     types: [completed]
-
-concurrency:
-  group: currency-fix-${{ github.event.workflow_run.head_branch }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -38,7 +38,21 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
+    env:
+      # Store event data in env vars to avoid direct interpolation in run: blocks
+      # (prevents code injection via crafted branch names — CodeQL workflow_run rule)
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
     steps:
+      # --- Validate branch name (security gate) ---
+      - name: Validate branch name
+        run: |
+          if [[ ! "$HEAD_BRANCH" =~ ^auto-update/[a-z]+-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Branch name '${HEAD_BRANCH}' does not match expected pattern. Aborting."
+            exit 1
+          fi
+
       # --- Circuit breaker: check if already exhausted (no auth needed) ---
       - name: Check exhaustion flag
         id: exhausted
@@ -71,6 +85,8 @@ jobs:
           private-key: ${{ steps.decode.outputs.private-key }}
 
       # --- Checkout PR branch ---
+      # Security: branch name is validated above to match auto-update/<framework>-<semver>
+      # pattern only. These branches are created exclusively by the autocurrency bot.
       - name: Checkout PR branch
         if: steps.exhausted.outputs.cache-hit != 'true'
         uses: actions/checkout@v5
@@ -87,7 +103,7 @@ jobs:
           ATTEMPTS=$(git log --oneline origin/main..HEAD --grep='\[agent-fix\]' | wc -l)
           echo "attempts=$ATTEMPTS" >> $GITHUB_OUTPUT
           echo "Agent fix attempts so far: $ATTEMPTS"
-          if [ "$ATTEMPTS" -ge "${{ env.MAX_ATTEMPTS }}" ]; then
+          if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
             echo "max_reached=true" >> $GITHUB_OUTPUT
           fi
 
@@ -109,25 +125,14 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
-          # Find the PR number for this branch
-          PR_NUMBER=$(gh pr list --head "${{ github.event.workflow_run.head_branch }}" --json number --jq '.[0].number')
+          PR_NUMBER=$(gh pr list --head "$HEAD_BRANCH" --json number --jq '.[0].number')
           if [ -n "$PR_NUMBER" ]; then
-            gh pr comment "$PR_NUMBER" --body "🔴 **Currency Fix Agent exhausted** (${{ env.MAX_ATTEMPTS }} attempts). Needs human review.
+            gh pr comment "$PR_NUMBER" --body "🔴 **Currency Fix Agent exhausted** (${MAX_ATTEMPTS} attempts). Needs human review.
 
-          Failed workflow: ${{ github.event.workflow_run.html_url }}"
+          Failed workflow: ${RUN_URL}"
           fi
 
           # TODO: Enable Slack notification after configuring webhook payload support
-          # if [ -n "${SLACK_WEBHOOK_URL}" ]; then
-          #   curl -s --max-time 10 -X POST "$SLACK_WEBHOOK_URL" \
-          #     -H 'Content-Type: application/json' \
-          #     -d "{
-          #       \"workflow_name\": \"agent_exhausted\",
-          #       \"framework_name\": \"$(echo '${{ github.event.workflow_run.head_branch }}' | sed 's|auto-update/||' | sed 's|-[0-9].*||')\",
-          #       \"pr_url\": \"https://github.com/${{ github.repository }}/pull/${PR_NUMBER}\",
-          #       \"run_url\": \"${{ github.event.workflow_run.html_url }}\"
-          #     }" || true
-          # fi
 
       # --- Download failed workflow logs ---
       - name: Download failed run logs
@@ -136,7 +141,7 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           mkdir -p /tmp/ci-logs
-          gh api "/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/logs" \
+          gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}/logs" \
             > /tmp/ci-logs.zip || true
           if [ -f /tmp/ci-logs.zip ] && [ -s /tmp/ci-logs.zip ]; then
             unzip -o /tmp/ci-logs.zip -d /tmp/ci-logs/ || true
@@ -147,9 +152,8 @@ jobs:
         if: steps.exhausted.outputs.cache-hit != 'true' && steps.retry.outputs.max_reached != 'true'
         id: framework
         run: |
-          BRANCH="${{ github.event.workflow_run.head_branch }}"
           # auto-update/vllm-0.21.0 → vllm
-          FRAMEWORK=$(echo "$BRANCH" | sed 's|auto-update/||' | sed 's|-[0-9].*||')
+          FRAMEWORK=$(echo "$HEAD_BRANCH" | sed 's|auto-update/||' | sed 's|-[0-9].*||')
           echo "name=$FRAMEWORK" >> $GITHUB_OUTPUT
           echo "Framework: $FRAMEWORK"
 
@@ -163,7 +167,7 @@ jobs:
           python3 scripts/autocurrency/agent-fix.py \
             --logs-dir /tmp/ci-logs/ \
             --framework "${{ steps.framework.outputs.name }}" \
-            --branch "${{ github.event.workflow_run.head_branch }}"
+            --branch "$HEAD_BRANCH"
 
       # --- Commit and push if fix was generated ---
       - name: Commit and push fix
