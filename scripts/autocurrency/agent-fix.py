@@ -2,18 +2,18 @@
 """agent-fix.py — Diagnose CI failures and generate fixes using Bedrock Claude.
 
 Called by the agent-currency-fix.yml workflow. Reads CI logs, assembles context,
-calls Bedrock Claude Opus, and applies the returned file edits to the working tree.
+calls Bedrock Claude Opus with a retry loop, and applies edits.
 
-Usage:
-    python3 scripts/autocurrency/agent-fix.py \
-        --logs-dir /tmp/ci-logs/ \
-        --framework vllm \
-        --branch auto-update/vllm-0.21.0
+Edit format: Search/Replace blocks (industry standard used by Aider, Cline, Claude).
+Matching: Exact first, then whitespace-normalized fuzzy fallback.
+Retry: If edits fail to apply or response is unparseable, retries with error feedback.
 """
 
 import argparse
+import difflib
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -21,11 +21,10 @@ from pathlib import Path
 import boto3
 
 MODEL_ID = "us.anthropic.claude-opus-4-6-v1"
-MAX_TOKENS = 8192
+MAX_TOKENS = 16384
 REGION = os.environ.get("AWS_REGION", "us-west-2")
-
-# Max lines of log to include in context
 MAX_LOG_LINES = 500
+MAX_LLM_RETRIES = 3
 
 
 def parse_args():
@@ -52,7 +51,6 @@ def extract_error_lines(logs_dir: str) -> str:
         for i, line in enumerate(lines):
             lower = line.lower()
             if any(kw in lower for kw in ["error", "failed", "failure", "cve-", "not found", "exception", "denied"]):
-                # Include context: 2 lines before, the error, 2 lines after
                 start = max(0, i - 2)
                 end = min(len(lines), i + 3)
                 chunk = lines[start:end]
@@ -70,7 +68,6 @@ def extract_error_lines(logs_dir: str) -> str:
 
 
 def read_file_if_exists(path: str) -> str:
-    """Read a file and return its content, or empty string."""
     try:
         return Path(path).read_text()
     except (FileNotFoundError, PermissionError):
@@ -78,7 +75,6 @@ def read_file_if_exists(path: str) -> str:
 
 
 def get_previous_fixes(branch: str) -> str:
-    """Get commit messages of previous agent fixes on this branch."""
     try:
         result = subprocess.run(
             ["git", "log", "--oneline", "origin/main..HEAD", "--grep=[agent-fix]"],
@@ -89,26 +85,182 @@ def get_previous_fixes(branch: str) -> str:
         return "None"
 
 
-def build_prompt(framework: str, branch: str, error_lines: str, dockerfile: str,
-                 config_content: str, previous_fixes: str) -> str:
-    """Assemble the prompt for Claude."""
-    return f"""You are an automated CI fix agent for the AWS Deep Learning Containers repo.
-A currency auto-update PR on branch `{branch}` has failed CI. Your job is to diagnose
-the failure and produce minimal file edits to fix it.
+# ---------------------------------------------------------------------------
+# Search/Replace block parsing (industry standard format)
+# ---------------------------------------------------------------------------
+
+SEARCH_REPLACE_PATTERN = re.compile(
+    r"^(.+?)\n<<<<<<< SEARCH\n(.*?)\n=======\n(.*?)\n>>>>>>> REPLACE$",
+    re.MULTILINE | re.DOTALL,
+)
+
+
+def parse_search_replace_blocks(response: str) -> list:
+    """Parse search/replace blocks from LLM response.
+
+    Format:
+        filepath
+        <<<<<<< SEARCH
+        exact text to find
+        =======
+        replacement text
+        >>>>>>> REPLACE
+    """
+    blocks = []
+    for match in SEARCH_REPLACE_PATTERN.finditer(response):
+        filepath = match.group(1).strip().strip("`").strip()
+        search = match.group(2)
+        replace = match.group(3)
+        blocks.append({"path": filepath, "search": search, "replace": replace})
+    return blocks
+
+
+def fuzzy_find(content: str, search: str) -> tuple:
+    """Find the best match for search text in content.
+
+    Returns (start_idx, end_idx) or (None, None) if no good match.
+    Strategy:
+      1. Exact match
+      2. Whitespace-normalized match
+      3. Fuzzy line-by-line match (>= 0.8 similarity)
+    """
+    # Strategy 1: Exact match
+    idx = content.find(search)
+    if idx != -1:
+        return idx, idx + len(search)
+
+    # Strategy 2: Whitespace-normalized match
+    def normalize_ws(s):
+        return "\n".join(line.rstrip() for line in s.splitlines())
+
+    norm_content = normalize_ws(content)
+    norm_search = normalize_ws(search)
+    idx = norm_content.find(norm_search)
+    if idx != -1:
+        # Map back to original content position
+        # Count characters up to idx in normalized = same line/position in original
+        line_num = norm_content[:idx].count("\n")
+        original_lines = content.splitlines(keepends=True)
+        char_pos = sum(len(original_lines[i]) for i in range(line_num))
+        end_line = line_num + norm_search.count("\n")
+        char_end = sum(len(original_lines[i]) for i in range(end_line + 1))
+        return char_pos, char_end
+
+    # Strategy 3: Fuzzy line matching
+    search_lines = search.splitlines()
+    content_lines = content.splitlines(keepends=True)
+
+    if not search_lines:
+        return None, None
+
+    best_ratio = 0
+    best_start = None
+
+    for i in range(len(content_lines) - len(search_lines) + 1):
+        candidate = content_lines[i:i + len(search_lines)]
+        candidate_text = "".join(candidate)
+        ratio = difflib.SequenceMatcher(None, search, candidate_text).ratio()
+        if ratio > best_ratio:
+            best_ratio = ratio
+            best_start = i
+
+    if best_ratio >= 0.8 and best_start is not None:
+        start_pos = sum(len(content_lines[i]) for i in range(best_start))
+        end_pos = sum(len(content_lines[i]) for i in range(best_start + len(search_lines)))
+        return start_pos, end_pos
+
+    return None, None
+
+
+def apply_search_replace_blocks(blocks: list) -> tuple:
+    """Apply search/replace blocks to files.
+
+    Returns (modified_files, errors) where errors is a list of failure descriptions.
+    """
+    modified = []
+    errors = []
+
+    for block in blocks:
+        path = block["path"]
+        search = block["search"]
+        replace = block["replace"]
+
+        if not Path(path).exists():
+            # "create" mode: if search is empty, create the file
+            if not search.strip():
+                Path(path).parent.mkdir(parents=True, exist_ok=True)
+                Path(path).write_text(replace)
+                modified.append(path)
+                continue
+            errors.append(f"File not found: {path}")
+            continue
+
+        content = Path(path).read_text()
+        start, end = fuzzy_find(content, search)
+
+        if start is None:
+            # Provide context for retry
+            errors.append(
+                f"SEARCH block not found in {path}.\n"
+                f"  Searched for ({len(search)} chars): {search[:100]}...\n"
+                f"  File content (first 500 chars): {content[:500]}"
+            )
+            continue
+
+        # Apply replacement
+        new_content = content[:start] + replace + content[end:]
+        Path(path).write_text(new_content)
+        modified.append(path)
+
+    return modified, errors
+
+
+# ---------------------------------------------------------------------------
+# LLM interaction with retry loop
+# ---------------------------------------------------------------------------
+
+SYSTEM_PROMPT = """You are an automated CI fix agent for the AWS Deep Learning Containers repo.
+A currency auto-update PR has failed CI. Diagnose the failure and produce minimal file edits.
 
 ## Rules
 - ONLY fix the specific failure shown in the logs
 - Do NOT delete or skip tests
 - Do NOT modify files unrelated to the failure
-- For CVE scan failures: either pin a safe version in the Dockerfile, or add to the allowlist if the package is vendored/unpatchable
-- For "file not found" errors: search for the new path in the upstream repo
-- For build errors: check if the upstream base image changed something (Python path, package layout, etc.)
-- If the failure is TRANSIENT (capacity, timeout, runner crash): respond with {{"transient": true}}
+- For CVE scan failures: pin a safe version in Dockerfile, or add to allowlist if vendored/unpatchable
+- For "file not found" errors: find the new path in the upstream repo
+- For build errors: check if upstream base image changed something
 
-## Context
+## Response Format
 
-### Framework: {framework}
-### Branch: {branch}
+If the failure is TRANSIENT (capacity, timeout, runner crash), respond with exactly:
+TRANSIENT: <brief reason>
+
+Otherwise, respond with search/replace blocks. For each file to modify, use this exact format:
+
+<filepath>
+<<<<<<< SEARCH
+<exact text to find in the file>
+=======
+<replacement text>
+>>>>>>> REPLACE
+
+You may include multiple blocks for multiple files or multiple edits in one file.
+Each SEARCH block must contain enough context to uniquely identify the location.
+Include 1-2 surrounding lines for anchoring.
+
+For JSON array files (like allowlists), show the SEARCH block as the last few lines
+of the array, and the REPLACE block as those lines plus the new entry.
+
+After all blocks, add a single line:
+DESCRIPTION: <one-line commit message description>"""
+
+
+def build_user_prompt(framework: str, branch: str, error_lines: str,
+                      dockerfile: str, config_content: str,
+                      previous_fixes: str, retry_context: str = "") -> str:
+    prompt = f"""## Context
+Framework: {framework}
+Branch: {branch}
 
 ### CI Error Lines:
 ```
@@ -126,81 +278,32 @@ the failure and produce minimal file edits to fix it.
 ```
 
 ### Previous agent fix attempts on this branch:
-{previous_fixes}
+{previous_fixes}"""
 
-## Response Format
+    if retry_context:
+        prompt += f"""
 
-Respond with ONLY valid JSON. No markdown, no explanation outside the JSON.
+### RETRY — Previous attempt failed:
+{retry_context}
 
-If transient failure:
-{{"transient": true, "reason": "brief explanation"}}
+Please fix the issues above and try again with corrected SEARCH blocks."""
 
-If fixable, return an array of edits:
-{{
-  "transient": false,
-  "description": "one-line description of the fix for commit message",
-  "edits": [
-    {{"path": "relative/file/path", "action": "replace", "old": "exact string to find", "new": "replacement string"}},
-    {{"path": "relative/file/path", "action": "create", "content": "full file content"}},
-    {{"path": "relative/file/path", "action": "append_json", "entry": {{"vulnerability_id": "CVE-...", "reason": "..."}}}}
-  ]
-}}
-
-If you cannot determine a fix:
-{{"transient": false, "description": "unable to fix", "edits": []}}
-"""
+    return prompt
 
 
-def call_bedrock(prompt: str) -> str:
-    """Call Bedrock Claude and return the response text."""
+def call_bedrock(system: str, user: str) -> str:
     client = boto3.client("bedrock-runtime", region_name=REGION)
     response = client.invoke_model(
         modelId=MODEL_ID,
         body=json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": MAX_TOKENS,
-            "messages": [{"role": "user", "content": prompt}],
+            "system": system,
+            "messages": [{"role": "user", "content": user}],
         }),
     )
     result = json.loads(response["body"].read())
     return result["content"][0]["text"]
-
-
-def apply_edits(edits: list) -> list:
-    """Apply file edits to the working tree. Returns list of modified files."""
-    modified = []
-    for edit in edits:
-        path = edit["path"]
-        action = edit["action"]
-
-        if action == "replace":
-            content = Path(path).read_text()
-            old = edit["old"]
-            if old not in content:
-                print(f"WARNING: '{old[:80]}...' not found in {path}, skipping edit")
-                continue
-            count = content.count(old)
-            if count > 1:
-                print(f"WARNING: '{old[:50]}...' found {count} times in {path}, replacing all")
-            content = content.replace(old, edit["new"])
-            Path(path).write_text(content)
-            modified.append(path)
-
-        elif action == "create":
-            Path(path).parent.mkdir(parents=True, exist_ok=True)
-            Path(path).write_text(edit["content"])
-            modified.append(path)
-
-        elif action == "append_json":
-            content = json.loads(Path(path).read_text())
-            content.append(edit["entry"])
-            Path(path).write_text(json.dumps(content, indent=4) + "\n")
-            modified.append(path)
-
-        else:
-            print(f"WARNING: Unknown action '{action}' for {path}, skipping")
-
-    return modified
 
 
 def main():
@@ -221,57 +324,75 @@ def main():
     print(f"Previous fix attempts: {previous_fixes}")
     print()
 
-    # Build prompt and call LLM
-    prompt = build_prompt(
-        args.framework, args.branch, error_lines,
-        dockerfile, config_content, previous_fixes,
-    )
+    # Retry loop
+    retry_context = ""
+    attempt = 0
 
-    print("Calling Bedrock Claude Opus 4.6...")
-    response_text = call_bedrock(prompt)
+    while attempt < MAX_LLM_RETRIES:
+        attempt += 1
+        print(f"--- LLM attempt {attempt}/{MAX_LLM_RETRIES} ---")
 
-    # Parse response
-    try:
-        # Strip markdown code fences if present
-        cleaned = response_text.strip()
-        if cleaned.startswith("```"):
-            cleaned = "\n".join(cleaned.split("\n")[1:])
-        if cleaned.endswith("```"):
-            cleaned = "\n".join(cleaned.split("\n")[:-1])
-        result = json.loads(cleaned)
-    except json.JSONDecodeError as e:
-        print(f"ERROR: Failed to parse LLM response as JSON: {e}")
-        print(f"Raw response:\n{response_text[:2000]}")
-        sys.exit(1)
+        user_prompt = build_user_prompt(
+            args.framework, args.branch, error_lines,
+            dockerfile, config_content, previous_fixes, retry_context,
+        )
 
-    # Handle transient failures
-    if result.get("transient"):
-        print(f"Transient failure detected: {result.get('reason', 'unknown')}")
-        print("No code fix needed. Exiting.")
-        sys.exit(0)
+        print("Calling Bedrock Claude Opus 4.6...")
+        response_text = call_bedrock(SYSTEM_PROMPT, user_prompt)
 
-    # Handle no edits
-    description = result.get("description", "automated fix")
-    edits = result.get("edits", [])
+        # Check for transient failure
+        if response_text.strip().startswith("TRANSIENT:"):
+            reason = response_text.strip().split(":", 1)[1].strip()
+            print(f"Transient failure detected: {reason}")
+            print("No code fix needed. Exiting.")
+            sys.exit(0)
 
-    if not edits:
-        print(f"Agent could not determine a fix: {description}")
-        sys.exit(1)
+        # Parse search/replace blocks
+        blocks = parse_search_replace_blocks(response_text)
 
-    # Apply edits
-    print(f"Applying {len(edits)} edit(s)...")
-    modified = apply_edits(edits)
+        if not blocks:
+            # Could not parse any blocks — retry with feedback
+            retry_context = (
+                f"Could not parse any search/replace blocks from your response.\n"
+                f"Your response started with: {response_text[:300]}...\n\n"
+                f"Please respond using the exact format:\n"
+                f"<filepath>\n<<<<<<< SEARCH\n<text>\n=======\n<replacement>\n>>>>>>> REPLACE"
+            )
+            print(f"No blocks parsed. Retrying with feedback...")
+            continue
 
-    if not modified:
-        print("No files were actually modified. Exiting.")
-        sys.exit(1)
+        print(f"Parsed {len(blocks)} edit block(s)")
 
-    print(f"Modified files: {modified}")
+        # Apply edits
+        modified, errors = apply_search_replace_blocks(blocks)
 
-    # Write description for the commit message
-    Path("/tmp/agent-fix-description.txt").write_text(description)
-    print(f"Fix description: {description}")
-    print("Done.")
+        if errors and not modified:
+            # All edits failed — retry with error details
+            retry_context = "All edits failed to apply:\n" + "\n".join(errors)
+            print(f"All edits failed. Retrying with error context...")
+            continue
+
+        if errors:
+            # Some edits failed — log warnings but continue with partial success
+            print(f"WARNING: {len(errors)} edit(s) failed (partial apply):")
+            for e in errors:
+                print(f"  {e[:200]}")
+
+        # Success (full or partial)
+        print(f"Modified files: {modified}")
+
+        # Extract description
+        desc_match = re.search(r"^DESCRIPTION:\s*(.+)$", response_text, re.MULTILINE)
+        description = desc_match.group(1).strip() if desc_match else "automated fix"
+
+        Path("/tmp/agent-fix-description.txt").write_text(description)
+        print(f"Fix description: {description}")
+        print("Done.")
+        return
+
+    # Exhausted retries
+    print(f"ERROR: Failed to generate valid edits after {MAX_LLM_RETRIES} LLM attempts.")
+    sys.exit(1)
 
 
 if __name__ == "__main__":
