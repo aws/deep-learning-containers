@@ -1,0 +1,181 @@
+# agent-currency-fix.yml — Automatically diagnoses and fixes CI failures on
+# auto-update PRs by calling Bedrock Claude to reason about the failure and
+# generate file edits.
+#
+# Triggers when any PR CI workflow completes with failure on an auto-update/* branch.
+# Pushes fix commits to the PR branch, which re-triggers CI naturally.
+# Stops after 3 attempts or when CI passes.
+
+name: Currency Fix Agent
+
+on:
+  workflow_run:
+    workflows:
+      - "PR - vLLM EC2"
+      - "PR - vLLM SageMaker"
+      - "PR - SGLang EC2"
+      - "PR - SGLang SageMaker"
+    types: [completed]
+
+concurrency:
+  group: currency-fix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  MAX_ATTEMPTS: 3
+
+jobs:
+  fix-agent:
+    # Only run when: (1) failed, (2) on an auto-update branch
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      startsWith(github.event.workflow_run.head_branch, 'auto-update/')
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      # --- Circuit breaker: check if already exhausted (no auth needed) ---
+      - name: Check exhaustion flag
+        id: exhausted
+        uses: actions/cache/restore@v4
+        with:
+          path: .agent-exhausted
+          key: agent-exhausted-${{ github.event.workflow_run.head_branch }}
+
+      - name: Skip if exhausted
+        if: steps.exhausted.outputs.cache-hit == 'true'
+        run: |
+          echo "::notice::Agent already exhausted for this branch. Skipping."
+          exit 0
+
+      # --- Auth ---
+      - name: Decode the GitHub App Private Key
+        if: steps.exhausted.outputs.cache-hit != 'true'
+        id: decode
+        run: |
+          private_key=$(echo "${{ secrets.ASIMOVBOT_APP_PRIVATE_KEY }}" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
+          echo "::add-mask::$private_key"
+          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
+
+      - name: Generate GitHub App Token
+        if: steps.exhausted.outputs.cache-hit != 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.ASIMOVBOT_APP_ID }}
+          private-key: ${{ steps.decode.outputs.private-key }}
+
+      # --- Checkout PR branch ---
+      - name: Checkout PR branch
+        if: steps.exhausted.outputs.cache-hit != 'true'
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      # --- Count previous attempts ---
+      - name: Count previous attempts
+        if: steps.exhausted.outputs.cache-hit != 'true'
+        id: retry
+        run: |
+          ATTEMPTS=$(git log --oneline origin/main..HEAD --grep='\[agent-fix\]' | wc -l)
+          echo "attempts=$ATTEMPTS" >> $GITHUB_OUTPUT
+          echo "Agent fix attempts so far: $ATTEMPTS"
+          if [ "$ATTEMPTS" -ge "${{ env.MAX_ATTEMPTS }}" ]; then
+            echo "max_reached=true" >> $GITHUB_OUTPUT
+          fi
+
+      # --- Save exhaustion flag if max reached ---
+      - name: Save exhaustion flag
+        if: steps.retry.outputs.max_reached == 'true'
+        run: echo "exhausted" > .agent-exhausted
+
+      - name: Cache exhaustion flag
+        if: steps.retry.outputs.max_reached == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .agent-exhausted
+          key: agent-exhausted-${{ github.event.workflow_run.head_branch }}
+
+      # --- Escalate if max reached ---
+      - name: Escalate to human
+        if: steps.retry.outputs.max_reached == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          # Find the PR number for this branch
+          PR_NUMBER=$(gh pr list --head "${{ github.event.workflow_run.head_branch }}" --json number --jq '.[0].number')
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr comment "$PR_NUMBER" --body "🔴 **Currency Fix Agent exhausted** (${{ env.MAX_ATTEMPTS }} attempts). Needs human review.
+
+          Failed workflow: ${{ github.event.workflow_run.html_url }}"
+          fi
+
+          # TODO: Enable Slack notification after configuring webhook payload support
+          # if [ -n "${SLACK_WEBHOOK_URL}" ]; then
+          #   curl -s --max-time 10 -X POST "$SLACK_WEBHOOK_URL" \
+          #     -H 'Content-Type: application/json' \
+          #     -d "{
+          #       \"workflow_name\": \"agent_exhausted\",
+          #       \"framework_name\": \"$(echo '${{ github.event.workflow_run.head_branch }}' | sed 's|auto-update/||' | sed 's|-[0-9].*||')\",
+          #       \"pr_url\": \"https://github.com/${{ github.repository }}/pull/${PR_NUMBER}\",
+          #       \"run_url\": \"${{ github.event.workflow_run.html_url }}\"
+          #     }" || true
+          # fi
+
+      # --- Download failed workflow logs ---
+      - name: Download failed run logs
+        if: steps.exhausted.outputs.cache-hit != 'true' && steps.retry.outputs.max_reached != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          mkdir -p /tmp/ci-logs
+          gh api "/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/logs" \
+            > /tmp/ci-logs.zip || true
+          if [ -f /tmp/ci-logs.zip ] && [ -s /tmp/ci-logs.zip ]; then
+            unzip -o /tmp/ci-logs.zip -d /tmp/ci-logs/ || true
+          fi
+
+      # --- Extract framework from branch name ---
+      - name: Determine framework
+        if: steps.exhausted.outputs.cache-hit != 'true' && steps.retry.outputs.max_reached != 'true'
+        id: framework
+        run: |
+          BRANCH="${{ github.event.workflow_run.head_branch }}"
+          # auto-update/vllm-0.21.0 → vllm
+          FRAMEWORK=$(echo "$BRANCH" | sed 's|auto-update/||' | sed 's|-[0-9].*||')
+          echo "name=$FRAMEWORK" >> $GITHUB_OUTPUT
+          echo "Framework: $FRAMEWORK"
+
+      # --- Run the fix agent ---
+      - name: Run fix agent
+        if: steps.exhausted.outputs.cache-hit != 'true' && steps.retry.outputs.max_reached != 'true'
+        id: fix
+        env:
+          AWS_REGION: us-west-2
+        run: |
+          python3 scripts/autocurrency/agent-fix.py \
+            --logs-dir /tmp/ci-logs/ \
+            --framework "${{ steps.framework.outputs.name }}" \
+            --branch "${{ github.event.workflow_run.head_branch }}"
+
+      # --- Commit and push if fix was generated ---
+      - name: Commit and push fix
+        if: steps.exhausted.outputs.cache-hit != 'true' && steps.retry.outputs.max_reached != 'true' && steps.fix.outcome == 'success'
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "::notice::No changes generated by agent. Nothing to push."
+            exit 0
+          fi
+          git config user.name "asimov-bot[bot]"
+          git config user.email "asimov-bot[bot]@users.noreply.github.com"
+          git add -A
+          DESCRIPTION=$(cat /tmp/agent-fix-description.txt 2>/dev/null || echo "automated fix")
+          git commit -m "[agent-fix] ${DESCRIPTION}"
+          git push
