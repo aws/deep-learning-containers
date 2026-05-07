@@ -229,7 +229,7 @@ DESCRIPTION: <one-line commit message description>"""
 
 
 def build_user_prompt(framework: str, branch: str, error_lines: str,
-                      dockerfile: str, config_content: str,
+                      dockerfile: str, config_content: str, allowlist: str,
                       previous_fixes: str, retry_context: str = "") -> str:
     prompt = f"""## Context
 Framework: {framework}
@@ -248,6 +248,11 @@ Branch: {branch}
 ### Current Config (.github/config/image/{framework}-ec2.yml):
 ```yaml
 {config_content}
+```
+
+### Current CVE Allowlist (test/security/data/ecr_scan_allowlist/{framework}/framework_allowlist.json):
+```json
+{allowlist}
 ```
 
 ### Previous agent fix attempts on this branch:
@@ -291,6 +296,7 @@ def main():
     error_lines = extract_error_lines(args.logs_dir)
     dockerfile = read_file_if_exists(f"docker/{args.framework}/Dockerfile")
     config_content = read_file_if_exists(f".github/config/image/{args.framework}-ec2.yml")
+    allowlist = read_file_if_exists(f"test/security/data/ecr_scan_allowlist/{args.framework}/framework_allowlist.json")
     previous_fixes = get_previous_fixes(args.branch)
 
     print(f"Error lines extracted: {len(error_lines.splitlines())} lines")
@@ -307,7 +313,7 @@ def main():
 
         user_prompt = build_user_prompt(
             args.framework, args.branch, error_lines,
-            dockerfile, config_content, previous_fixes, retry_context,
+            dockerfile, config_content, allowlist, previous_fixes, retry_context,
         )
 
         print("Calling Bedrock Claude Opus 4.6...")
