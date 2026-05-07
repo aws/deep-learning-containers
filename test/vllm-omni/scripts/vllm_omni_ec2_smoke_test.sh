@@ -17,7 +17,10 @@ CONTENT_TYPE="${4:-application/json}"
 PORT=8080
 
 if [[ "${REQUEST}" == @* ]]; then
-    REQUEST=$(cat "${REQUEST#@}")
+    REQUEST_FILE="${REQUEST#@}"
+else
+    REQUEST_FILE="$(mktemp)"
+    printf '%s' "${REQUEST}" > "${REQUEST_FILE}"
 fi
 
 echo "=== vLLM-Omni EC2 smoke test ==="
@@ -39,16 +42,15 @@ curl -sf http://localhost:${PORT}/health || { echo "Health check failed"; exit 1
 # Send request directly to the API endpoint
 if [ "${CONTENT_TYPE}" = "multipart/form-data" ]; then
     CURL_CMD=(curl -sf -X POST "http://localhost:${PORT}${ROUTE}")
-    IFS='&' read -ra PAIRS <<< "${REQUEST}"
-    for pair in "${PAIRS[@]}"; do
-        CURL_CMD+=(-F "${pair}")
-    done
+    while IFS= read -r pair; do
+        [ -n "${pair}" ] && CURL_CMD+=(-F "${pair}")
+    done < <(tr '&' '\n' < "${REQUEST_FILE}")
     CURL_CMD+=(--output /tmp/omni_response --max-time 300)
     "${CURL_CMD[@]}"
 else
     curl -sf -X POST "http://localhost:${PORT}${ROUTE}" \
       -H "Content-Type: application/json" \
-      -d "${REQUEST}" \
+      -d "@${REQUEST_FILE}" \
       --output /tmp/omni_response --max-time 300
 fi
 

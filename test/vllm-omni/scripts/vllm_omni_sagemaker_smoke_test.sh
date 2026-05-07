@@ -17,7 +17,10 @@ CONTENT_TYPE="${4:-application/json}"
 PORT=8080
 
 if [[ "${REQUEST}" == @* ]]; then
-    REQUEST=$(cat "${REQUEST#@}")
+    REQUEST_FILE="${REQUEST#@}"
+else
+    REQUEST_FILE="$(mktemp)"
+    printf '%s' "${REQUEST}" > "${REQUEST_FILE}"
 fi
 
 echo "=== vLLM-Omni SageMaker smoke test ==="
@@ -40,17 +43,16 @@ curl -sf http://localhost:${PORT}/ping || { echo "Ping failed"; exit 1; }
 if [ "${CONTENT_TYPE}" = "multipart/form-data" ]; then
     CURL_CMD=(curl -sf -X POST "http://localhost:${PORT}/invocations"
       -H "X-Amzn-SageMaker-Custom-Attributes: route=${ROUTE}")
-    IFS='&' read -ra PAIRS <<< "${REQUEST}"
-    for pair in "${PAIRS[@]}"; do
-        CURL_CMD+=(-F "${pair}")
-    done
+    while IFS= read -r pair; do
+        [ -n "${pair}" ] && CURL_CMD+=(-F "${pair}")
+    done < <(tr '&' '\n' < "${REQUEST_FILE}")
     CURL_CMD+=(--output /tmp/omni_response --max-time 300)
     "${CURL_CMD[@]}"
 else
     curl -sf -X POST http://localhost:${PORT}/invocations \
       -H "Content-Type: application/json" \
       -H "X-Amzn-SageMaker-Custom-Attributes: route=${ROUTE}" \
-      -d "${REQUEST}" \
+      -d "@${REQUEST_FILE}" \
       --output /tmp/omni_response --max-time 300
 fi
 
