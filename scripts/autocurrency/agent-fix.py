@@ -10,7 +10,6 @@ Retry: If edits fail to apply or response is unparseable, retries with error fee
 """
 
 import argparse
-import difflib
 import json
 import os
 import re
@@ -118,11 +117,13 @@ def parse_search_replace_blocks(response: str) -> list:
 def fuzzy_find(content: str, search: str) -> tuple:
     """Find the best match for search text in content.
 
-    Returns (start_idx, end_idx) or (None, None) if no good match.
+    Returns (start_idx, end_idx) or (None, None) if no match.
     Strategy:
       1. Exact match
-      2. Whitespace-normalized match
-      3. Fuzzy line-by-line match (>= 0.8 similarity)
+      2. Whitespace-normalized match (trailing spaces, line endings)
+
+    If both fail, returns None — caller should retry with error feedback
+    rather than guessing with fuzzy heuristics.
     """
     # Strategy 1: Exact match
     idx = content.find(search)
@@ -137,37 +138,13 @@ def fuzzy_find(content: str, search: str) -> tuple:
     norm_search = normalize_ws(search)
     idx = norm_content.find(norm_search)
     if idx != -1:
-        # Map back to original content position
-        # Count characters up to idx in normalized = same line/position in original
+        # Map back to original content position by line number
         line_num = norm_content[:idx].count("\n")
         original_lines = content.splitlines(keepends=True)
-        char_pos = sum(len(original_lines[i]) for i in range(line_num))
         end_line = line_num + norm_search.count("\n")
+        char_pos = sum(len(original_lines[i]) for i in range(line_num))
         char_end = sum(len(original_lines[i]) for i in range(end_line + 1))
         return char_pos, char_end
-
-    # Strategy 3: Fuzzy line matching
-    search_lines = search.splitlines()
-    content_lines = content.splitlines(keepends=True)
-
-    if not search_lines:
-        return None, None
-
-    best_ratio = 0
-    best_start = None
-
-    for i in range(len(content_lines) - len(search_lines) + 1):
-        candidate = content_lines[i:i + len(search_lines)]
-        candidate_text = "".join(candidate)
-        ratio = difflib.SequenceMatcher(None, search, candidate_text).ratio()
-        if ratio > best_ratio:
-            best_ratio = ratio
-            best_start = i
-
-    if best_ratio >= 0.8 and best_start is not None:
-        start_pos = sum(len(content_lines[i]) for i in range(best_start))
-        end_pos = sum(len(content_lines[i]) for i in range(best_start + len(search_lines)))
-        return start_pos, end_pos
 
     return None, None
 
