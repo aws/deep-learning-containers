@@ -1,0 +1,160 @@
+# Currency Fix Agent — diagnoses and fixes CI failures on auto-update PRs.
+# Triggers once per CI cycle via Merge Conditions. Pushes [agent-fix] commits.
+# Max 3 attempts per PR branch, then escalates to human.
+
+name: Currency Fix Agent
+
+on:
+  workflow_run:
+    workflows: ["Merge Conditions"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: currency-fix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+env:
+  MAX_ATTEMPTS: 3
+
+jobs:
+  fix-agent:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      startsWith(github.event.workflow_run.head_branch, 'auto-update/')
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    env:
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+      RUN_ID: ${{ github.event.workflow_run.id }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+    steps:
+      - name: Validate branch name
+        run: |
+          if [[ ! "$HEAD_BRANCH" =~ ^auto-update/[a-z]+-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Branch '${HEAD_BRANCH}' does not match expected pattern."
+            exit 1
+          fi
+
+      - name: Find failed tracked workflows
+        id: failures
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
+          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+
+          FAILED_RUN_IDS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
+            --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED}\")))] | .[].id" \
+            | tr '\n' ' ')
+
+          if [ -z "$FAILED_RUN_IDS" ]; then
+            echo "::notice::No tracked workflows failed. Skipping."
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "Failed run IDs: $FAILED_RUN_IDS"
+          echo "has_failures=true" >> $GITHUB_OUTPUT
+          echo "failed_runs=$FAILED_RUN_IDS" >> $GITHUB_OUTPUT
+
+      - name: Decode GitHub App Private Key
+        if: steps.failures.outputs.has_failures == 'true'
+        id: decode
+        run: |
+          private_key=$(echo "${{ secrets.ASIMOVBOT_APP_PRIVATE_KEY }}" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
+          echo "::add-mask::$private_key"
+          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
+
+      - name: Generate GitHub App Token
+        if: steps.failures.outputs.has_failures == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.ASIMOVBOT_APP_ID }}
+          private-key: ${{ steps.decode.outputs.private-key }}
+
+      # Checkout main for trusted script, then git-switch to PR branch
+      - name: Checkout and switch to PR branch
+        if: steps.failures.outputs.has_failures == 'true'
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Prepare workspace
+        if: steps.failures.outputs.has_failures == 'true'
+        run: |
+          cp scripts/autocurrency/agent-fix.py /tmp/agent-fix.py
+          git fetch origin "$HEAD_BRANCH"
+          git checkout "origin/$HEAD_BRANCH" -B pr-branch
+
+      - name: Count previous attempts
+        if: steps.failures.outputs.has_failures == 'true'
+        id: retry
+        run: |
+          ATTEMPTS=$(git log --oneline origin/main..HEAD --grep='\[agent-fix\]' | wc -l)
+          echo "attempts=$ATTEMPTS" >> $GITHUB_OUTPUT
+          if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
+            echo "max_reached=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Escalate if exhausted
+        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          PR_NUMBER=$(gh pr list --head "$HEAD_BRANCH" --json number --jq '.[0].number')
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr comment "$PR_NUMBER" --body "🔴 **Currency Fix Agent exhausted** (${MAX_ATTEMPTS} attempts). Needs human review.
+
+          Failed workflow: ${RUN_URL}"
+          fi
+
+      - name: Download failed run logs
+        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          FAILED_RUNS: ${{ steps.failures.outputs.failed_runs }}
+        run: |
+          mkdir -p /tmp/ci-logs
+          for RUN in $FAILED_RUNS; do
+            gh api "/repos/${{ github.repository }}/actions/runs/${RUN}/logs" > "/tmp/ci-logs-${RUN}.zip" || true
+            [ -s "/tmp/ci-logs-${RUN}.zip" ] && unzip -o "/tmp/ci-logs-${RUN}.zip" -d "/tmp/ci-logs/run-${RUN}/" || true
+          done
+
+      - name: Determine framework
+        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
+        run: |
+          FRAMEWORK=$(echo "$HEAD_BRANCH" | sed 's|auto-update/||' | sed 's|-[0-9].*||')
+          echo "FRAMEWORK=$FRAMEWORK" >> $GITHUB_ENV
+
+      - name: Run fix agent
+        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
+        id: fix
+        env:
+          AWS_REGION: us-west-2
+        run: |
+          python3 /tmp/agent-fix.py \
+            --logs-dir /tmp/ci-logs/ \
+            --framework "$FRAMEWORK" \
+            --branch "$HEAD_BRANCH"
+
+      - name: Commit and push
+        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true' && steps.fix.outcome == 'success'
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "::notice::No changes generated. Nothing to push."
+            exit 0
+          fi
+          git config user.name "asimov-bot[bot]"
+          git config user.email "asimov-bot[bot]@users.noreply.github.com"
+          git add -A
+          DESCRIPTION=$(cat /tmp/agent-fix-description.txt 2>/dev/null || echo "automated fix")
+          git commit -m "[agent-fix] ${DESCRIPTION}"
+          git push origin "HEAD:$HEAD_BRANCH"
