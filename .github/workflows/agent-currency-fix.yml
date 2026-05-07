@@ -1,32 +1,18 @@
-# agent-currency-fix.yml — Automatically diagnoses and fixes CI failures on
-# auto-update PRs by calling Bedrock Claude to reason about the failure and
-# generate file edits.
-#
-# Triggers when any PR CI workflow completes with failure on an auto-update/* branch.
-# Pushes fix commits to the PR branch, which re-triggers CI naturally.
-# Stops after 3 attempts or when CI passes.
-#
-# Security: branch name is validated against a strict pattern before use to prevent
-# code injection via crafted branch names. The workflow only operates on branches
-# created by the autocurrency bot (auto-update/<framework>-<semver>).
+# Currency Fix Agent — diagnoses and fixes CI failures on auto-update PRs.
+# Triggers once per CI cycle via Merge Conditions. Pushes [agent-fix] commits.
+# Max 3 attempts per PR branch, then escalates to human.
 
 name: Currency Fix Agent
 
 on:
   workflow_run:
-    # Trigger on "Merge Conditions" which waits for ALL PR checks to complete.
-    # When it fails, we know all workflows are done and at least one failed.
-    # No gate needed — this is the single point of completion for all PR checks.
-    workflows:
-      - "Merge Conditions"
+    workflows: ["Merge Conditions"]
     types: [completed]
 
 permissions:
   contents: read
   actions: read
 
-# Only one fix agent per PR branch at a time. If multiple PR workflows fail
-# simultaneously, the later trigger cancels the earlier one (it has more context).
 concurrency:
   group: currency-fix-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
@@ -36,7 +22,6 @@ env:
 
 jobs:
   fix-agent:
-    # Only run when: (1) failed, (2) on an auto-update branch
     if: >-
       github.event.workflow_run.conclusion == 'failure' &&
       startsWith(github.event.workflow_run.head_branch, 'auto-update/')
@@ -45,53 +30,39 @@ jobs:
         fleet:default-runner
         buildspec-override:true
     env:
-      # Store event data in env vars to avoid direct interpolation in run: blocks
-      # (prevents code injection via crafted branch names — CodeQL workflow_run rule)
       HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
       RUN_ID: ${{ github.event.workflow_run.id }}
       RUN_URL: ${{ github.event.workflow_run.html_url }}
     steps:
-      # --- Validate branch name (security gate) ---
       - name: Validate branch name
         run: |
           if [[ ! "$HEAD_BRANCH" =~ ^auto-update/[a-z]+-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Branch name '${HEAD_BRANCH}' does not match expected pattern. Aborting."
+            echo "::error::Branch '${HEAD_BRANCH}' does not match expected pattern."
             exit 1
           fi
 
-      # --- Find which PR workflows failed (only vllm/sglang tracked by autocurrency) ---
-      - name: Find failed workflow runs
+      - name: Find failed tracked workflows
         id: failures
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Only these workflows are tracked by the autocurrency system
-          TRACKED_WORKFLOWS="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
-
+          TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
           SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
 
-          # Find failed run IDs for tracked workflows only
           FAILED_RUN_IDS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
-            --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED_WORKFLOWS}\")))] | .[].id" \
+            --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED}\")))] | .[].id" \
             | tr '\n' ' ')
 
-          FAILED_NAMES=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
-            --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED_WORKFLOWS}\")))] | .[].name" \
-            | tr '\n' ', ')
-
           if [ -z "$FAILED_RUN_IDS" ]; then
-            echo "::notice::No tracked workflows (vllm/sglang) failed. Skipping."
+            echo "::notice::No tracked workflows failed. Skipping."
             echo "has_failures=false" >> $GITHUB_OUTPUT
             exit 0
           fi
-
-          echo "Failed tracked workflows: $FAILED_NAMES"
           echo "Failed run IDs: $FAILED_RUN_IDS"
           echo "has_failures=true" >> $GITHUB_OUTPUT
           echo "failed_runs=$FAILED_RUN_IDS" >> $GITHUB_OUTPUT
 
-      # --- Auth ---
-      - name: Decode the GitHub App Private Key
+      - name: Decode GitHub App Private Key
         if: steps.failures.outputs.has_failures == 'true'
         id: decode
         run: |
@@ -107,11 +78,8 @@ jobs:
           app-id: ${{ vars.ASIMOVBOT_APP_ID }}
           private-key: ${{ steps.decode.outputs.private-key }}
 
-      # --- Checkout main (trusted) then switch to PR branch via git ---
-      # Security: We use actions/checkout only for main (trusted). The PR branch
-      # is fetched and checked out via git commands, which CodeQL does not flag.
-      # The executed script (agent-fix.py) is copied from main before switching.
-      - name: Checkout main (trusted)
+      # Checkout main for trusted script, then git-switch to PR branch
+      - name: Checkout and switch to PR branch
         if: steps.failures.outputs.has_failures == 'true'
         uses: actions/checkout@v5
         with:
@@ -119,36 +87,24 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Copy trusted script and switch to PR branch
+      - name: Prepare workspace
         if: steps.failures.outputs.has_failures == 'true'
         run: |
-          # Preserve the agent script from main before switching branches
           cp scripts/autocurrency/agent-fix.py /tmp/agent-fix.py
-          # Fetch and switch to the PR branch
           git fetch origin "$HEAD_BRANCH"
           git checkout "origin/$HEAD_BRANCH" -B pr-branch
-          # Set push target
-          git push --set-upstream origin "pr-branch:$HEAD_BRANCH" --dry-run 2>/dev/null || true
 
-      # --- Count previous attempts ---
       - name: Count previous attempts
         if: steps.failures.outputs.has_failures == 'true'
         id: retry
         run: |
           ATTEMPTS=$(git log --oneline origin/main..HEAD --grep='\[agent-fix\]' | wc -l)
           echo "attempts=$ATTEMPTS" >> $GITHUB_OUTPUT
-          echo "Agent fix attempts so far: $ATTEMPTS"
           if [ "$ATTEMPTS" -ge "$MAX_ATTEMPTS" ]; then
             echo "max_reached=true" >> $GITHUB_OUTPUT
           fi
 
-      # --- Exhaustion tracking ---
-      # We rely on git commit counting as the primary loop guard.
-      # After MAX_ATTEMPTS, the agent escalates and exits. On subsequent triggers,
-      # it will still checkout and count, but exit immediately (~30s overhead).
-
-      # --- Escalate if max reached ---
-      - name: Escalate to human
+      - name: Escalate if exhausted
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -160,9 +116,6 @@ jobs:
           Failed workflow: ${RUN_URL}"
           fi
 
-          # TODO: Enable Slack notification after configuring webhook payload support
-
-      # --- Download logs from ALL failed workflow runs ---
       - name: Download failed run logs
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
         env:
@@ -171,26 +124,16 @@ jobs:
         run: |
           mkdir -p /tmp/ci-logs
           for RUN in $FAILED_RUNS; do
-            echo "Downloading logs for run $RUN..."
-            gh api "/repos/${{ github.repository }}/actions/runs/${RUN}/logs" \
-              > "/tmp/ci-logs-${RUN}.zip" || true
-            if [ -f "/tmp/ci-logs-${RUN}.zip" ] && [ -s "/tmp/ci-logs-${RUN}.zip" ]; then
-              unzip -o "/tmp/ci-logs-${RUN}.zip" -d "/tmp/ci-logs/run-${RUN}/" || true
-            fi
+            gh api "/repos/${{ github.repository }}/actions/runs/${RUN}/logs" > "/tmp/ci-logs-${RUN}.zip" || true
+            [ -s "/tmp/ci-logs-${RUN}.zip" ] && unzip -o "/tmp/ci-logs-${RUN}.zip" -d "/tmp/ci-logs/run-${RUN}/" || true
           done
 
-      # --- Extract framework from branch name ---
       - name: Determine framework
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
-        id: framework
         run: |
-          # auto-update/vllm-0.21.0 → vllm
           FRAMEWORK=$(echo "$HEAD_BRANCH" | sed 's|auto-update/||' | sed 's|-[0-9].*||')
-          echo "name=$FRAMEWORK" >> $GITHUB_OUTPUT
           echo "FRAMEWORK=$FRAMEWORK" >> $GITHUB_ENV
-          echo "Framework: $FRAMEWORK"
 
-      # --- Run the fix agent (from trusted main copy) ---
       - name: Run fix agent
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
         id: fix
@@ -202,12 +145,11 @@ jobs:
             --framework "$FRAMEWORK" \
             --branch "$HEAD_BRANCH"
 
-      # --- Commit and push if fix was generated ---
-      - name: Commit and push fix
+      - name: Commit and push
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true' && steps.fix.outcome == 'success'
         run: |
           if git diff --quiet && git diff --cached --quiet; then
-            echo "::notice::No changes generated by agent. Nothing to push."
+            echo "::notice::No changes generated. Nothing to push."
             exit 0
           fi
           git config user.name "asimov-bot[bot]"
