@@ -14,11 +14,12 @@ name: Currency Fix Agent
 
 on:
   workflow_run:
+    # Only trigger on EC2 variants (one per framework). The fix applies to the
+    # shared Dockerfile/config so it fixes SageMaker too. If SageMaker has a
+    # unique failure, it will fail on the next CI cycle and trigger then.
     workflows:
       - "PR - vLLM EC2"
-      - "PR - vLLM SageMaker"
       - "PR - SGLang EC2"
-      - "PR - SGLang SageMaker"
     types: [completed]
 
 permissions:

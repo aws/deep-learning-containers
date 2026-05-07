@@ -238,11 +238,7 @@ TRANSIENT: <brief reason>
 Otherwise, respond with search/replace blocks. For each file to modify, use this exact format:
 
 <filepath>
-<<<<<<< SEARCH
 <exact text to find in the file>
-=======
-<replacement text>
->>>>>>> REPLACE
 
 You may include multiple blocks for multiple files or multiple edits in one file.
 Each SEARCH block must contain enough context to uniquely identify the location.
@@ -366,19 +362,22 @@ def main():
         # Apply edits
         modified, errors = apply_search_replace_blocks(blocks)
 
-        if errors and not modified:
-            # All edits failed — retry with error details
-            retry_context = "All edits failed to apply:\n" + "\n".join(errors)
-            print(f"All edits failed. Retrying with error context...")
+        if errors:
+            # Some or all edits failed — retry with error details
+            retry_context = (
+                f"{len(modified)} edit(s) applied, {len(errors)} failed:\n"
+                + "\n".join(errors)
+                + "\n\nPlease fix ONLY the failed SEARCH blocks. "
+                + "Do NOT resend blocks that already applied successfully."
+            )
+            if modified:
+                print(f"Partial apply: {len(modified)} succeeded, {len(errors)} failed. Retrying...")
+            else:
+                print(f"All edits failed. Retrying with error context...")
             continue
 
-        if errors:
-            # Some edits failed — log warnings but continue with partial success
-            print(f"WARNING: {len(errors)} edit(s) failed (partial apply):")
-            for e in errors:
-                print(f"  {e[:200]}")
-
-        # Success (full or partial)
+        # All edits applied successfully
+        print(f"All {len(modified)} edit(s) applied successfully.")
         print(f"Modified files: {modified}")
 
         # Extract description
