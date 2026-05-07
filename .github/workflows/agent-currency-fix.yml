@@ -25,6 +25,12 @@ permissions:
   contents: read
   actions: read
 
+# Only one fix agent per PR branch at a time. If multiple PR workflows fail
+# simultaneously, the later trigger cancels the earlier one (it has more context).
+concurrency:
+  group: currency-fix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
 env:
   MAX_ATTEMPTS: 3
 

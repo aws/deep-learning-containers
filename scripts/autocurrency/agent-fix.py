@@ -179,6 +179,9 @@ def apply_edits(edits: list) -> list:
             if old not in content:
                 print(f"WARNING: '{old[:80]}...' not found in {path}, skipping edit")
                 continue
+            count = content.count(old)
+            if count > 1:
+                print(f"WARNING: '{old[:50]}...' found {count} times in {path}, replacing all")
             content = content.replace(old, edit["new"])
             Path(path).write_text(content)
             modified.append(path)
