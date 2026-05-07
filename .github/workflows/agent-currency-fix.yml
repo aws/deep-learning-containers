@@ -116,6 +116,19 @@ jobs:
           Failed workflow: ${RUN_URL}"
           fi
 
+      - name: Comment on PR — agent starting
+        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          PR_NUMBER=$(gh pr list --head "$HEAD_BRANCH" --json number --jq '.[0].number')
+          if [ -n "$PR_NUMBER" ]; then
+            ATTEMPT=$(git log --oneline origin/main..HEAD --grep='\[agent-fix\]' | wc -l)
+            gh pr comment "$PR_NUMBER" --body "🤖 **Currency Fix Agent** running (attempt $((ATTEMPT+1))/${MAX_ATTEMPTS}).
+
+          Diagnosing failure: ${RUN_URL}"
+          fi
+
       - name: Download failed run logs
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
         env:
