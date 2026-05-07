@@ -16,18 +16,18 @@ smoke-test:
   runner-scale-sets:
     - name: "qwen3.5-0.8b"
       s3_model: "qwen3.5-0.8b.tar.gz"
-      runner_label: "gpu-l4-1gpu-runners"
+      runner_label: "gpu-l4-2gpu-runners"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
     - name: "qwen3.5-2b"
       s3_model: "qwen3.5-2b.tar.gz"
-      runner_label: "gpu-l4-1gpu-runners"
+      runner_label: "gpu-l4-2gpu-runners"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
-      runner_label: "gpu-l40s-1gpu-runners"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096"
+      runner_label: "gpu-l40s-4gpu-runners"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
 
     - name: "qwen3-embedding-0.6b"
       s3_model: "qwen3-embedding-0.6b.tar.gz"
