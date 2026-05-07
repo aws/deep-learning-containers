@@ -20,6 +20,7 @@ MAX_TOKENS = 16384
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 MAX_LOG_LINES = 500
 MAX_LLM_RETRIES = 3
+CONTEXT_MAP_PATH = ".github/config/agent-context-files.yml"
 
 SEARCH_REPLACE_PATTERN = re.compile(
     r"^([^\n]*?/[^\n]*)\n<<<<<<< SEARCH\n(.*?)\n=======\n(.*?)\n>>>>>>> REPLACE$",
@@ -95,6 +96,86 @@ def read_file(path: str) -> str:
         return Path(path).read_text()
     except (FileNotFoundError, PermissionError):
         return ""
+
+
+def detect_failed_jobs(logs_dir: str) -> list:
+    """Detect which CI jobs failed based on log filenames."""
+    logs_path = Path(logs_dir)
+    if not logs_path.exists():
+        return []
+    # Log files are named like "8_security-test _ ecr-vulnerability-scan.txt"
+    job_names = set()
+    for f in logs_path.rglob("*.txt"):
+        name = f.stem.lower()
+        for job in ["build-image", "sanity-test", "security-test", "telemetry-test", "upstream-tests", "sagemaker-test"]:
+            if job in name:
+                job_names.add(job)
+    return list(job_names)
+
+
+def load_context_files(framework: str, failed_jobs: list) -> dict:
+    """Load relevant source files based on which jobs failed.
+
+    Returns dict of {filepath: content}.
+    """
+    mapping_path = Path(CONTEXT_MAP_PATH)
+    if not mapping_path.exists():
+        return {p: read_file(p) for p in [
+            f"docker/{framework}/Dockerfile",
+            f".github/config/image/{framework}-ec2.yml",
+            f"test/security/data/ecr_scan_allowlist/{framework}/framework_allowlist.json",
+        ] if read_file(p)}
+
+    # Parse YAML via subprocess (yq available on runners) or fallback to simple parsing
+    try:
+        import yaml
+        config = yaml.safe_load(mapping_path.read_text())
+    except ImportError:
+        # Fallback: parse the simple YAML structure manually
+        config = _parse_simple_yaml(mapping_path.read_text())
+
+    paths = set()
+    for p in config.get("common", []):
+        paths.add(p.replace("{framework}", framework))
+
+    jobs_map = config.get("jobs", {})
+    for job in failed_jobs:
+        for p in jobs_map.get(job, []):
+            paths.add(p.replace("{framework}", framework))
+
+    if not failed_jobs:
+        for files in jobs_map.values():
+            for p in files:
+                paths.add(p.replace("{framework}", framework))
+
+    return {p: content for p in sorted(paths) if (content := read_file(p))}
+
+
+def _parse_simple_yaml(text: str) -> dict:
+    """Minimal YAML parser for our flat list-of-strings structure."""
+    result = {"common": [], "jobs": {}}
+    current_section = None
+    current_job = None
+
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if line == "common:":
+            current_section = "common"
+            current_job = None
+        elif line == "jobs:":
+            current_section = "jobs"
+        elif current_section == "jobs" and line.startswith("  ") and not line.startswith("    ") and stripped.endswith(":"):
+            current_job = stripped.rstrip(":")
+            result["jobs"][current_job] = []
+        elif stripped.startswith("- "):
+            value = stripped[2:].strip().strip('"')
+            if current_section == "common":
+                result["common"].append(value)
+            elif current_job:
+                result["jobs"][current_job].append(value)
+    return result
 
 
 def get_previous_fixes() -> str:
@@ -185,8 +266,14 @@ def call_bedrock(system: str, user: str) -> str:
     return json.loads(resp["body"].read())["content"][0]["text"]
 
 
-def build_prompt(framework, branch, error_lines, dockerfile, config, allowlist,
+def build_prompt(framework, branch, error_lines, context_files,
                  previous_fixes, retry_context=""):
+    files_section = ""
+    for path, content in context_files.items():
+        ext = Path(path).suffix.lstrip(".")
+        lang = {"py": "python", "sh": "bash", "yml": "yaml", "json": "json"}.get(ext, "")
+        files_section += f"\n### {path}:\n```{lang}\n{content}\n```\n"
+
     prompt = f"""## Context
 Framework: {framework}
 Branch: {branch}
@@ -195,22 +282,7 @@ Branch: {branch}
 ```
 {error_lines}
 ```
-
-### docker/{framework}/Dockerfile:
-```dockerfile
-{dockerfile}
-```
-
-### .github/config/image/{framework}-ec2.yml:
-```yaml
-{config}
-```
-
-### test/security/data/ecr_scan_allowlist/{framework}/framework_allowlist.json:
-```json
-{allowlist}
-```
-
+{files_section}
 ### Previous fix attempts on this branch:
 {previous_fixes}"""
 
@@ -224,17 +296,20 @@ def main():
     print(f"=== Currency Fix Agent: {args.framework} @ {args.branch} ===\n")
 
     error_lines = extract_error_lines(args.logs_dir)
-    dockerfile = read_file(f"docker/{args.framework}/Dockerfile")
-    config = read_file(f".github/config/image/{args.framework}-ec2.yml")
-    allowlist = read_file(f"test/security/data/ecr_scan_allowlist/{args.framework}/framework_allowlist.json")
+    failed_jobs = detect_failed_jobs(args.logs_dir)
+    context_files = load_context_files(args.framework, failed_jobs)
     previous_fixes = get_previous_fixes()
+
+    print(f"Failed jobs detected: {failed_jobs or 'none (including all files)'}")
+    print(f"Context files loaded: {list(context_files.keys())}")
+    print()
 
     retry_context = ""
     for attempt in range(1, MAX_LLM_RETRIES + 1):
         print(f"--- Attempt {attempt}/{MAX_LLM_RETRIES} ---")
 
         prompt = build_prompt(args.framework, args.branch, error_lines,
-                              dockerfile, config, allowlist, previous_fixes, retry_context)
+                              context_files, previous_fixes, retry_context)
         response = call_bedrock(SYSTEM_PROMPT, prompt)
 
         if response.strip().startswith("TRANSIENT:"):
