@@ -1,5 +1,10 @@
 self-hosted-runner:
   labels:
-    - gpu-standard-runners
-    - gpu-efa-runners
-    - gpu-p4d-runners
+    - gpu-l4-1gpu-runners    # 1x L4 24GB VRAM
+    - gpu-l4-2gpu-runners    # 2x L4 48GB VRAM
+    - gpu-l4-4gpu-runners    # 4x L4 96GB VRAM
+    - gpu-l40s-1gpu-runners  # 1x L40S 48GB VRAM
+    - gpu-l40s-2gpu-runners  # 2x L40S 96GB VRAM
+    - gpu-l40s-4gpu-runners  # 4x L40S 192GB VRAM
+    - gpu-efa-runners        # 4x A100/H100 160-320GB VRAM
+    - gpu-p4d-runners        # 4x A100 160GB VRAM (reserved)
