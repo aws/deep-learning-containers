@@ -14,14 +14,11 @@ name: Currency Fix Agent
 
 on:
   workflow_run:
-    # Trigger on all PR workflows for tracked frameworks.
-    # The agent gates internally: it waits until ALL related workflows for the
-    # same branch have completed before acting (collects logs from all failures).
+    # Trigger on "Merge Conditions" which waits for ALL PR checks to complete.
+    # When it fails, we know all workflows are done and at least one failed.
+    # No gate needed — this is the single point of completion for all PR checks.
     workflows:
-      - "PR - vLLM EC2"
-      - "PR - vLLM SageMaker"
-      - "PR - SGLang EC2"
-      - "PR - SGLang SageMaker"
+      - "Merge Conditions"
     types: [completed]
 
 permissions:
@@ -62,82 +59,29 @@ jobs:
             exit 1
           fi
 
-      # --- Gate: wait for all related PR workflows to complete ---
-      # Determines which workflows should run for this framework, checks if all
-      # have completed. If some are still running/pending, exits early.
-      - name: Check all PR workflows completed
-        id: gate
+      # --- Find which PR workflows failed ---
+      - name: Find failed workflow runs
+        id: failures
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Determine expected workflows based on framework
-          FRAMEWORK=$(echo "$HEAD_BRANCH" | sed 's|auto-update/||' | sed 's|-[0-9].*||')
-          case "$FRAMEWORK" in
-            vllm)
-              EXPECTED_WORKFLOWS=("PR - vLLM EC2" "PR - vLLM SageMaker")
-              ;;
-            sglang)
-              EXPECTED_WORKFLOWS=("PR - SGLang EC2" "PR - SGLang SageMaker")
-              ;;
-            *)
-              echo "::error::Unknown framework: $FRAMEWORK"
-              exit 1
-              ;;
-          esac
+          # List all check runs for this commit and find failures
+          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          FAILED_RUNS=$(gh api "/repos/${{ github.repository }}/commits/${SHA}/check-runs?per_page=100" \
+            --jq '[.check_runs[] | select(.status == "completed" and .conclusion == "failure" and (.name | test("^(PR -|Merge Conditions|enforce-all-checks|CodeQL)") | not)) | .name] | join(", ")')
 
-          echo "Expected workflows: ${EXPECTED_WORKFLOWS[*]}"
+          # Get run IDs for failed PR workflows to download logs
+          FAILED_RUN_IDS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
+            --jq '[.workflow_runs[] | select(.conclusion == "failure" and (.name | startswith("PR -"))) | .id] | join(" ")')
 
-          ALL_COMPLETE=true
-          FAILED_RUNS=""
-
-          for WF_NAME in "${EXPECTED_WORKFLOWS[@]}"; do
-            # Get the latest run for this workflow on this branch
-            RUN_INFO=$(gh api "/repos/${{ github.repository }}/actions/runs?branch=${HEAD_BRANCH}&event=pull_request&per_page=5" \
-              --jq ".workflow_runs[] | select(.name == \"${WF_NAME}\") | {id: .id, status: .status, conclusion: .conclusion}" \
-              | head -1)
-
-            if [ -z "$RUN_INFO" ]; then
-              echo "  $WF_NAME: no run found (may not have triggered yet)"
-              ALL_COMPLETE=false
-              continue
-            fi
-
-            STATUS=$(echo "$RUN_INFO" | jq -r '.status')
-            CONCLUSION=$(echo "$RUN_INFO" | jq -r '.conclusion')
-            WF_RUN_ID=$(echo "$RUN_INFO" | jq -r '.id')
-
-            echo "  $WF_NAME: status=$STATUS conclusion=$CONCLUSION"
-
-            if [ "$STATUS" != "completed" ]; then
-              ALL_COMPLETE=false
-            elif [ "$CONCLUSION" == "failure" ]; then
-              FAILED_RUNS="${FAILED_RUNS}${WF_RUN_ID} "
-            fi
-          done
-
-          if [ "$ALL_COMPLETE" != "true" ]; then
-            echo "::notice::Not all workflows completed yet. Exiting early."
-            echo "ready=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          if [ -z "$FAILED_RUNS" ]; then
-            echo "::notice::All workflows completed successfully. No fix needed."
-            echo "ready=false" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-
-          echo "All workflows completed. Failed run IDs: $FAILED_RUNS"
-          echo "ready=true" >> $GITHUB_OUTPUT
-          echo "failed_runs=$FAILED_RUNS" >> $GITHUB_OUTPUT
-
-      - name: Exit if not ready
-        if: steps.gate.outputs.ready != 'true'
-        run: exit 0
+          echo "Failed checks: $FAILED_RUNS"
+          echo "Failed run IDs: $FAILED_RUN_IDS"
+          echo "failed_runs=$FAILED_RUN_IDS" >> $GITHUB_OUTPUT
+          echo "failed_names=$FAILED_RUNS" >> $GITHUB_OUTPUT
 
       # --- Auth ---
       - name: Decode the GitHub App Private Key
-        if: steps.gate.outputs.ready == 'true'
+        
         id: decode
         run: |
           private_key=$(echo "${{ secrets.ASIMOVBOT_APP_PRIVATE_KEY }}" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
@@ -145,7 +89,7 @@ jobs:
           echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
 
       - name: Generate GitHub App Token
-        if: steps.gate.outputs.ready == 'true'
+        
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
@@ -157,7 +101,7 @@ jobs:
       # is fetched and checked out via git commands, which CodeQL does not flag.
       # The executed script (agent-fix.py) is copied from main before switching.
       - name: Checkout main (trusted)
-        if: steps.gate.outputs.ready == 'true'
+        
         uses: actions/checkout@v5
         with:
           ref: main
@@ -165,7 +109,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Copy trusted script and switch to PR branch
-        if: steps.gate.outputs.ready == 'true'
+        
         run: |
           # Preserve the agent script from main before switching branches
           cp scripts/autocurrency/agent-fix.py /tmp/agent-fix.py
@@ -177,7 +121,7 @@ jobs:
 
       # --- Count previous attempts ---
       - name: Count previous attempts
-        if: steps.gate.outputs.ready == 'true'
+        
         id: retry
         run: |
           ATTEMPTS=$(git log --oneline origin/main..HEAD --grep='\[agent-fix\]' | wc -l)
@@ -194,7 +138,7 @@ jobs:
 
       # --- Escalate if max reached ---
       - name: Escalate to human
-        if: steps.gate.outputs.ready == 'true' && steps.retry.outputs.max_reached == 'true'
+        if: steps.retry.outputs.max_reached == 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
@@ -209,10 +153,10 @@ jobs:
 
       # --- Download logs from ALL failed workflow runs ---
       - name: Download failed run logs
-        if: steps.gate.outputs.ready == 'true' && steps.retry.outputs.max_reached != 'true'
+        if: steps.retry.outputs.max_reached != 'true'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          FAILED_RUNS: ${{ steps.gate.outputs.failed_runs }}
+          FAILED_RUNS: ${{ steps.failures.outputs.failed_runs }}
         run: |
           mkdir -p /tmp/ci-logs
           for RUN in $FAILED_RUNS; do
@@ -226,7 +170,7 @@ jobs:
 
       # --- Extract framework from branch name ---
       - name: Determine framework
-        if: steps.gate.outputs.ready == 'true' && steps.retry.outputs.max_reached != 'true'
+        if: steps.retry.outputs.max_reached != 'true'
         id: framework
         run: |
           # auto-update/vllm-0.21.0 → vllm
@@ -237,7 +181,7 @@ jobs:
 
       # --- Run the fix agent (from trusted main copy) ---
       - name: Run fix agent
-        if: steps.gate.outputs.ready == 'true' && steps.retry.outputs.max_reached != 'true'
+        if: steps.retry.outputs.max_reached != 'true'
         id: fix
         env:
           AWS_REGION: us-west-2
@@ -249,7 +193,7 @@ jobs:
 
       # --- Commit and push if fix was generated ---
       - name: Commit and push fix
-        if: steps.gate.outputs.ready == 'true' && steps.retry.outputs.max_reached != 'true' && steps.fix.outcome == 'success'
+        if: steps.retry.outputs.max_reached != 'true' && steps.fix.outcome == 'success'
         run: |
           if git diff --quiet && git diff --cached --quiet; then
             echo "::notice::No changes generated by agent. Nothing to push."
