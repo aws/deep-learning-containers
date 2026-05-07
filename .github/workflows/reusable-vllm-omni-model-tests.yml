@@ -158,11 +158,39 @@ jobs:
           docker cp test/vllm-omni/scripts/vllm_omni_${{ inputs.customer-type }}_smoke_test.sh \
             ${CONTAINER_ID}:/tmp/smoke_test.sh
 
+      - name: Prepare test request
+        # Write test_request to a file and expand any S3-backed voice-clone
+        # reference audio into an inlined base64 data URL. Using a file keeps
+        # us under the shell argument-length limit (~128KB) when ref_audio
+        # payloads push the JSON past ~400KB.
+        run: |
+          set -euo pipefail
+          REQUEST='${{ matrix.model.test_request }}'
+          if [[ "$REQUEST" == *ref_audio_s3* ]]; then
+            REF_S3=$(python3 -c 'import json,sys;print(json.loads(sys.stdin.read()).get("ref_audio_s3",""))' <<< "$REQUEST")
+            if [ -n "$REF_S3" ]; then
+              echo "Fetching ref_audio from $REF_S3"
+              aws s3 cp "$REF_S3" /tmp/ref_audio.wav --quiet
+              REQUEST=$(REQUEST="$REQUEST" python3 <<'PY'
+          import base64, json, os
+          payload = json.loads(os.environ["REQUEST"])
+          with open("/tmp/ref_audio.wav", "rb") as f:
+              payload["ref_audio"] = "data:audio/wav;base64," + base64.b64encode(f.read()).decode()
+          payload.pop("ref_audio_s3", None)
+          print(json.dumps(payload))
+          PY
+              )
+            fi
+          fi
+          printf '%s' "$REQUEST" > /tmp/test_request.body
+          echo "Request size: $(wc -c < /tmp/test_request.body) bytes"
+          docker cp /tmp/test_request.body ${CONTAINER_ID}:/tmp/test_request.body
+
       - name: Run smoke test
         run: |
           docker exec ${CONTAINER_ID} bash /tmp/smoke_test.sh \
             "${{ matrix.model.route }}" \
-            '${{ matrix.model.test_request }}' \
+            '@/tmp/test_request.body' \
             "${{ matrix.model.validate }}" \
             "${{ matrix.model.content_type || 'application/json' }}"
 

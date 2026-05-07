@@ -19,6 +19,29 @@ smoke-test:
       test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
       validate: "binary_size_gt:1000"
 
+    # Voice-clone TTS: ref_audio_s3 is fetched by the workflow, base64-encoded,
+    # and injected as ref_audio before invoking the smoke-test script.
+    # ref_text MUST be the exact transcript of the reference audio — mismatched
+    # transcripts can cause Code2Wav malformed output (upstream issue #3124).
+    - name: "qwen3-tts-12hz-1.7b-base"
+      s3_model: "qwen3-tts-12hz-1.7b-base.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/audio/speech"
+      test_request: '{"input": "Hello, this is a voice cloning smoke test.", "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "ref_text": "The quick brown fox jumps over the lazy dog near the riverbank at sunset.", "language": "English"}'
+      validate: "binary_size_gt:1000"
+
+    # CosyVoice3 is zero-shot voice-clone only (no preset voices). The upstream
+    # vendored fixture ships at tests/assets/cosyvoice3/zero_shot_prompt.wav;
+    # we mirror it under test-fixtures/audio/ for CI isolation.
+    - name: "cosyvoice3-0.5b"
+      s3_model: "cosyvoice3-0.5b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--trust-remote-code --enforce-eager"
+      route: "/v1/audio/speech"
+      test_request: '{"input": "Hello, this is a voice cloning smoke test.", "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/cosyvoice3_ref.wav", "ref_text": "希望你以后能够做的比我还好呦。", "response_format": "wav", "stream": false}'
+      validate: "binary_size_gt:1000"
+
     # --- Image generation models (route: /v1/images/generations) ---
     - name: "flux2-klein-4b"
       s3_model: "flux2-klein-4b.tar.gz"
