@@ -22,7 +22,7 @@ MAX_LOG_LINES = 500
 MAX_LLM_RETRIES = 3
 
 SEARCH_REPLACE_PATTERN = re.compile(
-    r"^(.+?)\n<<<<<<< SEARCH\n(.*?)\n=======\n(.*?)\n>>>>>>> REPLACE$",
+    r"^([^\n]*?/[^\n]*)\n<<<<<<< SEARCH\n(.*?)\n=======\n(.*?)\n>>>>>>> REPLACE$",
     re.MULTILINE | re.DOTALL,
 )
 
@@ -111,11 +111,11 @@ def get_previous_fixes() -> str:
 def parse_blocks(response: str) -> list:
     blocks = []
     for m in SEARCH_REPLACE_PATTERN.finditer(response):
-        blocks.append({
-            "path": m.group(1).strip().strip("`").strip(),
-            "search": m.group(2),
-            "replace": m.group(3),
-        })
+        filepath = m.group(1).strip().strip("`").strip()
+        # Strip common LLM artifacts: <filepath>, **filepath**, `filepath`
+        filepath = re.sub(r"^<\w+>|<\/\w+>$", "", filepath).strip()
+        filepath = filepath.strip("*").strip("`").strip()
+        blocks.append({"path": filepath, "search": m.group(2), "replace": m.group(3)})
     return blocks
 
 
