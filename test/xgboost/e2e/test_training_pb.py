@@ -1,6 +1,7 @@
 """Training tests with recordio-protobuf content type.
 
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_training_pb.py
+Note: Pipe mode tests removed — MLIO dropped in 3.2.0, pipe mode no longer supported.
 """
 
 import pytest
@@ -43,36 +44,6 @@ class TestTrainingProtobuf:
             validation_s3_key="recordio-protobuf/test",
             content_type="application/x-recordio-protobuf",
             test_name="pb-dist",
-            instance_count=2,
-        )
-        assert desc["TrainingJobStatus"] == "Completed"
-
-    @pytest.mark.xfail(reason="Pipe mode removed in 3.2.0 — MLIO dropped, use File mode")
-    def test_pipe_mode_single_instance(self, image_uri, role):
-        _, _, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=BASE_HP,
-            train_s3_key="recordio-protobuf/train",
-            validation_s3_key="recordio-protobuf/test",
-            content_type="application/x-recordio-protobuf",
-            test_name="pb-pipe",
-            input_mode="Pipe",
-        )
-        assert desc["TrainingJobStatus"] == "Completed"
-
-    @pytest.mark.xfail(reason="Pipe mode removed in 3.2.0 — MLIO dropped, use File mode")
-    def test_pipe_mode_distributed(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "hist"}
-        _, _, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=hp,
-            train_s3_key="recordio-protobuf/train",
-            validation_s3_key="recordio-protobuf/test",
-            content_type="application/x-recordio-protobuf",
-            test_name="pb-pipe-dist",
-            input_mode="Pipe",
             instance_count=2,
         )
         assert desc["TrainingJobStatus"] == "Completed"
