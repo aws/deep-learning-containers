@@ -82,7 +82,7 @@ def extract_error_lines(logs_dir: str) -> str:
         for i, line in enumerate(lines):
             if any(kw in line.lower() for kw in keywords):
                 start, end = max(0, i - 2), min(len(lines), i + 3)
-                error_lines.append(f"--- {log_file.name}:{i+1} ---")
+                error_lines.append(f"--- {log_file.name}:{i + 1} ---")
                 error_lines.extend(lines[start:end])
                 error_lines.append("")
         if len(error_lines) > MAX_LOG_LINES:
@@ -107,7 +107,14 @@ def detect_failed_jobs(logs_dir: str) -> list:
     job_names = set()
     for f in logs_path.rglob("*.txt"):
         name = f.stem.lower()
-        for job in ["build-image", "sanity-test", "security-test", "telemetry-test", "upstream-tests", "sagemaker-test"]:
+        for job in [
+            "build-image",
+            "sanity-test",
+            "security-test",
+            "telemetry-test",
+            "upstream-tests",
+            "sagemaker-test",
+        ]:
             if job in name:
                 job_names.add(job)
     return list(job_names)
@@ -120,15 +127,20 @@ def load_context_files(framework: str, failed_jobs: list) -> dict:
     """
     mapping_path = Path(CONTEXT_MAP_PATH)
     if not mapping_path.exists():
-        return {p: read_file(p) for p in [
-            f"docker/{framework}/Dockerfile",
-            f".github/config/image/{framework}-ec2.yml",
-            f"test/security/data/ecr_scan_allowlist/{framework}/framework_allowlist.json",
-        ] if read_file(p)}
+        return {
+            p: read_file(p)
+            for p in [
+                f"docker/{framework}/Dockerfile",
+                f".github/config/image/{framework}-ec2.yml",
+                f"test/security/data/ecr_scan_allowlist/{framework}/framework_allowlist.json",
+            ]
+            if read_file(p)
+        }
 
     # Parse YAML via subprocess (yq available on runners) or fallback to simple parsing
     try:
         import yaml
+
         config = yaml.safe_load(mapping_path.read_text())
     except ImportError:
         # Fallback: parse the simple YAML structure manually
@@ -166,7 +178,12 @@ def _parse_simple_yaml(text: str) -> dict:
             current_job = None
         elif line == "jobs:":
             current_section = "jobs"
-        elif current_section == "jobs" and line.startswith("  ") and not line.startswith("    ") and stripped.endswith(":"):
+        elif (
+            current_section == "jobs"
+            and line.startswith("  ")
+            and not line.startswith("    ")
+            and stripped.endswith(":")
+        ):
             current_job = stripped.rstrip(":")
             result["jobs"][current_job] = []
         elif stripped.startswith("- "):
@@ -182,7 +199,9 @@ def get_previous_fixes() -> str:
     try:
         r = subprocess.run(
             ["git", "log", "--oneline", "origin/main..HEAD", "--grep=[agent-fix]"],
-            capture_output=True, text=True, check=True,
+            capture_output=True,
+            text=True,
+            check=True,
         )
         return r.stdout.strip() or "None"
     except subprocess.CalledProcessError:
@@ -207,14 +226,18 @@ def find_match(content: str, search: str) -> tuple:
         return idx, idx + len(search)
 
     # Whitespace-normalized: strip trailing spaces per line
-    norm = lambda s: "\n".join(line.rstrip() for line in s.splitlines())
+    def norm(s):
+        return "\n".join(line.rstrip() for line in s.splitlines())
+
     norm_content, norm_search = norm(content), norm(search)
     idx = norm_content.find(norm_search)
     if idx != -1:
         line_num = norm_content[:idx].count("\n")
         lines = content.splitlines(keepends=True)
         end_line = line_num + norm_search.count("\n")
-        return sum(len(lines[i]) for i in range(line_num)), sum(len(lines[i]) for i in range(end_line + 1))
+        return sum(len(lines[i]) for i in range(line_num)), sum(
+            len(lines[i]) for i in range(end_line + 1)
+        )
 
     return None, None
 
@@ -256,18 +279,19 @@ def call_bedrock(system: str, user: str) -> str:
     client = boto3.client("bedrock-runtime", region_name=REGION)
     resp = client.invoke_model(
         modelId=MODEL_ID,
-        body=json.dumps({
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": MAX_TOKENS,
-            "system": system,
-            "messages": [{"role": "user", "content": user}],
-        }),
+        body=json.dumps(
+            {
+                "anthropic_version": "bedrock-2023-05-31",
+                "max_tokens": MAX_TOKENS,
+                "system": system,
+                "messages": [{"role": "user", "content": user}],
+            }
+        ),
     )
     return json.loads(resp["body"].read())["content"][0]["text"]
 
 
-def build_prompt(framework, branch, error_lines, context_files,
-                 previous_fixes, retry_context=""):
+def build_prompt(framework, branch, error_lines, context_files, previous_fixes, retry_context=""):
     files_section = ""
     for path, content in context_files.items():
         ext = Path(path).suffix.lstrip(".")
@@ -308,8 +332,9 @@ def main():
     for attempt in range(1, MAX_LLM_RETRIES + 1):
         print(f"--- Attempt {attempt}/{MAX_LLM_RETRIES} ---")
 
-        prompt = build_prompt(args.framework, args.branch, error_lines,
-                              context_files, previous_fixes, retry_context)
+        prompt = build_prompt(
+            args.framework, args.branch, error_lines, context_files, previous_fixes, retry_context
+        )
         response = call_bedrock(SYSTEM_PROMPT, prompt)
 
         if response.strip().startswith("TRANSIENT:"):
