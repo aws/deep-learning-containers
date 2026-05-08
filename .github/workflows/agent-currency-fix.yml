@@ -33,6 +33,7 @@ jobs:
       HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
       RUN_ID: ${{ github.event.workflow_run.id }}
       RUN_URL: ${{ github.event.workflow_run.html_url }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
     steps:
       - name: Validate branch name
         run: |
@@ -47,7 +48,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
-          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          SHA="$HEAD_SHA"
+          echo "Looking for failed tracked workflows at SHA: $SHA"
 
           FAILED_RUN_IDS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
             --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED}\")))] | .[].id" \
