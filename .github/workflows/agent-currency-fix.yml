@@ -49,7 +49,6 @@ jobs:
             sudo mv "gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
             rm -rf "gh_${GH_VERSION}_linux_amd64"
           fi
-          pip install boto3 -q
           gh --version
 
       - name: Find failed tracked workflows
@@ -164,6 +163,7 @@ jobs:
         env:
           AWS_REGION: us-west-2
         run: |
+          pip install boto3 -q
           python3 /tmp/agent-fix.py \
             --logs-dir /tmp/ci-logs/ \
             --framework "$FRAMEWORK" \
