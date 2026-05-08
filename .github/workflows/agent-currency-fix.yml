@@ -8,6 +8,13 @@ on:
   workflow_run:
     workflows: ["Merge Conditions"]
     types: [completed]
+  # PR trigger for testing (remove after validation)
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/autocurrency/agent-fix.py"
+      - ".github/workflows/agent-currency-fix.yml"
+      - "docker/vllm/Dockerfile"
 
 permissions:
   contents: read
@@ -23,19 +30,27 @@ env:
 jobs:
   fix-agent:
     if: >-
-      github.event.workflow_run.conclusion == 'failure' &&
-      startsWith(github.event.workflow_run.head_branch, 'auto-update/')
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' || (
+        github.event.workflow_run.conclusion == 'failure' &&
+        startsWith(github.event.workflow_run.head_branch, 'auto-update/')
+      )
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
     env:
-      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-      RUN_ID: ${{ github.event.workflow_run.id }}
-      RUN_URL: ${{ github.event.workflow_run.html_url }}
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch || github.head_ref }}
+      RUN_ID: ${{ github.event.workflow_run.id || '' }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Validate branch name
         run: |
+          # Skip validation for pull_request testing
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "Skipping branch validation for PR testing"
+            exit 0
+          fi
           if [[ ! "$HEAD_BRANCH" =~ ^auto-update/[a-z]+-[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::Branch '${HEAD_BRANCH}' does not match expected pattern."
             exit 1
@@ -51,13 +66,40 @@ jobs:
           fi
           gh --version
 
+      # For pull_request testing: poll until a tracked workflow fails (or timeout)
+      - name: Wait for CI failure
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
+          SHA="${{ github.event.pull_request.head.sha }}"
+          echo "Polling for tracked workflow failures on SHA: $SHA"
+          for i in $(seq 1 40); do
+            FOUND=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
+              --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED}\")))] | length")
+            if [ "$FOUND" -gt 0 ]; then
+              echo "Found $FOUND failed tracked workflow(s) after $i minutes"
+              break
+            fi
+            echo "No failures yet, waiting 60s... ($i/40)"
+            sleep 60
+          done
+
       - name: Find failed tracked workflows
         id: failures
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
-          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+
+          # Get HEAD SHA depending on event type
+          if [ -n "$RUN_ID" ]; then
+            SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          else
+            SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          fi
+          echo "SHA: $SHA"
 
           FAILED_RUN_IDS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
             --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED}\")))] | .[].id" \
@@ -93,7 +135,7 @@ jobs:
         if: steps.failures.outputs.has_failures == 'true'
         uses: actions/checkout@v5
         with:
-          ref: main
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
@@ -101,8 +143,11 @@ jobs:
         if: steps.failures.outputs.has_failures == 'true'
         run: |
           cp scripts/autocurrency/agent-fix.py /tmp/agent-fix.py
-          git fetch origin "$HEAD_BRANCH"
-          git checkout "origin/$HEAD_BRANCH" -B pr-branch
+          # For pull_request testing, we're already on the right branch
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            git fetch origin "$HEAD_BRANCH"
+            git checkout "origin/$HEAD_BRANCH" -B pr-branch
+          fi
 
       - name: Count previous attempts
         if: steps.failures.outputs.has_failures == 'true'
@@ -139,22 +184,27 @@ jobs:
           Agent run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
 
-      - name: Download failed run logs
-        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          FAILED_RUNS: ${{ steps.failures.outputs.failed_runs }}
-        run: |
-          mkdir -p /tmp/ci-logs
-          for RUN in $FAILED_RUNS; do
-            gh api "/repos/${{ github.repository }}/actions/runs/${RUN}/logs" > "/tmp/ci-logs-${RUN}.zip" || true
-            [ -s "/tmp/ci-logs-${RUN}.zip" ] && unzip -o "/tmp/ci-logs-${RUN}.zip" -d "/tmp/ci-logs/run-${RUN}/" || true
-          done
-
       - name: Determine framework
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          FRAMEWORK=$(echo "$HEAD_BRANCH" | sed 's|auto-update/||' | sed 's|-[0-9].*||')
+          # Derive framework from which tracked workflow failed
+          SHA="${{ github.event.pull_request.head.sha || github.sha }}"
+          if [ -n "$RUN_ID" ]; then
+            SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha' 2>/dev/null || echo "$SHA")
+          fi
+          FAILED_NAME=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
+            --jq '[.workflow_runs[] | select(.conclusion == "failure" and (.name | test("PR - vLLM|PR - SGLang")))][0].name' 2>/dev/null || echo "")
+          if echo "$FAILED_NAME" | grep -qi "vllm"; then
+            FRAMEWORK="vllm"
+          elif echo "$FAILED_NAME" | grep -qi "sglang"; then
+            FRAMEWORK="sglang"
+          else
+            # Fallback to branch name parsing
+            FRAMEWORK=$(echo "$HEAD_BRANCH" | sed 's|auto-update/||' | sed 's|-[0-9].*||')
+          fi
+          echo "Framework: $FRAMEWORK (from: $FAILED_NAME)"
           echo "FRAMEWORK=$FRAMEWORK" >> $GITHUB_ENV
 
       - name: Run fix agent
@@ -162,12 +212,15 @@ jobs:
         id: fix
         env:
           AWS_REGION: us-west-2
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           python3 -m pip install boto3 -q
           python3 /tmp/agent-fix.py \
-            --logs-dir /tmp/ci-logs/ \
             --framework "$FRAMEWORK" \
-            --branch "$HEAD_BRANCH"
+            --branch "$HEAD_BRANCH" \
+            --run-ids "${{ steps.failures.outputs.failed_runs }}" \
+            --token "$GH_TOKEN" \
+            --repo "${{ github.repository }}"
 
       - name: Commit and push
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true' && steps.fix.outcome == 'success'

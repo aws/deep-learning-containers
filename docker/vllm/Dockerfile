@@ -38,6 +38,7 @@ RUN uv pip install --system \
   "PyJWT>=2.12.0" \
   "model-hosting-container-standards>=0.1.15,<1.0.0" \
   "pyasn1>=0.6.3" \
+  "aiohttp==3.9.0" \
   && uv cache clean
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
