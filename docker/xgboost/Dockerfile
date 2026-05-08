@@ -48,7 +48,7 @@ WORKDIR /build
 RUN python${PYTHON_VERSION} setup.py bdist_wheel --universal
 
 # ── Stage: xgboost-sagemaker ───────────────────────────────────────────────
-FROM nvidia/cuda:12.9.1-base-amzn2023 AS xgboost-sagemaker
+FROM nvidia/cuda:12.9.1-runtime-amzn2023 AS xgboost-sagemaker
 
 ARG PYTHON_VERSION
 ARG XGBOOST_VERSION
