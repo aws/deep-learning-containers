@@ -44,14 +44,12 @@ jobs:
       - name: Install GitHub CLI
         run: |
           if ! command -v gh &> /dev/null; then
-            (type -p wget >/dev/null || (sudo apt update && sudo apt-get install wget -y))
-            sudo mkdir -p -m 755 /etc/apt/keyrings
-            out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-              && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
-              && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-            sudo apt-get update && sudo apt-get install -y gh
+            GH_VERSION="2.74.0"
+            curl -sL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" | tar xz
+            sudo mv "gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
+            rm -rf "gh_${GH_VERSION}_linux_amd64"
           fi
+          gh --version
 
       - name: Find failed tracked workflows
         id: failures
