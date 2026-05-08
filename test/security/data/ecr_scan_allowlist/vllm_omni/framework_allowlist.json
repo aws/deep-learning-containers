@@ -154,5 +154,9 @@
     {
         "vulnerability_id": "CVE-2026-1839",
         "reason": "transformers 4.57.6 Trainer._load_rng_state() arbitrary code execution. Fix is transformers>=5.0.0rc3. Inference-only serving path does not expose Trainer."
+    },
+    {
+        "vulnerability_id": "GHSA-98h9-4798-4q5v",
+        "reason": "diffusers 0.37.1 trust_remote_code bypass in DiffusionPipeline.from_pretrained. Fix is diffusers>=0.38.0, but diffusers 0.38.0 requires safetensors>=0.8.0-rc.0 which uv/pip skip by default (only safetensors 0.8.0rc0 published, 0.7.0 is latest stable). Upstream vllm-omni#3349 is open and waiting on safetensors 0.8.0 final. DLC loads only pre-staged S3 models we control; user code paths do not pass trust_remote_code=True. Re-evaluate once safetensors 0.8.0 final ships."
     }
 ]
