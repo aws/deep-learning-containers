@@ -41,9 +41,8 @@ RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip git \
   && dnf clean all
 RUN pip${PYTHON_VERSION} install setuptools wheel
-RUN git clone --depth 1 -b upgrade-xgboost-3.2.0-remove-mlio \
-  https://github.com/aws/sagemaker-xgboost-container.git /build \
-  && echo "cache-bust-10"
+RUN git clone --depth 1 -b master \
+  https://github.com/aws/sagemaker-xgboost-container.git /build
 WORKDIR /build
 RUN python${PYTHON_VERSION} setup.py bdist_wheel --universal
 
