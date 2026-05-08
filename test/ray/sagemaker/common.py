@@ -295,6 +295,8 @@ def run_test_privacy_filter(endpoint):
         err = validate_privacy_filter_response(result, expected_entities)
         assert not err, f"privacy-filter '{text[:40]}...': {err}"
 
-        entities = result["predictions"][0] if result["predictions"] else []
-        found = {e["entity_group"] for e in entities}
+        entities = (
+            result["predictions"][0].get("detected_spans", []) if result["predictions"] else []
+        )
+        found = {e["label"] for e in entities}
         LOGGER.info(f"  '{text[:40]}...' -> entities: {found}")

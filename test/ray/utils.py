@@ -345,28 +345,24 @@ def validate_audio_response(result, check_ffmpeg_backend=False):
 
 
 def validate_privacy_filter_response(result, expected_entities):
-    """Validate privacy filter token-classification response."""
+    """Validate privacy filter response — RedactionResult dict from inference handler."""
     if "predictions" not in result:
         return "Missing 'predictions' field"
     predictions = result["predictions"]
-    if not isinstance(predictions, list):
-        return "predictions is not a list"
-    # predictions is a list of lists (one per input text)
-    entities = predictions[0] if predictions else []
+    if not isinstance(predictions, list) or not predictions:
+        return "predictions is empty or not a list"
+    redaction = predictions[0]
+    if "detected_spans" not in redaction:
+        return "Missing 'detected_spans' field"
+    spans = redaction["detected_spans"]
+    if not isinstance(spans, list):
+        return "detected_spans is not a list"
     if not expected_entities:
-        for e in entities:
-            if e.get("score", 0) > 0.95:
-                return f"False positive PII on clean text: {e}"
+        if spans:
+            return f"False positive PII on clean text: {spans}"
         return ""
-    found_groups = {e["entity_group"] for e in entities if "entity_group" in e}
-    if not expected_entities.issubset(found_groups):
-        missing = expected_entities - found_groups
-        return f"Missing expected entities: {missing}, found: {found_groups}"
-    for e in entities:
-        if e.get("entity_group") not in expected_entities:
-            continue
-        if "score" not in e:
-            return f"Entity missing 'score': {e}"
-        if e["score"] < 0.5:
-            return f"Low confidence on expected entity: {e}"
+    found_labels = {s["label"] for s in spans if "label" in s}
+    if not expected_entities.issubset(found_labels):
+        missing = expected_entities - found_labels
+        return f"Missing expected entities: {missing}, found: {found_labels}"
     return ""
