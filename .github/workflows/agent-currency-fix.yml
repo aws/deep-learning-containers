@@ -51,13 +51,37 @@ jobs:
           fi
           gh --version
 
+      - name: Wait for tracked workflows to complete
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
+          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          echo "HEAD_SHA=$SHA" >> $GITHUB_ENV
+          TIMEOUT=1800
+          ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            IN_PROGRESS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&per_page=50" \
+              --jq "[.workflow_runs[] | select(.status != \"completed\" and (.name | test(\"${TRACKED}\")))] | length")
+            if [ "$IN_PROGRESS" = "0" ]; then
+              echo "All tracked workflows completed."
+              break
+            fi
+            echo "⏳ $IN_PROGRESS tracked workflow(s) still running. Waiting 60s... (${ELAPSED}s elapsed)"
+            sleep 60
+            ELAPSED=$((ELAPSED + 60))
+          done
+          if [ $ELAPSED -ge $TIMEOUT ]; then
+            echo "::warning::Timed out waiting for tracked workflows. Proceeding with available results."
+          fi
+
       - name: Find failed tracked workflows
         id: failures
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
-          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          SHA="${HEAD_SHA}"
 
           FAILED_RUN_IDS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
             --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED}\")))] | .[].id" \
