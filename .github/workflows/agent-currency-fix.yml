@@ -41,7 +41,7 @@ jobs:
             exit 1
           fi
 
-      - name: Install GitHub CLI
+      - name: Install dependencies
         run: |
           if ! command -v gh &> /dev/null; then
             GH_VERSION="2.74.0"
@@ -49,6 +49,7 @@ jobs:
             sudo mv "gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
             rm -rf "gh_${GH_VERSION}_linux_amd64"
           fi
+          pip install boto3 -q
           gh --version
 
       - name: Find failed tracked workflows
