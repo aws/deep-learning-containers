@@ -43,12 +43,12 @@ RUN dnf install -y --allowerasing \
 RUN pip${PYTHON_VERSION} install setuptools wheel
 RUN git clone --depth 1 -b upgrade-xgboost-3.2.0-remove-mlio \
   https://github.com/aws/sagemaker-xgboost-container.git /build \
-  && echo "cache-bust-11"
+  && echo "cache-bust-10"
 WORKDIR /build
 RUN python${PYTHON_VERSION} setup.py bdist_wheel --universal
 
 # ── Stage: xgboost-sagemaker ───────────────────────────────────────────────
-FROM nvidia/cuda:12.9.1-runtime-amzn2023 AS xgboost-sagemaker
+FROM nvidia/cuda:12.9.1-base-amzn2023 AS xgboost-sagemaker
 
 ARG PYTHON_VERSION
 ARG XGBOOST_VERSION
