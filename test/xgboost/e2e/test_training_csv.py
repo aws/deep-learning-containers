@@ -107,7 +107,8 @@ class TestTrainingCsv:
     def test_dask_gpu_binary_class(self, image_uri, role):
         hp = {
             **BASE_HP,
-            "tree_method": "hist", "device": "cuda",
+            "tree_method": "hist",
+            "device": "cuda",
             "use_dask_gpu_training": "true",
             "objective": "binary:logistic",
         }

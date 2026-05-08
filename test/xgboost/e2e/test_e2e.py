@@ -96,7 +96,8 @@ class TestE2E:
     def test_dask_gpu_train(self, image_uri, role):
         hp = {
             **E2E_HP,
-            "tree_method": "hist", "device": "cuda",
+            "tree_method": "hist",
+            "device": "cuda",
             "use_dask_gpu_training": "true",
         }
         _, _, desc = run_training_job(
