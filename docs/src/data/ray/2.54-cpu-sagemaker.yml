@@ -7,7 +7,7 @@ platform: sagemaker
 public_registry: true
 
 tags:
-  - "serve-ml-sagemaker-cpu-v1.0.0"
+  - "serve-ml-sagemaker-cpu-v1"
 
 announcements:
   - "Introduced Ray Serve 2.54 CPU containers for SageMaker"

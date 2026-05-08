@@ -91,7 +91,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)
+@pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
 def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
     endpoint = model_endpoint

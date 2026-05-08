@@ -18,6 +18,7 @@ env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/image/sagemaker-xgboost.yml"
   XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
+  XGBOOST_CONTAINER_BRANCH: "master"
 
 jobs:
   gatekeeper:
@@ -140,7 +141,7 @@ jobs:
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: xgboost-sagemaker
-          base-image: nvidia/cuda:12.6.3-base-ubuntu20.04
+          base-image: nvidia/cuda:12.9.1-base-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -171,7 +172,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Clone sagemaker-xgboost-container (tests + source)
-        run: rm -rf /tmp/xgboost-unit && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-unit
+        run: rm -rf /tmp/xgboost-unit && git clone --depth 1 --branch ${{ env.XGBOOST_CONTAINER_BRANCH }} ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-unit
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -184,7 +185,7 @@ jobs:
         run: |
           CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
           cd /tmp/xgboost-unit
-          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
+          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN pip install --no-deps -e . && pip install black coverage docker flake8 isort mock pytest pytest-cov pytest-xdist 'sagemaker>=2.0,<3.0' 'protobuf>=3.20.0,<=3.20.3' tox setuptools" > Dockerfile.test
           docker build -t test-xgboost -f Dockerfile.test .
 
       - name: Run unit tests
@@ -228,7 +229,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Clone sagemaker-xgboost-container (tests + source)
-        run: rm -rf /tmp/xgboost-integ && git clone --depth 1 ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-integ
+        run: rm -rf /tmp/xgboost-integ && git clone --depth 1 --branch ${{ env.XGBOOST_CONTAINER_BRANCH }} ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-integ
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -240,13 +241,12 @@ jobs:
       - name: Setup test environment
         run: |
           cd /tmp/xgboost-integ
-          uv venv /tmp/xgboost-integ/.venv --python 3.10
+          python3.12 -m venv /tmp/xgboost-integ/.venv
           . /tmp/xgboost-integ/.venv/bin/activate
-          uv pip install .[test]
-          uv pip install --upgrade boto3 botocore
+          pip install --upgrade pip setuptools
+          pip install --no-deps -e .
+          pip install "sagemaker>=2.0,<3.0" boto3 botocore docker pytest pytest-cov pytest-xdist pyyaml
           docker compose version || (curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose)
-          sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
-            .venv/lib/python3.10/site-packages/sagemaker_containers/_mapping.py
 
       - name: Run integration tests
         env:

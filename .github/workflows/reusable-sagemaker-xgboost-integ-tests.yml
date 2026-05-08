@@ -4,6 +4,20 @@ permissions:
   contents: read
 
 on:
+  workflow_dispatch:
+    inputs:
+      image-uri:
+        description: 'Image URI to test'
+        required: true
+        type: string
+      aws-account-id:
+        description: 'AWS account ID for ECR authentication'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region for ECR authentication'
+        required: true
+        type: string
   workflow_call:
     inputs:
       image-uri:
