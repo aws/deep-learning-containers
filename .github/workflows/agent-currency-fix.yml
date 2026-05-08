@@ -136,7 +136,7 @@ jobs:
             ATTEMPT=$(git log --oneline origin/main..HEAD --grep='\[agent-fix\]' | wc -l)
             gh pr comment "$PR_NUMBER" --body "🤖 **Currency Fix Agent** running (attempt $((ATTEMPT+1))/${MAX_ATTEMPTS}).
 
-          Diagnosing failure: ${RUN_URL}"
+          Agent run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
 
       - name: Download failed run logs
@@ -163,7 +163,7 @@ jobs:
         env:
           AWS_REGION: us-west-2
         run: |
-          pip install boto3 -q
+          python3 -m pip install boto3 -q
           python3 /tmp/agent-fix.py \
             --logs-dir /tmp/ci-logs/ \
             --framework "$FRAMEWORK" \
