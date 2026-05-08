@@ -130,9 +130,22 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
     LOGGER.info("TTS endpoint test PASSED")
 
 
+_CAPACITY_TOKENS = (
+    "ResourceLimitExceeded",
+    "InsufficientInstanceCapacity",
+    "CapacityError",
+)
+
+
 @pytest.fixture(scope="function")
 def async_endpoint(aws_session, image_uri, model_id, instance_type):
-    """Deploy an async inference endpoint (no 60s timeout limit)."""
+    """Deploy an async inference endpoint (no 60s timeout limit).
+
+    Skips the test if SageMaker can't allocate the requested instance type
+    (common for newer GPU families like g6e.xlarge / g6e.12xlarge). Surfaces
+    the skip rather than failing CI so the rest of the matrix still gets
+    useful signal.
+    """
     s3_client = boto3.client("s3")
     cleaned_instance = clean_string(instance_type, "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_instance}", 50)
@@ -146,34 +159,39 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
 
     model = endpoint_config = endpoint = None
     try:
-        model = _create_model(model_name, image_uri, env, role_arn)
+        try:
+            model = _create_model(model_name, image_uri, env, role_arn)
 
-        LOGGER.info(f"Creating async endpoint config: {endpoint_name}")
-        endpoint_config = EndpointConfig.create(
-            endpoint_config_name=endpoint_name,
-            production_variants=[
-                ProductionVariant(
-                    variant_name="AllTraffic",
-                    model_name=model_name,
-                    initial_instance_count=1,
-                    instance_type=instance_type,
-                    inference_ami_version=INFERENCE_AMI_VERSION,
+            LOGGER.info(f"Creating async endpoint config: {endpoint_name}")
+            endpoint_config = EndpointConfig.create(
+                endpoint_config_name=endpoint_name,
+                production_variants=[
+                    ProductionVariant(
+                        variant_name="AllTraffic",
+                        model_name=model_name,
+                        initial_instance_count=1,
+                        instance_type=instance_type,
+                        inference_ami_version=INFERENCE_AMI_VERSION,
+                    ),
+                ],
+                async_inference_config=AsyncInferenceConfig(
+                    output_config=AsyncInferenceOutputConfig(s3_output_path=s3_output),
+                    client_config=AsyncInferenceClientConfig(
+                        max_concurrent_invocations_per_instance=1,
+                    ),
                 ),
-            ],
-            async_inference_config=AsyncInferenceConfig(
-                output_config=AsyncInferenceOutputConfig(s3_output_path=s3_output),
-                client_config=AsyncInferenceClientConfig(
-                    max_concurrent_invocations_per_instance=1,
-                ),
-            ),
-        )
+            )
 
-        LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
-        endpoint = Endpoint.create(
-            endpoint_name=endpoint_name,
-            endpoint_config_name=endpoint_name,
-        )
-        endpoint.wait_for_status("InService")
+            LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
+            endpoint = Endpoint.create(
+                endpoint_name=endpoint_name,
+                endpoint_config_name=endpoint_name,
+            )
+            endpoint.wait_for_status("InService")
+        except Exception as e:
+            if any(tok in str(e) for tok in _CAPACITY_TOKENS):
+                pytest.skip(f"SageMaker capacity unavailable for {instance_type}: {e}")
+            raise
 
         yield endpoint, s3_client, s3_output
     finally:
@@ -223,7 +241,7 @@ def test_vllm_omni_tts_async_endpoint(async_endpoint):
 
 @pytest.mark.parametrize("instance_type", ["ml.g6e.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Wan-AI/Wan2.1-VACE-1.3B-diffusers"], indirect=True)
-def test_vllm_omni_video_async_endpoint(aws_session, image_uri, model_id, instance_type):
+def test_vllm_omni_video_async_endpoint(async_endpoint):
     """Video gen via async inference + /v1/videos/sync.
 
     Async inference removes SageMaker's 60s real-time invoke timeout, so this
@@ -232,128 +250,49 @@ def test_vllm_omni_video_async_endpoint(aws_session, image_uri, model_id, instan
     multipart/form-data automatically (see omni_sagemaker_serve.py
     FORM_DATA_ROUTES). Result is video/mp4 bytes deposited at S3 output
     location.
-
-    Skips if SageMaker can't allocate the requested instance type (common
-    capacity issue for newer GPU families). Surface the skip rather than
-    failing CI so the rest of the matrix still gets useful signal.
     """
-    try:
-        endpoint_ctx = _build_async_endpoint(aws_session, image_uri, model_id, instance_type)
-        endpoint, s3_client, s3_output = next(endpoint_ctx)
-    except Exception as e:
-        msg = str(e)
-        if any(
-            tok in msg
-            for tok in (
-                "ResourceLimitExceeded",
-                "InsufficientInstanceCapacity",
-                "CapacityError",
-            )
-        ):
-            pytest.skip(f"SageMaker capacity unavailable for {instance_type}: {e}")
-        raise
+    endpoint, s3_client, s3_output = async_endpoint
 
-    try:
-        payload = json.dumps(
-            {
-                "prompt": "a dog running on a beach",
-                "num_frames": "17",
-                "num_inference_steps": "4",
-                "size": "480x320",
-                "seed": "42",
-            }
-        )
+    payload = json.dumps(
+        {
+            "prompt": "a dog running on a beach",
+            "num_frames": "17",
+            "num_inference_steps": "4",
+            "size": "480x320",
+            "seed": "42",
+        }
+    )
 
-        LOGGER.info("Sending async video request via /invocations -> /v1/videos/sync")
-        input_location = _upload_payload_to_s3(
-            s3_client, payload, s3_output, endpoint.endpoint_name
-        )
-        result = endpoint.invoke_async(
-            input_location=input_location,
-            content_type="application/json",
-            custom_attributes="route=/v1/videos/sync",
-        )
+    LOGGER.info("Sending async video request via /invocations -> /v1/videos/sync")
+    input_location = _upload_payload_to_s3(s3_client, payload, s3_output, endpoint.endpoint_name)
+    result = endpoint.invoke_async(
+        input_location=input_location,
+        content_type="application/json",
+        custom_attributes="route=/v1/videos/sync",
+    )
 
-        output_location = result.output_location
-        LOGGER.info(f"Async output location: {output_location}")
+    output_location = result.output_location
+    LOGGER.info(f"Async output location: {output_location}")
 
-        # VACE-1.3B at 4 steps / 17 frames takes ~3s warm + ~3-4 min for first
-        # request (model load + torch.compile). Poll up to 10 minutes.
-        bucket, key = _parse_s3_uri(output_location)
-        for i in range(120):
-            try:
-                obj = s3_client.get_object(Bucket=bucket, Key=key)
-                video_bytes = obj["Body"].read()
-                LOGGER.info(f"Async video response: {len(video_bytes)} bytes (after {i * 5}s)")
-                assert len(video_bytes) > 1000, f"video output too small: {len(video_bytes)} bytes"
-                # Sanity: content-type metadata should be video/mp4 (set by
-                # /v1/videos/sync handler).
-                content_type = obj.get("ContentType", "")
-                LOGGER.info(f"Output content-type: {content_type}")
-                LOGGER.info("Async video endpoint test PASSED")
-                return
-            except s3_client.exceptions.NoSuchKey:
-                time.sleep(5)
+    # VACE-1.3B at 4 steps / 17 frames takes ~3s warm + ~3-4 min for first
+    # request (model load + torch.compile). Poll up to 10 minutes.
+    bucket, key = _parse_s3_uri(output_location)
+    for i in range(120):
+        try:
+            obj = s3_client.get_object(Bucket=bucket, Key=key)
+            video_bytes = obj["Body"].read()
+            LOGGER.info(f"Async video response: {len(video_bytes)} bytes (after {i * 5}s)")
+            assert len(video_bytes) > 1000, f"video output too small: {len(video_bytes)} bytes"
+            # Sanity: content-type metadata should be video/mp4 (set by
+            # /v1/videos/sync handler).
+            content_type = obj.get("ContentType", "")
+            LOGGER.info(f"Output content-type: {content_type}")
+            LOGGER.info("Async video endpoint test PASSED")
+            return
+        except s3_client.exceptions.NoSuchKey:
+            time.sleep(5)
 
-        pytest.fail("Async video inference timed out after 600s")
-    finally:
-        # Drain the generator so its `finally` cleans up the endpoint.
-        for _ in endpoint_ctx:
-            pass
-
-
-def _build_async_endpoint(aws_session, image_uri, model_id, instance_type):
-    """Generator clone of the async_endpoint fixture body.
-
-    Lets us catch capacity errors at endpoint-creation time and turn them into
-    pytest.skip without rewriting the fixture (which would change behavior of
-    test_vllm_omni_tts_async_endpoint).
-    """
-    s3_client = boto3.client("s3")
-    cleaned_instance = clean_string(instance_type, "_./")
-    endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_instance}", 50)
-    model_name = endpoint_name
-    account_id = aws_session.sts.get_caller_identity()["Account"]
-    s3_output = f"s3://sagemaker-{aws_session.region}-{account_id}/vllm-omni-async-output/"
-
-    hf_token = get_hf_token(aws_session)
-    env = {"SM_VLLM_MODEL": model_id, "HF_TOKEN": hf_token}
-    role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
-
-    model = endpoint_config = endpoint = None
-    try:
-        model = _create_model(model_name, image_uri, env, role_arn)
-
-        LOGGER.info(f"Creating async endpoint config: {endpoint_name}")
-        endpoint_config = EndpointConfig.create(
-            endpoint_config_name=endpoint_name,
-            production_variants=[
-                ProductionVariant(
-                    variant_name="AllTraffic",
-                    model_name=model_name,
-                    initial_instance_count=1,
-                    instance_type=instance_type,
-                    inference_ami_version=INFERENCE_AMI_VERSION,
-                ),
-            ],
-            async_inference_config=AsyncInferenceConfig(
-                output_config=AsyncInferenceOutputConfig(s3_output_path=s3_output),
-                client_config=AsyncInferenceClientConfig(
-                    max_concurrent_invocations_per_instance=1,
-                ),
-            ),
-        )
-
-        LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
-        endpoint = Endpoint.create(
-            endpoint_name=endpoint_name,
-            endpoint_config_name=endpoint_name,
-        )
-        endpoint.wait_for_status("InService")
-
-        yield endpoint, s3_client, s3_output
-    finally:
-        _cleanup([endpoint, endpoint_config, model])
+    pytest.fail("Async video inference timed out after 600s")
 
 
 def _upload_payload_to_s3(s3_client, payload, s3_output, endpoint_name):
