@@ -84,8 +84,10 @@ jobs:
           rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            shopt -s dotglob
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
+            shopt -u dotglob
+            rm -rf "${SUBDIRS[0]}"
           fi
 
       - name: Start container
@@ -158,8 +160,10 @@ jobs:
           rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            shopt -s dotglob
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
-            rmdir "${SUBDIRS[0]}"
+            shopt -u dotglob
+            rm -rf "${SUBDIRS[0]}"
           fi
 
       - name: Start container

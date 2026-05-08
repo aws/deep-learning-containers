@@ -38,4 +38,4 @@ while IFS='=' read -r key value; do
     fi
 done < <(env | grep "^${PREFIX}")
 
-exec python3 -m vllm.entrypoints.openai.api_server "${ARGS[@]}"
+exec standard-supervisor python3 -m vllm.entrypoints.openai.api_server "${ARGS[@]}"

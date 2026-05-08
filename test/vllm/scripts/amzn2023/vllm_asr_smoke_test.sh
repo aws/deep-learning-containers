@@ -31,9 +31,8 @@ if [ -z "${TEST_CASES_JSON:-}" ]; then
   exit 1
 fi
 
-# Install audio dependencies required by vllm for audio processing
-pip install -q "vllm[audio]" 2>/dev/null || pip install -q librosa soundfile
-pip install -q httpx > /dev/null 2>&1
+# vllm[audio] (librosa/soundfile) NOT needed — server decodes audio internally via torchaudio/soundfile
+# httpx already installed in vLLM container
 
 echo "=== ASR Smoke Test: ${MODEL_NAME} ==="
 echo "=== Model directory: ${MODEL_DIR} ==="

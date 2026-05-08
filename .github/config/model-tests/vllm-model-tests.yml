@@ -17,10 +17,36 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
+    - name: "qwen3-embedding-0.6b"
+      s3_model: "qwen3-embedding-0.6b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--dtype bfloat16 --max-model-len 8192"
+      test_script: "vllm_embedding_smoke_test.sh"
+
+    - name: "qwen3-vl-embedding-2b"
+      s3_model: "qwen3-vl-embedding-2b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 8192 --trust-remote-code"
+      test_script: "vllm_embedding_smoke_test.sh"
+
   runner-scale-sets: []
 
 benchmark:
   codebuild-fleet:
+    - name: "qwen3-embedding-0.6b"
+      s3_model: "qwen3-embedding-0.6b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--dtype bfloat16 --max-model-len 8192"
+      test_script: "vllm_embedding_benchmark_test.sh"
+      min_rps: 5
+
+    - name: "qwen3-vl-embedding-2b"
+      s3_model: "qwen3-vl-embedding-2b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 8192 --trust-remote-code"
+      test_script: "vllm_embedding_benchmark_test.sh"
+      min_rps: 3
+
     - name: "qwen3-asr-1.7b"
       s3_model: "qwen3-asr-1.7b.tar.gz"
       fleet: "x86-g6e12xl-runner"
