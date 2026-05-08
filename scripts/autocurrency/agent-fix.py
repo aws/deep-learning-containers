@@ -300,6 +300,18 @@ def main():
     context_files = load_context_files(args.framework, failed_jobs)
     previous_fixes = get_previous_fixes()
 
+    # Debug: show what logs we have
+    logs_path = Path(args.logs_dir)
+    if logs_path.exists():
+        log_files = list(logs_path.rglob("*.txt"))
+        print(f"Log files found: {len(log_files)}")
+        for f in log_files[:10]:
+            print(f"  {f.name} ({f.stat().st_size} bytes)")
+    else:
+        print(f"WARNING: logs dir {args.logs_dir} does not exist!")
+
+    print(f"Error lines extracted: {len(error_lines.splitlines())} lines")
+    print(f"Error lines preview: {error_lines[:500]}")
     print(f"Failed jobs detected: {failed_jobs or 'none (including all files)'}")
     print(f"Context files loaded: {list(context_files.keys())}")
     print()
@@ -310,13 +322,21 @@ def main():
 
         prompt = build_prompt(args.framework, args.branch, error_lines,
                               context_files, previous_fixes, retry_context)
+        print(f"Prompt size: {len(prompt)} chars")
         response = call_bedrock(SYSTEM_PROMPT, prompt)
+        print(f"LLM response ({len(response)} chars):")
+        print(response[:2000])
+        if len(response) > 2000:
+            print(f"  ... ({len(response) - 2000} more chars)")
+        print()
 
         if response.strip().startswith("TRANSIENT:"):
             print(f"Transient: {response.strip().split(':', 1)[1].strip()}")
             sys.exit(0)
 
         blocks = parse_blocks(response)
+        if blocks:
+            print(f"Parsed {len(blocks)} block(s): {[b["path"] for b in blocks]}")
         if not blocks:
             retry_context = (
                 f"Could not parse search/replace blocks from response.\n"
@@ -324,12 +344,15 @@ def main():
                 f"Use exact format: <filepath>\\n<<<<<<< SEARCH\\n...\\n=======\\n...\\n>>>>>>> REPLACE"
             )
             print("No blocks parsed, retrying...")
+            print(f"  Response preview: {response[:200]}")
             continue
 
         modified, errors = apply_blocks(blocks)
         if errors:
             retry_context = f"{len(modified)} applied, {len(errors)} failed:\n" + "\n".join(errors)
             print(f"{'Partial' if modified else 'All failed'}: {len(errors)} error(s), retrying...")
+            for e in errors:
+                print(f"  ERROR: {e[:300]}")
             continue
 
         # Success
