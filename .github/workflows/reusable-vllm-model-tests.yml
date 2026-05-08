@@ -187,7 +187,6 @@ jobs:
           if [ -f "test/vllm/scripts/amzn2023/${{ matrix.test_script || '' }}" ]; then
             docker cp "test/vllm/scripts/amzn2023/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
           fi
-          rm -rf /dlc-models
 
       - name: Download and copy test fixtures
         if: ${{ matrix.test_fixtures_paths != '' }}
@@ -213,5 +212,3 @@ jobs:
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models
