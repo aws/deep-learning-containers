@@ -78,7 +78,7 @@ class TestTrainingLibsvm:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_gpu_single_instance(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "gpu_hist"}
+        hp = {**BASE_HP, "tree_method": "hist", "device": "cuda"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,
@@ -92,7 +92,7 @@ class TestTrainingLibsvm:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_gpu_checkpoint(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "gpu_hist"}
+        hp = {**BASE_HP, "tree_method": "hist", "device": "cuda"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,

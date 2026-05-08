@@ -41,7 +41,7 @@ def trained_model(image_uri, role):
 @pytest.fixture(scope="module")
 def gpu_trained_model(image_uri, role):
     """Train a GPU model once for GPU e2e tests."""
-    hp = {**E2E_HP, "tree_method": "gpu_hist"}
+    hp = {**E2E_HP, "tree_method": "hist", "device": "cuda"}
     _, _, desc = run_training_job(
         image_uri=image_uri,
         role=role,
@@ -96,7 +96,7 @@ class TestE2E:
     def test_dask_gpu_train(self, image_uri, role):
         hp = {
             **E2E_HP,
-            "tree_method": "gpu_hist",
+            "tree_method": "hist", "device": "cuda",
             "use_dask_gpu_training": "true",
         }
         _, _, desc = run_training_job(

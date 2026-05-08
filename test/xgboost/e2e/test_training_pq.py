@@ -75,7 +75,7 @@ class TestTrainingParquet:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_dask_gpu_single(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "gpu_hist", "use_dask_gpu_training": "true"}
+        hp = {**BASE_HP, "tree_method": "hist", "device": "cuda", "use_dask_gpu_training": "true"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,
@@ -90,7 +90,7 @@ class TestTrainingParquet:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_dask_gpu_multi_instance(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "gpu_hist", "use_dask_gpu_training": "true"}
+        hp = {**BASE_HP, "tree_method": "hist", "device": "cuda", "use_dask_gpu_training": "true"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,
