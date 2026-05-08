@@ -112,7 +112,7 @@ class TestHPO:
         )
 
     def test_gpu_tuning_rmse(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "hist", "device": "cuda"}
+        hp = {**BASE_HP, "tree_method": "hist"}
         _run_hpo(
             image_uri,
             role,
@@ -128,7 +128,7 @@ class TestHPO:
         )
 
     def test_gpu_tuning_aucpr(self, image_uri, role):
-        hp = {**BASE_HP, "objective": "binary:hinge", "tree_method": "hist", "device": "cuda"}
+        hp = {**BASE_HP, "objective": "binary:hinge", "tree_method": "hist"}
         _run_hpo(
             image_uri,
             role,

@@ -1,8 +1,7 @@
 """Benchmark: content type / input mode.
 
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/benchmarks/benchmark_training_content_type.py
-Note: Pipe mode removed for recordio-protobuf and parquet as XGBoost
-algorithm mode does not reliably support pipe input for these formats.
+Note: Pipe mode removed in XGBoost 3.2.0 — MLIO dropped, only File mode supported.
 """
 
 import pytest
@@ -25,7 +24,6 @@ BASE_HP = {
     [
         ("xgboost/libsvm/500000x1000", "text/libsvm", "File"),
         ("xgboost/csv/500000x1000", "text/csv", "File"),
-        ("xgboost/csv/500000x1000", "text/csv", "Pipe"),
         (
             "xgboost/recordio-protobuf/500000x1000",
             "application/x-recordio-protobuf",
@@ -36,7 +34,6 @@ BASE_HP = {
     ids=[
         "libsvm-file",
         "csv-file",
-        "csv-pipe",
         "recordio-protobuf-file",
         "parquet-file",
     ],

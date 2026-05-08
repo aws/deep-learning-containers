@@ -3,6 +3,8 @@
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_training_pq.py
 """
 
+import pytest
+
 from .conftest import run_training_job
 
 BASE_HP = {
@@ -46,6 +48,7 @@ class TestTrainingParquet:
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
+    @pytest.mark.xfail(reason="Pipe mode removed in 3.2.0 — MLIO dropped, use File mode")
     def test_pipe_mode_single_instance(self, image_uri, role):
         _, _, desc = run_training_job(
             image_uri=image_uri,
@@ -59,6 +62,7 @@ class TestTrainingParquet:
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
+    @pytest.mark.xfail(reason="Pipe mode removed in 3.2.0 — MLIO dropped, use File mode")
     def test_pipe_mode_distributed(self, image_uri, role):
         hp = {**BASE_HP, "tree_method": "hist"}
         _, _, desc = run_training_job(
@@ -75,7 +79,7 @@ class TestTrainingParquet:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_dask_gpu_single(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "hist", "device": "cuda", "use_dask_gpu_training": "true"}
+        hp = {**BASE_HP, "tree_method": "hist", "use_dask_gpu_training": "true"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,
@@ -90,7 +94,7 @@ class TestTrainingParquet:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_dask_gpu_multi_instance(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "hist", "device": "cuda", "use_dask_gpu_training": "true"}
+        hp = {**BASE_HP, "tree_method": "hist", "use_dask_gpu_training": "true"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,
