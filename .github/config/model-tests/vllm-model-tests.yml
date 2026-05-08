@@ -52,7 +52,7 @@ smoke-test:
       extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16 --gpu-memory-utilization 0.8"
 
 benchmark:
-  codebuild-fleet:
+  codebuild-fleet: []
     # --- Existing benchmarks commented out for Qwen 3.5/3.6 validation ---
     # - name: "qwen3-embedding-0.6b"
     #   s3_model: "qwen3-embedding-0.6b.tar.gz"
@@ -179,62 +179,6 @@ benchmark:
     #   batch_size: 2
     #   min_throughput: 93
     #   min_rps: 0.25
-
-    # --- Qwen 3.5/3.6 benchmark (placeholder thresholds — update after manual run) ---
-    - name: "qwen3.5-0.8b"
-      s3_model: "qwen3.5-0.8b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 1
-      min_rps: 0.1
-
-    - name: "qwen3.5-2b"
-      s3_model: "qwen3.5-2b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 1
-      min_rps: 0.1
-
-    - name: "qwen3.5-27b-fp8"
-      s3_model: "qwen3.5-27b-fp8.tar.gz"
-      fleet: "x86-g6e12xl-runner"
-      extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 1
-      min_rps: 0.1
-
-    - name: "qwen3.6-27b"
-      s3_model: "qwen3.6-27b.tar.gz"
-      fleet: "x86-g6e12xl-runner"
-      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 1
-      min_rps: 0.1
-
-    - name: "qwen3.6-35b-a3b"
-      s3_model: "qwen3.6-35b-a3b.tar.gz"
-      fleet: "x86-g6e12xl-runner"
-      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 1
-      min_rps: 0.1
 
   runner-scale-sets:
     # --- Qwen 3.5/3.6 benchmark (placeholder thresholds — update after manual run) ---
