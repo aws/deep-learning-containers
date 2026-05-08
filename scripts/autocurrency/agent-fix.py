@@ -63,7 +63,6 @@ End with: DESCRIPTION: one-line commit message"""
 
 def parse_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--logs-dir", default="/tmp/ci-logs")
     p.add_argument("--framework", required=True)
     p.add_argument("--branch", required=True)
     p.add_argument("--run-ids", default="", help="Space-separated failed run IDs")
@@ -72,23 +71,9 @@ def parse_args():
     return p.parse_args()
 
 
-def extract_failure_info(
-    logs_dir: str, run_ids: str = "", token: str = "", repo: str = ""
-) -> tuple:
-    """Extract failure info. Returns (error_text, failed_job_names)."""
-
-    # Try structured API approach first
-    if run_ids and token and repo:
-        print("Using GitHub API for structured failure extraction")
-        return _extract_via_api(run_ids, token, repo)
-
-    # Fallback: grep log files
-    print("ERROR: run_ids and token are required")
-    return "No run IDs provided", []
-
-
-def _extract_via_api(run_ids: str, token: str, repo: str) -> tuple:
-    """Use GitHub API to get structured failure info."""
+def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
+    """Use GitHub API to get structured failure info. Returns (error_text, failed_job_names)."""
+    print("Using GitHub API for structured failure extraction")
     import urllib.request
 
     results = []
@@ -142,53 +127,32 @@ def _extract_via_api(run_ids: str, token: str, repo: str) -> tuple:
             failed_job_names.append(matched_key)
             results.append(f"  Failed steps: {', '.join(failed_steps)}")
 
-            # Download log for this specific job
-            log_url = f"https://api.github.com/repos/{repo}/actions/jobs/{job['id']}/logs"
-            req = urllib.request.Request(
-                log_url,
+            # Download log from run zip
+            import io
+            import zipfile
+
+            zip_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/logs"
+            zip_req = urllib.request.Request(
+                zip_url,
                 headers={
                     "Authorization": f"token {token}",
                     "Accept": "application/vnd.github+json",
                 },
             )
             try:
-                log_resp = urllib.request.urlopen(req)
-                log_text = log_resp.read().decode(errors="replace")
-
-                log_lines = log_text.splitlines()
-                tail = log_lines
-                results.append(f"  Log ({len(tail)} lines):")
-                results.extend(f"    {line}" for line in tail)
-            except Exception:
-                # Fallback: download full run log zip and find the relevant file
-                results.append("  Job log 403, falling back to run zip...")
-                try:
-                    import io
-                    import zipfile
-
-                    zip_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/logs"
-                    req2 = urllib.request.Request(
-                        zip_url,
-                        headers={
-                            "Authorization": f"token {token}",
-                            "Accept": "application/vnd.github+json",
-                        },
-                    )
-                    resp2 = urllib.request.urlopen(req2)
-                    z = zipfile.ZipFile(io.BytesIO(resp2.read()))
-                    # Match using the exact job name (API: "a / b" → zip: "a _ b")
-                    target = job["name"].replace(" / ", " _ ")
-                    for name in z.namelist():
-                        if target in name:
-                            lines = z.read(name).decode(errors="replace").splitlines()
-                            tail = lines
-                            results.append(f"  Log from zip ({name}, {len(tail)} lines):")
-                            results.extend(f"    {line}" for line in tail)
-                            break
-                    else:
-                        results.append(f"  No matching log file for '{target}' in zip")
-                except Exception as e2:
-                    results.append(f"  Zip fallback also failed: {e2}")
+                resp = urllib.request.urlopen(zip_req)
+                z = zipfile.ZipFile(io.BytesIO(resp.read()))
+                target = job["name"].replace(" / ", " _ ")
+                for name in z.namelist():
+                    if target in name:
+                        log_lines = z.read(name).decode(errors="replace").splitlines()
+                        results.append(f"  Log ({name}, {len(log_lines)} lines):")
+                        results.extend(f"    {line}" for line in log_lines)
+                        break
+                else:
+                    results.append(f"  No matching log file for '{target}' in zip")
+            except Exception as e:
+                results.append(f"  Failed to download logs: {e}")
 
             results.append("")
 
@@ -450,9 +414,7 @@ def main():
     args = parse_args()
     print(f"=== Currency Fix Agent: {args.framework} @ {args.branch} ===\n")
 
-    error_lines, api_failed_jobs = extract_failure_info(
-        args.logs_dir, args.run_ids, args.token, args.repo
-    )
+    error_lines, api_failed_jobs = extract_failure_info(args.run_ids, args.token, args.repo)
     # Use API-detected jobs if available, otherwise fall back to log filename detection
     failed_jobs = api_failed_jobs
     context_files = load_context_files(args.framework, failed_jobs)
