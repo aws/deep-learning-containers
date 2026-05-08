@@ -43,7 +43,7 @@ RUN dnf install -y --allowerasing \
 RUN pip${PYTHON_VERSION} install setuptools wheel
 RUN git clone --depth 1 -b master \
   https://github.com/aws/sagemaker-xgboost-container.git /build \
-  && echo "cache-bust-12"
+  && echo "cache-bust-13"
 WORKDIR /build
 RUN python${PYTHON_VERSION} setup.py bdist_wheel --universal
 
