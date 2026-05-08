@@ -74,6 +74,10 @@ PRIVACY_FILTER_SAMPLES = [
         "Account number 1111-2222-3333-4444 belongs to Jane Doe",
         {"account_number", "private_person"},
     ),
+    (
+        "The weather is sunny today and I went hiking",
+        set(),
+    ),
 ]
 
 
@@ -349,8 +353,13 @@ def validate_privacy_filter_response(result, expected_entities):
         return "predictions is not a list"
     # predictions is a list of lists (one per input text)
     entities = predictions[0] if predictions else []
+    if not expected_entities:
+        for e in entities:
+            if e.get("score", 0) > 0.95:
+                return f"False positive PII on clean text: {e}"
+        return ""
     found_groups = {e["entity_group"] for e in entities if "entity_group" in e}
-    if expected_entities and not expected_entities.issubset(found_groups):
+    if not expected_entities.issubset(found_groups):
         missing = expected_entities - found_groups
         return f"Missing expected entities: {missing}, found: {found_groups}"
     for e in entities:
