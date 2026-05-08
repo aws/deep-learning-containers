@@ -88,7 +88,7 @@ ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
 ARG VLLM_VERSION
 # Wheel version tag — pass via --build-arg from workflow (see docker/vllm_omni/versions.env).
-# Example: 0.20.0rc1+amzn2023.abcdef12
+# Example: 0.20.0+amzn2023.abcdef12
 ARG SETUPTOOLS_SCM_PRETEND_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${VLLM_VERSION}+amzn2023}
 
@@ -294,19 +294,18 @@ ENV HF_XET_HIGH_PERFORMANCE=1
 # =============================================================================
 FROM runtime AS omni-deps
 
-ARG VLLM_OMNI_VERSION=0.20.0rc1
+ARG VLLM_OMNI_VERSION=0.20.0
 
 # System deps for omni-modality (TTS, audio, image/video)
 # Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, ffmpeg.
-# sox dropped — vllm-omni v0.20.0rc1 removed sox from its deps (#2745)
+# sox dropped — vllm-omni v0.20.0 removed sox from its deps (#2745)
 RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
   && dnf install -y spal-release \
   && dnf install -y --setopt=install_weak_deps=False espeak-ng ffmpeg-free \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Install vllm-omni (pure Python, no compilation)
-# NOTE: v0.20.0 is a release candidate; allow prereleases until the final is out.
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --prerelease=allow vllm-omni==${VLLM_OMNI_VERSION}
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_OMNI_VERSION}
 
 # =============================================================================
 # STAGE: builder-oss-omni — OSS compliance for omni venv
