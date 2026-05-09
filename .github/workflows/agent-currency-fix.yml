@@ -139,18 +139,6 @@ jobs:
           Agent run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
 
-      - name: Download failed run logs
-        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          FAILED_RUNS: ${{ steps.failures.outputs.failed_runs }}
-        run: |
-          mkdir -p /tmp/ci-logs
-          for RUN in $FAILED_RUNS; do
-            gh api "/repos/${{ github.repository }}/actions/runs/${RUN}/logs" > "/tmp/ci-logs-${RUN}.zip" || true
-            [ -s "/tmp/ci-logs-${RUN}.zip" ] && unzip -o "/tmp/ci-logs-${RUN}.zip" -d "/tmp/ci-logs/run-${RUN}/" || true
-          done
-
       - name: Determine framework
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
         run: |
@@ -162,12 +150,15 @@ jobs:
         id: fix
         env:
           AWS_REGION: us-west-2
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           python3 -m pip install boto3 -q
           python3 /tmp/agent-fix.py \
-            --logs-dir /tmp/ci-logs/ \
             --framework "$FRAMEWORK" \
-            --branch "$HEAD_BRANCH"
+            --branch "$HEAD_BRANCH" \
+            --run-ids "${{ steps.failures.outputs.failed_runs }}" \
+            --token "$GH_TOKEN" \
+            --repo "${{ github.repository }}"
 
       - name: Commit and push
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true' && steps.fix.outcome == 'success'

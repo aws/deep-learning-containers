@@ -34,6 +34,7 @@ A currency auto-update PR has failed CI. Diagnose the failure and produce minima
 - ONLY fix the specific failure shown in the logs
 - Do NOT delete or skip tests
 - Do NOT modify files unrelated to the failure
+- ONLY edit files that are provided in the context below. If a file is not shown, do not edit it.
 - For CVE scan failures: pin a safe version in Dockerfile, or add to allowlist if vendored/unpatchable
 - For "file not found" errors: find the new path in the upstream repo
 - For build errors: check if upstream base image changed something
@@ -43,30 +44,119 @@ A currency auto-update PR has failed CI. Diagnose the failure and produce minima
 If the failure is TRANSIENT (capacity, timeout, runner crash), respond with exactly:
 TRANSIENT: <brief reason>
 
-Otherwise, respond with search/replace blocks:
+Otherwise, respond with search/replace blocks. Use this EXACT format:
 
-<filepath>
-<<<<<<< SEARCH
-<exact text to find in the file>
-=======
-<replacement text>
->>>>>>> REPLACE
+path/to/file.ext
+replacement text
+
+IMPORTANT: Write the file path as plain text (e.g., docker/vllm/Dockerfile). Do NOT wrap it in angle brackets, backticks, or any other formatting.
 
 Include 1-2 surrounding lines in SEARCH for unique anchoring.
 For JSON arrays (allowlists), SEARCH the last few lines and REPLACE with those lines plus the new entry.
 
-End with: DESCRIPTION: <one-line commit message>"""
+End with: DESCRIPTION: one-line commit message"""
 
 
 def parse_args():
     p = argparse.ArgumentParser()
-    p.add_argument("--logs-dir", required=True)
     p.add_argument("--framework", required=True)
     p.add_argument("--branch", required=True)
+    p.add_argument("--run-ids", default="", help="Space-separated failed run IDs")
+    p.add_argument("--token", default=os.environ.get("GH_TOKEN", ""), help="GitHub token")
+    p.add_argument("--repo", default="aws/deep-learning-containers")
     return p.parse_args()
 
 
-def extract_error_lines(logs_dir: str) -> str:
+def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
+    """Use GitHub API to get structured failure info. Returns (error_text, failed_job_names)."""
+    print("Using GitHub API for structured failure extraction")
+    import urllib.request
+
+    results = []
+    failed_job_names = []
+    for run_id in run_ids.strip().split():
+        if not run_id:
+            continue
+        # Get jobs for this run
+        url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Authorization": f"token {token}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+        try:
+            resp = urllib.request.urlopen(req)
+            data = json.loads(resp.read())
+        except Exception as e:
+            results.append(f"Failed to fetch jobs for run {run_id}: {e}")
+            continue
+
+        # Find failed jobs and steps
+        tracked_jobs = [
+            "build-image",
+            "sanity-test",
+            "security-test",
+            "telemetry-test",
+            "upstream-tests",
+            "sagemaker-test",
+        ]
+        for job in data.get("jobs", []):
+            if job.get("conclusion") != "failure":
+                continue
+
+            # Only process jobs that match our tracked job names
+            job_lower = job["name"].lower()
+            matched_key = None
+            for key in tracked_jobs:
+                if key.replace("-", "") in job_lower.replace("-", "").replace(" ", ""):
+                    matched_key = key
+                    break
+            if not matched_key:
+                continue
+
+            failed_steps = [
+                s["name"] for s in job.get("steps", []) if s.get("conclusion") == "failure"
+            ]
+            results.append(f"FAILED JOB: {job['name']}")
+            failed_job_names.append(matched_key)
+            results.append(f"  Failed steps: {', '.join(failed_steps)}")
+
+            # Download log from run zip
+            import io
+            import zipfile
+
+            zip_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/logs"
+            zip_req = urllib.request.Request(
+                zip_url,
+                headers={
+                    "Authorization": f"token {token}",
+                    "Accept": "application/vnd.github+json",
+                },
+            )
+            try:
+                resp = urllib.request.urlopen(zip_req)
+                z = zipfile.ZipFile(io.BytesIO(resp.read()))
+                target = job["name"].replace(" / ", " _ ")
+                for name in z.namelist():
+                    if target in name:
+                        log_lines = z.read(name).decode(errors="replace").splitlines()
+                        results.append(f"  Log ({name}, {len(log_lines)} lines):")
+                        results.extend(f"    {line}" for line in log_lines)
+                        break
+                else:
+                    results.append(f"  No matching log file for '{target}' in zip")
+            except Exception as e:
+                results.append(f"  Failed to download logs: {e}")
+
+            results.append("")
+
+    return "\n".join(results) or "No failure info extracted.", failed_job_names
+
+
+def _extract_via_grep(logs_dir: str) -> str:
+    """Fallback: grep log files for error keywords."""
     logs_path = Path(logs_dir)
     if not logs_path.exists():
         return "No logs available."
@@ -212,8 +302,9 @@ def parse_blocks(response: str) -> list:
     blocks = []
     for m in SEARCH_REPLACE_PATTERN.finditer(response):
         filepath = m.group(1).strip().strip("`").strip()
-        # Strip common LLM artifacts: <filepath>, **filepath**, `filepath`
-        filepath = re.sub(r"^<\w+>|<\/\w+>$", "", filepath).strip()
+        # Strip all common LLM artifacts: <filepath>path, <path>, **path**, `path`
+        filepath = re.sub(r"^<[^>]*>", "", filepath).strip()  # strips <filepath>, <file>, etc.
+        filepath = re.sub(r"^<|>$", "", filepath).strip()  # strips bare < >
         filepath = filepath.strip("*").strip("`").strip()
         blocks.append({"path": filepath, "search": m.group(2), "replace": m.group(3)})
     return blocks
@@ -319,11 +410,14 @@ def main():
     args = parse_args()
     print(f"=== Currency Fix Agent: {args.framework} @ {args.branch} ===\n")
 
-    error_lines = extract_error_lines(args.logs_dir)
-    failed_jobs = detect_failed_jobs(args.logs_dir)
+    error_lines, api_failed_jobs = extract_failure_info(args.run_ids, args.token, args.repo)
+    # Use API-detected jobs if available, otherwise fall back to log filename detection
+    failed_jobs = api_failed_jobs
     context_files = load_context_files(args.framework, failed_jobs)
     previous_fixes = get_previous_fixes()
 
+    print(f"Error lines extracted: {len(error_lines.splitlines())} lines")
+    print(f"Error lines preview: {error_lines[:500]}")
     print(f"Failed jobs detected: {failed_jobs or 'none (including all files)'}")
     print(f"Context files loaded: {list(context_files.keys())}")
     print()
@@ -335,13 +429,22 @@ def main():
         prompt = build_prompt(
             args.framework, args.branch, error_lines, context_files, previous_fixes, retry_context
         )
+        print(f"Prompt size: {len(prompt)} chars")
         response = call_bedrock(SYSTEM_PROMPT, prompt)
+        print(f"LLM response ({len(response)} chars):")
+        print(response[:2000])
+        if len(response) > 2000:
+            print(f"  ... ({len(response) - 2000} more chars)")
+        print()
 
         if response.strip().startswith("TRANSIENT:"):
             print(f"Transient: {response.strip().split(':', 1)[1].strip()}")
             sys.exit(0)
 
         blocks = parse_blocks(response)
+        if blocks:
+            paths = [b["path"] for b in blocks]
+            print(f"Parsed {len(blocks)} block(s): {paths}")
         if not blocks:
             retry_context = (
                 f"Could not parse search/replace blocks from response.\n"
@@ -349,12 +452,15 @@ def main():
                 f"Use exact format: <filepath>\\n<<<<<<< SEARCH\\n...\\n=======\\n...\\n>>>>>>> REPLACE"
             )
             print("No blocks parsed, retrying...")
+            print(f"  Response preview: {response[:200]}")
             continue
 
         modified, errors = apply_blocks(blocks)
         if errors:
             retry_context = f"{len(modified)} applied, {len(errors)} failed:\n" + "\n".join(errors)
             print(f"{'Partial' if modified else 'All failed'}: {len(errors)} error(s), retrying...")
+            for e in errors:
+                print(f"  ERROR: {e[:300]}")
             continue
 
         # Success
