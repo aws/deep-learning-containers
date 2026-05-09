@@ -91,5 +91,13 @@
     {
         "vulnerability_id": "CVE-2026-1839",
         "reason": "transformers Trainer._load_rng_state() RCE — only triggered when resuming training from checkpoint. DLC vLLM is inference-only, Trainer is never invoked. Fix requires transformers>=5.0.0rc3 (pre-release)."
+    },
+    {
+        "vulnerability_id": "CVE-2026-39820",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33811",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild"
     }
 ]
