@@ -34,18 +34,29 @@ WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
 # ── Stage: wheel-builder ───────────────────────────────────────────────────
+# In CI, the wheel is pre-built and placed at docker/xgboost/prebuilt.whl
+# before the Docker build starts. For local builds, clones and builds from source.
 FROM amazonlinux:2023 AS wheel-builder
 ARG PYTHON_VERSION
+ARG XGBOOST_CONTAINER_BRANCH="master"
 
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip git \
   && dnf clean all
-RUN pip${PYTHON_VERSION} install setuptools wheel
-RUN git clone --depth 1 -b master \
-  https://github.com/aws/sagemaker-xgboost-container.git /build \
-  && echo "cache-bust-13"
-WORKDIR /build
-RUN python${PYTHON_VERSION} setup.py bdist_wheel --universal
+
+# Copy prebuilt wheel if present (CI places it here before build)
+COPY docker/xgboost/prebuilt.wh[l] /tmp/prebuilt/
+
+RUN mkdir -p /build/dist && \
+    if [ -f /tmp/prebuilt/prebuilt.whl ]; then \
+      cp /tmp/prebuilt/prebuilt.whl /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl; \
+    else \
+      pip${PYTHON_VERSION} install setuptools wheel && \
+      git clone --depth 1 -b ${XGBOOST_CONTAINER_BRANCH} \
+        https://github.com/aws/sagemaker-xgboost-container.git /tmp/xgb-src && \
+      cd /tmp/xgb-src && python${PYTHON_VERSION} setup.py bdist_wheel --universal && \
+      cp /tmp/xgb-src/dist/*.whl /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl; \
+    fi
 
 # ── Stage: xgboost-sagemaker ───────────────────────────────────────────────
 FROM nvidia/cuda:12.9.1-base-amzn2023 AS xgboost-sagemaker

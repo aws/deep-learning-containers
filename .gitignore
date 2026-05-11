@@ -22,3 +22,4 @@ docs/reference/support_policy.md
 site/
 tutorials/
 .sisyphus/
+docker/xgboost/prebuilt.whl

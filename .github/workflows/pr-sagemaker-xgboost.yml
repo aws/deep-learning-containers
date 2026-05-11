@@ -119,8 +119,32 @@ jobs:
               - "docker/xgboost/**"
               - ".github/config/image/sagemaker-xgboost.yml"
 
-  build-image:
+  build-wheel:
     needs: [check-changes, load-config]
+    if: needs.check-changes.outputs.build-change == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-build-wheel-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Clone sagemaker-xgboost-container
+        run: git clone --depth 1 --branch ${{ env.XGBOOST_CONTAINER_BRANCH }} ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-wheel
+
+      - name: Build wheel
+        run: |
+          cd /tmp/xgboost-wheel
+          pip install setuptools wheel
+          python setup.py bdist_wheel --universal
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xgboost-container-wheel
+          path: /tmp/xgboost-wheel/dist/*.whl
+          retention-days: 1
+
+  build-image:
+    needs: [check-changes, load-config, build-wheel]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -134,6 +158,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - name: Download prebuilt wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: xgboost-container-wheel
+          path: /tmp/wheel
+
+      - name: Place wheel in build context
+        run: cp /tmp/wheel/*.whl docker/xgboost/prebuilt.whl
 
       - name: Build image
         id: build
@@ -155,6 +188,9 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
+        env:
+          EXTRA_BUILD_ARGS: "XGBOOST_CONTAINER_BRANCH"
+          XGBOOST_CONTAINER_BRANCH: ${{ env.XGBOOST_CONTAINER_BRANCH }}
 
   unit-test:
     needs: [build-image, load-config]
