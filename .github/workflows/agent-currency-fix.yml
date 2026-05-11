@@ -51,13 +51,37 @@ jobs:
           fi
           gh --version
 
+      - name: Wait for tracked workflows to complete
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
+          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          echo "HEAD_SHA=$SHA" >> $GITHUB_ENV
+          TIMEOUT=1800
+          ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            IN_PROGRESS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&per_page=50" \
+              --jq "[.workflow_runs[] | select(.status != \"completed\" and (.name | test(\"${TRACKED}\")))] | length")
+            if [ "$IN_PROGRESS" = "0" ]; then
+              echo "All tracked workflows completed."
+              break
+            fi
+            echo "⏳ $IN_PROGRESS tracked workflow(s) still running. Waiting 60s... (${ELAPSED}s elapsed)"
+            sleep 60
+            ELAPSED=$((ELAPSED + 60))
+          done
+          if [ $ELAPSED -ge $TIMEOUT ]; then
+            echo "::warning::Timed out waiting for tracked workflows. Proceeding with available results."
+          fi
+
       - name: Find failed tracked workflows
         id: failures
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
-          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          SHA="${HEAD_SHA}"
 
           FAILED_RUN_IDS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
             --jq "[.workflow_runs[] | select(.conclusion == \"failure\" and (.name | test(\"${TRACKED}\")))] | .[].id" \
@@ -139,18 +163,6 @@ jobs:
           Agent run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
 
-      - name: Download failed run logs
-        if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          FAILED_RUNS: ${{ steps.failures.outputs.failed_runs }}
-        run: |
-          mkdir -p /tmp/ci-logs
-          for RUN in $FAILED_RUNS; do
-            gh api "/repos/${{ github.repository }}/actions/runs/${RUN}/logs" > "/tmp/ci-logs-${RUN}.zip" || true
-            [ -s "/tmp/ci-logs-${RUN}.zip" ] && unzip -o "/tmp/ci-logs-${RUN}.zip" -d "/tmp/ci-logs/run-${RUN}/" || true
-          done
-
       - name: Determine framework
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true'
         run: |
@@ -162,12 +174,15 @@ jobs:
         id: fix
         env:
           AWS_REGION: us-west-2
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           python3 -m pip install boto3 -q
           python3 /tmp/agent-fix.py \
-            --logs-dir /tmp/ci-logs/ \
             --framework "$FRAMEWORK" \
-            --branch "$HEAD_BRANCH"
+            --branch "$HEAD_BRANCH" \
+            --run-ids "${{ steps.failures.outputs.failed_runs }}" \
+            --token "$GH_TOKEN" \
+            --repo "${{ github.repository }}"
 
       - name: Commit and push
         if: steps.failures.outputs.has_failures == 'true' && steps.retry.outputs.max_reached != 'true' && steps.fix.outcome == 'success'
