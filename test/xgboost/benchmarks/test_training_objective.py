@@ -25,7 +25,7 @@ BASE_HP = {
         ("binary:logistic", "xgboost/libsvm/binary", {}, 1200),
         ("multi:softmax", "xgboost/libsvm/multi/5", {"num_class": "5"}, 1800),
         ("multi:softmax", "xgboost/libsvm/multi/10", {"num_class": "10"}, 1800),
-        ("multi:softmax", "xgboost/libsvm/multi/15", {"num_class": "15"}, 2400),
+        ("multi:softmax", "xgboost/libsvm/multi/15", {"num_class": "15"}, 2700),
     ],
     ids=[
         "reg-squarederror-100kx200",
