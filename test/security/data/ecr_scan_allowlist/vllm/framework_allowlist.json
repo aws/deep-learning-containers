@@ -96,5 +96,30 @@
         "vulnerability_id": "GHSA-82j2-j2ch-gfr8",
         "reason": "rustls-webpki 0.103.12 bundled in /usr/local/bin/uv (Rust binary). Fix requires uv rebuild with rustls-webpki>=0.104.0-alpha.7 (pre-release). Not exploitable in our usage — uv only connects to PyPI over TLS.",
         "review_by": "2026-06-04"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33811",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-06-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33814",
+        "reason": "go/stdlib 1.25.9 and golang.org/x/net v0.48.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-06-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42499",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-06-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39836",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-06-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39820",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-06-10"
     }
 ]
