@@ -19,8 +19,8 @@ echo "Detected ${NUM_GPUS} GPU(s)"
 if [ $# -eq 0 ] || [ "$1" = "serve" ]; then
     echo "Starting Ray Serve for SageMaker..."
 
-    # Add model directory to Python path before ray start
-    export PYTHONPATH="/opt/ml/model:${PYTHONPATH}"
+    # Add model directory and SDK code/ subdir to Python path before ray start
+    export PYTHONPATH="/opt/ml/model:/opt/ml/model/code:${PYTHONPATH}"
 
     # Install runtime requirements before Ray starts
     if [ -f "/opt/ml/model/code/requirements.txt" ]; then
