@@ -14,7 +14,7 @@ common:
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "vllm-omni:0.20-gpu-py312-ec2"
+  prod_image: "vllm:omni-cuda-v1"
   device_type: "gpu"
   contributor: "None"
 
