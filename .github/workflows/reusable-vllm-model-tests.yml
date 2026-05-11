@@ -140,7 +140,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
-    runs-on: gpu-efa-runners
+    runs-on: ${{ matrix.runner_label }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -169,7 +169,10 @@ jobs:
       - name: Start container
         run: |
           docker pull ${{ inputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+          # Get GPU UUIDs visible to this pod (k8s assigns a subset of host GPUs)
+          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
+          echo "Pod GPU UUIDs: ${POD_GPUS}"
+          CONTAINER_ID=$(docker run -d -it --gpus "\"device=${POD_GPUS}\"" --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -184,7 +187,6 @@ jobs:
           if [ -f "test/vllm/scripts/amzn2023/${{ matrix.test_script || '' }}" ]; then
             docker cp "test/vllm/scripts/amzn2023/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
           fi
-          rm -rf /dlc-models
 
       - name: Download and copy test fixtures
         if: ${{ matrix.test_fixtures_paths != '' }}
@@ -210,5 +212,3 @@ jobs:
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models

@@ -91,5 +91,25 @@
         "vulnerability_id": "GHSA-82j2-j2ch-gfr8",
         "reason": "rustls-webpki 0.103.12 bundled in uv binary (Rust). Fix requires rustls-webpki>=0.104.0-alpha.7 (pre-release). Not exploitable — uv only connects to PyPI over TLS, no CRL checking enabled.",
         "review_by": "2026-06-04"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33811",
+        "reason": "go/stdlib 1.24.13 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39820",
+        "reason": "go/stdlib 1.24.13 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33814",
+        "reason": "go/stdlib 1.24.13 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39836",
+        "reason": "go/stdlib 1.24.13 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42499",
+        "reason": "go/stdlib 1.24.13 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild"
     }
 ]

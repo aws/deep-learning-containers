@@ -231,6 +231,51 @@ benchmark:
       min_throughput: 80
       min_rps: 0.35
 
+    # --- Qwen 3.5/3.6 new models (thresholds at ~50% of observed) ---
+    - name: "qwen3.5-2b"
+      s3_model: "qwen3.5-2b.tar.gz"
+      runner_label: "gpu-l4-1gpu-runners"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --gpu-memory-utilization 0.6"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 5256
+      min_rps: 8.2
+
+    - name: "qwen3.6-27b"
+      s3_model: "qwen3.6-27b.tar.gz"
+      runner_label: "gpu-l40s-4gpu-runners"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16 --gpu-memory-utilization 0.8"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 2195
+      min_rps: 3.4
+
+    - name: "qwen3.6-35b-a3b"
+      s3_model: "qwen3.6-35b-a3b.tar.gz"
+      runner_label: "gpu-l40s-4gpu-runners"
+      extra_args: "--tensor-parallel-size 4 --max-model-len 4096 --dtype bfloat16 --gpu-memory-utilization 0.8"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 2654
+      min_rps: 4.1
+
+    - name: "qwen3.5-0.8b"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      runner_label: "gpu-l4-1gpu-runners"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --gpu-memory-utilization 0.6"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 5966
+      min_rps: 9.3
+
 # upstream
 # facebook/opt-125m
 # meta-llama/Llama-3.2-1B-Instruct
