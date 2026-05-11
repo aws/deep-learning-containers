@@ -18,7 +18,7 @@ env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/image/sagemaker-xgboost.yml"
   XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
-  XGBOOST_CONTAINER_BRANCH: "master"
+  XGBOOST_CONTAINER_BRANCH: "fix-dask-gpu-complete"
 
 jobs:
   gatekeeper:
