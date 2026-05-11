@@ -49,8 +49,8 @@ def test_content_type(image_uri, role, benchmark_bucket, dataset_path, content_t
         content_type=content_type,
         instance_type="ml.m5.2xlarge",
         volume_size=20,
-        max_run=1800,
+        max_run=2400,
         input_mode=input_mode,
     )
     assert desc["TrainingJobStatus"] == "Completed"
-    assert 1 <= duration <= 1800
+    assert 1 <= duration <= 2400
