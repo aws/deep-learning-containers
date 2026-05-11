@@ -243,5 +243,15 @@
         "vulnerability_id": "CVE-2026-6100",
         "reason": "python3.12 — UAF in lzma/bz2/gzip decompressor on MemoryError. Not exploitable in serving/training path.",
         "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-22016",
+        "reason": "java-11-amazon-corretto-headless — JAXP vulnerability. Fix version 11.0.31+11 not yet available in AL2023 repo. Java only used for MMS model server, not in data path.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34282",
+        "reason": "java-11-amazon-corretto-headless — Networking vulnerability. Fix version 11.0.31+11 not yet available in AL2023 repo. Java only used for MMS model server, not in data path.",
+        "review_by": "2026-08-30"
     }
 ]
