@@ -66,9 +66,7 @@ def parse_args():
     p.add_argument("--framework", required=True)
     p.add_argument("--branch", required=True)
     p.add_argument("--run-ids", default="", help="Space-separated failed run IDs")
-    p.add_argument(
-        "--token", default=os.environ.get("GH_TOKEN", ""), help="GitHub token"
-    )
+    p.add_argument("--token", default=os.environ.get("GH_TOKEN", ""), help="GitHub token")
     p.add_argument("--repo", default="aws/deep-learning-containers")
     return p.parse_args()
 
@@ -123,9 +121,7 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
                 continue
 
             failed_steps = [
-                s["name"]
-                for s in job.get("steps", [])
-                if s.get("conclusion") == "failure"
+                s["name"] for s in job.get("steps", []) if s.get("conclusion") == "failure"
             ]
             results.append(f"FAILED JOB: {job['name']}")
             failed_job_names.append(matched_key)
@@ -170,15 +166,7 @@ def _extract_via_grep(logs_dir: str) -> str:
         return "No logs available."
 
     error_lines = []
-    keywords = [
-        "error",
-        "failed",
-        "failure",
-        "cve-",
-        "not found",
-        "exception",
-        "denied",
-    ]
+    keywords = ["error", "failed", "failure", "cve-", "not found", "exception", "denied"]
 
     for log_file in sorted(logs_path.rglob("*.txt")):
         try:
@@ -319,9 +307,7 @@ def parse_blocks(response: str) -> list:
     for m in SEARCH_REPLACE_PATTERN.finditer(response):
         filepath = m.group(1).strip().strip("`").strip()
         # Strip all common LLM artifacts: <filepath>path, <path>, **path**, `path`
-        filepath = re.sub(
-            r"^<[^>]*>", "", filepath
-        ).strip()  # strips <filepath>, <file>, etc.
+        filepath = re.sub(r"^<[^>]*>", "", filepath).strip()  # strips <filepath>, <file>, etc.
         filepath = re.sub(r"^<|>$", "", filepath).strip()  # strips bare < >
         filepath = filepath.strip("*").strip("`").strip()
         blocks.append({"path": filepath, "search": m.group(2), "replace": m.group(3)})
@@ -400,15 +386,11 @@ def call_bedrock(system: str, user: str) -> str:
     return json.loads(resp["body"].read())["content"][0]["text"]
 
 
-def build_prompt(
-    framework, branch, error_lines, context_files, previous_fixes, retry_context=""
-):
+def build_prompt(framework, branch, error_lines, context_files, previous_fixes, retry_context=""):
     files_section = ""
     for path, content in context_files.items():
         ext = Path(path).suffix.lstrip(".")
-        lang = {"py": "python", "sh": "bash", "yml": "yaml", "json": "json"}.get(
-            ext, ""
-        )
+        lang = {"py": "python", "sh": "bash", "yml": "yaml", "json": "json"}.get(ext, "")
         files_section += f"\n### {path}:\n```{lang}\n{content}\n```\n"
 
     prompt = f"""## Context
@@ -432,9 +414,7 @@ def main():
     args = parse_args()
     print(f"=== Currency Fix Agent: {args.framework} @ {args.branch} ===\n")
 
-    error_lines, api_failed_jobs = extract_failure_info(
-        args.run_ids, args.token, args.repo
-    )
+    error_lines, api_failed_jobs = extract_failure_info(args.run_ids, args.token, args.repo)
     # Use API-detected jobs if available, otherwise fall back to log filename detection
     failed_jobs = api_failed_jobs
     context_files = load_context_files(args.framework, failed_jobs)
@@ -451,12 +431,7 @@ def main():
         print(f"--- Attempt {attempt}/{MAX_LLM_RETRIES} ---")
 
         prompt = build_prompt(
-            args.framework,
-            args.branch,
-            error_lines,
-            context_files,
-            previous_fixes,
-            retry_context,
+            args.framework, args.branch, error_lines, context_files, previous_fixes, retry_context
         )
         print(f"Prompt size: {len(prompt)} chars")
         response = call_bedrock(SYSTEM_PROMPT, prompt)
@@ -486,12 +461,8 @@ def main():
 
         modified, errors = apply_blocks(blocks)
         if errors:
-            retry_context = (
-                f"{len(modified)} applied, {len(errors)} failed:\n" + "\n".join(errors)
-            )
-            print(
-                f"{'Partial' if modified else 'All failed'}: {len(errors)} error(s), retrying..."
-            )
+            retry_context = f"{len(modified)} applied, {len(errors)} failed:\n" + "\n".join(errors)
+            print(f"{'Partial' if modified else 'All failed'}: {len(errors)} error(s), retrying...")
             for e in errors:
                 print(f"  ERROR: {e[:300]}")
             continue
