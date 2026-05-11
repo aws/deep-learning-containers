@@ -239,10 +239,16 @@ def test_vllm_omni_tts_async_endpoint(async_endpoint):
     pytest.fail("Async inference timed out after 300s")
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6e.xlarge"], indirect=True)
+@pytest.mark.parametrize("instance_type", ["ml.g5.2xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Wan-AI/Wan2.1-VACE-1.3B-diffusers"], indirect=True)
 def test_vllm_omni_video_async_endpoint(async_endpoint):
     """Video gen via async inference + /v1/videos/sync.
+
+    Instance choice (ml.g5.2xlarge): A10G 24 GB VRAM (compute 8.6) + 32 GB host
+    RAM. Validated end-to-end on 2026-05-11: 45 KB MP4 returned in 10s.
+    A10G uses PyTorch SDPA fallback (no FA3 dependency since VACE diffusion
+    runs through standard attention). Host RAM is the constraint that bit us
+    earlier on 16 GB instances during HF model load.
 
     Async inference removes SageMaker's 60s real-time invoke timeout, so this
     pattern is the recommended way to serve video generation behind a
