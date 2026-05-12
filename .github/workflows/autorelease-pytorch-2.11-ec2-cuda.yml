@@ -230,7 +230,7 @@ jobs:
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
             --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=2.11 \
+            -e DLC_WORKDIR=/workdir \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
