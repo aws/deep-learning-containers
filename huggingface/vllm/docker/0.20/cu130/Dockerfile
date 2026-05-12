@@ -1,11 +1,11 @@
-ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.19.1-gpu-py312-cu129-ubuntu22.04-sagemaker
+ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.20.2-gpu-py312-cu130-ubuntu22.04-sagemaker
 FROM ${FINAL_BASE_IMAGE} AS vllm-base
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TRANSFORMERS_VERSION=5.6.0
-ARG HUGGINGFACE_HUB_VERSION=1.12.0
+ARG TRANSFORMERS_VERSION=5.8.0
+ARG HUGGINGFACE_HUB_VERSION=1.14.0
 ARG HF_XET_VERSION=1.4.3
 
 RUN apt-get update -y \
