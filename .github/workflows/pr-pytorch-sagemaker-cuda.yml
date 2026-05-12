@@ -178,8 +178,7 @@ jobs:
         id: build-sagemaker
         run: |
           source docker/pytorch/versions-cuda.env
-          CUDA_TAG=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr -d '.')
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-${TORCH_VERSION}-gpu-py${PYTHON_VERSION/./}-cu${CUDA_TAG}-sagemaker-pr-${{ github.event.pull_request.number }}"
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-sagemaker-pr-${{ github.event.pull_request.number }}"
 
           # Derive label values to match check_labels.py expectations
           FRAMEWORK_LABEL=$(echo "${{ needs.load-config.outputs.framework }}" | tr '_' '-')
