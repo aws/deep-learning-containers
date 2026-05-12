@@ -13,12 +13,13 @@ Driven by:
 
 ## Clients
 
-| Script                          | Endpoint                          | Example models                 | Metrics                                              |
-| ------------------------------- | --------------------------------- | ------------------------------ | ---------------------------------------------------- |
-| `tts_benchmark_client.py`       | `POST /v1/audio/speech`           | qwen3-tts (CustomVoice + Base) | TTFB, E2E, audio duration, RTF, req/s                |
-| `image_benchmark_client.py`     | `POST /v1/images/generations`     | flux2-klein-4b                 | E2E, images/s                                        |
-| `video_benchmark_client.py`     | `POST /v1/videos` + poll          | wan2.1-t2v-1.3b                | submit latency, server inference time, E2E, videos/s |
-| `chat_omni_benchmark_client.py` | `POST /v1/chat/completions` (SSE) | qwen2.5-omni-3b                | **TTFT**, **TPOT**, ITL, E2E, req/s, output tokens/s |
+| Script                               | Endpoint                          | Example models                             | Metrics                                              |
+| ------------------------------------ | --------------------------------- | ------------------------------------------ | ---------------------------------------------------- |
+| `tts_benchmark_client.py`            | `POST /v1/audio/speech`           | qwen3-tts (CustomVoice + Base), cosyvoice3 | TTFB, E2E, audio duration, RTF, req/s                |
+| `audio_generate_benchmark_client.py` | `POST /v1/audio/generate`         | stable-audio-open-1.0                      | TTFB, E2E, audio duration, RTF, req/s                |
+| `image_benchmark_client.py`          | `POST /v1/images/generations`     | flux2-klein-4b, ernie-image-turbo          | E2E, images/s                                        |
+| `video_benchmark_client.py`          | `POST /v1/videos` + poll          | wan2.1-t2v-1.3b, wan2.1-vace-1.3b          | submit latency, server inference time, E2E, videos/s |
+| `chat_omni_benchmark_client.py`      | `POST /v1/chat/completions` (SSE) | qwen2.5-omni-3b                            | **TTFT**, **TPOT**, ITL, E2E, req/s, output tokens/s |
 
 ### Why SSE for chat-omni?
 
@@ -118,24 +119,24 @@ block is what `benchmark_report.py` aggregates into a markdown table for
 The `benchmark:` section of `vllm-omni-model-tests.yml` declares per-model
 thresholds via `benchmark_config`. Supported threshold keys per type:
 
-| Type              | Keys                                                                                                 |
-| ----------------- | ---------------------------------------------------------------------------------------------------- |
-| `tts`, `tts-base` | `min_rps`, `min_audio_rtf_mult`, `max_p95_e2e_ms`                                                    |
-| `image`           | `min_images_per_s`, `max_p95_e2e_ms`                                                                 |
-| `video`           | `min_videos_per_s`, `max_p95_e2e_ms`                                                                 |
-| `chat`            | `min_rps`, `min_output_tps`, `max_p95_ttft_ms`, `max_p95_tpot_ms`, `max_p95_e2e_ms` (see note below) |
+| Type                                | Keys                                                                                                 |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `tts`, `tts-base`, `audio-generate` | `min_rps`, `min_audio_rtf_mult`, `max_p95_e2e_ms`                                                    |
+| `image`                             | `min_images_per_s`, `max_p95_e2e_ms`                                                                 |
+| `video`                             | `min_videos_per_s`, `max_p95_e2e_ms`                                                                 |
+| `chat`                              | `min_rps`, `min_output_tps`, `max_p95_ttft_ms`, `max_p95_tpot_ms`, `max_p95_e2e_ms` (see note below) |
 
 Missing keys are skipped (no enforcement).
 
-> **Note on `min_output_tps` for omni-chat models.** Server-side
-> `usage.completion_tokens` is reported as `0` for omni-chat (verified on
-> 0.18.0 against qwen2.5-omni-3b), so this client falls back to
-> `len(token_times)` — the count of SSE chunks where `delta.content` is
-> non-empty. Under concurrent benchmark load the per-chunk emit pattern
-> shifts between vllm-omni releases enough to swing the value by 50× on
-> identical config, even when RPS / TTFT p95 / e2e p95 are unchanged. The
-> threshold is left unset for these models; `min_rps`, `max_p95_ttft_ms`,
-> and `max_p95_e2e_ms` cover the user-facing SLO without ambiguity.
+> **Note on `min_output_tps` for omni-chat models.** The client reads
+> `metrics.num_tokens_out` from each SSE chunk — this is the vllm-omni
+> engine-side counter (see upstream
+> `vllm_omni/benchmarks/patch/patch.py::async_request_openai_chat_omni_completions`)
+> and is stable across releases. `usage.completion_tokens` (OpenAI standard)
+> is reported as `0` by omni and `len(token_times)` (chunk count) swings ~50×
+> between 0.18.0 and 0.20.0 due to SSE batching changes; both are kept only
+> as fallbacks. After a baseline run on the new image, `min_output_tps` can
+> be set against the engine-counter value with the usual ~25% CI margin.
 
 ## Adding a new model
 

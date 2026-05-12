@@ -41,22 +41,23 @@ DEFAULT_PROMPTS = [
 
 
 def parse_sse_chunk(line: bytes):
-    """Parse one SSE data line. Returns (done, delta_text, usage_or_none)."""
+    """Parse one SSE data line. Returns (done, delta_text, usage_or_none, metrics_or_none)."""
     if not line.startswith(b"data:"):
-        return False, "", None
+        return False, "", None, None
     payload = line[5:].strip()
     if payload == b"[DONE]":
-        return True, "", None
+        return True, "", None, None
     try:
         doc = json.loads(payload)
     except json.JSONDecodeError:
-        return False, "", None
+        return False, "", None, None
     usage = doc.get("usage")
+    metrics = doc.get("metrics")
     choices = doc.get("choices") or []
     if not choices:
-        return False, "", usage
+        return False, "", usage, metrics
     delta = choices[0].get("delta") or {}
-    return False, delta.get("content") or "", usage
+    return False, delta.get("content") or "", usage, metrics
 
 
 async def send_request(session, url, payload, req_id):
@@ -66,6 +67,11 @@ async def send_request(session, url, payload, req_id):
     token_times = []  # perf_counter timestamps of each token chunk
     output_text_parts = []
     usage = None
+    # vllm-omni emits a per-chunk `metrics.num_tokens_out` running counter.
+    # This is the engine-side ground truth and is stable across releases,
+    # unlike `usage.completion_tokens` (omni reports 0) and chunk count
+    # (depends on SSE batching, swings 50× between 0.18.0 and 0.20.0).
+    num_tokens_out = None
 
     try:
         async with session.post(
@@ -90,9 +96,13 @@ async def send_request(session, url, payload, req_id):
                     line = line.strip()
                     if not line:
                         continue
-                    done, delta, u = parse_sse_chunk(line)
+                    done, delta, u, m = parse_sse_chunk(line)
                     if u is not None:
                         usage = u
+                    if isinstance(m, dict):
+                        n = m.get("num_tokens_out")
+                        if isinstance(n, int):
+                            num_tokens_out = n
                     if delta:
                         now = time.perf_counter()
                         if ttft is None:
@@ -115,10 +125,17 @@ async def send_request(session, url, payload, req_id):
     e2e = time.perf_counter() - t0
     output_text = "".join(output_text_parts)
 
-    # Token counts: prefer usage from the server; otherwise count chunks (rough).
+    # Token-count precedence (matches upstream vllm_omni/benchmarks/patch/patch.py):
+    #   1. metrics.num_tokens_out — vllm-omni engine-side counter, version-stable
+    #   2. usage.completion_tokens — OpenAI standard, but omni reports 0
+    #   3. len(token_times)        — chunk count, sensitive to SSE batching
     output_tokens = None
-    if usage and isinstance(usage, dict):
-        output_tokens = usage.get("completion_tokens")
+    if isinstance(num_tokens_out, int) and num_tokens_out > 0:
+        output_tokens = num_tokens_out
+    if output_tokens is None and usage and isinstance(usage, dict):
+        ct = usage.get("completion_tokens")
+        if isinstance(ct, int) and ct > 0:
+            output_tokens = ct
     if output_tokens is None:
         output_tokens = len(token_times)
 

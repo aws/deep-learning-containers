@@ -8,23 +8,27 @@
 # Usage from workflow:
 #   vllm_omni_benchmark_test.sh <benchmark_type> <config_json>
 #
-# benchmark_type: tts | tts-base | image | video
+# benchmark_type: tts | tts-base | audio-generate | image | video | chat
 # config_json: JSON string with fields per type:
-#   tts:       {"concurrency": 4, "num_prompts": 20, "voice": "vivian",
-#               "language": "English", "min_rps": 1.5, "min_audio_rtf_mult": 6.0,
-#               "max_p95_e2e_ms": 3000}
-#   tts-base:  {"concurrency": 4, "num_prompts": 20, "ref_audio_url": "s3://...",
-#               "ref_text": "...", "language": "English", "min_rps": 1.3,
-#               "min_audio_rtf_mult": 4.5, "max_p95_e2e_ms": 3000}
-#   image:     {"concurrency": 1, "num_prompts": 8, "size": "512x512",
-#               "min_images_per_s": 0.25, "max_p95_e2e_ms": 3500}
-#   video:     {"concurrency": 1, "num_prompts": 6, "num_frames": 17,
-#               "num_inference_steps": 4, "size": "480x320",
-#               "min_videos_per_s": 0.45, "max_p95_e2e_ms": 2000}
+#   tts:            {"concurrency": 4, "num_prompts": 20, "voice": "vivian",
+#                    "language": "English", "min_rps": 1.5,
+#                    "min_audio_rtf_mult": 6.0, "max_p95_e2e_ms": 3000}
+#   tts-base:       {"concurrency": 4, "num_prompts": 20, "ref_audio_url": "s3://...",
+#                    "ref_text": "...", "language": "English", "min_rps": 1.3,
+#                    "min_audio_rtf_mult": 4.5, "max_p95_e2e_ms": 3000}
+#   audio-generate: {"concurrency": 1, "num_prompts": 8, "audio_length": 5.0,
+#                    "num_inference_steps": 50, "guidance_scale": 7.0,
+#                    "min_rps": 0.05, "min_audio_rtf_mult": 0.3,
+#                    "max_p95_e2e_ms": 15000}
+#   image:          {"concurrency": 1, "num_prompts": 8, "size": "512x512",
+#                    "min_images_per_s": 0.25, "max_p95_e2e_ms": 3500}
+#   video:          {"concurrency": 1, "num_prompts": 6, "num_frames": 17,
+#                    "num_inference_steps": 4, "size": "480x320",
+#                    "min_videos_per_s": 0.45, "max_p95_e2e_ms": 2000}
 set -euo pipefail
 
-BENCHMARK_TYPE="${1:?Usage: $0 <tts|tts-base|image|video> <config_json>}"
-CONFIG_JSON="${2:?Usage: $0 <tts|tts-base|image|video> <config_json>}"
+BENCHMARK_TYPE="${1:?Usage: $0 <tts|tts-base|audio-generate|image|video|chat> <config_json>}"
+CONFIG_JSON="${2:?Usage: $0 <tts|tts-base|audio-generate|image|video|chat> <config_json>}"
 
 PORT="${VLLM_PORT:-8080}"
 BASE_URL="http://localhost:${PORT}"
@@ -107,6 +111,24 @@ case "${BENCHMARK_TYPE}" in
       --output-json "${RESULT_JSON}"
     ;;
 
+  audio-generate)
+    CONCURRENCY="$(get_cfg concurrency 1)"
+    NUM_PROMPTS="$(get_cfg num_prompts 8)"
+    AUDIO_LENGTH="$(get_cfg audio_length 5.0)"
+    STEPS="$(get_cfg num_inference_steps)"
+    GUIDANCE="$(get_cfg guidance_scale)"
+    SEED="$(get_cfg seed)"
+    EXTRA=""
+    [ -n "${STEPS}" ] && EXTRA="${EXTRA} --num-inference-steps ${STEPS}"
+    [ -n "${GUIDANCE}" ] && EXTRA="${EXTRA} --guidance-scale ${GUIDANCE}"
+    [ -n "${SEED}" ] && EXTRA="${EXTRA} --seed ${SEED}"
+    python3 "${SCRIPT_DIR}/benchmark/audio_generate_benchmark_client.py" \
+      --base-url "${BASE_URL}" \
+      --num-prompts "${NUM_PROMPTS}" --concurrency "${CONCURRENCY}" --warmup 1 \
+      --audio-length "${AUDIO_LENGTH}" ${EXTRA} \
+      --output-json "${RESULT_JSON}"
+    ;;
+
   image)
     CONCURRENCY="$(get_cfg concurrency 1)"
     NUM_PROMPTS="$(get_cfg num_prompts 8)"
@@ -176,7 +198,7 @@ if summary.get("failed", 0) > 0:
     print(json.dumps(summary.get("failure_samples", []), indent=2))
     sys.exit(1)
 
-if btype in ("tts", "tts-base"):
+if btype in ("tts", "tts-base", "audio-generate"):
     if need("min_rps"):
         checks.append(("requests_per_second", summary.get("requests_per_second", 0), ">=", cfg["min_rps"]))
     if need("min_audio_rtf_mult"):
