@@ -1,5 +1,5 @@
 framework: Base
-version: "2.0.0"
+version: "2"
 accelerator: gpu
 python: py313
 cuda: cu130
@@ -8,11 +8,7 @@ platform: ec2
 public_registry: true
 
 tags:
-  - "devel-cuda-v2.0.0"
-  - "devel-cuda-v2.0"
   - "devel-cuda-v2"
-  - "runtime-cuda-v2.0.0"
-  - "runtime-cuda-v2.0"
   - "runtime-cuda-v2"
 
 announcements:
