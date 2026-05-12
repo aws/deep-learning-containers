@@ -1,5 +1,6 @@
 """Verify installed package versions match pins from versions.env."""
 
+import glob
 import os
 import re
 import subprocess
@@ -10,7 +11,10 @@ import pytest
 _WORKDIR = os.environ.get("DLC_WORKDIR", "/workdir")
 IS_CUDA = os.path.isdir("/usr/local/cuda")
 _VERSIONS_FILE = "versions-cuda.env" if IS_CUDA else "versions-cpu.env"
-VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "pytorch", _VERSIONS_FILE)
+_candidates = sorted(glob.glob(os.path.join(_WORKDIR, "docker", "pytorch", "*", _VERSIONS_FILE)))
+VERSIONS_ENV = (
+    _candidates[0] if _candidates else os.path.join(_WORKDIR, "docker", "pytorch", _VERSIONS_FILE)
+)
 cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
 
 
