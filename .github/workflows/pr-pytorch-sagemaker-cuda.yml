@@ -126,6 +126,7 @@ jobs:
             build-change:
               - ".github/config/image/pytorch-sagemaker-cuda.yml"
               - "docker/pytorch/Dockerfile.cuda"
+              - "docker/pytorch/cuda/**"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/pytorch/*"
               - "scripts/telemetry/bash_telemetry.sh.template"
@@ -178,7 +179,7 @@ jobs:
         id: build-sagemaker
         run: |
           source docker/pytorch/versions-cuda.env
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-2.11.0-gpu-py312-cu130-sagemaker-pr-${{ github.event.pull_request.number }}"
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-sagemaker-pr-${{ github.event.pull_request.number }}"
 
           # Derive label values to match check_labels.py expectations
           FRAMEWORK_LABEL=$(echo "${{ needs.load-config.outputs.framework }}" | tr '_' '-')
