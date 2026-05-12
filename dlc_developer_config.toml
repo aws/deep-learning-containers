@@ -193,7 +193,7 @@ dlc-pr-huggingface-vllm = ""
 dlc-pr-huggingface-sglang = ""
 
 # Huggingface Llamacpp
-dlc-pr-huggingface-llamacpp = "/huggingface/llamacpp/buildspec.yml"
+dlc-pr-huggingface-llamacpp = "huggingface/llamacpp/buildspec.yml"
 
 # sglang
 dlc-pr-sglang = ""
