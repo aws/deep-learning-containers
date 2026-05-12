@@ -127,13 +127,16 @@ benchmark:
     # # See test/vllm-omni/scripts/benchmark/chat_omni_benchmark_client.py for
     # # the streaming SSE client that reports TTFT / TPOT / E2E / tokens-per-sec.
     #
-    # `min_output_tps` removed in 0.20.0: the SSE event stream changed when
-    # vllm-omni delegated to upstream vllm's OpenAI entrypoint
-    # (vllm-omni#3082), so the benchmark client's token counter sees text
-    # tokens only (~95/req) instead of text + codec frames (~5656/req in
-    # 0.18.0). The metric is no longer comparable across versions and
-    # cannot distinguish a real perf regression from the emit-format change.
-    # RPS / TTFT / e2e p95 still cover the user-facing SLO.
+    # `min_output_tps` removed: this metric is unreliable across vllm-omni
+    # versions for omni-chat models. Verified on devbox with this PR's
+    # 0.18.0 image — server reports `usage.completion_tokens: 0` in the
+    # streamed [DONE] block, so the benchmark client falls back to
+    # `len(token_times)` (a chunk count) for `output_tokens`. Under
+    # concurrent load the per-chunk emit pattern shifts between
+    # vllm-omni releases enough to swing the value from ~158 (0.18.0) to
+    # ~3 (0.20.0) on identical config, even though RPS / TTFT p95 / e2e
+    # p95 are essentially unchanged. The remaining thresholds cover the
+    # user-facing SLO.
     - name: "qwen2.5-omni-3b"
       s3_model: "qwen2.5-omni-3b.tar.gz"
       fleet: "x86-g6e12xl-runner"

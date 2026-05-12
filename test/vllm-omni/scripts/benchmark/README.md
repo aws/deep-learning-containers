@@ -127,15 +127,15 @@ thresholds via `benchmark_config`. Supported threshold keys per type:
 
 Missing keys are skipped (no enforcement).
 
-> **Note on `min_output_tps` for omni-chat models.** This metric is the
-> aggregate count of streamed token events divided by wall time, but the
-> upstream vllm-omni SSE event stream changed in 0.20.0 (see
-> [vllm-omni#3082](https://github.com/vllm-project/vllm-omni/pull/3082)) so
-> what the client counts is not consistent across versions — for
-> Qwen2.5-Omni it dropped from ~5.6k tokens/req in 0.18.0 (text + codec
-> frames) to ~95 tokens/req in 0.20.0 (text only). The threshold is left
-> unset for these models; `min_rps`, `max_p95_ttft_ms`, and
-> `max_p95_e2e_ms` cover the user-facing SLO without ambiguity.
+> **Note on `min_output_tps` for omni-chat models.** Server-side
+> `usage.completion_tokens` is reported as `0` for omni-chat (verified on
+> 0.18.0 against qwen2.5-omni-3b), so this client falls back to
+> `len(token_times)` — the count of SSE chunks where `delta.content` is
+> non-empty. Under concurrent benchmark load the per-chunk emit pattern
+> shifts between vllm-omni releases enough to swing the value by 50× on
+> identical config, even when RPS / TTFT p95 / e2e p95 are unchanged. The
+> threshold is left unset for these models; `min_rps`, `max_p95_ttft_ms`,
+> and `max_p95_e2e_ms` cover the user-facing SLO without ambiguity.
 
 ## Adding a new model
 
