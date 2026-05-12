@@ -238,6 +238,11 @@ MP4 — is written verbatim to the S3 output path).
 - **`usage.completion_tokens` is reported as `0` for omni-chat models.** The `/v1/chat/completions` SSE stream emits `usage.completion_tokens=0` in
   the terminal block, even when audio and text were generated. Use the per-chunk `metrics.num_tokens_out` field for an accurate engine-side token
   count (see upstream `vllm_omni/benchmarks/patch/patch.py`).
+- **Voice-clone TTS (Qwen3-TTS-Base) is slower in 0.20.0 than 0.18.0 due to an upstream Code2Wav decode-chunk un-batching regression**
+  ([vllm-omni#3203](https://github.com/vllm-project/vllm-omni/pull/3203)). Observed on `g6.xlarge` with `qwen3-tts-12hz-1.7b-base`, concurrency 4, 20
+  prompts: requests/s **0.4 → 0.281**, audio RTF multiplier **1.6 → 1.109**, p95 E2E **11s → 15.9s**. TTS quality is unchanged. The fix is merged
+  upstream as [vllm-omni#3485](https://github.com/vllm-project/vllm-omni/pull/3485) post-0.20.0 and will land in the next omni point release.
+  Preset-voice TTS (Qwen3-TTS-CustomVoice) is unaffected.
 - **CosyVoice3 requires `--trust-remote-code` and ~32 GB host RAM during model load.** A 16 GB host can SIGKILL the process during HuggingFace cache
   hydration. Prefer `g6e.xlarge` or larger for both EC2 and SageMaker instance types.
 - **Stable-Audio-Open output is capped at ~47 seconds per request** by the model itself. For longer clips, run multiple requests with adjusted
