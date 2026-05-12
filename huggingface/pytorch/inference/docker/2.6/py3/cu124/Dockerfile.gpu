@@ -26,7 +26,7 @@ ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/
 # HF ARGS
 ARG TRANSFORMERS_VERSION=5.5.3
 ARG HUGGINGFACE_HUB_VERSION=1.10.0
-ARG DIFFUSERS_VERSION=0.37.1
+ARG DIFFUSERS_VERSION=0.38.0
 ARG PEFT_VERSION=0.18.1
 ARG ACCELERATE_VERSION=1.12.0
 # Install the latest version of the sagemaker-huggingface-inference-toolkit from the git repository
