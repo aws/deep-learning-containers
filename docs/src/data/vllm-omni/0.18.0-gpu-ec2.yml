@@ -9,7 +9,7 @@ platform: default
 public_registry: true
 
 tags:
-  - "omni-cuda-v1"
+  - "omni-cuda-v1.0"
 
 announcements:
   - "Initial release of vLLM-Omni containers for EC2, ECS, EKS"
