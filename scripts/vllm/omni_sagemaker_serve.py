@@ -13,6 +13,14 @@ are automatically converted to form data since SageMaker async inference only
 supports JSON/binary payloads.
 
 Usage: vllm serve --omni --middleware omni_sagemaker_serve.SageMakerRouteMiddleware
+
+The middleware is loaded via vLLM's `--middleware` flag, which v0.20.0 wires
+through `args.middleware` -> `app.add_middleware()` in
+`vllm/entrypoints/openai/api_server.py:build_app`. vllm-omni v0.20.0's
+"delegate to upstream entrypoint" rebase (vllm-omni#3082, #3232) preserves
+this contract — if a future upstream change replaces the `--middleware` arg or
+removes the `args.middleware` loop in `build_app`, this loader will silently
+no-op and SageMaker /invocations will return 404 for non-default routes.
 """
 
 import json
