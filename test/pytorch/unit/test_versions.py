@@ -1,20 +1,18 @@
 """Verify installed package versions match pins from versions.env."""
 
-import glob
 import os
 import re
 import subprocess
 
 import pytest
 
-# Detect GPU vs CPU image by checking for CUDA, then pick the right versions file.
+# DLC_PYTORCH_VERSION selects which versioned directory to read (e.g., "2.11").
 _WORKDIR = os.environ.get("DLC_WORKDIR", "/workdir")
+_PT_VERSION = os.environ.get("DLC_PYTORCH_VERSION", "")
+assert _PT_VERSION, "DLC_PYTORCH_VERSION env var is required (e.g., '2.11')"
 IS_CUDA = os.path.isdir("/usr/local/cuda")
 _VERSIONS_FILE = "versions-cuda.env" if IS_CUDA else "versions-cpu.env"
-_candidates = sorted(glob.glob(os.path.join(_WORKDIR, "docker", "pytorch", "*", _VERSIONS_FILE)))
-VERSIONS_ENV = (
-    _candidates[0] if _candidates else os.path.join(_WORKDIR, "docker", "pytorch", _VERSIONS_FILE)
-)
+VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "pytorch", _PT_VERSION, _VERSIONS_FILE)
 cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
 
 
