@@ -46,6 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
+      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -59,12 +60,17 @@ jobs:
               cfg = yaml.safe_load(f)
           bm = cfg.get('benchmark', {})
           prefix = cfg.get('s3_prefix', '')
-          for m in bm.get('codebuild-fleet', []):
-              m['s3_path'] = prefix + '/' + m.pop('s3_model')
-          print('codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
+          for key in ('codebuild-fleet', 'runner-scale-sets'):
+              for m in bm.get(key, []) or []:
+                  if 's3_model' in m:
+                      m['s3_path'] = prefix + '/' + m.pop('s3_model')
+          print('codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', []) or []))
+          print('runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', []) or []))
           " > parsed.txt
-          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
-          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
+          for key in codebuild-fleet runner-scale-sets; do
+            val=$(grep "^${key}=" parsed.txt | sed "s/^${key}=//")
+            echo "${key}=${val}" >> $GITHUB_OUTPUT
+          done
 
   benchmark-codebuild-fleet:
     name: omni-benchmark (${{ matrix.name }} / ${{ matrix.fleet }})
@@ -152,10 +158,93 @@ jobs:
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
 
+  benchmark-runner-scale:
+    name: omni-benchmark (${{ matrix.name }} / ${{ matrix.runner_label }})
+    if: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix)[0] != null }}
+    needs: [load-benchmarks]
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix) }}
+    runs-on: ${{ matrix.runner_label }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Pre-cleanup GPU state ==="
+          nvidia-smi || true
+
+      - name: Download model from S3
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
+
+      # Pin to the GPU UUIDs visible to this pod (k8s assigns a subset of host
+      # GPUs; --gpus all would grab every host GPU, breaking parallel pods).
+      - name: Start container (server)
+        run: |
+          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
+          echo "Pod GPU UUIDs: ${POD_GPUS}"
+          docker pull ${{ env.IMAGE_URI }}
+          CONTAINER_ID=$(docker run -d --gpus "\"device=${POD_GPUS}\"" --shm-size=10g \
+            -v /dlc-models:/models \
+            -p 8080:8080 \
+            --name vllm-omni-bench \
+            ${{ env.IMAGE_URI }} \
+            --model /models/${{ matrix.name }} \
+            --port 8080 \
+            --stage-init-timeout 900 \
+            ${{ matrix.extra_args }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run benchmark
+        env:
+          ARTIFACT_PREFIX: "${{ matrix.name }}_${{ matrix.runner_label }}"
+          VLLM_PORT: "8080"
+          RESULTS_DIR: "${{ github.workspace }}/benchmark_results"
+        run: |
+          mkdir -p "${RESULTS_DIR}"
+          bash test/vllm-omni/scripts/vllm_omni_benchmark_test.sh \
+            "${{ matrix.benchmark_type }}" \
+            '${{ matrix.benchmark_config }}'
+
+      - name: Dump container logs
+        if: always()
+        run: |
+          docker logs ${CONTAINER_ID} 2>&1 | tail -500 || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: omni-benchmark-${{ matrix.name }}-${{ matrix.runner_label }}
+          path: benchmark_results/
+          retention-days: 30
+
+      - name: Cleanup
+        # Do NOT remove the image (docker rmi) on shared runner-scale-sets
+        # nodes — multiple pods share the host Docker daemon.
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+
   benchmark-report:
     name: omni-benchmark-report
     if: always()
-    needs: [benchmark-codebuild-fleet]
+    needs: [benchmark-codebuild-fleet, benchmark-runner-scale]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
