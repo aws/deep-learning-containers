@@ -118,14 +118,24 @@ block is what `benchmark_report.py` aggregates into a markdown table for
 The `benchmark:` section of `vllm-omni-model-tests.yml` declares per-model
 thresholds via `benchmark_config`. Supported threshold keys per type:
 
-| Type              | Keys                                                                                |
-| ----------------- | ----------------------------------------------------------------------------------- |
-| `tts`, `tts-base` | `min_rps`, `min_audio_rtf_mult`, `max_p95_e2e_ms`                                   |
-| `image`           | `min_images_per_s`, `max_p95_e2e_ms`                                                |
-| `video`           | `min_videos_per_s`, `max_p95_e2e_ms`                                                |
-| `chat`            | `min_rps`, `min_output_tps`, `max_p95_ttft_ms`, `max_p95_tpot_ms`, `max_p95_e2e_ms` |
+| Type              | Keys                                                                                                 |
+| ----------------- | ---------------------------------------------------------------------------------------------------- |
+| `tts`, `tts-base` | `min_rps`, `min_audio_rtf_mult`, `max_p95_e2e_ms`                                                    |
+| `image`           | `min_images_per_s`, `max_p95_e2e_ms`                                                                 |
+| `video`           | `min_videos_per_s`, `max_p95_e2e_ms`                                                                 |
+| `chat`            | `min_rps`, `min_output_tps`, `max_p95_ttft_ms`, `max_p95_tpot_ms`, `max_p95_e2e_ms` (see note below) |
 
 Missing keys are skipped (no enforcement).
+
+> **Note on `min_output_tps` for omni-chat models.** This metric is the
+> aggregate count of streamed token events divided by wall time, but the
+> upstream vllm-omni SSE event stream changed in 0.20.0 (see
+> [vllm-omni#3082](https://github.com/vllm-project/vllm-omni/pull/3082)) so
+> what the client counts is not consistent across versions — for
+> Qwen2.5-Omni it dropped from ~5.6k tokens/req in 0.18.0 (text + codec
+> frames) to ~95 tokens/req in 0.20.0 (text only). The threshold is left
+> unset for these models; `min_rps`, `max_p95_ttft_ms`, and
+> `max_p95_e2e_ms` cover the user-facing SLO without ambiguity.
 
 ## Adding a new model
 
