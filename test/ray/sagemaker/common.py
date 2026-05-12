@@ -286,13 +286,13 @@ def run_test_audio_ffmpeg(endpoint):
 
 
 def run_test_privacy_filter(endpoint):
-    """OpenAI Privacy Filter — 5 samples, validate PII entity detection."""
-    for text, expected_entities in PRIVACY_FILTER_SAMPLES:
+    """OpenAI Privacy Filter — 6 samples, validate PII entity detection and redaction."""
+    for text, expected_label_to_texts in PRIVACY_FILTER_SAMPLES:
         response = _invoke(endpoint, {"text": text})
         result = _parse_response(response)
         LOGGER.info(f"privacy-filter response for '{text[:40]}...': {pformat(result)}")
 
-        err = validate_privacy_filter_response(result, expected_entities)
+        err = validate_privacy_filter_response(result, expected_label_to_texts)
         assert not err, f"privacy-filter '{text[:40]}...': {err}"
 
         entities = (

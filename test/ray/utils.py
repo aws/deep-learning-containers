@@ -52,31 +52,48 @@ SENTIMENT_SAMPLES = [
     ("Absolutely perfect, highly recommend!", "POSITIVE"),
 ]
 
-# Privacy filter samples: (text, expected_entity_groups)
+# Privacy filter samples: (text, expected_label_to_texts)
+# Each expected entity is mapped to substrings that should appear in detected span text.
 PRIVACY_FILTER_SAMPLES = [
     (
         "My name is Alice Smith and my email is alice@example.com",
-        {"private_person", "private_email"},
+        {
+            "private_person": ["Alice Smith"],
+            "private_email": ["alice@example.com"],
+        },
     ),
     (
         "Call John at 555-123-4567 or visit 123 Main Street, Springfield IL",
-        {"private_person", "private_phone", "private_address"},
+        {
+            "private_person": ["John"],
+            "private_phone": ["555-123-4567"],
+            "private_address": ["123 Main Street, Springfield IL"],
+        },
     ),
     (
         "My name is Harry Potter and my email is harry.potter@hogwarts.edu.",
-        {"private_person", "private_email"},
+        {
+            "private_person": ["Harry Potter"],
+            "private_email": ["harry.potter@hogwarts.edu"],
+        },
     ),
     (
         "Her birthday is March 15, 1990 and her profile is at https://example.com/users/jdoe",
-        {"private_date", "private_url"},
+        {
+            "private_date": ["March 15, 1990"],
+            "private_url": ["https://example.com/users/jdoe"],
+        },
     ),
     (
         "Account number 1111-2222-3333-4444 belongs to Jane Doe",
-        {"account_number", "private_person"},
+        {
+            "account_number": ["1111-2222-3333-4444"],
+            "private_person": ["Jane Doe"],
+        },
     ),
     (
         "The weather is sunny today and I went hiking",
-        set(),
+        {},
     ),
 ]
 
@@ -344,8 +361,12 @@ def validate_audio_response(result, check_ffmpeg_backend=False):
     return ""
 
 
-def validate_privacy_filter_response(result, expected_entities):
-    """Validate privacy filter response — RedactionResult dict from inference handler."""
+def validate_privacy_filter_response(result, expected_label_to_texts):
+    """Validate privacy filter response — RedactionResult dict from inference handler.
+
+    Asserts each expected (label, text) pair appears in detected_spans, and that
+    expected PII strings are absent from redacted_text.
+    """
     if "predictions" not in result:
         return "Missing 'predictions' field"
     predictions = result["predictions"]
@@ -357,12 +378,21 @@ def validate_privacy_filter_response(result, expected_entities):
     spans = redaction["detected_spans"]
     if not isinstance(spans, list):
         return "detected_spans is not a list"
-    if not expected_entities:
+    if not expected_label_to_texts:
         if spans:
             return f"False positive PII on clean text: {spans}"
         return ""
-    found_labels = {s["label"] for s in spans if "label" in s}
-    if not expected_entities.issubset(found_labels):
-        missing = expected_entities - found_labels
-        return f"Missing expected entities: {missing}, found: {found_labels}"
+    detected = [(s["label"], s["text"]) for s in spans if "label" in s and "text" in s]
+    for label, expected_texts in expected_label_to_texts.items():
+        for expected_text in expected_texts:
+            if not any(
+                d_label == label and expected_text.strip() in d_text.strip()
+                for d_label, d_text in detected
+            ):
+                return f"Missing detection — expected {label}={expected_text!r}, got {detected}"
+    redacted_text = redaction.get("redacted_text", "")
+    for expected_texts in expected_label_to_texts.values():
+        for pii in expected_texts:
+            if pii in redacted_text:
+                return f"PII leak in redacted_text: {pii!r} still present"
     return ""
