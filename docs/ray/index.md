@@ -5,6 +5,8 @@ variants, built on Amazon Linux 2023 with Python 3.13.
 
 ## Latest Announcements
 
+**May 13, 2026** — Ray Serve DLC v1.1.0 release. Upgraded to Ray 2.55.1 and transformers 5.8.0.
+
 **April 23, 2026** — Initial release of AWS Deep Learning Containers for Ray Serve.
 
 ## Pull Commands
