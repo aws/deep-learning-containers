@@ -1,13 +1,13 @@
-name: PR - PyTorch EC2 CUDA
+name: PR - PyTorch 2.11 EC2 CUDA
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/pytorch-ec2-cuda.yml"
-      - ".github/workflows/pr-pytorch-ec2-cuda.yml"
-      - "docker/pytorch/**"
+      - ".github/config/image/pytorch-2.11-ec2-cuda.yml"
+      - ".github/workflows/pr-pytorch-2.11-ec2-cuda.yml"
+      - "docker/pytorch/2.11/**"
       - "scripts/common/**"
       - "scripts/pytorch/**"
       - "scripts/telemetry/**"
@@ -25,7 +25,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: ".github/config/image/pytorch-ec2-cuda.yml"
+  CONFIG_FILE: ".github/config/image/pytorch-2.11-ec2-cuda.yml"
 
 jobs:
   # ============================================================
@@ -125,9 +125,9 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/pytorch-ec2-cuda.yml"
-              - "docker/pytorch/Dockerfile.cuda"
-              - "docker/pytorch/cuda/**"
+              - ".github/config/image/pytorch-2.11-ec2-cuda.yml"
+              - "docker/pytorch/2.11/Dockerfile.cuda"
+              - "docker/pytorch/2.11/cuda/**"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/pytorch/*"
               - "scripts/telemetry/bash_telemetry.sh.template"
@@ -167,17 +167,17 @@ jobs:
       - name: Source versions
         id: versions
         run: |
-          source docker/pytorch/versions-cuda.env
+          source docker/pytorch/2.11/versions-cuda.env
           echo "torch-version=${TORCH_VERSION}" >> $GITHUB_OUTPUT
           echo "cuda-version=${CUDA_VERSION}" >> $GITHUB_OUTPUT
           echo "python-version=${PYTHON_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Fetch cached wheels
         run: |
-          source docker/pytorch/versions-cuda.env
-          mkdir -p docker/pytorch/wheels
+          source docker/pytorch/2.11/versions-cuda.env
+          mkdir -p docker/pytorch/2.11/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
-            docker/pytorch/wheels \
+            docker/pytorch/2.11/wheels \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
@@ -187,7 +187,7 @@ jobs:
       - name: Build runtime image
         id: build-runtime
         run: |
-          source docker/pytorch/versions-cuda.env
+          source docker/pytorch/2.11/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-pr-${{ github.event.pull_request.number }}"
 
           docker buildx build --progress plain \
@@ -207,13 +207,13 @@ jobs:
             --tag ${CI_IMAGE_URI} \
             --push \
             --target runtime \
-            -f docker/pytorch/Dockerfile.cuda .
+            -f docker/pytorch/2.11/Dockerfile.cuda .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
       - name: Upload built wheels to cache
         run: |
-          source docker/pytorch/versions-cuda.env
+          source docker/pytorch/2.11/versions-cuda.env
           bash scripts/pytorch/upload_cached_wheels.sh \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \

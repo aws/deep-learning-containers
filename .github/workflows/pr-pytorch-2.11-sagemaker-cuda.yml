@@ -1,13 +1,13 @@
-name: PR - PyTorch SageMaker CUDA
+name: PR - PyTorch 2.11 SageMaker CUDA
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/pytorch-sagemaker-cuda.yml"
-      - ".github/workflows/pr-pytorch-sagemaker-cuda.yml"
-      - "docker/pytorch/**"
+      - ".github/config/image/pytorch-2.11-sagemaker-cuda.yml"
+      - ".github/workflows/pr-pytorch-2.11-sagemaker-cuda.yml"
+      - "docker/pytorch/2.11/**"
       - "scripts/common/**"
       - "scripts/pytorch/**"
       - "scripts/telemetry/**"
@@ -24,7 +24,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: ".github/config/image/pytorch-sagemaker-cuda.yml"
+  CONFIG_FILE: ".github/config/image/pytorch-2.11-sagemaker-cuda.yml"
 
 jobs:
   # ============================================================
@@ -124,9 +124,9 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/pytorch-sagemaker-cuda.yml"
-              - "docker/pytorch/Dockerfile.cuda"
-              - "docker/pytorch/cuda/**"
+              - ".github/config/image/pytorch-2.11-sagemaker-cuda.yml"
+              - "docker/pytorch/2.11/Dockerfile.cuda"
+              - "docker/pytorch/2.11/cuda/**"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/pytorch/*"
               - "scripts/telemetry/bash_telemetry.sh.template"
@@ -165,10 +165,10 @@ jobs:
 
       - name: Fetch cached wheels
         run: |
-          source docker/pytorch/versions-cuda.env
-          mkdir -p docker/pytorch/wheels
+          source docker/pytorch/2.11/versions-cuda.env
+          mkdir -p docker/pytorch/2.11/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
-            docker/pytorch/wheels \
+            docker/pytorch/2.11/wheels \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
@@ -178,7 +178,7 @@ jobs:
       - name: Build sagemaker image
         id: build-sagemaker
         run: |
-          source docker/pytorch/versions-cuda.env
+          source docker/pytorch/2.11/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-sagemaker-pr-${{ github.event.pull_request.number }}"
 
           # Derive label values to match check_labels.py expectations
@@ -211,7 +211,7 @@ jobs:
             --tag ${CI_IMAGE_URI} \
             --push \
             --target sagemaker \
-            -f docker/pytorch/Dockerfile.cuda .
+            -f docker/pytorch/2.11/Dockerfile.cuda .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
