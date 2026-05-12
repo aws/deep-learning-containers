@@ -1,5 +1,5 @@
 framework: Base
-version: "1.0.0"
+version: "1"
 accelerator: gpu
 python: py313
 cuda: cu129
@@ -8,14 +8,8 @@ platform: ec2
 public_registry: true
 
 tags:
-  - "devel-cuda-v1.0.0"
-  - "devel-cuda-v1.0"
   - "devel-cuda-v1"
-  - "devel-cuda"
-  - "runtime-cuda-v1.0.0"
-  - "runtime-cuda-v1.0"
   - "runtime-cuda-v1"
-  - "runtime-cuda"
 
 announcements:
   - "Introduced lightweight Base containers on Amazon Linux 2023 with CUDA 12.9.1 for EC2, ECS, EKS"
