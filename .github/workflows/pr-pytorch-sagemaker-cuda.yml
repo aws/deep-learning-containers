@@ -126,6 +126,7 @@ jobs:
             build-change:
               - ".github/config/image/pytorch-sagemaker-cuda.yml"
               - "docker/pytorch/Dockerfile.cuda"
+              - "docker/pytorch/cuda/**"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/pytorch/*"
               - "scripts/telemetry/bash_telemetry.sh.template"
