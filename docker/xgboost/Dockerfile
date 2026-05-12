@@ -34,18 +34,9 @@ WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
 # ── Stage: wheel-builder ───────────────────────────────────────────────────
-FROM amazonlinux:2023 AS wheel-builder
-ARG PYTHON_VERSION
-
-RUN dnf install -y --allowerasing \
-  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip git \
-  && dnf clean all
-RUN pip${PYTHON_VERSION} install setuptools wheel
-RUN git clone --depth 1 -b upgrade-xgboost-3.2.0-remove-mlio \
-  https://github.com/aws/sagemaker-xgboost-container.git /build \
-  && echo "cache-bust-10"
-WORKDIR /build
-RUN python${PYTHON_VERSION} setup.py bdist_wheel --universal
+# Wheel is pre-built in CI and placed at docker/xgboost/prebuilt.whl
+FROM scratch AS wheel-builder
+COPY docker/xgboost/prebuilt.whl /build/dist/sagemaker_xgboost_container-2.0-py2.py3-none-any.whl
 
 # ── Stage: xgboost-sagemaker ───────────────────────────────────────────────
 FROM nvidia/cuda:12.9.1-base-amzn2023 AS xgboost-sagemaker

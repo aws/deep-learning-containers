@@ -1,6 +1,7 @@
 """Training tests with parquet content type.
 
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_training_pq.py
+Note: Pipe mode tests removed — MLIO dropped in 3.2.0, pipe mode no longer supported.
 """
 
 from .conftest import run_training_job
@@ -46,36 +47,8 @@ class TestTrainingParquet:
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
-    def test_pipe_mode_single_instance(self, image_uri, role):
-        _, _, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=BASE_HP,
-            train_s3_key="parquet/train",
-            validation_s3_key="parquet/test",
-            content_type="application/x-parquet",
-            test_name="pq-pipe",
-            input_mode="Pipe",
-        )
-        assert desc["TrainingJobStatus"] == "Completed"
-
-    def test_pipe_mode_distributed(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "hist"}
-        _, _, desc = run_training_job(
-            image_uri=image_uri,
-            role=role,
-            hyperparameters=hp,
-            train_s3_key="parquet/train",
-            validation_s3_key="parquet/test",
-            content_type="application/x-parquet",
-            test_name="pq-pipe-dist",
-            input_mode="Pipe",
-            instance_count=2,
-        )
-        assert desc["TrainingJobStatus"] == "Completed"
-
     def test_dask_gpu_single(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "gpu_hist", "use_dask_gpu_training": "true"}
+        hp = {**BASE_HP, "tree_method": "hist", "use_dask_gpu_training": "true"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,
@@ -90,7 +63,7 @@ class TestTrainingParquet:
         assert desc["TrainingJobStatus"] == "Completed"
 
     def test_dask_gpu_multi_instance(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "gpu_hist", "use_dask_gpu_training": "true"}
+        hp = {**BASE_HP, "tree_method": "hist", "use_dask_gpu_training": "true"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,

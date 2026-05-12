@@ -11,6 +11,7 @@ env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/image/sagemaker-xgboost.yml"
   XGBOOST_CONTAINER_REPO: "https://github.com/aws/sagemaker-xgboost-container.git"
+  XGBOOST_CONTAINER_BRANCH: "master"
 
 jobs:
   load-config:
@@ -57,8 +58,31 @@ jobs:
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
-  build-image:
+  build-wheel:
     needs: [load-config]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-build-wheel-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - name: Clone sagemaker-xgboost-container
+        run: git clone --depth 1 --branch ${{ env.XGBOOST_CONTAINER_BRANCH }} ${{ env.XGBOOST_CONTAINER_REPO }} /tmp/xgboost-wheel
+
+      - name: Build wheel
+        run: |
+          cd /tmp/xgboost-wheel
+          pip install setuptools wheel
+          python setup.py bdist_wheel --universal
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xgboost-container-wheel
+          path: /tmp/xgboost-wheel/dist/*.whl
+          retention-days: 1
+
+  build-image:
+    needs: [load-config, build-wheel]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
@@ -72,13 +96,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
+      - name: Download prebuilt wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: xgboost-container-wheel
+          path: /tmp/wheel
+
+      - name: Place wheel in build context
+        run: cp /tmp/wheel/*.whl docker/xgboost/prebuilt.whl
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: xgboost-sagemaker
-          base-image: nvidia/cuda:12.6.3-base-ubuntu20.04
+          base-image: nvidia/cuda:12.9.1-base-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
@@ -92,6 +125,9 @@ jobs:
           os-version: ${{ needs.load-config.outputs.os-version }}
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
+        env:
+          EXTRA_BUILD_ARGS: "XGBOOST_CONTAINER_BRANCH"
+          XGBOOST_CONTAINER_BRANCH: ${{ env.XGBOOST_CONTAINER_BRANCH }}
 
   unit-test:
     needs: [security-test, build-image, load-config]
@@ -119,7 +155,7 @@ jobs:
         run: |
           CI_IMAGE_URI="${{ needs.build-image.outputs.ci-image }}"
           cd /tmp/xgboost-unit
-          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN python3 -m pip install .[test]" > Dockerfile.test
+          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN pip install --no-deps -e . && pip install black coverage docker flake8 isort mock pytest pytest-cov pytest-xdist 'sagemaker>=2.0,<3.0' 'protobuf>=3.20.0,<=3.20.3' tox setuptools" > Dockerfile.test
           docker build -t test-xgboost -f Dockerfile.test .
       - name: Run unit tests
         run: |
