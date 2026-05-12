@@ -1,0 +1,29 @@
+framework: vLLM-Omni
+version: "0.20.0"
+ecr_repository: vllm
+accelerator: gpu
+python: py312
+cuda: cu130
+os: amzn2023
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "omni-sagemaker-cuda-v1"
+
+announcements:
+  - "Bumps vLLM-Omni to 0.20.0 and aligns with upstream vLLM v0.20.0"
+  - "CUDA 12.9 → 13.0 base image; PyTorch 2.10.0 → 2.11.0"
+  - "Video generation now supported on SageMaker via the new `/v1/videos/sync` endpoint"
+  - "Adds `/v1/audio/generate` and `/v1/videos/sync` to the routing middleware"
+  - "Adds support for CosyVoice3, ERNIE-Image-Turbo, Wan2.1-VACE-1.3B, and Stable-Audio-Open-1.0"
+
+packages:
+  vllm: "0.20.0"
+  vllm-omni: "0.20.0"
+  pytorch: "2.11.0"
+  torchvision: "0.26.0"
+  torchaudio: "2.11.0"
+  cuda: "13.0.2"
+  flashinfer: "0.6.8.post1"
+  efa: "1.47.0"
