@@ -52,6 +52,34 @@ SENTIMENT_SAMPLES = [
     ("Absolutely perfect, highly recommend!", "POSITIVE"),
 ]
 
+# Privacy filter samples: (text, expected_entity_groups)
+PRIVACY_FILTER_SAMPLES = [
+    (
+        "My name is Alice Smith and my email is alice@example.com",
+        {"private_person", "private_email"},
+    ),
+    (
+        "Call John at 555-123-4567 or visit 123 Main Street, Springfield IL",
+        {"private_person", "private_phone", "private_address"},
+    ),
+    (
+        "My name is Harry Potter and my email is harry.potter@hogwarts.edu.",
+        {"private_person", "private_email"},
+    ),
+    (
+        "Her birthday is March 15, 1990 and her profile is at https://example.com/users/jdoe",
+        {"private_date", "private_url"},
+    ),
+    (
+        "Account number 1111-2222-3333-4444 belongs to Jane Doe",
+        {"account_number", "private_person"},
+    ),
+    (
+        "The weather is sunny today and I went hiking",
+        set(),
+    ),
+]
+
 
 def download_test_image(url, path):
     """Download a test image if not already cached."""
@@ -313,4 +341,28 @@ def validate_audio_response(result, check_ffmpeg_backend=False):
         backend = result.get("audio_backend", "MISSING")
         if backend != "ffmpeg":
             return f"Expected audio_backend='ffmpeg', got '{backend}'"
+    return ""
+
+
+def validate_privacy_filter_response(result, expected_entities):
+    """Validate privacy filter response — RedactionResult dict from inference handler."""
+    if "predictions" not in result:
+        return "Missing 'predictions' field"
+    predictions = result["predictions"]
+    if not isinstance(predictions, list) or not predictions:
+        return "predictions is empty or not a list"
+    redaction = predictions[0]
+    if "detected_spans" not in redaction:
+        return "Missing 'detected_spans' field"
+    spans = redaction["detected_spans"]
+    if not isinstance(spans, list):
+        return "detected_spans is not a list"
+    if not expected_entities:
+        if spans:
+            return f"False positive PII on clean text: {spans}"
+        return ""
+    found_labels = {s["label"] for s in spans if "label" in s}
+    if not expected_entities.issubset(found_labels):
+        missing = expected_entities - found_labels
+        return f"Missing expected entities: {missing}, found: {found_labels}"
     return ""

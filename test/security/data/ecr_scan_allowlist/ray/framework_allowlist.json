@@ -1,23 +1,13 @@
 [
   {
-    "vulnerability_id": "CVE-2026-22815",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
+    "vulnerability_id": "CVE-2025-23339",
+    "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
+    "review_by": "2026-10-18"
   },
   {
-    "vulnerability_id": "CVE-2026-34513",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34515",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34516",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34520",
-    "reason": "ray bundles aiohttp 3.13.3 in thirdparty_files generated during PyPI wheel build, cannot patch without upstream ray rebuild"
+    "vulnerability_id": "CVE-2025-23308",
+    "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
+    "review_by": "2026-10-18"
   },
   {
     "vulnerability_id": "CVE-2026-34478",

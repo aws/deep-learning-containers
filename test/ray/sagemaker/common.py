@@ -12,6 +12,7 @@ import pytest
 from ray.utils import (
     IRIS_SAMPLES,
     MIN_MNIST_ACCURACY,
+    PRIVACY_FILTER_SAMPLES,
     S3_BUCKET,
     S3_PREFIX,
     SENTIMENT_SAMPLES,
@@ -22,6 +23,7 @@ from ray.utils import (
     validate_densenet_response,
     validate_iris_response,
     validate_mnist_response,
+    validate_privacy_filter_response,
     validate_sentiment_response,
 )
 from sagemaker.core.resources import Endpoint, EndpointConfig, Model
@@ -67,7 +69,7 @@ def build_models(device):
       - RAYSERVE_NUM_GPUS: "0" for cpu, "1" for gpu (mnist-direct-app only)
     """
     num_gpus = "0" if device == "cpu" else "1"
-    return {
+    models = {
         "cv-densenet": {
             "s3_key": f"cv-densenet/{device}/model.tar.gz",
             "env": {},
@@ -89,6 +91,12 @@ def build_models(device):
             "env": {},
         },
     }
+    if device == "cpu":
+        models["privacy-filter"] = {
+            "s3_key": f"privacy-filter/{device}/model.tar.gz",
+            "env": {},
+        }
+    return models
 
 
 # ---------------------------------------------------------------------------
@@ -275,3 +283,20 @@ def run_test_audio_ffmpeg(endpoint):
         LOGGER.info(
             f'  {name} -> "{result["transcription"]}" (backend: {result.get("audio_backend", "?")})'
         )
+
+
+def run_test_privacy_filter(endpoint):
+    """OpenAI Privacy Filter — 5 samples, validate PII entity detection."""
+    for text, expected_entities in PRIVACY_FILTER_SAMPLES:
+        response = _invoke(endpoint, {"text": text})
+        result = _parse_response(response)
+        LOGGER.info(f"privacy-filter response for '{text[:40]}...': {pformat(result)}")
+
+        err = validate_privacy_filter_response(result, expected_entities)
+        assert not err, f"privacy-filter '{text[:40]}...': {err}"
+
+        entities = (
+            result["predictions"][0].get("detected_spans", []) if result["predictions"] else []
+        )
+        found = {e["label"] for e in entities}
+        LOGGER.info(f"  '{text[:40]}...' -> entities: {found}")
