@@ -1,4 +1,3 @@
-# test: trigger CI for PR #6083
 # ============================================================================
 # PyTorch DLC — Amazon Linux 2023 (CPU)
 # Multi-stage build:

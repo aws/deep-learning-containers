@@ -13,6 +13,8 @@ dependencies = [
     "pyyaml",
     "requests",
     "packaging",
+    "urllib3>=2.7.0",
+    "python-multipart>=0.0.27",
     "mpi4py",
     "scipy",
     "scikit-learn",
