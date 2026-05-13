@@ -183,7 +183,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             else "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
         )
     )
-    py_version = re.search(r"py\d+", tag).group()
+    match = re.search(r"py\d+", tag)
+    py_version = match.group() if match else None
     sm_local_py_version = (
         "37"
         if py_version == "py37"
