@@ -28,7 +28,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
-- **[2026/05/13]** [vLLM-Omni v0.20.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1` · SageMaker: `omni-sagemaker-cuda-v1` · Adds `/v1/audio/generate` (stable-audio-open) and `/v1/videos/sync` (unblocks video on SageMaker); supports CosyVoice3, ERNIE-Image-Turbo, Wan2.1-VACE-1.3B; CUDA 13.0 + PyTorch 2.11.0.
+- **[2026/05/13]** [vLLM-Omni v0.20.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.1` · SageMaker: `omni-sagemaker-cuda-v1.1` · Adds `/v1/audio/generate` (stable-audio-open) and `/v1/videos/sync` (unblocks video on SageMaker); supports CosyVoice3, ERNIE-Image-Turbo, Wan2.1-VACE-1.3B; CUDA 13.0 + PyTorch 2.11.0.
 - **[2026/05/11]** [vLLM v0.20.2](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.20.2-gpu-py312-ec2` · SageMaker: `0.20.2-gpu-py312` · Bug fixes for DeepSeek V4.
 - **[2026/05/06]** [SGLang v0.5.11](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.11-gpu-py312-ec2` · SageMaker: `0.5.11-gpu-py312` · Model support for Gemma 4, GLM-5.1, Qwen 3.4, and more
 - **[2026/05/05]** [vLLM v0.20.1](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.20.1-gpu-py312-ec2` · SageMaker: `0.20.1-gpu-py312` · Bug fixes for DeepSeek V4.

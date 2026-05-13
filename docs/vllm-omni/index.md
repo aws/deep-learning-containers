@@ -18,7 +18,7 @@ SageMaker routing middleware for dispatching `/invocations` to any omni endpoint
 **EC2** — latest supported (floats across DLC minor versions; auto-upgrades on next pull):
 
 ```bash
-docker pull {{ images.latest_vllm_omni_ec2 }}
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1
 ```
 
 **EC2** — patch-stable (recommended for production; auto-accepts DLC security patches in the v1.1 line, declines new DLC minor releases):
@@ -30,7 +30,7 @@ docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1.1
 **SageMaker** — latest supported:
 
 ```bash
-docker pull {{ images.latest_vllm_omni_sagemaker }}
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-sagemaker-cuda-v1
 ```
 
 **SageMaker** — patch-stable:

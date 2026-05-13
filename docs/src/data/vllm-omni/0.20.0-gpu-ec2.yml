@@ -9,12 +9,12 @@ platform: default
 public_registry: true
 
 tags:
-  # v1 is listed first because tags[0] feeds the {{ images.latest_vllm_omni_* }}
-  # macros and the available_images.md "primary URL" cell. When a future DLC
-  # release ships, drop `omni-cuda-v1` from this yaml (it'll move to the new
-  # release's yaml) and keep only `omni-cuda-v1.1` here — same pattern as the
-  # 0.18.0 yaml currently uses.
-  - "omni-cuda-v1"      # floats across DLC minor versions (currently → DLC v1.1, vllm-omni 0.20.0)
+  # Only the patch-floating tag is listed per release. The minor-floating
+  # `omni-cuda-v1` tag is documented in docs/vllm-omni/index.md (Pull Commands +
+  # Versioning and Tags) but isn't a per-release identifier — it points at
+  # whichever release is currently the v1-line target. Releases that hold
+  # only their patch-floating tag in this yaml (this convention) auto-correct
+  # when the v1 floater advances; no yaml edits needed.
   - "omni-cuda-v1.1"    # floats across DLC patches in the v1.1 line (auto-accepts security patches)
 
 announcements:
