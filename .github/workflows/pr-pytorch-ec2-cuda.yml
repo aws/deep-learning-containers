@@ -1,13 +1,13 @@
-name: PR - PyTorch 2.11 EC2 CUDA
+name: PR - PyTorch EC2 CUDA
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/pytorch-2.11-ec2-cuda.yml"
-      - ".github/workflows/pr-pytorch-2.11-ec2-cuda.yml"
-      - "docker/pytorch/2.11/**"
+      - ".github/config/image/pytorch-*-ec2-cuda.yml"
+      - ".github/workflows/pr-pytorch-ec2-cuda.yml"
+      - "docker/pytorch/**"
       - "scripts/common/**"
       - "scripts/pytorch/**"
       - "scripts/telemetry/**"
@@ -23,9 +23,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-
-  # Config file path
-  CONFIG_FILE: ".github/config/image/pytorch-2.11-ec2-cuda.yml"
+  LATEST_PYTORCH_VERSION: "2.11"
 
 jobs:
   # ============================================================
@@ -47,10 +45,69 @@ jobs:
         uses: ./.github/actions/pr-permission-gate
 
   # ============================================================
+  # Pre-commit + change detection
+  # ============================================================
+  check-changes:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      pytorch-version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Detect PyTorch version
+        id: version
+        run: |
+          VERSION=$(git diff --name-only origin/main...HEAD \
+            | grep -oP 'docker/pytorch/\K[0-9]+\.[0-9]+' \
+            | sort -u | head -1)
+          if [ -z "$VERSION" ]; then
+            VERSION=$(git diff --name-only origin/main...HEAD \
+              | grep -oP 'pytorch-\K[0-9]+\.[0-9]+' \
+              | sort -u | head -1)
+          fi
+          echo "version=${VERSION:-$LATEST_PYTORCH_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/pytorch-*-ec2-cuda.yml"
+              - "docker/pytorch/*/Dockerfile.cuda"
+              - "docker/pytorch/*/cuda/**"
+              - "scripts/common/setup_oss_compliance.sh"
+              - "scripts/pytorch/*"
+              - "scripts/telemetry/bash_telemetry.sh.template"
+            sanity-test-change:
+              - "test/sanity/**"
+            telemetry-test-change:
+              - "test/telemetry/**"
+
+  # ============================================================
   # Load configuration from YAML
   # ============================================================
   load-config:
-    needs: [gatekeeper]
+    needs: [gatekeeper, check-changes]
     if: success()
     runs-on: ubuntu-latest
     outputs:
@@ -73,7 +130,7 @@ jobs:
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: ${{ env.CONFIG_FILE }}
+          config-file: ".github/config/image/pytorch-${{ needs.check-changes.outputs.pytorch-version }}-ec2-cuda.yml"
 
       - name: Parse configuration
         id: parse
@@ -90,51 +147,6 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
-
-  # ============================================================
-  # Pre-commit + change detection
-  # ============================================================
-  check-changes:
-    needs: [gatekeeper]
-    if: success()
-    runs-on: ubuntu-latest
-    concurrency:
-      group: ${{ github.workflow }}-check-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    outputs:
-      build-change: ${{ steps.changes.outputs.build-change }}
-      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
-
-      - name: Detect file changes
-        id: changes
-        uses: dorny/paths-filter@v4
-        with:
-          filters: |
-            build-change:
-              - ".github/config/image/pytorch-2.11-ec2-cuda.yml"
-              - "docker/pytorch/2.11/Dockerfile.cuda"
-              - "docker/pytorch/2.11/cuda/**"
-              - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/pytorch/*"
-              - "scripts/telemetry/bash_telemetry.sh.template"
-            sanity-test-change:
-              - "test/sanity/**"
-            telemetry-test-change:
-              - "test/telemetry/**"
 
   # ============================================================
   # Build runtime image
@@ -167,17 +179,19 @@ jobs:
       - name: Source versions
         id: versions
         run: |
-          source docker/pytorch/2.11/versions-cuda.env
+          VERSION="${{ needs.check-changes.outputs.pytorch-version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
           echo "torch-version=${TORCH_VERSION}" >> $GITHUB_OUTPUT
           echo "cuda-version=${CUDA_VERSION}" >> $GITHUB_OUTPUT
           echo "python-version=${PYTHON_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Fetch cached wheels
         run: |
-          source docker/pytorch/2.11/versions-cuda.env
-          mkdir -p docker/pytorch/2.11/wheels
+          VERSION="${{ needs.check-changes.outputs.pytorch-version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
+          mkdir -p docker/pytorch/${VERSION}/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
-            docker/pytorch/2.11/wheels \
+            docker/pytorch/${VERSION}/wheels \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
@@ -187,7 +201,8 @@ jobs:
       - name: Build runtime image
         id: build-runtime
         run: |
-          source docker/pytorch/2.11/versions-cuda.env
+          VERSION="${{ needs.check-changes.outputs.pytorch-version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-pr-${{ github.event.pull_request.number }}"
 
           docker buildx build --progress plain \
@@ -207,18 +222,19 @@ jobs:
             --tag ${CI_IMAGE_URI} \
             --push \
             --target runtime \
-            -f docker/pytorch/2.11/Dockerfile.cuda .
+            -f docker/pytorch/${VERSION}/Dockerfile.cuda .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
       - name: Upload built wheels to cache
         run: |
-          source docker/pytorch/2.11/versions-cuda.env
+          VERSION="${{ needs.check-changes.outputs.pytorch-version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
           bash scripts/pytorch/upload_cached_wheels.sh \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "${{ steps.build-runtime.outputs.image-uri }}" \
-            "docker/pytorch/2.11/Dockerfile.cuda" \
+            "docker/pytorch/${VERSION}/Dockerfile.cuda" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
             "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
         continue-on-error: true
@@ -285,7 +301,7 @@ jobs:
   # Unit tests (CPU-only, no GPU needed)
   # ============================================================
   unit-test:
-    needs: [build-images]
+    needs: [check-changes, build-images]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -306,10 +322,11 @@ jobs:
 
       - name: Run unit tests
         run: |
+          VERSION="${{ needs.check-changes.outputs.pytorch-version }}"
           IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=2.11 \
+            -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=${VERSION} \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
@@ -410,7 +427,6 @@ jobs:
 
   # ============================================================
   # Multi-node tests (need 2+ containers on Docker network)
-  # ============================================================
   # Multi-node tests (need 2+ containers on Docker network)
   # TODO: Re-enable when GPU capacity is available
   # ============================================================
