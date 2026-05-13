@@ -15,20 +15,66 @@ SageMaker routing middleware for dispatching `/invocations` to any omni endpoint
 
 ## Pull Commands
 
-**EC2:**
+**EC2** — latest supported (floats across DLC minor versions; auto-upgrades on next pull):
 
 ```bash
 docker pull {{ images.latest_vllm_omni_ec2 }}
 ```
 
-**SageMaker:**
+**EC2** — patch-stable (recommended for production; auto-accepts DLC security patches in the v1.1 line, declines new DLC minor releases):
+
+```bash
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1.1
+```
+
+**SageMaker** — latest supported:
 
 ```bash
 docker pull {{ images.latest_vllm_omni_sagemaker }}
 ```
 
-See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication
-instructions.
+**SageMaker** — patch-stable:
+
+```bash
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-sagemaker-cuda-v1.1
+```
+
+See [Available Images](../reference/available_images.md) for all image URIs, [Versioning and Tags](#versioning-and-tags) below for the convention, and
+[Getting Started](../get_started/index.md) for authentication instructions.
+
+## Versioning and Tags
+
+vLLM-Omni image tags follow a **DLC-level** semantic versioning convention (independent of the bundled vllm-omni upstream version):
+
+- **DLC major (`v1`, `v2`, …)** — incompatible/breaking changes in the DLC itself: image API, entrypoint, removed routes, pinned framework majors.
+  Customer code may need updating when the DLC major bumps.
+- **DLC minor (`v1.0`, `v1.1`, …)** — DLC release tracking new upstream vllm-omni features (e.g., a new endpoint), still API-compatible at the DLC
+  level. May introduce behavioral changes in the bundled engine.
+- **DLC patch** — security patches and bug fixes layered on top of an existing release without bumping the bundled vllm-omni version. Same tag, new
+  image digest.
+
+Two tag tiers, both floating, are exposed to customers:
+
+- **Minor-floating tags** (`omni-cuda-v1`, `omni-sagemaker-cuda-v1`) — track the latest DLC release within a major line. Auto-upgrade across DLC minor
+  *and* patch updates on `docker pull`. Best for development, quick-starts, and "give me whatever is supported right now".
+- **Patch-floating tags** (`omni-cuda-v1.1`, `omni-sagemaker-cuda-v1.1`) — follow only the DLC patch stream within one minor release. They auto-accept
+  security patches and bug fixes, but decline new DLC minor releases that could change behavior. Recommended for production: customers pinned here
+  would have been insulated from the Code2Wav un-batching regression that landed with the DLC `v1.1` minor bump (see
+  [Known Limitations](#known-limitations) below) until they were ready to evaluate it.
+
+If your workload requires byte-identical reproducibility — i.e., declining even DLC patches — pull by digest instead of tag:
+
+```bash
+docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm@sha256:<digest>
+```
+
+`docker inspect <image>` or `docker pull` output prints the digest of the image you currently have. Pulls by digest never change.
+
+| Tag | Tracks | Currently points at |
+| --- | --- | --- |
+| `omni-cuda-v1` / `omni-sagemaker-cuda-v1` | latest DLC release in v1 line (minor + patch) | DLC `v1.1` (vllm-omni 0.20.0) |
+| `omni-cuda-v1.0` / `omni-sagemaker-cuda-v1.0` | DLC v1.0 patch stream (vllm-omni 0.18.0 + DLC patches) | latest v1.0.x DLC patch |
+| `omni-cuda-v1.1` / `omni-sagemaker-cuda-v1.1` | DLC v1.1 patch stream (vllm-omni 0.20.0 + DLC patches) | latest v1.1.x DLC patch |
 
 ## Packages
 
@@ -168,7 +214,7 @@ header:
 | `route=/v1/audio/generate` | Audio generation (new in 0.20.0) |
 | `route=/v1/images/generations` | Image generation |
 | `route=/v1/videos` | Video generation, async (JSON auto-converted to form-data) — returns job-ID only; MP4 not retrievable via SageMaker. Prefer `/v1/videos/sync` below. |
-| `route=/v1/videos/sync` | Video generation, sync (new in 0.20.0) — blocks and returns raw MP4 bytes; works through SageMaker real-time endpoints |
+| `route=/v1/videos/sync` | Video generation, sync (new in 0.20.0) — blocks server-side and returns raw MP4 bytes; deploy behind SageMaker async inference (first-request `torch.compile` warmup exceeds the 60s real-time invoke timeout) |
 | `route=/v1/chat/completions` | Multimodal chat |
 | *(no route)* | vLLM default `/invocations` (chat/completion/embed) |
 
@@ -217,16 +263,19 @@ additional retrieval step required.
 ### Deploy a Video Endpoint
 
 The `/v1/videos/sync` endpoint (new in 0.20.0) is the supported path for video on SageMaker. Unlike the async `/v1/videos` route — which writes a
-job-ID JSON to S3 but never the MP4 — `/v1/videos/sync` blocks until generation completes and returns raw MP4 bytes that SageMaker hands back to the
-client directly.
+job-ID JSON to S3 but never the MP4 — `/v1/videos/sync` blocks server-side until generation completes and writes the raw MP4 bytes to the configured
+S3 output path.
+
+Deploy behind **SageMaker async inference** (`AsyncInferenceConfig`), not real-time inference: first-request latency on video models is dominated by
+model load + `torch.compile` warmup (3–4 minutes for Wan2.1-VACE-1.3B), which exceeds the 60-second real-time invoke timeout. Async inference allows
+up to 1 hour and writes the response body verbatim to S3, so the `.out` object *is* the MP4 — no polling on a job ID.
 
 ```python
 --8<-- "examples/vllm-omni/sagemaker/deploy_video_sync.py"
 ```
 
-Sync video generation can take 30–120 seconds depending on `num_inference_steps` and `num_frames`. If a request approaches the 60s real-time invoke
-timeout, either reduce `num_inference_steps` or use `invoke_endpoint_async` (its 60-minute ceiling accommodates long jobs, and the response body — the
-MP4 — is written verbatim to the S3 output path).
+Validated 2026-05-11 on `ml.g5.2xlarge` (A10G 24 GB VRAM, 32 GB host RAM): 45 KB MP4 in ~10s after warmup. Reduce `num_inference_steps` and
+`num_frames` to stay under the async ceiling for warm requests.
 
 ## Known Limitations
 
@@ -235,9 +284,6 @@ MP4 — is written verbatim to the S3 output path).
   [Deploy a Video Endpoint](#deploy-a-video-endpoint)) or stay on EC2 for the async workflow with status polling.
 - **First-request latency on SageMaker real-time endpoints.** TTS, audio-generate, and video models can exceed the 60s invoke timeout on the first
   request due to `torch.compile` warmup. Use async inference or retry after warmup.
-- **`usage.completion_tokens` is reported as `0` for omni-chat models.** The `/v1/chat/completions` SSE stream emits `usage.completion_tokens=0` in
-  the terminal block, even when audio and text were generated. Use the per-chunk `metrics.num_tokens_out` field for an accurate engine-side token
-  count (see upstream `vllm_omni/benchmarks/patch/patch.py`).
 - **Voice-clone TTS (Qwen3-TTS-Base) is slower in 0.20.0 than 0.18.0 due to an upstream Code2Wav decode-chunk un-batching regression**
   ([vllm-omni#3203](https://github.com/vllm-project/vllm-omni/pull/3203)). Observed on `g6.xlarge` with `qwen3-tts-12hz-1.7b-base`, concurrency 4, 20
   prompts: requests/s **0.4 → 0.281**, audio RTF multiplier **1.6 → 1.109**, p95 E2E **11s → 15.9s**. TTS quality is unchanged. The fix is merged
