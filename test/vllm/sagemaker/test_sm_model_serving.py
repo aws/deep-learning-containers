@@ -24,6 +24,7 @@ import yaml
 from sagemaker.core.resources import Endpoint, EndpointConfig, Model
 from sagemaker.core.shapes import (
     ContainerDefinition,
+    ModelDataSource,
     ProductionVariant,
     S3ModelDataSource,
 )
@@ -159,10 +160,12 @@ def _deploy_endpoint(image_uri, model_cfg, region):
         model_name=endpoint_name,
         primary_container=ContainerDefinition(
             image=image_uri,
-            model_data_source=S3ModelDataSource(
-                s3_uri=model_cfg["s3_path"],
-                s3_data_type="S3Prefix",
-                compression_type="Gzip",
+            model_data_source=ModelDataSource(
+                s3_data_source=S3ModelDataSource(
+                    s3_uri=model_cfg["s3_path"],
+                    s3_data_type="S3Prefix",
+                    compression_type="Gzip",
+                ),
             ),
             environment=env_vars,
         ),
