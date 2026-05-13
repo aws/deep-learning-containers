@@ -15,20 +15,30 @@ SageMaker routing middleware for dispatching `/invocations` to any omni endpoint
 
 ## Pull Commands
 
+Images are published to both the public ECR gallery (no AWS credentials required) and the private DLC ECR repository (requires
+`aws ecr get-login-password`, see [Getting Started](../get_started/index.md)).
+
 **Multimodal (TTS, image/video/audio generation, omni chat) on EC2 / EKS:**
 
 ```bash
+# Public ECR (anonymous pull):
 docker pull public.ecr.aws/deep-learning-containers/vllm:omni-cuda
+
+# Private ECR (authenticated; substitute your region):
+docker pull 763104351884.dkr.ecr.<region>.amazonaws.com/vllm:omni-cuda
 ```
 
 **Multimodal on Amazon SageMaker AI:**
 
 ```bash
+# Public ECR (anonymous pull):
 docker pull public.ecr.aws/deep-learning-containers/vllm:omni-sagemaker-cuda
+
+# Private ECR (authenticated; substitute your region):
+docker pull 763104351884.dkr.ecr.<region>.amazonaws.com/vllm:omni-sagemaker-cuda
 ```
 
-See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication
-instructions.
+See [Available Images](../reference/available_images.md) for the full per-region URI table.
 
 ## Pin a Version
 
