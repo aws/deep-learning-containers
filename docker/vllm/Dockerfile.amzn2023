@@ -420,13 +420,15 @@ ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 # ====================== hyperpod =========================================
 FROM base AS vllm-hyperpod-amzn2023
 
-# First release — start at v1.0.0
-LABEL dlc_minor_version="0"
+LABEL dlc_minor_version="1"
 
 # Override NIXL to include libfabric plugin for disaggregated P/D over EFA,
 # upstream vLLM caps nixl at <=0.10.1.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip uninstall nixl-cu13 || true \
   && uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu12>=1.0.1"
+
+# Pin LMCache to 0.4.3 — 0.4.4 introduced a regression on HyperPod.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --force-reinstall --no-deps lmcache==0.4.3
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
