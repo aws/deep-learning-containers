@@ -4,7 +4,7 @@
 # Distinct from /v1/audio/speech (which is TTS — a voice reading words).
 set -euo pipefail
 
-IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda-v1}"
+IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1}"
 MODEL="${MODEL:-stabilityai/stable-audio-open-1.0}"
 NAME="${NAME:-omni-audio-generate}"
 

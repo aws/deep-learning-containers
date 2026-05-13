@@ -4,7 +4,7 @@
 # raw MP4 bytes — no job-ID polling needed, unlike async /v1/videos.
 set -euo pipefail
 
-IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda-v1}"
+IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1}"
 MODEL="${MODEL:-Wan-AI/Wan2.1-T2V-1.3B-Diffusers}"
 NAME="${NAME:-omni-video-sync}"
 
