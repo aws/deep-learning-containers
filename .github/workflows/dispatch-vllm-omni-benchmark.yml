@@ -193,50 +193,64 @@ jobs:
       # On runner-scale-sets the host docker daemon doesn't see the pod's
       # /dlc-models, so bind-mounting it into the container yields an empty
       # path and vllm-omni then treats `/models/<name>` as a HuggingFace
-      # repo id and crashes with HFValidationError. Instead, start an idle
-      # container, `docker cp` the model in, then launch the server via
-      # `docker exec` (mirrors the SGLang runner-scale workflow).
+      # repo id and crashes with HFValidationError. The runner pod and the
+      # container are also separate network namespaces, so a host-side
+      # health check on localhost:8080 from the runner can't reach the
+      # container's published port. Mirror the SGLang runner-scale pattern:
+      # start an idle container, `docker cp` the model + test scripts in,
+      # then launch the server and the benchmark dispatcher via `docker exec`
+      # so all networking is the container's own loopback.
       #
       # Pin to the GPU UUIDs visible to this pod (k8s assigns a subset of host
       # GPUs; --gpus all would grab every host GPU, breaking parallel pods).
-      - name: Start container (idle) and copy model in
+      - name: Start container (idle) and copy artifacts in
         run: |
           POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
           echo "Pod GPU UUIDs: ${POD_GPUS}"
           docker pull ${{ env.IMAGE_URI }}
           CONTAINER_ID=$(docker run -d --gpus "\"device=${POD_GPUS}\"" --shm-size=10g \
             --entrypoint /bin/bash \
-            -p 8080:8080 \
             --name vllm-omni-bench \
             ${{ env.IMAGE_URI }} \
             -c "tail -f /dev/null")
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-          docker exec ${CONTAINER_ID} mkdir -p /models
+          docker exec ${CONTAINER_ID} mkdir -p /models /workspace/benchmark_results
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
+          docker cp test/vllm-omni/scripts ${CONTAINER_ID}:/workspace/scripts
 
-      - name: Launch vllm-omni server
+      - name: Launch vllm-omni server (in container)
         run: |
           docker exec -d ${CONTAINER_ID} bash -lc "vllm serve --omni \
             --model /models/${{ matrix.name }} \
             --port 8080 \
             --stage-init-timeout 900 \
-            ${{ matrix.extra_args }}"
+            ${{ matrix.extra_args }} \
+            > /workspace/server.log 2>&1"
 
-      - name: Run benchmark
-        env:
-          ARTIFACT_PREFIX: "${{ matrix.name }}_${{ matrix.runner_label }}"
-          VLLM_PORT: "8080"
-          RESULTS_DIR: "${{ github.workspace }}/benchmark_results"
+      - name: Run benchmark (in container)
         run: |
-          mkdir -p "${RESULTS_DIR}"
-          bash test/vllm-omni/scripts/vllm_omni_benchmark_test.sh \
-            "${{ matrix.benchmark_type }}" \
-            '${{ matrix.benchmark_config }}'
+          # The dispatcher's pip-install path falls back to /opt/venv
+          # (since uv made /opt/venv the active venv) — aiohttp lands there
+          # cleanly without needing --user.
+          docker exec \
+            -e ARTIFACT_PREFIX="${{ matrix.name }}_${{ matrix.runner_label }}" \
+            -e VLLM_PORT="8080" \
+            -e RESULTS_DIR="/workspace/benchmark_results" \
+            ${CONTAINER_ID} \
+            bash /workspace/scripts/vllm_omni_benchmark_test.sh \
+              "${{ matrix.benchmark_type }}" \
+              '${{ matrix.benchmark_config }}'
 
-      - name: Dump container logs
+      - name: Copy benchmark results out
         if: always()
         run: |
-          docker logs ${CONTAINER_ID} 2>&1 | tail -500 || true
+          mkdir -p benchmark_results
+          docker cp ${CONTAINER_ID}:/workspace/benchmark_results/. ./benchmark_results/ 2>/dev/null || true
+
+      - name: Dump server logs
+        if: always()
+        run: |
+          docker exec ${CONTAINER_ID} bash -lc "tail -500 /workspace/server.log" 2>&1 || true
 
       - name: Upload results
         if: always()
