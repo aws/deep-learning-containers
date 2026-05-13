@@ -3,7 +3,7 @@
 # Requires: docker (with NVIDIA runtime), curl, an authenticated ECR pull.
 set -euo pipefail
 
-IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda-v1}"
+IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1}"
 MODEL="${MODEL:-Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice}"
 NAME="${NAME:-omni-tts}"
 
