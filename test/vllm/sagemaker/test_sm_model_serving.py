@@ -99,7 +99,7 @@ def _build_json_body(request_cfg):
 
 def _validate(response_body, raw_bytes, rule):
     if rule.startswith("contains:"):
-        expected = rule[len("contains:"):]
+        expected = rule[len("contains:") :]
         if isinstance(response_body, dict):
             text = response_body.get("text", "")
             if not text:
@@ -111,7 +111,7 @@ def _validate(response_body, raw_bytes, rule):
         )
 
     elif rule.startswith("json_field:"):
-        field_path = rule[len("json_field:"):]
+        field_path = rule[len("json_field:") :]
         obj = response_body
         for part in field_path.replace("]", "").replace("[", ".").split("."):
             if part.isdigit():
@@ -121,10 +121,8 @@ def _validate(response_body, raw_bytes, rule):
         assert obj, f"Field '{field_path}' is empty in response"
 
     elif rule.startswith("binary_size_gt:"):
-        min_size = int(rule[len("binary_size_gt:"):])
-        assert len(raw_bytes) > min_size, (
-            f"Response size {len(raw_bytes)} <= {min_size}"
-        )
+        min_size = int(rule[len("binary_size_gt:") :])
+        assert len(raw_bytes) > min_size, f"Response size {len(raw_bytes)} <= {min_size}"
 
     else:
         raise ValueError(f"Unknown validation rule: {rule}")
@@ -207,9 +205,7 @@ def deployed_model(request, image_uri):
     _, model_cfg = request.param
     region = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
 
-    endpoint_name, model, endpoint_config, endpoint = _deploy_endpoint(
-        image_uri, model_cfg, region
-    )
+    endpoint_name, model, endpoint_config, endpoint = _deploy_endpoint(image_uri, model_cfg, region)
 
     yield {
         "endpoint_name": endpoint_name,
