@@ -26,7 +26,7 @@ ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/
 # HF ARGS
 ARG TRANSFORMERS_VERSION=5.5.3
 ARG HUGGINGFACE_HUB_VERSION=1.10.0
-ARG DIFFUSERS_VERSION=0.37.1
+ARG DIFFUSERS_VERSION=0.38.0
 ARG PEFT_VERSION=0.18.1
 ARG ACCELERATE_VERSION=1.12.0
 # Install the latest version of the sagemaker-huggingface-inference-toolkit from the git repository
@@ -70,8 +70,8 @@ ENV DLC_CONTAINER_TYPE=inference
 WORKDIR /
 
 RUN apt-get update \
- && apt-get -y upgrade \
- && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    && apt-get -y upgrade \
+    && apt-get install -y --allow-change-held-packages --no-install-recommends \
     automake \
     build-essential \
     ca-certificates \
@@ -124,28 +124,28 @@ RUN apt-get update \
     ffmpeg \
     libxml2 \
     linux-libc-dev \
- && apt-get autoremove -y \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Install NCCL
 RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
- && rm -rf /tmp/nccl
+    && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+    && cd nccl \
+    && make -j64 src.build BUILDDIR=/usr/local \
+    && rm -rf /tmp/nccl
 # preload system nccl for PyTorch to use if it is dynamically linking NCCL
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
- && cd openmpi-${OPEN_MPI_VERSION} \
- && ./configure --prefix=/home/.openmpi --with-cuda \
- && make all install \
- && cd .. \
- && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && rm -rf openmpi-${OPEN_MPI_VERSION}
+    && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+    && cd openmpi-${OPEN_MPI_VERSION} \
+    && ./configure --prefix=/home/.openmpi --with-cuda \
+    && make all install \
+    && cd .. \
+    && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+    && rm -rf openmpi-${OPEN_MPI_VERSION}
 
 # The ENV variables declared below are changed in the previous section
 # Grouping these ENV variables in the first section causes
@@ -156,9 +156,9 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Install CondaForge miniconda
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
- && chmod +x ~/miniforge3.sh \
- && ~/miniforge3.sh -b -p /opt/conda \
- && rm ~/miniforge3.sh
+    && chmod +x ~/miniforge3.sh \
+    && ~/miniforge3.sh -b -p /opt/conda \
+    && rm ~/miniforge3.sh
 
 # Install common conda packages
 RUN /opt/conda/bin/conda install -y -c conda-forge \
@@ -184,15 +184,15 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
     "zstandard>=0.22.0" \
- && /opt/conda/bin/conda clean -afy \
- && rm -rf /etc/apt/sources.list.d/* \
- && rm -rf /opt/conda/lib/python3.12/site-packages/setuptools/_vendor/jaraco.context-*.dist-info \
- # Fix CVE-2026-24049
- && rm -rf /opt/conda/lib/python3.12/site-packages/setuptools/_vendor/wheel-0.43.0.dist-info/METADATA
+    && /opt/conda/bin/conda clean -afy \
+    && rm -rf /etc/apt/sources.list.d/* \
+    && rm -rf /opt/conda/lib/python3.12/site-packages/setuptools/_vendor/jaraco.context-*.dist-info \
+    # Fix CVE-2026-24049
+    && rm -rf /opt/conda/lib/python3.12/site-packages/setuptools/_vendor/wheel-0.43.0.dist-info/METADATA
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+    && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
@@ -213,7 +213,7 @@ RUN pip install --no-cache-dir -U \
     "prompt-toolkit<3.0.39" \
     # Fix jaraco.context vulnerability 
     "setuptools>=81.0.0" \
-&& rm -rf /opt/conda/lib/python3.12/site-packages/setuptools/_vendor/jaraco.context-*.dist-info
+    && rm -rf /opt/conda/lib/python3.12/site-packages/setuptools/_vendor/jaraco.context-*.dist-info
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
@@ -244,8 +244,8 @@ RUN pip install --no-cache-dir \
 
 # create user and folders
 RUN useradd -m model-server \
- && mkdir -p /home/model-server/tmp /opt/ml/model \
- && chown -R model-server /home/model-server /opt/ml/model
+    && mkdir -p /home/model-server/tmp /opt/ml/model \
+    && chown -R model-server /home/model-server /opt/ml/model
 
 # add MMS entrypoint
 COPY mms-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
@@ -270,7 +270,7 @@ RUN pip install --no-cache-dir --no-build-isolation kenlm
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
     huggingface_hub==${HUGGINGFACE_HUB_VERSION} \
-	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+    transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
     accelerate==${ACCELERATE_VERSION} \
@@ -286,13 +286,13 @@ RUN pip install --no-cache-dir -U "wheel>=0.46.2" "protobuf>=5.29.6"
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:inference:regular"
 
 RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance*
+    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+    && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+    && chmod +x /usr/local/bin/testOSSCompliance \
+    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+    && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
 
@@ -316,40 +316,40 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libvpx-dev \
     libx264-dev \
     libx265-dev \
- && git clone https://git.ffmpeg.org/ffmpeg.git /tmp/ffmpeg \
- && cd /tmp/ffmpeg \
- && git checkout "${FFMPEG_TAG}" \
- && ./configure \
-      --prefix=/usr/local \
-      --disable-debug \
-      --disable-doc \
-      --enable-gpl \
-      --enable-libmp3lame \
-      --enable-libopus \
-      --enable-libvorbis \
-      --enable-libvpx \
-      --enable-libx264 \
-      --enable-libx265 \
- && make -j"$(nproc)" \
- && make install \
- && which ffmpeg \
- && ffmpeg -version \
- && ffprobe -version \
- && rm -rf /tmp/ffmpeg \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    && git clone https://git.ffmpeg.org/ffmpeg.git /tmp/ffmpeg \
+    && cd /tmp/ffmpeg \
+    && git checkout "${FFMPEG_TAG}" \
+    && ./configure \
+    --prefix=/usr/local \
+    --disable-debug \
+    --disable-doc \
+    --enable-gpl \
+    --enable-libmp3lame \
+    --enable-libopus \
+    --enable-libvorbis \
+    --enable-libvpx \
+    --enable-libx264 \
+    --enable-libx265 \
+    && make -j"$(nproc)" \
+    && make install \
+    && which ffmpeg \
+    && ffmpeg -version \
+    && ffprobe -version \
+    && rm -rf /tmp/ffmpeg \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Fix CVE-2024-53920 and CVE-2025-1244: emacs is not essential for core functionality and has known
 # vulnerabilities, so we remove it
 RUN apt-get remove -y --purge emacs emacs-common \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 ## Cleanup ##
 RUN pip cache purge \
- && rm -rf /tmp/tmp* \
- && rm -iRf /root/.cache
+    && rm -rf /tmp/tmp* \
+    && rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
