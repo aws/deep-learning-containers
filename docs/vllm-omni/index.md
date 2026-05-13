@@ -15,66 +15,45 @@ SageMaker routing middleware for dispatching `/invocations` to any omni endpoint
 
 ## Pull Commands
 
-**EC2** — latest supported (floats across DLC minor versions; auto-upgrades on next pull):
+**Multimodal (TTS, image/video/audio generation, omni chat) on EC2 / EKS:**
 
 ```bash
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1
+docker pull public.ecr.aws/deep-learning-containers/vllm:omni-cuda
 ```
 
-**EC2** — patch-stable (recommended for production; auto-accepts DLC security patches in the v1.1 line, declines new DLC minor releases):
+**Multimodal on Amazon SageMaker AI:**
 
 ```bash
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1.1
+docker pull public.ecr.aws/deep-learning-containers/vllm:omni-sagemaker-cuda
 ```
 
-**SageMaker** — latest supported:
+See [Available Images](../reference/available_images.md) for all image URIs and [Getting Started](../get_started/index.md) for authentication
+instructions.
 
-```bash
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-sagemaker-cuda-v1
-```
+## Pin a Version
 
-**SageMaker** — patch-stable:
+Append a version suffix to the base tag to control update behavior:
 
-```bash
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-sagemaker-cuda-v1.1
-```
-
-See [Available Images](../reference/available_images.md) for all image URIs, [Versioning and Tags](#versioning-and-tags) below for the convention, and
-[Getting Started](../get_started/index.md) for authentication instructions.
-
-## Versioning and Tags
-
-vLLM-Omni image tags follow a **DLC-level** semantic versioning convention (independent of the bundled vllm-omni upstream version):
-
-- **DLC major (`v1`, `v2`, …)** — incompatible/breaking changes in the DLC itself: image API, entrypoint, removed routes, pinned framework majors.
-  Customer code may need updating when the DLC major bumps.
-- **DLC minor (`v1.0`, `v1.1`, …)** — DLC release tracking new upstream vllm-omni features (e.g., a new endpoint), still API-compatible at the DLC
-  level. May introduce behavioral changes in the bundled engine.
-- **DLC patch** — security patches and bug fixes layered on top of an existing release without bumping the bundled vllm-omni version. Same tag, new
-  image digest.
-
-Two tag tiers, both floating, are exposed to customers:
-
-- **Minor-floating tags** (`omni-cuda-v1`, `omni-sagemaker-cuda-v1`) — track the latest DLC release within a major line. Auto-upgrade across DLC minor
-  *and* patch updates on `docker pull`. Best for development, quick-starts, and "give me whatever is supported right now".
-- **Patch-floating tags** (`omni-cuda-v1.1`, `omni-sagemaker-cuda-v1.1`) — follow only the DLC patch stream within one minor release. They auto-accept
-  security patches and bug fixes, but decline new DLC minor releases that could change behavior. Recommended for production: customers pinned here
-  would have been insulated from the Code2Wav un-batching regression that landed with the DLC `v1.1` minor bump (see
-  [Known Limitations](#known-limitations) below) until they were ready to evaluate it.
-
-If your workload requires byte-identical reproducibility — i.e., declining even DLC patches — pull by digest instead of tag:
-
-```bash
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm@sha256:<digest>
-```
-
-`docker inspect <image>` or `docker pull` output prints the digest of the image you currently have. Pulls by digest never change.
-
-| Tag | Tracks | Currently points at |
+| Suffix | Example | Updates when |
 | --- | --- | --- |
-| `omni-cuda-v1` / `omni-sagemaker-cuda-v1` | latest DLC release in v1 line (minor + patch) | DLC `v1.1` (vllm-omni 0.20.0) |
-| `omni-cuda-v1.0` / `omni-sagemaker-cuda-v1.0` | DLC v1.0 patch stream (vllm-omni 0.18.0 + DLC patches) | latest v1.0.x DLC patch |
-| `omni-cuda-v1.1` / `omni-sagemaker-cuda-v1.1` | DLC v1.1 patch stream (vllm-omni 0.20.0 + DLC patches) | latest v1.1.x DLC patch |
+| (none) | `omni-cuda` | Any release, including breaking changes |
+| `-v<MAJOR>` | `omni-cuda-v1` | New features and fixes, no breaking changes |
+| `-v<MAJOR>.<MINOR>` | `omni-cuda-v1.1` | Security patches and bug fixes only |
+| `-v<MAJOR>.<MINOR>.<PATCH>` | `omni-cuda-v1.1.0` | Never — immutable snapshot |
+
+The same suffixes apply to the SageMaker base tag (`omni-sagemaker-cuda`).
+
+**Recommended for production:** pin to `-v<MAJOR>.<MINOR>` (e.g., `omni-cuda-v1.1`). It auto-accepts security patches and bug fixes within the
+0.20-line release while declining new minor releases that could change behavior — customers pinned here would have been insulated from the Code2Wav
+un-batching regression that landed with the v1.1 minor bump (see [Known Limitations](#known-limitations) below) until they were ready to evaluate it.
+
+For byte-identical reproducibility, pull by digest:
+
+```bash
+docker pull public.ecr.aws/deep-learning-containers/vllm@sha256:<digest>
+```
+
+`docker inspect <image>` prints the digest of the image you have. Pulls by digest never change.
 
 ## Packages
 
