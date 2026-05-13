@@ -29,6 +29,19 @@ smoke-test:
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 8192 --trust-remote-code"
       test_script: "vllm_embedding_smoke_test.sh"
 
+    - name: "voxtral-mini-4b"
+      s3_model: "voxtral-mini-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tokenizer-mode mistral --config-format mistral --load-format mistral --max-model-len 8192 --enforce-eager"
+      test_script: "vllm_asr_smoke_test.sh"
+      test_fixtures:
+        - "audio/asr_en.wav"
+      test_cases:
+        - name: "transcription-en"
+          route: "/v1/audio/transcriptions"
+          audio_fixture: "asr_en.wav"
+          validate: "contains:hoped"
+
   runner-scale-sets: []
 
 benchmark:
@@ -288,3 +301,31 @@ benchmark:
 # intfloat/e5-small
 # BAAI/bge-reranker-v2-m3
 # meta-llama/Llama-3.1-8B-Instruct
+
+# --- SageMaker Endpoint Tests ---
+# Config-driven real endpoint tests. Each entry deploys a model from S3,
+# sends requests to the configured route, and validates the response.
+# Test script: test/vllm/sagemaker/test_sm_model_serving.py
+sagemaker:
+  - name: "voxtral-mini-4b"
+    s3_model: "voxtral-mini-4b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    model_path: "/opt/ml/model/voxtral-mini-4b"
+    env:
+      SM_VLLM_TOKENIZER_MODE: "mistral"
+      SM_VLLM_CONFIG_FORMAT: "mistral"
+      SM_VLLM_LOAD_FORMAT: "mistral"
+      SM_VLLM_ENFORCE_EAGER: "true"
+      SM_VLLM_MAX_MODEL_LEN: "8192"
+    test_cases:
+      - name: "transcription-en"
+        route: "/v1/audio/transcriptions"
+        content_type: "multipart/form-data"
+        request:
+          file_s3: "s3://dlc-cicd-models/test-fixtures/audio/asr_en.wav"
+          file_field: "file"
+          file_name: "test.wav"
+          file_content_type: "audio/wav"
+          fields:
+            model: "/opt/ml/model/voxtral-mini-4b"
+        validate: "contains:hoped"
