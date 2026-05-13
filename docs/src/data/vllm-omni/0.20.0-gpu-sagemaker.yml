@@ -9,8 +9,11 @@ platform: sagemaker
 public_registry: true
 
 tags:
-  - "omni-sagemaker-cuda-v1"      # floats across DLC minor versions (currently → DLC v1.1, vllm-omni 0.20.0)
+  # v1.1 is listed first so the available_images.md table renders the
+  # patch-floating tag — uniquely identifies "the 0.20.x line" even after
+  # the minor-floating v1 advances to a future release.
   - "omni-sagemaker-cuda-v1.1"    # floats across DLC patches in the v1.1 line (auto-accepts security patches)
+  - "omni-sagemaker-cuda-v1"      # floats across DLC minor versions (currently → DLC v1.1, vllm-omni 0.20.0)
 
 announcements:
   - "Bumps vLLM-Omni to 0.20.0 and aligns with upstream vLLM v0.20.0"
