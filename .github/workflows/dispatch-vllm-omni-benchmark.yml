@@ -190,23 +190,37 @@ jobs:
           s3-path: ${{ matrix.s3_path }}
           model-name: ${{ matrix.name }}
 
+      # On runner-scale-sets the host docker daemon doesn't see the pod's
+      # /dlc-models, so bind-mounting it into the container yields an empty
+      # path and vllm-omni then treats `/models/<name>` as a HuggingFace
+      # repo id and crashes with HFValidationError. Instead, start an idle
+      # container, `docker cp` the model in, then launch the server via
+      # `docker exec` (mirrors the SGLang runner-scale workflow).
+      #
       # Pin to the GPU UUIDs visible to this pod (k8s assigns a subset of host
       # GPUs; --gpus all would grab every host GPU, breaking parallel pods).
-      - name: Start container (server)
+      - name: Start container (idle) and copy model in
         run: |
           POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
           echo "Pod GPU UUIDs: ${POD_GPUS}"
           docker pull ${{ env.IMAGE_URI }}
           CONTAINER_ID=$(docker run -d --gpus "\"device=${POD_GPUS}\"" --shm-size=10g \
-            -v /dlc-models:/models \
+            --entrypoint /bin/bash \
             -p 8080:8080 \
             --name vllm-omni-bench \
             ${{ env.IMAGE_URI }} \
+            -c "tail -f /dev/null")
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          docker exec ${CONTAINER_ID} mkdir -p /models
+          docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
+
+      - name: Launch vllm-omni server
+        run: |
+          docker exec -d ${CONTAINER_ID} bash -lc "vllm serve --omni \
             --model /models/${{ matrix.name }} \
             --port 8080 \
             --stage-init-timeout 900 \
-            ${{ matrix.extra_args }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+            ${{ matrix.extra_args }}"
 
       - name: Run benchmark
         env:
