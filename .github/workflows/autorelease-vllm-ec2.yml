@@ -192,7 +192,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
-      environment: ${{ fromJson(needs.load-config.outputs.config).release.environment }}
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
     secrets: inherit
