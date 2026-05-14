@@ -234,28 +234,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         ); \
     fi
 
-# Override LMCache with commit containing bidirectional NIXL cache probe (PR #2972).
-# Built from source against the torch already installed above.
-# TORCH_CUDA_ARCH_LIST matches upstream LMCache Dockerfile
-# (https://github.com/LMCache/LMCache/blob/dev/docker/Dockerfile).
-ARG LMCACHE_COMMIT=7f60057ce37102bf7e7a519901930d6b9a874136
-RUN --mount=type=cache,target=/root/.cache/uv \
-    CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
-    dnf install -y --setopt=install_weak_deps=False \
-        git \
-        libcusparse-devel-${CUDA_DASH} \
-        libcublas-devel-${CUDA_DASH} \
-        libcusolver-devel-${CUDA_DASH} \
-    && export SETUPTOOLS_SCM_PRETEND_VERSION="0.4.5.dev0+amzn2023.$(echo $LMCACHE_COMMIT | cut -c1-8)" \
-    && export TORCH_CUDA_ARCH_LIST="7.0 7.5 8.0 8.6 8.9 9.0 10.0 12.0+PTX" \
-    && uv pip install --no-deps --force-reinstall --no-build-isolation \
-        "lmcache @ git+https://github.com/LMCache/LMCache.git@${LMCACHE_COMMIT}" \
-    && dnf remove -y git \
-        libcusparse-devel-${CUDA_DASH} \
-        libcublas-devel-${CUDA_DASH} \
-        libcusolver-devel-${CUDA_DASH} \
-    && dnf clean all && rm -rf /var/cache/dnf
-
 # Download FlashInfer precompiled cubins after all pip installs are done
 RUN flashinfer show-config && flashinfer download-cubin
 
@@ -420,13 +398,15 @@ ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 # ====================== hyperpod =========================================
 FROM base AS vllm-hyperpod-amzn2023
 
-# First release — start at v1.0.0
-LABEL dlc_minor_version="0"
+LABEL dlc_minor_version="1"
 
 # Override NIXL to include libfabric plugin for disaggregated P/D over EFA,
 # upstream vLLM caps nixl at <=0.10.1.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip uninstall nixl-cu13 || true \
   && uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu12>=1.0.1"
+
+# Pin LMCache to 0.4.3 — 0.4.4 introduced a regression on HyperPod.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --force-reinstall --no-deps lmcache==0.4.3
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
