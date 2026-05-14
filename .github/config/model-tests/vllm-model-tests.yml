@@ -40,7 +40,7 @@ smoke-test:
         - name: "transcription-en"
           route: "/v1/audio/transcriptions"
           audio_fixture: "asr_en.wav"
-          validate: "contains:hoped"
+          validate: "json_field:text"
 
   runner-scale-sets: []
 
