@@ -166,7 +166,7 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar gzip gcc gcc-c++ \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-  libibverbs-devel \
+  libibverbs-devel libsndfile \
   && dnf clean all && rm -rf /var/cache/dnf
 
 RUN python${PYTHON_VERSION} -m venv /opt/venv
@@ -413,7 +413,9 @@ RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=Fal
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
 COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/vllm/sagemaker_serve.py /usr/local/bin/sagemaker_serve.py
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 
