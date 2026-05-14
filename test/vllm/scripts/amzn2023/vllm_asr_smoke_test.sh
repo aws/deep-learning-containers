@@ -41,7 +41,10 @@ ls -lh "${FIXTURES_DIR}"
 
 if [ -f "${MODEL_DIR}/requirements.txt" ]; then
   echo "=== Installing model dependencies ==="
-  pip install -q -r "${MODEL_DIR}/requirements.txt"
+  cat "${MODEL_DIR}/requirements.txt"
+  pip install -r "${MODEL_DIR}/requirements.txt"
+  echo "=== Verifying audio deps ==="
+  pip list | grep -i "soundfile\|soxr\|mistral"
 fi
 
 echo "=== Starting vLLM server ==="
