@@ -28,6 +28,7 @@ WORKDIR /
 # ===============
 RUN uv pip install --system \
   botocore \
+  packaging \
   && uv cache clean
 
 # patch CVEs and sauron
