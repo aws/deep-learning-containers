@@ -1,11 +1,12 @@
 # vLLM Inference
 
-Production-ready Docker images for serving large language models with [vLLM](https://docs.vllm.ai/) on {{ aws }}. Built on Amazon Linux 2023 with ongoing security patching.
+Production-ready Docker images for serving large language models with [vLLM](https://docs.vllm.ai/) on {{ aws }}. Built on Amazon Linux 2023 with
+ongoing security patching.
 
 ## Images
 
 | Platform | Image |
-|---|---|
+| --- | --- |
 | EC2 / EKS | `public.ecr.aws/deep-learning-containers/vllm:server-cuda` |
 | Amazon SageMaker AI | `public.ecr.aws/deep-learning-containers/vllm:server-sagemaker-cuda` |
 

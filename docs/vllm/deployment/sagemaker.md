@@ -137,13 +137,17 @@ sm.delete_model(ModelName="vllm-model")
 
 ## SageMaker Features
 
-The SageMaker vLLM image uses [standard-supervisor](https://github.com/aws/model-hosting-container-standards) to provide platform-specific integrations:
+The SageMaker vLLM image uses [standard-supervisor](https://github.com/aws/model-hosting-container-standards) to provide platform-specific
+integrations:
 
-**Process supervision and auto-recovery** — if the vLLM process crashes, it is automatically restarted (up to 3 retries by default). This prevents the container from exiting on transient failures.
+**Process supervision and auto-recovery** — if the vLLM process crashes, it is automatically restarted (up to 3 retries by default). This prevents the
+container from exiting on transient failures.
 
-**Dynamic dependency installation** — bundle a `requirements.txt` with your model artifacts and dependencies are installed automatically before server startup. No custom container needed.
+**Dynamic dependency installation** — bundle a `requirements.txt` with your model artifacts and dependencies are installed automatically before server
+startup. No custom container needed.
 
-**Custom handler support** — override the default `/ping` and `/invocations` endpoints with your own logic by placing a `model.py` in your model artifacts:
+**Custom handler support** — override the default `/ping` and `/invocations` endpoints with your own logic by placing a `model.py` in your model
+artifacts:
 
 ```python
 import model_hosting_container_standards.sagemaker as sagemaker_standards
@@ -160,7 +164,10 @@ async def custom_invoke(request: Request) -> Response:
 
 ## Notes
 
-- GPU deployments require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 12.9 images. See [ProductionVariant API reference](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html) for valid values.
-- Any `SM_VLLM_*` environment variable is converted to a `--<name>` vLLM server argument (e.g., `SM_VLLM_MAX_MODEL_LEN=4096` → `--max-model-len 4096`).
+- GPU deployments require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 12.9 images. See
+  [ProductionVariant API reference](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html) for valid values.
+- Any `SM_VLLM_*` environment variable is converted to a `--<name>` vLLM server argument (e.g., `SM_VLLM_MAX_MODEL_LEN=4096` →
+  `--max-model-len 4096`).
 
-For all configuration options including server arguments, SageMaker environment variables, and standard-supervisor settings, see [Configuration](../configuration.md).
+For all configuration options including server arguments, SageMaker environment variables, and standard-supervisor settings, see
+[Configuration](../configuration.md).

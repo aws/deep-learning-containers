@@ -1,6 +1,7 @@
 # Amazon SageMaker AI Deployment
 
-The SageMaker image (`omni-sagemaker-cuda`) includes a routing middleware that dispatches `/invocations` to the correct vLLM-Omni endpoint based on the `CustomAttributes` header.
+The SageMaker image (`omni-sagemaker-cuda`) includes a routing middleware that dispatches `/invocations` to the correct vLLM-Omni endpoint based on
+the `CustomAttributes` header.
 
 ## Routing
 
@@ -47,7 +48,8 @@ predictor.delete_endpoint(delete_endpoint_config=True)
 ## Notes
 
 - GPU deployments require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 13.0 images.
-- First requests to TTS, audio, and video models may exceed the 60-second real-time invoke timeout due to `torch.compile` warmup. Use SageMaker async inference for long-running generation tasks.
+- First requests to TTS, audio, and video models may exceed the 60-second real-time invoke timeout due to `torch.compile` warmup. Use SageMaker async
+  inference for long-running generation tasks.
 - The `/v1/videos` async route writes only the job-ID JSON to S3, not the MP4. Use `/v1/videos/sync` for video generation on SageMaker.
 
 For all configuration options, see [Configuration](../configuration.md).

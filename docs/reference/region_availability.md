@@ -3,7 +3,7 @@
 Private ECR account IDs by region. See [Image Access](../get_started/index.md) for authentication and pull instructions.
 
 | Region | Code | Account ID |
-| ------------------------- | -------------- | -------------- |
+| --- | --- | --- |
 | US East (Ohio) | us-east-2 | 763104351884 |
 | US East (N. Virginia) | us-east-1 | 763104351884 |
 | US West (N. California) | us-west-1 | 763104351884 |

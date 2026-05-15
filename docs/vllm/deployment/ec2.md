@@ -1,6 +1,7 @@
 # EC2 Deployment
 
-The container runs the vLLM OpenAI-compatible API server on port 8000. Any `vllm serve` flag may be appended to `docker run`. See [Configuration](../configuration.md) for the full list of server arguments.
+The container runs the vLLM OpenAI-compatible API server on port 8000. Any `vllm serve` flag may be appended to `docker run`. See
+[Configuration](../configuration.md) for the full list of server arguments.
 
 ## Single GPU
 

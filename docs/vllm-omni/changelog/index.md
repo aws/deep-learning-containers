@@ -2,7 +2,7 @@
 
 Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-sagemaker-cuda`).
 
----
+* * *
 
 ## v1.1.0 — 2026-05-12
 
@@ -35,7 +35,7 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 - Voice-clone TTS (Qwen3-TTS-Base) throughput regression vs v1.0 due to upstream Code2Wav un-batching. Fix merged upstream, pending next release.
 
----
+* * *
 
 ## v1.0.0 — 2026-04-24
 

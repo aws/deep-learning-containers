@@ -1,13 +1,14 @@
 # vLLM-Omni Inference
 
-Production-ready Docker images for serving multimodal models with [vLLM-Omni](https://github.com/vllm-project/vllm-omni) on {{ aws }}. Built on Amazon Linux 2023 with ongoing security patching.
+Production-ready Docker images for serving multimodal models with [vLLM-Omni](https://github.com/vllm-project/vllm-omni) on {{ aws }}. Built on Amazon
+Linux 2023 with ongoing security patching.
 
 Supports text-to-speech, audio generation, image generation, video generation, and multimodal chat through OpenAI-compatible APIs.
 
 ## Images
 
 | Platform | Image |
-|---|---|
+| --- | --- |
 | EC2 / EKS | `public.ecr.aws/deep-learning-containers/vllm:omni-cuda` |
 | Amazon SageMaker AI | `public.ecr.aws/deep-learning-containers/vllm:omni-sagemaker-cuda` |
 

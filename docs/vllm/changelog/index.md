@@ -4,7 +4,7 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 For Ubuntu-based image history, see [Release Notes](../../releasenotes/vllm/index.md).
 
----
+* * *
 
 ## v1.3.0 — 2026-05-12
 
@@ -13,8 +13,10 @@ For Ubuntu-based image history, see [Release Notes](../../releasenotes/vllm/inde
 **vLLM source:** [3f5bd48](https://github.com/vllm-project/vllm/commit/3f5bd482f5c1a5dbdffbbf68d624e20bb7032013)
 ### Highlights
 
-- **SageMaker standard-supervisor integration** — process auto-recovery on crash, dynamic dependency installation from `requirements.txt` in model artifacts, and custom handler support via `model.py`
-- **Gemma 4 fixes** — pipeline parallelism, MoE weight loading, CUDA graph capture, multimodal memory, tool calling stability, MTP speculative decoding support
+- **SageMaker standard-supervisor integration** — process auto-recovery on crash, dynamic dependency installation from `requirements.txt` in model
+  artifacts, and custom handler support via `model.py`
+- **Gemma 4 fixes** — pipeline parallelism, MoE weight loading, CUDA graph capture, multimodal memory, tool calling stability, MTP speculative
+  decoding support
 - **DeepSeek V4 fixes** — numerical correctness for topk, tool calling for non-streaming, disaggregated P/D serving, performance optimizations
 
 ### SageMaker Features (new)
@@ -31,8 +33,7 @@ For Ubuntu-based image history, see [Release Notes](../../releasenotes/vllm/inde
 - DeepSeek V4: fix topk numerical issue, repeated RoPE cache initialization, disaggregated serving
 - DeepSeek V4: integrate tile kernel head_compute_mix_kernel for improved performance
 
-
----
+* * *
 
 ## v1.2.0 — 2026-04-30
 
@@ -59,8 +60,7 @@ For Ubuntu-based image history, see [Release Notes](../../releasenotes/vllm/inde
 - Qwen3: tool calling fix for `<tool_call>` as implicit reasoning end
 - Gemma 4: multimodal embedder norm order fix, bidirectional vision attention
 
-
----
+* * *
 
 ## v1.1.0 — 2026-04-28
 
@@ -69,15 +69,16 @@ For Ubuntu-based image history, see [Release Notes](../../releasenotes/vllm/inde
 **vLLM source:** [6ef1efd5](https://github.com/vllm-project/vllm/commit/6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e)
 ### Highlights
 
-- **LMCache bidirectional NIXL cache probe** — enables disaggregated prefill/decode (P/D) deployments with bidirectional cache querying between prefill and decode workers
+- **LMCache bidirectional NIXL cache probe** — enables disaggregated prefill/decode (P/D) deployments with bidirectional cache querying between
+  prefill and decode workers
 
 ### Changes
 
-- Override LMCache with source build from commit [7f60057](https://github.com/LMCache/LMCache/commit/7f60057ce37102bf7e7a519901930d6b9a874136) for bidirectional NIXL feature
+- Override LMCache with source build from commit [7f60057](https://github.com/LMCache/LMCache/commit/7f60057ce37102bf7e7a519901930d6b9a874136) for
+  bidirectional NIXL feature
 - LMCache version: 0.4.5.dev0+amzn2023.7f60057c
 
-
----
+* * *
 
 ## v1.0.0 — 2026-04-25
 
@@ -92,4 +93,3 @@ For Ubuntu-based image history, see [Release Notes](../../releasenotes/vllm/inde
 - OpenAI-compatible API server on port 8000
 - Multi-GPU inference via tensor parallelism with NCCL
 - EFA support for multi-node deployments
-

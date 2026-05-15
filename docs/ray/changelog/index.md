@@ -2,7 +2,7 @@
 
 Changelog for the Ray Serve DLC images.
 
----
+* * *
 
 ## v1.1.0 — 2026-05-12
 
@@ -13,7 +13,7 @@ Changelog for the Ray Serve DLC images.
 - Upgraded Ray from 2.54.1 to 2.55.1
 - Upgraded Transformers from 5.5.4 to 5.8.0
 
----
+* * *
 
 ## v1.0.0 — 2026-04-23
 

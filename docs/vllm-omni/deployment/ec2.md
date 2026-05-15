@@ -1,6 +1,7 @@
 # EC2 Deployment
 
-The container runs `vllm serve --omni` and exposes the OpenAI-compatible API on port 8080. Any `vllm serve` flag may be appended to `docker run`. See [Configuration](../configuration.md) for the full list.
+The container runs `vllm serve --omni` and exposes the OpenAI-compatible API on port 8080. Any `vllm serve` flag may be appended to `docker run`. See
+[Configuration](../configuration.md) for the full list.
 
 ## Text-to-Speech
 
@@ -19,7 +20,8 @@ curl http://localhost:8080/v1/audio/speech \
   --output speech.wav
 ```
 
-For voice cloning, use [Qwen3-TTS-12Hz-1.7B-Base](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base) or [CosyVoice3-0.5B](https://huggingface.co/FunAudioLLM/Fun-CosyVoice3-0.5B-2512) with a reference audio clip.
+For voice cloning, use [Qwen3-TTS-12Hz-1.7B-Base](https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-Base) or
+[CosyVoice3-0.5B](https://huggingface.co/FunAudioLLM/Fun-CosyVoice3-0.5B-2512) with a reference audio clip.
 
 ## Audio Generation
 

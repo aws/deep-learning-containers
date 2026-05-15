@@ -1,7 +1,7 @@
 # Using {{ dlc }}
 
-This page shows common deployment patterns across frameworks. For framework-specific deep dives, see the dedicated guides:
-[vLLM](../vllm/index.md), [vLLM-Omni](../vllm-omni/index.md), [Ray](../ray/index.md).
+This page shows common deployment patterns across frameworks. For framework-specific deep dives, see the dedicated guides: [vLLM](../vllm/index.md),
+[vLLM-Omni](../vllm-omni/index.md), [Ray](../ray/index.md).
 
 ## Additional Resources
 

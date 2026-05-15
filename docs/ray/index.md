@@ -1,13 +1,15 @@
 # Ray Serve Inference
 
-Production-ready Docker images for deploying ML models with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) on {{ aws }}. Available in CPU and GPU variants, built on Amazon Linux 2023 with ongoing security patching.
+Production-ready Docker images for deploying ML models with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) on {{ aws }}. Available in CPU
+and GPU variants, built on Amazon Linux 2023 with ongoing security patching.
 
-Ray Serve is a scalable model serving library for deploying any Python model — NLP, computer vision, audio, tabular, and multi-model compositions — behind a single HTTP endpoint.
+Ray Serve is a scalable model serving library for deploying any Python model — NLP, computer vision, audio, tabular, and multi-model compositions —
+behind a single HTTP endpoint.
 
 ## Images
 
 | Platform | Variant | Image |
-|---|---|---|
+| --- | --- | --- |
 | EC2 / EKS | GPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-cuda` |
 | EC2 / EKS | CPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-cpu` |
 | Amazon SageMaker AI | GPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-sagemaker-cuda` |

@@ -38,10 +38,13 @@ Set `SM_VLLM_*` environment variables on the container. Each is converted to the
 
 ## Known Limitations
 
-- **Voice-clone TTS (Qwen3-TTS-Base) is slower in v1.1 than v1.0** due to an upstream Code2Wav decode-chunk un-batching regression. Preset-voice TTS is unaffected. Fix is merged upstream and will land in the next release.
+- **Voice-clone TTS (Qwen3-TTS-Base) is slower in v1.1 than v1.0** due to an upstream Code2Wav decode-chunk un-batching regression. Preset-voice TTS
+  is unaffected. Fix is merged upstream and will land in the next release.
 - **CosyVoice3 requires `--trust-remote-code` and ~32 GB host RAM during model load.** Use `g6e.xlarge` or larger.
-- **Stable-Audio-Open output is capped at ~47 seconds per request** by the model itself. For longer clips, run multiple requests and concatenate client-side.
-- **First-request latency on SageMaker.** TTS, audio, and video models can exceed the 60s real-time invoke timeout due to `torch.compile` warmup. Use async inference or retry after warmup.
+- **Stable-Audio-Open output is capped at ~47 seconds per request** by the model itself. For longer clips, run multiple requests and concatenate
+  client-side.
+- **First-request latency on SageMaker.** TTS, audio, and video models can exceed the 60s real-time invoke timeout due to `torch.compile` warmup. Use
+  async inference or retry after warmup.
 
 ## Full Reference
 

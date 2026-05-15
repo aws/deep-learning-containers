@@ -9,11 +9,9 @@ from constants import (
     DOCS_DIR,
     GLOBAL_CONFIG,
     PUBLIC_GALLERY_URL,
-    README_PATH,
     REFERENCE_DIR,
     RELEASE_NOTES_DIR,
     RELEASE_NOTES_TABLE_HEADER,
-    SITE_URL,
     TEMPLATES_DIR,
 )
 from image_config import (

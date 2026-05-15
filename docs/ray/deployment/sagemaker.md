@@ -1,6 +1,7 @@
 # Amazon SageMaker AI Deployment
 
-Package your model directory as a tarball, upload to S3, and deploy. The tarball is extracted to `/opt/ml/model/` at runtime. The container exposes `/ping` (health check) and `/invocations` (inference) endpoints on port 8080.
+Package your model directory as a tarball, upload to S3, and deploy. The tarball is extracted to `/opt/ml/model/` at runtime. The container exposes
+`/ping` (health check) and `/invocations` (inference) endpoints on port 8080.
 
 ## Deploy
 
@@ -41,5 +42,6 @@ predictor.delete_endpoint(delete_endpoint_config=True)
 
 - GPU deployments require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers.
 - Use `serve-ml-sagemaker-cpu` for CPU-only models (no `inference_ami_version` needed).
-- The container resolves the serve target from `config.yaml` in the model tarball. Alternatively, set `SM_RAYSERVE_APP=deployment:app` as an environment variable.
+- The container resolves the serve target from `config.yaml` in the model tarball. Alternatively, set `SM_RAYSERVE_APP=deployment:app` as an
+  environment variable.
 - [CodeArtifact](https://aws.amazon.com/codeartifact/) is supported for private dependencies via `CA_REPOSITORY_ARN`.

@@ -28,7 +28,8 @@ For gated models (Llama, Gemma, etc.), pass `-e HF_TOKEN=<your_hf_token>`.
 
 ## Amazon SageMaker AI (`server-sagemaker-cuda`)
 
-Set `SM_VLLM_*` environment variables on the container. Each is converted to the corresponding vLLM flag (e.g., `SM_VLLM_MAX_MODEL_LEN=4096` → `--max-model-len 4096`).
+Set `SM_VLLM_*` environment variables on the container. Each is converted to the corresponding vLLM flag (e.g., `SM_VLLM_MAX_MODEL_LEN=4096` →
+`--max-model-len 4096`).
 
 | Variable | Description | Default |
 | --- | --- | --- |
@@ -43,7 +44,8 @@ Set `SM_VLLM_*` environment variables on the container. Each is converted to the
 
 ### Standard-Supervisor Settings
 
-The SageMaker image includes [standard-supervisor](https://github.com/aws/model-hosting-container-standards) for process management and platform integrations:
+The SageMaker image includes [standard-supervisor](https://github.com/aws/model-hosting-container-standards) for process management and platform
+integrations:
 
 | Variable | Description | Default |
 | --- | --- | --- |
