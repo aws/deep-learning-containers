@@ -121,5 +121,10 @@
         "vulnerability_id": "CVE-2026-39820",
         "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
         "review_by": "2026-06-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-44432",
+        "reason": "urllib3 2.6.3 reported from /root/.oh-my-zsh/.github/workflows/dependencies/requirements.txt, not a runtime dependency, cannot be patched without oh-my-zsh update",
+        "review_by": "2026-06-10"
     }
 ]
