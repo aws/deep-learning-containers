@@ -753,29 +753,6 @@ test_docs_pr_tags_unknown_platform_empty() {
   assert_eq "" "$output" "unknown platform should produce empty output"
 }
 
-# --- generate_announcement ---
-
-test_docs_pr_announcement_ec2() {
-  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
-  setup_docs_pr_sandbox
-  assert_eq "Introduced vLLM 0.17.1 containers for EC2, ECS, EKS" \
-    "$(generate_announcement "vllm" "0.17.1" "ec2")"
-}
-
-test_docs_pr_announcement_sagemaker() {
-  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
-  setup_docs_pr_sandbox
-  assert_eq "Introduced vLLM 0.17.1 containers for SageMaker" \
-    "$(generate_announcement "vllm" "0.17.1" "sagemaker")"
-}
-
-test_docs_pr_announcement_sglang() {
-  cp "${AUTOCURRENCY_DIR}/docs-pr.sh" "${SANDBOX}/scripts/autocurrency/"
-  setup_docs_pr_sandbox
-  assert_eq "Introduced SGLang 0.5.9 containers for SageMaker" \
-    "$(generate_announcement "sglang" "0.5.9" "sagemaker")"
-}
-
 # --- generate_branch_name ---
 
 test_docs_pr_branch_name() {
@@ -877,9 +854,6 @@ run_test "generate_tags: sagemaker known config"             test_docs_pr_tags_s
 run_test "generate_tags: sglang sagemaker known config"      test_docs_pr_tags_sglang_sagemaker
 run_test "generate_tags: always produces 4 tags"             test_docs_pr_tags_count_always_four
 run_test "generate_tags: unknown platform → empty"           test_docs_pr_tags_unknown_platform_empty
-run_test "generate_announcement: ec2"                        test_docs_pr_announcement_ec2
-run_test "generate_announcement: sagemaker"                  test_docs_pr_announcement_sagemaker
-run_test "generate_announcement: sglang sagemaker"           test_docs_pr_announcement_sglang
 run_test "generate_branch_name: vllm ec2"                    test_docs_pr_branch_name
 run_test "generate_branch_name: sglang sagemaker"            test_docs_pr_branch_name_sagemaker
 run_test "generate_pr_title: vllm ec2"                       test_docs_pr_title_ec2

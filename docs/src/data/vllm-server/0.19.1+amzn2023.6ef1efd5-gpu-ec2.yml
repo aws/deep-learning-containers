@@ -10,4 +10,3 @@ public_registry: true
 
 tags:
   - "server-cuda-v1"
-

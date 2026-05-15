@@ -10,12 +10,3 @@ public_registry: true
 tags:
   - "devel-cuda-v1"
   - "runtime-cuda-v1"
-
-announcements:
-  - "Introduced lightweight Base containers on Amazon Linux 2023 with CUDA 12.9.1 for EC2, ECS, EKS"
-  - "Available in `devel-cuda` (with build tools) and `runtime-cuda` (minimal runtime) variants"
-
-packages:
-  python: "3.13.12"
-  cuda: "12.9.1"
-  os: "Amazon Linux 2023"

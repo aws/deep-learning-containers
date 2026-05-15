@@ -1,6 +1,17 @@
 # Amazon SageMaker AI Deployment
 
-Deploy vLLM on Amazon SageMaker AI endpoints. The SageMaker image variant accepts model configuration via environment variables.
+Deploy vLLM on Amazon SageMaker AI endpoints. The SageMaker image variant accepts model configuration via environment variables and serves on port
+8080\.
+
+## Specifying the Model
+
+The SageMaker image resolves the model in this order:
+
+1. **`SM_VLLM_MODEL` environment variable** — explicit Hugging Face ID or path
+2. **`/opt/ml/model`** — when SageMaker mounts model artifacts via `ModelDataUrl` or `ModelDataSource`, the entrypoint auto-detects them
+3. **`HF_MODEL_ID` environment variable** — fallback Hugging Face ID
+
+Set exactly one. For gated models, also pass `HF_TOKEN`.
 
 ## SageMaker Python SDK v2
 
@@ -133,6 +144,21 @@ print(json.loads(resp["Body"].read()))
 sm.delete_endpoint(EndpointName="vllm-endpoint")
 sm.delete_endpoint_config(EndpointConfigName="vllm-config")
 sm.delete_model(ModelName="vllm-model")
+```
+
+## Model Artifacts
+
+When `ModelDataUrl` (or `ModelDataSource`) points to a tarball/S3 prefix, SageMaker mounts the contents at `/opt/ml/model`. The entrypoint
+auto-detects the model directory, so `SM_VLLM_MODEL` can be omitted. Optional files extend behavior without rebuilding the container:
+
+```text
+model.tar.gz
+├── config.json              # standard model files (Hugging Face layout)
+├── tokenizer.json
+├── *.safetensors
+├── requirements.txt         # (optional) extra Python deps installed at startup
+└── code/
+    └── model.py             # (optional) custom /ping and /invocations handlers
 ```
 
 ## SageMaker Features

@@ -2,8 +2,6 @@
 
 Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sagemaker-cuda`).
 
-For Ubuntu-based image history, see [Release Notes](../../releasenotes/vllm/index.md).
-
 * * *
 
 ## v1.3.0 — 2026-05-12

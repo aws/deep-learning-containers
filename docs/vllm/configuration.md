@@ -28,18 +28,20 @@ For gated models (Llama, Gemma, etc.), pass `-e HF_TOKEN=<your_hf_token>`.
 
 ## Amazon SageMaker AI (`server-sagemaker-cuda`)
 
-Set `SM_VLLM_*` environment variables on the container. Each is converted to the corresponding vLLM flag (e.g., `SM_VLLM_MAX_MODEL_LEN=4096` →
-`--max-model-len 4096`).
+The SageMaker image serves on **port 8080** and accepts vLLM flags via `SM_VLLM_*` environment variables. Each variable is converted to the
+corresponding vLLM flag (e.g., `SM_VLLM_MAX_MODEL_LEN=4096` → `--max-model-len 4096`). Boolean values follow shell convention: `true` becomes a bare
+flag (`SM_VLLM_ENFORCE_EAGER=true` → `--enforce-eager`), and `false` omits the flag entirely.
 
 | Variable | Description | Default |
 | --- | --- | --- |
-| `SM_VLLM_MODEL` | Model ID or path (required) | — |
+| `SM_VLLM_MODEL` | Model ID or path (auto-detected from `/opt/ml/model` or `HF_MODEL_ID` if unset) | — |
 | `SM_VLLM_TENSOR_PARALLEL_SIZE` | Number of GPUs | `1` |
 | `SM_VLLM_MAX_MODEL_LEN` | Maximum sequence length | Model default |
 | `SM_VLLM_GPU_MEMORY_UTILIZATION` | Fraction of GPU memory to use | `0.9` |
 | `SM_VLLM_ENFORCE_EAGER` | Disable CUDA graphs | `false` |
 | `SM_VLLM_QUANTIZATION` | Quantization method (awq, gptq, fp8, …) | None |
 | `SM_VLLM_DTYPE` | Data type (auto, float16, bfloat16) | `auto` |
+| `HF_MODEL_ID` | Hugging Face model ID (fallback when `SM_VLLM_MODEL` is unset and `/opt/ml/model` is empty) | — |
 | `HF_TOKEN` | Hugging Face token for gated models | — |
 
 ### Standard-Supervisor Settings

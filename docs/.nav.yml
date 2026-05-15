@@ -5,6 +5,8 @@ nav:
     - vLLM: vllm
     - vLLM-Omni: vllm-omni
     - Ray: ray
+    - PyTorch: pytorch
+    - Base: base
   - Blog Posts: tutorials
   - Resources:
     - resources/index.md

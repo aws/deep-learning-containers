@@ -6,7 +6,7 @@ model = Model(
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",
     model_data="s3://<BUCKET>/models/mnist/model.tar.gz",
     predictor_cls=Predictor,
-    env={"SM_RAYSERVE_APP": "deployment:app", "RAYSERVE_NUM_GPUS": "1"},
+    env={"SM_RAYSERVE_APP": "deployment:app"},
 )
 
 predictor = model.deploy(
