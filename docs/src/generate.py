@@ -431,27 +431,12 @@ def generate_available_images(dry_run: bool = False) -> str:
 
 
 def generate_index(dry_run: bool = False) -> str:
-    """Generate docs/index.md from README.md content."""
+    """Generate docs/index.md from the index template."""
     output_path = DOCS_DIR / "index.md"
     template_path = TEMPLATES_DIR / "index.template.md"
     LOGGER.debug(f"Generating {output_path}")
 
-    readme_content = README_PATH.read_text()
-    readme_content = readme_content.replace(SITE_URL, "")
-    # Fix empty links left after stripping SITE_URL (e.g. [text](SITE_URL) -> [text]())
-    readme_content = readme_content.replace("]()", "](./)")
-    readme_content = readme_content.replace('href=""', 'href="./"')
-
-    # Expand single logo into MkDocs theme-aware light/dark logos
-    readme_logo = '<img src="assets/logos/AWS_logo_RGB.svg" alt="AWS Logo" width="30%">'
-    mkdocs_logos = (
-        '<img src="assets/logos/AWS_logo_RGB.svg#only-light" alt="AWS Logo" width="30%">\n'
-        '<img src="assets/logos/AWS_logo_RGB_REV.svg#only-dark" alt="AWS Logo" width="30%">'
-    )
-    readme_content = readme_content.replace(readme_logo, mkdocs_logos)
-
-    template = Template(load_jinja2(template_path))
-    content = template.render(readme_content=readme_content)
+    content = load_jinja2(template_path)
 
     if not dry_run:
         write_output(output_path, content)
