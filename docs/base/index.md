@@ -1,4 +1,4 @@
-# Base Inference
+# Build Custom Images using Base DLC
 
 Lightweight Base Docker images with NVIDIA CUDA, cuDNN, and Python pre-installed on Amazon Linux 2023. Use them as the `FROM` for your own AI/ML
 images, or as a quick interactive environment for prototyping. Built and patched continuously by {{ aws }}.

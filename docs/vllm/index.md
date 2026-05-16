@@ -1,4 +1,4 @@
-# vLLM Inference
+# LLM Serving using vLLM DLC
 
 Production-ready Docker images for serving large language models with [vLLM](https://docs.vllm.ai/) on {{ aws }}. Built on Amazon Linux 2023 with
 ongoing security patching.

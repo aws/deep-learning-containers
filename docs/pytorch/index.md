@@ -1,4 +1,4 @@
-# PyTorch Training
+# ML Training using PyTorch DLC
 
 Production-ready Docker images for PyTorch training workloads on {{ aws }}. Available in CPU and GPU variants, built on Amazon Linux 2023 with ongoing
 security patching.

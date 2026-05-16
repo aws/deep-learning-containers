@@ -1,4 +1,4 @@
-# vLLM-Omni Inference
+# Multimodal Serving using vLLM-Omni DLC
 
 Production-ready Docker images for serving multimodal models with [vLLM-Omni](https://github.com/vllm-project/vllm-omni) on {{ aws }}. Built on Amazon
 Linux 2023 with ongoing security patching.
