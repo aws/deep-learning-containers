@@ -26,6 +26,7 @@ WORKDIR /
 
 # Install DLC dependencies
 # ===============
+RUN ln -sf $(which python3) /usr/local/bin/python 2>/dev/null || true
 RUN uv pip install --system \
   botocore \
   packaging \
