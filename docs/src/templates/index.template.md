@@ -43,13 +43,13 @@ curl http://localhost:8000/v1/chat/completions \
 
 LLM serving is just one example. DLCs cover a range of AI/ML workloads — explore guides by use case:
 
-<div class="grid cards" style="grid-template-columns: repeat(2, 1fr);" markdown>
+<div class="grid cards" style="grid-template-columns: repeat(3, 1fr);" markdown>
 
 -   **Serve LLMs**
 
     ---
 
-    Deploy large language models with vLLM or SGLang on EC2, EKS, or Amazon SageMaker AI.
+    Deploy large language models with vLLM on EC2, EKS, or Amazon SageMaker AI.
 
     [vLLM Guide](vllm/index.md) · [SGLang Images](reference/available_images.md#sglang)
 
@@ -73,9 +73,17 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     ---
 
-    Run distributed training with PyTorch or TensorFlow on GPU, Neuron, or CPU.
+    Run distributed training with PyTorch on GPU or CPU, with EFA, NCCL, flash-attn, and DeepSpeed pre-installed.
 
-    [PyTorch Images](reference/available_images.md#pytorch-training) · [TensorFlow Images](reference/available_images.md#tensorflow-training)
+    [PyTorch Guide](pytorch/index.md)
+
+-   **Build Your Own Image**
+
+    ---
+
+    Use the lightweight Base images (CUDA + Python on Amazon Linux 2023) as the `FROM` for your custom AI/ML container.
+
+    [Base Guide](base/index.md)
 
 </div>
 
