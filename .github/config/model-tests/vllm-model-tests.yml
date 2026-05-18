@@ -321,7 +321,7 @@ benchmark:
 sagemaker:
   - name: "voxtral-mini-4b"
     s3_model: "voxtral-mini-4b.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type: "ml.g5.xlarge"
     model_path: "/opt/ml/model/voxtral-mini-4b"
     env:
       SM_VLLM_TOKENIZER_MODE: "mistral"
@@ -344,7 +344,7 @@ sagemaker:
 
   - name: "voxtral-mini-4b-network-isolated"
     s3_model: "voxtral-mini-4b.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type: "ml.g5.xlarge"
     model_path: "/opt/ml/model/voxtral-mini-4b"
     network_isolation: true
     env:
