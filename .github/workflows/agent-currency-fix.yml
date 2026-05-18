@@ -145,6 +145,11 @@ jobs:
         run: |
           PR_NUMBER=$(gh pr list --head "$HEAD_BRANCH" --json number --jq '.[0].number')
           if [ -n "$PR_NUMBER" ]; then
+            ALREADY_ESCALATED=$(gh pr view "$PR_NUMBER" --comments --json comments --jq '[.comments[].body | select(contains("Currency Fix Agent exhausted"))] | length')
+            if [ "$ALREADY_ESCALATED" -gt "0" ]; then
+              echo "::notice::Escalation already posted. Skipping."
+              exit 0
+            fi
             gh pr comment "$PR_NUMBER" --body "🔴 **Currency Fix Agent exhausted** (${MAX_ATTEMPTS} attempts). Needs human review.
 
           Failed workflow: ${RUN_URL}"
