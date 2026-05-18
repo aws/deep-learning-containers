@@ -340,4 +340,28 @@ sagemaker:
           file_content_type: "audio/wav"
           fields:
             model: "/opt/ml/model/voxtral-mini-4b"
-        validate: "contains:hoped"
+        validate: "json_field:text"
+
+  - name: "voxtral-mini-4b-network-isolated"
+    s3_model: "voxtral-mini-4b.tar.gz"
+    instance_type: "ml.g5.xlarge"
+    model_path: "/opt/ml/model/voxtral-mini-4b"
+    network_isolation: true
+    env:
+      SM_VLLM_TOKENIZER_MODE: "mistral"
+      SM_VLLM_CONFIG_FORMAT: "mistral"
+      SM_VLLM_LOAD_FORMAT: "mistral"
+      SM_VLLM_ENFORCE_EAGER: "true"
+      SM_VLLM_MAX_MODEL_LEN: "8192"
+    test_cases:
+      - name: "transcription-en-isolated"
+        route: "/v1/audio/transcriptions"
+        content_type: "multipart/form-data"
+        request:
+          file_s3: "s3://dlc-cicd-models/test-fixtures/audio/asr_en.wav"
+          file_field: "file"
+          file_name: "test.wav"
+          file_content_type: "audio/wav"
+          fields:
+            model: "/opt/ml/model/voxtral-mini-4b"
+        validate: "json_field:text"

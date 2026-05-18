@@ -156,7 +156,7 @@ def _deploy_endpoint(image_uri, model_cfg, region):
     env_vars = model_cfg.get("env", {})
 
     LOGGER.info(f"Creating model: {endpoint_name}")
-    model = Model.create(
+    create_kwargs = dict(
         model_name=endpoint_name,
         primary_container=ContainerDefinition(
             image=image_uri,
@@ -171,6 +171,9 @@ def _deploy_endpoint(image_uri, model_cfg, region):
         ),
         execution_role_arn=role_arn,
     )
+    if model_cfg.get("network_isolation"):
+        create_kwargs["enable_network_isolation"] = True
+    model = Model.create(**create_kwargs)
 
     LOGGER.info(f"Creating endpoint config: {endpoint_name}")
     endpoint_config = EndpointConfig.create(
