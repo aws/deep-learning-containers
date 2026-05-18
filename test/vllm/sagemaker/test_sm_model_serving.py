@@ -194,7 +194,7 @@ def _deploy_endpoint(image_uri, model_cfg, region):
         endpoint_name=endpoint_name,
         endpoint_config_name=endpoint_name,
     )
-    endpoint.wait_for_status("InService", timeout=1800)
+    endpoint.wait_for_status("InService", timeout=2700)
     LOGGER.info(f"Endpoint InService: {endpoint_name}")
 
     return endpoint_name, model, endpoint_config, endpoint
