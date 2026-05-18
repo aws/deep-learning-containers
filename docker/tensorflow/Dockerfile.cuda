@@ -28,10 +28,10 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
-      python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-      gcc gcc-c++ make cmake git openssl-devel ninja-build \
-      tar xz curl \
- && dnf clean all
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  gcc gcc-c++ make cmake git openssl-devel ninja-build \
+  tar xz curl \
+  && dnf clean all
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
@@ -41,8 +41,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 
 COPY docker/tensorflow/cuda/pyproject.toml docker/tensorflow/cuda/uv.lock /tmp/build/
 WORKDIR /tmp/build
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-project --inexact
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact
 
 
 # ── Stage: builder-oss (generates license files in isolation) ───────────────
@@ -52,7 +51,7 @@ RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
 COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
- && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 
 # ── Stage: runtime-base (shared base for output stages) ─────────────────────
@@ -74,19 +73,19 @@ LABEL framework="tensorflow"
 LABEL framework_version="${TF_VERSION}"
 
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi \
-    EFA_PATH=/opt/amazon/efa \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONIOENCODING=UTF-8 \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    KMP_AFFINITY="granularity=fine,compact,1,0" \
-    KMP_BLOCKTIME=1 \
-    KMP_SETTINGS=0 \
-    RDMAV_FORK_SAFE=1 \
-    TF_AUTOTUNE_THRESHOLD=2 \
-    DLC_CONTAINER_TYPE=training \
-    CUDA_HOME=/usr/local/cuda
+  EFA_PATH=/opt/amazon/efa \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  KMP_AFFINITY="granularity=fine,compact,1,0" \
+  KMP_BLOCKTIME=1 \
+  KMP_SETTINGS=0 \
+  RDMAV_FORK_SAFE=1 \
+  TF_AUTOTUNE_THRESHOLD=2 \
+  DLC_CONTAINER_TYPE=training \
+  CUDA_HOME=/usr/local/cuda
 
 # Runtime system deps via dnf — mirrors what TF 2.19 master installs on Ubuntu,
 # translated to AL2023 (liblzma-dev→xz-devel, zlib1g-dev→zlib-devel,
@@ -99,22 +98,22 @@ ENV OPEN_MPI_PATH=/opt/amazon/openmpi \
 # cuDNN and NCCL are NOT dnf-installed — they come from pip packages
 # (nvidia-cudnn-cu12 / nvidia-nccl-cu12) declared in cuda/pyproject.toml.
 RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
- && dnf install -y --allowerasing \
-      python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
-      cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} \
-      gcc gcc-c++ make cmake git \
-      shadow-utils tar gzip xz which findutils util-linux \
-      libpng-devel freetype-devel zlib-devel xz-devel tk-devel \
-      gtk3-devel mesa-libGL glib2 libSM libXext \
-      openssh-server openssh-clients openssl \
-      krb5-devel krb5-libs krb5-workstation \
-      cyrus-sasl-devel cyrus-sasl-lib cyrus-sasl-gssapi cyrus-sasl-plain \
-      hwloc protobuf-compiler jq unzip \
-      libcublas-${CUDA_MAJOR_MINOR} libcufft-${CUDA_MAJOR_MINOR} \
-      libcurand-${CUDA_MAJOR_MINOR} libcusolver-${CUDA_MAJOR_MINOR} \
-      libcusparse-${CUDA_MAJOR_MINOR} libnvjpeg-${CUDA_MAJOR_MINOR} \
-      curl wget \
- && dnf clean all
+  && dnf install -y --allowerasing \
+    python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
+    cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} \
+    gcc gcc-c++ make cmake git \
+    shadow-utils tar gzip xz which findutils util-linux \
+    libpng-devel freetype-devel zlib-devel xz-devel tk-devel \
+    gtk3-devel mesa-libGL glib2 libSM libXext \
+    openssh-server openssh-clients openssl \
+    krb5-devel krb5-libs krb5-workstation \
+    cyrus-sasl-devel cyrus-sasl-lib cyrus-sasl-gssapi cyrus-sasl-plain \
+    hwloc protobuf-compiler jq unzip \
+    libcublas-${CUDA_MAJOR_MINOR} libcufft-${CUDA_MAJOR_MINOR} \
+    libcurand-${CUDA_MAJOR_MINOR} libcusolver-${CUDA_MAJOR_MINOR} \
+    libcusparse-${CUDA_MAJOR_MINOR} libnvjpeg-${CUDA_MAJOR_MINOR} \
+    curl wget \
+  && dnf clean all
 
 # Copy venv from builder-base
 COPY --from=builder-base /opt/venv /opt/venv
@@ -134,8 +133,8 @@ RUN CUDNN_HOME=$(/opt/venv/bin/python -c "import nvidia.cudnn; print(nvidia.cudn
 # version), which breaks multi-node NCCL-over-EFA without this symlink. Ubuntu's
 # apt-installed NCCL handles this implicitly; AL2023 does not.
 RUN CUDART=$(ls /usr/local/cuda/lib64/libcudart.so.* | head -1) \
- && ln -sf "$CUDART" /usr/local/cuda/lib64/libcudart.so \
- && ldconfig
+  && ln -sf "$CUDART" /usr/local/cuda/lib64/libcudart.so \
+  && ldconfig
 
 ENV PATH="/opt/venv/bin:${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:/usr/local/cuda/bin:${PATH}"
 # /opt/amazon/ofi-nccl/lib64 is REQUIRED for multi-node NCCL-over-EFA
@@ -152,8 +151,8 @@ COPY scripts/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 # The --disable-build-ngc flag does NOT bypass the path check (verified empirically).
 # Pre-creating the lib -> lib64 symlink lets the broken check resolve through it and pass.
 # Remove this block when EFA installer fixes the path or NGC detection is improved.
-RUN mkdir -p /opt/amazon/efa && \
-    ln -sf lib64 /opt/amazon/efa/lib
+RUN mkdir -p /opt/amazon/efa \
+  && ln -sf lib64 /opt/amazon/efa/lib
 RUN bash /tmp/install_efa.sh "${EFA_VERSION}" && rm /tmp/install_efa.sh
 
 # IMPORTANT: Wipe EFA's bundled OpenMPI before building OMPI 4.1.8 from source.
@@ -166,26 +165,26 @@ RUN rm -rf ${OPEN_MPI_PATH}
 # OpenMPI 4.1.8 from source — SageMaker requires the --allow-run-as-root wrapper.
 # Re-applies MCA params + /etc/nccl.conf since the rm above wiped install_efa's writes.
 RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
- && curl -fsSLO "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz" \
- && tar xf openmpi-${OPEN_MPI_VERSION}.tar.gz && cd openmpi-${OPEN_MPI_VERSION} \
- && ./configure --enable-orterun-prefix-by-default --prefix=${OPEN_MPI_PATH} \
- && make -j$(nproc) all && make install && ldconfig \
- && mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
- && echo '#!/bin/bash'                            > ${OPEN_MPI_PATH}/bin/mpirun \
- && echo 'mpirun.real --allow-run-as-root "$@"'  >> ${OPEN_MPI_PATH}/bin/mpirun \
- && chmod +x ${OPEN_MPI_PATH}/bin/mpirun \
- && echo "hwloc_base_binding_policy = none"  >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot"  >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && echo "NCCL_DEBUG=INFO"                   >> /etc/nccl.conf \
- && rm -rf /tmp/openmpi
+  && curl -fsSLO "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz" \
+  && tar xf openmpi-${OPEN_MPI_VERSION}.tar.gz && cd openmpi-${OPEN_MPI_VERSION} \
+  && ./configure --enable-orterun-prefix-by-default --prefix=${OPEN_MPI_PATH} \
+  && make -j$(nproc) all && make install && ldconfig \
+  && mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
+  && echo '#!/bin/bash' >${OPEN_MPI_PATH}/bin/mpirun \
+  && echo 'mpirun.real --allow-run-as-root "$@"' >>${OPEN_MPI_PATH}/bin/mpirun \
+  && chmod +x ${OPEN_MPI_PATH}/bin/mpirun \
+  && echo "hwloc_base_binding_policy = none" >>${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
+  && echo "rmaps_base_mapping_policy = slot" >>${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
+  && echo "NCCL_DEBUG=INFO" >>/etc/nccl.conf \
+  && rm -rf /tmp/openmpi
 
 # Re-create SSH keys (the rm of $OPEN_MPI_PATH above did not affect /root/.ssh,
 # but install_efa_amzn2023.sh wipes /root/.ssh/ then re-keys; keep an explicit
 # safety re-keygen idempotent — no-op if the key already exists).
 RUN mkdir -p /var/run/sshd /root/.ssh \
- && [ -f /root/.ssh/id_rsa ] || ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
- && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
+  && [ -f /root/.ssh/id_rsa ] || ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+  && printf "Host *\n  StrictHostKeyChecking no\n" >>/root/.ssh/config
 
 # Security hardening — remove nvcc debug helpers (keep cuobjdump for deep_gemm-style JIT)
 RUN rm -f /usr/local/cuda/bin/nvdisasm*
@@ -219,9 +218,8 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 COPY docker/tensorflow/cuda/pyproject.toml docker/tensorflow/cuda/uv.lock /tmp/build/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
- && rm -rf /tmp/build /tmp/uv-*
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
+  && rm -rf /tmp/build /tmp/uv-*
 
 # NOTE: Every Python package shipped in this image is enumerated in
 # docker/tensorflow/cuda/pyproject.toml — no inline `uv pip install` blocks.
@@ -236,15 +234,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Boost 1.82 for SM Studio extensions (compiled with _GLIBCXX_USE_CXX11_ABI=1).
 # TF was compiled with the same ABI; some SM Studio extensions link against boost.
 RUN curl -fsSLO "https://sourceforge.net/projects/boost/files/boost/1.82.0/boost_1_82_0.tar.gz/download" \
- && mv download boost_1_82_0.tar.gz \
- && tar xzf boost_1_82_0.tar.gz && cd boost_1_82_0 \
- && ./bootstrap.sh \
- && ./b2 define=_GLIBCXX_USE_CXX11_ABI=1 threading=multi --prefix=/usr -j$(nproc) cxxflags=-fPIC cflags=-fPIC install || true \
- && cd .. && rm -rf boost_1_82_0*
+  && mv download boost_1_82_0.tar.gz \
+  && tar xzf boost_1_82_0.tar.gz && cd boost_1_82_0 \
+  && ./bootstrap.sh \
+  && ./b2 define=_GLIBCXX_USE_CXX11_ABI=1 threading=multi --prefix=/usr -j$(nproc) cxxflags=-fPIC cflags=-fPIC install || true \
+  && cd .. && rm -rf boost_1_82_0*
 
 # Remove the jupyter python kernel installed by sparkmagic (not used in training)
 RUN /opt/venv/bin/jupyter-kernelspec remove -f python3 2>/dev/null || true \
- && rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
+  && rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
 
 # TF does NOT need the PT-style changehostname.c workaround.
 # sagemaker_tensorflow_container reads /opt/ml/input/config/resourceconfig.json
@@ -257,30 +255,30 @@ COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templat
 ARG FRAMEWORK="tensorflow_runtime"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
- && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-        -e "s/{{FRAMEWORK_VERSION}}/${TF_VERSION}/g" \
-        -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
-        /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
- && chmod +x /usr/local/bin/bash_telemetry.sh \
- && rm /tmp/bash_telemetry.sh.template
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TF_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template
 
 # Security patch — run after all installers so every OS package is covered.
 RUN dnf upgrade -y --security --releasever latest \
- && dnf upgrade -y cuda-compat-* \
- && dnf clean all
+  && dnf upgrade -y cuda-compat-* \
+  && dnf clean all
 
 # Telemetry bashrc hook — MUST be after `dnf upgrade --security` because dnf may
 # replace /etc/bashrc during the upgrade, silently wiping out any `source` line
 # added earlier. PT main's Dockerfile.cuda enforces this same ordering.
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
- && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # OSS compliance (copy artifacts from builder-oss)
-COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS        /root/THIRD_PARTY_SOURCE_CODE_URLS
-COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES            /root/PYTHON_PACKAGES_LICENSES
-COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES             /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
 COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
-COPY --from=builder-oss /usr/local/bin/testOSSCompliance          /usr/local/bin/testOSSCompliance
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 # SM entrypoint — single bash script for both CPU and GPU.
 # (TF 2.19 master split this into Python for GPU + bash for CPU; we simplified
@@ -288,7 +286,7 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance          /usr/local/bin
 # start_cuda_compat.sh is a direct COPY of the cross-framework script — no
 # tensorflow-specific wrapper needed.
 COPY scripts/tensorflow/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-COPY scripts/common/start_cuda_compat.sh      /usr/local/bin/start_cuda_compat.sh
+COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 
 RUN rm -rf /tmp/* /root/.cache

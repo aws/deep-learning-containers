@@ -22,10 +22,10 @@ FROM amazonlinux:2023 AS builder-base
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
-      python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-      gcc gcc-c++ make cmake git openssl-devel ninja-build \
-      tar xz curl wget \
- && dnf clean all
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  gcc gcc-c++ make cmake git openssl-devel ninja-build \
+  tar xz curl wget \
+  && dnf clean all
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
@@ -35,8 +35,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 
 COPY docker/tensorflow/cpu/pyproject.toml docker/tensorflow/cpu/uv.lock /tmp/build/
 WORKDIR /tmp/build
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-project --inexact
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact
 
 
 # ── Stage: builder-oss (generates license files in isolation) ───────────────
@@ -46,7 +45,7 @@ RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
 COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
- && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 
 # ── Stage: runtime-base (shared base for output stages) ─────────────────────
@@ -65,16 +64,16 @@ LABEL framework="tensorflow"
 LABEL framework_version="${TF_VERSION}"
 
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONIOENCODING=UTF-8 \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    KMP_AFFINITY="granularity=fine,compact,1,0" \
-    KMP_BLOCKTIME=1 \
-    KMP_SETTINGS=0 \
-    TF_AUTOTUNE_THRESHOLD=2 \
-    DLC_CONTAINER_TYPE=training
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  KMP_AFFINITY="granularity=fine,compact,1,0" \
+  KMP_BLOCKTIME=1 \
+  KMP_SETTINGS=0 \
+  TF_AUTOTUNE_THRESHOLD=2 \
+  DLC_CONTAINER_TYPE=training
 
 # Runtime system deps via dnf — translation of TF 2.19 master CPU apt-get block.
 # jq is REQUIRED — sagemaker_tensorflow_container parses resourceconfig.json via
@@ -85,17 +84,17 @@ ENV OPEN_MPI_PATH=/opt/amazon/openmpi \
 # sagemaker-studio-analytics-extension + sparkmagic SASL/Kerberos auth.
 # GPU image doesn't need these (different SM Studio extension footprint).
 RUN dnf install -y --allowerasing \
-      python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
-      gcc gcc-c++ make cmake git \
-      shadow-utils tar gzip xz which findutils util-linux perl \
-      libpng-devel freetype-devel zlib-devel xz-devel tk-devel \
-      gtk3-devel mesa-libGL glib2 libSM libXext \
-      openssh-server openssh-clients openssl \
-      hwloc protobuf-compiler jq unzip \
-      krb5-devel krb5-libs krb5-workstation \
-      cyrus-sasl-devel cyrus-sasl-lib cyrus-sasl-gssapi cyrus-sasl-plain \
-      curl wget \
- && dnf clean all
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
+  gcc gcc-c++ make cmake git \
+  shadow-utils tar gzip xz which findutils util-linux perl \
+  libpng-devel freetype-devel zlib-devel xz-devel tk-devel \
+  gtk3-devel mesa-libGL glib2 libSM libXext \
+  openssh-server openssh-clients openssl \
+  hwloc protobuf-compiler jq unzip \
+  krb5-devel krb5-libs krb5-workstation \
+  cyrus-sasl-devel cyrus-sasl-lib cyrus-sasl-gssapi cyrus-sasl-plain \
+  curl wget \
+  && dnf clean all
 
 # Copy venv from builder-base
 COPY --from=builder-base /opt/venv /opt/venv
@@ -106,27 +105,27 @@ ENV LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
 # OpenMPI 4.1.8 from source (CPU has no EFA, no NCCL — plain OMPI is enough).
 # SageMaker requires the --allow-run-as-root mpirun wrapper.
 RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
- && curl -fsSLO "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz" \
- && tar xf openmpi-${OPEN_MPI_VERSION}.tar.gz && cd openmpi-${OPEN_MPI_VERSION} \
- && ./configure --enable-orterun-prefix-by-default --prefix=${OPEN_MPI_PATH} \
- && make -j$(nproc) all && make install && ldconfig \
- && mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
- && echo '#!/bin/bash'                            > ${OPEN_MPI_PATH}/bin/mpirun \
- && echo 'mpirun.real --allow-run-as-root "$@"'  >> ${OPEN_MPI_PATH}/bin/mpirun \
- && chmod +x ${OPEN_MPI_PATH}/bin/mpirun \
- && echo "hwloc_base_binding_policy = none"  >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot"  >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && rm -rf /tmp/openmpi
+  && curl -fsSLO "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz" \
+  && tar xf openmpi-${OPEN_MPI_VERSION}.tar.gz && cd openmpi-${OPEN_MPI_VERSION} \
+  && ./configure --enable-orterun-prefix-by-default --prefix=${OPEN_MPI_PATH} \
+  && make -j$(nproc) all && make install && ldconfig \
+  && mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
+  && echo '#!/bin/bash' >${OPEN_MPI_PATH}/bin/mpirun \
+  && echo 'mpirun.real --allow-run-as-root "$@"' >>${OPEN_MPI_PATH}/bin/mpirun \
+  && chmod +x ${OPEN_MPI_PATH}/bin/mpirun \
+  && echo "hwloc_base_binding_policy = none" >>${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
+  && echo "rmaps_base_mapping_policy = slot" >>${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
+  && rm -rf /tmp/openmpi
 
 # SSH setup for SM multi-node (CPU multi-node training uses SSH like GPU does).
 RUN mkdir -p /var/run/sshd /root/.ssh \
- && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
- && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config \
- && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
- && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
- && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+  && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+  && printf "Host *\n  StrictHostKeyChecking no\n" >>/root/.ssh/config \
+  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking >/etc/ssh/ssh_config.new \
+  && echo "    StrictHostKeyChecking no" >>/etc/ssh/ssh_config.new \
+  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+  && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
 
 # License file (S3 bucket pre-provisioned for tensorflow-2.21)
 RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.21/license.txt"
@@ -150,9 +149,8 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 COPY docker/tensorflow/cpu/pyproject.toml docker/tensorflow/cpu/uv.lock /tmp/build/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
- && rm -rf /tmp/build /tmp/uv-*
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
+  && rm -rf /tmp/build /tmp/uv-*
 
 # NOTE: Every Python package shipped in this image is enumerated in
 # docker/tensorflow/cpu/pyproject.toml — no inline `uv pip install` blocks.
@@ -166,7 +164,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Remove the jupyter python kernel installed by sparkmagic (not used in training)
 RUN /opt/venv/bin/jupyter-kernelspec remove -f python3 2>/dev/null || true \
- && rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
+  && rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
 
 # TF does NOT need the PT-style changehostname.c workaround.
 # sagemaker_tensorflow_container reads /opt/ml/input/config/resourceconfig.json
@@ -178,12 +176,12 @@ COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templat
 ARG FRAMEWORK="tensorflow_runtime"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
- && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-        -e "s/{{FRAMEWORK_VERSION}}/${TF_VERSION}/g" \
-        -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
-        /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
- && chmod +x /usr/local/bin/bash_telemetry.sh \
- && rm /tmp/bash_telemetry.sh.template
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TF_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template
 
 # Security patch — run after all installers so every OS package is covered.
 RUN dnf upgrade -y --security --releasever latest && dnf clean all
@@ -192,20 +190,20 @@ RUN dnf upgrade -y --security --releasever latest && dnf clean all
 # replace /etc/bashrc during the upgrade, silently wiping out any `source` line
 # added earlier. PT main's Dockerfile.cpu enforces this same ordering.
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
- && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # OSS compliance (copy artifacts from builder-oss)
-COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS        /root/THIRD_PARTY_SOURCE_CODE_URLS
-COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES            /root/PYTHON_PACKAGES_LICENSES
-COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES             /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
 COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
-COPY --from=builder-oss /usr/local/bin/testOSSCompliance          /usr/local/bin/testOSSCompliance
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 # SM entrypoint — same single bash script as GPU. start_cuda_compat.sh is a
 # safe no-op on CPU (the compat .so file does not exist), so we ship it for
 # uniformity with the GPU image's entrypoint contract.
 COPY scripts/tensorflow/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-COPY scripts/common/start_cuda_compat.sh      /usr/local/bin/start_cuda_compat.sh
+COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 
 RUN rm -rf /tmp/* /root/.cache
