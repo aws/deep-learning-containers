@@ -2,7 +2,7 @@ image:
   name: "tensorflow-sagemaker-cuda"
   description: "TensorFlow CUDA training for SageMaker"
 common:
-  framework: "tensorflow_runtime"
+  framework: "tensorflow"
   framework_version: "2.21.0"
   job_type: "training"
   python_version: "py312"
