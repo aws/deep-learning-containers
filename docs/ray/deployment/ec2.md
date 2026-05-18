@@ -92,7 +92,7 @@ SageMaker image if you need that.
 ## Direct App Import
 
 For models that define a Ray Serve app without a `config.yaml`, pass the import path as a CLI argument. The Ray cluster auto-detects GPUs from
-`nvidia-smi`; per-deployment GPU allocation belongs in your `@serve.deployment` decorator or a `config.yaml`, not an environment variable.
+`nvidia-smi`; per-deployment GPU allocation belongs in your `@serve.deployment` decorator or a `config.yaml`.
 
 ```bash
 docker run -d --gpus all \
@@ -102,4 +102,12 @@ docker run -d --gpus all \
   -e RAY_SERVE_HTTP_HOST=0.0.0.0 \
   public.ecr.aws/deep-learning-containers/ray:serve-ml-cuda \
   deployment:app
+```
+
+If your `deployment.py` reads its own environment variable for parameterization (e.g., `os.getenv("RAYSERVE_NUM_GPUS")` to set
+`ray_actor_options.num_gpus`), pass it via `-e`. The DLC image itself doesn't define such variables — they're a user-side convention specific to your
+`deployment.py`.
+
+```bash
+docker run -d --gpus all -e RAYSERVE_NUM_GPUS=1 ... deployment:app
 ```
