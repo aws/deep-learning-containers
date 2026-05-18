@@ -53,7 +53,6 @@ Use `config.yaml` unless your model package doesn't include one. Set the env via
 | --- | --- |
 | `SM_RAYSERVE_APP` | Ray Serve import path in `module:app` format. Used only when `/opt/ml/model/config.yaml` is absent |
 | `CA_REPOSITORY_ARN` | AWS CodeArtifact repository ARN for installing private packages from `code/requirements.txt` |
-| `RAYSERVE_BACKEND_URL` | Internal URL the SageMaker adapter proxies to. Defaults to `http://127.0.0.1:8000` — only override if you change the Ray Serve port |
 
 ## Private Dependencies via CodeArtifact
 
