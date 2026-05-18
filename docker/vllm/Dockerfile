@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.20.2
+ARG BASE_IMAGE=vllm/vllm-openai:v0.21.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -28,6 +28,7 @@ WORKDIR /
 # ===============
 RUN uv pip install --system \
   botocore \
+  packaging \
   && uv cache clean
 
 # patch CVEs and sauron
@@ -56,9 +57,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
-  # create symlink for python (must target /usr/local/bin/python3 which is 3.12;
-  # /usr/bin/python3 is the Ubuntu system 3.10 and lacks DLC dependencies)
-  && ln -sf /usr/local/bin/python3 /usr/bin/python \
+  && ln -sf $(which python3) /usr/local/bin/python \
   # clean up
   && rm -rf ${HOME_DIR}/oss_compliance* \
   && rm -rf /tmp/tmp* \
