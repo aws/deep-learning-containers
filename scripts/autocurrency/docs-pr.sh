@@ -171,6 +171,7 @@ echo "Step 1: Pull image and extract package versions"
 echo "============================================================"
 
 echo "Pulling image: ${IMAGE_URI}"
+docker logout public.ecr.aws 2>/dev/null || true
 docker pull "${IMAGE_URI}"
 
 pip_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip | length" "$TRACKER")
