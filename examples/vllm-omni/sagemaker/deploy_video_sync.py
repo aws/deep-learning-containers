@@ -10,21 +10,22 @@ deposits the response body verbatim at the configured S3 output path, so the
 
 Available since vLLM-Omni 0.20.0; supersedes the 0.18.0 limitation that
 SageMaker async inference could only retrieve the job-ID JSON, not the MP4.
-The routing middleware (`CustomAttributes="route=/v1/videos/sync"`) auto-
-converts the JSON request body to multipart/form-data for the underlying
-endpoint; values must therefore be JSON strings.
+/v1/videos/sync expects multipart/form-data input; SageMaker InvokeEndpoint
+forwards the request body and ContentType through to the model server
+unchanged, so the client builds the multipart body locally and uploads it
+with ContentType="multipart/form-data; boundary=...".
 
 Validated 2026-05-11 on ml.g5.2xlarge (A10G 24 GB VRAM, 32 GB host RAM):
 45 KB MP4 returned in ~10s after warmup.
 """
 
 import time
+import uuid
 
 import boto3
 from sagemaker.async_inference import AsyncInferenceConfig
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
 
 BUCKET = "<BUCKET>"  # replace with an S3 bucket your role can read/write
 ROLE_ARN = "arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole"
@@ -42,7 +43,6 @@ predictor = model.deploy(
     initial_instance_count=1,
     endpoint_name=ENDPOINT_NAME,
     inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
-    serializer=JSONSerializer(),
     async_inference_config=AsyncInferenceConfig(
         output_path=f"s3://{BUCKET}/vllm-omni-async-output/",
         max_concurrent_invocations_per_instance=1,
@@ -50,26 +50,43 @@ predictor = model.deploy(
     wait=True,
 )
 
-# Upload the input payload to S3, then call invoke_endpoint_async with
-# CustomAttributes routing to /v1/videos/sync. Values are strings because
-# the middleware converts JSON to multipart/form-data.
+
+def build_multipart_body(fields: dict, boundary: str) -> bytes:
+    parts = [
+        f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'
+        for k, v in fields.items()
+    ]
+    parts.append(f"--{boundary}--\r\n")
+    return "".join(parts).encode()
+
+
+# Build a multipart/form-data body locally; upload to S3, then invoke async.
+boundary = uuid.uuid4().hex
+content_type = f"multipart/form-data; boundary={boundary}"
+body = build_multipart_body(
+    {
+        "prompt": "a dog running on a beach",
+        "num_frames": "17",
+        "num_inference_steps": "4",
+        "size": "480x320",
+        "seed": "42",
+    },
+    boundary,
+)
+
 s3 = boto3.client("s3")
 s3.put_object(
     Bucket=BUCKET,
-    Key="vllm-omni-async-input/request.json",
-    Body=(
-        '{"prompt": "a dog running on a beach", '
-        '"num_frames": "17", "num_inference_steps": "4", '
-        '"size": "480x320", "seed": "42"}'
-    ),
-    ContentType="application/json",
+    Key="vllm-omni-async-input/request.bin",
+    Body=body,
+    ContentType=content_type,
 )
 
 runtime = boto3.client("sagemaker-runtime")
 result = runtime.invoke_endpoint_async(
     EndpointName=ENDPOINT_NAME,
-    InputLocation=f"s3://{BUCKET}/vllm-omni-async-input/request.json",
-    ContentType="application/json",
+    InputLocation=f"s3://{BUCKET}/vllm-omni-async-input/request.bin",
+    ContentType=content_type,
     CustomAttributes="route=/v1/videos/sync",
 )
 output_location = result["OutputLocation"]  # s3://.../<id>.out
