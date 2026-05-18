@@ -15,7 +15,8 @@ behind a single HTTP endpoint.
 | Amazon SageMaker AI | GPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-sagemaker-cuda` | 8080 |
 | Amazon SageMaker AI | CPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-sagemaker-cpu` | 8080 |
 
-For private ECR URIs, see [Image Access](../get_started/index.md).
+All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/ray). For private ECR URIs, see
+[Image Access](../get_started/index.md).
 
 ## What's Included
 
@@ -38,10 +39,10 @@ The repo includes runnable examples for the most common use cases:
 
 | Example | Use case | Path |
 | --- | --- | --- |
-| **DistilBERT** | NLP / sentiment analysis | [`examples/ray/nlp-model`](https://github.com/aws/deep-learning-containers/tree/main/examples/ray/nlp-model) |
-| **DenseNet-161** | Computer vision / image classification | [`examples/ray/cv-model`](https://github.com/aws/deep-learning-containers/tree/main/examples/ray/cv-model) |
-| **Wav2Vec2** | Audio / speech-to-text | [`examples/ray/audio-model`](https://github.com/aws/deep-learning-containers/tree/main/examples/ray/audio-model) |
-| **Iris classifier** | Tabular / scikit-learn | [`examples/ray/tabular-model`](https://github.com/aws/deep-learning-containers/tree/main/examples/ray/tabular-model) |
+| **DistilBERT** | NLP / sentiment analysis | [examples/ray/nlp-model](https://github.com/aws/deep-learning-containers/tree/main/examples/ray/nlp-model) |
+| **DenseNet-161** | Computer vision / image classification | [examples/ray/cv-model](https://github.com/aws/deep-learning-containers/tree/main/examples/ray/cv-model) |
+| **Wav2Vec2** | Audio / speech-to-text | [examples/ray/audio-model](https://github.com/aws/deep-learning-containers/tree/main/examples/ray/audio-model) |
+| **Iris classifier** | Tabular / scikit-learn | [examples/ray/tabular-model](https://github.com/aws/deep-learning-containers/tree/main/examples/ray/tabular-model) |
 
 ## How We Build
 

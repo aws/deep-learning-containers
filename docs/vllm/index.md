@@ -10,7 +10,8 @@ ongoing security patching.
 | EC2 / EKS | `public.ecr.aws/deep-learning-containers/vllm:server-cuda` | 8000 |
 | Amazon SageMaker AI | `public.ecr.aws/deep-learning-containers/vllm:server-sagemaker-cuda` | 8080 |
 
-For private ECR URIs, see [Image Access](../get_started/index.md).
+All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/vllm). For private ECR URIs, see
+[Image Access](../get_started/index.md).
 
 ## What's Included
 

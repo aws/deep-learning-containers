@@ -12,7 +12,8 @@ Supports text-to-speech, audio generation, image generation, video generation, a
 | EC2 / EKS | `public.ecr.aws/deep-learning-containers/vllm:omni-cuda` | 8080 |
 | Amazon SageMaker AI | `public.ecr.aws/deep-learning-containers/vllm:omni-sagemaker-cuda` | 8080 |
 
-For private ECR URIs, see [Image Access](../get_started/index.md).
+All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/vllm). For private ECR URIs, see
+[Image Access](../get_started/index.md).
 
 ## Supported Modalities
 

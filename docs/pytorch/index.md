@@ -15,7 +15,8 @@ collectives, flash-attn and Transformer Engine for fused attention/FP8 kernels, 
 | Amazon SageMaker AI | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023-sagemaker` |
 | Amazon SageMaker AI | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cpu-amzn2023-sagemaker` |
 
-For private ECR URIs, see [Image Access](../get_started/index.md).
+All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/pytorch). For private ECR URIs, see
+[Image Access](../get_started/index.md).
 
 ## What's Included
 

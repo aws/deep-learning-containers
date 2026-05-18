@@ -12,7 +12,8 @@ images, or as a quick interactive environment for prototyping. Built and patched
 | Runtime, CUDA 13.0 | `public.ecr.aws/deep-learning-containers/base:runtime-cuda-v2` | 13.0.2 | Same as v1 but on CUDA 13 |
 | Devel, CUDA 13.0 | `public.ecr.aws/deep-learning-containers/base:devel-cuda-v2` | 13.0.2 | Same as v1 but on CUDA 13 |
 
-For private ECR URIs, see [Image Access](../get_started/index.md).
+All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/base). For private ECR URIs, see
+[Image Access](../get_started/index.md).
 
 ## What's Included
 
