@@ -191,7 +191,7 @@ def _deploy_endpoint(image_uri, model_cfg, region):
         endpoint_name=endpoint_name,
         endpoint_config_name=endpoint_name,
     )
-    endpoint.wait_for_status("InService")
+    endpoint.wait_for_status("InService", timeout=1800)
     LOGGER.info(f"Endpoint InService: {endpoint_name}")
 
     return endpoint_name, model, endpoint_config, endpoint
@@ -248,7 +248,7 @@ def test_model_serving(deployed_model):
             "ContentType": ct,
         }
         if "route" in tc:
-            invoke_kwargs["CustomAttributes"] = f"x-amzn-sagemaker-route={tc['route']}"
+            invoke_kwargs["CustomAttributes"] = f"route={tc['route']}"
 
         t0 = time.time()
         try:
