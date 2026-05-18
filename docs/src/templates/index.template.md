@@ -45,7 +45,7 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
 <div class="grid cards" style="grid-template-columns: repeat(3, 1fr);" markdown>
 
--   **Serve LLMs**
+-   **Serve Large Language Models**
 
     ---
 
