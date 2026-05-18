@@ -1,6 +1,6 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG VLLM_VERSION=0.20.0
+ARG VLLM_VERSION=0.21.0
 ARG FLASHINFER_VERSION=0.6.8.post1
 ARG DEEPEP_COMMIT_HASH=73b6ea4
 
@@ -201,14 +201,14 @@ RUN --mount=type=cache,target=/root/.cache/uv ls /tmp/vllm-dist/*.whl \
 
 # Install FlashInfer JIT cache (requires CUDA-version-specific index URL).
 # flashinfer-python and flashinfer-cubin are already pulled in via requirements/cuda.txt.
-# Pre-download cubins so the first inference request doesn't pay JIT compile latency.
+# Cubins are downloaded later, AFTER all wheel installs that may overwrite
+# flashinfer files (vllm wheel, EP kernels, KV connectors). See upstream vllm
+# v0.21.0 Dockerfile — downloading earlier wastes ~2.5 GB on layer duplication.
 ARG FLASHINFER_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-jit-cache==${FLASHINFER_VERSION} \
-  --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
-  && flashinfer show-config \
-  && flashinfer download-cubin
+  --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-# Install serving extras (matches upstream vllm v0.20.0 serving extras set)
+# Install serving extras (matches upstream vllm v0.21.0 serving extras set)
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate modelscope \
   "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.7"
 
@@ -228,9 +228,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
     CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
     if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
-        if [ "$CUDA_MAJOR" -ge 13 ]; then \
-            uv pip install nixl-cu13; \
-        fi; \
         uv pip install -r /tmp/kv_connectors.txt --no-build || ( \
             dnf install -y --setopt=install_weak_deps=False \
                 libcusparse-devel-${CUDA_DASH} \
@@ -240,7 +237,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
             && dnf remove -y libcusparse-devel-${CUDA_DASH} libcublas-devel-${CUDA_DASH} libcusolver-devel-${CUDA_DASH} \
             && dnf clean all && rm -rf /var/cache/dnf \
         ); \
+        # Force-reinstall the matching CUDA wheel so the correct nixl_ep_cpp.so
+        # is installed (upstream vllm v0.21.0 fix).
+        uv pip install --force-reinstall --no-deps nixl-cu${CUDA_MAJOR}; \
     fi
+
+# Pre-download FlashInfer cubins AFTER all wheel installs (vllm wheel, EP
+# kernels, KV connectors) finish — earlier installs may overwrite flashinfer
+# package files. Downloading here avoids ~2.5 GB layer duplication.
+RUN flashinfer show-config && flashinfer download-cubin
 
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
@@ -267,7 +272,9 @@ ENV PATH="/root/.local/bin:${PATH}"
 # See: https://docs.nvidia.com/deploy/cuda-compatibility/
 ENV VLLM_ENABLE_CUDA_COMPATIBILITY=0
 
-# Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM)
+# Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM).
+# Upstream vllm v0.21.0 switched libcublas → libcublas-devel so cublas headers
+# are present at runtime for JIT (e.g. fastsafetensors / nccl_allocator).
 RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --setopt=install_weak_deps=False \
     gcc python${PYTHON_VERSION}-devel \
@@ -276,7 +283,7 @@ RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
     cuda-nvrtc-${CUDA_DASH} \
     cuda-cuobjdump-${CUDA_DASH} \
     libcurand-devel-${CUDA_DASH} \
-    libcublas-${CUDA_DASH} \
+    libcublas-devel-${CUDA_DASH} \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=deps /opt/venv /opt/venv
@@ -294,7 +301,7 @@ ENV HF_XET_HIGH_PERFORMANCE=1
 # =============================================================================
 FROM runtime AS omni-deps
 
-ARG VLLM_OMNI_VERSION=0.20.0
+ARG VLLM_OMNI_VERSION=0.21.0rc1
 
 # System deps for omni-modality (TTS, audio, image/video)
 # Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, ffmpeg.
@@ -304,8 +311,10 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
   && dnf install -y --setopt=install_weak_deps=False espeak-ng ffmpeg-free \
   && dnf clean all && rm -rf /var/cache/dnf
 
-# Install vllm-omni (pure Python, no compilation)
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_OMNI_VERSION}
+# Install vllm-omni (pure Python, no compilation).
+# --prerelease=allow needed because 0.21.0rc1 is a PEP 440 pre-release;
+# strip when bumping to a stable 0.21.0.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --prerelease=allow vllm-omni==${VLLM_OMNI_VERSION}
 
 # =============================================================================
 # STAGE: builder-oss-omni — OSS compliance for omni venv
@@ -327,7 +336,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=0
+ARG DLC_MINOR_VERSION=3
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
