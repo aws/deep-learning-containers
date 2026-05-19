@@ -6,8 +6,8 @@ on:
     # - cron: '10 17 * * 1,3' # PyTorch 2.12 — Mon/Wed 9:10 AM PST (future)
   workflow_dispatch:
     inputs:
-      pytorch-version:
-        description: "PyTorch version directory (e.g., 2.11)"
+      config-file:
+        description: "Config file path (e.g., .github/config/image/pytorch-2.11-sagemaker-cuda.yml)"
         required: true
         type: string
 
@@ -22,30 +22,27 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
-  determine-version:
+  determine-config:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.version.outputs.version }}
-      config-file: ${{ steps.version.outputs.config-file }}
+      config-file: ${{ steps.config.outputs.config-file }}
     steps:
-      - name: Determine PyTorch version
-        id: version
+      - name: Determine config file
+        id: config
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ inputs.pytorch-version }}"
+            echo "config-file=${{ inputs.config-file }}" >> $GITHUB_OUTPUT
           else
             CRON="${{ github.event.schedule }}"
             case "$CRON" in
-              "00 17 * * 1,3") VERSION="2.11" ;;
-              # "10 17 * * 1,3") VERSION="2.12" ;;
+              "00 17 * * 1,3") echo "config-file=.github/config/image/pytorch-2.11-sagemaker-cuda.yml" >> $GITHUB_OUTPUT ;;
+              # "10 17 * * 1,3") echo "config-file=.github/config/image/pytorch-2.12-sagemaker-cuda.yml" >> $GITHUB_OUTPUT ;;
               *) echo "::error::Unknown cron: $CRON"; exit 1 ;;
             esac
           fi
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "config-file=.github/config/image/pytorch-${VERSION}-sagemaker-cuda.yml" >> $GITHUB_OUTPUT
 
   load-config:
-    needs: [determine-version]
+    needs: [determine-config]
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
@@ -68,7 +65,7 @@ jobs:
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: ${{ needs.determine-version.outputs.config-file }}
+          config-file: ${{ needs.determine-config.outputs.config-file }}
 
       - name: Parse configuration
         id: parse
@@ -87,7 +84,7 @@ jobs:
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
   build-image:
-    needs: [determine-version, load-config]
+    needs: [load-config]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
@@ -110,7 +107,7 @@ jobs:
 
       - name: Fetch cached wheels
         run: |
-          VERSION="${{ needs.determine-version.outputs.version }}"
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
           source docker/pytorch/${VERSION}/versions-cuda.env
           mkdir -p docker/pytorch/${VERSION}/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
@@ -124,7 +121,7 @@ jobs:
       - name: Build sagemaker image
         id: build-sagemaker
         run: |
-          VERSION="${{ needs.determine-version.outputs.version }}"
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
           source docker/pytorch/${VERSION}/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-${TORCH_VERSION}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-${{ github.run_id }}"
 
@@ -164,7 +161,7 @@ jobs:
 
       - name: Upload built wheels to cache
         run: |
-          VERSION="${{ needs.determine-version.outputs.version }}"
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
           source docker/pytorch/${VERSION}/versions-cuda.env
           bash scripts/pytorch/upload_cached_wheels.sh \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
@@ -215,7 +212,7 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   unit-test:
-    needs: [determine-version, build-image]
+    needs: [load-config, build-image]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -232,7 +229,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          VERSION="${{ needs.determine-version.outputs.version }}"
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
           IMAGE="${{ needs.build-image.outputs.ci-image }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
