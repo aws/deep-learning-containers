@@ -164,6 +164,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         path = os.path.join("test", "sagemaker_tests", "huggingface", "vllm")
     elif framework == "huggingface_sglang":
         path = os.path.join("test", "sagemaker_tests", "huggingface", "sglang")
+    elif framework == "huggingface_llamacpp":
+        path = os.path.join("test", "sagemaker_tests", "huggingface", "llamacpp")
     else:
         path = os.path.join("test", "sagemaker_tests", framework, job_type)
     aws_id_arg = "--aws-id"
@@ -181,7 +183,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
             else "gpu" if "gpu" in image else "eia" if "eia" in image else "cpu"
         )
     )
-    py_version = re.search(r"py\d+", tag).group()
+    match = re.search(r"py\d+", tag)
+    py_version = match.group() if match else None
     sm_local_py_version = (
         "37"
         if py_version == "py37"
@@ -286,6 +289,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         path = os.path.join("test", "sagemaker_tests", "huggingface", "vllm")
     elif "huggingface" in framework and "sglang" in framework:
         path = os.path.join("test", "sagemaker_tests", "huggingface", "sglang")
+    elif "huggingface" in framework and "llamacpp" in framework:
+        path = os.path.join("test", "sagemaker_tests", "huggingface", "llamacpp")
     elif "huggingface" in framework and job_type == "inference":
         path = os.path.join("test", "sagemaker_tests", "huggingface", "inference")
     if "trcomp" in framework:

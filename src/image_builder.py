@@ -191,10 +191,15 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         transformers_version = image_config.get("transformers_version")
 
-        if str(BUILDSPEC["framework"]).startswith("huggingface"):
+        buildspec_framework = str(BUILDSPEC["framework"])
+        requires_transformers_version = buildspec_framework.startswith(
+            "huggingface"
+        ) and buildspec_framework != "huggingface_llamacpp"
+
+        if buildspec_framework.startswith("huggingface"):
             if transformers_version:
                 extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
-            else:
+            elif requires_transformers_version:
                 raise KeyError(
                     f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image"
                 )
@@ -686,6 +691,7 @@ def get_job_type(image_repo_uri):
         "base": "general",
         "vllm": "general",
         "sglang": "general",
+        "llamacpp": "general",
     }
 
     for key, job_type in job_type_mapping.items():

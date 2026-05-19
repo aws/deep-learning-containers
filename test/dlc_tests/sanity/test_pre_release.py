@@ -109,7 +109,7 @@ def test_stray_files(image):
 
     :param image: ECR image URI
     """
-    upstream_types = ["vllm", "sglang"]
+    upstream_types = ["vllm", "sglang", "llamacpp"]
     if any(t in image for t in upstream_types):
         pytest.skip(
             f"{', '.join(upstream_types)} images do not require pip check as they are managed by upstream devs. Skipping test."
@@ -347,6 +347,8 @@ def test_framework_version_cpu(image):
     """
     if "base" in image:
         pytest.skip("Base images do not contain a framework version in the tag. Skipping test.")
+    if "llamacpp" in image:
+        pytest.skip("Llamacpp images do not expose a Python framework version. Skipping test.")
     if "gpu" in image:
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu"
@@ -554,6 +556,9 @@ def test_dataclasses_check(image):
     ctx = Context()
     pip_package = "dataclasses"
 
+    if "llamacpp" in image:
+        pytest.skip("Llamacpp images do not include Python. Skipping test.")
+
     container_name = get_container_name("dataclasses-check", image)
 
     python_version = get_python_version_from_image_uri(image).replace("py", "")
@@ -583,7 +588,7 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
-    upstream_types = ["vllm", "sglang"]
+    upstream_types = ["vllm", "sglang", "llamacpp"]
     if any(t in image for t in upstream_types):
         pytest.skip(
             f"{', '.join(upstream_types)} images do not require pip check as they are managed by upstream devs. Skipping test."
@@ -759,7 +764,7 @@ def test_cuda_paths(gpu):
     :param gpu: gpu image uris
     """
     image = gpu
-    general_types = ["base", "vllm", "sglang"]
+    general_types = ["base", "vllm", "sglang", "llamacpp"]
     if any(t in image for t in general_types):
         pytest.skip(
             f"{', '.join(general_types)} DLC doesn't have the same directory structure and buildspec as other images"
@@ -902,7 +907,7 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
-    general_types = ["base", "vllm", "sglang"]
+    general_types = ["base", "vllm", "sglang", "llamacpp"]
     if any(t in image for t in general_types):
         pytest.skip(
             f"{', '.join(general_types)} images do not follow the assumptions made by inference/training. Skipping test."
@@ -1098,7 +1103,7 @@ def test_license_file(image):
     """
     Check that license file within the container is readable and valid
     """
-    general_types = ["base", "vllm", "sglang"]
+    general_types = ["base", "vllm", "sglang", "llamacpp"]
     if any(t in image for t in general_types):
         pytest.skip(f"{', '.join(general_types)} DLC doesn't embed license.txt. Skipping test.")
 
@@ -1223,7 +1228,7 @@ def test_core_package_version(image):
     In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
     satisfy the version constraints specified in the core_packages.json file.
     """
-    general_types = ["base", "vllm", "sglang"]
+    general_types = ["base", "vllm", "sglang", "llamacpp"]
     if any(t in image for t in general_types):
         pytest.skip(f"{', '.join(general_types)} images do not have core packages. Skipping test.")
 
@@ -1275,7 +1280,7 @@ def test_package_version_regression_in_image(image):
     keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
     released, this test would be skipped.
     """
-    general_types = ["base", "vllm", "sglang"]
+    general_types = ["base", "vllm", "sglang", "llamacpp"]
     if any(t in image for t in general_types):
         pytest.skip(
             f"{', '.join(general_types)} images don't have python packages that needs to be checked. Skipping test."

@@ -6,7 +6,7 @@ from invoke import run
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
 def test_security(image):
-    upstream_types = ["vllm"]
+    upstream_types = ["vllm", "llamacpp"]
     if any(t in image for t in upstream_types):
         pytest.skip(
             f"{', '.join(upstream_types)} images do not require boot time security check as they are managed by upstream devs. Skipping test."
