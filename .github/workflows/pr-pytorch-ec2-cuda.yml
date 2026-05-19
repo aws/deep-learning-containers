@@ -56,21 +56,9 @@ jobs:
       cancel-in-progress: true
     outputs:
       versions: ${{ steps.versions.outputs.versions }}
-      latest-version: ${{ steps.versions.outputs.latest-version }}
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
-      framework: ${{ steps.config.outputs.framework }}
-      framework-version: ${{ steps.config.outputs.framework-version }}
-      python-version: ${{ steps.config.outputs.python-version }}
-      cuda-version: ${{ steps.config.outputs.cuda-version }}
-      os-version: ${{ steps.config.outputs.os-version }}
-      container-type: ${{ steps.config.outputs.container-type }}
-      device-type: ${{ steps.config.outputs.device-type }}
-      arch-type: ${{ steps.config.outputs.arch-type }}
-      contributor: ${{ steps.config.outputs.contributor }}
-      customer-type: ${{ steps.config.outputs.customer-type }}
-      prod-image: ${{ steps.config.outputs.prod-image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -100,35 +88,8 @@ jobs:
             VERSIONS="$LATEST_PYTORCH_VERSION"
           fi
           JSON=$(echo "$VERSIONS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
-          LATEST=$(echo "$VERSIONS" | tail -1)
           echo "versions=${JSON}" >> $GITHUB_OUTPUT
-          echo "latest-version=${LATEST}" >> $GITHUB_OUTPUT
           echo "Detected versions: ${JSON}"
-          echo "Latest version: ${LATEST}"
-
-      - name: Load config for latest version
-        id: config
-        run: |
-          LATEST="${{ steps.versions.outputs.latest-version }}"
-          CONFIG_FILE=".github/config/image/pytorch-${LATEST}-ec2-cuda.yml"
-          pip install pyyaml -q
-          python3 -c "
-          import yaml, os
-          with open('${CONFIG_FILE}') as f:
-              cfg = yaml.safe_load(f)['common']
-          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
-              out.write(f\"framework={cfg.get('framework', '')}\\n\")
-              out.write(f\"framework-version={cfg.get('framework_version', '')}\\n\")
-              out.write(f\"python-version={cfg.get('python_version', '')}\\n\")
-              out.write(f\"cuda-version={cfg.get('cuda_version', '')}\\n\")
-              out.write(f\"os-version={cfg.get('os_version', '')}\\n\")
-              out.write(f\"container-type={cfg.get('job_type', '')}\\n\")
-              out.write(f\"device-type={cfg.get('device_type', 'gpu')}\\n\")
-              out.write(f\"arch-type={cfg.get('arch_type', 'x86')}\\n\")
-              out.write(f\"contributor={cfg.get('contributor', 'None')}\\n\")
-              out.write(f\"customer-type={cfg.get('customer_type', '')}\\n\")
-              out.write(f\"prod-image={cfg.get('prod_image', '')}\\n\")
-          "
 
       - name: Detect file changes
         id: changes
@@ -166,6 +127,17 @@ jobs:
       cancel-in-progress: true
     outputs:
       runtime-image-uri: ${{ steps.build-runtime.outputs.image-uri }}
+      framework: ${{ steps.config.outputs.framework }}
+      framework-version: ${{ steps.config.outputs.framework-version }}
+      python-version: ${{ steps.config.outputs.python-version }}
+      cuda-version: ${{ steps.config.outputs.cuda-version }}
+      os-version: ${{ steps.config.outputs.os-version }}
+      container-type: ${{ steps.config.outputs.container-type }}
+      device-type: ${{ steps.config.outputs.device-type }}
+      arch-type: ${{ steps.config.outputs.arch-type }}
+      contributor: ${{ steps.config.outputs.contributor }}
+      customer-type: ${{ steps.config.outputs.customer-type }}
+      prod-image: ${{ steps.config.outputs.prod-image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -250,7 +222,6 @@ jobs:
         continue-on-error: true
 
       - name: Run unit tests
-        if: matrix.version == needs.detect-versions.outputs.latest-version
         run: |
           VERSION="${{ matrix.version }}"
           IMAGE="${{ steps.build-runtime.outputs.image-uri }}"
@@ -276,16 +247,16 @@ jobs:
       image-uri: ${{ needs.build-images.outputs.runtime-image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.detect-versions.outputs.framework }}
-      framework-version: ${{ needs.detect-versions.outputs.framework-version }}
-      python-version: ${{ needs.detect-versions.outputs.python-version }}
-      cuda-version: ${{ needs.detect-versions.outputs.cuda-version }}
-      os-version: ${{ needs.detect-versions.outputs.os-version }}
-      customer-type: ${{ needs.detect-versions.outputs.customer-type }}
-      arch-type: ${{ needs.detect-versions.outputs.arch-type }}
-      device-type: ${{ needs.detect-versions.outputs.device-type }}
-      contributor: ${{ needs.detect-versions.outputs.contributor }}
-      container-type: ${{ needs.detect-versions.outputs.container-type }}
+      framework: ${{ needs.build-images.outputs.framework }}
+      framework-version: ${{ needs.build-images.outputs.framework-version }}
+      python-version: ${{ needs.build-images.outputs.python-version }}
+      cuda-version: ${{ needs.build-images.outputs.cuda-version }}
+      os-version: ${{ needs.build-images.outputs.os-version }}
+      customer-type: ${{ needs.build-images.outputs.customer-type }}
+      arch-type: ${{ needs.build-images.outputs.arch-type }}
+      device-type: ${{ needs.build-images.outputs.device-type }}
+      contributor: ${{ needs.build-images.outputs.contributor }}
+      container-type: ${{ needs.build-images.outputs.container-type }}
 
   # ============================================================
   # Security tests (ECR scan, CVE allowlist)
@@ -298,8 +269,8 @@ jobs:
       image-uri: ${{ needs.build-images.outputs.runtime-image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.detect-versions.outputs.framework }}
-      framework-version: ${{ needs.detect-versions.outputs.framework-version }}
+      framework: ${{ needs.build-images.outputs.framework }}
+      framework-version: ${{ needs.build-images.outputs.framework-version }}
 
   # ============================================================
   # Telemetry tests (opt-out, environment variables)
@@ -317,9 +288,9 @@ jobs:
       image-uri: ${{ needs.build-images.outputs.runtime-image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.detect-versions.outputs.framework }}
-      framework-version: ${{ needs.detect-versions.outputs.framework-version }}
-      container-type: ${{ needs.detect-versions.outputs.container-type }}
+      framework: ${{ needs.build-images.outputs.framework }}
+      framework-version: ${{ needs.build-images.outputs.framework-version }}
+      container-type: ${{ needs.build-images.outputs.container-type }}
 
   # ============================================================
   # Single-GPU tests
