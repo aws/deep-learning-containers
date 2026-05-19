@@ -255,74 +255,71 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   # ============================================================
-  # Unit tests — DISABLED for sub-phase A
-  # Re-enable in sub-phase B once test/tensorflow/unit/ scaffolding exists.
+  # Unit tests
   # ============================================================
-  # unit-test:
-  #   needs: [build-image]
-  #   if: success()
-  #   runs-on:
-  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:default-runner
-  #       buildspec-override:true
-  #   concurrency:
-  #     group: ${{ github.workflow }}-unit-${{ github.event.pull_request.number }}
-  #     cancel-in-progress: true
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v5
-  #
-  #     - name: ECR login
-  #       uses: ./.github/actions/ecr-authenticate
-  #       with:
-  #         aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #         aws-region: ${{ vars.AWS_REGION }}
-  #
-  #     - name: Run unit tests
-  #       run: |
-  #         IMAGE="${{ needs.build-image.outputs.sagemaker-image-uri }}"
-  #         docker pull ${IMAGE}
-  #         CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-  #           -e DLC_WORKDIR=/workdir \
-  #           -v $(pwd):/workdir --workdir /workdir \
-  #           ${IMAGE} -c 'sleep infinity')
-  #         docker exec ${CONTAINER_ID} pip install pytest -q
-  #         docker exec ${CONTAINER_ID} pytest /workdir/test/tensorflow/unit/ -v
-  #         docker kill ${CONTAINER_ID}
+  unit-test:
+    needs: [build-image]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-unit-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Run unit tests
+        run: |
+          IMAGE="${{ needs.build-image.outputs.sagemaker-image-uri }}"
+          docker pull ${IMAGE}
+          CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/tensorflow/unit/ -v
+          docker kill ${CONTAINER_ID}
 
   # ============================================================
-  # SageMaker integration tests (CPU) — DISABLED for sub-phase A
-  # Re-enable in sub-phase B once test/tensorflow/integration/sagemaker/
-  # scaffolding (test_sm_training_cpu.py, requirements.txt) exists.
+  # SageMaker integration tests (CPU — MultiWorkerMirroredStrategy)
   # ============================================================
-  # sagemaker-test:
-  #   needs: [build-image, sanity-test, security-test]
-  #   if: success()
-  #   runs-on:
-  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:default-runner
-  #       buildspec-override:true
-  #   concurrency:
-  #     group: ${{ github.workflow }}-sagemaker-${{ github.event.pull_request.number }}
-  #     cancel-in-progress: true
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v5
-  #
-  #     - name: ECR login
-  #       uses: ./.github/actions/ecr-authenticate
-  #       with:
-  #         aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-  #         aws-region: ${{ vars.AWS_REGION }}
-  #
-  #     - name: Install test dependencies
-  #       run: |
-  #         pip install -r test/tensorflow/integration/sagemaker/requirements.txt
-  #
-  #     - name: Run SageMaker CPU training tests
-  #       env:
-  #         PYTHONPATH: ${{ github.workspace }}/test
-  #         TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
-  #         SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
-  #       run: |
-  #         pytest test/tensorflow/integration/sagemaker/test_sm_training_cpu.py -v
+  sagemaker-test:
+    needs: [build-image, sanity-test, security-test, unit-test]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Install test dependencies
+        run: |
+          pip install -r test/tensorflow/integration/sagemaker/requirements.txt
+
+      - name: Run SageMaker CPU training tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/test
+          TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
+          SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
+        run: |
+          pytest test/tensorflow/integration/sagemaker/test_sm_training_cpu.py -v
