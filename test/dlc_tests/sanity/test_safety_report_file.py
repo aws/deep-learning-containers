@@ -74,7 +74,7 @@ def test_safety_file_exists_and_is_valid(image):
             "Base images do not require safety file as there isn't much python libs in it. Skipping test."
         )
 
-    upstream_types = ["vllm", "sglang"]
+    upstream_types = ["vllm", "sglang", "llamacpp"]
     if any(t in image for t in upstream_types):
         pytest.skip(
             f"{', '.join(upstream_types)} images do not require safety file as they are managed by upstream devs. Skipping test."

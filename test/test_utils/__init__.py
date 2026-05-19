@@ -1836,7 +1836,14 @@ def get_framework_and_version_from_tag(image_uri):
             f"from allowed frameworks {allowed_frameworks}"
         )
 
-    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
+    _, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    if tested_framework == "huggingface_llamacpp":
+        tag_framework_version = image_tag.split("-")[0]
+    else:
+        version_match = re.search(r"(\d+(\.\d+){1,2})", image_tag)
+        if not version_match:
+            raise RuntimeError(f"Cannot find framework version in image tag {image_tag}")
+        tag_framework_version = version_match.group(1)
 
     return tested_framework, tag_framework_version
 
