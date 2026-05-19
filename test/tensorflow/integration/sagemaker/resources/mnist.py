@@ -98,7 +98,42 @@ def _build_model():
     )
 
 
+def _log_diagnostics():
+    """Log all SM/MPI/TF env vars + library versions so a CloudWatch reader
+    can diagnose distributed training failures from the log alone. This runs
+    BEFORE strategy init so we capture state even when MultiWorkerMirroredStrategy
+    crashes during construction."""
+    logger.info("=== mnist.py diagnostics ===")
+    logger.info("Python: %s", sys.version)
+    logger.info("TensorFlow: %s", tf.__version__)
+    logger.info("TF built with CUDA: %s", tf.test.is_built_with_cuda())
+    logger.info("Physical GPUs: %s", tf.config.list_physical_devices("GPU"))
+    logger.info("Physical CPUs: %s", tf.config.list_physical_devices("CPU"))
+
+    sm_keys = sorted(k for k in os.environ if k.startswith("SM_"))
+    mpi_keys = sorted(k for k in os.environ if k.startswith(("OMPI_", "PMIX_", "PMI_")))
+    logger.info("SM_* env vars: %s", {k: os.environ[k] for k in sm_keys})
+    logger.info("MPI env vars: %s", {k: os.environ[k] for k in mpi_keys})
+
+    try:
+        import mpi4py
+        from mpi4py import MPI as _mpi  # noqa: N811
+
+        logger.info("mpi4py: %s", mpi4py.__version__)
+        logger.info(
+            "MPI rank %d of %d on %s",
+            _mpi.COMM_WORLD.Get_rank(),
+            _mpi.COMM_WORLD.Get_size(),
+            _mpi.Get_processor_name(),
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.warning("mpi4py import/MPI init failed: %r", e)
+    logger.info("=== end diagnostics ===")
+
+
 def train(args):
+    _log_diagnostics()
+
     is_distributed = len(json.loads(os.environ.get("SM_HOSTS", "[]"))) > 1
 
     if is_distributed:

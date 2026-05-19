@@ -51,17 +51,20 @@ def test_cuda_runtime_version_matches_env():
 
     AL2023 nvidia/cuda images don't ship /usr/local/cuda/version.json. They DO
     ship a versioned directory like /usr/local/cuda-12.6 with /usr/local/cuda
-    as a symlink to it. Reading the symlink target gives us the major.minor
-    cleanly. Patch level isn't represented in the directory name (NVIDIA's
-    convention), so we only compare major.minor."""
+    pointing to it via the alternatives system: /usr/local/cuda is a symlink
+    to /etc/alternatives/cuda which is a symlink to /usr/local/cuda-12.6.
+    `os.path.realpath` follows the chain to the final target, where we can
+    parse the major.minor. Patch level isn't represented in the directory
+    name (NVIDIA's convention), so we only compare major.minor."""
     expected = ".".join(ENV["CUDA_VERSION"].split(".")[:2])  # e.g. "12.6"
-    target = os.readlink("/usr/local/cuda")  # e.g. "/usr/local/cuda-12.6" or "cuda-12.6"
-    # Extract trailing "X.Y" — robust to absolute vs relative symlink targets
+    # realpath resolves the full symlink chain — needed because AL2023 routes
+    # /usr/local/cuda through /etc/alternatives/cuda before reaching cuda-X.Y.
+    target = os.path.realpath("/usr/local/cuda")
     m = re.search(r"cuda-(\d+\.\d+)", target)
-    assert m is not None, f"Could not parse CUDA version from symlink target: {target}"
+    assert m is not None, f"Could not parse CUDA version from real path: {target}"
     actual = m.group(1)
     assert actual == expected, (
-        f"CUDA runtime mismatch: image has {actual} (symlink {target}), "
+        f"CUDA runtime mismatch: image has {actual} (real path {target}), "
         f"versions-cuda.env says {expected}"
     )
 
