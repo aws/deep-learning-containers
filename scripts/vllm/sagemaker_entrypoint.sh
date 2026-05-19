@@ -38,8 +38,9 @@ while IFS='=' read -r key value; do
     fi
 done < <(env | grep "^${PREFIX}")
 
-# Add SageMaker routing middleware to dispatch /invocations to the correct
-# vLLM endpoint based on the X-Amzn-SageMaker-Custom-Attributes header.
-ARGS+=(--middleware sagemaker_serve.SageMakerRouteMiddleware)
+# Add SageMaker routing middleware when available (amzn2023 image).
+if [ -f "/usr/local/bin/sagemaker_serve.py" ]; then
+    ARGS+=(--middleware sagemaker_serve.SageMakerRouteMiddleware)
+fi
 
 exec standard-supervisor python3 -m vllm.entrypoints.openai.api_server "${ARGS[@]}"

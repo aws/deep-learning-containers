@@ -42,7 +42,7 @@ ls -lh "${FIXTURES_DIR}"
 if [ -f "${MODEL_DIR}/requirements.txt" ]; then
   echo "=== Installing model dependencies ==="
   cat "${MODEL_DIR}/requirements.txt"
-  pip install -r "${MODEL_DIR}/requirements.txt" av
+  pip install --no-cache-dir -r "${MODEL_DIR}/requirements.txt"
 fi
 
 echo "=== Starting vLLM server ==="
