@@ -7,7 +7,9 @@ on:
     paths:
       - ".github/config/image/pytorch-*-ec2-cuda.yml"
       - ".github/workflows/pr-pytorch-ec2-cuda.yml"
-      - "docker/pytorch/**"
+      - "docker/pytorch/*/Dockerfile.cuda"
+      - "docker/pytorch/*/cuda/**"
+      - "docker/pytorch/*/versions-cuda.env"
       - "scripts/common/**"
       - "scripts/pytorch/**"
       - "scripts/telemetry/**"

@@ -7,7 +7,9 @@ on:
     paths:
       - ".github/config/image/pytorch-*-sagemaker-cpu.yml"
       - ".github/workflows/pr-pytorch-sagemaker-cpu.yml"
-      - "docker/pytorch/**"
+      - "docker/pytorch/*/Dockerfile.cpu"
+      - "docker/pytorch/*/cpu/**"
+      - "docker/pytorch/*/versions-cpu.env"
       - "scripts/common/**"
       - "scripts/pytorch/**"
       - "scripts/telemetry/**"
