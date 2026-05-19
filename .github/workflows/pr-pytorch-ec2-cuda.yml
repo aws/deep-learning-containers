@@ -157,6 +157,9 @@ jobs:
         id: config
         run: |
           CONFIG_FILE=".github/config/image/pytorch-${{ matrix.version }}-ec2-cuda.yml"
+          echo "Loading config from: ${CONFIG_FILE}"
+          cat "${CONFIG_FILE}"
+          echo "---"
           echo "framework=$(yq '.common.framework' $CONFIG_FILE)" >> $GITHUB_OUTPUT
           echo "framework-version=$(yq '.common.framework_version' $CONFIG_FILE)" >> $GITHUB_OUTPUT
           echo "python-version=$(yq '.common.python_version' $CONFIG_FILE)" >> $GITHUB_OUTPUT
