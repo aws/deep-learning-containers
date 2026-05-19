@@ -57,22 +57,47 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-WORKER_PORT = 12345
+WORKER_BASE_PORT = 12345
 
 
 def _build_tf_config():
-    """Construct the TF_CONFIG dict from SageMaker + MPI env vars."""
+    """Construct the TF_CONFIG dict from SageMaker + MPI env vars.
+
+    SageMaker's MPI() distribution launches ONE PROCESS PER GPU (or
+    process_count_per_node ranks per host). For ml.g4dn.12xlarge (4 GPUs)
+    × 2 nodes, that means 8 total ranks: 4 on algo-1, 4 on algo-2.
+
+    TF's MultiWorkerMirroredStrategy requires:
+      - cluster.worker has one (host:port) entry PER MPI RANK (8 total)
+      - each rank's port is unique on its host (avoid bind collisions)
+      - task.index matches OMPI_COMM_WORLD_RANK (the global rank)
+
+    We use base port 12345 + local rank to differentiate ports per host:
+      algo-1:12345 (rank 0), algo-1:12346 (rank 1), algo-1:12347 (rank 2), algo-1:12348 (rank 3)
+      algo-2:12345 (rank 4), algo-2:12346 (rank 5), algo-2:12347 (rank 6), algo-2:12348 (rank 7)
+    """
     hosts = json.loads(os.environ["SM_HOSTS"])
     current_host = os.environ["SM_CURRENT_HOST"]
 
-    # Prefer the rank mpirun assigned; fall back to the position in SM_HOSTS.
     rank_env = os.environ.get("OMPI_COMM_WORLD_RANK")
-    if rank_env is not None:
-        task_index = int(rank_env)
-    else:
-        task_index = hosts.index(current_host)
+    size_env = os.environ.get("OMPI_COMM_WORLD_SIZE")
 
-    cluster = {"worker": [f"{host}:{WORKER_PORT}" for host in hosts]}
+    if rank_env is None or size_env is None:
+        # Single-host fallback (no MPI). One worker per host.
+        worker_addrs = [f"{h}:{WORKER_BASE_PORT}" for h in hosts]
+        task_index = hosts.index(current_host)
+    else:
+        global_rank = int(rank_env)
+        world_size = int(size_env)
+        # Each host runs world_size / len(hosts) ranks (assumes uniform).
+        ranks_per_host = world_size // len(hosts)
+        worker_addrs = []
+        for host in hosts:
+            for local_rank in range(ranks_per_host):
+                worker_addrs.append(f"{host}:{WORKER_BASE_PORT + local_rank}")
+        task_index = global_rank
+
+    cluster = {"worker": worker_addrs}
     return {"cluster": cluster, "task": {"type": "worker", "index": task_index}}
 
 
