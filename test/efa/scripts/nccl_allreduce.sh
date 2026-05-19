@@ -52,6 +52,15 @@ check_efa_nccl_all_reduce_performance(){
     fi
 }
 
+echo "=== Debug: Environment and library info ==="
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+echo "CUDA_HOME=$CUDA_HOME"
+ls -la /opt/amazon/ofi-nccl/lib64/ 2>/dev/null || echo "/opt/amazon/ofi-nccl/lib64/ NOT FOUND"
+ls -la /usr/local/bin/all_reduce_perf 2>/dev/null || echo "all_reduce_perf NOT FOUND"
+fi_info -p efa 2>&1 | head -5 || echo "fi_info failed"
+echo "NCCL lib: $(ls /opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib/libnccl.so* 2>/dev/null || echo 'not found')"
+echo "=== End debug ==="
+
 echo "Running all_reduce_perf test"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
     -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
@@ -63,7 +72,10 @@ RETURN_VAL=${PIPESTATUS[0]}
 if [ ${RETURN_VAL} -eq 0 ]; then
     echo "check_efa_nccl_all_reduce passed"
 else
-    echo "check_efa_nccl_all_reduce failed"
+    echo "check_efa_nccl_all_reduce failed (exit code: ${RETURN_VAL})"
+    echo "=== Full NCCL log ==="
+    cat "${TRAINING_LOG}"
+    echo "=== End NCCL log ==="
 fi
 
 validate_all_reduce_performance_logs
