@@ -33,6 +33,7 @@ ARG MAX_JOBS=8
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
+ARG DLC_PYTORCH_VERSION
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
@@ -77,6 +78,7 @@ RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
 FROM builder-base AS builder-flash-attn
+ARG DLC_PYTORCH_VERSION
 ARG FLASH_ATTN_VERSION
 ARG MAX_JOBS
 
@@ -235,6 +237,7 @@ CMD ["bash"]
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
 FROM runtime-base AS sagemaker
+ARG DLC_PYTORCH_VERSION
 ARG TORCH_VERSION
 
 # SageMaker BYOC paths
