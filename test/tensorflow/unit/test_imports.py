@@ -42,8 +42,9 @@ def test_tensorflow_version_prefix():
 
 
 def test_sagemaker_sdk_v3():
-    import sagemaker
+    # SDK v3 dropped the `sagemaker.__version__` module attribute that v2 exposed.
+    # Use importlib.metadata, which reads from the installed package metadata.
+    import importlib.metadata
 
-    assert sagemaker.__version__.startswith("3."), (
-        f"expected sagemaker 3.x, got {sagemaker.__version__}"
-    )
+    version = importlib.metadata.version("sagemaker")
+    assert version.startswith("3."), f"expected sagemaker 3.x, got {version}"

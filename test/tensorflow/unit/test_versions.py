@@ -1,7 +1,6 @@
 """Verify installed package versions match pins from versions.env."""
 
 import importlib.metadata
-import json
 import os
 import re
 import sys
@@ -47,13 +46,52 @@ def test_python_version():
 
 
 @cuda_only
-def test_cuda_version():
-    """Read CUDA version from /usr/local/cuda/version.json (shipped by the
-    nvidia/cuda base image). Compare just major.minor — the patch level can
-    drift across base image refreshes without affecting binary compatibility."""
-    with open("/usr/local/cuda/version.json") as f:
-        data = json.load(f)
-    actual_full = data["cuda"]["version"]
-    actual = ".".join(actual_full.split(".")[:2])
-    expected = ".".join(ENV["CUDA_VERSION"].split(".")[:2])
-    assert actual == expected, f"Expected CUDA {expected}, got {actual_full}"
+def test_cuda_runtime_version_matches_env():
+    """Verify the CUDA runtime installed in the image matches versions-cuda.env.
+
+    AL2023 nvidia/cuda images don't ship /usr/local/cuda/version.json. They DO
+    ship a versioned directory like /usr/local/cuda-12.6 with /usr/local/cuda
+    as a symlink to it. Reading the symlink target gives us the major.minor
+    cleanly. Patch level isn't represented in the directory name (NVIDIA's
+    convention), so we only compare major.minor."""
+    expected = ".".join(ENV["CUDA_VERSION"].split(".")[:2])  # e.g. "12.6"
+    target = os.readlink("/usr/local/cuda")  # e.g. "/usr/local/cuda-12.6" or "cuda-12.6"
+    # Extract trailing "X.Y" — robust to absolute vs relative symlink targets
+    m = re.search(r"cuda-(\d+\.\d+)", target)
+    assert m is not None, f"Could not parse CUDA version from symlink target: {target}"
+    actual = m.group(1)
+    assert actual == expected, (
+        f"CUDA runtime mismatch: image has {actual} (symlink {target}), "
+        f"versions-cuda.env says {expected}"
+    )
+
+
+@cuda_only
+def test_tensorflow_cuda_compile_target_forward_compatible():
+    """Verify TF was compiled against a CUDA version forward-compatible with
+    our base image runtime.
+
+    NVIDIA's forward minor-version compatibility: code compiled against
+    CUDA X.Y can run on any runtime X.Z where Z >= Y, same major X.
+
+    TF 2.21 was compiled against CUDA 12.5; our base is 12.6+. This test
+    encodes that locked decision so we catch a future TF wheel that's
+    compiled against a CUDA version incompatible with our base image."""
+    import tensorflow as tf
+
+    build_info = tf.sysconfig.get_build_info()
+    tf_compile_cuda = build_info["cuda_version"]  # e.g. "12.5"
+    runtime_cuda = ".".join(ENV["CUDA_VERSION"].split(".")[:2])  # e.g. "12.6"
+
+    tf_major, tf_minor = (int(x) for x in tf_compile_cuda.split(".")[:2])
+    rt_major, rt_minor = (int(x) for x in runtime_cuda.split(".")[:2])
+
+    assert tf_major == rt_major, (
+        f"CUDA major mismatch: TF compiled against {tf_compile_cuda}, "
+        f"runtime is {runtime_cuda}. Forward-compat requires same major."
+    )
+    assert tf_minor <= rt_minor, (
+        f"TF compiled against newer CUDA than runtime: "
+        f"TF={tf_compile_cuda}, runtime={runtime_cuda}. "
+        f"Forward-compat requires TF compile-time minor <= runtime minor."
+    )
