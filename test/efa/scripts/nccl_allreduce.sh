@@ -6,10 +6,10 @@ set -ex
 NUM_HOSTS_FILE=$1
 NUM_HOSTS=$2
 
-if [[ -z "${CUDA_HOME}" ]]; then
-    echo "CUDA_HOME variable is empty, please define it in dockerfile"
-    exit 1
-fi
+# Default CUDA_HOME for images that don't export it (vLLM Ubuntu).
+# PyTorch DLCs already set this in the Dockerfile so this is a no-op there.
+: "${CUDA_HOME:=/usr/local/cuda}"
+export CUDA_HOME
 
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 INSTANCE_TYPE=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-type)

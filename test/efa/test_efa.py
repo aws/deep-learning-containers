@@ -3,6 +3,9 @@
 Launches 2x p4d.24xlarge with EFA, runs NCCL all_reduce_perf across nodes,
 and verifies EFA transport is used (not sockets).
 
+When RUN_NIXL_TESTS=1, additionally exercises NIXL's libfabric backend
+(packaging smoke test + multi-node disaggregated prefill/decode).
+
 Ported from V1: test/dlc_tests/ec2/test_efa.py + test/v2/ec2/efa/test_efa.py
 
 Usage:
@@ -15,12 +18,18 @@ from efa.ec2_helpers import (
     DEFAULT_TIMEOUT,
     HOSTS_FILE_LOCATION,
     MASTER_CONTAINER_NAME,
+    WORKER_CONTAINER_NAME,
     efa_instances,
     run_on_container,
 )
 
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 EFA_INSTANCE_TYPE = os.environ.get("EFA_INSTANCE_TYPE", "p4d.24xlarge")
+RUN_NIXL_TESTS = os.environ.get("RUN_NIXL_TESTS", "0") == "1"
+NIXL_MODEL = os.environ.get("NIXL_TEST_MODEL", "facebook/opt-125m")
+
+# vLLM startup + KV transfer + accuracy check.
+NIXL_DISAGG_TIMEOUT = 1200
 
 
 def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
@@ -41,6 +50,19 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         worker_conn,
         aws_session,
     ):
+        # No-op for PyTorch DLCs (binary is preinstalled); builds nccl-tests
+        # against the nvidia-nccl-cu12 wheel for vLLM Ubuntu.
+        for name, conn in (
+            (MASTER_CONTAINER_NAME, master_conn),
+            (WORKER_CONTAINER_NAME, worker_conn),
+        ):
+            run_on_container(
+                name,
+                conn,
+                "/test/efa/scripts/setup_nccl_tests.sh",
+                timeout=DEFAULT_TIMEOUT,
+            )
+
         # EFA sanity on master
         run_on_container(
             MASTER_CONTAINER_NAME,
@@ -54,4 +76,36 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             master_conn,
             f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
             timeout=DEFAULT_TIMEOUT,
+        )
+
+        if not RUN_NIXL_TESTS:
+            return
+
+        # Smoke: LIBFABRIC plugin loads and binds to the EFA libfabric provider.
+        # Cheap regression catch for nixl-cu* wheel packaging issues.
+        run_on_container(
+            MASTER_CONTAINER_NAME,
+            master_conn,
+            "python3 /test/efa/scripts/nixl_libfabric_smoke.py",
+        )
+
+        # Disaggregated prefill/decode across both nodes with NIXL+LIBFABRIC.
+        # The worker's private IP is already in the MPI hosts file written by
+        # the fixture (line 1 = localhost, line 2 = "<worker_ip> slots=N").
+        worker_ip = run_on_container(
+            MASTER_CONTAINER_NAME,
+            master_conn,
+            f"sed -n 2p {HOSTS_FILE_LOCATION} | cut -d ' ' -f1",
+        ).stdout.strip()
+
+        run_on_container(
+            WORKER_CONTAINER_NAME,
+            worker_conn,
+            f"/test/efa/scripts/nixl_disagg_pd_decode.sh {NIXL_MODEL}",
+        )
+        run_on_container(
+            MASTER_CONTAINER_NAME,
+            master_conn,
+            f"/test/efa/scripts/nixl_disagg_pd.sh {worker_ip} {NIXL_MODEL}",
+            timeout=NIXL_DISAGG_TIMEOUT,
         )

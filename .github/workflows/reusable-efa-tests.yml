@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: 'p4d.24xlarge'
+      run-nixl-tests:
+        description: 'Run NIXL libfabric smoke + disaggregated PD tests (vLLM only)'
+        required: false
+        type: boolean
+        default: false
 
 # Serialize EFA tests across all PRs to avoid p4d capacity contention.
 # Only one EFA test runs at a time globally; subsequent runs queue (no cancel).
@@ -53,4 +58,5 @@ jobs:
           PYTHONPATH=$(pwd)/test:$(pwd)/.github/scripts:$PYTHONPATH \
           TEST_IMAGE_URI=${{ inputs.image-uri }} \
           EFA_INSTANCE_TYPE=${{ inputs.efa-instance-type }} \
+          RUN_NIXL_TESTS=${{ inputs.run-nixl-tests && '1' || '0' }} \
           python -m pytest test/efa/test_efa.py -vs -rA --tb=long

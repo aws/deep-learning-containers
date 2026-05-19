@@ -8,11 +8,13 @@ on:
     paths:
       - ".github/config/image/vllm-ec2.yml"
       - ".github/workflows/pr-vllm-ec2.yml"
+      - ".github/workflows/reusable-efa-tests.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - "docker/vllm/Dockerfile"
       - "scripts/common/**"
       - "scripts/telemetry/**"
       - "scripts/vllm/**"
+      - "test/efa/**"
       - "test/sanity/**"
       - "test/telemetry/**"
       - "test/vllm/**"
@@ -241,3 +243,23 @@ jobs:
       setup-script: test/vllm/scripts/vllm_test_setup.sh
       example-test-script: test/vllm/scripts/vllm_ec2_examples_test.sh
     secrets: inherit
+
+  # ============================================================
+  # EFA integration test (2x p4d.24xlarge, NCCL over EFA).
+  # Reuses the shared EFA test (test/efa/test_efa.py); the test's
+  # setup_nccl_tests.sh builds nccl-tests in-container against the
+  # nvidia-nccl-cu12 wheel that ships in vllm/vllm-openai.
+  # Runs only when a new image was built — no value re-running EFA
+  # against the unchanged prod image on test-only PRs.
+  # ============================================================
+  efa-test:
+    needs: [build-image, sanity-test, security-test, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.build-image.result == 'success'
+    uses: ./.github/workflows/reusable-efa-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      run-nixl-tests: true
