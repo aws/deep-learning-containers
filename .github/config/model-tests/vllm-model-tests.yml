@@ -355,7 +355,7 @@ sagemaker:
       SM_VLLM_LOAD_FORMAT: "mistral"
       SM_VLLM_ENFORCE_EAGER: "true"
       SM_VLLM_MAX_MODEL_LEN: "8192"
-      STANDARD_PIP_ARGS: "--no-index --find-links /opt/ml/model/voxtral-mini-4b/requirements"
+      STANDARD_PIP_ARGS: "--no-index --find-links /opt/ml/model/requirements"
     test_cases:
       - name: "transcription-en-isolated"
         route: "/v1/audio/transcriptions"
