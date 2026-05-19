@@ -4,7 +4,7 @@ if [ -f /usr/local/bin/deep_learning_container.py ] && [[ -z "${OPT_OUT_TRACKING
     (
         python /usr/local/bin/deep_learning_container.py \
             --framework "huggingface_vllm_omni" \
-            --framework-version "0.18.0" \
+            --framework-version "0.20.0" \
             --container-type "general" \
             &>/dev/null &
     )

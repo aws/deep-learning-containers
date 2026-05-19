@@ -1,15 +1,17 @@
-ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-sagemaker-cuda-v1
+ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-sagemaker-cuda-v1.1
 FROM ${FINAL_BASE_IMAGE} AS vllm-base
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TRANSFORMERS_VERSION=4.57.6
-ARG HUGGINGFACE_HUB_VERSION=0.36.2
-ARG HF_XET_VERSION=1.4.2
+ARG TRANSFORMERS_VERSION=5.8.1
+ARG DIFFUSERS_VERSION=0.38.0
+ARG HUGGINGFACE_HUB_VERSION=1.15.0
+ARG HF_XET_VERSION=1.5.0
 
-RUN uv pip install --no-cache-dir \
+RUN uv pip install --no-cache-dir --prerelease=allow\
     transformers==${TRANSFORMERS_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
     huggingface-hub==${HUGGINGFACE_HUB_VERSION} \
     hf-xet==${HF_XET_VERSION} \
     grpcio
@@ -29,5 +31,11 @@ RUN HOME_DIR=/root \
     && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN uv pip install --no-cache-dir prettytable
+
+# Fix Mooncake Go gRPC CVEs
+# NOTE: This won't work, as mooncake-transfer-engine-cuda13 requires GLIBC 2.35, and the base image comes with GLIBC 2.34
+# RUN uv pip install --no-cache-dir mooncake-transfer-engine-cuda13==v0.3.10.post2
+# In the meantime, uninstall the Mooncake transfer engine to avoid dependency conflicts
+RUN uv pip uninstall mooncake-transfer-engine
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
