@@ -153,6 +153,13 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Install yq
+        run: |
+          if ! command -v yq &> /dev/null; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+
       - name: Load and parse config
         id: config
         run: |
