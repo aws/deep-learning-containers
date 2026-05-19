@@ -386,6 +386,44 @@ def release_eip(aws_session, alloc_id):
         LOGGER.warning(f"Failed to release EIP {alloc_id}: {e}")
 
 
+def cleanup_stale_efa_instances(aws_session, max_age_hours=4):
+    """Terminate EFA test instances older than max_age_hours and release their EIPs.
+
+    Prevents resource leaks from cancelled/crashed workflow runs that didn't reach cleanup.
+    """
+    from datetime import datetime, timezone
+
+    cutoff = datetime.now(timezone.utc).timestamp() - (max_age_hours * 3600)
+
+    try:
+        resp = aws_session.ec2.describe_instances(
+            Filters=[
+                {"Name": "tag:Name", "Values": ["CI-CD EFA efa-test"]},
+                {"Name": "instance-state-name", "Values": ["running", "stopped"]},
+            ]
+        )
+        for reservation in resp.get("Reservations", []):
+            for instance in reservation.get("Instances", []):
+                launch_time = instance["LaunchTime"].timestamp()
+                if launch_time < cutoff:
+                    instance_id = instance["InstanceId"]
+                    LOGGER.warning(
+                        f"Terminating stale EFA instance {instance_id} (launched {instance['LaunchTime']})"
+                    )
+                    aws_session.ec2.terminate_instances(InstanceIds=[instance_id])
+
+        # Release unassociated EIPs (leaked from terminated instances)
+        addresses = aws_session.ec2.describe_addresses().get("Addresses", [])
+        for addr in addresses:
+            if not addr.get("AssociationId") and addr.get("AllocationId"):
+                LOGGER.warning(
+                    f"Releasing orphaned EIP {addr['AllocationId']} ({addr.get('PublicIp', '')})"
+                )
+                release_eip(aws_session, addr["AllocationId"])
+    except Exception as e:
+        LOGGER.warning(f"Stale resource cleanup failed (non-fatal): {e}")
+
+
 @contextmanager
 def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION):
     """Context manager that launches 2 EFA instances, sets up containers + SSH, and cleans up.
@@ -395,6 +433,9 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     aws_session = AWSSessionManager(region=region)
     ami_id = aws_session.get_latest_ami()
     sg_id = get_efa_security_group_id(aws_session)
+
+    # Clean up leaked resources from previous cancelled/crashed runs
+    cleanup_stale_efa_instances(aws_session)
 
     key_name = None
     key_path = None
