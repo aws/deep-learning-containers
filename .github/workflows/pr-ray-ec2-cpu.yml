@@ -124,6 +124,8 @@ jobs:
             build-change:
               - ".github/config/image/ray-ec2-cpu.yml"
               - "docker/ray/Dockerfile.cpu"
+              - "docker/ray/pyproject.toml"
+              - "docker/ray/uv.lock"
               - "scripts/common/install_python.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
