@@ -331,4 +331,4 @@ jobs:
           TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
         run: |
-          pytest test/tensorflow/integration/sagemaker/test_sm_training_cuda.py -v
+          pytest test/tensorflow/integration/sagemaker/test_mnist_cuda.py -v
