@@ -10,10 +10,10 @@ behind a single HTTP endpoint.
 
 | Platform | Variant | Image | Default Port |
 | --- | --- | --- | --- |
-| EC2 / EKS | GPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-cuda` | 8000 |
-| EC2 / EKS | CPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-cpu` | 8000 |
-| Amazon SageMaker AI | GPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-sagemaker-cuda` | 8080 |
-| Amazon SageMaker AI | CPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-sagemaker-cpu` | 8080 |
+| {{ ec2_short }} / {{ eks_short }} | GPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-cuda` | 8000 |
+| {{ ec2_short }} / {{ eks_short }} | CPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-cpu` | 8000 |
+| {{ sagemaker }} | GPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-sagemaker-cuda` | 8080 |
+| {{ sagemaker }} | CPU | `public.ecr.aws/deep-learning-containers/ray:serve-ml-sagemaker-cpu` | 8080 |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/ray). For private ECR URIs, see
 [Image Access](../get_started/index.md).

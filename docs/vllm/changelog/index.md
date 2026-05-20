@@ -8,7 +8,10 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 **Tags:** `server-cuda-v1.3` · `server-sagemaker-cuda-v1.3`
 
-**vLLM source:** [3f5bd48](https://github.com/vllm-project/vllm/commit/3f5bd482f5c1a5dbdffbbf68d624e20bb7032013)
+**vLLM source:** [3f5bd48](https://github.com/vllm-project/vllm/commit/3f5bd482f5c1a5dbdffbbf68d624e20bb7032013) (`0.20.0.dev361+amzn2023.3f5bd482`)
+
+**Bundled versions:** CUDA 12.9.1 · Python 3.12 · FlashInfer 0.6.8.post1 · DeepEP commit 73b6ea4
+
 ### Highlights
 
 - **SageMaker standard-supervisor integration** — process auto-recovery on crash, dynamic dependency installation from `requirements.txt` in model
@@ -37,7 +40,10 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 **Tags:** `server-cuda-v1.2` · `server-sagemaker-cuda-v1.2`
 
-**vLLM source:** [8a8c9b5](https://github.com/vllm-project/vllm/commit/8a8c9b564ef015c76cf398200b8f0891e6e51bb8)
+**vLLM source:** [8a8c9b5](https://github.com/vllm-project/vllm/commit/8a8c9b564ef015c76cf398200b8f0891e6e51bb8) (`0.20.0.dev60+amzn2023.8a8c9b56`)
+
+**Bundled versions:** CUDA 12.9.1 · Python 3.12 · FlashInfer 0.6.8.post1 · DeepEP commit 73b6ea4
+
 ### Highlights
 
 - **DeepSeek V4 support** — full model support including Pro and Flash variants, multi-stream pre-attention GEMM, MLA + group FP8 fusion
@@ -64,7 +70,10 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 **Tags:** `server-cuda-v1.1` · `server-sagemaker-cuda-v1.1`
 
-**vLLM source:** [6ef1efd5](https://github.com/vllm-project/vllm/commit/6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e)
+**vLLM source:** [6ef1efd5](https://github.com/vllm-project/vllm/commit/6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e) (`0.19.1+amzn2023.6ef1efd5`)
+
+**Bundled versions:** CUDA 12.9.1 · Python 3.12 · FlashInfer 0.6.7 · LMCache 0.4.5.dev0 (custom build)
+
 ### Highlights
 
 - **LMCache bidirectional NIXL cache probe** — enables disaggregated prefill/decode (P/D) deployments with bidirectional cache querying between
@@ -82,7 +91,9 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 **Tags:** `server-cuda-v1.0` · `server-sagemaker-cuda-v1.0`
 
-**vLLM source:** [6ef1efd5](https://github.com/vllm-project/vllm/commit/6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e)
+**vLLM source:** [6ef1efd5](https://github.com/vllm-project/vllm/commit/6ef1efd51f11106fc44deb9e7b2f5cd1247fc37e) (`0.19.1+amzn2023.6ef1efd5`)
+
+**Bundled versions:** CUDA 12.9.1 · Python 3.12 · FlashInfer 0.6.7
 
 ### Highlights
 

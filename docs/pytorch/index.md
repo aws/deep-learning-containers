@@ -10,10 +10,10 @@ collectives, flash-attn and Transformer Engine for fused attention/FP8 kernels, 
 
 | Platform | Variant | Image |
 | --- | --- | --- |
-| EC2 / EKS | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023` |
-| EC2 / EKS | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cpu-amzn2023` |
-| Amazon SageMaker AI | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023-sagemaker` |
-| Amazon SageMaker AI | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cpu-amzn2023-sagemaker` |
+| {{ ec2_short }} / {{ eks_short }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023` |
+| {{ ec2_short }} / {{ eks_short }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cpu-amzn2023` |
+| {{ sagemaker }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023-sagemaker` |
+| {{ sagemaker }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cpu-amzn2023-sagemaker` |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/pytorch). For private ECR URIs, see
 [Image Access](../get_started/index.md).
@@ -40,7 +40,7 @@ The CPU variant includes the same PyTorch ecosystem plus `mpi4py`, `scipy`, `sci
 and GDRCopy are not present in the CPU image.
 
 The SageMaker variants additionally bundle `sagemaker`, `sagemaker-pytorch-training`, `sagemaker-training`, `mlflow`, `smclarify`, `s3fs`, `shap`,
-`pandas`, `seaborn`, and other SageMaker-specific dependencies.
+`pandas`, `seaborn`, and other {{ sm_short }}-specific dependencies.
 
 ## CUDA Forward Compatibility
 

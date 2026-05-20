@@ -7,8 +7,8 @@ ongoing security patching.
 
 | Platform | Image | Default Port |
 | --- | --- | --- |
-| EC2 / EKS | `public.ecr.aws/deep-learning-containers/vllm:server-cuda` | 8000 |
-| Amazon SageMaker AI | `public.ecr.aws/deep-learning-containers/vllm:server-sagemaker-cuda` | 8080 |
+| {{ ec2_short }} / {{ eks_short }} | `public.ecr.aws/deep-learning-containers/vllm:server-cuda` | 8000 |
+| {{ sagemaker }} | `public.ecr.aws/deep-learning-containers/vllm:server-sagemaker-cuda` | 8080 |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/vllm). For private ECR URIs, see
 [Image Access](../get_started/index.md).
@@ -24,7 +24,7 @@ In addition to vLLM and its core stack (PyTorch, CUDA 12.9, NCCL, Python 3.12), 
 - **[EFA](https://aws.amazon.com/hpc/efa/) and [OpenMPI](https://www.open-mpi.org/)** — high-throughput multi-node networking on supported instances
 
 The SageMaker image additionally includes [standard-supervisor](https://github.com/aws/model-hosting-container-standards) for process auto-recovery,
-custom handlers, and dependency installation. See [Amazon SageMaker AI Deployment](deployment/sagemaker.md) for details.
+custom handlers, and dependency installation. See [{{ sagemaker }} Deployment](deployment/sagemaker.md) for details.
 
 ## API Endpoints
 
