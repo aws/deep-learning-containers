@@ -8,6 +8,8 @@ on:
       - ".github/config/image/ray-sagemaker-cpu.yml"
       - ".github/workflows/pr-ray-sagemaker-cpu.yml"
       - "docker/ray/Dockerfile.cpu"
+      - "docker/ray/pyproject.toml"
+      - "docker/ray/uv.lock"
       - "scripts/common/**"
       - "scripts/ray/**"
       - "scripts/telemetry/**"

@@ -8,6 +8,8 @@ on:
       - ".github/config/image/ray-ec2-gpu.yml"
       - ".github/workflows/pr-ray-ec2-gpu.yml"
       - "docker/ray/Dockerfile.gpu"
+      - "docker/ray/pyproject.toml"
+      - "docker/ray/uv.lock"
       - "scripts/common/**"
       - "scripts/ray/**"
       - "scripts/telemetry/**"
