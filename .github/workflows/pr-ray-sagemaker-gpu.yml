@@ -8,6 +8,8 @@ on:
       - ".github/config/image/ray-sagemaker-gpu.yml"
       - ".github/workflows/pr-ray-sagemaker-gpu.yml"
       - "docker/ray/Dockerfile.gpu"
+      - "docker/ray/pyproject.toml"
+      - "docker/ray/uv.lock"
       - "scripts/common/**"
       - "scripts/ray/**"
       - "scripts/telemetry/**"
@@ -123,6 +125,8 @@ jobs:
             build-change:
               - ".github/config/image/ray-sagemaker-gpu.yml"
               - "docker/ray/Dockerfile.gpu"
+              - "docker/ray/pyproject.toml"
+              - "docker/ray/uv.lock"
               - "scripts/common/install_python.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
