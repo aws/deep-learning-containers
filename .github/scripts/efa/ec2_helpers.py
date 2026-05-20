@@ -275,7 +275,12 @@ def launch_efa_instances(aws_session, ami_id, instance_type, key_name, sg_id, co
 
 
 def setup_container(conn, image_uri, container_name):
-    """Pull image and start container with EFA devices and host networking."""
+    """Pull image and start container with EFA devices and host networking.
+
+    --entrypoint /bin/bash bypasses framework-specific entrypoints (e.g. vLLM's
+    dockerd_entrypoint.sh which would invoke `vllm serve bash` and crash). The
+    `sleep infinity` keeps the container alive for `docker exec` to land on.
+    """
     devices = get_efa_devices(conn)
     device_args = " ".join(f"--device {d}" for d in devices)
 
@@ -283,8 +288,9 @@ def setup_container(conn, image_uri, container_name):
     conn.run(
         f"docker run --runtime=nvidia --gpus all -id "
         f"--name {container_name} --network host --ulimit memlock=-1:-1 "
+        f"--entrypoint /bin/bash "
         f"{device_args} -v $HOME/test:/test -v /dev/shm:/dev/shm "
-        f"{image_uri} bash"
+        f"{image_uri} -c 'sleep infinity'"
     )
     LOGGER.info(f"Started container {container_name}")
 
