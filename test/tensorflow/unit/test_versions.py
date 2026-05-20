@@ -50,13 +50,13 @@ def test_cuda_runtime_version_matches_env():
     """Verify the CUDA runtime installed in the image matches versions-cuda.env.
 
     AL2023 nvidia/cuda images don't ship /usr/local/cuda/version.json. They DO
-    ship a versioned directory like /usr/local/cuda-12.6 with /usr/local/cuda
+    ship a versioned directory like /usr/local/cuda-12.9 with /usr/local/cuda
     pointing to it via the alternatives system: /usr/local/cuda is a symlink
-    to /etc/alternatives/cuda which is a symlink to /usr/local/cuda-12.6.
+    to /etc/alternatives/cuda which is a symlink to /usr/local/cuda-12.9.
     `os.path.realpath` follows the chain to the final target, where we can
     parse the major.minor. Patch level isn't represented in the directory
     name (NVIDIA's convention), so we only compare major.minor."""
-    expected = ".".join(ENV["CUDA_VERSION"].split(".")[:2])  # e.g. "12.6"
+    expected = ".".join(ENV["CUDA_VERSION"].split(".")[:2])  # e.g. "12.9"
     # realpath resolves the full symlink chain — needed because AL2023 routes
     # /usr/local/cuda through /etc/alternatives/cuda before reaching cuda-X.Y.
     target = os.path.realpath("/usr/local/cuda")
@@ -77,14 +77,14 @@ def test_tensorflow_cuda_compile_target_forward_compatible():
     NVIDIA's forward minor-version compatibility: code compiled against
     CUDA X.Y can run on any runtime X.Z where Z >= Y, same major X.
 
-    TF 2.21 was compiled against CUDA 12.5; our base is 12.6+. This test
+    TF 2.21 was compiled against CUDA 12.5; our base is 12.9+. This test
     encodes that locked decision so we catch a future TF wheel that's
     compiled against a CUDA version incompatible with our base image."""
     import tensorflow as tf
 
     build_info = tf.sysconfig.get_build_info()
     tf_compile_cuda = build_info["cuda_version"]  # e.g. "12.5"
-    runtime_cuda = ".".join(ENV["CUDA_VERSION"].split(".")[:2])  # e.g. "12.6"
+    runtime_cuda = ".".join(ENV["CUDA_VERSION"].split(".")[:2])  # e.g. "12.9"
 
     tf_major, tf_minor = (int(x) for x in tf_compile_cuda.split(".")[:2])
     rt_major, rt_minor = (int(x) for x in runtime_cuda.split(".")[:2])

@@ -1,5 +1,5 @@
 # ============================================================================
-# TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CUDA 12.6.3)
+# TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CUDA 12.9.1)
 # Multi-stage build:
 #   builder-base ──┬── builder-oss   (OSS license generation — isolated)
 #                  └── (TF wheel installs in builder-base via uv sync; no
@@ -14,7 +14,7 @@
 # ── Global ARGs (available to all stages) ───────────────────────────────────
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
-ARG CUDA_VERSION=12.6.3
+ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 ARG TF_VERSION=2.21.0
 ARG OPEN_MPI_VERSION=4.1.8
@@ -202,10 +202,10 @@ RUN rm -f /usr/local/cuda/bin/nvdisasm*
 
 # NOTE: Master's TF 2.19 GPU Dockerfile replaced libnvjpeg with 12.4.0.76 because
 # CUDA 12.5 shipped a newer libnvjpeg with an ABI TF couldn't dlopen. For
-# CUDA 12.6.3, `libnvjpeg-12-6` (12.3.3.54 as of writing) is dnf-installed above.
-# We try WITHOUT the master patch first; if TF 2.21's `tf.io.decode_jpeg` GPU
-# path fails with a libnvjpeg SOVERSION mismatch, re-introduce the patch
-# (see vllm/Dockerfile for a current working example).
+# CUDA 12.9.1, `libnvjpeg-12-9` is dnf-installed above. We try WITHOUT the master
+# patch first; if TF 2.21's `tf.io.decode_jpeg` GPU path fails with a libnvjpeg
+# SOVERSION mismatch, re-introduce the patch (see vllm/Dockerfile for a current
+# working example).
 
 # License file (S3 bucket pre-provisioned for tensorflow-2.21)
 RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.21/license.txt"

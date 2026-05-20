@@ -170,7 +170,7 @@ jobs:
         id: build-sagemaker
         run: |
           source docker/tensorflow/versions-cuda.env
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:tensorflow-training-${TF_VERSION}-gpu-py312-cu126-sagemaker-pr-${{ github.event.pull_request.number }}"
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:tensorflow-training-${TF_VERSION}-gpu-py312-cu129-sagemaker-pr-${{ github.event.pull_request.number }}"
 
           # Derive label values to match check_labels.py expectations
           FRAMEWORK_LABEL=$(echo "${{ needs.load-config.outputs.framework }}" | tr '_' '-')
