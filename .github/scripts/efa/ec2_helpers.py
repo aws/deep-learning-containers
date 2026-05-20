@@ -277,20 +277,32 @@ def launch_efa_instances(aws_session, ami_id, instance_type, key_name, sg_id, co
 def setup_container(conn, image_uri, container_name):
     """Pull image and start container with EFA devices and host networking.
 
-    --entrypoint /bin/bash bypasses framework-specific entrypoints (e.g. vLLM's
-    dockerd_entrypoint.sh which would invoke `vllm serve bash` and crash). The
-    `sleep infinity` keeps the container alive for `docker exec` to land on.
+    Image-specific entrypoint handling:
+    - vLLM (entrypoint = dockerd_entrypoint.sh which execs `vllm serve "$@"`):
+      the default `bash` arg gets parsed as a model_tag and the server crashes.
+      Override entrypoint to keep the container alive for docker exec.
+    - PyTorch (entrypoint = entrypoint.sh which sets LD_LIBRARY_PATH for CUDA
+      forward-compat then `exec "$@"`): keep entrypoint, pass `bash` so the
+      compat env var lands in the environment that NCCL+EFA later inherit.
+      Overriding it breaks NCCL on hosts with older CUDA drivers.
     """
     devices = get_efa_devices(conn)
     device_args = " ".join(f"--device {d}" for d in devices)
+
+    if "vllm" in image_uri.lower():
+        entrypoint_arg = "--entrypoint /bin/bash"
+        cmd = "-c 'sleep infinity'"
+    else:
+        entrypoint_arg = ""
+        cmd = "bash"
 
     conn.run(f"docker rm -f {container_name}", warn=True)
     conn.run(
         f"docker run --runtime=nvidia --gpus all -id "
         f"--name {container_name} --network host --ulimit memlock=-1:-1 "
-        f"--entrypoint /bin/bash "
+        f"{entrypoint_arg} "
         f"{device_args} -v $HOME/test:/test -v /dev/shm:/dev/shm "
-        f"{image_uri} -c 'sleep infinity'"
+        f"{image_uri} {cmd}"
     )
     LOGGER.info(f"Started container {container_name}")
 
