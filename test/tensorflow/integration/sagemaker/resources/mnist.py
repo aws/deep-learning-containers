@@ -123,14 +123,26 @@ def train(args):
 
     x_train, y_train = _load_mnist_subset(args.num_samples)
 
+    # Build the dataset using a `tf.distribute.InputOptions`-aware factory.
+    # MultiWorkerMirroredStrategy needs to control how the dataset is
+    # sharded across workers; the recommended pattern is to wrap dataset
+    # construction in `strategy.distribute_datasets_from_function` so each
+    # worker builds its own slice locally.
     global_batch_size = args.batch_size * max(strategy.num_replicas_in_sync, 1)
-    dataset = (
-        tf.data.Dataset.from_tensor_slices((x_train, y_train))
-        .shuffle(len(x_train))
-        .batch(global_batch_size)
-        .repeat()
-    )
-    steps_per_epoch = max(len(x_train) // global_batch_size, 1)
+    per_replica_batch = args.batch_size
+
+    def dataset_fn(input_context):
+        ds = (
+            tf.data.Dataset.from_tensor_slices((x_train, y_train))
+            .shuffle(len(x_train), seed=1)
+            .repeat()
+        )
+        # AUTO sharding splits the dataset across workers for us.
+        ds = ds.shard(
+            num_shards=input_context.num_input_pipelines,
+            index=input_context.input_pipeline_id,
+        )
+        return ds.batch(per_replica_batch)
 
     with strategy.scope():
         model = _build_model()
@@ -139,8 +151,12 @@ def train(args):
             loss=tf.keras.losses.SparseCategoricalCrossentropy(),
             metrics=["accuracy"],
         )
+        distributed_dataset = strategy.distribute_datasets_from_function(dataset_fn)
 
-    history = model.fit(dataset, epochs=args.epochs, steps_per_epoch=steps_per_epoch, verbose=2)
+    steps_per_epoch = max(len(x_train) // global_batch_size, 1)
+    history = model.fit(
+        distributed_dataset, epochs=args.epochs, steps_per_epoch=steps_per_epoch, verbose=2
+    )
     final_acc = float(history.history["accuracy"][-1])
     logger.info("Final training accuracy: %.4f", final_acc)
     assert final_acc > 0.5, f"training accuracy {final_acc:.4f} below 0.5 threshold"
