@@ -54,18 +54,10 @@ check_efa_nccl_all_reduce_performance(){
 }
 
 echo "Running all_reduce_perf test"
-# Force cuda-compat libcuda.so for forward compatibility with older host drivers.
-# Use the actual .so file (not symlink) and also preload libcudadebugger.
-COMPAT_DIR=/usr/local/cuda/compat
-LIBCUDA_REAL=$(readlink -f ${COMPAT_DIR}/libcuda.so.1)
-export LD_PRELOAD="${LIBCUDA_REAL}"
-echo "LD_PRELOAD=${LD_PRELOAD}"
-echo "Verifying compat libcuda loads:"
-python3 -c "import ctypes; lib=ctypes.CDLL('${LIBCUDA_REAL}'); print(f'Loaded: {lib._name}')" 2>&1 || echo "Failed to load compat libcuda"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
     -x NCCL_DEBUG=INFO -x NCCL_NET_PLUGIN=${NCCL_NET_PLUGIN:-ofi} \
     ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
-    -x LD_PRELOAD -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
+    -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
     -x NCCL_SOCKET_IFNAME=^lo --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
     /usr/local/bin/all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
 
