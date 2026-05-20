@@ -35,7 +35,7 @@ validate_all_reduce_performance_logs(){
     fi
 }
 
-check_efa_nccl_all_reduce_performance(){
+check_efa_nccl_all_reduce_performance_native(){
     # Match V1: col 11 on the 1 GiB row (in-place algbw).
     benchmark=$(cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{print $11}' | sed 's/ //' | sed 's/  5e-07//')
     echo "Benchmark throughput: ${benchmark}"
@@ -52,12 +52,42 @@ check_efa_nccl_all_reduce_performance(){
     fi
 }
 
-echo "Running all_reduce_perf test"
+check_efa_nccl_all_reduce_performance_torch(){
+    # torch_allreduce.py prints one JSON line on rank 0; pull bus_bw_GBps.
+    benchmark=$(grep -oE '"bus_bw_GBps":[ ]*[0-9.]+' "${TRAINING_LOG}" | tail -n1 | awk -F ':' '{print $2}' | tr -d ' ')
+    echo "Benchmark bus_bw (GB/s): ${benchmark}"
+    if [[ -z "${benchmark}" ]]; then
+        echo "benchmark variable is empty"
+        exit 1
+    fi
+    PERFORMANCE_THRESHOLD="3"
+    if [[ $(echo "$benchmark $PERFORMANCE_THRESHOLD" | awk '{print ($1 >= $2)}') == 1 ]]; then
+        echo "check_efa_nccl_all_reduce_performance passed"
+    else
+        echo "check_efa_nccl_all_reduce_performance failed"
+        exit 1
+    fi
+}
+
+# Pick implementation: native nccl-tests if preinstalled (PyTorch DLC),
+# otherwise torch.distributed (vLLM image — no nvcc/memory headroom to
+# build nccl-tests at test time).
+if [ -x /usr/local/bin/all_reduce_perf ]; then
+    BENCH_CMD="/usr/local/bin/all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100"
+    PERF_CHECK="check_efa_nccl_all_reduce_performance_native"
+else
+    MASTER_ADDR=$(head -1 ${NUM_HOSTS_FILE} | awk '{print $1}')
+    [ "${MASTER_ADDR}" = "localhost" ] && MASTER_ADDR=$(hostname -I | awk '{print $1}')
+    BENCH_CMD="-x MASTER_ADDR=${MASTER_ADDR} -x MASTER_PORT=29500 python3 /test/efa/scripts/torch_allreduce.py"
+    PERF_CHECK="check_efa_nccl_all_reduce_performance_torch"
+fi
+
+echo "Running NCCL all_reduce test"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
     -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
     -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
     -x NCCL_SOCKET_IFNAME=^lo --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
-    /usr/local/bin/all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
+    ${BENCH_CMD} 2>&1 | tee "${TRAINING_LOG}"
 
 RETURN_VAL=${PIPESTATUS[0]}
 if [ ${RETURN_VAL} -eq 0 ]; then
@@ -67,4 +97,4 @@ else
 fi
 
 validate_all_reduce_performance_logs
-check_efa_nccl_all_reduce_performance
+${PERF_CHECK}
