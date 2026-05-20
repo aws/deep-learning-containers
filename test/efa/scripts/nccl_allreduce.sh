@@ -52,13 +52,6 @@ check_efa_nccl_all_reduce_performance(){
     fi
 }
 
-echo "=== EFA/NCCL diagnostics ==="
-echo "NCCL_NET_PLUGIN=${NCCL_NET_PLUGIN:-<unset>}"
-echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-ls -la /opt/amazon/ofi-nccl/lib64/libnccl-net*.so* 2>/dev/null || echo "No libnccl-net*.so in /opt/amazon/ofi-nccl/lib64/"
-ldd /opt/amazon/ofi-nccl/lib64/libnccl-net-ofi.so 2>/dev/null | grep -i "not found" || true
-echo "=== End diagnostics ==="
-
 echo "Running all_reduce_perf test"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
     -x NCCL_DEBUG=INFO -x NCCL_NET_PLUGIN=${NCCL_NET_PLUGIN:-ofi} \

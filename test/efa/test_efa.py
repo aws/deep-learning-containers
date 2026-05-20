@@ -9,6 +9,7 @@ Usage:
     pytest test/efa/test_efa.py --image-uri <ecr-image-uri> -v
 """
 
+import logging
 import os
 
 from efa.ec2_helpers import (
@@ -18,6 +19,8 @@ from efa.ec2_helpers import (
     efa_instances,
     run_on_container,
 )
+
+LOGGER = logging.getLogger(__name__)
 
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 EFA_INSTANCE_TYPE = os.environ.get("EFA_INSTANCE_TYPE", "p4d.24xlarge")
@@ -41,6 +44,18 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         worker_conn,
         aws_session,
     ):
+        # Diagnostics: dump NCCL plugin state before running the test
+        diag = run_on_container(
+            MASTER_CONTAINER_NAME,
+            master_conn,
+            "echo NCCL_NET_PLUGIN=$NCCL_NET_PLUGIN && "
+            "ls -la /opt/amazon/ofi-nccl/lib64/ 2>&1 && "
+            "ldd /opt/amazon/ofi-nccl/lib64/libnccl-net-ofi.so 2>&1 && "
+            "echo --- && "
+            "ls -la /opt/amazon/ofi-nccl/lib64/libnccl-net.so 2>&1 || true",
+        )
+        LOGGER.info("=== NCCL plugin diagnostics ===\n%s", diag.stdout)
+
         # EFA sanity on master
         run_on_container(
             MASTER_CONTAINER_NAME,
