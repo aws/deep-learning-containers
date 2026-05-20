@@ -4,6 +4,7 @@ region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK vllm
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
 version: &VERSION "0.17.0"
+contributor: huggingface
 short_version: &SHORT_VERSION "0.17"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"

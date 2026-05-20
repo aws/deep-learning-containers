@@ -1,0 +1,47 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
+region: &REGION <set-$REGION-in-environment>
+base_framework: &BASE_FRAMEWORK vllm-omni
+framework: &FRAMEWORK huggingface_vllm_omni
+version: &VERSION "0.20.0"
+short_version: &SHORT_VERSION "0.20"
+arch_type: &ARCH_TYPE x86
+autopatch_build: "False"
+
+repository_info:
+  build_repository: &BUILD_REPOSITORY
+    image_type: &IMAGE_TYPE inference
+    root: huggingface/vllm-omni
+    repository_name: &REPOSITORY_NAME !join [ "pr", "-", "huggingface", "-", *BASE_FRAMEWORK ]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ "huggingface", "-", *BASE_FRAMEWORK ]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
+
+context:
+  build_context: &BUILD_CONTEXT
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
+
+images:
+  BuildHuggingFaceVllmOmniGpuPy312Cu130DockerImage:
+    <<: *BUILD_REPOSITORY
+    context:
+      <<: *BUILD_CONTEXT
+    image_size_baseline: 26000
+    device_type: &DEVICE_TYPE gpu
+    cuda_version: &CUDA_VERSION cu130
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    os_version: &OS_VERSION amzn2023
+    transformers_version: &TRANSFORMERS_VERSION 5.8.1
+    tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-', *CUDA_VERSION, '-', *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *CUDA_VERSION, /Dockerfile ]
+    target: sagemaker
+    build: true
+    enable_common_stage_build: false
+    test_configs:
+      test_platforms:
+        - sanity
+        - security
+        - sagemaker

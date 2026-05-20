@@ -160,7 +160,9 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     framework_major_version = framework_version.split(".")[0]
     job_type = get_job_type_from_image(image)
     framework = framework.replace("_trcomp", "").replace("stabilityai_", "")
-    if framework == "huggingface_vllm":
+    if framework == "huggingface_vllm_omni":
+        path = os.path.join("test", "sagemaker_tests", "huggingface", "vllm_omni")
+    elif framework == "huggingface_vllm":
         path = os.path.join("test", "sagemaker_tests", "huggingface", "vllm")
     elif framework == "huggingface_sglang":
         path = os.path.join("test", "sagemaker_tests", "huggingface", "sglang")
@@ -282,7 +284,9 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         )
     if framework == "tensorflow" and job_type == "training":
         path = os.path.join(os.path.dirname(path), f"{framework}{framework_major_version}_training")
-    if "huggingface" in framework and "vllm" in framework:
+    if framework == "huggingface_vllm_omni":
+        path = os.path.join("test", "sagemaker_tests", "huggingface", "vllm_omni")
+    elif "huggingface" in framework and "vllm" in framework:
         path = os.path.join("test", "sagemaker_tests", "huggingface", "vllm")
     elif "huggingface" in framework and "sglang" in framework:
         path = os.path.join("test", "sagemaker_tests", "huggingface", "sglang")
