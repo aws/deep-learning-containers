@@ -18,26 +18,45 @@ if [ -x /usr/local/bin/all_reduce_perf ]; then
     exit 0
 fi
 
-# Locate libnccl + headers. master's path (/usr/local) works on apt-based images;
-# fall back to the nvidia-nccl-cu* wheel's site-packages dir for vLLM.
-NCCL_HOME=/usr/local
-if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
-    WHEEL_DIR=$(python3 -c "import nvidia.nccl, os; print(os.path.dirname(nvidia.nccl.__file__))" 2>/dev/null || true)
-    if [ -n "${WHEEL_DIR}" ] && [ -f "${WHEEL_DIR}/include/nccl.h" ]; then
-        NCCL_HOME="${WHEEL_DIR}"
-        # Makefile links -lnccl, expects libnccl.so (no version suffix).
-        if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then
-            SONAME=$(basename "$(ls "${NCCL_HOME}"/lib/libnccl.so.* | head -1)")
+# Locate libnccl + headers. master's V1 path (/usr/local) works on apt-based
+# DLC images; nvidia-nccl-cu* wheel ships at <site-packages>/nvidia/nccl/{include,lib}
+# for vLLM (cu12 and cu13 wheels both use the same dir name).
+locate_nccl_home() {
+    if [ -f /usr/local/include/nccl.h ] && [ -e /usr/local/lib/libnccl.so ]; then
+        echo /usr/local
+        return 0
+    fi
+    local d
+    for d in $(python3 -c "import sys; [print(p) for p in sys.path]" 2>/dev/null | grep -E 'site-packages|dist-packages'); do
+        if [ -f "${d}/nvidia/nccl/include/nccl.h" ]; then
+            echo "${d}/nvidia/nccl"
+            return 0
+        fi
+    done
+    return 1
+}
+
+NCCL_HOME=$(locate_nccl_home)
+if [ -z "${NCCL_HOME}" ]; then
+    echo "ERROR: cannot locate nccl headers; tried /usr/local and nvidia-nccl-cu* wheels" >&2
+    echo "--- diagnostic: site-packages contents ---" >&2
+    python3 -c "import sys; [print(p) for p in sys.path]" >&2 || true
+    find / -name nccl.h 2>/dev/null | head -10 >&2 || true
+    exit 1
+fi
+echo "Using NCCL_HOME=${NCCL_HOME}"
+
+# Wheel layout: ensure libnccl.so symlink exists and the lib dir is on the loader
+# path. Apt layout (/usr/local) already has both via ldconfig.
+if [ "${NCCL_HOME}" != /usr/local ]; then
+    if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then
+        SONAME=$(basename "$(ls "${NCCL_HOME}"/lib/libnccl.so.* 2>/dev/null | head -1)")
+        if [ -n "${SONAME}" ]; then
             ln -s "${SONAME}" "${NCCL_HOME}/lib/libnccl.so"
         fi
-        # mpirun children need to find libnccl.so.2 — wheel dir isn't on the
-        # default loader path.
-        echo "${NCCL_HOME}/lib" >/etc/ld.so.conf.d/nvidia-nccl.conf
-        ldconfig
-    else
-        echo "ERROR: cannot locate nccl headers"
-        exit 1
     fi
+    echo "${NCCL_HOME}/lib" >/etc/ld.so.conf.d/nvidia-nccl.conf
+    ldconfig
 fi
 
 cd /tmp
