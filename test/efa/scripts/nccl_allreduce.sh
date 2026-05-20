@@ -11,11 +11,6 @@ if [[ -z "${CUDA_HOME}" ]]; then
     exit 1
 fi
 
-# CUDA forward compatibility: prepend compat libs if host driver is older
-if [ -f /usr/local/cuda/compat/libcuda.so.1 ]; then
-    export LD_LIBRARY_PATH=/usr/local/cuda/compat:${LD_LIBRARY_PATH}
-    echo "CUDA compat enabled: /usr/local/cuda/compat prepended to LD_LIBRARY_PATH"
-fi
 
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 INSTANCE_TYPE=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-type)
