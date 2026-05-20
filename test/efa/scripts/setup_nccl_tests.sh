@@ -42,11 +42,41 @@ if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
 fi
 echo "Using NCCL_HOME=${NCCL_HOME}"
 
+# Pre-build diagnostics so failures have actionable evidence.
+echo "=== pre-build state ==="
+free -h || true
+df -h / /tmp || true
+nproc || true
+cat /sys/fs/cgroup/memory.max 2>/dev/null || \
+    cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || true
+echo "======================="
+
+# On failure (including SIGKILL), dump everything we can to surface the cause.
+trap '
+RC=$?
+echo "=== post-build (RC=$RC) ===" >&2
+free -h >&2 || true
+df -h / /tmp >&2 || true
+ls -la /tmp/nccl-tests/build/*.o /tmp/nccl-tests/build/verifiable/ 2>/dev/null >&2 || true
+cat /sys/fs/cgroup/memory.peak 2>/dev/null >&2 || \
+    cat /sys/fs/cgroup/memory/memory.max_usage_in_bytes 2>/dev/null >&2 || true
+echo "==========================" >&2
+exit $RC
+' EXIT
+
+# Single-arch + serial build: avoids any cgroup memory headroom issues from
+# parallel nvcc/cicc forks. p4d hosts default to compute_80; build for that
+# only — nccl-tests default targets ~9 archs, peak memory >2× higher.
+SM=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -1 | tr -d '.')
+[ -z "${SM}" ] && SM=80  # safe default for p4d
+NVCC_GENCODE="-gencode=arch=compute_${SM},code=sm_${SM}"
+
 cd /tmp
 rm -rf nccl-tests
 git clone --depth 1 https://github.com/NVIDIA/nccl-tests.git
 cd nccl-tests
-make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" CUDA_HOME=/usr/local/cuda
+make -j1 MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" \
+    CUDA_HOME=/usr/local/cuda NVCC_GENCODE="${NVCC_GENCODE}"
 cp build/all_reduce_perf /usr/local/bin/all_reduce_perf
 cd /tmp
 rm -rf nccl-tests
