@@ -111,5 +111,9 @@
     {
         "vulnerability_id": "CVE-2026-42499",
         "reason": "go/stdlib 1.24.13 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild"
+    },
+    {
+        "vulnerability_id": "CVE-2026-44222",
+        "reason": "False positive: image ships vllm 0.20.0.dev361 (361 commits after v0.20.0 which contains the fix). PEP 440 dev version string causes scanner to report as pre-release."
     }
 ]
