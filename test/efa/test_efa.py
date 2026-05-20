@@ -58,7 +58,7 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             "echo --- && "
             "nvidia-smi -L 2>&1 || true && "
             "echo --- && "
-            'python3 -c \'import torch; print(f"CUDA available: {torch.cuda.is_available()}"); print(f"Device count: {torch.cuda.device_count()}")\' 2>&1 || true',
+            "python3 -c \"import torch; print('CUDA available:', torch.cuda.is_available()); print('Device count:', torch.cuda.device_count())\" 2>&1 || true",
         )
         print(f"=== CUDA/NCCL diagnostics (master) ===\n{diag.stdout}")
 
