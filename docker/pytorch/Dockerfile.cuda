@@ -229,7 +229,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 # when the host driver is older than the toolkit version (CUDA 13.0).
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
   LD_LIBRARY_PATH="/usr/local/cuda/compat:/opt/venv/lib/python3.12/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}" \
-  NCCL_NET_PLUGIN=ofi
 
 EXPOSE 22
 WORKDIR /workspace
@@ -295,7 +294,6 @@ RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 # PATH and LD_LIBRARY_PATH
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
   LD_LIBRARY_PATH="/usr/local/cuda/compat:/opt/venv/lib/python3.12/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python3.12/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}" \
-  NCCL_NET_PLUGIN=ofi
 
 EXPOSE 22
 WORKDIR /workspace
