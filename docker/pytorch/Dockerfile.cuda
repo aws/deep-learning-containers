@@ -204,8 +204,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 # Security patch — run after all installers so every OS package is covered
 RUN dnf upgrade -y --security --releasever latest \
-  && echo "Skipping cuda-compat upgrade to avoid mismatch with host driver" \
-  && rm -f /etc/ld.so.conf.d/cuda-compat.conf \
+  && dnf upgrade -y cuda-compat-* \
+  && echo "/usr/local/cuda/compat" >/etc/ld.so.conf.d/cuda-compat.conf \
   && ldconfig \
   && dnf clean all
 
@@ -273,8 +273,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 # Security patch
 RUN dnf upgrade -y --security --releasever latest \
-  && echo "Skipping cuda-compat upgrade to avoid mismatch with host driver" \
-  && rm -f /etc/ld.so.conf.d/cuda-compat.conf \
+  && dnf upgrade -y cuda-compat-* \
+  && echo "/usr/local/cuda/compat" >/etc/ld.so.conf.d/cuda-compat.conf \
   && ldconfig \
   && dnf clean all
 
