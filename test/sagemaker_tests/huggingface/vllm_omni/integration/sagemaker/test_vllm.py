@@ -23,9 +23,22 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
 
-VLLM_OMNI_TEST_DIR = Path(__file__).resolve().parents[2]
+CURRENT_FILE = Path(__file__).resolve()
+VLLM_OMNI_TEST_DIR = CURRENT_FILE.parents[2]
 if str(VLLM_OMNI_TEST_DIR) not in sys.path:
     sys.path.insert(0, str(VLLM_OMNI_TEST_DIR))
+
+REPO_ROOT = next(
+    parent
+    for parent in CURRENT_FILE.parents
+    if (parent / "test" / "sagemaker_tests").exists()
+)
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+SRC_ROOT = REPO_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
 
 from integration import dump_logs_from_cloudwatch
 from integration.sagemaker.timeout import timeout_and_delete_endpoint
