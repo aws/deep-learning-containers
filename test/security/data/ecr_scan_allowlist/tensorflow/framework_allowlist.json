@@ -1,0 +1,134 @@
+[
+    {
+        "vulnerability_id": "CVE-2024-21538",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2024-52798",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2025-0725",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2025-12758",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2025-59840",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2025-64756",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2025-69873",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-2391",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24001",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24842",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-26960",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-26996",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27903",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27904",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33671",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33750",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33937",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33938",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33939",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33940",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33941",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34043",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-41907",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-45736",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-4800",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-4867",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-5773",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-6276",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-6321",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "CVE-2026-6322",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "GHSA-5c6j-r48x-rmvq",
+        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    }
+]

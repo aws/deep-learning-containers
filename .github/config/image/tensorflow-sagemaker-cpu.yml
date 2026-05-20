@@ -1,0 +1,23 @@
+image:
+  name: "tensorflow-sagemaker-cpu"
+  description: "TensorFlow CPU training for SageMaker"
+common:
+  framework: "tensorflow"
+  framework_version: "2.21.0"
+  job_type: "training"
+  python_version: "py312"
+  cuda_version: ""
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  prod_image: "tensorflow:2.21-cpu-amzn2023-sagemaker"
+  device_type: "cpu"
+  contributor: "None"
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: false
+  enable_soci: false
+  environment: production
