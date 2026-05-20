@@ -1,14 +1,20 @@
 """SageMaker CPU training integration tests for TensorFlow DLC.
 
-Uses SageMaker Python SDK v3 (ModelTrainer API) with `MPI()` distribution +
-`MultiWorkerMirroredStrategy` (RING collective on CPU).
+Uses SageMaker Python SDK v3 (ModelTrainer API). For multi-host distributed
+training we rely on TF's native `MultiWorkerMirroredStrategy` which uses
+TF_CONFIG + gRPC (no MPI). The training script reads SM_HOSTS / SM_CURRENT_HOST
+and constructs TF_CONFIG itself; SageMaker spawns one process per host
+automatically when distributed=None.
+
+We deliberately avoid SDK v3's MPI() distribution: its mpi_driver passes
+process_count_per_node directly as `-np` without multiplying by host_count,
+so multi-node training never gets the intended global rank count.
 """
 
 import os
 
 from sagemaker.core.training.configs import Compute, SourceCode
 from sagemaker.train import ModelTrainer
-from sagemaker.train.distributed import MPI
 from test_utils import random_suffix_name
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
@@ -43,9 +49,10 @@ def _run_sm_training(
         role=os.environ.get("SM_ROLE_ARN"),
         base_job_name=random_suffix_name(job_name_prefix, 32),
         hyperparameters=hyperparameters or {},
-        # CPU instances have 0 GPUs; MPI defaults process_count_per_node to GPU
-        # count, so set to 1 explicitly to launch one rank per node.
-        distributed=MPI(process_count_per_node=1) if instance_count > 1 else None,
+        # No MPI/torchrun launcher — SageMaker spawns one process per host;
+        # the training script builds TF_CONFIG and lets MultiWorkerMirrored
+        # Strategy handle inter-host gRPC.
+        distributed=None,
     )
 
     model_trainer.train(wait=True)

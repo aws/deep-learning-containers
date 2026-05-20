@@ -3,9 +3,15 @@
 Uses SageMaker Python SDK v3 (ModelTrainer API).
 
 Minimal test set covering P0 functionalities:
-  F1: Distributed training with NCCL (test_mnist_distributed_gpu) — uses
-      `MultiWorkerMirroredStrategy` over MPI; the strategy auto-selects NCCL
-      for collectives when GPUs are present.
+  F1: Distributed training (test_mnist_distributed_gpu) — uses
+      `MultiWorkerMirroredStrategy` driven by TF_CONFIG (no MPI launcher).
+      MultiWorkerMirroredStrategy auto-selects NCCL on multi-GPU hosts.
+
+We deliberately avoid SDK v3's MPI() distribution: its mpi_driver passes
+process_count_per_node directly as `-np` without multiplying by host_count,
+so multi-node never gets the intended global rank count. SageMaker spawns
+one process per host when distributed=None; that one process then sees all
+visible GPUs as a single MultiWorkerMirrored worker.
 
 Tests launch real SageMaker training jobs — no GPU needed on the runner.
 """
@@ -14,7 +20,6 @@ import os
 
 from sagemaker.core.training.configs import Compute, SourceCode
 from sagemaker.train import ModelTrainer
-from sagemaker.train.distributed import MPI
 from test_utils import random_suffix_name
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
@@ -51,9 +56,10 @@ def _run_sm_training(
         base_job_name=random_suffix_name(job_name_prefix, 32),
         hyperparameters=hyperparameters or {},
         environment=environment or {},
-        # MPI defaults process_count_per_node to GPU count; ml.g4dn.12xlarge
-        # has 4 GPUs per node, so we get 4 ranks per node × 2 nodes = 8 ranks.
-        distributed=MPI() if instance_count > 1 else None,
+        # No MPI/torchrun launcher — SageMaker spawns one process per host;
+        # the training script builds TF_CONFIG and lets MultiWorkerMirrored
+        # Strategy use all visible GPUs on each host as a single worker.
+        distributed=None,
     )
 
     model_trainer.train(wait=True)
