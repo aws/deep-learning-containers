@@ -324,7 +324,7 @@ sagemaker:
     instance_type: "ml.g5.xlarge"
     required_image_pattern: "amzn2023"
     env:
-      SM_VLLM_MODEL: "/opt/ml/model/voxtral-mini-4b"
+      SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_TOKENIZER_MODE: "mistral"
       SM_VLLM_CONFIG_FORMAT: "mistral"
       SM_VLLM_LOAD_FORMAT: "mistral"
@@ -340,7 +340,7 @@ sagemaker:
           file_name: "test.wav"
           file_content_type: "audio/wav"
           fields:
-            model: "/opt/ml/model/voxtral-mini-4b"
+            model: "/opt/ml/model"
         validate: "json_field:text"
 
   - name: "voxtral-mini-4b-network-isolated"
@@ -349,7 +349,7 @@ sagemaker:
     required_image_pattern: "amzn2023"
     network_isolation: true
     env:
-      SM_VLLM_MODEL: "/opt/ml/model/voxtral-mini-4b"
+      SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_TOKENIZER_MODE: "mistral"
       SM_VLLM_CONFIG_FORMAT: "mistral"
       SM_VLLM_LOAD_FORMAT: "mistral"
@@ -366,6 +366,6 @@ sagemaker:
           file_name: "test.wav"
           file_content_type: "audio/wav"
           fields:
-            model: "/opt/ml/model/voxtral-mini-4b"
+            model: "/opt/ml/model"
         validate: "json_field:text"
 
