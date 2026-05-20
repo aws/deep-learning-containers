@@ -17,6 +17,7 @@ from efa.ec2_helpers import (
     HOSTS_FILE_LOCATION,
     MASTER_CONTAINER_NAME,
     efa_instances,
+    get_efa_security_group_id,
     run_on_container,
 )
 
@@ -53,6 +54,17 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             "ls -la /opt/amazon/ofi-nccl/lib64/libnccl-net.so 2>&1 || true",
         )
         print(f"=== NCCL plugin diagnostics (master) ===\n{diag.stdout}")
+
+        # Dump SG rules to check for missing all-traffic self-referencing rule
+        sg_id = get_efa_security_group_id(aws_session)
+        sg_resp = aws_session.ec2.describe_security_groups(GroupIds=[sg_id])
+        sg = sg_resp["SecurityGroups"][0]
+        print(f"=== Security Group {sg_id} rules ===")
+        for rule in sg.get("IpPermissions", []):
+            print(f"  IN: {rule}")
+        for rule in sg.get("IpPermissionsEgress", []):
+            print(f"  OUT: {rule}")
+        print("=== End SG rules ===")
 
         # EFA sanity on master
         run_on_container(
