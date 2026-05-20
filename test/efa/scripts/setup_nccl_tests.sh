@@ -18,46 +18,29 @@ if [ -x /usr/local/bin/all_reduce_perf ]; then
     exit 0
 fi
 
-# Locate libnccl + headers. master's V1 path (/usr/local) works on apt-based
-# DLC images; nvidia-nccl-cu* wheel ships at <site-packages>/nvidia/nccl/{include,lib}
-# for vLLM (cu12 and cu13 wheels both use the same dir name).
-locate_nccl_home() {
-    if [ -f /usr/local/include/nccl.h ] && [ -e /usr/local/lib/libnccl.so ]; then
-        echo /usr/local
-        return 0
-    fi
-    local d
-    for d in $(python3 -c "import sys; [print(p) for p in sys.path]" 2>/dev/null | grep -E 'site-packages|dist-packages'); do
-        if [ -f "${d}/nvidia/nccl/include/nccl.h" ]; then
-            echo "${d}/nvidia/nccl"
-            return 0
-        fi
-    done
-    return 1
-}
+# Locate libnccl headers. master's V1 builds NCCL from source into /usr/local
+# (heavy, but produces well-behaved headers). Building against the
+# nvidia-nccl-cu13 wheel headers OOMed nvcc on verifiable.cu — the wheel ships
+# headers from a different NCCL build with much heavier template expansion.
+#
+# Cheapest reliable workaround: install libnccl-dev from the cuda apt repo at
+# test time. Same NCCL version the image runs against, "thin" headers like
+# master's, ~50MB transient install, removed at end of test by container
+# teardown.
+NCCL_HOME=/usr
+if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
+    echo "Installing libnccl-dev from apt..."
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
+    apt-get install -y --no-install-recommends libnccl-dev
+fi
 
-NCCL_HOME=$(locate_nccl_home)
-if [ -z "${NCCL_HOME}" ]; then
-    echo "ERROR: cannot locate nccl headers; tried /usr/local and nvidia-nccl-cu* wheels" >&2
-    echo "--- diagnostic: site-packages contents ---" >&2
-    python3 -c "import sys; [print(p) for p in sys.path]" >&2 || true
-    find / -name nccl.h 2>/dev/null | head -10 >&2 || true
+if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
+    echo "ERROR: nccl.h still not present after apt install" >&2
+    apt list --installed 2>/dev/null | grep -i nccl >&2 || true
     exit 1
 fi
 echo "Using NCCL_HOME=${NCCL_HOME}"
-
-# Wheel layout: ensure libnccl.so symlink exists and the lib dir is on the loader
-# path. Apt layout (/usr/local) already has both via ldconfig.
-if [ "${NCCL_HOME}" != /usr/local ]; then
-    if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then
-        SONAME=$(basename "$(ls "${NCCL_HOME}"/lib/libnccl.so.* 2>/dev/null | head -1)")
-        if [ -n "${SONAME}" ]; then
-            ln -s "${SONAME}" "${NCCL_HOME}/lib/libnccl.so"
-        fi
-    fi
-    echo "${NCCL_HOME}/lib" >/etc/ld.so.conf.d/nvidia-nccl.conf
-    ldconfig
-fi
 
 cd /tmp
 rm -rf nccl-tests
