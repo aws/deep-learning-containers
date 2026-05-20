@@ -52,6 +52,20 @@ check_efa_nccl_all_reduce_performance(){
     fi
 }
 
+echo "==================== EFA / NCCL diagnostics ===================="
+echo "--- nvidia-smi ---"
+nvidia-smi -L || true
+echo "--- libnccl resolution ---"
+ldconfig -p | grep libnccl || echo "(no libnccl in ldconfig)"
+ldd /usr/local/bin/all_reduce_perf | grep -E "nccl|cuda|fabric" || true
+echo "--- libfabric provider list ---"
+fi_info -p efa 2>&1 | head -20 || true
+echo "--- aws-ofi-nccl plugin ---"
+ls -la /opt/amazon/ofi-nccl/lib*/libnccl-net*.so 2>&1 | head -5 || true
+echo "--- /etc/ld.so.conf.d ---"
+ls /etc/ld.so.conf.d/ 2>&1
+echo "==================== end diagnostics ===================="
+
 echo "Running all_reduce_perf test"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
     -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
@@ -65,6 +79,13 @@ if [ ${RETURN_VAL} -eq 0 ]; then
 else
     echo "check_efa_nccl_all_reduce failed"
 fi
+
+# Always dump the full mpirun + NCCL_DEBUG log so a failing run has actionable
+# evidence in pytest's captured output (the file lives only in the master
+# container which gets torn down on test exit).
+echo "==================== BEGIN ${TRAINING_LOG} ===================="
+cat "${TRAINING_LOG}" 2>/dev/null || echo "(log file missing)"
+echo "==================== END ${TRAINING_LOG} ===================="
 
 validate_all_reduce_performance_logs
 check_efa_nccl_all_reduce_performance
