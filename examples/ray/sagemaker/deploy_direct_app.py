@@ -1,6 +1,10 @@
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 
+# RAYSERVE_NUM_GPUS is a user-defined convention used by this example's
+# deployment.py to set ray_actor_options.num_gpus on the Serve deployment.
+# The DLC image does not read it; it's only meaningful if your deployment.py
+# reads it via os.getenv("RAYSERVE_NUM_GPUS").
 model = Model(
     image_uri="763104351884.dkr.ecr.us-west-2.amazonaws.com/ray:serve-ml-sagemaker-cuda",
     role="arn:aws:iam::<ACCOUNT>:role/SageMakerExecutionRole",

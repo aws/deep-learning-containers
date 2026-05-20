@@ -34,6 +34,16 @@
   color: var(--aws-sky) !important;
 }
 
+/* Sidebar section titles ("User Guide", "vLLM", etc.) — make them darker for readability */
+[data-md-color-scheme="default"] .md-nav__title {
+  color: #000000 !important;
+  font-weight: 700;
+}
+[data-md-color-scheme="slate"] .md-nav__title {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
 /* Table Horizontal Scroll */
 .md-typeset table:not([class]) {
   display: block;

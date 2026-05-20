@@ -14,23 +14,20 @@ LOGGER.setLevel(logging.INFO)
 
 class TestGenerateAll:
     def test_calls_all_generators(self):
-        """Test generate_all calls all three generators."""
+        """Test generate_all calls all generators."""
         LOGGER.debug("Testing generate_all calls all generators")
         with patch("generate.generate_support_policy") as mock_support:
             with patch("generate.generate_available_images") as mock_images:
-                with patch("generate.generate_release_notes") as mock_release:
-                    generate_all(dry_run=True)
-                    mock_support.assert_called_once_with(True)
-                    mock_images.assert_called_once_with(True)
-                    mock_release.assert_called_once_with(True)
+                generate_all(dry_run=True)
+                mock_support.assert_called_once_with(True)
+                mock_images.assert_called_once_with(True)
         LOGGER.info("generate_all test passed")
 
     def test_dry_run_no_writes(self, mock_display_names, tmp_path):
         LOGGER.debug(f"Testing dry_run doesn't write to: {tmp_path}")
         with patch("generate.REFERENCE_DIR", tmp_path):
-            with patch("generate.RELEASE_NOTES_DIR", tmp_path / "releasenotes"):
-                generate_all(dry_run=True)
-                assert list(tmp_path.iterdir()) == []
+            generate_all(dry_run=True)
+            assert list(tmp_path.iterdir()) == []
         LOGGER.info("generate_all dry_run test passed")
 
 
