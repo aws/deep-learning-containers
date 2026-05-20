@@ -50,8 +50,10 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         worker_conn,
         aws_session,
     ):
-        # No-op for PyTorch DLCs (binary is preinstalled); builds nccl-tests
-        # against the nvidia-nccl-cu12 wheel for vLLM Ubuntu.
+        # No-op for PyTorch DLCs (binary is preinstalled); apt-installs
+        # libnccl-dev (if missing) and compiles nccl-tests for vLLM Ubuntu.
+        # verifiable.cu is template-heavy and the build legitimately takes
+        # ~13 min, hence the larger timeout vs DEFAULT_TIMEOUT (600s).
         for name, conn in (
             (MASTER_CONTAINER_NAME, master_conn),
             (WORKER_CONTAINER_NAME, worker_conn),
@@ -60,7 +62,7 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
                 name,
                 conn,
                 "/test/efa/scripts/setup_nccl_tests.sh",
-                timeout=DEFAULT_TIMEOUT,
+                timeout=1500,
             )
 
         # EFA sanity on master
