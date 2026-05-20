@@ -11,13 +11,11 @@ Usage:
 
 import os
 
-import pytest
 from efa.ec2_helpers import (
     DEFAULT_TIMEOUT,
     HOSTS_FILE_LOCATION,
     MASTER_CONTAINER_NAME,
     efa_instances,
-    get_efa_security_group_id,
     run_on_container,
 )
 
@@ -43,32 +41,6 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         worker_conn,
         aws_session,
     ):
-        # Diagnostics: dump NCCL plugin state and CUDA driver info
-        diag = run_on_container(
-            MASTER_CONTAINER_NAME,
-            master_conn,
-            "echo NCCL_NET_PLUGIN=$NCCL_NET_PLUGIN && "
-            "ldconfig -p | grep libcuda 2>&1 && "
-            "echo --- && "
-            "ls -la /usr/local/cuda/compat/libcuda* 2>&1 && "
-            "echo --- && "
-            "cat /etc/ld.so.conf.d/cuda*.conf 2>&1 || true && "
-            "echo --- && "
-            "nvidia-smi --query-gpu=driver_version --format=csv,noheader --id=0 2>&1 || true",
-        )
-        print(f"=== CUDA/NCCL diagnostics (master) ===\n{diag.stdout}")
-
-        # Dump SG rules to check for missing all-traffic self-referencing rule
-        sg_id = get_efa_security_group_id(aws_session)
-        sg_resp = aws_session.ec2.describe_security_groups(GroupIds=[sg_id])
-        sg = sg_resp["SecurityGroups"][0]
-        print(f"=== Security Group {sg_id} rules ===")
-        for rule in sg.get("IpPermissions", []):
-            print(f"  IN: {rule}")
-        for rule in sg.get("IpPermissionsEgress", []):
-            print(f"  OUT: {rule}")
-        print("=== End SG rules ===")
-
         # EFA sanity on master
         run_on_container(
             MASTER_CONTAINER_NAME,
@@ -76,26 +48,10 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             "/test/efa/scripts/efa_sanity.sh",
         )
 
-        # NCCL all_reduce across 2 nodes — capture failure details
-        result = run_on_container(
+        # NCCL all_reduce across 2 nodes
+        run_on_container(
             MASTER_CONTAINER_NAME,
             master_conn,
             f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
             timeout=DEFAULT_TIMEOUT,
-            warn=True,
         )
-        if result.failed:
-            print(f"=== NCCL allreduce FAILED (exit code {result.return_code}) ===")
-            print(f"=== stdout ===\n{result.stdout}")
-            print(f"=== stderr ===\n{result.stderr}")
-            log_dump = run_on_container(
-                MASTER_CONTAINER_NAME,
-                master_conn,
-                "cat /test/efa/logs/testEFA.log 2>&1 || echo 'Log file empty or missing'",
-                warn=True,
-            )
-            print(f"=== testEFA.log ===\n{log_dump.stdout}")
-            pytest.fail(
-                f"NCCL allreduce failed with exit code {result.return_code}. "
-                f"See stdout above for details."
-            )

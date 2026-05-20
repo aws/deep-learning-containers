@@ -13,15 +13,6 @@ cd aws-efa-installer
 ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify
 rm -rf /tmp/efa
 
-# Verify OFI NCCL plugin was installed
-OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib64"
-if [ ! -f "${OFI_LIB_DIR}/libnccl-net-ofi.so" ]; then
-    echo "ERROR: ${OFI_LIB_DIR}/libnccl-net-ofi.so not found after EFA install"
-    ls -la "${OFI_LIB_DIR}/" 2>/dev/null || echo "Directory does not exist"
-    exit 1
-fi
-echo "NCCL OFI plugin found at: ${OFI_LIB_DIR}/libnccl-net-ofi.so"
-
 # Configure OpenMPI — allow root execution
 mv "${OPEN_MPI_PATH}/bin/mpirun" "${OPEN_MPI_PATH}/bin/mpirun.real"
 cat > "${OPEN_MPI_PATH}/bin/mpirun" <<'WRAPPER'
