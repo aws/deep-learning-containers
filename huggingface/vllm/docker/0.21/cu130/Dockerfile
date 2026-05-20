@@ -1,23 +1,23 @@
-ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.20.2-gpu-py312-cu130-ubuntu22.04-sagemaker
+ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.21.0-gpu-py312-cu130-ubuntu22.04-sagemaker
 FROM ${FINAL_BASE_IMAGE} AS vllm-base
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TRANSFORMERS_VERSION=5.8.0
-ARG HUGGINGFACE_HUB_VERSION=1.14.0
-ARG HF_XET_VERSION=1.4.3
+ARG TRANSFORMERS_VERSION=5.8.1
+ARG HUGGINGFACE_HUB_VERSION=1.15.0
+ARG HF_XET_VERSION=1.5.0
 
 RUN apt-get update -y \
 && apt-get install -y --no-install-recommends curl unzip \
 && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir \
+RUN uv pip install --system \
     transformers==${TRANSFORMERS_VERSION} \
     huggingface-hub==${HUGGINGFACE_HUB_VERSION} \
     hf-xet==${HF_XET_VERSION} \
-    grpcio>=1.79.3
+    grpcio>=1.79.3 \
+    && uv cache clean
 
 FROM vllm-base AS sagemaker
 
@@ -69,7 +69,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Fix CVE-2026-33186 by installing mooncake-transfer-engine with a patched gRPC-go version
-RUN pip install --no-cache-dir mooncake-transfer-engine==0.3.10.post2
+RUN uv pip install --system mooncake-transfer-engine==0.3.10.post2
 
 # Fix CVE-2026-35385 / CVE-2026-35414 / CVE-2026-35386
 RUN apt-get update \
