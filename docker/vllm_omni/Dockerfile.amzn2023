@@ -316,6 +316,20 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
 # strip when bumping to a stable 0.21.0.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install --prerelease=allow vllm-omni==${VLLM_OMNI_VERSION}
 
+# Pin transformers <5.9.0. vllm-omni 0.21.0rc1's qwen3_tts module calls
+# create_causal_mask(input_embeds=...). The kwarg was renamed to
+# `inputs_embeds` in transformers 5.5.1 with a deprecated `input_embeds`
+# alias kept in place — versions 5.5.1..5.8.1 still accept the call with a
+# deprecation warning. transformers 5.9.0 (released 2026-05-20, see
+# https://github.com/huggingface/transformers/releases/tag/v5.9.0) dropped
+# the @deprecate_kwarg("input_embeds", ...) decorator from
+# src/transformers/masking_utils.py, breaking qwen3-tts smoke tests with:
+#     TypeError: create_causal_mask() got an unexpected keyword argument 'input_embeds'
+# vllm core 0.21.0's pin (>=4.56.0, !=5.0..5.4, !=5.5.0) is too loose — pip
+# resolves to 5.9.x. Cap ourselves at <5.9.0 until vllm-omni updates the
+# call site to use `inputs_embeds`.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --force-reinstall --no-deps "transformers>=4.56.0,<5.9.0"
+
 # =============================================================================
 # STAGE: builder-oss-omni — OSS compliance for omni venv
 # =============================================================================
