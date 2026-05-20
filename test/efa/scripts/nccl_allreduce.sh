@@ -52,19 +52,27 @@ check_efa_nccl_all_reduce_performance(){
     fi
 }
 
-echo "==================== EFA / NCCL diagnostics ===================="
-echo "--- nvidia-smi ---"
-nvidia-smi -L || true
-echo "--- libnccl resolution ---"
-ldconfig -p | grep libnccl || echo "(no libnccl in ldconfig)"
-ldd /usr/local/bin/all_reduce_perf | grep -E "nccl|cuda|fabric" || true
-echo "--- libfabric provider list ---"
-fi_info -p efa 2>&1 | head -20 || true
-echo "--- aws-ofi-nccl plugin ---"
-ls -la /opt/amazon/ofi-nccl/lib*/libnccl-net*.so 2>&1 | head -5 || true
-echo "--- /etc/ld.so.conf.d ---"
-ls /etc/ld.so.conf.d/ 2>&1
-echo "==================== end diagnostics ===================="
+# Capture diagnostics to a file we cat at the very end. invoke/Fabric truncate
+# the .stdout of a failing remote command to the last few KB, so anything
+# printed before mpirun gets dropped. Stage it through a file and dump after
+# the validators run.
+DIAG_LOG="/test/efa/logs/diagnostics.log"
+{
+    echo "==================== EFA / NCCL diagnostics ===================="
+    echo "--- nvidia-smi ---"
+    nvidia-smi -L || true
+    echo "--- libnccl resolution ---"
+    ldconfig -p | grep libnccl || echo "(no libnccl in ldconfig)"
+    echo "--- ldd all_reduce_perf ---"
+    ldd /usr/local/bin/all_reduce_perf 2>&1 | grep -E "nccl|cuda|fabric|not found" || true
+    echo "--- libfabric provider list ---"
+    fi_info -p efa 2>&1 | head -20 || true
+    echo "--- aws-ofi-nccl plugin ---"
+    ls -la /opt/amazon/ofi-nccl/lib*/libnccl-net*.so 2>&1 | head -5 || true
+    echo "--- /etc/ld.so.conf.d ---"
+    ls /etc/ld.so.conf.d/ 2>&1
+    echo "==================== end diagnostics ===================="
+} > "${DIAG_LOG}" 2>&1
 
 echo "Running all_reduce_perf test"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
@@ -82,7 +90,12 @@ fi
 
 # Always dump the full mpirun + NCCL_DEBUG log so a failing run has actionable
 # evidence in pytest's captured output (the file lives only in the master
-# container which gets torn down on test exit).
+# container which gets torn down on test exit). Diagnostics file too — it
+# was written before mpirun and would have been truncated by Fabric otherwise.
+echo "==================== BEGIN ${DIAG_LOG} ===================="
+cat "${DIAG_LOG}" 2>/dev/null || echo "(diagnostics file missing)"
+echo "==================== END ${DIAG_LOG} ===================="
+
 echo "==================== BEGIN ${TRAINING_LOG} ===================="
 cat "${TRAINING_LOG}" 2>/dev/null || echo "(log file missing)"
 echo "==================== END ${TRAINING_LOG} ===================="
