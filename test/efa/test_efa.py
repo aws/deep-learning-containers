@@ -43,17 +43,20 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         worker_conn,
         aws_session,
     ):
-        # Diagnostics: dump NCCL plugin state and network info
+        # Diagnostics: dump NCCL plugin state and CUDA driver info
         diag = run_on_container(
             MASTER_CONTAINER_NAME,
             master_conn,
             "echo NCCL_NET_PLUGIN=$NCCL_NET_PLUGIN && "
-            "ls -la /opt/amazon/ofi-nccl/lib64/ 2>&1 && "
-            "ldd /opt/amazon/ofi-nccl/lib64/libnccl-net-ofi.so 2>&1 && "
+            "ldconfig -p | grep libcuda 2>&1 && "
             "echo --- && "
-            "ls -la /opt/amazon/ofi-nccl/lib64/libnccl-net.so 2>&1 || true",
+            "ls -la /usr/local/cuda/compat/libcuda* 2>&1 && "
+            "echo --- && "
+            "cat /etc/ld.so.conf.d/cuda*.conf 2>&1 || true && "
+            "echo --- && "
+            "nvidia-smi --query-gpu=driver_version --format=csv,noheader --id=0 2>&1 || true",
         )
-        print(f"=== NCCL plugin diagnostics (master) ===\n{diag.stdout}")
+        print(f"=== CUDA/NCCL diagnostics (master) ===\n{diag.stdout}")
 
         # Dump SG rules to check for missing all-traffic self-referencing rule
         sg_id = get_efa_security_group_id(aws_session)
