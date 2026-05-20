@@ -202,6 +202,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && rm /tmp/bash_telemetry.sh.template
 
+ARG CACHE_REFRESH=0
 # Security patch — run after all installers so every OS package is covered
 RUN dnf upgrade -y --security --releasever latest --exclude='cuda-compat-*' \
   && echo "/usr/local/cuda/compat" >/etc/ld.so.conf.d/cuda-compat.conf \
