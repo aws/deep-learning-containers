@@ -1,26 +1,54 @@
 #!/bin/bash
-# Verify the EFA test has a working all_reduce implementation.
+# Build NVIDIA nccl-tests' all_reduce_perf at test time.
 #
-# - PyTorch DLCs bake nccl-tests' all_reduce_perf at build time → preferred.
-# - vLLM Ubuntu doesn't bake the binary, and building nccl-tests at test time
-#   OOM-kills nvcc on the test host (verifiable.cu is template-heavy and peaks
-#   at >8GB). Instead, nccl_allreduce.sh falls back to torch.distributed which
-#   exercises the same NCCL→aws-ofi-nccl→EFA path without any compilation.
+# Mirrors master's test/dlc_tests/container_tests/bin/efa/build_all_reduce_perf.sh:
+# the binary is NOT baked into images (PyTorch DLC included) — it's compiled
+# inside the test container on every run. Works because the test container
+# runs on a p4d.24xlarge (~1TB RAM) which absorbs nccl-tests' template-heavy
+# verifiable.cu compile.
 #
-# Both paths are validated by nccl_allreduce.sh; this script just sanity-checks
-# that one of them is available.
+# Behavior:
+# - PyTorch DLC: NCCL_HOME=/usr/local works because libnccl-dev was apt-installed.
+# - vLLM Ubuntu: nvidia-nccl-cu12 wheel ships headers + libs in site-packages;
+#   the install_efa.sh path leaves build-essential in place.
 set -ex
 
 if [ -x /usr/local/bin/all_reduce_perf ]; then
-    echo "all_reduce_perf preinstalled at /usr/local/bin/all_reduce_perf"
+    echo "all_reduce_perf already present at /usr/local/bin/all_reduce_perf"
     exit 0
 fi
 
-if python3 -c "import torch.distributed" >/dev/null 2>&1 \
-    && [ -f /test/efa/scripts/torch_allreduce.py ]; then
-    echo "torch.distributed all_reduce path available"
-    exit 0
+# Locate libnccl + headers. master's path (/usr/local) works on apt-based images;
+# fall back to the nvidia-nccl-cu* wheel's site-packages dir for vLLM.
+NCCL_HOME=/usr/local
+if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
+    WHEEL_DIR=$(python3 -c "import nvidia.nccl, os; print(os.path.dirname(nvidia.nccl.__file__))" 2>/dev/null || true)
+    if [ -n "${WHEEL_DIR}" ] && [ -f "${WHEEL_DIR}/include/nccl.h" ]; then
+        NCCL_HOME="${WHEEL_DIR}"
+        # Makefile links -lnccl, expects libnccl.so (no version suffix).
+        if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then
+            SONAME=$(basename "$(ls "${NCCL_HOME}"/lib/libnccl.so.* | head -1)")
+            ln -s "${SONAME}" "${NCCL_HOME}/lib/libnccl.so"
+        fi
+        # mpirun children need to find libnccl.so.2 — wheel dir isn't on the
+        # default loader path.
+        echo "${NCCL_HOME}/lib" >/etc/ld.so.conf.d/nvidia-nccl.conf
+        ldconfig
+    else
+        echo "ERROR: cannot locate nccl headers"
+        exit 1
+    fi
 fi
 
-echo "ERROR: neither all_reduce_perf nor torch.distributed is available"
-exit 1
+cd /tmp
+rm -rf nccl-tests
+git clone --depth 1 https://github.com/NVIDIA/nccl-tests.git
+cd nccl-tests
+make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" CUDA_HOME=/usr/local/cuda
+cp build/all_reduce_perf /usr/local/bin/all_reduce_perf
+cd /tmp
+rm -rf nccl-tests
+
+/usr/local/bin/all_reduce_perf --help >/dev/null 2>&1 || \
+    { ldd /usr/local/bin/all_reduce_perf; exit 1; }
+echo "Built /usr/local/bin/all_reduce_perf"
