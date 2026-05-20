@@ -52,9 +52,17 @@ check_efa_nccl_all_reduce_performance(){
     fi
 }
 
+echo "=== EFA/NCCL diagnostics ==="
+echo "NCCL_NET_PLUGIN=${NCCL_NET_PLUGIN:-<unset>}"
+echo "LD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
+ls -la /opt/amazon/ofi-nccl/lib64/libnccl-net*.so* 2>/dev/null || echo "No libnccl-net*.so in /opt/amazon/ofi-nccl/lib64/"
+ldd /opt/amazon/ofi-nccl/lib64/libnccl-net-ofi.so 2>/dev/null | grep -i "not found" || true
+echo "=== End diagnostics ==="
+
 echo "Running all_reduce_perf test"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
-    -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
+    -x NCCL_DEBUG=INFO -x NCCL_NET_PLUGIN=${NCCL_NET_PLUGIN:-ofi} \
+    ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
     -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
     -x NCCL_SOCKET_IFNAME=^lo --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
     /usr/local/bin/all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100 2>&1 | tee "${TRAINING_LOG}"
