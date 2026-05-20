@@ -88,17 +88,27 @@ else
     echo "check_efa_nccl_all_reduce failed"
 fi
 
-# Always dump the full mpirun + NCCL_DEBUG log so a failing run has actionable
-# evidence in pytest's captured output (the file lives only in the master
-# container which gets torn down on test exit). Diagnostics file too — it
-# was written before mpirun and would have been truncated by Fabric otherwise.
+# Dump training log first (it can be huge on success and we don't need it on
+# failure — mpirun's stdout was already captured), then the most actionable
+# diagnostics LAST so they survive Fabric's stdout truncation.
+echo "==================== BEGIN ${TRAINING_LOG} ===================="
+cat "${TRAINING_LOG}" 2>/dev/null || echo "(log file missing)"
+echo "==================== END ${TRAINING_LOG} ===================="
+
 echo "==================== BEGIN ${DIAG_LOG} ===================="
 cat "${DIAG_LOG}" 2>/dev/null || echo "(diagnostics file missing)"
 echo "==================== END ${DIAG_LOG} ===================="
 
-echo "==================== BEGIN ${TRAINING_LOG} ===================="
-cat "${TRAINING_LOG}" 2>/dev/null || echo "(log file missing)"
-echo "==================== END ${TRAINING_LOG} ===================="
+# These are the smallest, highest-signal probes — placed last so the
+# truncated tail Fabric retains will always show them.
+echo "==================== final probes ===================="
+echo "--- ldd all_reduce_perf (libnccl resolution) ---"
+ldd /usr/local/bin/all_reduce_perf 2>&1 | grep -E "nccl|cuda|fabric|not found" || true
+echo "--- libnccl SONAMES on system ---"
+find / -name 'libnccl.so*' 2>/dev/null | head -10
+echo "--- aws-ofi-nccl plugin paths ---"
+ls -la /opt/amazon/ofi-nccl/lib*/libnccl-net*.so 2>&1
+echo "==================== end ===================="
 
 validate_all_reduce_performance_logs
 check_efa_nccl_all_reduce_performance
