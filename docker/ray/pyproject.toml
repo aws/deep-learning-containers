@@ -14,6 +14,7 @@ dependencies = [
     "pillow==12.2.0",
     "pyyaml==6.0.3",
     "ray[serve]==2.55.1",
+    "urllib3==2.2.1",
     "scikit-learn==1.8.0",
     "soundfile==0.13.1",
     "torch==2.10.0",
