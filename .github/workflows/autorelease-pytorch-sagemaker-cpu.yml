@@ -2,9 +2,14 @@ name: Auto Release - PyTorch SageMaker CPU
 
 on:
   schedule:
-    - cron: '00 17 * * 1,3'
-
+    - cron: '00 17 * * 1,3'   # PyTorch 2.11 — Mon/Wed 9:00 AM PST
+    # - cron: '10 17 * * 1,3' # PyTorch 2.12 — Mon/Wed 9:10 AM PST (future)
   workflow_dispatch:
+    inputs:
+      config-file:
+        description: "Config file path (e.g., .github/config/image/pytorch-2.11-sagemaker-cpu.yml)"
+        required: true
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}
@@ -15,10 +20,29 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/image/pytorch-sagemaker-cpu.yml"
 
 jobs:
+  determine-config:
+    runs-on: ubuntu-latest
+    outputs:
+      config-file: ${{ steps.config.outputs.config-file }}
+    steps:
+      - name: Determine config file
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "config-file=${{ inputs.config-file }}" >> $GITHUB_OUTPUT
+          else
+            CRON="${{ github.event.schedule }}"
+            case "$CRON" in
+              "00 17 * * 1,3") echo "config-file=.github/config/image/pytorch-2.11-sagemaker-cpu.yml" >> $GITHUB_OUTPUT ;;
+              # "10 17 * * 1,3") echo "config-file=.github/config/image/pytorch-2.12-sagemaker-cpu.yml" >> $GITHUB_OUTPUT ;;
+              *) echo "::error::Unknown cron: $CRON"; exit 1 ;;
+            esac
+          fi
+
   load-config:
+    needs: [determine-config]
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
@@ -41,7 +65,7 @@ jobs:
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: ${{ env.CONFIG_FILE }}
+          config-file: ${{ needs.determine-config.outputs.config-file }}
 
       - name: Parse configuration
         id: parse
@@ -83,7 +107,8 @@ jobs:
       - name: Build sagemaker image
         id: build-sagemaker
         run: |
-          source docker/pytorch/versions-cpu.env
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          source docker/pytorch/${VERSION}/versions-cpu.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-${TORCH_VERSION}-cpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-${{ github.run_id }}"
 
           # Derive label values to match check_labels.py expectations
@@ -92,6 +117,7 @@ jobs:
           OS_LABEL=$(echo "${{ needs.load-config.outputs.os-version }}" | tr '.' '-')
 
           docker buildx build --progress plain \
+            --build-arg DLC_PYTORCH_VERSION=${VERSION} \
             --build-arg FRAMEWORK=${{ needs.load-config.outputs.framework }} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
@@ -110,7 +136,7 @@ jobs:
             --tag ${CI_IMAGE_URI} \
             --push \
             --target sagemaker \
-            -f docker/pytorch/Dockerfile.cpu .
+            -f docker/pytorch/${VERSION}/Dockerfile.cpu .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
@@ -154,7 +180,7 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   unit-test:
-    needs: [build-image]
+    needs: [load-config, build-image]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -171,10 +197,11 @@ jobs:
 
       - name: Run unit tests
         run: |
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
           IMAGE="${{ needs.build-image.outputs.ci-image }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir \
+            -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=${VERSION} \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q

@@ -16,6 +16,7 @@
 # ============================================================================
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG DLC_PYTORCH_VERSION=2.11
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG CUDA_VERSION=13.0.2
@@ -32,6 +33,7 @@ ARG MAX_JOBS=8
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
+ARG DLC_PYTORCH_VERSION
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
@@ -46,14 +48,14 @@ ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-COPY docker/pytorch/cuda/pyproject.toml docker/pytorch/cuda/uv.lock /tmp/build/
+COPY docker/pytorch/${DLC_PYTORCH_VERSION}/cuda/pyproject.toml docker/pytorch/${DLC_PYTORCH_VERSION}/cuda/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
 # transformer-engine requires torch + cudnn.h at build time; point it to the
 # cudnn headers shipped inside the nvidia-cudnn pip package.
 ARG TRANSFORMER_ENGINE_VERSION
-COPY docker/pytorch/wheel[s]/ /tmp/wheels/
+COPY docker/pytorch/${DLC_PYTORCH_VERSION}/wheel[s]/ /tmp/wheels/
 RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
   NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
   cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ && \
@@ -76,13 +78,14 @@ RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
 FROM builder-base AS builder-flash-attn
+ARG DLC_PYTORCH_VERSION
 ARG FLASH_ATTN_VERSION
 ARG MAX_JOBS
 
 # If a cached wheel exists in the build context, install it; otherwise build from source.
 # When building from source, the wheel is saved to /tmp/built_wheels/ for later S3 upload.
-# docker/pytorch/wheels/ is created by CI (fetch_cached_wheels.sh); may not exist locally.
-COPY docker/pytorch/cuda/pyproject.toml docker/pytorch/wheel[s]/ /tmp/wheels/
+# docker/pytorch/${DLC_PYTORCH_VERSION}/wheels/ is created by CI (fetch_cached_wheels.sh); may not exist locally.
+COPY docker/pytorch/${DLC_PYTORCH_VERSION}/cuda/pyproject.toml docker/pytorch/${DLC_PYTORCH_VERSION}/wheel[s]/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
   mkdir -p /tmp/built_wheels && \
   WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \
@@ -234,6 +237,7 @@ CMD ["bash"]
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
 FROM runtime-base AS sagemaker
+ARG DLC_PYTORCH_VERSION
 ARG TORCH_VERSION
 
 # SageMaker BYOC paths
@@ -244,7 +248,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 # SageMaker packages (defined in cuda/pyproject.toml [project.optional-dependencies.sagemaker])
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
-COPY docker/pytorch/cuda/pyproject.toml docker/pytorch/cuda/uv.lock /tmp/build/
+COPY docker/pytorch/${DLC_PYTORCH_VERSION}/cuda/pyproject.toml docker/pytorch/${DLC_PYTORCH_VERSION}/cuda/uv.lock /tmp/build/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
   && rm -rf /tmp/build /tmp/uv-*
 

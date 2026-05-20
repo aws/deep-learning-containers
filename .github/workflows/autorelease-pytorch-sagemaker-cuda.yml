@@ -2,9 +2,14 @@ name: Auto Release - PyTorch SageMaker CUDA
 
 on:
   schedule:
-    - cron: '00 17 * * 1,3'
-
+    - cron: '00 17 * * 1,3'   # PyTorch 2.11 — Mon/Wed 9:00 AM PST
+    # - cron: '10 17 * * 1,3' # PyTorch 2.12 — Mon/Wed 9:10 AM PST (future)
   workflow_dispatch:
+    inputs:
+      config-file:
+        description: "Config file path (e.g., .github/config/image/pytorch-2.11-sagemaker-cuda.yml)"
+        required: true
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}
@@ -15,10 +20,29 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/image/pytorch-sagemaker-cuda.yml"
 
 jobs:
+  determine-config:
+    runs-on: ubuntu-latest
+    outputs:
+      config-file: ${{ steps.config.outputs.config-file }}
+    steps:
+      - name: Determine config file
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "config-file=${{ inputs.config-file }}" >> $GITHUB_OUTPUT
+          else
+            CRON="${{ github.event.schedule }}"
+            case "$CRON" in
+              "00 17 * * 1,3") echo "config-file=.github/config/image/pytorch-2.11-sagemaker-cuda.yml" >> $GITHUB_OUTPUT ;;
+              # "10 17 * * 1,3") echo "config-file=.github/config/image/pytorch-2.12-sagemaker-cuda.yml" >> $GITHUB_OUTPUT ;;
+              *) echo "::error::Unknown cron: $CRON"; exit 1 ;;
+            esac
+          fi
+
   load-config:
+    needs: [determine-config]
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
@@ -41,7 +65,7 @@ jobs:
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: ${{ env.CONFIG_FILE }}
+          config-file: ${{ needs.determine-config.outputs.config-file }}
 
       - name: Parse configuration
         id: parse
@@ -83,10 +107,11 @@ jobs:
 
       - name: Fetch cached wheels
         run: |
-          source docker/pytorch/versions-cuda.env
-          mkdir -p docker/pytorch/wheels
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          source docker/pytorch/${VERSION}/versions-cuda.env
+          mkdir -p docker/pytorch/${VERSION}/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
-            docker/pytorch/wheels \
+            docker/pytorch/${VERSION}/wheels \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
@@ -96,7 +121,8 @@ jobs:
       - name: Build sagemaker image
         id: build-sagemaker
         run: |
-          source docker/pytorch/versions-cuda.env
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          source docker/pytorch/${VERSION}/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-${TORCH_VERSION}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-${{ github.run_id }}"
 
           # Derive label values to match check_labels.py expectations
@@ -106,6 +132,7 @@ jobs:
           OS_LABEL=$(echo "${{ needs.load-config.outputs.os-version }}" | tr '.' '-')
 
           docker buildx build --progress plain \
+            --build-arg DLC_PYTORCH_VERSION=${VERSION} \
             --build-arg FRAMEWORK=${{ needs.load-config.outputs.framework }} \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
@@ -129,17 +156,19 @@ jobs:
             --tag ${CI_IMAGE_URI} \
             --push \
             --target sagemaker \
-            -f docker/pytorch/Dockerfile.cuda .
+            -f docker/pytorch/${VERSION}/Dockerfile.cuda .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
       - name: Upload built wheels to cache
         run: |
-          source docker/pytorch/versions-cuda.env
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          source docker/pytorch/${VERSION}/versions-cuda.env
           bash scripts/pytorch/upload_cached_wheels.sh \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "${{ steps.build-sagemaker.outputs.image-uri }}" \
+            "docker/pytorch/${VERSION}/Dockerfile.cuda" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
             "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
         continue-on-error: true
@@ -184,7 +213,7 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   unit-test:
-    needs: [build-image]
+    needs: [load-config, build-image]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -201,10 +230,11 @@ jobs:
 
       - name: Run unit tests
         run: |
+          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
           IMAGE="${{ needs.build-image.outputs.ci-image }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir \
+            -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=${VERSION} \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q

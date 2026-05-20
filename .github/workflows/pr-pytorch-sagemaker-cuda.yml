@@ -5,9 +5,11 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/pytorch-sagemaker-cuda.yml"
+      - ".github/config/image/pytorch-*-sagemaker-cuda.yml"
       - ".github/workflows/pr-pytorch-sagemaker-cuda.yml"
-      - "docker/pytorch/**"
+      - "docker/pytorch/*/Dockerfile.cuda"
+      - "docker/pytorch/*/cuda/**"
+      - "docker/pytorch/*/versions-cuda.env"
       - "scripts/common/**"
       - "scripts/pytorch/**"
       - "scripts/telemetry/**"
@@ -22,9 +24,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-
-  # Config file path
-  CONFIG_FILE: ".github/config/image/pytorch-sagemaker-cuda.yml"
+  LATEST_PYTORCH_VERSION: "2.11"
 
 jobs:
   # ============================================================
@@ -46,61 +46,17 @@ jobs:
         uses: ./.github/actions/pr-permission-gate
 
   # ============================================================
-  # Load configuration from YAML
+  # Detect all changed PyTorch versions + file changes
   # ============================================================
-  load-config:
-    needs: [gatekeeper]
-    if: success()
-    runs-on: ubuntu-latest
-    outputs:
-      framework: ${{ steps.parse.outputs.framework }}
-      framework-version: ${{ steps.parse.outputs.framework-version }}
-      python-version: ${{ steps.parse.outputs.python-version }}
-      cuda-version: ${{ steps.parse.outputs.cuda-version }}
-      os-version: ${{ steps.parse.outputs.os-version }}
-      container-type: ${{ steps.parse.outputs.container-type }}
-      device-type: ${{ steps.parse.outputs.device-type }}
-      arch-type: ${{ steps.parse.outputs.arch-type }}
-      contributor: ${{ steps.parse.outputs.contributor }}
-      customer-type: ${{ steps.parse.outputs.customer-type }}
-      prod-image: ${{ steps.parse.outputs.prod-image }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Load configuration
-        id: load
-        uses: ./.github/actions/load-config
-        with:
-          config-file: ${{ env.CONFIG_FILE }}
-
-      - name: Parse configuration
-        id: parse
-        run: |
-          echo '${{ steps.load.outputs.config }}' > config.json
-          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
-          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
-          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
-          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
-          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
-          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
-          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
-          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
-          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
-          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
-          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
-
-  # ============================================================
-  # Pre-commit + change detection
-  # ============================================================
-  check-changes:
+  detect-versions:
     needs: [gatekeeper]
     if: success()
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-check-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-detect-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
+      versions: ${{ steps.versions.outputs.versions }}
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
@@ -118,15 +74,33 @@ jobs:
         with:
           extra_args: --all-files
 
+      - name: Detect PyTorch versions
+        id: versions
+        run: |
+          VERSIONS=$(git diff --name-only origin/main...HEAD \
+            | grep -oP 'docker/pytorch/\K[0-9]+\.[0-9]+' \
+            | sort -u)
+          if [ -z "$VERSIONS" ]; then
+            VERSIONS=$(git diff --name-only origin/main...HEAD \
+              | grep -oP 'pytorch-\K[0-9]+\.[0-9]+' \
+              | sort -u)
+          fi
+          if [ -z "$VERSIONS" ]; then
+            VERSIONS="$LATEST_PYTORCH_VERSION"
+          fi
+          JSON=$(echo "$VERSIONS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "versions=${JSON}" >> $GITHUB_OUTPUT
+          echo "Detected versions: ${JSON}"
+
       - name: Detect file changes
         id: changes
         uses: dorny/paths-filter@v4
         with:
           filters: |
             build-change:
-              - ".github/config/image/pytorch-sagemaker-cuda.yml"
-              - "docker/pytorch/Dockerfile.cuda"
-              - "docker/pytorch/cuda/**"
+              - ".github/config/image/pytorch-*-sagemaker-cuda.yml"
+              - "docker/pytorch/*/Dockerfile.cuda"
+              - "docker/pytorch/*/cuda/**"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/pytorch/*"
               - "scripts/telemetry/bash_telemetry.sh.template"
@@ -136,20 +110,35 @@ jobs:
               - "test/telemetry/**"
 
   # ============================================================
-  # Build SageMaker image
+  # Build SageMaker images (matrix over detected versions)
   # ============================================================
-  build-image:
-    needs: [check-changes, load-config]
-    if: needs.check-changes.outputs.build-change == 'true'
+  build-images:
+    needs: [detect-versions]
+    if: needs.detect-versions.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
+    strategy:
+      matrix:
+        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+      fail-fast: false
     concurrency:
-      group: ${{ github.workflow }}-build-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-build-${{ matrix.version }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       sagemaker-image-uri: ${{ steps.build-sagemaker.outputs.image-uri }}
+      framework: ${{ steps.config.outputs.framework }}
+      framework-version: ${{ steps.config.outputs.framework-version }}
+      python-version: ${{ steps.config.outputs.python-version }}
+      cuda-version: ${{ steps.config.outputs.cuda-version }}
+      os-version: ${{ steps.config.outputs.os-version }}
+      container-type: ${{ steps.config.outputs.container-type }}
+      device-type: ${{ steps.config.outputs.device-type }}
+      arch-type: ${{ steps.config.outputs.arch-type }}
+      contributor: ${{ steps.config.outputs.contributor }}
+      customer-type: ${{ steps.config.outputs.customer-type }}
+      prod-image: ${{ steps.config.outputs.prod-image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -163,12 +152,36 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
 
+      - name: Install yq
+        run: |
+          if ! command -v yq &> /dev/null; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+
+      - name: Load and parse config
+        id: config
+        run: |
+          CONFIG_FILE=".github/config/image/pytorch-${{ matrix.version }}-sagemaker-cuda.yml"
+          echo "framework=$(yq '.common.framework' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(yq '.common.framework_version' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "python-version=$(yq '.common.python_version' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(yq '.common.cuda_version' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "os-version=$(yq '.common.os_version' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "container-type=$(yq '.common.job_type' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "device-type=$(yq '.common.device_type // "gpu"' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(yq '.common.arch_type // "x86"' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "contributor=$(yq '.common.contributor // "None"' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(yq '.common.customer_type // ""' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(yq '.common.prod_image' $CONFIG_FILE)" >> $GITHUB_OUTPUT
+
       - name: Fetch cached wheels
         run: |
-          source docker/pytorch/versions-cuda.env
-          mkdir -p docker/pytorch/wheels
+          VERSION="${{ matrix.version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
+          mkdir -p docker/pytorch/${VERSION}/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
-            docker/pytorch/wheels \
+            docker/pytorch/${VERSION}/wheels \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
@@ -178,17 +191,19 @@ jobs:
       - name: Build sagemaker image
         id: build-sagemaker
         run: |
-          source docker/pytorch/versions-cuda.env
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-sagemaker-pr-${{ github.event.pull_request.number }}"
+          VERSION="${{ matrix.version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-sagemaker-${{ matrix.version }}-pr-${{ github.event.pull_request.number }}"
 
           # Derive label values to match check_labels.py expectations
-          FRAMEWORK_LABEL=$(echo "${{ needs.load-config.outputs.framework }}" | tr '_' '-')
-          FWK_VER_LABEL=$(echo "${{ needs.load-config.outputs.framework-version }}" | tr '.' '-')
-          CUDA_LABEL="${{ needs.load-config.outputs.cuda-version }}"
-          OS_LABEL=$(echo "${{ needs.load-config.outputs.os-version }}" | tr '.' '-')
+          FRAMEWORK_LABEL=$(echo "${{ steps.config.outputs.framework }}" | tr '_' '-')
+          FWK_VER_LABEL=$(echo "${{ steps.config.outputs.framework-version }}" | tr '.' '-')
+          CUDA_LABEL="${{ steps.config.outputs.cuda-version }}"
+          OS_LABEL=$(echo "${{ steps.config.outputs.os-version }}" | tr '.' '-')
 
           docker buildx build --progress plain \
-            --build-arg FRAMEWORK=${{ needs.load-config.outputs.framework }} \
+            --build-arg DLC_PYTORCH_VERSION=${{ matrix.version }} \
+            --build-arg FRAMEWORK=${{ steps.config.outputs.framework }} \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
@@ -201,107 +216,40 @@ jobs:
             --build-arg MAX_JOBS=${MAX_JOBS} \
             --label "com.amazonaws.ml.engines.sagemaker.dlc.framework.${FRAMEWORK_LABEL}.${FWK_VER_LABEL}=true" \
             --label "com.amazonaws.ml.engines.sagemaker.dlc.device.gpu.${CUDA_LABEL}=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.job.${{ needs.load-config.outputs.container-type }}=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.${{ needs.load-config.outputs.arch-type }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.job.${{ steps.config.outputs.container-type }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.${{ steps.config.outputs.arch-type }}=true" \
             --label "com.amazonaws.ml.engines.sagemaker.dlc.os.${OS_LABEL}=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.${{ needs.load-config.outputs.python-version }}=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.${{ needs.load-config.outputs.contributor }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.${{ steps.config.outputs.python-version }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.${{ steps.config.outputs.contributor }}=true" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
             --push \
             --target sagemaker \
-            -f docker/pytorch/Dockerfile.cuda .
+            -f docker/pytorch/${VERSION}/Dockerfile.cuda .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
-  # ============================================================
-  # Sanity tests (labels, filesystem, OSS compliance)
-  # ============================================================
-  sanity-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
-    uses: ./.github/workflows/reusable-sanity-tests.yml
-    with:
-      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.sagemaker-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
-      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      python-version: ${{ needs.load-config.outputs.python-version }}
-      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
-      os-version: ${{ needs.load-config.outputs.os-version }}
-      customer-type: ${{ needs.load-config.outputs.customer-type }}
-      arch-type: ${{ needs.load-config.outputs.arch-type }}
-      device-type: ${{ needs.load-config.outputs.device-type }}
-      contributor: ${{ needs.load-config.outputs.contributor }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
-
-  # ============================================================
-  # Security tests (ECR scan, CVE allowlist)
-  # ============================================================
-  security-test:
-    needs: [build-image, load-config]
-    if: success()
-    uses: ./.github/workflows/reusable-security-tests.yml
-    with:
-      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.sagemaker-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
-      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-
-  # ============================================================
-  # Telemetry tests (opt-out, environment variables)
-  # ============================================================
-  telemetry-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
-    concurrency:
-      group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: false
-    uses: ./.github/workflows/reusable-telemetry-tests.yml
-    with:
-      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.sagemaker-image-uri || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
-      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
-
-  # ============================================================
-  # Unit tests
-  # ============================================================
-  unit-test:
-    needs: [build-image]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-unit-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
+      - name: Upload built wheels to cache
+        run: |
+          VERSION="${{ matrix.version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
+          bash scripts/pytorch/upload_cached_wheels.sh \
+            "${{ vars.WHEEL_CACHE_BUCKET }}" \
+            "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
+            "${{ steps.build-sagemaker.outputs.image-uri }}" \
+            "docker/pytorch/${VERSION}/Dockerfile.cuda" \
+            "flash-attn:${FLASH_ATTN_VERSION}" \
+            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
+        continue-on-error: true
 
       - name: Run unit tests
         run: |
-          IMAGE="${{ needs.build-image.outputs.sagemaker-image-uri }}"
+          VERSION="${{ matrix.version }}"
+          IMAGE="${{ steps.build-sagemaker.outputs.image-uri }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir \
+            -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=${VERSION} \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
@@ -309,17 +257,88 @@ jobs:
           docker kill ${CONTAINER_ID}
 
   # ============================================================
+  # Sanity tests (labels, filesystem, OSS compliance)
+  # ============================================================
+  sanity-test:
+    needs: [detect-versions, build-images]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.sanity-test-change == 'true')
+    strategy:
+      matrix:
+        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+      fail-fast: false
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:pytorch-runtime-sagemaker-{2}-pr-{3}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.version, github.event.pull_request.number) }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.build-images.outputs.framework }}
+      framework-version: ${{ needs.build-images.outputs.framework-version }}
+      python-version: ${{ needs.build-images.outputs.python-version }}
+      cuda-version: ${{ needs.build-images.outputs.cuda-version }}
+      os-version: ${{ needs.build-images.outputs.os-version }}
+      customer-type: ${{ needs.build-images.outputs.customer-type }}
+      arch-type: ${{ needs.build-images.outputs.arch-type }}
+      device-type: ${{ needs.build-images.outputs.device-type }}
+      contributor: ${{ needs.build-images.outputs.contributor }}
+      container-type: ${{ needs.build-images.outputs.container-type }}
+
+  # ============================================================
+  # Security tests (ECR scan, CVE allowlist)
+  # ============================================================
+  security-test:
+    needs: [detect-versions, build-images]
+    if: success()
+    strategy:
+      matrix:
+        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+      fail-fast: false
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:pytorch-runtime-sagemaker-{2}-pr-{3}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.version, github.event.pull_request.number) }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.build-images.outputs.framework }}
+      framework-version: ${{ needs.build-images.outputs.framework-version }}
+
+  # ============================================================
+  # Telemetry tests (opt-out, environment variables)
+  # ============================================================
+  telemetry-test:
+    needs: [detect-versions, build-images]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.telemetry-test-change == 'true')
+    strategy:
+      matrix:
+        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+      fail-fast: false
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:pytorch-runtime-sagemaker-{2}-pr-{3}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.version, github.event.pull_request.number) }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.build-images.outputs.framework }}
+      framework-version: ${{ needs.build-images.outputs.framework-version }}
+      container-type: ${{ needs.build-images.outputs.container-type }}
+
+  # ============================================================
   # SageMaker integration tests (launch real SM training jobs)
   # ============================================================
   sagemaker-test:
-    needs: [build-image, sanity-test, security-test, unit-test]
+    needs: [detect-versions, build-images, sanity-test, security-test]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
+    strategy:
+      matrix:
+        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+      fail-fast: false
     concurrency:
-      group: ${{ github.workflow }}-sagemaker-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sagemaker-${{ matrix.version }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout code
@@ -338,7 +357,7 @@ jobs:
       - name: Run SageMaker training tests
         env:
           PYTHONPATH: ${{ github.workspace }}/test
-          TEST_IMAGE_URI: ${{ needs.build-image.outputs.sagemaker-image-uri }}
+          TEST_IMAGE_URI: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:pytorch-runtime-sagemaker-{2}-pr-{3}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.version, github.event.pull_request.number) }}
           SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
         run: |
           pytest test/pytorch/integration/sagemaker/test_sm_training_cuda.py -v
