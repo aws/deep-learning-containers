@@ -27,11 +27,7 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-if dir_path not in sys.path:
-    sys.path.insert(0, dir_path)
-
-from utils import image_utils, get_ecr_registry
+from .utils import image_utils, get_ecr_registry
 
 NO_P4_REGIONS = [
     "af-south-1",
@@ -80,6 +76,9 @@ logging.getLogger("botocore").setLevel(logging.INFO)
 logging.getLogger("factory.py").setLevel(logging.INFO)
 logging.getLogger("auth.py").setLevel(logging.INFO)
 logging.getLogger("connectionpool.py").setLevel(logging.INFO)
+
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 def pytest_addoption(parser):
