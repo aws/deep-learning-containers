@@ -1,0 +1,7 @@
+[
+    {
+        "vulnerability_id": "CVE-2025-33219",
+        "reason": "NVIDIA display driver kernel module vulnerability in cuda-compat package. Cannot upgrade cuda-compat beyond host driver version (580.150) without breaking CUDA initialization. Awaiting DLAMI driver update.",
+        "review_by": "2026-06-20"
+    }
+]
