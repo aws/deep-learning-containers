@@ -202,6 +202,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && rm /tmp/bash_telemetry.sh.template
 
+ARG CACHE_BUST=1
 # Security patch — run after all installers so every OS package is covered
 RUN dnf upgrade -y --security --releasever latest \
   && dnf clean all
