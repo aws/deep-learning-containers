@@ -5,7 +5,7 @@ base_framework: &BASE_FRAMEWORK vllm-omni
 framework: &FRAMEWORK huggingface_vllm_omni
 version: &VERSION "0.20.0"
 short_version: &SHORT_VERSION "0.20"
-arch_type: &ARCH_TYPE x86_64
+arch_type: &ARCH_TYPE x86
 autopatch_build: "False"
 
 repository_info:
@@ -33,7 +33,7 @@ images:
     cuda_version: &CUDA_VERSION cu130
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
-    os_version: &OS_VERSION amazonlinux2023
+    os_version: &OS_VERSION amzn2023
     transformers_version: &TRANSFORMERS_VERSION 5.8.1
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-', *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *CUDA_VERSION, /Dockerfile ]
