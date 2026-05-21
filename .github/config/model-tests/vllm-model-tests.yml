@@ -112,8 +112,8 @@ benchmark:
       output_len: 128
       num_prompts: 64
       batch_size: 4
-      min_throughput: 20
-      min_rps: 0.15
+      min_throughput: 470
+      min_rps: 3.7
 
     # Pending p5e.48xlarge fleet creation. Fleet name "x86-p5e-runner" is a placeholder.
     # - name: "minimax-m2.7"
