@@ -80,9 +80,7 @@ def _assert_vllm_omni_image_generation(predictor):
 
 @pytest.mark.model("z-image-turbo")
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_vllm_local_image_generation(
-    docker_image, sagemaker_local_session, instance_type
-):
+def test_vllm_local_image_generation(docker_image, sagemaker_local_session, instance_type):
     """Test vLLM-Omni local deployment with image generation API."""
     with _predictor(docker_image, sagemaker_local_session, instance_type) as predictor:
         _assert_vllm_omni_image_generation(predictor)

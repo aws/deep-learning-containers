@@ -21,9 +21,7 @@ import tarfile
 import boto3
 
 # Path to test resources
-resources_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "resources")
-)
+resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 
 # Model artifacts for local mode tests - downloaded from HuggingFace Hub at runtime
 MODEL_ID = "Tongyi-MAI/Z-Image-Turbo"
@@ -86,17 +84,15 @@ def dump_logs_from_cloudwatch(e, region="us-west-2"):
     """
     error_hosting_endpoint_regex = re.compile(r"Error hosting endpoint ((\w|-)+):")
     endpoint_url_regex = re.compile(r"/aws/sagemaker/Endpoints/((\w|-)+)")
-    endpoint_match = error_hosting_endpoint_regex.search(
+    endpoint_match = error_hosting_endpoint_regex.search(str(e)) or endpoint_url_regex.search(
         str(e)
-    ) or endpoint_url_regex.search(str(e))
+    )
     if endpoint_match:
         logs_client = boto3.client("logs", region_name=region)
         endpoint = endpoint_match.group(1)
         log_group_name = f"/aws/sagemaker/Endpoints/{endpoint}"
         try:
-            log_stream_resp = logs_client.describe_log_streams(
-                logGroupName=log_group_name
-            )
+            log_stream_resp = logs_client.describe_log_streams(logGroupName=log_group_name)
             all_traffic_log_stream = ""
             for log_stream in log_stream_resp.get("logStreams", []):
                 log_stream_name = log_stream.get("logStreamName")

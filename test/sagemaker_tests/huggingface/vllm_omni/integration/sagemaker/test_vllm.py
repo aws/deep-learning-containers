@@ -32,9 +32,7 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_vllm_omni_image_generation(
-    framework_version, ecr_image, instance_type, sagemaker_regions
-):
+def test_vllm_omni_image_generation(framework_version, ecr_image, instance_type, sagemaker_regions):
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
@@ -66,9 +64,7 @@ def _test_vllm_omni_model(
         framework_version: Optional version info
         **kwargs: Additional args from helper (boto_session, sagemaker_client, etc.)
     """
-    endpoint_name = sagemaker.utils.unique_name_from_base(
-        "sagemaker-hf-vllm-omni-serving"
-    )
+    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-hf-vllm-omni-serving")
 
     env = {
         "SM_VLLM_MODEL": model_id,
