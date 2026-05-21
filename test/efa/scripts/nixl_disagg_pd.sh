@@ -33,7 +33,11 @@ DECODE_PORT=8200
 PROXY_PORT=8192
 SIDE_CHANNEL_PORT=5559
 
-KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
+# kv_producer: prefill side computes KV and ships it; decode side runs as
+# kv_consumer (see nixl_disagg_pd_decode.sh) which refuses to prefill locally.
+# Pairing producer/consumer turns the test into a strict catch — if libfabric
+# transport is broken, decode never receives KV blocks and the request times out.
+KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_producer","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
 
 cleanup() {
     set +e
@@ -106,4 +110,26 @@ grep -E "LIBFABRIC|libfabric" "${PREFILL_LOG}" || \
 grep -E "FI_EP_RDM|provider.*efa|Selected provider is efa" "${PREFILL_LOG}" || \
     echo "WARNING: couldn't confirm EFA provider was selected (may be in worker log)"
 
-echo "nixl_disagg_pd test passed"
+# --- Strict KV-transfer assertion via Prometheus metrics ---
+# With kv_producer/kv_consumer roles, decode skips local prefill iff KV blocks
+# arrived from prefill over libfabric. Asserting decode's prompt_tokens_total
+# stays at 0 (vs the 6-token prompt) proves the transfer happened on the wire.
+_metric_value() {
+    # Sum the value of a Prometheus counter, stripping comments + labels.
+    local url="$1" name="$2"
+    curl -sf "${url}" | awk -v n="${name}" '
+        $0 ~ "^"n"[ {]" { gsub(/.*[ ]/, "", $0); s += $0 + 0 }
+        END { printf "%d", s }
+    '
+}
+
+PREFILL_PROMPT=$(_metric_value "http://127.0.0.1:${PREFILL_PORT}/metrics" "vllm:prompt_tokens_total")
+DECODE_PROMPT=$(_metric_value "http://${WORKER_IP}:${DECODE_PORT}/metrics" "vllm:prompt_tokens_total")
+DECODE_GEN=$(_metric_value "http://${WORKER_IP}:${DECODE_PORT}/metrics" "vllm:generation_tokens_total")
+echo "metrics: prefill.prompt_tokens=${PREFILL_PROMPT} decode.prompt_tokens=${DECODE_PROMPT} decode.gen_tokens=${DECODE_GEN}"
+
+[ "${PREFILL_PROMPT}" -ge 6 ] || { echo "prefill did not process prompt tokens (got ${PREFILL_PROMPT}, expected >=6)"; exit 1; }
+[ "${DECODE_PROMPT}" -eq 0 ] || { echo "decode ran local prefill (prompt_tokens=${DECODE_PROMPT}, expected 0) — KV transfer over libfabric did not happen"; exit 1; }
+[ "${DECODE_GEN}" -ge 1 ] || { echo "decode produced no tokens (gen_tokens=${DECODE_GEN})"; exit 1; }
+
+echo "nixl_disagg_pd test passed (KV transfer verified via /metrics)"

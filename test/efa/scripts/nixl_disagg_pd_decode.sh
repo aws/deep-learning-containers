@@ -17,7 +17,10 @@ DECODE_LOG="${LOG_DIR}/decode.log"
 DECODE_PORT=8200
 SIDE_CHANNEL_PORT=5659
 
-KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
+# kv_consumer: decode side refuses to prefill locally. If KV bytes don't
+# arrive from prefill over libfabric, the request hangs and the orchestrator's
+# curl times out — turning silent fallback into a hard test failure.
+KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_consumer","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
 
 # Daemonize so the SSH/docker-exec call that launched us returns immediately;
 # the orchestrator polls /health to know when we're actually ready.
