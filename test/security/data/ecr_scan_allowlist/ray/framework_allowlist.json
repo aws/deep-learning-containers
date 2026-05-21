@@ -16,5 +16,10 @@
   {
     "vulnerability_id": "CVE-2026-34480",
     "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
+  },
+  {
+    "vulnerability_id": "CVE-2024-37891",
+    "reason": "VENDORED: urllib3 bundled within a vendored dependency (e.g. pip/_vendor or similar); cannot be independently upgraded without upstream rebuild",
+    "review_by": "2025-08-19"
   }
 ]
