@@ -11,6 +11,7 @@ Usage:
 
 import os
 
+import pytest
 from efa.ec2_helpers import (
     DEFAULT_TIMEOUT,
     HOSTS_FILE_LOCATION,
@@ -41,6 +42,15 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         worker_conn,
         aws_session,
     ):
+        # Diagnostics: CUDA driver and GPU info for failure analysis
+        diag = run_on_container(
+            MASTER_CONTAINER_NAME,
+            master_conn,
+            "nvidia-smi --query-gpu=driver_version,name --format=csv,noheader && "
+            "ls /usr/local/cuda/compat/libcuda* 2>/dev/null || true",
+        )
+        print(f"=== CUDA diagnostics (master) ===\n{diag.stdout}")
+
         # EFA sanity on master
         run_on_container(
             MASTER_CONTAINER_NAME,
@@ -48,10 +58,26 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             "/test/efa/scripts/efa_sanity.sh",
         )
 
-        # NCCL all_reduce across 2 nodes
-        run_on_container(
+        # NCCL all_reduce across 2 nodes — capture failure details
+        result = run_on_container(
             MASTER_CONTAINER_NAME,
             master_conn,
             f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
             timeout=DEFAULT_TIMEOUT,
+            warn=True,
         )
+        if result.failed:
+            print(f"=== NCCL allreduce FAILED (exit code {result.return_code}) ===")
+            print(f"=== stdout ===\n{result.stdout}")
+            print(f"=== stderr ===\n{result.stderr}")
+            log_dump = run_on_container(
+                MASTER_CONTAINER_NAME,
+                master_conn,
+                "cat /test/efa/logs/testEFA.log 2>&1 || echo 'Log file empty or missing'",
+                warn=True,
+            )
+            print(f"=== testEFA.log ===\n{log_dump.stdout}")
+            pytest.fail(
+                f"NCCL allreduce failed with exit code {result.return_code}. "
+                f"See stdout above for details."
+            )
