@@ -10,6 +10,9 @@ repo_url: https://github.com/aws/deep-learning-containers         # Links to Git
 exclude_docs: |
   src/*
   *.template.md
+  /README.md
+  /tutorials/README.md
+  /DEVELOPMENT.md
 
 # === Hooks ===
 hooks:

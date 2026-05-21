@@ -89,7 +89,7 @@ jobs:
         run: |
           source .venv/bin/activate
           uv pip install -r docs/requirements.txt
-          mkdocs build
+          mkdocs build --strict
 
       - name: Run documentation tests
         run: |

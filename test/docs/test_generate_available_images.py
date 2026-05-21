@@ -15,16 +15,14 @@ LOGGER.setLevel(logging.INFO)
     "expected",
     [
         "# Available Images",
-        "## Region Availability",
-        "us-east-1",
+        "Region Availability",
         "Mock Repository",
         "| Framework |",
         "| Python |",
     ],
     ids=[
         "title",
-        "region_header",
-        "region_code",
+        "region_link",
         "repo_section",
         "framework_col",
         "python_col",
@@ -47,8 +45,7 @@ def test_filters_unsupported(mock_display_names):
     """Version 1.0 has EOP 2025-01-01 (past), should not appear in tables."""
     LOGGER.debug("Testing unsupported images are filtered")
     content = generate_available_images(dry_run=True)
-    tables_section = content.split("## Region Availability")[-1]
-    assert "1.0.0-cpu-py311" not in tables_section
+    assert "1.0.0-cpu-py311" not in content
     LOGGER.info("available_images filters unsupported test passed")
 
 
@@ -70,4 +67,4 @@ def test_empty_repo_skipped(mock_paths):
     with patch("generate.GLOBAL_CONFIG", patched_config):
         with patch("utils.GLOBAL_CONFIG", patched_config):
             content = generate_available_images(dry_run=True)
-            assert "None" not in content.split("## Region Availability")[-1]
+            assert "None" not in content

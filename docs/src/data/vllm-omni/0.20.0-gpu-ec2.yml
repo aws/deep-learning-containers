@@ -16,20 +16,3 @@ tags:
   # only their patch-floating tag in this yaml (this convention) auto-correct
   # when the v1 floater advances; no yaml edits needed.
   - "omni-cuda-v1.1"    # floats across DLC patches in the v1.1 line (auto-accepts security patches)
-
-announcements:
-  - "Bumps vLLM-Omni to 0.20.0 and aligns with upstream vLLM v0.20.0"
-  - "CUDA 12.9 → 13.0 base image; PyTorch 2.10.0 → 2.11.0"
-  - "New `/v1/audio/generate` endpoint for diffusion-based audio generation (e.g., stable-audio-open)"
-  - "New `/v1/videos/sync` endpoint — blocking variant of `/v1/videos` that returns the MP4 directly"
-  - "Adds support for CosyVoice3, ERNIE-Image-Turbo, Wan2.1-VACE-1.3B, and Stable-Audio-Open-1.0"
-
-packages:
-  vllm: "0.20.0"
-  vllm-omni: "0.20.0"
-  pytorch: "2.11.0"
-  torchvision: "0.26.0"
-  torchaudio: "2.11.0"
-  cuda: "13.0.2"
-  flashinfer: "0.6.8.post1"
-  efa: "1.47.0"

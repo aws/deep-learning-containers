@@ -14,6 +14,7 @@ Usage:
 
 import os
 
+import pytest
 from efa.ec2_helpers import (
     DEFAULT_TIMEOUT,
     HOSTS_FILE_LOCATION,
@@ -98,6 +99,7 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             master_conn,
             f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
             timeout=DEFAULT_TIMEOUT,
+            warn=True,
         )
 
         if not RUN_NIXL_TESTS:

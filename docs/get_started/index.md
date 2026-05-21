@@ -1,54 +1,24 @@
-# Getting Started
+# Image Access
 
-Get up and running with {{ dlc_long }} quickly.
+## Public ECR (No Authentication)
 
-## Prerequisites
-
-- An {{ aws }} account with appropriate permissions
-- Docker installed on your local machine
-- {{ aws }} CLI configured with your credentials
-
-## Pulling Images
-
-Learn how to authenticate and pull {{ dlc_long }} images.
-
-### Authentication
+All DLC images are available on [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers) and can be pulled without {{ aws }}
+credentials:
 
 ```bash
-aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <account_id>.dkr.ecr.<region>.amazonaws.com
+docker pull public.ecr.aws/deep-learning-containers/vllm:server-cuda
 ```
 
-Then pull images:
+## Private ECR
+
+The same images are also available in private ECR registries (one per region). Authenticate first:
 
 ```bash
-docker pull <account_id>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>
+aws ecr get-login-password --region us-west-2 | \
+  docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
 ```
 
-### Image URL Format
+Then pull using the private URL format: `<account_id>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>`
 
-To form your container image URL, use the following format:
-
-```
-<account_id>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>
-```
-
-Where:
-
-- `<account_id>`: Find the account ID for your region in the [Region Availability](../reference/available_images.md#region-availability) table
-- `<region>`: Your {{ aws }} region (e.g., `us-east-1`, `us-west-2`, `eu-west-1`)
-- `<repository>`: The framework repository name (e.g., `pytorch-training`, `tensorflow-inference`)
-- `<tag>`: The image tag from the [Available Images](../reference/available_images.md) tables
-
-### Example
-
-```bash
-# Authenticate
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
-
-# Pull PyTorch training image
-docker pull {{ images.latest_pytorch_training_ec2 }}
-```
-
-## Next Steps
-
-After completing the getting started guides, explore our [tutorials](../tutorials/index.md) for more advanced use cases.
+Find account IDs for all regions in the [Region Availability](../reference/region_availability.md) table. Find repository names and tags in the
+[Available Images](../reference/available_images.md) table.
