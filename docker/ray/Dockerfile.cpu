@@ -44,6 +44,7 @@ ENV UV_PROJECT_ENVIRONMENT=/usr/local
 COPY ./docker/ray/pyproject.toml ./docker/ray/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
+  && uv pip install "urllib3>=2.2.2" \
   && rm -rf /tmp/deps
 
 
