@@ -132,6 +132,8 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     spacy \
     thinc \
     blis \
+    # typer-slim: weasel 1.0.0 dropped it but spacy still needs it
+    "typer-slim>=0.24.0" \
     numpy \
  && pip uninstall -y dataclasses
 
@@ -258,6 +260,7 @@ RUN pip install --no-cache-dir -U \
     sagemaker-training
 
 # Install extra packages
+# s3fs: pip resolves to ancient 0.4.2 without pin; smclarify needs modern s3fs (which pulls aiobotocore, aioitertools)
 RUN pip install --no-cache-dir -U \
     bokeh \
     imageio \
@@ -267,7 +270,8 @@ RUN pip install --no-cache-dir -U \
     shap \
     scikit-learn \
     seaborn \
-    cloudpickle
+    cloudpickle \
+    "s3fs>=2026.2.0"
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh

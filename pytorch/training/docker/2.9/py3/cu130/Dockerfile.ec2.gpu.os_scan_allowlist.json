@@ -1,0 +1,33 @@
+{
+  "black": [
+    {
+      "description": "Black is the uncompromising Python code formatter. Prior to 26.3.1, Black writes a cache file, the name of which is computed from various formatting options. The value of the --python-cell-magics option was placed in the filename without sanitization, which allowed an attacker who controls the value of this argument to write cache files to arbitrary file system locations. Fixed in Black 26.3.1.",
+      "vulnerability_id": "CVE-2026-32274",
+      "name": "CVE-2026-32274",
+      "package_name": "black",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/spacy/tests/package/requirements.txt",
+        "name": "black",
+        "package_manager": "PYTHON",
+        "version": "22.3.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-32274",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2026-32274 - black",
+      "reason_to_ignore": "N/A"
+    }
+  ]
+}

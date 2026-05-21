@@ -17,7 +17,7 @@ def test_repo_anaconda_not_present(image):
         conda_present = test_utils.run_cmd_on_container(
             container_name,
             ctx,
-            'find . -name conda -not -path "**/.github/*" -not -path "**/.oh-my-zsh/*" -ignore_readdir_race',
+            'find . -name conda -not -path "**/.github/*" -not -path "**/.oh-my-zsh/*" -not -path "./proc/*" -not -path "./sys/*" -ignore_readdir_race',
         ).stdout.strip()
         if not conda_present:
             pytest.skip(f"Image {image} does not have conda installed, skipping test.")
