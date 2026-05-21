@@ -94,11 +94,16 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         # Disaggregated prefill/decode across both nodes with NIXL+LIBFABRIC.
         # The worker's private IP is already in the MPI hosts file written by
         # the fixture (line 1 = localhost, line 2 = "<worker_ip> slots=N").
-        worker_ip = run_on_container(
+        # run_on_container wraps the cmd in bash -c '<cmd>', so any single
+        # quotes inside cmd break the wrapping. Read the raw hosts file
+        # contents back and parse here, avoiding shell quoting entirely.
+        # File format: "localhost slots=N\n<worker_ip> slots=N".
+        hosts_contents = run_on_container(
             MASTER_CONTAINER_NAME,
             master_conn,
-            f"sed -n 2p {HOSTS_FILE_LOCATION} | cut -d ' ' -f1",
-        ).stdout.strip()
+            f"cat {HOSTS_FILE_LOCATION}",
+        ).stdout
+        worker_ip = hosts_contents.splitlines()[1].split()[0]
 
         run_on_container(
             WORKER_CONTAINER_NAME,
