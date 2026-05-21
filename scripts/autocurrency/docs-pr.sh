@@ -63,19 +63,6 @@ generate_tags() {
   fi
 }
 
-# Generate a release announcement string.
-# Usage: generate_announcement <framework> <version> <platform>
-generate_announcement() {
-  local framework="$1" version="$2" platform="$3"
-  local display
-  display=$(get_display_name "$framework")
-  if [ "$platform" = "ec2" ]; then
-    echo "Introduced ${display} ${version} containers for EC2, ECS, EKS"
-  elif [ "$platform" = "sagemaker" ]; then
-    echo "Introduced ${display} ${version} containers for SageMaker"
-  fi
-}
-
 # Generate the git branch name for a docs-update PR.
 # Usage: generate_branch_name <framework> <version> <platform>
 generate_branch_name() {
@@ -163,95 +150,14 @@ TAG_PREFIX=$(yq eval ".frameworks.${FRAMEWORK}.tag_prefix // \"\"" "$TRACKER")
 UPSTREAM_RELEASE_URL="https://github.com/${GITHUB_REPO}/releases/tag/${TAG_PREFIX}${VERSION}"
 
 # -----------------------------------------------------------------
-# Step 1: Pull image and extract package versions
+# Step 1: Generate docs data YAML file
 # -----------------------------------------------------------------
 echo ""
 echo "============================================================"
-echo "Step 1: Pull image and extract package versions"
-echo "============================================================"
-
-echo "Pulling image: ${IMAGE_URI}"
-docker pull "${IMAGE_URI}"
-
-pip_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip | length" "$TRACKER")
-system_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system | length" "$TRACKER")
-
-if [[ "${pip_count}" == "0" && "${system_count}" == "0" ]]; then
-  echo "::warning::No docs_packages defined for '${FRAMEWORK}' in tracker config"
-fi
-
-FAILED_PACKAGES=()
-
-# Extract pip package versions
-for i in $(seq 0 $(( pip_count - 1 ))); do
-  pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$TRACKER")
-  output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
-
-  version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "pip show ${pkg_name} 2>/dev/null" | grep "^Version:" | awk '{print $2}' | sed 's/+.*//') || true
-  safe_key="${output_key//-/_}"
-  if [ -n "$version" ]; then
-    echo "  ✅ ${output_key}: ${version}"
-    declare "PKG_${safe_key}=${version}"
-  else
-    echo "::warning::Failed to extract version for pip package '${pkg_name}' (key: ${output_key})"
-    FAILED_PACKAGES+=("$output_key")
-    declare "PKG_${safe_key}="
-  fi
-done
-
-# Extract system package versions
-for i in $(seq 0 $(( system_count - 1 ))); do
-  sys_pkg=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system[$i]" "$TRACKER")
-  version=""
-
-  case "$sys_pkg" in
-    cuda)
-      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "nvcc --version 2>/dev/null" | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
-      ;;
-    nccl)
-      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "python3 -c \"import torch; v=torch.cuda.nccl.version(); print(f'{v[0]}.{v[1]}.{v[2]}')\" 2>/dev/null") || true
-      ;;
-    efa)
-      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "cat /opt/amazon/efa_installed_packages 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'") || true
-      ;;
-    cudnn)
-      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null | grep 'libcudnn[0-9]*' | head -1 | awk '{print \$3}'" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+') || true
-      ;;
-    gdrcopy)
-      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null" | grep gdrcopy | awk '{print $3}' | head -1) || true
-      ;;
-    *)
-      echo "::warning::Unknown system package '${sys_pkg}', skipping"
-      continue
-      ;;
-  esac
-  if [ -n "$version" ]; then
-    echo "  ✅ ${sys_pkg}: ${version}"
-    declare "PKG_${sys_pkg}=${version}"
-  else
-    echo "::warning::Failed to extract version for system package '${sys_pkg}'"
-    FAILED_PACKAGES+=("$sys_pkg")
-    declare "PKG_${sys_pkg}="
-  fi
-done
-
-FAILED_PACKAGES_STR=$(IFS=,; echo "${FAILED_PACKAGES[*]}")
-if [ ${#FAILED_PACKAGES[@]} -gt 0 ]; then
-  echo "::warning::Failed to extract versions for: ${FAILED_PACKAGES_STR}"
-else
-  echo "✅ All package versions extracted successfully"
-fi
-
-# -----------------------------------------------------------------
-# Step 2: Generate docs data YAML file
-# -----------------------------------------------------------------
-echo ""
-echo "============================================================"
-echo "Step 2: Generate docs data YAML file"
+echo "Step 1: Generate docs data YAML file"
 echo "============================================================"
 
 display_name=$(get_display_name "$FRAMEWORK")
-major_minor=$(parse_major_minor "$VERSION")
 
 tags=$(generate_tags "$VERSION" "$DEVICE" "$PYTHON" "$CUDA" "$OS" "$PLATFORM")
 tag1=$(echo "$tags" | sed -n '1p')
@@ -259,26 +165,8 @@ tag2=$(echo "$tags" | sed -n '2p')
 tag3=$(echo "$tags" | sed -n '3p')
 tag4=$(echo "$tags" | sed -n '4p')
 
-announcement=$(generate_announcement "$FRAMEWORK" "$VERSION" "$PLATFORM")
-
 output_dir="$(dirname "$OUTPUT_FILE")"
 mkdir -p "$output_dir"
-
-# Build packages section dynamically from tracker config
-packages_yaml=""
-
-for i in $(seq 0 $(( pip_count - 1 ))); do
-  pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$TRACKER")
-  output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
-  env_var="PKG_${output_key//-/_}"
-  packages_yaml="${packages_yaml}  ${output_key}: \"${!env_var:-}\"\n"
-done
-
-for i in $(seq 0 $(( system_count - 1 ))); do
-  sys_pkg=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system[$i]" "$TRACKER")
-  env_var="PKG_${sys_pkg}"
-  packages_yaml="${packages_yaml}  ${sys_pkg}: \"${!env_var:-}\"\n"
-done
 
 cat > "$OUTPUT_FILE" <<EOF
 framework: ${display_name}
@@ -295,23 +183,17 @@ tags:
   - "${tag2}"
   - "${tag3}"
   - "${tag4}"
-
-announcements:
-  - "${announcement}"
-
-packages:
-$(echo -e "${packages_yaml}" | sed '/^$/d')
 EOF
 
 echo "✅ Generated docs data file: ${OUTPUT_FILE}"
 cat "$OUTPUT_FILE"
 
 # -----------------------------------------------------------------
-# Step 3: Create branch, commit, and open PR
+# Step 2: Create branch, commit, and open PR
 # -----------------------------------------------------------------
 echo ""
 echo "============================================================"
-echo "Step 3: Create branch, commit, and open PR"
+echo "Step 2: Create branch, commit, and open PR"
 echo "============================================================"
 
 pr_title=$(generate_pr_title "$FRAMEWORK" "$VERSION" "$PLATFORM")
@@ -333,24 +215,13 @@ pr_body=$(cat <<PRBODY
 **Upstream Release**: [${GITHUB_REPO} ${TAG_PREFIX}${VERSION}](${UPSTREAM_RELEASE_URL})
 
 ### What to Review
-- Verify the generated image tags
-- Confirm package versions are present and correct
-- Adjust the \`announcements\` section if needed
+- Verify the generated image tags match the released image
+- Confirm the data file lands under the correct framework directory
 
 ### Auto-generated by
 - [reusable-release-image.yml](https://github.com/aws/deep-learning-containers/blob/main/.github/workflows/reusable-release-image.yml) — step4-docs-pr
 PRBODY
 )
-
-if [ -n "${FAILED_PACKAGES_STR}" ]; then
-  pr_body="${pr_body}
-
----
-
-⚠️ **Warning: Some package versions could not be extracted:**
-
-$(echo "$FAILED_PACKAGES_STR" | tr ',' '\n' | while read -r pkg; do echo "- \`${pkg}\`"; done)"
-fi
 
 echo "Creating PR..."
 PR_URL=$(gh pr create --title "$pr_title" --body "$pr_body" --head "$branch_name" --base main)
@@ -358,11 +229,11 @@ PR_URL=$(gh pr create --title "$pr_title" --body "$pr_body" --head "$branch_name
 echo "✅ PR URL: ${PR_URL}"
 
 # -----------------------------------------------------------------
-# Step 4: Send Slack notification
+# Step 3: Send Slack notification
 # -----------------------------------------------------------------
 echo ""
 echo "============================================================"
-echo "Step 4: Send Slack notification"
+echo "Step 3: Send Slack notification"
 echo "============================================================"
 
 send_slack_notification \
@@ -373,11 +244,11 @@ send_slack_notification \
   "${PR_URL}" || true
 
 # -----------------------------------------------------------------
-# Step 5: Send release notification
+# Step 4: Send release notification
 # -----------------------------------------------------------------
 echo ""
 echo "============================================================"
-echo "Step 5: Send release notification"
+echo "Step 4: Send release notification"
 echo "============================================================"
 
 send_release_notification \

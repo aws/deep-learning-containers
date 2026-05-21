@@ -1,14 +1,12 @@
 # Using {{ dlc }}
 
-The following sections describe how to use {{ dlc }} to run sample code from each of the frameworks on {{ aws }} infrastructure.
+This page shows common deployment patterns across frameworks. For framework-specific deep dives, see the dedicated guides: [vLLM](../vllm/index.md),
+[vLLM-Omni](../vllm-omni/index.md), [Ray](../ray/index.md).
 
-## Use Cases
+## Additional Resources
 
-- For information on using {{ dlc }} with {{ sagemaker }}, see the
-  [Use Your Own Algorithms or Models with {{ sagemaker }} Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers.html).
-
-- To learn about using {{ dlc }} with {{ sagemaker }} HyperPod on {{ eks }}, see
-  [Orchestrating SageMaker HyperPod clusters with {{ eks }} and {{ sagemaker }}](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-eks.html).
+- [Use Your Own Algorithms or Models with {{ sagemaker }}](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers.html)
+- [Orchestrating SageMaker HyperPod clusters with {{ eks }} and {{ sagemaker }}](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-eks.html)
 
 ## Running on {{ sagemaker }}
 
@@ -151,3 +149,6 @@ docker run -it --gpus all -v /local/data:/data {{ images.latest_pytorch_training
 
 - [Available Images](../reference/available_images.md) - Browse all container images
 - [Support Policy](../reference/support_policy.md) - Framework versions and timelines
+- [vLLM Guide](../vllm/index.md) - Detailed vLLM deployment (EC2, SageMaker, EKS)
+- [Ray Guide](../ray/index.md) - Ray Serve deployment with examples
+- [vLLM-Omni Guide](../vllm-omni/index.md) - Multimodal serving (TTS, image, video)

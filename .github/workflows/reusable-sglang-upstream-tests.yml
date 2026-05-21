@@ -140,6 +140,13 @@ jobs:
             # (sglang.test.ci) from this version are used.
             export PYTHONPATH=/workdir/python:${PYTHONPATH:-}
 
+            # Workaround: sglang v0.5.12 has an incomplete suite rename
+            # (stage-* -> base-*) causing validate_all_suites() to fail.
+            # See: https://github.com/sgl-project/sglang/issues/25450
+            if [ "${{ inputs.framework-version }}" = "0.5.12" ]; then
+              rm -f /workdir/test/registered/radix_cache/test_unified_radix_cache_kl_hicache.py
+            fi
+
             # SRT backend Test with increased timeout
             cd /workdir/test
             export SGLANG_TIMEOUT=600

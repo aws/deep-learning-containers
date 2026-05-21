@@ -3,6 +3,7 @@
 import json
 import logging
 import time
+import uuid
 
 import boto3
 import pytest
@@ -252,28 +253,34 @@ def test_vllm_omni_video_async_endpoint(async_endpoint):
 
     Async inference removes SageMaker's 60s real-time invoke timeout, so this
     pattern is the recommended way to serve video generation behind a
-    SageMaker endpoint. The middleware converts the JSON payload to
-    multipart/form-data automatically (see omni_sagemaker_serve.py
-    FORM_DATA_ROUTES). Result is video/mp4 bytes deposited at S3 output
-    location.
+    SageMaker endpoint. /v1/videos/sync requires multipart/form-data input;
+    SageMaker InvokeEndpoint forwards arbitrary ContentType values through to
+    the model server, so the client builds the multipart body locally and
+    sends it directly — no in-middleware conversion required. Result is
+    video/mp4 bytes deposited at S3 output location.
     """
     endpoint, s3_client, s3_output = async_endpoint
 
-    payload = json.dumps(
+    boundary = uuid.uuid4().hex
+    payload = _build_multipart_body(
         {
             "prompt": "a dog running on a beach",
             "num_frames": "17",
             "num_inference_steps": "4",
             "size": "480x320",
             "seed": "42",
-        }
+        },
+        boundary,
     )
+    content_type = f"multipart/form-data; boundary={boundary}"
 
     LOGGER.info("Sending async video request via /invocations -> /v1/videos/sync")
-    input_location = _upload_payload_to_s3(s3_client, payload, s3_output, endpoint.endpoint_name)
+    input_location = _upload_payload_to_s3(
+        s3_client, payload, s3_output, endpoint.endpoint_name, content_type
+    )
     result = endpoint.invoke_async(
         input_location=input_location,
-        content_type="application/json",
+        content_type=content_type,
         custom_attributes="route=/v1/videos/sync",
     )
 
@@ -301,12 +308,26 @@ def test_vllm_omni_video_async_endpoint(async_endpoint):
     pytest.fail("Async video inference timed out after 600s")
 
 
-def _upload_payload_to_s3(s3_client, payload, s3_output, endpoint_name):
+def _upload_payload_to_s3(
+    s3_client, payload, s3_output, endpoint_name, content_type="application/json"
+):
     """Upload request payload to S3 for async inference."""
     bucket, prefix = _parse_s3_uri(s3_output)
-    key = f"{prefix}{endpoint_name}-input.json"
-    s3_client.put_object(Bucket=bucket, Key=key, Body=payload, ContentType="application/json")
+    suffix = "bin" if not content_type.startswith("application/json") else "json"
+    key = f"{prefix}{endpoint_name}-input.{suffix}"
+    body = payload if isinstance(payload, (bytes, bytearray)) else payload.encode()
+    s3_client.put_object(Bucket=bucket, Key=key, Body=body, ContentType=content_type)
     return f"s3://{bucket}/{key}"
+
+
+def _build_multipart_body(data: dict, boundary: str) -> bytes:
+    """Build a multipart/form-data body from a dict of string values."""
+    parts = [
+        f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'
+        for k, v in data.items()
+    ]
+    parts.append(f"--{boundary}--\r\n")
+    return "".join(parts).encode()
 
 
 def _parse_s3_uri(uri):

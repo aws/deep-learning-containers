@@ -5,7 +5,7 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from constants import DATA_DIR, GLOBAL_CONFIG, LEGACY_DIR, RELEASE_NOTES_REQUIRED_FIELDS
+from constants import DATA_DIR, GLOBAL_CONFIG, LEGACY_DIR
 from utils import build_ecr_uri, build_public_ecr_uri, flatten_group_repos, load_yaml, parse_version
 
 LOGGER = logging.getLogger(__name__)
@@ -73,21 +73,6 @@ class ImageConfig:
     def has_support_dates(self) -> bool:
         """Check if image has GA and EOP dates defined."""
         return "ga" in self._data and "eop" in self._data
-
-    @property
-    def has_release_notes(self) -> bool:
-        """Check if image has all required fields for release notes generation."""
-        return all(field in self._data for field in RELEASE_NOTES_REQUIRED_FIELDS)
-
-    @property
-    def release_note_filename(self) -> str:
-        """Generate release note filename: <repo>-<version>-<accelerator>-<platform>.md"""
-        return f"{self._repository}-{self.get('version')}-{self.get('accelerator')}-{self.get('platform')}.md"
-
-    @property
-    def display_release_note_link(self) -> str:
-        """Markdown link to the release note file."""
-        return f"[Release Notes]({self.release_note_filename})"
 
     def get_image_uris(self) -> list[str]:
         """Get list of image URIs (private ECR + public ECR if available)."""
@@ -207,7 +192,7 @@ def load_images_by_framework_group(
     """Load images grouped by framework_group, optionally filtered.
 
     Args:
-        filter_fn: Optional function to filter images (e.g., lambda img: img.has_release_notes)
+        filter_fn: Optional function to filter images (e.g., lambda img: img.is_supported)
 
     Returns:
         Dict mapping framework_group to list of ImageConfig objects.

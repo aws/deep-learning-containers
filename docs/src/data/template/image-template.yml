@@ -70,18 +70,9 @@ eop: "2026-10-15"
 # Required for release notes generation: announcements and packages
 
 # Announcements bullet points for the release note
-announcements:
-  - "Introduced containers for PyTorch 2.9 for Training"
-  - "Added Python 3.12 support"
 
 # Package versions displayed in Core Packages table
 # Keys should match entries in global.yml display_names.packages for proper formatting
-packages:
-  python: "3.12"
-  pytorch: "2.9.0"
-  cuda: "13.0"
-  cudnn: "9.13.0.50"
-  nccl: "2.27.7-1"
 
 # -----------------------------------------------------------------------------
 # Optional Sections

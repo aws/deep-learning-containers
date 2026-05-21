@@ -6,7 +6,7 @@
 # On single-GPU hosts the model's talker stage fails to load on GPU 1.
 set -euo pipefail
 
-IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda-v1}"
+IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1}"
 MODEL="${MODEL:-Qwen/Qwen2.5-Omni-3B}"
 NAME="${NAME:-omni3b}"
 

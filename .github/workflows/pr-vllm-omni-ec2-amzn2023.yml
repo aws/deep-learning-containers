@@ -152,10 +152,16 @@ jobs:
       - name: Fetch cached vLLM wheel
         id: wheel-cache
         run: |
+          # The workflow's framework-version is the omni package version
+          # (e.g. 0.21.0rc1), which is NOT the version stamped on the vllm
+          # wheel filename. Source versions.env to read VLLM_VERSION (the
+          # vllm core version, e.g. 0.21.0) so the cache key + filename glob
+          # match wheels uploaded by any workflow on the same vllm core.
+          set -a; source docker/vllm_omni/versions.env; set +a
           OUTPUT=$(bash scripts/vllm/amzn2023/fetch_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            ${{ needs.load-config.outputs.vllm-ref }} \
-            ${{ needs.load-config.outputs.framework-version }})
+            "${VLLM_REF}" \
+            "${VLLM_VERSION}")
           echo "$OUTPUT"
           HIT=$(echo "$OUTPUT" | grep -o 'cache-hit=.*' | cut -d= -f2)
           echo "hit=${HIT}" >> $GITHUB_OUTPUT
@@ -207,10 +213,12 @@ jobs:
       - name: Upload vLLM wheel to cache
         if: success() && steps.wheel-cache.outputs.hit != 'true'
         run: |
+          # Use vllm core version, not omni package version (see fetch step).
+          set -a; source docker/vllm_omni/versions.env; set +a
           bash scripts/vllm/amzn2023/upload_cached_wheels.sh \
             ${{ needs.load-config.outputs.cuda-version }} \
-            ${{ needs.load-config.outputs.vllm-ref }} \
-            ${{ needs.load-config.outputs.framework-version }}
+            "${VLLM_REF}" \
+            "${VLLM_VERSION}"
 
       - name: Sync sccache cache to S3
         if: success() && steps.wheel-cache.outputs.hit != 'true'

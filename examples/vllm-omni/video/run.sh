@@ -3,7 +3,7 @@
 # /v1/videos is async — it returns a job ID; the MP4 is produced in the background.
 set -euo pipefail
 
-IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda-v1}"
+IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1}"
 MODEL="${MODEL:-Wan-AI/Wan2.1-T2V-1.3B-Diffusers}"
 NAME="${NAME:-omni-video}"
 

@@ -2,7 +2,7 @@
 # End-to-end image-generation example: start server, wait for ready, generate.
 set -euo pipefail
 
-IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-omni:omni-cuda-v1}"
+IMAGE="${IMAGE:-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:omni-cuda-v1}"
 MODEL="${MODEL:-black-forest-labs/FLUX.2-klein-4B}"
 NAME="${NAME:-omni-image}"
 
