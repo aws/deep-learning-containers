@@ -83,9 +83,28 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         if not RUN_NIXL_TESTS:
             return
 
+        # NIXL test stdout is otherwise hidden — Fabric's run_on_container
+        # captures it into Result.stdout but pytest log-call only shows the
+        # "Running on ..." LOGGER.info lines, not script output. Wrap each
+        # NIXL step here and explicitly print the result so it lands in the
+        # captured stdout.
+        def _run_nixl(name, container, conn, cmd, timeout=DEFAULT_TIMEOUT):
+            print(f"\n========== NIXL: {name} ==========")
+            print(f"$ {cmd}")
+            r = run_on_container(container, conn, cmd, timeout=timeout)
+            if r.stdout:
+                print(f"--- stdout ({len(r.stdout)} chars) ---")
+                print(r.stdout)
+            if r.stderr:
+                print(f"--- stderr ({len(r.stderr)} chars) ---")
+                print(r.stderr)
+            print(f"========== /NIXL: {name} (exit={r.exited}) ==========\n")
+            return r
+
         # Smoke: LIBFABRIC plugin loads and binds to the EFA libfabric provider.
         # Cheap regression catch for nixl-cu* wheel packaging issues.
-        run_on_container(
+        _run_nixl(
+            "libfabric_smoke",
             MASTER_CONTAINER_NAME,
             master_conn,
             "python3 /test/efa/scripts/nixl_libfabric_smoke.py",
@@ -104,15 +123,34 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             f"cat {HOSTS_FILE_LOCATION}",
         ).stdout
         worker_ip = hosts_contents.splitlines()[1].split()[0]
+        print(f"NIXL: parsed worker_ip={worker_ip} from hosts file")
 
-        run_on_container(
+        _run_nixl(
+            "decode_launch",
             WORKER_CONTAINER_NAME,
             worker_conn,
             f"/test/efa/scripts/nixl_disagg_pd_decode.sh {NIXL_MODEL}",
         )
-        run_on_container(
+        _run_nixl(
+            "disagg_pd_orchestrator",
             MASTER_CONTAINER_NAME,
             master_conn,
             f"/test/efa/scripts/nixl_disagg_pd.sh {worker_ip} {NIXL_MODEL}",
             timeout=NIXL_DISAGG_TIMEOUT,
         )
+
+        # Dump the prefill/decode/proxy logs from inside the containers — they
+        # only live in the master/worker container filesystems and are gone
+        # once the test fixture terminates the EC2 instances.
+        for name, container, conn, log_path in (
+            ("prefill", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/prefill.log"),
+            ("proxy", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/proxy.log"),
+            ("decode", WORKER_CONTAINER_NAME, worker_conn, "/test/efa/logs/decode.log"),
+        ):
+            print(f"\n========== {name} log ({log_path}) ==========")
+            try:
+                r = run_on_container(container, conn, f"cat {log_path}", warn=True)
+                print(r.stdout if r.stdout else "(empty)")
+            except Exception as e:  # noqa: BLE001
+                print(f"(could not read: {e})")
+            print(f"========== /{name} log ==========\n")
