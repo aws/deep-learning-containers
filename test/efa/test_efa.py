@@ -14,7 +14,6 @@ Usage:
 
 import os
 
-import pytest
 from efa.ec2_helpers import (
     DEFAULT_TIMEOUT,
     HOSTS_FILE_LOCATION,
