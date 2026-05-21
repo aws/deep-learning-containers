@@ -6,10 +6,10 @@ set -ex
 NUM_HOSTS_FILE=$1
 NUM_HOSTS=$2
 
-if [[ -z "${CUDA_HOME}" ]]; then
-    echo "CUDA_HOME variable is empty, please define it in dockerfile"
-    exit 1
-fi
+# Default CUDA_HOME for images that don't export it (vLLM Ubuntu).
+# PyTorch DLCs already set this in the Dockerfile so this is a no-op there.
+: "${CUDA_HOME:=/usr/local/cuda}"
+export CUDA_HOME
 
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 INSTANCE_TYPE=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-type)
@@ -52,6 +52,28 @@ check_efa_nccl_all_reduce_performance(){
     fi
 }
 
+# Capture diagnostics to a file we cat at the very end. invoke/Fabric truncate
+# the .stdout of a failing remote command to the last few KB, so anything
+# printed before mpirun gets dropped. Stage it through a file and dump after
+# the validators run.
+DIAG_LOG="/test/efa/logs/diagnostics.log"
+{
+    echo "==================== EFA / NCCL diagnostics ===================="
+    echo "--- nvidia-smi ---"
+    nvidia-smi -L || true
+    echo "--- libnccl resolution ---"
+    ldconfig -p | grep libnccl || echo "(no libnccl in ldconfig)"
+    echo "--- ldd all_reduce_perf ---"
+    ldd /usr/local/bin/all_reduce_perf 2>&1 | grep -E "nccl|cuda|fabric|not found" || true
+    echo "--- libfabric provider list ---"
+    fi_info -p efa 2>&1 | head -20 || true
+    echo "--- aws-ofi-nccl plugin ---"
+    ls -la /opt/amazon/ofi-nccl/lib*/libnccl-net*.so 2>&1 | head -5 || true
+    echo "--- /etc/ld.so.conf.d ---"
+    ls /etc/ld.so.conf.d/ 2>&1
+    echo "==================== end diagnostics ===================="
+} > "${DIAG_LOG}" 2>&1
+
 echo "Running all_reduce_perf test"
 mpirun -x FI_PROVIDER="efa" -x FI_EFA_FORK_SAFE=1 -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
     -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
@@ -65,6 +87,28 @@ if [ ${RETURN_VAL} -eq 0 ]; then
 else
     echo "check_efa_nccl_all_reduce failed"
 fi
+
+# Dump training log first (it can be huge on success and we don't need it on
+# failure — mpirun's stdout was already captured), then the most actionable
+# diagnostics LAST so they survive Fabric's stdout truncation.
+echo "==================== BEGIN ${TRAINING_LOG} ===================="
+cat "${TRAINING_LOG}" 2>/dev/null || echo "(log file missing)"
+echo "==================== END ${TRAINING_LOG} ===================="
+
+echo "==================== BEGIN ${DIAG_LOG} ===================="
+cat "${DIAG_LOG}" 2>/dev/null || echo "(diagnostics file missing)"
+echo "==================== END ${DIAG_LOG} ===================="
+
+# These are the smallest, highest-signal probes — placed last so the
+# truncated tail Fabric retains will always show them.
+echo "==================== final probes ===================="
+echo "--- ldd all_reduce_perf (libnccl resolution) ---"
+ldd /usr/local/bin/all_reduce_perf 2>&1 | grep -E "nccl|cuda|fabric|not found" || true
+echo "--- libnccl SONAMES on system ---"
+find / -name 'libnccl.so*' 2>/dev/null | head -10
+echo "--- aws-ofi-nccl plugin paths ---"
+ls -la /opt/amazon/ofi-nccl/lib*/libnccl-net*.so 2>&1
+echo "==================== end ===================="
 
 validate_all_reduce_performance_logs
 check_efa_nccl_all_reduce_performance

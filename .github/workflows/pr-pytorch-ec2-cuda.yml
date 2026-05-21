@@ -356,7 +356,15 @@ jobs:
   # ============================================================
   efa-test:
     needs: [build-images, sanity-test, security-test, unit-test]
+    # Only validates freshly built CI images. The prod image is presumed
+    # already validated at its release; running EFA against it on every
+    # test/efa/** edit surfaces preexisting issues unrelated to the PR.
     if: success()
+    # Per-caller queue: new pushes to this PR cancel its own pending efa-test;
+    # different PRs / workflows don't displace each other on the global lock.
+    concurrency:
+      group: ${{ github.workflow }}-efa-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-efa-tests.yml
     with:
       image-uri: ${{ needs.build-images.outputs.runtime-image-uri }}

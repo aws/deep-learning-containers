@@ -275,16 +275,34 @@ def launch_efa_instances(aws_session, ami_id, instance_type, key_name, sg_id, co
 
 
 def setup_container(conn, image_uri, container_name):
-    """Pull image and start container with EFA devices and host networking."""
+    """Pull image and start container with EFA devices and host networking.
+
+    Image-specific entrypoint handling:
+    - vLLM (entrypoint = dockerd_entrypoint.sh which execs `vllm serve "$@"`):
+      the default `bash` arg gets parsed as a model_tag and the server crashes.
+      Override entrypoint to keep the container alive for docker exec.
+    - PyTorch (entrypoint = entrypoint.sh which sets LD_LIBRARY_PATH for CUDA
+      forward-compat then `exec "$@"`): keep entrypoint, pass `bash` so the
+      compat env var lands in the environment that NCCL+EFA later inherit.
+      Overriding it breaks NCCL on hosts with older CUDA drivers.
+    """
     devices = get_efa_devices(conn)
     device_args = " ".join(f"--device {d}" for d in devices)
+
+    if "vllm" in image_uri.lower():
+        entrypoint_arg = "--entrypoint /bin/bash"
+        cmd = "-c 'sleep infinity'"
+    else:
+        entrypoint_arg = ""
+        cmd = "bash"
 
     conn.run(f"docker rm -f {container_name}", warn=True)
     conn.run(
         f"docker run --runtime=nvidia --gpus all -id "
         f"--name {container_name} --network host --ulimit memlock=-1:-1 "
+        f"{entrypoint_arg} "
         f"{device_args} -v $HOME/test:/test -v /dev/shm:/dev/shm "
-        f"{image_uri} bash"
+        f"{image_uri} {cmd}"
     )
     LOGGER.info(f"Started container {container_name}")
 
@@ -393,7 +411,24 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     Yields (master_conn, worker_conn, aws_session) where connections are to the EC2 hosts.
     """
     aws_session = AWSSessionManager(region=region)
-    ami_id = aws_session.get_latest_ami()
+    # Pinned to the 2026-05-01 AL2023 base-with-single-cuda AMI in us-west-2.
+    # AMIs published 2026-05-08 onward bumped the NVIDIA driver to 580.150,
+    # but NVIDIA's cuda-rhel9 repo never published a matching
+    # nvidia-fabricmanager (only 580.65/580.95/580.159 are available).
+    # Without a matching FM running, p4d (NVSwitch) returns
+    # cudaErrorSystemNotInitialized (802) on every cuInit. nccl-tests
+    # then fails with the misleading "aws-ofi-nccl is not working"
+    # validator message — see test/efa/scripts/nccl_allreduce.sh.
+    # Verified on 2026-05-20 with vllm:0.21-gpu-py312-ec2: cuInit succeeds,
+    # NCCL initializes, EFA provider selected. Drop this pin (revert to
+    # aws_session.get_latest_ami()) once AWS DLAMI publishes an AMI where
+    # the bundled NVIDIA driver matches an available FM package.
+    if region == "us-west-2":
+        ami_id = "ami-0d2923a2dd541bdeb"
+    else:
+        # Fall back to the SSM-resolved latest if running outside us-west-2.
+        # The pin above is region-specific; replicate it per region as needed.
+        ami_id = aws_session.get_latest_ami()
     sg_id = get_efa_security_group_id(aws_session)
 
     key_name = None
