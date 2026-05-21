@@ -393,7 +393,9 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     Yields (master_conn, worker_conn, aws_session) where connections are to the EC2 hosts.
     """
     aws_session = AWSSessionManager(region=region)
-    ami_id = aws_session.get_latest_ami()
+    # TODO: Remove before_date once DLAMI publishes driver >= 580.159 (post-embargo).
+    # The 20260519 AMI has embargo driver 580.150 which is incompatible with CUDA 13.0.2 on A100.
+    ami_id = aws_session.get_latest_ami(before_date="2026-05-05")
     sg_id = get_efa_security_group_id(aws_session)
 
     key_name = None
