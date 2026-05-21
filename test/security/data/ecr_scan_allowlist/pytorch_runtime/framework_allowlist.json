@@ -1,0 +1,7 @@
+[
+    {
+        "vulnerability_id": "CVE-2025-33219",
+        "reason": "NVIDIA display driver vulnerability in cuda-compat. Cannot upgrade cuda-compat beyond base image version (580.95) due to incompatibility with DLAMI embargo host driver (580.150). Awaiting DLAMI driver update to public 580.159+.",
+        "review_by": "2026-06-20"
+    }
+]
