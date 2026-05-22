@@ -24,8 +24,9 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 ### Known Issues
 
 - **Transformers pinned to `<5.9.0`.** Transformers 5.9.0 removed the deprecated `input_embeds` alias and the `cache_position` kwarg from
-  `create_causal_mask` / `create_sliding_window_causal_mask`, which breaks Qwen3-TTS decode in vllm-omni 0.21.0rc1. Pin will be dropped once a
-  vllm-omni release containing the upstream fix ships.
+  `create_causal_mask` / `create_sliding_window_causal_mask`, which breaks Qwen3-TTS decode in vllm-omni 0.21.0rc1. Upstream fix:
+  [vllm-project/vllm-omni#3786](https://github.com/vllm-project/vllm-omni/pull/3786). Pin will be dropped once a vllm-omni release containing it
+  ships.
 
 * * *
 
