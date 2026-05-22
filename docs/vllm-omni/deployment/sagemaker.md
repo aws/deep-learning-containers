@@ -57,22 +57,53 @@ predictor.delete_endpoint(delete_endpoint_config=True)
 
 ## Other Modalities
 
-The same pattern works for image and sync-video endpoints — change `SM_VLLM_MODEL`, `instance_type`, and the `route=` attribute. JSON request bodies
-are auto-converted to `multipart/form-data` for the video routes by the routing middleware.
+The same pattern works for image and sync-video endpoints — change `SM_VLLM_MODEL`, `instance_type`, and the `route=` attribute.
 
 ```python
-# Image generation — FLUX.2-klein-4B on g6.xlarge
+# Image generation — FLUX.2-klein-4B on g6.xlarge (JSON)
 response = predictor.predict(
     data={"prompt": "a red apple on a white table", "size": "512x512", "n": 1},
     custom_attributes="route=/v1/images/generations",
 )
+```
+
+The `/v1/videos` and `/v1/videos/sync` routes require `multipart/form-data`. As of `omni-sagemaker-cuda-v1.2`, the routing middleware no longer
+converts JSON to multipart — clients must build the multipart body locally and pass it through `InvokeEndpoint`'s `ContentType`. SageMaker forwards
+the body and `ContentType` to the model server unchanged.
+
+```python
+import uuid
+import boto3
+
+def build_multipart_body(fields: dict, boundary: str) -> bytes:
+    parts = [
+        f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'
+        for k, v in fields.items()
+    ]
+    parts.append(f"--{boundary}--\r\n")
+    return "".join(parts).encode()
 
 # Sync video — Wan2.1-T2V-1.3B on g6e.xlarge
-response = predictor.predict(
-    data={"prompt": "a dog running on a beach", "num_frames": 17, "num_inference_steps": 30, "size": "480x320"},
-    custom_attributes="route=/v1/videos/sync",
+boundary = uuid.uuid4().hex
+content_type = f"multipart/form-data; boundary={boundary}"
+body = build_multipart_body(
+    {"prompt": "a dog running on a beach", "num_frames": "17",
+     "num_inference_steps": "30", "size": "480x320"},
+    boundary,
 )
+
+runtime = boto3.client("sagemaker-runtime")
+response = runtime.invoke_endpoint(
+    EndpointName=predictor.endpoint_name,
+    Body=body,
+    ContentType=content_type,
+    CustomAttributes="route=/v1/videos/sync",
+)
+mp4_bytes = response["Body"].read()
 ```
+
+For the async `/v1/videos` route on SageMaker async inference, see
+[examples/vllm-omni/sagemaker/deploy_video_sync.py](https://github.com/aws/deep-learning-containers/blob/main/examples/vllm-omni/sagemaker/deploy_video_sync.py).
 
 For Qwen2.5-Omni multimodal chat (text + speech output), set `route=/v1/chat/completions` and use the request shape from the
 [EC2 multimodal-chat example](ec2.md#speech-output-requirements).

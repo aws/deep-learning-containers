@@ -4,6 +4,51 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 * * *
 
+## v1.3.0 — 2026-05-21
+
+**Tags:** `omni-cuda-v1.3` · `omni-sagemaker-cuda-v1.3`
+
+**vLLM-Omni source:** [v0.21.0rc1](https://github.com/vllm-project/vllm-omni/releases/tag/v0.21.0rc1) (pre-release, tracking upstream vLLM v0.21.0)
+
+### Highlights
+
+- Upgraded to vLLM-Omni 0.21.0rc1, aligned with upstream vLLM v0.21.0
+- Cherry-picked upstream Dockerfile fixes for cublas headers (JIT), flashinfer cubin layering, and the `nixl-cu13` install ordering for matching
+  `nixl_ep_cpp.so`
+
+### Fixes
+
+- **Voice-clone TTS (Qwen3-TTS-Base) throughput restored** — the upstream Code2Wav decode-chunk un-batching regression flagged in v1.1 is resolved in
+  vllm-omni 0.21.0rc1.
+
+### Known Issues
+
+- **Transformers pinned to `<5.9.0`.** Transformers 5.9.0 removed the deprecated `input_embeds` alias and the `cache_position` kwarg from
+  `create_causal_mask` / `create_sliding_window_causal_mask`, which breaks Qwen3-TTS decode in vllm-omni 0.21.0rc1. Pin will be dropped once a
+  vllm-omni release containing the upstream fix ships.
+
+* * *
+
+## v1.2.0 — 2026-05-18
+
+**Tags:** `omni-cuda-v1.2` · `omni-sagemaker-cuda-v1.2`
+
+**vLLM-Omni source:** [v0.20.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.20.0) (unchanged from v1.1)
+
+### Changes
+
+- **SageMaker `/v1/videos` and `/v1/videos/sync` now require `multipart/form-data` directly.** The routing middleware no longer auto-converts JSON
+  request bodies to multipart. Clients must build the multipart body locally and pass `ContentType="multipart/form-data; boundary=..."` to
+  `InvokeEndpoint`; SageMaker forwards the body and `ContentType` through to the model server unchanged.
+- See `examples/vllm-omni/sagemaker/deploy_video_sync.py` for the updated invocation pattern.
+
+### Migration
+
+- Clients that previously sent JSON to `/v1/videos*` via SageMaker `CustomAttributes` routing must switch to a pre-built multipart body. JSON requests
+  to these routes will now reach the model server unconverted and fail.
+
+* * *
+
 ## v1.1.0 — 2026-05-12
 
 **Tags:** `omni-cuda-v1.1` · `omni-sagemaker-cuda-v1.1`
