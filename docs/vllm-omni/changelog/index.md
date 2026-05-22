@@ -10,6 +10,8 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 **vLLM-Omni source:** [v0.21.0rc1](https://github.com/vllm-project/vllm-omni/releases/tag/v0.21.0rc1) (pre-release, tracking upstream vLLM v0.21.0)
 
+**DLC PR:** [#6110](https://github.com/aws/deep-learning-containers/pull/6110)
+
 ### Highlights
 
 - Upgraded to vLLM-Omni 0.21.0rc1, aligned with upstream vLLM v0.21.0
@@ -35,6 +37,8 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 **Tags:** `omni-cuda-v1.2` · `omni-sagemaker-cuda-v1.2`
 
 **vLLM-Omni source:** [v0.20.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.20.0) (unchanged from v1.1)
+
+**DLC PR:** [#6101](https://github.com/aws/deep-learning-containers/pull/6101)
 
 ### Changes
 
