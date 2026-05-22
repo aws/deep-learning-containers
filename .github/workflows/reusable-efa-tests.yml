@@ -18,6 +18,11 @@ on:
         description: 'AWS region'
         required: true
         type: string
+      config-file:
+        description: 'Path to image config YAML file (reserved for future use, e.g., reading efa-instance-type from config).'
+        required: false
+        type: string
+        default: ''
       efa-instance-type:
         description: 'EFA-enabled instance type (default: p4d.24xlarge)'
         required: false

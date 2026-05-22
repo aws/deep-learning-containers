@@ -18,17 +18,51 @@ on:
         description: 'AWS region for ECR authentication'
         required: true
         type: string
+      config-file:
+        description: 'Path to image config YAML file. When provided, framework/version are read from config and individual inputs are ignored.'
+        required: false
+        type: string
+        default: ''
       framework:
         description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow, base)'
-        required: true
+        required: false
         type: string
+        default: ''
       framework-version:
         description: 'Framework version (e.g., 0.15.1, 0.5.8)'
-        required: true
+        required: false
         type: string
+        default: ''
 
 jobs:
+  load-config:
+    runs-on: ubuntu-latest
+    outputs:
+      framework: ${{ steps.resolve.outputs.framework }}
+      framework-version: ${{ steps.resolve.outputs.framework-version }}
+    steps:
+      - name: Checkout code
+        if: inputs.config-file != ''
+        uses: actions/checkout@v5
+
+      - name: Resolve config
+        id: resolve
+        run: |
+          if [ -n "${{ inputs.config-file }}" ]; then
+            echo "Reading config from: ${{ inputs.config-file }}"
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+            CONFIG="${{ inputs.config-file }}"
+            echo "framework=$(yq '.common.framework' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "framework-version=$(yq '.common.framework_version' $CONFIG)" >> $GITHUB_OUTPUT
+          else
+            echo "Using individual inputs"
+            echo "framework=${{ inputs.framework }}" >> $GITHUB_OUTPUT
+            echo "framework-version=${{ inputs.framework-version }}" >> $GITHUB_OUTPUT
+          fi
+
   ecr-vulnerability-scan:
+    needs: [load-config]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -54,5 +88,5 @@ jobs:
           source .venv/bin/activate
           PYTHONPATH=$(pwd):$(pwd)/test:$PYTHONPATH python3 test/security/scripts/ecr_scan.py \
             --image-uri "${{ inputs.image-uri }}" \
-            --framework "${{ inputs.framework }}" \
-            --framework-version "${{ inputs.framework-version }}"
+            --framework "${{ needs.load-config.outputs.framework }}" \
+            --framework-version "${{ needs.load-config.outputs.framework-version }}"

@@ -18,22 +18,31 @@ on:
         description: 'AWS region for ECR authentication'
         required: true
         type: string
+      config-file:
+        description: 'Path to image config YAML file. When provided, all fields below are read from the config and individual inputs are ignored.'
+        required: false
+        type: string
+        default: ''
       framework:
         description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow, base)'
-        required: true
+        required: false
         type: string
+        default: ''
       framework-version:
         description: 'Framework version (e.g., 0.15.1, 0.5.8)'
-        required: true
+        required: false
         type: string
+        default: ''
       python-version:
         description: 'Python version in pyXYZ format (e.g., py312)'
-        required: true
+        required: false
         type: string
+        default: ''
       os-version:
         description: 'OS version (e.g., ubuntu22.04, ubuntu24.04)'
-        required: true
+        required: false
         type: string
+        default: ''
       cuda-version:
         description: 'CUDA version in cuXYZ format (e.g., cu129). Empty for CPU images.'
         required: false
@@ -71,7 +80,61 @@ on:
         default: ''
 
 jobs:
+  load-config:
+    runs-on: ubuntu-latest
+    outputs:
+      framework: ${{ steps.resolve.outputs.framework }}
+      framework-version: ${{ steps.resolve.outputs.framework-version }}
+      python-version: ${{ steps.resolve.outputs.python-version }}
+      os-version: ${{ steps.resolve.outputs.os-version }}
+      cuda-version: ${{ steps.resolve.outputs.cuda-version }}
+      customer-type: ${{ steps.resolve.outputs.customer-type }}
+      arch-type: ${{ steps.resolve.outputs.arch-type }}
+      device-type: ${{ steps.resolve.outputs.device-type }}
+      contributor: ${{ steps.resolve.outputs.contributor }}
+      container-type: ${{ steps.resolve.outputs.container-type }}
+      transformers-version: ${{ steps.resolve.outputs.transformers-version }}
+    steps:
+      - name: Checkout code
+        if: inputs.config-file != ''
+        uses: actions/checkout@v5
+
+      - name: Resolve config
+        id: resolve
+        run: |
+          if [ -n "${{ inputs.config-file }}" ]; then
+            echo "Reading config from: ${{ inputs.config-file }}"
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+            CONFIG="${{ inputs.config-file }}"
+            echo "framework=$(yq '.common.framework' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "framework-version=$(yq '.common.framework_version' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "python-version=$(yq '.common.python_version' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "os-version=$(yq '.common.os_version' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "cuda-version=$(yq '.common.cuda_version // ""' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "customer-type=$(yq '.common.customer_type // ""' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "arch-type=$(yq '.common.arch_type // "x86"' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "device-type=$(yq '.common.device_type // "gpu"' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "contributor=$(yq '.common.contributor // "None"' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "container-type=$(yq '.common.job_type // ""' $CONFIG)" >> $GITHUB_OUTPUT
+            echo "transformers-version=$(yq '.common.transformers_version // ""' $CONFIG)" >> $GITHUB_OUTPUT
+          else
+            echo "Using individual inputs"
+            echo "framework=${{ inputs.framework }}" >> $GITHUB_OUTPUT
+            echo "framework-version=${{ inputs.framework-version }}" >> $GITHUB_OUTPUT
+            echo "python-version=${{ inputs.python-version }}" >> $GITHUB_OUTPUT
+            echo "os-version=${{ inputs.os-version }}" >> $GITHUB_OUTPUT
+            echo "cuda-version=${{ inputs.cuda-version }}" >> $GITHUB_OUTPUT
+            echo "customer-type=${{ inputs.customer-type }}" >> $GITHUB_OUTPUT
+            echo "arch-type=${{ inputs.arch-type }}" >> $GITHUB_OUTPUT
+            echo "device-type=${{ inputs.device-type }}" >> $GITHUB_OUTPUT
+            echo "contributor=${{ inputs.contributor }}" >> $GITHUB_OUTPUT
+            echo "container-type=${{ inputs.container-type }}" >> $GITHUB_OUTPUT
+            echo "transformers-version=${{ inputs.transformers-version }}" >> $GITHUB_OUTPUT
+          fi
+
   preflight:
+    needs: [load-config]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -88,7 +151,7 @@ jobs:
           image-uri: ${{ inputs.image-uri }}
 
   general-tests:
-    needs: preflight
+    needs: [preflight, load-config]
     if: needs.preflight.outputs.image-exists == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -162,9 +225,9 @@ jobs:
       # ==========================================
 
       - name: Run inference engine sanity tests
-        if: inputs.framework == 'vllm' || inputs.framework == 'sglang'
+        if: needs.load-config.outputs.framework == 'vllm' || needs.load-config.outputs.framework == 'sglang'
         run: |
-          IMAGE_TAG="${{ inputs.framework }}:${{ inputs.framework-version }}-${{ inputs.device-type }}-${{ inputs.python-version }}-${{ inputs.cuda-version }}-${{ inputs.os-version }}-${{ inputs.customer-type }}"
+          IMAGE_TAG="${{ needs.load-config.outputs.framework }}:${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.device-type }}-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-${{ needs.load-config.outputs.customer-type }}"
           docker exec -e IMAGE_TAG="${IMAGE_TAG}" ${CONTAINER_ID} \
             python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
 
@@ -186,8 +249,8 @@ jobs:
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
 
   sagemaker-only:
-    needs: preflight
-    if: needs.preflight.outputs.image-exists == 'true' && inputs.customer-type == 'sagemaker'
+    needs: [preflight, load-config]
+    if: needs.preflight.outputs.image-exists == 'true' && needs.load-config.outputs.customer-type == 'sagemaker'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -214,13 +277,13 @@ jobs:
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/check_labels.py \
             ${{ inputs.image-uri }} \
-            --framework "${{ inputs.framework }}" \
-            --framework-version "${{ inputs.framework-version }}" \
-            --device-type "${{ inputs.device-type }}" \
-            --cuda-version "${{ inputs.cuda-version }}" \
-            --arch-type "${{ inputs.arch-type }}" \
-            --python-version "${{ inputs.python-version }}" \
-            --os-version "${{ inputs.os-version }}" \
-            --container-type "${{ inputs.container-type }}" \
-            --contributor "${{ inputs.contributor }}" \
-            --transformers-version "${{ inputs.transformers-version }}"
+            --framework "${{ needs.load-config.outputs.framework }}" \
+            --framework-version "${{ needs.load-config.outputs.framework-version }}" \
+            --device-type "${{ needs.load-config.outputs.device-type }}" \
+            --cuda-version "${{ needs.load-config.outputs.cuda-version }}" \
+            --arch-type "${{ needs.load-config.outputs.arch-type }}" \
+            --python-version "${{ needs.load-config.outputs.python-version }}" \
+            --os-version "${{ needs.load-config.outputs.os-version }}" \
+            --container-type "${{ needs.load-config.outputs.container-type }}" \
+            --contributor "${{ needs.load-config.outputs.contributor }}" \
+            --transformers-version "${{ needs.load-config.outputs.transformers-version }}"
