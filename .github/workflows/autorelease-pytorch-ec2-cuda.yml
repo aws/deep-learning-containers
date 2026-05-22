@@ -22,6 +22,7 @@ jobs:
   load-config:
     runs-on: ubuntu-latest
     outputs:
+      config-file: ${{ steps.parse.outputs.config-file }}
       config: ${{ steps.load.outputs.config }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
@@ -48,6 +49,7 @@ jobs:
         id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "config-file=.github/config/image/pytorch-ec2-cuda.yml" >> $GITHUB_OUTPUT
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
@@ -147,16 +149,7 @@ jobs:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      python-version: ${{ needs.load-config.outputs.python-version }}
-      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
-      os-version: ${{ needs.load-config.outputs.os-version }}
-      customer-type: ${{ needs.load-config.outputs.customer-type }}
-      arch-type: ${{ needs.load-config.outputs.arch-type }}
-      device-type: ${{ needs.load-config.outputs.device-type }}
-      contributor: ${{ needs.load-config.outputs.contributor }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
+      config-file: ${{ needs.load-config.outputs.config-file }}
 
   security-test:
     needs: [build-image, load-config]
@@ -165,8 +158,7 @@ jobs:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      config-file: ${{ needs.load-config.outputs.config-file }}
 
   telemetry-test:
     needs: [build-image, load-config]
@@ -175,9 +167,7 @@ jobs:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
+      config-file: ${{ needs.load-config.outputs.config-file }}
 
   unit-test:
     needs: [build-image]
@@ -208,7 +198,7 @@ jobs:
           docker kill ${CONTAINER_ID}
 
   single-gpu-test:
-    needs: [build-image, sanity-test, security-test, unit-test]
+    needs: [build-image, load-config, sanity-test, security-test, unit-test]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -238,13 +228,14 @@ jobs:
           docker kill ${CONTAINER_ID}
 
   efa-test:
-    needs: [build-image, sanity-test, security-test, unit-test]
+    needs: [build-image, load-config, sanity-test, security-test, unit-test]
     if: success()
     uses: ./.github/workflows/reusable-efa-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
+      config-file: ${{ needs.load-config.outputs.config-file }}
 
   generate-release-spec:
     needs: [load-config, build-image, sanity-test, security-test, unit-test, single-gpu-test, efa-test]

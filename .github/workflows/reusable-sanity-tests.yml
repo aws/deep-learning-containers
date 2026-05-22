@@ -19,119 +19,47 @@ on:
         required: true
         type: string
       config-file:
-        description: 'Path to image config YAML file. When provided, all fields below are read from the config and individual inputs are ignored.'
-        required: false
+        description: 'Path to image config YAML file (e.g., .github/config/image/pytorch-ec2-cuda.yml)'
+        required: true
         type: string
-        default: ''
-      framework:
-        description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow, base)'
-        required: false
-        type: string
-        default: ''
-      framework-version:
-        description: 'Framework version (e.g., 0.15.1, 0.5.8)'
-        required: false
-        type: string
-        default: ''
-      python-version:
-        description: 'Python version in pyXYZ format (e.g., py312)'
-        required: false
-        type: string
-        default: ''
-      os-version:
-        description: 'OS version (e.g., ubuntu22.04, ubuntu24.04)'
-        required: false
-        type: string
-        default: ''
-      cuda-version:
-        description: 'CUDA version in cuXYZ format (e.g., cu129). Empty for CPU images.'
-        required: false
-        type: string
-        default: ''
-      customer-type:
-        description: 'Customer type (e.g., sagemaker, ec2)'
-        required: false
-        type: string
-        default: ''
-      arch-type:
-        description: 'Architecture type (e.g., x86, arm64, graviton)'
-        required: false
-        type: string
-        default: 'x86'
-      device-type:
-        description: 'Device type (e.g., gpu, cpu)'
-        required: false
-        type: string
-        default: 'gpu'
-      contributor:
-        description: 'Contributor name'
-        required: false
-        type: string
-        default: ''
-      container-type:
-        description: 'Container/job type (e.g., general, training, inference)'
-        required: false
-        type: string
-        default: ''
-      transformers-version:
-        description: 'Transformers library version'
-        required: false
-        type: string
-        default: ''
 
 jobs:
   load-config:
     runs-on: ubuntu-latest
     outputs:
-      framework: ${{ steps.resolve.outputs.framework }}
-      framework-version: ${{ steps.resolve.outputs.framework-version }}
-      python-version: ${{ steps.resolve.outputs.python-version }}
-      os-version: ${{ steps.resolve.outputs.os-version }}
-      cuda-version: ${{ steps.resolve.outputs.cuda-version }}
-      customer-type: ${{ steps.resolve.outputs.customer-type }}
-      arch-type: ${{ steps.resolve.outputs.arch-type }}
-      device-type: ${{ steps.resolve.outputs.device-type }}
-      contributor: ${{ steps.resolve.outputs.contributor }}
-      container-type: ${{ steps.resolve.outputs.container-type }}
-      transformers-version: ${{ steps.resolve.outputs.transformers-version }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      transformers-version: ${{ steps.parse.outputs.transformers-version }}
     steps:
       - name: Checkout code
-        if: inputs.config-file != ''
         uses: actions/checkout@v5
 
-      - name: Resolve config
-        id: resolve
+      - name: Parse config file
+        id: parse
         run: |
-          if [ -n "${{ inputs.config-file }}" ]; then
-            echo "Reading config from: ${{ inputs.config-file }}"
-            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-            sudo chmod +x /usr/local/bin/yq
-            CONFIG="${{ inputs.config-file }}"
-            echo "framework=$(yq '.common.framework' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "framework-version=$(yq '.common.framework_version' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "python-version=$(yq '.common.python_version' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "os-version=$(yq '.common.os_version' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "cuda-version=$(yq '.common.cuda_version // ""' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "customer-type=$(yq '.common.customer_type // ""' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "arch-type=$(yq '.common.arch_type // "x86"' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "device-type=$(yq '.common.device_type // "gpu"' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "contributor=$(yq '.common.contributor // "None"' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "container-type=$(yq '.common.job_type // ""' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "transformers-version=$(yq '.common.transformers_version // ""' $CONFIG)" >> $GITHUB_OUTPUT
-          else
-            echo "Using individual inputs"
-            echo "framework=${{ inputs.framework }}" >> $GITHUB_OUTPUT
-            echo "framework-version=${{ inputs.framework-version }}" >> $GITHUB_OUTPUT
-            echo "python-version=${{ inputs.python-version }}" >> $GITHUB_OUTPUT
-            echo "os-version=${{ inputs.os-version }}" >> $GITHUB_OUTPUT
-            echo "cuda-version=${{ inputs.cuda-version }}" >> $GITHUB_OUTPUT
-            echo "customer-type=${{ inputs.customer-type }}" >> $GITHUB_OUTPUT
-            echo "arch-type=${{ inputs.arch-type }}" >> $GITHUB_OUTPUT
-            echo "device-type=${{ inputs.device-type }}" >> $GITHUB_OUTPUT
-            echo "contributor=${{ inputs.contributor }}" >> $GITHUB_OUTPUT
-            echo "container-type=${{ inputs.container-type }}" >> $GITHUB_OUTPUT
-            echo "transformers-version=${{ inputs.transformers-version }}" >> $GITHUB_OUTPUT
-          fi
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          CONFIG="${{ inputs.config-file }}"
+          echo "Loading config from: ${CONFIG}"
+          echo "framework=$(yq '.common.framework' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(yq '.common.framework_version' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "python-version=$(yq '.common.python_version' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "os-version=$(yq '.common.os_version' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(yq '.common.cuda_version // ""' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(yq '.common.customer_type // ""' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(yq '.common.arch_type // "x86"' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "device-type=$(yq '.common.device_type // "gpu"' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "contributor=$(yq '.common.contributor // "None"' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "container-type=$(yq '.common.job_type // ""' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "transformers-version=$(yq '.common.transformers_version // ""' $CONFIG)" >> $GITHUB_OUTPUT
 
   preflight:
     needs: [load-config]

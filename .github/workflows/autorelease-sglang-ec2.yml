@@ -43,6 +43,7 @@ jobs:
     needs: [autocurrency-pr-gate]
     runs-on: ubuntu-latest
     outputs:
+      config-file: ${{ steps.parse.outputs.config-file }}
       config: ${{ steps.load.outputs.config }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
@@ -69,6 +70,7 @@ jobs:
         id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "config-file=.github/config/image/sglang-ec2.yml" >> $GITHUB_OUTPUT
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
@@ -121,16 +123,7 @@ jobs:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      python-version: ${{ needs.load-config.outputs.python-version }}
-      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
-      os-version: ${{ needs.load-config.outputs.os-version }}
-      customer-type: ${{ needs.load-config.outputs.customer-type }}
-      arch-type: ${{ needs.load-config.outputs.arch-type }}
-      device-type: ${{ needs.load-config.outputs.device-type }}
-      contributor: ${{ needs.load-config.outputs.contributor }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
+      config-file: ${{ needs.load-config.outputs.config-file }}
 
   telemetry-test:
     needs: [build-image, load-config]
@@ -139,9 +132,7 @@ jobs:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
+      config-file: ${{ needs.load-config.outputs.config-file }}
 
   upstream-tests:
     needs: [build-image, load-config]

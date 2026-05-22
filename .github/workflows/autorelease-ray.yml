@@ -344,21 +344,13 @@ jobs:
       matrix:
         include:
           - ci-image: ${{ needs.build-ec2-gpu.outputs.ci-image }}
-            device-type: gpu
-            cuda-version: cu129
-            customer-type: ec2
+            config-file: .github/config/image/ray-ec2-gpu.yml
           - ci-image: ${{ needs.build-ec2-cpu.outputs.ci-image }}
-            device-type: cpu
-            cuda-version: ""
-            customer-type: ec2
+            config-file: .github/config/image/ray-ec2-cpu.yml
           - ci-image: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
-            device-type: gpu
-            cuda-version: cu129
-            customer-type: sagemaker
+            config-file: .github/config/image/ray-sagemaker-gpu.yml
           - ci-image: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
-            device-type: cpu
-            cuda-version: ""
-            customer-type: sagemaker
+            config-file: .github/config/image/ray-sagemaker-cpu.yml
     concurrency:
       group: ${{ github.workflow }}-sanity-${{ matrix.ci-image }}-${{ github.run_id }}
       cancel-in-progress: true
@@ -367,16 +359,7 @@ jobs:
       image-uri: ${{ matrix.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ray
-      framework-version: "2.55.1"
-      python-version: py313
-      cuda-version: ${{ matrix.cuda-version }}
-      os-version: amzn2023
-      customer-type: ${{ matrix.customer-type }}
-      arch-type: x86
-      device-type: ${{ matrix.device-type }}
-      contributor: None
-      container-type: inference
+      config-file: ${{ matrix.config-file }}
 
   # ============================================================
   # EC2 GPU — FFmpeg + serve tests
@@ -615,9 +598,13 @@ jobs:
       matrix:
         include:
           - ci-image: ${{ needs.build-ec2-gpu.outputs.ci-image }}
+            config-file: .github/config/image/ray-ec2-gpu.yml
           - ci-image: ${{ needs.build-ec2-cpu.outputs.ci-image }}
+            config-file: .github/config/image/ray-ec2-cpu.yml
           - ci-image: ${{ needs.build-sagemaker-gpu.outputs.ci-image }}
+            config-file: .github/config/image/ray-sagemaker-gpu.yml
           - ci-image: ${{ needs.build-sagemaker-cpu.outputs.ci-image }}
+            config-file: .github/config/image/ray-sagemaker-cpu.yml
     concurrency:
       group: ${{ github.workflow }}-telemetry-${{ matrix.ci-image }}-${{ github.run_id }}
       cancel-in-progress: false
@@ -626,9 +613,7 @@ jobs:
       image-uri: ${{ matrix.ci-image }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ray
-      framework-version: "2.55.1"
-      container-type: inference
+      config-file: ${{ matrix.config-file }}
 
   # ============================================================
   # Generate release specs

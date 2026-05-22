@@ -44,6 +44,7 @@ jobs:
     if: success()
     runs-on: ubuntu-latest
     outputs:
+      config-file: ${{ steps.parse.outputs.config-file }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       python-version: ${{ steps.parse.outputs.python-version }}
@@ -69,6 +70,7 @@ jobs:
         id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "config-file=.github/config/image/base-v2-runtime.yml" >> $GITHUB_OUTPUT
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
@@ -192,16 +194,7 @@ jobs:
       image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      python-version: ${{ needs.load-config.outputs.python-version }}
-      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
-      os-version: ${{ needs.load-config.outputs.os-version }}
-      customer-type: ${{ needs.load-config.outputs.customer-type }}
-      arch-type: ${{ needs.load-config.outputs.arch-type }}
-      device-type: ${{ needs.load-config.outputs.device-type }}
-      contributor: ${{ needs.load-config.outputs.contributor }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
+      config-file: ${{ needs.load-config.outputs.config-file }}
 
   # ============================================================
   # Base-specific sanity tests (CPU only — Python, compiler flags)
@@ -265,8 +258,7 @@ jobs:
       image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      config-file: ${{ needs.load-config.outputs.config-file }}
 
   # ============================================================
   # CUDA tests — GPU sanity checks for both targets

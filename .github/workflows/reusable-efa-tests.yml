@@ -19,10 +19,9 @@ on:
         required: true
         type: string
       config-file:
-        description: 'Path to image config YAML file (reserved for future use, e.g., reading efa-instance-type from config).'
-        required: false
+        description: 'Path to image config YAML file (e.g., .github/config/image/pytorch-ec2-cuda.yml)'
+        required: true
         type: string
-        default: ''
       efa-instance-type:
         description: 'EFA-enabled instance type (default: p4d.24xlarge)'
         required: false

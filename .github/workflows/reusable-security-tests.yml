@@ -19,47 +19,29 @@ on:
         required: true
         type: string
       config-file:
-        description: 'Path to image config YAML file. When provided, framework/version are read from config and individual inputs are ignored.'
-        required: false
+        description: 'Path to image config YAML file (e.g., .github/config/image/pytorch-ec2-cuda.yml)'
+        required: true
         type: string
-        default: ''
-      framework:
-        description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow, base)'
-        required: false
-        type: string
-        default: ''
-      framework-version:
-        description: 'Framework version (e.g., 0.15.1, 0.5.8)'
-        required: false
-        type: string
-        default: ''
 
 jobs:
   load-config:
     runs-on: ubuntu-latest
     outputs:
-      framework: ${{ steps.resolve.outputs.framework }}
-      framework-version: ${{ steps.resolve.outputs.framework-version }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
     steps:
       - name: Checkout code
-        if: inputs.config-file != ''
         uses: actions/checkout@v5
 
-      - name: Resolve config
-        id: resolve
+      - name: Parse config file
+        id: parse
         run: |
-          if [ -n "${{ inputs.config-file }}" ]; then
-            echo "Reading config from: ${{ inputs.config-file }}"
-            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-            sudo chmod +x /usr/local/bin/yq
-            CONFIG="${{ inputs.config-file }}"
-            echo "framework=$(yq '.common.framework' $CONFIG)" >> $GITHUB_OUTPUT
-            echo "framework-version=$(yq '.common.framework_version' $CONFIG)" >> $GITHUB_OUTPUT
-          else
-            echo "Using individual inputs"
-            echo "framework=${{ inputs.framework }}" >> $GITHUB_OUTPUT
-            echo "framework-version=${{ inputs.framework-version }}" >> $GITHUB_OUTPUT
-          fi
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+          CONFIG="${{ inputs.config-file }}"
+          echo "Loading config from: ${CONFIG}"
+          echo "framework=$(yq '.common.framework' $CONFIG)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(yq '.common.framework_version' $CONFIG)" >> $GITHUB_OUTPUT
 
   ecr-vulnerability-scan:
     needs: [load-config]

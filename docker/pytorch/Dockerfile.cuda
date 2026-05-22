@@ -1,5 +1,6 @@
 # ============================================================================
 # PyTorch DLC — Amazon Linux 2023 (CUDA 13.0)
+# Trigger: PoC for config-file-based reusable workflows (PR #6126)
 # Multi-stage build with parallel builder stages:
 #
 #   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
