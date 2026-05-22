@@ -411,24 +411,7 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
     Yields (master_conn, worker_conn, aws_session) where connections are to the EC2 hosts.
     """
     aws_session = AWSSessionManager(region=region)
-    # Pinned to the 2026-05-01 AL2023 base-with-single-cuda AMI in us-west-2.
-    # AMIs published 2026-05-08 onward bumped the NVIDIA driver to 580.150,
-    # but NVIDIA's cuda-rhel9 repo never published a matching
-    # nvidia-fabricmanager (only 580.65/580.95/580.159 are available).
-    # Without a matching FM running, p4d (NVSwitch) returns
-    # cudaErrorSystemNotInitialized (802) on every cuInit. nccl-tests
-    # then fails with the misleading "aws-ofi-nccl is not working"
-    # validator message — see test/efa/scripts/nccl_allreduce.sh.
-    # Verified on 2026-05-20 with vllm:0.21-gpu-py312-ec2: cuInit succeeds,
-    # NCCL initializes, EFA provider selected. Drop this pin (revert to
-    # aws_session.get_latest_ami()) once AWS DLAMI publishes an AMI where
-    # the bundled NVIDIA driver matches an available FM package.
-    if region == "us-west-2":
-        ami_id = "ami-0d2923a2dd541bdeb"
-    else:
-        # Fall back to the SSM-resolved latest if running outside us-west-2.
-        # The pin above is region-specific; replicate it per region as needed.
-        ami_id = aws_session.get_latest_ami()
+    ami_id = aws_session.get_latest_ami()
     sg_id = get_efa_security_group_id(aws_session)
 
     key_name = None
