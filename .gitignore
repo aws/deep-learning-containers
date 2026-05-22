@@ -23,3 +23,5 @@ site/
 tutorials/
 .sisyphus/
 docker/xgboost/prebuilt.whl
+
+.claude/
