@@ -98,7 +98,6 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             master_conn,
             f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
             timeout=DEFAULT_TIMEOUT,
-            warn=True,
         )
 
         if not RUN_NIXL_TESTS:
