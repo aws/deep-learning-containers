@@ -124,15 +124,16 @@ grep -E "LIBFABRIC|libfabric" "${PREFILL_LOG}" || \
 grep -E "FI_EP_RDM|provider.*efa|Selected provider is efa" "${PREFILL_LOG}" || \
     echo "WARNING: couldn't confirm EFA provider was selected (may be in worker log)"
 
-# --- Strict KV-transfer assertion via Prometheus metrics ---
-# When the proxy ships kv_transfer_params correctly, decode reuses the prefilled
-# KV cache and only processes the last token before generation (its scheduler's
-# get_num_new_matched_tokens reports the prompt as already-cached). Asserting
-# decode.prompt_tokens stays well below the full 6-token prompt proves KV bytes
-# crossed the libfabric wire — without the connector, decode would re-prefill
-# all 6 tokens locally.
+# --- Strict KV-transfer assertion via NixlConnector Prometheus metrics ---
+# vllm:nixl_xfer_time_seconds_count is a histogram counter that increments per
+# successful NIXL transfer. > 0 means at least one KV cache block crossed the
+# wire from prefill to decode over libfabric/EFA. vllm:nixl_num_failed_transfers
+# is a Counter that must stay at 0.
+#
+# vllm:prompt_tokens_total is NOT a useful proof: it always counts the prompt
+# size regardless of whether the KV came from cache or local recompute.
 _metric_value() {
-    # Sum the value of a Prometheus counter, stripping comments + labels.
+    # Sum the value of a Prometheus metric, summing across labels if any.
     local url="$1" name="$2"
     curl -sf "${url}" | awk -v n="${name}" '
         $0 ~ "^"n"[ {]" { gsub(/.*[ ]/, "", $0); s += $0 + 0 }
@@ -140,15 +141,13 @@ _metric_value() {
     '
 }
 
-PREFILL_PROMPT=$(_metric_value "http://127.0.0.1:${PREFILL_PORT}/metrics" "vllm:prompt_tokens_total")
-DECODE_PROMPT=$(_metric_value "http://${WORKER_IP}:${DECODE_PORT}/metrics" "vllm:prompt_tokens_total")
+DECODE_XFERS=$(_metric_value "http://${WORKER_IP}:${DECODE_PORT}/metrics" "vllm:nixl_xfer_time_seconds_count")
+DECODE_FAILED=$(_metric_value "http://${WORKER_IP}:${DECODE_PORT}/metrics" "vllm:nixl_num_failed_transfers")
 DECODE_GEN=$(_metric_value "http://${WORKER_IP}:${DECODE_PORT}/metrics" "vllm:generation_tokens_total")
-echo "metrics: prefill.prompt_tokens=${PREFILL_PROMPT} decode.prompt_tokens=${DECODE_PROMPT} decode.gen_tokens=${DECODE_GEN}"
+echo "metrics: decode.nixl_xfers=${DECODE_XFERS} decode.nixl_failed=${DECODE_FAILED} decode.gen_tokens=${DECODE_GEN}"
 
-[ "${PREFILL_PROMPT}" -ge 6 ] || { echo "prefill did not process prompt tokens (got ${PREFILL_PROMPT}, expected >=6)"; exit 1; }
-# Decode should re-process at most 1 token (the last) when KV transfer worked.
-# A value of 6 (the whole prompt) means the connector handshake failed.
-[ "${DECODE_PROMPT}" -le 1 ] || { echo "decode re-prefilled (prompt_tokens=${DECODE_PROMPT}, expected <=1) — KV transfer over libfabric did not happen"; exit 1; }
+[ "${DECODE_XFERS}" -ge 1 ] || { echo "no NIXL transfers reached decode (xfer_count=${DECODE_XFERS}) — KV did not flow over libfabric"; exit 1; }
+[ "${DECODE_FAILED}" -eq 0 ] || { echo "NIXL transfers failed (failed=${DECODE_FAILED})"; exit 1; }
 [ "${DECODE_GEN}" -ge 1 ] || { echo "decode produced no tokens (gen_tokens=${DECODE_GEN})"; exit 1; }
 
-echo "nixl_disagg_pd test passed (KV transfer verified via /metrics)"
+echo "nixl_disagg_pd test passed (${DECODE_XFERS} NIXL transfer(s) verified via /metrics)"
