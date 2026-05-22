@@ -15,6 +15,7 @@ on:
       - "scripts/telemetry/**"
       - "test/ray/**"
       - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/ray/**"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -133,6 +134,7 @@ jobs:
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
               - "scripts/ray/*"
+              - "test/security/data/ecr_scan_allowlist/ray/**"
             ec2-test-change:
               - "test/ray/ec2/**"
             sanity-test-change:
