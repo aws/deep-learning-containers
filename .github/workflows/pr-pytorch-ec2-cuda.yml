@@ -58,6 +58,7 @@ jobs:
       cancel-in-progress: true
     outputs:
       versions: ${{ steps.versions.outputs.versions }}
+      configs: ${{ steps.versions.outputs.configs }}
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
@@ -75,7 +76,14 @@ jobs:
         with:
           extra_args: --all-files
 
-      - name: Detect PyTorch versions
+      - name: Install yq
+        run: |
+          if ! command -v yq &> /dev/null; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+
+      - name: Detect PyTorch versions and build configs matrix
         id: versions
         run: |
           VERSIONS=$(git diff --name-only origin/main...HEAD \
@@ -92,6 +100,29 @@ jobs:
           JSON=$(echo "$VERSIONS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
           echo "versions=${JSON}" >> $GITHUB_OUTPUT
           echo "Detected versions: ${JSON}"
+
+          # Build a configs matrix: each entry carries all metadata fields
+          CONFIGS="[]"
+          for V in $VERSIONS; do
+            CONFIG_FILE=".github/config/image/pytorch-${V}-ec2-cuda.yml"
+            if [ -f "$CONFIG_FILE" ]; then
+              CONFIGS=$(echo "$CONFIGS" | jq -c \
+                --arg v "$V" \
+                --arg fw "$(yq '.common.framework' $CONFIG_FILE)" \
+                --arg fwv "$(yq '.common.framework_version' $CONFIG_FILE)" \
+                --arg py "$(yq '.common.python_version' $CONFIG_FILE)" \
+                --arg cuda "$(yq '.common.cuda_version' $CONFIG_FILE)" \
+                --arg os "$(yq '.common.os_version' $CONFIG_FILE)" \
+                --arg ct "$(yq '.common.job_type' $CONFIG_FILE)" \
+                --arg dt "$(yq '.common.device_type // "gpu"' $CONFIG_FILE)" \
+                --arg at "$(yq '.common.arch_type // "x86"' $CONFIG_FILE)" \
+                --arg contrib "$(yq '.common.contributor // "None"' $CONFIG_FILE)" \
+                --arg cust "$(yq '.common.customer_type // ""' $CONFIG_FILE)" \
+                '. + [{"version": $v, "framework": $fw, "framework_version": $fwv, "python_version": $py, "cuda_version": $cuda, "os_version": $os, "container_type": $ct, "device_type": $dt, "arch_type": $at, "contributor": $contrib, "customer_type": $cust}]')
+            fi
+          done
+          echo "configs=${CONFIGS}" >> $GITHUB_OUTPUT
+          echo "Configs matrix: ${CONFIGS}"
 
       - name: Detect file changes
         id: changes
@@ -129,17 +160,6 @@ jobs:
       cancel-in-progress: true
     outputs:
       runtime-image-uri: ${{ steps.build-runtime.outputs.image-uri }}
-      framework: ${{ steps.config.outputs.framework }}
-      framework-version: ${{ steps.config.outputs.framework-version }}
-      python-version: ${{ steps.config.outputs.python-version }}
-      cuda-version: ${{ steps.config.outputs.cuda-version }}
-      os-version: ${{ steps.config.outputs.os-version }}
-      container-type: ${{ steps.config.outputs.container-type }}
-      device-type: ${{ steps.config.outputs.device-type }}
-      arch-type: ${{ steps.config.outputs.arch-type }}
-      contributor: ${{ steps.config.outputs.contributor }}
-      customer-type: ${{ steps.config.outputs.customer-type }}
-      prod-image: ${{ steps.config.outputs.prod-image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -234,10 +254,37 @@ jobs:
             "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
         continue-on-error: true
 
+  # ============================================================
+  # Unit tests (CPU-only, no GPU needed)
+  # ============================================================
+  unit-test:
+    needs: [detect-versions, build-images]
+    if: success()
+    strategy:
+      matrix:
+        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+      fail-fast: false
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-unit-${{ matrix.version }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
       - name: Run unit tests
         run: |
           VERSION="${{ matrix.version }}"
-          IMAGE="${{ steps.build-runtime.outputs.image-uri }}"
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-${{ matrix.version }}-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
             -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=${VERSION} \
@@ -257,23 +304,23 @@ jobs:
       (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.sanity-test-change == 'true')
     strategy:
       matrix:
-        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:pytorch-runtime-{2}-pr-{3}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.version, github.event.pull_request.number) }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.build-images.outputs.framework }}
-      framework-version: ${{ needs.build-images.outputs.framework-version }}
-      python-version: ${{ needs.build-images.outputs.python-version }}
-      cuda-version: ${{ needs.build-images.outputs.cuda-version }}
-      os-version: ${{ needs.build-images.outputs.os-version }}
-      customer-type: ${{ needs.build-images.outputs.customer-type }}
-      arch-type: ${{ needs.build-images.outputs.arch-type }}
-      device-type: ${{ needs.build-images.outputs.device-type }}
-      contributor: ${{ needs.build-images.outputs.contributor }}
-      container-type: ${{ needs.build-images.outputs.container-type }}
+      framework: ${{ matrix.framework }}
+      framework-version: ${{ matrix.framework_version }}
+      python-version: ${{ matrix.python_version }}
+      cuda-version: ${{ matrix.cuda_version }}
+      os-version: ${{ matrix.os_version }}
+      customer-type: ${{ matrix.customer_type }}
+      arch-type: ${{ matrix.arch_type }}
+      device-type: ${{ matrix.device_type }}
+      contributor: ${{ matrix.contributor }}
+      container-type: ${{ matrix.container_type }}
 
   # ============================================================
   # Security tests (ECR scan, CVE allowlist)
@@ -283,15 +330,15 @@ jobs:
     if: success()
     strategy:
       matrix:
-        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
       image-uri: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:pytorch-runtime-{2}-pr-{3}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.version, github.event.pull_request.number) }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.build-images.outputs.framework }}
-      framework-version: ${{ needs.build-images.outputs.framework-version }}
+      framework: ${{ matrix.framework }}
+      framework-version: ${{ matrix.framework_version }}
 
   # ============================================================
   # Telemetry tests (opt-out, environment variables)
@@ -303,22 +350,22 @@ jobs:
       (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.telemetry-test-change == 'true')
     strategy:
       matrix:
-        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
       image-uri: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:pytorch-runtime-{2}-pr-{3}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.version, github.event.pull_request.number) }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.build-images.outputs.framework }}
-      framework-version: ${{ needs.build-images.outputs.framework-version }}
-      container-type: ${{ needs.build-images.outputs.container-type }}
+      framework: ${{ matrix.framework }}
+      framework-version: ${{ matrix.framework_version }}
+      container-type: ${{ matrix.container_type }}
 
   # ============================================================
   # Single-GPU tests
   # ============================================================
   single-gpu-test:
-    needs: [detect-versions, build-images, sanity-test, security-test]
+    needs: [detect-versions, build-images, unit-test, sanity-test, security-test]
     if: success()
     strategy:
       matrix:
@@ -358,7 +405,7 @@ jobs:
   # EFA integration test (2x p4d.24xlarge, NCCL over EFA)
   # ============================================================
   efa-test:
-    needs: [detect-versions, build-images, sanity-test, security-test]
+    needs: [detect-versions, build-images, unit-test, sanity-test, security-test]
     if: success()
     strategy:
       matrix:
