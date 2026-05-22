@@ -33,15 +33,22 @@ DECODE_PORT=8200
 PROXY_PORT=8192
 SIDE_CHANNEL_PORT=5559
 
-# NixlConnector ignores kv_role at the engine level (v0.21.0): the per-request
-# kv_transfer_params dict (do_remote_prefill / remote_engine_id / remote_block_ids
-# / remote_host / remote_port) is what makes the decoder fetch instead of
-# recompute. The proxy is responsible for shipping that handshake; the role
-# is advisory only, so kv_both matches upstream's run_accuracy_test.sh.
-KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
+# NixlConnector ignores kv_role at the engine level: the per-request
+# kv_transfer_params dict from the proxy is what determines remote-fetch
+# behavior. kv_both matches upstream's run_accuracy_test.sh.
+#
+# kv_load_failure_policy=fail makes a missing/incomplete handoff a hard error
+# instead of a silent local re-prefill — so a transport regression surfaces
+# immediately rather than passing as a coherent completion.
+KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_connector_extra_config":{"backends":["LIBFABRIC"],"kv_load_failure_policy":"fail"}}'
 
 # Side-channel host: needs to be the IP that the worker can reach this box on.
 SIDE_CHANNEL_HOST=$(ip -4 -o addr show scope global | awk '{print $4}' | cut -d/ -f1 | head -1)
+
+# Block size must match across P and D for remote_block_ids to map correctly;
+# upstream's NIXL accuracy test pins this to 128 (OPT's default is 16, which
+# breaks the lookup at scheduler.py if D defaults differently).
+BLOCK_SIZE=128
 
 cleanup() {
     set +e
@@ -52,14 +59,16 @@ cleanup() {
 trap cleanup EXIT
 
 # --- Launch prefill server on master ---
+# VLLM_KV_CACHE_LAYOUT=HND is required by NixlConnector and matches upstream.
 CUDA_VISIBLE_DEVICES=0 \
 FI_PROVIDER=efa \
-UCX_NET_DEVICES=all \
+VLLM_KV_CACHE_LAYOUT=HND \
 VLLM_NIXL_SIDE_CHANNEL_PORT=${SIDE_CHANNEL_PORT} \
 VLLM_NIXL_SIDE_CHANNEL_HOST=${SIDE_CHANNEL_HOST} \
 vllm serve "${MODEL}" \
     --port ${PREFILL_PORT} \
     --enforce-eager \
+    --block-size ${BLOCK_SIZE} \
     --gpu-memory-utilization 0.5 \
     --kv-transfer-config "${KV_CONFIG}" \
     >"${PREFILL_LOG}" 2>&1 &

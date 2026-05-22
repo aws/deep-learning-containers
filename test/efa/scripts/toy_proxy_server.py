@@ -93,13 +93,14 @@ async def completions(req: Request) -> JSONResponse:
     kv_params = pf_json.get("kv_transfer_params") or {}
     if not kv_params.get("remote_engine_id"):
         log.warning("prefill returned no remote_engine_id; KV handoff will fail")
-    log.info(
-        "prefill kv_transfer_params: engine_id=%s blocks=%s host=%s port=%s",
-        kv_params.get("remote_engine_id"),
-        len(kv_params.get("remote_block_ids") or []),
-        kv_params.get("remote_host"),
-        kv_params.get("remote_port"),
-    )
+    # Dump the full dict so we can see whether prefill emitted all 9 keys
+    # (do_remote_prefill, do_remote_decode, remote_block_ids, remote_engine_id,
+    # remote_request_id, remote_host, remote_port, tp_size, remote_num_tokens)
+    # or a subset — decode rejects with "Got invalid KVTransferParams" if any
+    # of (remote_engine_id, remote_request_id, remote_host, remote_port) is
+    # missing, falling through to local prefill silently.
+    log.info("prefill kv_transfer_params (full): %r", kv_params)
+    log.info("prefill kv_transfer_params keys: %s", sorted(kv_params.keys()))
 
     # ---- Step 2: decode request ----
     dc_body = dict(body)
