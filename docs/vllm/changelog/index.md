@@ -4,6 +4,26 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v1.4.0 — 2026-05-22
+
+**Tags:** `server-cuda-v1.4` · `server-sagemaker-cuda-v1.4`
+
+**vLLM source:** [3f5bd48](https://github.com/vllm-project/vllm/commit/3f5bd482f5c1a5dbdffbbf68d624e20bb7032013) (`0.20.0.dev361+amzn2023.3f5bd482`)
+
+**Bundled versions:** CUDA 12.9.1 · Python 3.12 · FlashInfer 0.6.8.post1 · DeepEP [73b6ea4](https://github.com/deepseek-ai/DeepEP/commit/73b6ea4)
+
+### Highlights
+
+- **SageMaker route middleware** ([#6096](https://github.com/aws/deep-learning-containers/pull/6096)) — `/invocations` requests can now be routed to
+  any vLLM endpoint via `X-Amzn-SageMaker-Custom-Attributes: route=<path>`
+- **libsndfile** added to the SageMaker image for audio I/O in network-isolated deployments
+
+### New Model Support
+
+- **Voxtral-Mini-4B-Realtime-2602** — Mistral audio transcription via `/v1/audio/transcriptions`
+
+* * *
+
 ## v1.3.0 — 2026-05-12
 
 **Tags:** `server-cuda-v1.3` · `server-sagemaker-cuda-v1.3`
