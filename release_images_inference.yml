@@ -107,8 +107,6 @@ release_images:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu24.04"
-      lmi_version: "21.0.0"
-      cuda_version: "cu129"
       lmi_version: "25.0.0"
       cuda_version: "cu130"
       example: False
