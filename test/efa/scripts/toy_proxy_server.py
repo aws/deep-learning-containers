@@ -1,10 +1,23 @@
-"""Minimal disaggregated prefill/decode proxy for the NIXL EFA test.
+"""Disaggregated prefill/decode proxy for the NIXL EFA test.
 
-Modeled after upstream vLLM's tests/v1/kv_connector/nixl_integration/toy_proxy_server.py
-but stripped to the minimum needed for the EFA validation: route a /v1/completions
-request to the prefill server (max_tokens=1, returns a single sampling step), then
-forward the same request body to the decode server, which receives the KV cache
-over NIXL+LIBFABRIC+EFA and produces the rest of the tokens.
+Modeled after upstream vLLM's
+tests/v1/kv_connector/nixl_integration/toy_proxy_server.py: do the
+two-step kv_transfer_params handshake so the decode side actually pulls
+the prefilled KV cache from the prefill side over NIXL+LIBFABRIC instead
+of silently re-prefilling locally.
+
+NixlConnector (vLLM 0.21.0) ignores `kv_role` at the engine level — the
+per-request `kv_transfer_params` dict is what determines remote-fetch
+behavior:
+
+  Step 1 (P): inject placeholder params {do_remote_decode: True, ...}
+              and force max_tokens=1. Prefill computes KV, fills in
+              remote_engine_id/remote_block_ids/remote_host/remote_port
+              in its response.
+  Step 2 (D): read those populated params from P's response and put them
+              in D's request body. D's scheduler sees do_remote_prefill=
+              True + populated remotes and pulls KV blocks instead of
+              recomputing.
 """
 
 import argparse
@@ -22,6 +35,10 @@ app = FastAPI()
 clients: dict[str, httpx.AsyncClient] = {}
 prefill_url = ""
 decode_url = ""
+
+# vLLM treats kv_transfer_params as a forward-compat dict; min_tokens isn't
+# supported on the prefill side, so we strip it temporarily.
+_DROP_FIELDS_FOR_PREFILL = ("min_tokens", "min_completion_tokens")
 
 
 @app.on_event("startup")
@@ -46,15 +63,52 @@ async def completions(req: Request) -> JSONResponse:
     body = await req.json()
     prompt = body.get("prompt", "")
 
-    # Step 1: prefill (max_tokens=1) — populates KV cache and triggers NIXL push.
-    prefill_body = {**body, "max_tokens": 1}
-    pf = await clients["prefill"].post("/v1/completions", json=prefill_body)
+    # ---- Step 1: prefill request ----
+    pf_body = dict(body)
+    pf_body["max_tokens"] = 1
+    if "max_completion_tokens" in pf_body:
+        pf_body["max_completion_tokens"] = 1
+    saved_min: dict[str, object] = {}
+    for k in _DROP_FIELDS_FOR_PREFILL:
+        if k in pf_body:
+            saved_min[k] = pf_body.pop(k)
+    pf_body["stream"] = False
+    # Placeholder kv_transfer_params: tells prefill it's a P-node and to
+    # populate the remote_* fields in its response.
+    pf_body["kv_transfer_params"] = {
+        "do_remote_decode": True,
+        "do_remote_prefill": False,
+        "remote_engine_id": None,
+        "remote_block_ids": None,
+        "remote_host": None,
+        "remote_port": None,
+    }
+
+    pf = await clients["prefill"].post("/v1/completions", json=pf_body)
     log.info("prefill status=%s", pf.status_code)
     if pf.status_code != 200:
         return JSONResponse(status_code=pf.status_code, content={"error": pf.text})
 
-    # Step 2: decode — same request; server should pull KV from prefill via NIXL.
-    dc = await clients["decode"].post("/v1/completions", json=body)
+    pf_json = pf.json()
+    kv_params = pf_json.get("kv_transfer_params") or {}
+    if not kv_params.get("remote_engine_id"):
+        log.warning("prefill returned no remote_engine_id; KV handoff will fail")
+    log.info(
+        "prefill kv_transfer_params: engine_id=%s blocks=%s host=%s port=%s",
+        kv_params.get("remote_engine_id"),
+        len(kv_params.get("remote_block_ids") or []),
+        kv_params.get("remote_host"),
+        kv_params.get("remote_port"),
+    )
+
+    # ---- Step 2: decode request ----
+    dc_body = dict(body)
+    dc_body["kv_transfer_params"] = kv_params
+    # Restore stripped fields, if any.
+    for k, v in saved_min.items():
+        dc_body[k] = v
+
+    dc = await clients["decode"].post("/v1/completions", json=dc_body)
     log.info("decode status=%s prompt=%r", dc.status_code, prompt[:40])
     return JSONResponse(status_code=dc.status_code, content=dc.json())
 

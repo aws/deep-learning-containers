@@ -17,10 +17,16 @@ DECODE_LOG="${LOG_DIR}/decode.log"
 DECODE_PORT=8200
 SIDE_CHANNEL_PORT=5659
 
-# kv_consumer: decode side refuses to prefill locally. If KV bytes don't
-# arrive from prefill over libfabric, the request hangs and the orchestrator's
-# curl times out — turning silent fallback into a hard test failure.
-KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_consumer","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
+# NixlConnector ignores kv_role at the engine level (v0.21.0): the per-request
+# kv_transfer_params dict (do_remote_prefill / remote_engine_id / remote_block_ids
+# / remote_host / remote_port) is what makes the decoder fetch instead of
+# recompute. The proxy is responsible for shipping that handshake; the role
+# is advisory only, so kv_both matches upstream's run_accuracy_test.sh.
+KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
+
+# Side-channel host must be reachable from the prefill node (cross-host pull).
+# Default to the first non-loopback IPv4 address on this box.
+SIDE_CHANNEL_HOST=$(ip -4 -o addr show scope global | awk '{print $4}' | cut -d/ -f1 | head -1)
 
 # Daemonize so the SSH/docker-exec call that launched us returns immediately;
 # the orchestrator polls /health to know when we're actually ready.
@@ -28,6 +34,7 @@ nohup env CUDA_VISIBLE_DEVICES=0 \
     FI_PROVIDER=efa \
     UCX_NET_DEVICES=all \
     VLLM_NIXL_SIDE_CHANNEL_PORT=${SIDE_CHANNEL_PORT} \
+    VLLM_NIXL_SIDE_CHANNEL_HOST=${SIDE_CHANNEL_HOST} \
     vllm serve "${MODEL}" \
         --host 0.0.0.0 \
         --port ${DECODE_PORT} \

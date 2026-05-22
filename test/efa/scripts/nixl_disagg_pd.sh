@@ -33,11 +33,15 @@ DECODE_PORT=8200
 PROXY_PORT=8192
 SIDE_CHANNEL_PORT=5559
 
-# kv_producer: prefill side computes KV and ships it; decode side runs as
-# kv_consumer (see nixl_disagg_pd_decode.sh) which refuses to prefill locally.
-# Pairing producer/consumer turns the test into a strict catch — if libfabric
-# transport is broken, decode never receives KV blocks and the request times out.
-KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_producer","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
+# NixlConnector ignores kv_role at the engine level (v0.21.0): the per-request
+# kv_transfer_params dict (do_remote_prefill / remote_engine_id / remote_block_ids
+# / remote_host / remote_port) is what makes the decoder fetch instead of
+# recompute. The proxy is responsible for shipping that handshake; the role
+# is advisory only, so kv_both matches upstream's run_accuracy_test.sh.
+KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
+
+# Side-channel host: needs to be the IP that the worker can reach this box on.
+SIDE_CHANNEL_HOST=$(ip -4 -o addr show scope global | awk '{print $4}' | cut -d/ -f1 | head -1)
 
 cleanup() {
     set +e
@@ -52,6 +56,7 @@ CUDA_VISIBLE_DEVICES=0 \
 FI_PROVIDER=efa \
 UCX_NET_DEVICES=all \
 VLLM_NIXL_SIDE_CHANNEL_PORT=${SIDE_CHANNEL_PORT} \
+VLLM_NIXL_SIDE_CHANNEL_HOST=${SIDE_CHANNEL_HOST} \
 vllm serve "${MODEL}" \
     --port ${PREFILL_PORT} \
     --enforce-eager \
@@ -111,9 +116,12 @@ grep -E "FI_EP_RDM|provider.*efa|Selected provider is efa" "${PREFILL_LOG}" || \
     echo "WARNING: couldn't confirm EFA provider was selected (may be in worker log)"
 
 # --- Strict KV-transfer assertion via Prometheus metrics ---
-# With kv_producer/kv_consumer roles, decode skips local prefill iff KV blocks
-# arrived from prefill over libfabric. Asserting decode's prompt_tokens_total
-# stays at 0 (vs the 6-token prompt) proves the transfer happened on the wire.
+# When the proxy ships kv_transfer_params correctly, decode reuses the prefilled
+# KV cache and only processes the last token before generation (its scheduler's
+# get_num_new_matched_tokens reports the prompt as already-cached). Asserting
+# decode.prompt_tokens stays well below the full 6-token prompt proves KV bytes
+# crossed the libfabric wire — without the connector, decode would re-prefill
+# all 6 tokens locally.
 _metric_value() {
     # Sum the value of a Prometheus counter, stripping comments + labels.
     local url="$1" name="$2"
@@ -129,7 +137,9 @@ DECODE_GEN=$(_metric_value "http://${WORKER_IP}:${DECODE_PORT}/metrics" "vllm:ge
 echo "metrics: prefill.prompt_tokens=${PREFILL_PROMPT} decode.prompt_tokens=${DECODE_PROMPT} decode.gen_tokens=${DECODE_GEN}"
 
 [ "${PREFILL_PROMPT}" -ge 6 ] || { echo "prefill did not process prompt tokens (got ${PREFILL_PROMPT}, expected >=6)"; exit 1; }
-[ "${DECODE_PROMPT}" -eq 0 ] || { echo "decode ran local prefill (prompt_tokens=${DECODE_PROMPT}, expected 0) — KV transfer over libfabric did not happen"; exit 1; }
+# Decode should re-process at most 1 token (the last) when KV transfer worked.
+# A value of 6 (the whole prompt) means the connector handshake failed.
+[ "${DECODE_PROMPT}" -le 1 ] || { echo "decode re-prefilled (prompt_tokens=${DECODE_PROMPT}, expected <=1) — KV transfer over libfabric did not happen"; exit 1; }
 [ "${DECODE_GEN}" -ge 1 ] || { echo "decode produced no tokens (gen_tokens=${DECODE_GEN})"; exit 1; }
 
 echo "nixl_disagg_pd test passed (KV transfer verified via /metrics)"
