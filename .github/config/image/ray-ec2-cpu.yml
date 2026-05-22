@@ -1,5 +1,6 @@
 # Ray EC2 CPU Image Configuration
 # This file contains all configuration for building, testing, and releasing the Ray EC2 CPU image
+# (no-op edit to trigger CI for CVE baseline verification — revert before merge)
 
 # Image identification
 image:
