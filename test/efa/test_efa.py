@@ -133,26 +133,29 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             worker_conn,
             f"/test/efa/scripts/nixl_disagg_pd_decode.sh {NIXL_MODEL}",
         )
-        _step(
-            "nixl:disagg_pd_orchestrator",
-            MASTER_CONTAINER_NAME,
-            master_conn,
-            f"/test/efa/scripts/nixl_disagg_pd.sh {worker_ip} {NIXL_MODEL}",
-            timeout=NIXL_DISAGG_TIMEOUT,
-        )
-
-        # Dump the prefill/decode/proxy logs from inside the containers — they
-        # only live in the master/worker container filesystems and are gone
-        # once the test fixture terminates the EC2 instances.
-        for name, container, conn, log_path in (
-            ("prefill", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/prefill.log"),
-            ("proxy", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/proxy.log"),
-            ("decode", WORKER_CONTAINER_NAME, worker_conn, "/test/efa/logs/decode.log"),
-        ):
-            print(f"\n========== {name} log ({log_path}) ==========")
-            try:
-                r = run_on_container(container, conn, f"cat {log_path}", warn=True)
-                print(r.stdout if r.stdout else "(empty)")
-            except Exception as e:  # noqa: BLE001
-                print(f"(could not read: {e})")
-            print(f"========== /{name} log ==========\n")
+        # Always dump prefill/decode/proxy logs from inside the containers —
+        # they only live on the master/worker container filesystems and are
+        # gone once the fixture terminates the EC2 instances. Wrap in
+        # try/finally so the dump fires even when the orchestrator fails
+        # (which is the case where we need them most).
+        try:
+            _step(
+                "nixl:disagg_pd_orchestrator",
+                MASTER_CONTAINER_NAME,
+                master_conn,
+                f"/test/efa/scripts/nixl_disagg_pd.sh {worker_ip} {NIXL_MODEL}",
+                timeout=NIXL_DISAGG_TIMEOUT,
+            )
+        finally:
+            for name, container, conn, log_path in (
+                ("prefill", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/prefill.log"),
+                ("proxy", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/proxy.log"),
+                ("decode", WORKER_CONTAINER_NAME, worker_conn, "/test/efa/logs/decode.log"),
+            ):
+                print(f"\n========== {name} log ({log_path}) ==========")
+                try:
+                    r = run_on_container(container, conn, f"cat {log_path}", warn=True)
+                    print(r.stdout if r.stdout else "(empty)")
+                except Exception as e:  # noqa: BLE001
+                    print(f"(could not read: {e})")
+                print(f"========== /{name} log ==========\n")
