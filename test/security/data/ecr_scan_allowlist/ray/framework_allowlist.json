@@ -16,5 +16,20 @@
   {
     "vulnerability_id": "CVE-2026-34480",
     "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
+  },
+  {
+    "vulnerability_id": "CVE-2024-34997",
+    "reason": "joblib 1.5.3: no upstream fix as of 2026-05-22; on pypi latest",
+    "review_by": "2026-07-21"
+  },
+  {
+    "vulnerability_id": "CVE-2026-4538",
+    "reason": "torch 2.10.0 fix needs new Ray release bump (core contract package)",
+    "review_by": "2026-11-18"
+  },
+  {
+    "vulnerability_id": "CVE-2025-14930",
+    "reason": "transformers 5.8.0 fix needs new Ray release bump (core contract package)",
+    "review_by": "2026-11-18"
   }
 ]
