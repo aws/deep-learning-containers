@@ -28,7 +28,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 LOGGER = logging.getLogger(__name__)
 
 
-@pytest.mark.model("z-image-turbo")
+@pytest.mark.model("flux.2-klein-4b")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
@@ -42,7 +42,7 @@ def test_vllm_omni_image_generation(
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
         framework_version=framework_version,
         instance_type=instance_type,
-        model_id="Tongyi-MAI/Z-Image-Turbo",
+        model_id="black-forest-labs/FLUX.2-klein-4B",
     )
 
 
@@ -72,6 +72,7 @@ def _test_vllm_omni_model(
 
     env = {
         "SM_VLLM_MODEL": model_id,
+        "SM_VLLM_HOST": "0.0.0.0",
     }
 
     model = Model(
