@@ -16,14 +16,14 @@ import logging
 
 import pytest
 import sagemaker
+from sagemaker.deserializers import JSONDeserializer
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
-from sagemaker.deserializers import JSONDeserializer
 
+from ..... import invoke_sm_endpoint_helper_function
 from ...integration import dump_logs_from_cloudwatch
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
-from ..... import invoke_sm_endpoint_helper_function
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +32,9 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_vllm_omni_image_generation(framework_version, ecr_image, instance_type, sagemaker_regions):
+def test_vllm_omni_image_generation(
+    framework_version, ecr_image, instance_type, sagemaker_regions
+):
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
@@ -64,11 +66,12 @@ def _test_vllm_omni_model(
         framework_version: Optional version info
         **kwargs: Additional args from helper (boto_session, sagemaker_client, etc.)
     """
-    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-hf-vllm-omni-serving")
+    endpoint_name = sagemaker.utils.unique_name_from_base(
+        "sagemaker-hf-vllm-omni-serving"
+    )
 
     env = {
         "SM_VLLM_MODEL": model_id,
-        "SM_VLLM_TRUST_REMOTE_CODE": "true",
     }
 
     model = Model(
@@ -93,13 +96,19 @@ def _test_vllm_omni_model(
         predictor.deserializer = JSONDeserializer()
 
         data = {
-            "task": "text-to-image",
             "prompt": "A cat sitting on a mat.",
         }
 
         LOGGER.info(f"Running inference with data: {data}")
-        output = predictor.predict(data)
-        LOGGER.info(f"Output: {output}")
+        output = predictor.predict(
+            data=data,
+            initial_args={
+                "CustomAttributes": "route=/v1/images/generations",
+            },
+        )
+        LOGGER.info("Image generation successful")
 
         assert output is not None
         assert "data" in output
+        assert "b64_json" in output["data"][0]
+        assert len(output["data"][0]["b64_json"]) > 0

@@ -13,21 +13,15 @@
 from __future__ import absolute_import
 
 from contextlib import contextmanager
-from pathlib import Path
-import sys
 
 import pytest
+from sagemaker.deserializers import JSONDeserializer
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
-from sagemaker.deserializers import JSONDeserializer
 
-VLLM_OMNI_TEST_DIR = Path(__file__).resolve().parents[2]
-if str(VLLM_OMNI_TEST_DIR) not in sys.path:
-    sys.path.insert(0, str(VLLM_OMNI_TEST_DIR))
-
-from integration import ROLE, ensure_model_downloaded
-from utils import local_mode_utils
+from ...integration import ROLE, ensure_model_downloaded
+from ...utils import local_mode_utils
 
 
 @contextmanager
@@ -68,19 +62,29 @@ def _assert_vllm_omni_image_generation(predictor):
     predictor.deserializer = JSONDeserializer()
 
     data = {
-        "task": "text-to-image",
         "prompt": "A cat sitting on a mat.",
     }
-    output = predictor.predict(data)
+    
+    output = predictor.predict(
+        data=data,
+        initial_args={
+            "CustomAttributes": "route=/v1/images/generations",
+        },
+    )
 
     assert output is not None
     assert "data" in output
     assert "b64_json" in output["data"][0]
+    assert len(output["data"][0]["b64_json"]) > 0
 
 
 @pytest.mark.model("z-image-turbo")
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_vllm_local_image_generation(docker_image, sagemaker_local_session, instance_type):
+def test_vllm_local_image_generation(
+    docker_image, sagemaker_local_session, instance_type
+):
     """Test vLLM-Omni local deployment with image generation API."""
+    with _predictor(docker_image, sagemaker_local_session, instance_type) as predictor:
+        _assert_vllm_omni_image_generation(predictor)
     with _predictor(docker_image, sagemaker_local_session, instance_type) as predictor:
         _assert_vllm_omni_image_generation(predictor)
