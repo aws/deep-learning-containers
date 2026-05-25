@@ -271,7 +271,10 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     cloudpickle \
-    "s3fs>=2026.2.0"
+    "s3fs>=2026.2.0" \
+    "cachetools>=7.0.5" \
+    "greenlet>=3.4.0" \
+    "starlette>=1.0.0"
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
