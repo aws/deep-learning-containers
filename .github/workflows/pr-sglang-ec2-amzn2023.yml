@@ -96,6 +96,7 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -123,11 +124,14 @@ jobs:
               - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
               - "scripts/sglang/*"
-              - "test/sglang/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            model-test-change:
+              - ".github/config/model-tests/sglang-model-tests.yml"
+              - ".github/workflows/reusable-sglang-model-tests.yml"
+              - "test/sglang/scripts/**"
 
   build-image:
     needs: [check-changes, load-config]
@@ -223,8 +227,10 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   model-test:
-    needs: [build-image, load-config]
-    if: success()
+    needs: [check-changes, build-image, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.build-image.result == 'success' || needs.check-changes.outputs.model-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-model-tests-${{ github.event.pull_request.number }}
       cancel-in-progress: true

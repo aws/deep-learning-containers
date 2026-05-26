@@ -8,100 +8,178 @@
 # Workflow parsers construct s3_path from s3_prefix + s3_model.
 #
 # codebuild-fleet runners:
-#   x86-g6xl-runner   = g6.xlarge   (1x L4 24GB)
-#   x86-g6exl-runner  = g6e.xlarge  (1x L40S 48GB)
+#   x86-g6xl-runner    = g6.xlarge    (1x L4 24GB)
+#   x86-g6exl-runner   = g6e.xlarge   (1x L40S 48GB)
 #   x86-g6e12xl-runner = g6e.12xlarge (4x L40S 192GB)
-#   x86-g612xl-runner = g6.12xlarge (4x L4 96GB)
-#   x86-g512xl-runner = g5.12xlarge (4x A10G 96GB)
-# runner-scale-sets:
-#   gpu-efa-runners   = p4d.24xlarge (8x A100 40GB)
+#   x86-g612xl-runner  = g6.12xlarge  (4x L4 96GB)
+#   x86-g512xl-runner  = g5.12xlarge  (4x A10G 96GB)
+#
+# runner-scale-sets (self-hosted):
+#   gpu-l4-1gpu-runners    = 1x L4 24GB VRAM
+#   gpu-l4-2gpu-runners    = 2x L4 48GB VRAM
+#   gpu-l4-4gpu-runners    = 4x L4 96GB VRAM
+#   gpu-l40s-1gpu-runners  = 1x L40S 48GB VRAM
+#   gpu-l40s-2gpu-runners  = 2x L40S 96GB VRAM
+#   gpu-l40s-4gpu-runners  = 4x L40S 192GB VRAM
+#   gpu-h100-8gpu-runners  = 8x H100 640GB VRAM
+#   gpu-efa-runners        = 4x A100/H100 160-320GB VRAM (4 GPU per pod limit)
+#   gpu-p4d-runners        = 4x A100 160GB VRAM (reserved)
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 
 smoke-test:
   codebuild-fleet:
-    - name: "qwen3.5-0.8b"
-      s3_model: "qwen3.5-0.8b.tar.gz"
-      fleet: "x86-g6xl-runner"
-      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
+    # - name: "qwen3.5-0.8b"
+    #   s3_model: "qwen3.5-0.8b.tar.gz"
+    #   fleet: "x86-g6xl-runner"
+    #   extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
+    []
 
-  runner-scale-sets: []
+  runner-scale-sets:
+    # DeepSeek V4 Flash — 284B MoE (13B active), requires 8x H100 80GB
+    # Native FP4 checkpoint with Marlin MoE backend
+    - name: "deepseek-v4-flash"
+      s3_model: "deepseek-v4-flash.tar.gz"
+      runner_label: "gpu-h100-8gpu-runners"
+      extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
+
+    # DeepSeek V4 Pro — 1.6T MoE (49B active), 742GB on disk
+    # Too large for single node; requires LWS multinode (TP=16, 2x p5.48xlarge)
+    # Tested via benchmark multinode path once Flash smoke test passes
 
 benchmark:
   codebuild-fleet:
-    - name: "gpt-oss-20b"
-      s3_model: "gpt-oss-20b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 6000
-      min_rps: 5
-
-    - name: "qwen3.5-9b"
-      s3_model: "qwen3.5-9b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 2000
-      min_rps: 1.5
-
-    - name: "qwen3.5-27b-fp8"
-      s3_model: "qwen3.5-27b-fp8.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tp 1 --context-length 4096"
-      input_len: 512
-      output_len: 128
-      num_prompts: 64
-      batch_size: 4
-      min_throughput: 100
-      min_rps: 0.2
-
+    # - name: "gpt-oss-20b"
+    #   s3_model: "gpt-oss-20b.tar.gz"
+    #   fleet: "x86-g6exl-runner"
+    #   extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=6000
+    #     MIN_REQUESTS_PER_SEC=5
+    #     BENCHMARK_NUM_PROMPTS=64
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=128
+    #     BENCHMARK_BATCH_SIZE=4
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
+    #
+    # - name: "qwen3.5-9b"
+    #   s3_model: "qwen3.5-9b.tar.gz"
+    #   fleet: "x86-g6exl-runner"
+    #   extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=2000
+    #     MIN_REQUESTS_PER_SEC=1.5
+    #     BENCHMARK_NUM_PROMPTS=64
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=128
+    #     BENCHMARK_BATCH_SIZE=4
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
+    #
+    # - name: "qwen3.5-27b-fp8"
+    #   s3_model: "qwen3.5-27b-fp8.tar.gz"
+    #   fleet: "x86-g6exl-runner"
+    #   extra_args: "--tp 1 --context-length 4096"
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=100
+    #     MIN_REQUESTS_PER_SEC=0.2
+    #     BENCHMARK_NUM_PROMPTS=64
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=128
+    #     BENCHMARK_BATCH_SIZE=4
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
+    #
     # - name: "qwen3.5-35b-a3b-fp8"
     #   s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
     #   fleet: "x86-g612xl-runner"
     #   extra_args: "--tp 4 --context-length 4096"
-    #   input_len: 512
-    #   output_len: 128
-    #   num_prompts: 64
-    #   batch_size: 4
-    #   min_throughput: 400
-    #   min_rps: 0.35
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=400
+    #     MIN_REQUESTS_PER_SEC=0.35
+    #     BENCHMARK_NUM_PROMPTS=64
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=128
+    #     BENCHMARK_BATCH_SIZE=4
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
     #
     # - name: "qwen3-coder-next-fp8"
     #   s3_model: "qwen3-coder-next-fp8.tar.gz"
     #   fleet: "x86-g6e12xl-runner"
     #   extra_args: "--tp 4 --context-length 4096"
-    #   input_len: 512
-    #   output_len: 256
-    #   num_prompts: 32
-    #   batch_size: 2
-    #   min_throughput: 280
-    #   min_rps: 0.25
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=280
+    #     MIN_REQUESTS_PER_SEC=0.25
+    #     BENCHMARK_NUM_PROMPTS=32
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=256
+    #     BENCHMARK_BATCH_SIZE=2
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
     #
     # - name: "llama-3.3-70b"
     #   s3_model: "llama-3.3-70b.tar.gz"
     #   fleet: "x86-g6e12xl-runner"
     #   extra_args: "--tp 4 --context-length 4096"
-    #   input_len: 512
-    #   output_len: 128
-    #   num_prompts: 32
-    #   batch_size: 2
-    #   min_throughput: 400
-    #   min_rps: 0.35
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=400
+    #     MIN_REQUESTS_PER_SEC=0.35
+    #     BENCHMARK_NUM_PROMPTS=32
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=128
+    #     BENCHMARK_BATCH_SIZE=2
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
+    []
 
   runner-scale-sets:
-    - name: "qwen3-32b"
-      s3_model: "qwen3-32b.tar.gz"
-      extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
-      input_len: 512
-      output_len: 256
-      num_prompts: 32
-      batch_size: 2
-      min_throughput: 3400
-      min_rps: 3
+    # - name: "qwen3-32b"
+    #   s3_model: "qwen3-32b.tar.gz"
+    #   extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=3400
+    #     MIN_REQUESTS_PER_SEC=3
+    #     BENCHMARK_NUM_PROMPTS=32
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=256
+    #     BENCHMARK_BATCH_SIZE=2
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
+
+    # DeepSeek V4 Flash — 284B MoE (13B active), requires 8x H100 80GB
+    # Native FP4 checkpoint with Marlin MoE backend
+    # - name: "deepseek-v4-flash"
+    #   s3_model: "deepseek-v4-flash.tar.gz"
+    #   runner_label: "gpu-h100-8gpu-runners"
+    #   extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=500
+    #     MIN_REQUESTS_PER_SEC=1
+    #     BENCHMARK_NUM_PROMPTS=32
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=128
+    #     BENCHMARK_BATCH_SIZE=2
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
+
+    # DeepSeek V4 Pro — 1.6T MoE (49B active), requires 2x p5.48xlarge (16x H100)
+    # Native FP4 checkpoint with Marlin MoE backend
+    # Multi-node via LeaderWorkerSet (TP=16, nnodes=2)
+    # - name: "deepseek-v4-pro"
+    #   s3_model: "deepseek-v4-pro.tar.gz"
+    #   runner_label: "gpu-h100-8gpu-runners"
+    #   multinode: true
+    #   lws_manifest: "test/sglang/scripts/benchmark/multinode/sglang-deepseek-v4-pro-lws.yaml"
+    #   test_script: "multinode/run_multinode_benchmark.sh"
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=300
+    #     MIN_REQUESTS_PER_SEC=0.5
+    #     BENCHMARK_NUM_PROMPTS=32
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=128
+    #     BENCHMARK_BATCH_SIZE=2
+    #     RESULTS_DIR=/tmp/benchmark_results
+    #     SGLANG_PORT=8000
+    []

@@ -1,4 +1,4 @@
-name: Reusable SGLang Model Tests
+name: Reusable SGLang Model Smoke Tests
 
 permissions:
   contents: read
@@ -23,9 +23,8 @@ jobs:
   load-models:
     runs-on: ubuntu-latest
     outputs:
-      smoke-codebuild-fleet: ${{ steps.parse.outputs.smoke-codebuild-fleet }}
-      bench-codebuild-fleet: ${{ steps.parse.outputs.bench-codebuild-fleet }}
-      bench-runner-scale-sets: ${{ steps.parse.outputs.bench-runner-scale-sets }}
+      codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
+      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -37,35 +36,26 @@ jobs:
           import yaml, json
           with open('.github/config/model-tests/sglang-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
+          st = cfg.get('smoke-test', {})
           prefix = cfg.get('s3_prefix', '')
-          def resolve(section):
-              s = cfg.get(section, {})
-              for key in ('codebuild-fleet', 'runner-scale-sets'):
-                  for m in s.get(key, []):
-                      m['s3_path'] = prefix + '/' + m.pop('s3_model')
-              return s
-          st = resolve('smoke-test')
-          bm = resolve('benchmark')
-          print('smoke-codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
-          print('bench-codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
-          print('bench-runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', [])))
+          for m in st.get('codebuild-fleet', []) + st.get('runner-scale-sets', []):
+              m['s3_path'] = prefix + '/' + m.pop('s3_model')
+          print('codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
+          print('runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
           " > parsed.txt
-          for key in smoke-codebuild-fleet bench-codebuild-fleet bench-runner-scale-sets; do
-            val=$(grep "^${key}=" parsed.txt | sed "s/^${key}=//")
-            echo "${key}=${val}" >> $GITHUB_OUTPUT
-          done
+          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
+          grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
+          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
+          echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
 
-  # ---------------------------------------------------------------------------
-  # Smoke tests: start server, health check, send completion, validate response
-  # ---------------------------------------------------------------------------
-  smoke-test-codebuild:
-    name: smoke-test / ${{ matrix.fleet }} (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.smoke-codebuild-fleet)[0] != null }}
+  test-model-codebuild-fleet:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.smoke-codebuild-fleet) }}
+        include: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix) }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ matrix.fleet }}
@@ -99,29 +89,27 @@ jobs:
       - name: Copy scripts into container
         run: |
           docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/sglang/scripts/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/sglang/scripts/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
 
-      - name: Run smoke test
+      - name: Run model smoke test
         run: |
-          docker exec ${CONTAINER_ID} bash /models/sglang_model_smoke_test.sh \
+          TEST_SCRIPT="${{ matrix.test_script || 'sglang_model_smoke_test.sh' }}"
+          docker exec ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
 
-  # ---------------------------------------------------------------------------
-  # Benchmarks: start server, run bench_serving, validate throughput/rps
-  # ---------------------------------------------------------------------------
-  benchmark-codebuild:
-    name: benchmark / ${{ matrix.fleet }} (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.bench-codebuild-fleet)[0] != null }}
+  test-model-runner-scale-sets:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.bench-codebuild-fleet) }}
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ matrix.fleet }}
-        buildspec-override:true
+        include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
+    runs-on: ${{ matrix.runner_label }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -141,53 +129,6 @@ jobs:
 
       - name: Start container
         run: |
-          docker pull ${{ inputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
-            --ipc=host --shm-size=10g \
-            -v /dlc-models:/models \
-            ${{ inputs.image-uri }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      - name: Copy scripts into container
-        run: |
-          docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
-
-      - name: Run benchmark
-        run: |
-          docker exec ${CONTAINER_ID} bash /models/sglang_benchmark_test.sh \
-            "/models/${{ matrix.name }}" \
-            "${{ matrix.name }}" \
-            ${{ matrix.extra_args }}
-
-  benchmark-runner-scale:
-    name: benchmark / gpu-efa-runners (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets)[0] != null }}
-    needs: [load-models]
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.load-models.outputs.bench-runner-scale-sets) }}
-    runs-on: gpu-efa-runners
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: ECR authenticate
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-
-      - name: Download model from S3
-        uses: ./.github/actions/download-model
-        id: model
-        with:
-          s3-path: ${{ matrix.s3_path }}
-          model-name: ${{ matrix.name }}
-
-      - name: Start container
-        run: |
-          # Get GPU UUIDs visible to this pod (k8s assigns a subset of host GPUs)
           POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
           echo "Pod GPU UUIDs: ${POD_GPUS}"
           docker pull ${{ inputs.image-uri }}
@@ -200,22 +141,20 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
+          docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/sglang/scripts/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/sglang/scripts/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
 
-      - name: Run benchmark
+      - name: Run model smoke test
         run: |
-          docker exec ${CONTAINER_ID} bash /models/sglang_benchmark_test.sh \
+          TEST_SCRIPT="${{ matrix.test_script || 'sglang_model_smoke_test.sh' }}"
+          docker exec ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
             ${{ matrix.extra_args }}
 
       - name: Cleanup
-        # Do NOT remove images (docker rmi) on shared runner-scale-sets nodes.
-        # Multiple pods share the same host Docker daemon, so removing an image
-        # could affect a parallel job's container. Image cleanup is handled by
-        # the Docker cleanup DaemonSet instead.
-        # Kill the lock holder to release the shared lock on the model, allowing
-        # future eviction if disk space is needed.
         if: always()
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true

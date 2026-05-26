@@ -6,5 +6,6 @@ self-hosted-runner:
     - gpu-l40s-1gpu-runners  # 1x L40S 48GB VRAM
     - gpu-l40s-2gpu-runners  # 2x L40S 96GB VRAM
     - gpu-l40s-4gpu-runners  # 4x L40S 192GB VRAM
+    - gpu-h100-8gpu-runners  # 8x H100 640GB VRAM
     - gpu-efa-runners        # 4x A100/H100 160-320GB VRAM
     - gpu-p4d-runners        # 4x A100 160GB VRAM (reserved)
