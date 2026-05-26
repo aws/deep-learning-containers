@@ -42,6 +42,7 @@ repos:
         name: "📁 filesystem/🔧 config · Validate JSON file"
       - id: check-yaml
         name: "📁 filesystem/🔧 config · Validate YAML file"
+        args: ["--allow-multiple-documents"]
       - id: detect-aws-credentials
         name: "🔒 security · Detect aws credentials"
         args: ["--allow-missing-credentials"]
