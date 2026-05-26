@@ -63,7 +63,9 @@ def _assert_vllm_omni_image_generation(predictor):
     predictor.deserializer = JSONDeserializer()
 
     data = {
-        "prompt": "A cat sitting on a mat.",
+        "input": "Hello world from SageMaker tests!",
+        "voice": "ryan",
+        "language": "English",
     }
     
     output = predictor.predict(
@@ -79,7 +81,7 @@ def _assert_vllm_omni_image_generation(predictor):
     assert len(output["data"][0]["b64_json"]) > 0
 
 
-@pytest.mark.model("z-image-turbo")
+@pytest.mark.model("qwen3-tts-12hz-1-7b-customvoice")
 @pytest.mark.team("sagemaker-1p-algorithms")
 def test_vllm_local_image_generation(
     docker_image, sagemaker_local_session, instance_type

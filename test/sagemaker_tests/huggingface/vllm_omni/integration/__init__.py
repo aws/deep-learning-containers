@@ -24,9 +24,9 @@ import boto3
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 
 # Model artifacts for local mode tests - downloaded from HuggingFace Hub at runtime
-MODEL_ID = "black-forest-labs/FLUX.2-klein-4B"
-model_dir = os.path.join(resources_path, "flux.2-klein-4b")
-model_data = "flux.2-klein-4b.tar.gz"
+MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+model_dir = os.path.join(resources_path, "qwen3-tts-12hz-1-7b-customvoice")
+model_data = "qwen3-tts-12hz-1-7b-customvoice.tar.gz"
 model_data_path = os.path.join(model_dir, model_data)
 
 

@@ -28,7 +28,7 @@ from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 LOGGER = logging.getLogger(__name__)
 
 
-@pytest.mark.model("flux.2-klein-4b")
+@pytest.mark.model("qwen3-tts-12hz-1-7b-customvoice")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
@@ -42,7 +42,7 @@ def test_vllm_omni_image_generation(
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
         framework_version=framework_version,
         instance_type=instance_type,
-        model_id="black-forest-labs/FLUX.2-klein-4B",
+        model_id="Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
     )
 
 
@@ -97,7 +97,9 @@ def _test_vllm_omni_model(
         predictor.deserializer = JSONDeserializer()
 
         data = {
-            "prompt": "A cat sitting on a mat.",
+            "input": "Hello world from SageMaker tests!",
+            "voice": "ryan",
+            "language": "English",
         }
 
         LOGGER.info(f"Running inference with data: {data}")
