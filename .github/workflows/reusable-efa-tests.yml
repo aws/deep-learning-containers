@@ -23,6 +23,29 @@ on:
         required: false
         type: string
         default: 'p4d.24xlarge'
+      run-nixl-tests:
+        description: 'Run NIXL libfabric smoke + disaggregated PD tests (vLLM only)'
+        required: false
+        type: boolean
+        default: false
+      container-entrypoint:
+        description: |
+          Override the test container's entrypoint (passed to `docker run --entrypoint`).
+          Leave blank to use the image's baked-in entrypoint (PyTorch default).
+          Set to `/bin/bash` for images whose entrypoint can't accept a generic
+          shell arg (e.g., vLLM's `vllm serve "$@"`).
+        required: false
+        type: string
+        default: ''
+      container-cmd:
+        description: |
+          CMD passed to the test container. Defaults to `bash` (works with the
+          image's entrypoint + `-id` stdin). When `container-entrypoint` is set
+          to `/bin/bash`, this becomes argv to bash and must be an explicit
+          payload such as `-c 'sleep infinity'`.
+        required: false
+        type: string
+        default: 'bash'
 
 # Serialize EFA tests across all PRs to avoid p4d capacity contention.
 # Only one EFA test runs at a time globally; subsequent runs queue (no cancel).
@@ -48,9 +71,16 @@ jobs:
           uv pip install -r test/requirements.txt
 
       - name: Run EFA integration test
+        env:
+          TEST_IMAGE_URI: ${{ inputs.image-uri }}
+          EFA_INSTANCE_TYPE: ${{ inputs.efa-instance-type }}
+          RUN_NIXL_TESTS: ${{ inputs.run-nixl-tests && '1' || '0' }}
+          # Quote-safe via env: container-cmd may contain spaces and quotes
+          # (e.g., `-c 'sleep infinity'`), which would tokenize incorrectly
+          # if assigned inline on the shell command line.
+          EFA_CONTAINER_ENTRYPOINT: ${{ inputs.container-entrypoint }}
+          EFA_CONTAINER_CMD: ${{ inputs.container-cmd }}
         run: |
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$(pwd)/.github/scripts:$PYTHONPATH \
-          TEST_IMAGE_URI=${{ inputs.image-uri }} \
-          EFA_INSTANCE_TYPE=${{ inputs.efa-instance-type }} \
           python -m pytest test/efa/test_efa.py -vs -rA --tb=long
