@@ -16,5 +16,40 @@
   {
     "vulnerability_id": "CVE-2026-34480",
     "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
+  },
+  {
+    "vulnerability_id": "CVE-2026-22815",
+    "reason": "aiohttp 3.13.3 vendored in ray's thirdparty_files/; cannot patch without upstream ray rebuild",
+    "review_by": "2026-08-23"
+  },
+  {
+    "vulnerability_id": "CVE-2026-34513",
+    "reason": "aiohttp 3.13.3 vendored in ray's thirdparty_files/; cannot patch without upstream ray rebuild",
+    "review_by": "2026-08-23"
+  },
+  {
+    "vulnerability_id": "CVE-2026-34515",
+    "reason": "aiohttp 3.13.3 vendored in ray's thirdparty_files/; cannot patch without upstream ray rebuild",
+    "review_by": "2026-08-23"
+  },
+  {
+    "vulnerability_id": "CVE-2026-34516",
+    "reason": "aiohttp 3.13.3 vendored in ray's thirdparty_files/; cannot patch without upstream ray rebuild",
+    "review_by": "2026-08-23"
+  },
+  {
+    "vulnerability_id": "CVE-2026-34520",
+    "reason": "aiohttp 3.13.3 vendored in ray's thirdparty_files/; cannot patch without upstream ray rebuild",
+    "review_by": "2026-08-23"
+  },
+  {
+    "vulnerability_id": "CVE-2025-14930",
+    "reason": "transformers fix needs new Ray release bump (core contract package)",
+    "review_by": "2026-11-21"
+  },
+  {
+    "vulnerability_id": "CVE-2026-4538",
+    "reason": "torch 2.10.0 fix needs new Ray release bump (core contract package); upstream PR pending",
+    "review_by": "2026-11-21"
   }
 ]
