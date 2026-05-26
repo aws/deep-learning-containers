@@ -16,5 +16,10 @@
   {
     "vulnerability_id": "CVE-2026-34480",
     "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
+  },
+  {
+    "vulnerability_id": "GHSA-82j2-j2ch-gfr8",
+    "reason": "rustls-webpki vendored in uv binary (/usr/local/bin/uv); fix 0.104.0-alpha.7 not yet in any released uv version (latest 0.11.16 still ships rustls-webpki 0.103.13)",
+    "review_by": "2026-08-24"
   }
 ]
