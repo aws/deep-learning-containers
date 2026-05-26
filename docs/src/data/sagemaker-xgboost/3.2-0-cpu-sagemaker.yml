@@ -1,0 +1,14 @@
+framework: XGBoost
+version: "3.2-0"
+accelerator: cpu
+python: py312
+cuda: cu129
+os: amzn2023
+platform: sagemaker
+public_registry: false
+
+tags:
+  - "3.2-0-cpu-py312-sagemaker"
+
+ga: "2026-05-13"
+eop: "2027-05-13"
