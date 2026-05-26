@@ -33,7 +33,7 @@ dependencies = [
     "setuptools>=80.9.0,<81",
     "urllib3==2.7.0",
     "Werkzeug==3.1.8",
-    "pyarrow==22.0.0",
+    "pyarrow==23.0.1",
     "protobuf>=3.20.0,<=3.20.3",
     "fonttools>=4.60.2",
     "idna>=3.7",

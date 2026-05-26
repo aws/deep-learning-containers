@@ -61,6 +61,7 @@ RUN dnf update -y && dnf install -y --allowerasing \
   nginx expat libxml2 glib2 libffi zlib zstd \
   openssl-devel libcurl-devel \
   shadow-utils \
+  && dnf update -y python3-pip-wheel python3.12-pip-wheel rust-toolset-srpm-macros \
   && dnf clean all
 
 # Copy venv from builder
