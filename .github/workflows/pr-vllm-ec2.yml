@@ -272,3 +272,8 @@ jobs:
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       run-nixl-tests: true
+      # vLLM's dockerd_entrypoint.sh execs `vllm serve "$@"` and would parse
+      # any CMD as a model tag — override entrypoint to bash and keep the
+      # container alive for docker exec.
+      container-entrypoint: /bin/bash
+      container-cmd: -c 'sleep infinity'

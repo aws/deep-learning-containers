@@ -28,6 +28,14 @@ EFA_INSTANCE_TYPE = os.environ.get("EFA_INSTANCE_TYPE", "p4d.24xlarge")
 RUN_NIXL_TESTS = os.environ.get("RUN_NIXL_TESTS", "0") == "1"
 NIXL_MODEL = os.environ.get("NIXL_TEST_MODEL", "facebook/opt-125m")
 
+# Container launch options. Defaults work for PyTorch DLCs (use the image's
+# entrypoint, pass `bash` as argv so the entrypoint's `exec "$@"` runs bash
+# under -id stdin). Callers testing images whose baked-in entrypoint can't
+# accept a generic shell arg (e.g., vLLM's `vllm serve "$@"`) override via
+# env: EFA_CONTAINER_ENTRYPOINT=/bin/bash EFA_CONTAINER_CMD="-c 'sleep infinity'".
+EFA_CONTAINER_ENTRYPOINT = os.environ.get("EFA_CONTAINER_ENTRYPOINT") or None
+EFA_CONTAINER_CMD = os.environ.get("EFA_CONTAINER_CMD", "bash")
+
 # vLLM startup + KV transfer + accuracy check.
 NIXL_DISAGG_TIMEOUT = 1200
 
@@ -64,7 +72,12 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         print(f"========== /{name} (exit={r.exited}) ==========\n")
         return r
 
-    with efa_instances(image_uri=image_uri, instance_type=EFA_INSTANCE_TYPE) as (
+    with efa_instances(
+        image_uri=image_uri,
+        instance_type=EFA_INSTANCE_TYPE,
+        container_entrypoint=EFA_CONTAINER_ENTRYPOINT,
+        container_cmd=EFA_CONTAINER_CMD,
+    ) as (
         master_conn,
         worker_conn,
         aws_session,

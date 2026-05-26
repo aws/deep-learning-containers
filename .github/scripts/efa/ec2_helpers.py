@@ -274,27 +274,29 @@ def launch_efa_instances(aws_session, ami_id, instance_type, key_name, sg_id, co
     )
 
 
-def setup_container(conn, image_uri, container_name):
+def setup_container(conn, image_uri, container_name, entrypoint=None, cmd="bash"):
     """Pull image and start container with EFA devices and host networking.
 
-    Image-specific entrypoint handling:
-    - vLLM (entrypoint = dockerd_entrypoint.sh which execs `vllm serve "$@"`):
-      the default `bash` arg gets parsed as a model_tag and the server crashes.
-      Override entrypoint to keep the container alive for docker exec.
-    - PyTorch (entrypoint = entrypoint.sh which sets LD_LIBRARY_PATH for CUDA
-      forward-compat then `exec "$@"`): keep entrypoint, pass `bash` so the
-      compat env var lands in the environment that NCCL+EFA later inherit.
-      Overriding it breaks NCCL on hosts with older CUDA drivers.
+    The container is launched detached (`-id`) and must stay alive long enough
+    for the test to docker-exec into it. The right way to keep it alive depends
+    on the image's entrypoint, which is image-specific — so the caller decides
+    via `entrypoint` / `cmd` instead of this helper sniffing the URI:
+
+    - `entrypoint=None` (default): use the image's baked-in entrypoint and pass
+      `cmd` as its argv. Suitable when the entrypoint sets up runtime state we
+      need (e.g., PyTorch's entrypoint.sh sets LD_LIBRARY_PATH for CUDA
+      forward-compat before `exec "$@"`, which NCCL+EFA later inherits). With
+      `cmd="bash"`, `-id` keeps stdin open and bash blocks reading from it.
+    - `entrypoint="/bin/bash"` + `cmd="-c 'sleep infinity'"`: override when the
+      baked-in entrypoint can't accept a generic shell arg (e.g., vLLM's
+      `dockerd_entrypoint.sh` execs `vllm serve "$@"` and would parse `bash`
+      as a model tag). Once entrypoint is `/bin/bash`, the CMD becomes argv
+      to bash, so an explicit `-c` payload is required — leaving CMD empty
+      would inherit the image's CMD as bash args.
     """
     devices = get_efa_devices(conn)
     device_args = " ".join(f"--device {d}" for d in devices)
-
-    if "vllm" in image_uri.lower():
-        entrypoint_arg = "--entrypoint /bin/bash"
-        cmd = "-c 'sleep infinity'"
-    else:
-        entrypoint_arg = ""
-        cmd = "bash"
+    entrypoint_arg = f"--entrypoint {entrypoint}" if entrypoint else ""
 
     conn.run(f"docker rm -f {container_name}", warn=True)
     conn.run(
@@ -405,8 +407,17 @@ def release_eip(aws_session, alloc_id):
 
 
 @contextmanager
-def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION):
+def efa_instances(
+    image_uri,
+    instance_type="p4d.24xlarge",
+    region=DEFAULT_REGION,
+    container_entrypoint=None,
+    container_cmd="bash",
+):
     """Context manager that launches 2 EFA instances, sets up containers + SSH, and cleans up.
+
+    `container_entrypoint` / `container_cmd` are forwarded to setup_container — see
+    its docstring for when overriding the entrypoint is appropriate.
 
     Yields (master_conn, worker_conn, aws_session) where connections are to the EC2 hosts.
     """
@@ -481,8 +492,20 @@ def efa_instances(image_uri, instance_type="p4d.24xlarge", region=DEFAULT_REGION
         master_conn.run(f"docker pull {image_uri}")
         worker_conn.run(f"docker pull {image_uri}")
 
-        setup_container(master_conn, image_uri, MASTER_CONTAINER_NAME)
-        setup_container(worker_conn, image_uri, WORKER_CONTAINER_NAME)
+        setup_container(
+            master_conn,
+            image_uri,
+            MASTER_CONTAINER_NAME,
+            entrypoint=container_entrypoint,
+            cmd=container_cmd,
+        )
+        setup_container(
+            worker_conn,
+            image_uri,
+            WORKER_CONTAINER_NAME,
+            entrypoint=container_entrypoint,
+            cmd=container_cmd,
+        )
 
         setup_master_ssh(master_conn)
         worker_private_ip = get_private_ip(aws_session, worker_id)
