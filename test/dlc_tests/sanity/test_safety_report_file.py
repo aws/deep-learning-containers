@@ -61,6 +61,7 @@ class SafetyPythonEnvironmentVulnerabilityReport:
 
 @pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skip(reason="Safety check is deprecated in favor of ECR Enhanced Scanning")
 @pytest.mark.skipif(is_canary_context(), reason="Skipping test because it does not run on canary")
 def test_safety_file_exists_and_is_valid(image):
     """
