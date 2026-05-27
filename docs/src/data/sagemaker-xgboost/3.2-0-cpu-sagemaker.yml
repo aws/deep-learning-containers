@@ -1,11 +1,8 @@
 framework: XGBoost
 version: "3.2-0"
 accelerator: cpu
-python: py312
-cuda: cu129
-os: amzn2023
 platform: sagemaker
-public_registry: false
+example_ecr_account: "<account-id>"
 
 tags:
   - "3.2-0"
