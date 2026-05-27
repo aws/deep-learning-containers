@@ -17,7 +17,7 @@ release_images:
       # has already been published. Re-released image will have minor version incremented by 1.
   2:
     framework: "triton"
-    version: "25.09"
+    version: "26.03"
     arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
@@ -100,10 +100,24 @@ release_images:
       force_release: False
       public_registry: True
   8:
+    framework: "djl"
+    version: "0.36.0"
+    arch_type: "x86"
+    inference:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu24.04"
+      lmi_version: "25.0.0"
+      cuda_version: "cu130"
+      example: False
+      disable_sm_tag: True
+      force_release: False
+      public_registry: True
+  9:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
-    hf_transformers: "4.51.3"
+    hf_transformers: "5.5.3"
     inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py312" ]
@@ -112,7 +126,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  9:
+  10:
     framework: "huggingface_pytorch"
     version: "2.8.0"
     arch_type: "x86"
@@ -125,7 +139,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  10:
+  11:
     framework: "autogluon"
     version: "1.5.0"
     arch_type: "x86"

@@ -16,8 +16,8 @@ language governing permissions and limitations under the License.
 from codebuild_environment import get_cloned_folder_path
 from context import Context
 from image import DockerImage
-from utils import generate_safety_report_for_image
 
+import json
 import os
 
 
@@ -51,9 +51,10 @@ class CommonStageImage(DockerImage):
             "src",
             f"{tarfile_name_for_context}_safety_report.json",
         )
-        generate_safety_report_for_image(
-            pre_push_stage_image_uri, image_info=self.info, storage_file_path=storage_file_path
-        )
+        # Safety check is being deprecated in favor of ECR Enhanced Scanning.
+        # Write an empty report so Dockerfile.common COPY still succeeds.
+        with open(storage_file_path, "w", encoding="utf-8") as f:
+            json.dump([], f)
         self.context = self.generate_common_stage_context(
             storage_file_path, tarfile_name=tarfile_name_for_context
         )

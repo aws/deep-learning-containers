@@ -176,7 +176,7 @@ RUN pip install --no-cache-dir \
     psutil \
     ipython \
     ipykernel \
-    pillow \
+    "pillow>=12.2.0" \
     h5py \
     fsspec \
     "idna>=3.7" \
