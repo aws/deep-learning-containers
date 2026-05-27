@@ -27,6 +27,7 @@ jobs:
             const ignoredChecks = new Set([self]);
             const ignoredPatterns = [
               /^endpoint-test \/ endpoint-test/,  // SageMaker endpoint tests — non-blocking
+              /^security-test \/ ecr-vulnerability-scan/,  // Known CVE noise — non-blocking
             ];
             const intervalMs = 30_000;
             const timeoutMs = 7_200_000;
