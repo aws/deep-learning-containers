@@ -75,10 +75,14 @@ RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 
 WORKDIR /sgl-workspace
 
+# Install Rust (needed by granian in [http2] extras and sgl-model-gateway)
+RUN curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION}
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 # Clone sglang (supports tags, branches, and commit hashes via SGLANG_REF)
-RUN git clone --depth 50 --branch ${SGLANG_REF} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
-  || (git clone --depth 50 https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
-    && cd /sgl-workspace/sglang && git fetch origin ${SGLANG_REF} && git checkout ${SGLANG_REF})
+RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
+  || (git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
+    && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
 # Install sglang-kernel from pip (pre-built CUDA kernels)
 RUN uv pip install --system --no-cache sglang-kernel==${SGLANG_KERNEL_VERSION}
@@ -122,8 +126,6 @@ RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platf
 
 # sgl-model-gateway (Rust — patch source for crate API changes)
 RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-    && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION} \
-    && export PATH="/root/.cargo/bin:${PATH}" \
     && uv pip install --system --no-cache maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
     && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close(); print('Patch 2 applied')" \
