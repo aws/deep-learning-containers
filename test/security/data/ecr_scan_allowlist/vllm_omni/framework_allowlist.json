@@ -1,186 +1,232 @@
 [
     {
         "vulnerability_id": "CVE-2026-25537",
-        "reason": "vllm0.17.0 jsonwebtoken 9.3.1 is a RUST package bundled with uv(https://github.com/astral-sh/uv/blob/1cf6247447f9a9e48d65283d85e6b11aa4a6fdfd/Cargo.lock#L2498) cannot be patched"
+        "reason": "vllm0.17.0 jsonwebtoken 9.3.1 is a RUST package bundled with uv(https://github.com/astral-sh/uv/blob/1cf6247447f9a9e48d65283d85e6b11aa4a6fdfd/Cargo.lock#L2498) cannot be patched",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2026-27482",
-        "reason": "vllm0.15.1 Base image ray version 2.53.0"
+        "reason": "vllm0.15.1 Base image ray version 2.53.0",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-69227",
-        "reason": "vllm0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+        "reason": "vllm0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2025-69228",
-        "reason": "vllm 0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+        "reason": "vllm 0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2025-69223",
-        "reason": "vllm 0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+        "reason": "vllm 0.15.1 Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "GHSA-72hv-8253-57qq",
-        "reason": "vllm 0.15.1 Nested in ray, unpatchable /usr/local/lib/python3.12/dist-packages/ray/jars/ray_dist.jar/META-INF/maven/com.fasterxml.jackson.core/jackson-core/pom.properties"
+        "reason": "vllm 0.15.1 Nested in ray, unpatchable /usr/local/lib/python3.12/dist-packages/ray/jars/ray_dist.jar/META-INF/maven/com.fasterxml.jackson.core/jackson-core/pom.properties",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2025-59425",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-22773",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-24486",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-66448",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-62164",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-66418",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "GHSA-mcmc-2m55-j8jj",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-68131",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-23949",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-6242",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-62727",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-22807",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-66471",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-22778",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-0994",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-62593",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-58446",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-24779",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-21441",
-        "reason": "vllm 0.10.2 TODO"
+        "reason": "vllm 0.10.2 TODO",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-31812",
-        "reason": "Coming in as a dependency from the latest uv 0.10.9"
+        "reason": "Coming in as a dependency from the latest uv 0.10.9",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2026-22815",
-        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
+        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2026-34516",
-        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
+        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2026-34520",
-        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade"
+        "reason": "aiohttp 3.12.15 vendored inside ray/_private/runtime_env/agent/thirdparty_files/, unpatchable without Ray upgrade",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2025-68121",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-25679",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-32280",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-61726",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-32283",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-33186",
-        "reason": "google.golang.org/grpc in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "google.golang.org/grpc in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-32281",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-23339",
-        "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+        "reason": "cuda-toolkit-config-common (12.9.79 \u2192 0:13.0.48-1) cuda is a key dependency that cannot be upgraded",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2025-23308",
-        "reason": "cuda-toolkit-config-common (12.9.79 → 0:13.0.48-1) cuda is a key dependency that cannot be upgraded"
+        "reason": "cuda-toolkit-config-common (12.9.79 \u2192 0:13.0.48-1) cuda is a key dependency that cannot be upgraded",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-1839",
-        "reason": "transformers 4.57.6 Trainer._load_rng_state() arbitrary code execution. Fix is transformers>=5.0.0rc3. Inference-only serving path does not expose Trainer."
+        "reason": "transformers 4.57.6 Trainer._load_rng_state() arbitrary code execution. Fix is transformers>=5.0.0rc3. Inference-only serving path does not expose Trainer.",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "GHSA-98h9-4798-4q5v",
-        "reason": "diffusers 0.37.1 trust_remote_code bypass in DiffusionPipeline.from_pretrained. Fix is diffusers>=0.38.0, but diffusers 0.38.0 requires safetensors>=0.8.0-rc.0 which uv/pip skip by default (only safetensors 0.8.0rc0 published, 0.7.0 is latest stable). Upstream vllm-omni#3349 is open and waiting on safetensors 0.8.0 final. DLC loads only pre-staged S3 models we control; user code paths do not pass trust_remote_code=True. Re-evaluate once safetensors 0.8.0 final ships."
+        "reason": "diffusers 0.37.1 trust_remote_code bypass in DiffusionPipeline.from_pretrained. Fix is diffusers>=0.38.0, but diffusers 0.38.0 requires safetensors>=0.8.0-rc.0 which uv/pip skip by default (only safetensors 0.8.0rc0 published, 0.7.0 is latest stable). Upstream vllm-omni#3349 is open and waiting on safetensors 0.8.0 final. DLC loads only pre-staged S3 models we control; user code paths do not pass trust_remote_code=True. Re-evaluate once safetensors 0.8.0 final ships.",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2026-44513",
-        "reason": "Same advisory as GHSA-98h9-4798-4q5v (diffusers 0.37.1 trust_remote_code bypass); scanner reports the CVE alias separately. Fix diffusers>=0.38.0 blocked on safetensors 0.8.0 final / vllm-omni#3349."
+        "reason": "Same advisory as GHSA-98h9-4798-4q5v (diffusers 0.37.1 trust_remote_code bypass); scanner reports the CVE alias separately. Fix diffusers>=0.38.0 blocked on safetensors 0.8.0 final / vllm-omni#3349.",
+        "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2026-33811",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-39820",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-42499",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-39836",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     },
     {
         "vulnerability_id": "CVE-2026-33814",
-        "reason": "go/stdlib + golang.org/x/net in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade"
+        "reason": "go/stdlib + golang.org/x/net in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-11-23"
     }
 ]
