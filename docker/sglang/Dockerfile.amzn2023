@@ -256,9 +256,16 @@ RUN uv pip install --system --no-cache \
   "setuptools>=78.1.1" \
   "aiohttp>=3.13.4"
 
-# Re-pin NCCL/cuDNN/cuSparseLt after CVE patches (transitive deps may downgrade or remove them)
-# cuSparseLt installed without --no-deps in case it wasn't present from builder
-RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
+# Re-pin torch (cu129), NCCL/cuDNN/cuSparseLt after CVE patches.
+# The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
+# which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
+RUN TORCH_VER=$(python${PYTHON_VERSION} -c "import importlib.metadata; v=importlib.metadata.version('torch'); print(v.split('+')[0])") \
+  && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
+     "torch==${TORCH_VER}" "torchvision" "torchaudio" \
+     --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
+  && python${PYTHON_VERSION} -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
+  && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
   && rm -f /usr/local/nvidia/pip-lib/* \
