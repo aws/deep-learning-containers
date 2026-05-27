@@ -29,6 +29,12 @@ smoke-test:
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 8192 --trust-remote-code"
       test_script: "vllm_embedding_smoke_test.sh"
 
+    - name: "qwen3-reranker-4b"
+      s3_model: "qwen3-reranker-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
+      test_script: "vllm_reranker_smoke_test.sh"
+
     - name: "voxtral-mini-4b"
       s3_model: "voxtral-mini-4b.tar.gz"
       fleet: "x86-g6xl-runner"
@@ -59,6 +65,13 @@ benchmark:
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 8192 --trust-remote-code"
       test_script: "vllm_embedding_benchmark_test.sh"
       min_rps: 3
+
+    - name: "qwen3-reranker-4b"
+      s3_model: "qwen3-reranker-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
+      test_script: "vllm_reranker_benchmark_test.sh"
+      min_rps: 1
 
     - name: "qwen3-asr-1.7b"
       s3_model: "qwen3-asr-1.7b.tar.gz"
