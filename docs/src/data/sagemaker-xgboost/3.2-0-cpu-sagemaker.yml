@@ -8,7 +8,7 @@ platform: sagemaker
 public_registry: false
 
 tags:
-  - "3.2-0-cpu-py312-sagemaker"
+  - "3.2-0"
 
 ga: "2026-05-13"
 eop: "2027-05-13"
