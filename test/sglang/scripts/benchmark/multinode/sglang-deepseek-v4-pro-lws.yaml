@@ -59,7 +59,6 @@ spec:
                   --node-rank 0 \
                   --dist-init-addr ${POD_IP}:20000 \
                   --trust-remote-code \
-                  --moe-runner-backend marlin \
                   --mem-fraction-static 0.88
             resources:
               limits:
@@ -148,7 +147,6 @@ spec:
                   --node-rank 1 \
                   --dist-init-addr $(LWS_LEADER_ADDRESS):20000 \
                   --trust-remote-code \
-                  --moe-runner-backend marlin \
                   --mem-fraction-static 0.88
             resources:
               limits:

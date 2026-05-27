@@ -37,11 +37,11 @@ smoke-test:
 
   runner-scale-sets:
     # DeepSeek V4 Flash — 284B MoE (13B active), requires 8x H100 80GB
-    # Native FP4 checkpoint with Marlin MoE backend
+    # Native FP4 checkpoint, auto backend selects best MoE kernel for H100
     - name: "deepseek-v4-flash"
       s3_model: "deepseek-v4-flash.tar.gz"
       runner_label: "gpu-h100-8gpu-runners"
-      extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
+      extra_args: "--tp 8 --trust-remote-code --mem-fraction-static 0.88 --context-length 4096"
 
     # DeepSeek V4 Pro — 1.6T MoE (49B active), 742GB on disk
     # Too large for single node; requires LWS multinode (TP=16, 2x p5.48xlarge)
@@ -153,7 +153,7 @@ benchmark:
     # - name: "deepseek-v4-flash"
     #   s3_model: "deepseek-v4-flash.tar.gz"
     #   runner_label: "gpu-h100-8gpu-runners"
-    #   extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
+    #   extra_args: "--tp 8 --trust-remote-code --mem-fraction-static 0.88 --context-length 4096"
     #   env_vars: >-
     #     MIN_THROUGHPUT_TOKENS_PER_SEC=500
     #     MIN_REQUESTS_PER_SEC=1
