@@ -14,6 +14,7 @@ on:
       - "scripts/telemetry/**"
       - "scripts/vllm/omni_*"
       - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm_omni/**"
       - "test/telemetry/**"
       - "test/vllm-omni/**"
 
@@ -123,6 +124,7 @@ jobs:
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
               - "scripts/vllm/omni_*"
+              - "test/security/data/ecr_scan_allowlist/vllm_omni/**"
               - "test/vllm-omni/**"
             sanity-test-change:
               - "test/sanity/**"
