@@ -18,7 +18,7 @@ import random
 import time
 
 import boto3
-from sagemaker import Session
+from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.experiments.experiment import Experiment
 from sagemaker.core.experiments.trial import _Trial
 from sagemaker.core.experiments.trial_component import _TrialComponent

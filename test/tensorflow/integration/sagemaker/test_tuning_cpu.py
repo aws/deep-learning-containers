@@ -10,7 +10,7 @@ not anything CUDA-specific."""
 import os
 
 import boto3
-from sagemaker import Session
+from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.parameter import IntegerParameter
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer

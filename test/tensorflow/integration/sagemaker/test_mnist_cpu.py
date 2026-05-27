@@ -25,7 +25,7 @@ import os
 
 import boto3
 import pytest
-from sagemaker import Session
+from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
 from test_utils import random_suffix_name
