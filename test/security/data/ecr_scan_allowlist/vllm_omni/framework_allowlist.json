@@ -58,5 +58,10 @@
         "vulnerability_id": "CVE-2026-33814",
         "reason": "go/stdlib + golang.org/x/net in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
         "review_by": "2026-08-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39821",
+        "reason": "golang.org/x/net in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
+        "review_by": "2026-08-25"
     }
 ]
