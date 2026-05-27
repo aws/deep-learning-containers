@@ -192,10 +192,10 @@ release_images:
       force_release: False
   14:
     framework: "huggingface_sglang"
-    version: "0.5.8"
+    version: "0.5.12"
     arch_type: "x86"
-    hf_transformers: "4.57.3"
-    sglang_version: "0.5.8"
+    hf_transformers: "5.6.0"
+    sglang_version: "0.5.12"
     general:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
