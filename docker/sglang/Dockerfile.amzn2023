@@ -89,10 +89,17 @@ RUN uv pip install --system --no-cache sglang-kernel==${SGLANG_KERNEL_VERSION}
 
 # Install sglang from source + flashinfer
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
-# We reinstall torch from the cu129 index after to match our CUDA 12.9 toolkit.
+# We reinstall torch+torchvision+torchaudio from the cu129 index after to match
+# our CUDA 12.9 toolkit. Uses pip --force-reinstall to bypass local version
+# segment matching issues with uv (torch==2.11.0 vs torch==2.11.0+cu129).
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
-    && uv pip install --system --no-cache "torch==$(pip show torch | grep '^Version:' | cut -d' ' -f2)" --index-url https://download.pytorch.org/whl/cu$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') --reinstall \
+    && TORCH_VER=$(python3 -c "import torch; print(torch.__version__.split('+')[0])") \
+    && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+    && python3 -m pip install --no-cache-dir --force-reinstall \
+       "torch==${TORCH_VER}" "torchvision" "torchaudio" \
+       --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
+    && python3 -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
     && NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
