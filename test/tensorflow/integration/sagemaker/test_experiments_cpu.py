@@ -18,10 +18,10 @@ import random
 import time
 
 import boto3
-from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.experiments.experiment import Experiment
 from sagemaker.core.experiments.trial import _Trial
 from sagemaker.core.experiments.trial_component import _TrialComponent
+from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
 from test_utils import random_suffix_name
