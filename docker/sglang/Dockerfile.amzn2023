@@ -159,6 +159,7 @@ ARG PYTHON_VERSION=3.12
 ARG EFA_VERSION=1.47.0
 ARG NCCL_VERSION=2.28.3
 ARG CUDNN_VERSION=9.16.0.29
+ARG SGLANG_KERNEL_VERSION=0.4.2.post2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -259,12 +260,17 @@ RUN uv pip install --system --no-cache \
 # Re-pin torch (cu129), NCCL/cuDNN/cuSparseLt after CVE patches.
 # The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
 # which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
+# Also reinstall sgl_kernel after torch to ensure ABI compatibility (the pre-built
+# sgl_kernel .so links against PyTorch's libc10 — if torch version changes, the
+# symbol table shifts and sgl_kernel fails with undefined symbol errors at runtime).
 RUN TORCH_VER=$(python${PYTHON_VERSION} -c "import importlib.metadata; v=importlib.metadata.version('torch'); print(v.split('+')[0])") \
   && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VER}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
   && python${PYTHON_VERSION} -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
+     sglang-kernel==${SGLANG_KERNEL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
