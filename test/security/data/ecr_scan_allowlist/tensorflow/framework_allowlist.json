@@ -130,5 +130,10 @@
     {
         "vulnerability_id": "GHSA-5c6j-r48x-rmvq",
         "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+    },
+    {
+        "vulnerability_id": "GHSA-ph9p-34f9-6g65",
+        "reason": "tmp@0.0.33 vendored in jupyterlab/staging/yarn.lock (build-tooling lockfile shipped inside the jupyterlab 4.5.7 wheel). The staging/ tree is only used by `jupyter lab build` to rebuild the JupyterLab app from extensions; it is not on the notebook-serve, training, or inference path. JupyterLab is pulled in transitively via sparkmagic and the python3 kernel is removed in the DLC, so there is no notebook entrypoint at runtime. Path-traversal also requires attacker-controlled prefix/postfix/dir flowing into tmp, which does not happen in a static yarn build. Latest jupyterlab 4.5.7 (and main) still pin tmp@^0.0.33, so no upstream fix is available without patching the yarn lockfile upstream.",
+        "review_by": "2026-11-27"
     }
 ]
