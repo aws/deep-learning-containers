@@ -7,9 +7,10 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
 
 ARG CUDA_VERSION
 ARG PYTHON_VERSION=3.12
-ARG SGL_VERSION=0.5.10
-ARG SGLANG_KERNEL_VERSION=0.4.1
-ARG FLASHINFER_VERSION=0.6.7.post2
+ARG SGL_VERSION=0.5.12
+ARG SGLANG_REF=v${SGL_VERSION}
+ARG SGLANG_KERNEL_VERSION=0.4.2.post2
+ARG FLASHINFER_VERSION=0.6.11.post1
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
 ARG MOONCAKE_VERSION=0.3.9
 ARG GDRCOPY_VERSION=2.5.1
@@ -74,8 +75,10 @@ RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 
 WORKDIR /sgl-workspace
 
-# Clone sglang
-RUN git clone --depth=1 --branch v${SGL_VERSION} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang
+# Clone sglang (supports tags, branches, and commit hashes via SGLANG_REF)
+RUN git clone --depth 50 --branch ${SGLANG_REF} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
+  || (git clone --depth 50 https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
+    && cd /sgl-workspace/sglang && git fetch origin ${SGLANG_REF} && git checkout ${SGLANG_REF})
 
 # Install sglang-kernel from pip (pre-built CUDA kernels)
 RUN uv pip install --system --no-cache sglang-kernel==${SGLANG_KERNEL_VERSION}

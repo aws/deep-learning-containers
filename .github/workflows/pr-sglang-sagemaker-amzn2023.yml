@@ -60,6 +60,7 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
       prod-image: ${{ steps.parse.outputs.prod-image }}
+      build-args: ${{ steps.parse.outputs.build-args }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -85,6 +86,10 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+
+          # Extract build section as Docker build-args (UPPER_CASE keys)
+          BUILD_ARGS=$(jq -r '.build // {} | to_entries[] | "\(.key | ascii_upcase)=\(.value)"' config.json | tr '\n' ' ')
+          echo "build-args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
 
   check-changes:
     needs: [gatekeeper]
@@ -153,6 +158,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
+
+      - name: Set build-args from config
+        run: |
+          for pair in ${{ needs.load-config.outputs.build-args }}; do
+            echo "${pair}" >> "$GITHUB_ENV"
+          done
+          EXTRA_KEYS=$(echo "${{ needs.load-config.outputs.build-args }}" | tr ' ' '\n' | cut -d= -f1 | tr '\n' ' ')
+          echo "EXTRA_BUILD_ARGS=${EXTRA_KEYS}" >> "$GITHUB_ENV"
 
       - name: Build image
         id: build
