@@ -207,7 +207,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 # Security patch — run after all installers so every OS package is covered
 RUN dnf upgrade -y --security --releasever latest \
-  && dnf upgrade -y cuda-compat-* \
+  && dnf upgrade -y cuda-compat-* libcap \
   && dnf clean all
 
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
@@ -272,7 +272,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 # Security patch
 RUN dnf upgrade -y --security --releasever latest \
-  && dnf upgrade -y cuda-compat-* \
+  && dnf upgrade -y cuda-compat-* libcap \
   && dnf clean all
 
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
