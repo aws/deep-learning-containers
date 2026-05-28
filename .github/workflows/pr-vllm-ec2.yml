@@ -8,11 +8,13 @@ on:
     paths:
       - ".github/config/image/vllm-ec2.yml"
       - ".github/workflows/pr-vllm-ec2.yml"
+      - ".github/workflows/reusable-efa-tests.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
       - "docker/vllm/Dockerfile"
       - "scripts/common/**"
       - "scripts/telemetry/**"
       - "scripts/vllm/**"
+      - "test/efa/**"
       - "test/sanity/**"
       - "test/telemetry/**"
       - "test/vllm/**"
@@ -102,6 +104,7 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -133,6 +136,9 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            efa-test-change:
+              - ".github/workflows/reusable-efa-tests.yml"
+              - "test/efa/**"
 
   build-image:
     needs: [check-changes, load-config]
@@ -241,3 +247,33 @@ jobs:
       setup-script: test/vllm/scripts/vllm_test_setup.sh
       example-test-script: test/vllm/scripts/vllm_ec2_examples_test.sh
     secrets: inherit
+
+  # ============================================================
+  # EFA integration test (2x p4d.24xlarge, NCCL over EFA).
+  # Reuses the shared EFA test (test/efa/test_efa.py); the test's
+  # setup_nccl_tests.sh builds nccl-tests in-container against the
+  # nvidia-nccl-cu12 wheel that ships in vllm/vllm-openai.
+  # Runs when the image was rebuilt OR when EFA test files changed
+  # (in which case it tests against the prod image).
+  # ============================================================
+  efa-test:
+    needs: [check-changes, build-image, sanity-test, security-test, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.build-image.result == 'success' || needs.check-changes.outputs.efa-test-change == 'true')
+    # Per-caller queue: new pushes to this PR cancel its own pending efa-test;
+    # different PRs / workflows don't displace each other on the global lock.
+    concurrency:
+      group: ${{ github.workflow }}-efa-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-efa-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      run-nixl-tests: true
+      # vLLM's dockerd_entrypoint.sh execs `vllm serve "$@"` and would parse
+      # any CMD as a model tag — override entrypoint to bash and keep the
+      # container alive for docker exec.
+      container-entrypoint: /bin/bash
+      container-cmd: -c 'sleep infinity'

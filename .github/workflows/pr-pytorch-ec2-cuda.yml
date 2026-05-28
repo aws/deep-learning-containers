@@ -62,6 +62,7 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -135,6 +136,10 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            efa-test-change:
+              - "test/efa/**"
+              - ".github/scripts/efa/**"
+              - ".github/workflows/reusable-efa-tests.yml"
 
   # ============================================================
   # Build images (matrix over detected versions)
@@ -375,11 +380,17 @@ jobs:
   # ============================================================
   efa-test:
     needs: [detect-versions, build-images, unit-test, sanity-test, security-test]
-    if: success()
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.efa-test-change == 'true') &&
+      (needs.build-images.result == 'success' || needs.build-images.result == 'skipped')
     strategy:
       matrix:
         version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
       fail-fast: false
+    concurrency:
+      group: ${{ github.workflow }}-efa-${{ matrix.version }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-efa-tests.yml
     with:
       image-uri: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:pytorch-runtime-{2}-pr-{3}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.version, github.event.pull_request.number) }}

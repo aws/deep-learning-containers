@@ -11,10 +11,12 @@
   },
   {
     "vulnerability_id": "CVE-2026-34478",
-    "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
+    "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
+    "review_by": "2026-08-24"
   },
   {
     "vulnerability_id": "CVE-2026-34480",
-    "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild"
+    "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
+    "review_by": "2026-08-24"
   }
 ]
