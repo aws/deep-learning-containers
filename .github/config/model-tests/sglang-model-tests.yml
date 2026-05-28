@@ -154,13 +154,14 @@ benchmark:
         RESULTS_DIR=/tmp/benchmark_results
         SGLANG_PORT=8000
 
+  multinode-runner-scale-sets:
     # DeepSeek V4 Pro — 1.6T MoE (49B active), requires 2x p5.48xlarge (16x H100)
     # Native FP4 checkpoint with Marlin MoE backend
     # Multi-node via LeaderWorkerSet (TP=16, nnodes=2)
     # - name: "deepseek-v4-pro"
     #   s3_model: "deepseek-v4-pro.tar.gz"
     #   runner_label: "gpu-h100-8gpu-runners"
-    #   multinode: true
+    #   nnodes: 2
     #   lws_manifest: "test/sglang/scripts/benchmark/multinode/sglang-deepseek-v4-pro-lws.yaml"
     #   test_script: "multinode/run_multinode_benchmark.sh"
     #   env_vars: >-
@@ -172,3 +173,4 @@ benchmark:
     #     BENCHMARK_BATCH_SIZE=2
     #     RESULTS_DIR=/tmp/benchmark_results
     #     SGLANG_PORT=8000
+    []
