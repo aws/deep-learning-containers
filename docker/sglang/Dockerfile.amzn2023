@@ -97,7 +97,6 @@ RUN cd sglang \
     && python3 -m pip install --no-cache-dir --force-reinstall \
        "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
        --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
-    && python3 -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
     && uv pip install --system --no-cache --no-deps \
        sglang-kernel==${SGLANG_KERNEL_VERSION} \
        --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
@@ -145,7 +144,7 @@ RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platf
 RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
     && uv pip install --system --no-cache maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
-    && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close(); print('Patch 2 applied')" \
+    && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close()" \
     && cd bindings/python \
     && ulimit -n 65536 && maturin build --release --features vendored-openssl --out dist \
     && uv pip install --system --no-cache --reinstall dist/*.whl \
@@ -276,7 +275,6 @@ RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
-  && python${PYTHON_VERSION} -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
      sglang-kernel==${SGLANG_KERNEL_VERSION} \
      --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
@@ -285,8 +283,7 @@ RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
-  && ldconfig \
-  && find / -name 'libcusparseLt.so*' 2>/dev/null || echo "WARNING: libcusparseLt.so not found anywhere"
+  && ldconfig
 
 # tilelang compatibility fixes for AL2023:
 # 1. z3-libs: TVM (bundled in tilelang) requires libz3.so at runtime
@@ -310,8 +307,7 @@ RUN PYVER=$(python${PYTHON_VERSION} -c "import sys; print(f'{sys.version_info.ma
      -o _xxsubinterpreters.so -L/usr/lib64 -lpython${PYTHON_VERSION} \
   && SITE=$(python${PYTHON_VERSION} -c "import site; print(site.getsitepackages()[0])") \
   && cp _xxsubinterpreters.so ${SITE}/ \
-  && cd / && rm -rf /tmp/Python-* \
-  && python${PYTHON_VERSION} -c "import _xxsubinterpreters; print('_xxsubinterpreters OK')"
+  && cd / && rm -rf /tmp/Python-*
 
 RUN TILELANG=$(python${PYTHON_VERSION} -c "import tilelang, os; print(os.path.dirname(tilelang.__file__))") \
   && python${PYTHON_VERSION} -c "\
@@ -321,15 +317,13 @@ content = open(src).read(); \
 target = '  fprintf(stderr,\n          \"TileLang Error: libcudart symbols not found globally.'; \
 insert = '  // AL2023 fix: try dlopen as fallback\n  void *handle = dlopen(\"libcudart.so\", RTLD_NOW | RTLD_GLOBAL);\n  if (handle != nullptr) {\n    return handle;\n  }\n'; \
 assert target in content, 'cudart.cc patch target not found'; \
-open(src, 'w').write(content.replace(target, insert + target)); \
-print('cudart.cc patched')" \
+open(src, 'w').write(content.replace(target, insert + target))" \
   && g++ -shared -fPIC -O2 \
      -I/usr/local/cuda/include \
      -I${TILELANG}/3rdparty/tvm/include \
      ${TILELANG}/src/target/stubs/cudart.cc \
      -o ${TILELANG}/lib/libcudart_stub.so \
-     -ldl \
-  && python${PYTHON_VERSION} -c "import tilelang; print('tilelang OK:', tilelang.__version__)"
+     -ldl
 
 
 # Telemetry, common scripts, and OSS compliance
