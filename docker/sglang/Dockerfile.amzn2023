@@ -1,7 +1,7 @@
 ARG CUDA_VERSION=12.9.1
 
 # =============================================================================
-# STAGE 0: builder — compile sglang and all native dependencies from source
+# STAGE 0: builder - compile sglang and all native dependencies from source
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
 
