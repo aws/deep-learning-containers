@@ -15,7 +15,7 @@ from __future__ import absolute_import
 from contextlib import contextmanager
 
 import pytest
-from sagemaker.deserializers import JSONDeserializer
+from sagemaker.deserializers import BytesDeserializer
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
@@ -25,7 +25,7 @@ from ...utils import local_mode_utils
 
 
 @contextmanager
-def _predictor(image, sagemaker_local_session, instance_type):
+def _predictor(monkeypatch, image, sagemaker_local_session, instance_type):
     """Context manager for vLLM model deployment and cleanup.
 
     Model is extracted to /opt/ml/model by SageMaker from model_data tar.gz.
@@ -50,17 +50,20 @@ def _predictor(image, sagemaker_local_session, instance_type):
     with local_mode_utils.lock():
         predictor = None
         try:
+            monkeypatch.setattr(
+                "sagemaker.local.entities.HEALTH_CHECK_TIMEOUT_LIMIT",
+                600,
+            )
             predictor = model.deploy(1, instance_type)
             yield predictor
         finally:
-            if predictor is not None:
+            if predictor:
                 predictor.delete_endpoint()
 
-
-def _assert_vllm_omni_image_generation(predictor):
+def _assert_vllm_omni_speech_generation(predictor):
     """Test vLLM-Omni inference through the bundled SageMaker middleware."""
     predictor.serializer = JSONSerializer()
-    predictor.deserializer = JSONDeserializer()
+    predictor.deserializer = BytesDeserializer()
 
     data = {
         "input": "Hello world from SageMaker tests!",
@@ -71,21 +74,20 @@ def _assert_vllm_omni_image_generation(predictor):
     output = predictor.predict(
         data=data,
         initial_args={
-            "CustomAttributes": "route=/v1/images/generations",
+            "CustomAttributes": "route=/v1/audio/speech",
         },
     )
 
     assert output is not None
-    assert "data" in output
-    assert "b64_json" in output["data"][0]
-    assert len(output["data"][0]["b64_json"]) > 0
+    assert isinstance(output, bytes)
+    assert len(output) > 0
 
 
 @pytest.mark.model("qwen3-tts-12hz-1-7b-customvoice")
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_vllm_local_image_generation(
-    docker_image, sagemaker_local_session, instance_type
+def test_vllm_local_speech_generation(
+    monkeypatch, docker_image, sagemaker_local_session, instance_type
 ):
-    """Test vLLM-Omni local deployment with image generation API."""
-    with _predictor(docker_image, sagemaker_local_session, instance_type) as predictor:
-        _assert_vllm_omni_image_generation(predictor)
+    """Test vLLM-Omni local deployment with speech generation API."""
+    with _predictor(monkeypatch, docker_image, sagemaker_local_session, instance_type) as predictor:
+        _assert_vllm_omni_speech_generation(predictor)

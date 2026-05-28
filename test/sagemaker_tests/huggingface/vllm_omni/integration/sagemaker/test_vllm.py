@@ -16,7 +16,7 @@ import logging
 
 import pytest
 import sagemaker
-from sagemaker.deserializers import JSONDeserializer
+from sagemaker.deserializers import BytesDeserializer
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
@@ -32,13 +32,13 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_vllm_omni_image_generation(
+def test_vllm_omni_speech_generation(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
-        test_function=_test_vllm_omni_model,
+        test_function=_test_vllm_omni_speech_generation,
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
         framework_version=framework_version,
         instance_type=instance_type,
@@ -46,7 +46,7 @@ def test_vllm_omni_image_generation(
     )
 
 
-def _test_vllm_omni_model(
+def _test_vllm_omni_speech_generation(
     image_uri,
     sagemaker_session,
     instance_type,
@@ -94,7 +94,7 @@ def _test_vllm_omni_model(
         )
 
         predictor.serializer = JSONSerializer()
-        predictor.deserializer = JSONDeserializer()
+        predictor.deserializer = BytesDeserializer()
 
         data = {
             "input": "Hello world from SageMaker tests!",
@@ -106,12 +106,11 @@ def _test_vllm_omni_model(
         output = predictor.predict(
             data=data,
             initial_args={
-                "CustomAttributes": "route=/v1/images/generations",
+                "CustomAttributes": "route=/v1/audio/speech",
             },
         )
-        LOGGER.info("Image generation successful")
+        LOGGER.info("Speech generation successful")
 
         assert output is not None
-        assert "data" in output
-        assert "b64_json" in output["data"][0]
-        assert len(output["data"][0]["b64_json"]) > 0
+        assert isinstance(output, bytes)
+        assert len(output) > 0
