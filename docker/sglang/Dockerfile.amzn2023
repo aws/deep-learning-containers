@@ -85,11 +85,7 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
   || (git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
     && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
-# NOTE: sgl_kernel will be built from source AFTER torch is pinned to cu129
-# (see below). Pre-built wheels from the sglang index are compiled against a
-# different torch ABI and cause undefined-symbol errors at runtime.
-
-# Install sglang from source + flashinfer
+# Install sglang from source + flashinfer + sglang-kernel
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
 # We reinstall torch+torchvision+torchaudio from the cu129 index after to match
 # our CUDA 12.9 toolkit. TORCH_VERSION must match what sgl_kernel wheels on
@@ -102,27 +98,16 @@ RUN cd sglang \
        "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
        --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
     && python3 -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
+    && uv pip install --system --no-cache --no-deps \
+       sglang-kernel==${SGLANG_KERNEL_VERSION} \
+       --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
     && NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
        python3 -m flashinfer --download-cubin
 
-# Build sgl_kernel from source against the exact torch version in our image.
-# This avoids ABI mismatch issues with pre-built wheels (e.g., undefined symbol
-# errors from c10::MessageLogger when the wheel was compiled against a different
-# torch version). The sgl-kernel source lives in the cloned sglang repo.
-# We build a wheel AND install it — the wheel is also copied to the runtime stage
-# so it can be reinstalled after any torch re-pin without needing CUDA devel tools.
-# Also save the exact torch version for the runtime stage to use.
-RUN uv pip install --system --no-cache scikit-build-core "cmake<4" \
-    && cd /sgl-workspace/sglang/sgl-kernel \
-    && NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
-    && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
-    && export CMAKE_PREFIX_PATH=$(python3 -c "import torch; print(torch.utils.cmake_prefix_path)") \
-    && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
-       python3 -m pip wheel --no-cache-dir --no-build-isolation --wheel-dir /tmp/sgl_kernel_wheel . \
-    && uv pip install --system --no-cache /tmp/sgl_kernel_wheel/sglang_kernel*.whl \
-    && python3 -c "import torch; print(torch.__version__.split('+')[0])" > /tmp/torch_version.txt
+# Persist nvidia pip lib paths for subsequent build steps that import torch
+RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") > /tmp/nvidia_lib_paths
 
 # flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA architecture.
 # Must be cloned from GitHub (PyPI sdist is missing headers) and built from source.
@@ -132,9 +117,6 @@ RUN cd /sgl-workspace \
   && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
   && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
     pip install --no-cache-dir --no-build-isolation -v .
-
-# Persist nvidia pip lib paths for subsequent build steps that import torch
-RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") > /tmp/nvidia_lib_paths
 
 # DeepEP
 RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
@@ -185,6 +167,7 @@ ARG CUDA_VERSION
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.11.0
+ARG SGLANG_KERNEL_VERSION=0.4.2.post2
 ARG EFA_VERSION=1.47.0
 ARG NCCL_VERSION=2.28.3
 ARG CUDNN_VERSION=9.16.0.29
@@ -260,10 +243,6 @@ RUN mkdir -p /usr/local/nvidia/pip-lib \
 
 # Copy sglang workspace (needed for editable pip install of sglang python package)
 COPY --from=builder /sgl-workspace /sgl-workspace
-# Copy sgl_kernel wheel built from source in builder (used for re-install after torch re-pin)
-COPY --from=builder /tmp/sgl_kernel_wheel /tmp/sgl_kernel_wheel
-# Copy exact torch version from builder (ensures runtime uses same version for ABI compat)
-COPY --from=builder /tmp/torch_version.txt /tmp/torch_version.txt
 # Remove build-time source/artifacts that trigger ECR CVEs (grpc go.mod, Cargo.lock, openssl build dir)
 RUN rm -rf /sgl-workspace/sglang/sgl-model-gateway \
   /sgl-workspace/DeepEP \
@@ -289,23 +268,21 @@ RUN uv pip install --system --no-cache \
   "setuptools>=78.1.1" \
   "aiohttp>=3.13.4"
 
-# Re-pin torch (cu129), NCCL/cuDNN/cuSparseLt after CVE patches.
+# Re-pin torch (cu129), sgl_kernel, NCCL/cuDNN/cuSparseLt after CVE patches.
 # The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
 # which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
-# Then reinstall sgl_kernel from the wheel we built from source in the builder stage.
-# Since the wheel was compiled against the SAME torch version (just cu128 vs cu129 —
-# same ABI, different CUDA runtime), the .so symbols are compatible.
+# Also reinstall sgl_kernel from the sglang wheel index (compiled against torch 2.11.0).
 RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
   && python${PYTHON_VERSION} -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
+     sglang-kernel==${SGLANG_KERNEL_VERSION} \
+     --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
   && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
-  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
-     /tmp/sgl_kernel_wheel/sglang_kernel*.whl \
-  && rm -rf /tmp/sgl_kernel_wheel /tmp/torch_version.txt \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig \
