@@ -21,6 +21,7 @@ common:
   ci_tag: "cuda129-devel-amzn2023"
   device_type: "gpu"
   contributor: "None"
+  prod_image: "base:devel-cuda-v1"
 
 # Release configuration
 release:
