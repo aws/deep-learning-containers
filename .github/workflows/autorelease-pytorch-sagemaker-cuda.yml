@@ -110,7 +110,7 @@ jobs:
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
-            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
+            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}"
         continue-on-error: true
 
       - name: Build sagemaker image
@@ -165,7 +165,7 @@ jobs:
             "${{ steps.build-sagemaker.outputs.image-uri }}" \
             "docker/pytorch/${VERSION}/Dockerfile.cuda" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
-            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
+            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}"
         continue-on-error: true
 
   sanity-test:
