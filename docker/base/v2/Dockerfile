@@ -53,7 +53,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.17 /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
 COPY ./docker/base/v2/pyproject.toml ./docker/base/v2/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
@@ -111,7 +111,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.7 /uv /usr/local/bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.17 /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
 COPY ./docker/base/v2/pyproject.toml ./docker/base/v2/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
