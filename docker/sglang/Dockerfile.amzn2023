@@ -113,7 +113,7 @@ RUN cd sglang \
 # We build a wheel AND install it — the wheel is also copied to the runtime stage
 # so it can be reinstalled after any torch re-pin without needing CUDA devel tools.
 # Also save the exact torch version for the runtime stage to use.
-RUN uv pip install --system --no-cache scikit-build-core \
+RUN uv pip install --system --no-cache scikit-build-core "cmake<4" \
     && cd /sgl-workspace/sglang/sgl-kernel \
     && NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
