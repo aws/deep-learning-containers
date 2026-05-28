@@ -124,6 +124,13 @@ RUN uv pip install --system --no-cache scikit-build-core "cmake<4" \
     && uv pip install --system --no-cache /tmp/sgl_kernel_wheel/sglang_kernel*.whl \
     && python3 -c "import torch; print(torch.__version__.split('+')[0])" > /tmp/torch_version.txt
 
+# flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA architecture.
+# Must be built from source (requires CUDA devel toolkit).
+RUN NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
+  && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
+  && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
+     uv pip install --system --no-cache --no-build-isolation flash-mla
+
 # Persist nvidia pip lib paths for subsequent build steps that import torch
 RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") > /tmp/nvidia_lib_paths
 
@@ -309,7 +316,6 @@ RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
 # 3. Patch tilelang's cudart.cc stub: in child processes, CUDA symbols aren't
 #    in the global namespace yet. Add a dlopen("libcudart.so") fallback before
 #    the abort() so it loads the library explicitly when dlsym fails.
-# 4. flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA.
 RUN dnf install -y --setopt=install_weak_deps=False z3-libs \
   && ln -sf /usr/lib64/libz3.so.4.8 /usr/lib64/libz3.so \
   && ldconfig \
@@ -346,7 +352,6 @@ print('cudart.cc patched')" \
      -ldl \
   && python${PYTHON_VERSION} -c "import tilelang; print('tilelang OK:', tilelang.__version__)"
 
-RUN uv pip install --system --no-cache flash-mla
 
 # Telemetry, common scripts, and OSS compliance
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
