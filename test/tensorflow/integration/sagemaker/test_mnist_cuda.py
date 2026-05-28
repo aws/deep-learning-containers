@@ -42,6 +42,9 @@ RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 SOURCE_DIR = os.path.join(RESOURCE_DIR, "scripts")
 MNIST_DATA_DIR = os.path.join(RESOURCE_DIR, "mnist", "data")
 SINGLE_GPU_INSTANCE = "ml.g4dn.xlarge"
+# DLC test account has ml.g4dn.xlarge quota=1; multi-host needs 2 instances.
+# ml.g4dn.2xlarge has quota=8, same T4 GPU.
+MULTI_HOST_GPU_INSTANCE = "ml.g4dn.2xlarge"
 MULTI_GPU_INSTANCE = "ml.g4dn.12xlarge"
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 DEFAULT_REGION = "us-west-2"
@@ -121,7 +124,7 @@ def test_mnist_multi_host_no_strategy_gpu():
         image_uri=IMAGE_URI,
         entry_script="mnist.py",
         source_dir=SOURCE_DIR,
-        instance_type=SINGLE_GPU_INSTANCE,
+        instance_type=MULTI_HOST_GPU_INSTANCE,
         instance_count=2,
         hyperparameters={"epochs": "2", "strategy": "none"},
         input_data=[InputData(channel_name="training", data_source=inputs_s3)],
