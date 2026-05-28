@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
-"""Upload per-image framework allowlists to S3 for the Asimov scanner.
+"""Upload per-image framework allowlists to S3.
 
 Reads .github/config/image/*.yml to discover released images, looks up each
 image's SHA in ECR, reads the framework's allowlist from the repo, and uploads
 to s3://$SCANNER_ALLOWLIST_S3_BUCKET/<sha>/ecr_allowlist.json.
-
-The Asimov scanner reads from that bucket daily and uses the allowlist to
-suppress CVEs on the SLA dashboard.
 
 Usage:
     python3 .github/scripts/upload_ecr_allowlists.py              # all images
