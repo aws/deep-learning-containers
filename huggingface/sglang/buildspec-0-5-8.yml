@@ -3,8 +3,8 @@ prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK sglang
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION "0.5.12"
-short_version: &SHORT_VERSION "0.5.12"
+version: &VERSION "0.5.8"
+short_version: &SHORT_VERSION "0.5.8"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
 
@@ -37,11 +37,11 @@ images:
       <<: *BUILD_CONTEXT
     image_size_baseline: 40000
     device_type: &DEVICE_TYPE gpu
-    cuda_version: &CUDA_VERSION cu130
+    cuda_version: &CUDA_VERSION cu129
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu24.04
-    transformers_version: &TRANSFORMERS_VERSION 5.6.0
+    transformers_version: &TRANSFORMERS_VERSION 4.57.3
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-', *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *CUDA_VERSION, /Dockerfile ]
     target: sagemaker
