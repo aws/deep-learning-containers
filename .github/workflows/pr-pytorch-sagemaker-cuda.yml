@@ -151,8 +151,6 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-build-${{ matrix.version }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
-    outputs:
-      sagemaker-image-uri: ${{ steps.build-sagemaker.outputs.image-uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
