@@ -22,10 +22,21 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
-  determine-config:
+  load-config:
     runs-on: ubuntu-latest
     outputs:
-      config-file: ${{ steps.config.outputs.config-file }}
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      prod-image: ${{ steps.parse.outputs.prod-image }}
     steps:
       - name: Determine config file
         id: config
@@ -42,23 +53,6 @@ jobs:
           fi
           echo "config-file=.github/config/image/pytorch-${VERSION}-ec2-cuda.yml" >> $GITHUB_OUTPUT
 
-  load-config:
-    needs: [determine-config]
-    runs-on: ubuntu-latest
-    outputs:
-      config: ${{ steps.load.outputs.config }}
-      framework: ${{ steps.parse.outputs.framework }}
-      framework-version: ${{ steps.parse.outputs.framework-version }}
-      python-version: ${{ steps.parse.outputs.python-version }}
-      cuda-version: ${{ steps.parse.outputs.cuda-version }}
-      os-version: ${{ steps.parse.outputs.os-version }}
-      container-type: ${{ steps.parse.outputs.container-type }}
-      device-type: ${{ steps.parse.outputs.device-type }}
-      arch-type: ${{ steps.parse.outputs.arch-type }}
-      contributor: ${{ steps.parse.outputs.contributor }}
-      customer-type: ${{ steps.parse.outputs.customer-type }}
-      prod-image: ${{ steps.parse.outputs.prod-image }}
-    steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -66,7 +60,7 @@ jobs:
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: ${{ needs.determine-config.outputs.config-file }}
+          config-file: ${{ steps.config.outputs.config-file }}
 
       - name: Parse configuration
         id: parse

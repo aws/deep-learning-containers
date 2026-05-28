@@ -22,27 +22,7 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
-  determine-config:
-    runs-on: ubuntu-latest
-    outputs:
-      config-file: ${{ steps.config.outputs.config-file }}
-    steps:
-      - name: Determine config file
-        id: config
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ inputs.version }}"
-          else
-            CRON="${{ github.event.schedule }}"
-            case "$CRON" in
-              "00 17 * * 1,3") VERSION="2.11" ;;
-              # "10 17 * * 1,3") VERSION="2.12" ;;
-              *) echo "::error::Unknown cron: $CRON"; exit 1 ;;
-            esac
-          fi
-          echo "config-file=.github/config/image/pytorch-${VERSION}-sagemaker-cuda.yml" >> $GITHUB_OUTPUT
   load-config:
-    needs: [determine-config]
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
@@ -58,6 +38,21 @@ jobs:
       customer-type: ${{ steps.parse.outputs.customer-type }}
       prod-image: ${{ steps.parse.outputs.prod-image }}
     steps:
+      - name: Determine config file
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            CRON="${{ github.event.schedule }}"
+            case "$CRON" in
+              "00 17 * * 1,3") VERSION="2.11" ;;
+              # "10 17 * * 1,3") VERSION="2.12" ;;
+              *) echo "::error::Unknown cron: $CRON"; exit 1 ;;
+            esac
+          fi
+          echo "config-file=.github/config/image/pytorch-${VERSION}-sagemaker-cuda.yml" >> $GITHUB_OUTPUT
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -65,7 +60,7 @@ jobs:
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: ${{ needs.determine-config.outputs.config-file }}
+          config-file: ${{ steps.config.outputs.config-file }}
 
       - name: Parse configuration
         id: parse
