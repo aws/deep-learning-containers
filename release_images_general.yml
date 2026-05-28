@@ -200,7 +200,7 @@ release_images:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu24.04"
-      cuda_version: "cu129"
+      cuda_version: "cu130"
       example: False
       disable_sm_tag: True
       force_release: False
