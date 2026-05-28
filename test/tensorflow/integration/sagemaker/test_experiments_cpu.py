@@ -75,7 +75,7 @@ def test_experiments_cpu():
             compute=compute,
             role=os.environ.get("SM_ROLE_ARN"),
             base_job_name=job_name,
-            hyperparameters={"epochs": "1", "strategy": "none"},
+            hyperparameters={"epochs": "2", "strategy": "none"},
             distributed=None,
         )
         model_trainer.train(

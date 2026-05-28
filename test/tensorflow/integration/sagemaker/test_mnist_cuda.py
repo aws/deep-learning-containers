@@ -104,7 +104,7 @@ def test_mnist_single_node_gpu():
         source_dir=SOURCE_DIR,
         instance_type=SINGLE_GPU_INSTANCE,
         instance_count=1,
-        hyperparameters={"epochs": "1", "strategy": "none"},
+        hyperparameters={"epochs": "2", "strategy": "none"},
         input_data=[InputData(channel_name="training", data_source=inputs_s3)],
         job_name_prefix="tf-mnist-gpu",
     )
@@ -123,7 +123,7 @@ def test_mnist_multi_host_no_strategy_gpu():
         source_dir=SOURCE_DIR,
         instance_type=SINGLE_GPU_INSTANCE,
         instance_count=2,
-        hyperparameters={"epochs": "1", "strategy": "none"},
+        hyperparameters={"epochs": "2", "strategy": "none"},
         input_data=[InputData(channel_name="training", data_source=inputs_s3)],
         job_name_prefix="tf-mnist-2h-gpu",
     )
@@ -143,7 +143,7 @@ def test_mnist_mirrored_strategy_gpu():
         source_dir=SOURCE_DIR,
         instance_type=MULTI_GPU_INSTANCE,
         instance_count=1,
-        hyperparameters={"epochs": "1", "strategy": "mirrored"},
+        hyperparameters={"epochs": "2", "strategy": "mirrored"},
         input_data=[InputData(channel_name="training", data_source=inputs_s3)],
         job_name_prefix="tf-mnist-mirrored-gpu",
     )
@@ -170,7 +170,7 @@ def test_mnist_distributed_mwms_gpu():
         source_dir=SOURCE_DIR,
         instance_type=MULTI_GPU_INSTANCE,
         instance_count=2,
-        hyperparameters={"epochs": "1", "strategy": "mwms"},
+        hyperparameters={"epochs": "2", "strategy": "mwms"},
         environment={"FI_EFA_FORK_SAFE": "1"},
         input_data=[InputData(channel_name="training", data_source=inputs_s3)],
         job_name_prefix="tf-mnist-mwms-gpu",

@@ -97,7 +97,7 @@ def test_mnist_single_node_cpu():
         source_dir=SOURCE_DIR,
         instance_type=INSTANCE_TYPE,
         instance_count=1,
-        hyperparameters={"epochs": "1", "strategy": "none"},
+        hyperparameters={"epochs": "2", "strategy": "none"},
         input_data=[InputData(channel_name="training", data_source=inputs_s3)],
         job_name_prefix="tf-mnist-cpu",
     )
@@ -119,7 +119,7 @@ def test_mnist_multi_host_no_strategy_cpu():
         source_dir=SOURCE_DIR,
         instance_type=INSTANCE_TYPE,
         instance_count=2,
-        hyperparameters={"epochs": "1", "strategy": "none"},
+        hyperparameters={"epochs": "2", "strategy": "none"},
         input_data=[InputData(channel_name="training", data_source=inputs_s3)],
         job_name_prefix="tf-mnist-2h-cpu",
     )
@@ -144,7 +144,7 @@ def test_mnist_distributed_mwms_cpu():
         source_dir=SOURCE_DIR,
         instance_type=INSTANCE_TYPE,
         instance_count=2,
-        hyperparameters={"epochs": "1", "strategy": "mwms"},
+        hyperparameters={"epochs": "2", "strategy": "mwms"},
         input_data=[InputData(channel_name="training", data_source=inputs_s3)],
         job_name_prefix="tf-mnist-mwms-cpu",
     )

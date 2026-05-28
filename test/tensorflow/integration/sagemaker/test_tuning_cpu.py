@@ -28,7 +28,7 @@ DEFAULT_REGION = "us-west-2"
 def test_tuning_model_dir_cpu():
     """Smoke-test SageMaker HPO with the TF DLC.
 
-    Tunes the `epochs` hyperparameter over [1, 2] with max_jobs=2 and
+    Tunes the `epochs` hyperparameter over [2, 3] with max_jobs=2 and
     max_parallel_jobs=2, mirroring master's `test_tuning` rates. The
     objective metric is parsed from training logs via the same `accuracy`
     regex master uses. The training script is the standard `mnist.py`
@@ -53,7 +53,7 @@ def test_tuning_model_dir_cpu():
     tuner = HyperparameterTuner(
         model_trainer=model_trainer,
         objective_metric_name=objective_metric_name,
-        hyperparameter_ranges={"epochs": IntegerParameter(1, 2)},
+        hyperparameter_ranges={"epochs": IntegerParameter(2, 3)},
         metric_definitions=[{"Name": objective_metric_name, "Regex": "accuracy: ([0-9\\.]+)"}],
         max_jobs=2,
         max_parallel_jobs=2,
