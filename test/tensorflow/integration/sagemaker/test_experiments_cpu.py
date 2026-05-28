@@ -38,13 +38,13 @@ def test_experiments_cpu():
     """Create an Experiment + Trial, run a training job, associate the
     auto-created TrialComponent, then clean everything up.
 
-    Equivalent to master's `test_experiments.test_training`. The training
-    job ARN is looked up via the SageMaker SDK after `train(wait=True)`
-    returns; we then list TrialComponents whose `source_arn` matches the
-    job ARN and verify at least one was auto-created."""
+    Equivalent to master's `test_experiments.test_training`. After
+    `train(wait=True)` returns, we read the training job ARN from
+    `model_trainer._latest_training_job` (avoiding ListTrainingJobs
+    eventual-consistency races) and list TrialComponents whose
+    `source_arn` matches the job ARN to verify auto-creation."""
     boto_session = boto3.session.Session(region_name=DEFAULT_REGION)
     sagemaker_session = Session(boto_session)
-    sm_client = boto_session.client("sagemaker")
 
     # Match master's unique-id format so concurrent CI runs don't collide.
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -83,14 +83,11 @@ def test_experiments_cpu():
             wait=True,
         )
 
-        # Resolve the actual training job name (SDK appends a timestamp to
-        # base_job_name) and look up its ARN. Iterate recent jobs that match
-        # the base prefix and pick the most recent succeeded one.
-        jobs = sm_client.list_training_jobs(
-            NameContains=job_name, StatusEquals="Completed", MaxResults=1, SortOrder="Descending"
-        )["TrainingJobSummaries"]
-        assert jobs, f"no completed training job found with prefix {job_name}"
-        training_job_arn = jobs[0]["TrainingJobArn"]
+        # Read the training job ARN directly off the trainer rather than
+        # ListTrainingJobs — the latter is eventually consistent and racy
+        # for jobs that just finished.
+        training_job_arn = model_trainer._latest_training_job.training_job_arn
+        assert training_job_arn, "ModelTrainer._latest_training_job did not expose a training_job_arn"
 
         # Verify SageMaker auto-created at least one TrialComponent for this
         # training job — this is the actual feature under test.
