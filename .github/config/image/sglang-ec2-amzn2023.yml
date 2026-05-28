@@ -18,7 +18,7 @@ common:
   contributor: "None"
 build:
   sglang_ref: "578d27e"
-  sglang_kernel_version: "0.4.2.post2"
+  sglang_kernel_version: "0.4.3"
   flashinfer_version: "0.6.11.post1"
   deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
   mooncake_version: "0.3.9"
