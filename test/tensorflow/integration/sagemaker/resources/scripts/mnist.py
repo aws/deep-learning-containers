@@ -192,7 +192,7 @@ def train(args):
     if is_chief:
         model_dir = args.model_dir
         save_path = os.path.join(model_dir, "1")
-        model.save(save_path)
+        model.export(save_path)
         logger.info("Model saved to %s", save_path)
 
 
