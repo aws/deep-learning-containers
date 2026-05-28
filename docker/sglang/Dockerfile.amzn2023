@@ -15,6 +15,7 @@ ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
 ARG MOONCAKE_VERSION=0.3.9
 ARG GDRCOPY_VERSION=2.5.1
 ARG RUST_VERSION=1.90.0
+ARG TORCH_VERSION=2.11.0
 
 # CUDA / GPU
 ARG NCCL_VERSION=2.28.3
@@ -96,14 +97,14 @@ RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
 # Install sglang from source + flashinfer
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
 # We reinstall torch+torchvision+torchaudio from the cu129 index after to match
-# our CUDA 12.9 toolkit. Uses pip --force-reinstall to bypass local version
-# segment matching issues with uv (torch==2.11.0 vs torch==2.11.0+cu129).
+# our CUDA 12.9 toolkit. TORCH_VERSION must match what sgl_kernel wheels on
+# docs.sglang.ai/whl/cu129/ are compiled against (ABI-sensitive).
+# Uses pip --force-reinstall to bypass local version segment matching issues.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
-    && TORCH_VER=$(python3 -c "import torch; print(torch.__version__.split('+')[0])") \
     && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
     && python3 -m pip install --no-cache-dir --force-reinstall \
-       "torch==${TORCH_VER}" "torchvision" "torchaudio" \
+       "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
        --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
     && python3 -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
     && NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
@@ -162,6 +163,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 ARG CUDA_VERSION
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
+ARG TORCH_VERSION=2.11.0
 ARG EFA_VERSION=1.47.0
 ARG NCCL_VERSION=2.28.3
 ARG CUDNN_VERSION=9.16.0.29
@@ -269,10 +271,9 @@ RUN uv pip install --system --no-cache \
 # Also reinstall sgl_kernel after torch to ensure ABI compatibility (the pre-built
 # sgl_kernel .so links against PyTorch's libc10 — if torch version changes, the
 # symbol table shifts and sgl_kernel fails with undefined symbol errors at runtime).
-RUN TORCH_VER=$(python${PYTHON_VERSION} -c "import importlib.metadata; v=importlib.metadata.version('torch'); print(v.split('+')[0])") \
-  && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
-     "torch==${TORCH_VER}" "torchvision" "torchaudio" \
+     "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
   && python${PYTHON_VERSION} -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
@@ -285,6 +286,52 @@ RUN TORCH_VER=$(python${PYTHON_VERSION} -c "import importlib.metadata; v=importl
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig \
   && find / -name 'libcusparseLt.so*' 2>/dev/null || echo "WARNING: libcusparseLt.so not found anywhere"
+
+# tilelang compatibility fixes for AL2023:
+# 1. z3-libs: TVM (bundled in tilelang) requires libz3.so at runtime
+# 2. _xxsubinterpreters: CPython internal module needed by tilelang's cython
+#    wrapper. Debian/Ubuntu ship it but AL2023 does not — compile from source.
+# 3. Patch tilelang's cudart.cc stub: in child processes, CUDA symbols aren't
+#    in the global namespace yet. Add a dlopen("libcudart.so") fallback before
+#    the abort() so it loads the library explicitly when dlsym fails.
+# 4. flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA.
+RUN dnf install -y --setopt=install_weak_deps=False z3-libs \
+  && ln -sf /usr/lib64/libz3.so.4.8 /usr/lib64/libz3.so \
+  && ldconfig \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN PYVER=$(python${PYTHON_VERSION} -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')") \
+  && cd /tmp \
+  && curl --retry 3 -sSL https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz | tar xz \
+  && cd Python-${PYVER} \
+  && PYTHON_INCLUDE=$(python${PYTHON_VERSION} -c "import sysconfig; print(sysconfig.get_path('include'))") \
+  && gcc -shared -fPIC -O2 -I${PYTHON_INCLUDE} -I. -IInclude -IInclude/internal \
+     Modules/_xxsubinterpretersmodule.c \
+     -o _xxsubinterpreters.so -L/usr/lib64 -lpython${PYTHON_VERSION} \
+  && SITE=$(python${PYTHON_VERSION} -c "import site; print(site.getsitepackages()[0])") \
+  && cp _xxsubinterpreters.so ${SITE}/ \
+  && cd / && rm -rf /tmp/Python-* \
+  && python${PYTHON_VERSION} -c "import _xxsubinterpreters; print('_xxsubinterpreters OK')"
+
+RUN TILELANG=$(python${PYTHON_VERSION} -c "import tilelang, os; print(os.path.dirname(tilelang.__file__))") \
+  && python${PYTHON_VERSION} -c "\
+import os; \
+src = '${TILELANG}/src/target/stubs/cudart.cc'; \
+content = open(src).read(); \
+target = '  fprintf(stderr,\n          \"TileLang Error: libcudart symbols not found globally.'; \
+insert = '  // AL2023 fix: try dlopen as fallback\n  void *handle = dlopen(\"libcudart.so\", RTLD_NOW | RTLD_GLOBAL);\n  if (handle != nullptr) {\n    return handle;\n  }\n'; \
+assert target in content, 'cudart.cc patch target not found'; \
+open(src, 'w').write(content.replace(target, insert + target)); \
+print('cudart.cc patched')" \
+  && g++ -shared -fPIC -O2 \
+     -I/usr/local/cuda/include \
+     -I${TILELANG}/3rdparty/tvm/include \
+     ${TILELANG}/src/target/stubs/cudart.cc \
+     -o ${TILELANG}/lib/libcudart_stub.so \
+     -ldl \
+  && python${PYTHON_VERSION} -c "import tilelang; print('tilelang OK:', tilelang.__version__)"
+
+RUN uv pip install --system --no-cache flash-mla
 
 # Telemetry, common scripts, and OSS compliance
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
