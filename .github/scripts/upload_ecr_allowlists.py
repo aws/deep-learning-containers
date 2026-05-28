@@ -100,7 +100,9 @@ def load_framework_allowlist(framework, framework_version=""):
                 version_entries = json.loads(version_path.read_text())
                 if isinstance(version_entries, list):
                     entries = entries + version_entries
-                    LOG.info(f"  merged {len(version_entries)} version-specific entries from {version_path.name}")
+                    LOG.info(
+                        f"  merged {len(version_entries)} version-specific entries from {version_path.name}"
+                    )
             except Exception as e:
                 LOG.warning(f"  can't read version-specific allowlist {version_path.name}: {e}")
 
