@@ -84,8 +84,14 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
   || (git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
     && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
-# Install sglang-kernel from pip (pre-built CUDA kernels)
-RUN uv pip install --system --no-cache sglang-kernel==${SGLANG_KERNEL_VERSION}
+# Install sglang-kernel from sglang's CUDA-specific index (pre-built kernels
+# that match the exact torch + CUDA ABI in our image). The default PyPI wheel
+# is built against a different torch ABI and causes undefined-symbol errors.
+# Use --extra-index-url so other deps (if any) can still resolve from PyPI.
+RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+  && uv pip install --system --no-cache --no-deps \
+    sglang-kernel==${SGLANG_KERNEL_VERSION} \
+    --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/
 
 # Install sglang from source + flashinfer
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
@@ -269,8 +275,9 @@ RUN TORCH_VER=$(python${PYTHON_VERSION} -c "import importlib.metadata; v=importl
      "torch==${TORCH_VER}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
   && python${PYTHON_VERSION} -c "import torch; cv=torch.version.cuda; assert cv.startswith('12.9'), f'Expected CUDA 12.9, got {cv}'" \
-  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
      sglang-kernel==${SGLANG_KERNEL_VERSION} \
+     --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
   && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
