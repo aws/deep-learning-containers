@@ -41,7 +41,7 @@ smoke-test:
     - name: "deepseek-v4-flash"
       s3_model: "deepseek-v4-flash.tar.gz"
       runner_label: "gpu-h100-8gpu-runners"
-      extra_args: "--tp 8 --trust-remote-code --mem-fraction-static 0.88 --context-length 4096"
+      extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
 
     # DeepSeek V4 Pro — 1.6T MoE (49B active), 742GB on disk
     # Too large for single node; requires LWS multinode (TP=16, 2x p5.48xlarge)
