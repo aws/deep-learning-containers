@@ -33,7 +33,7 @@ S3_BUCKET = os.environ.get("SCANNER_ALLOWLIST_S3_BUCKET", "")
 
 
 def load_image_configs():
-    """Read all .github/config/image/*.yml and return list of (framework, repo, tag) tuples."""
+    """Read all .github/config/image/*.yml and return list of (framework, framework_version, repo, tag) tuples."""
     configs = []
     for path in sorted(CONFIG_DIR.glob("*.yml")):
         try:
@@ -51,7 +51,8 @@ def load_image_configs():
             LOG.warning(f"skip {path.name}: prod_image '{prod_image}' has no tag")
             continue
         repo, tag = prod_image.split(":", 1)
-        configs.append((framework, repo, tag, path.name))
+        framework_version = common.get("framework_version", "")
+        configs.append((framework, framework_version, repo, tag, path.name))
     return configs
 
 
@@ -73,20 +74,37 @@ def get_image_sha(ecr_client, repo, tag):
     return None
 
 
-def load_framework_allowlist(framework):
-    """Read the framework's allowlist from the repo. Returns list of entries or None."""
-    path = ALLOWLIST_DIR / framework / "framework_allowlist.json"
-    if not path.exists():
+def load_framework_allowlist(framework, framework_version=""):
+    """Read the framework's allowlist from the repo, merging 3 levels.
+
+    Mirrors ecr_scan.py:load_allowlist() — shared framework_allowlist.json
+    plus optional version-specific <framework>-<version>.json.
+    """
+    base_path = ALLOWLIST_DIR / framework / "framework_allowlist.json"
+    if not base_path.exists():
         return None
     try:
-        entries = json.loads(path.read_text())
+        entries = json.loads(base_path.read_text())
         if not isinstance(entries, list):
             LOG.warning(f"allowlist for {framework} is not a list")
             return None
-        return entries
     except Exception as e:
         LOG.warning(f"can't read allowlist for {framework}: {e}")
         return None
+
+    # Merge version-specific allowlist if it exists
+    if framework_version:
+        version_path = ALLOWLIST_DIR / framework / f"{framework}-{framework_version}.json"
+        if version_path.exists():
+            try:
+                version_entries = json.loads(version_path.read_text())
+                if isinstance(version_entries, list):
+                    entries = entries + version_entries
+                    LOG.info(f"  merged {len(version_entries)} version-specific entries from {version_path.name}")
+            except Exception as e:
+                LOG.warning(f"  can't read version-specific allowlist {version_path.name}: {e}")
+
+    return entries
 
 
 def convert_to_scanner_format(entries):
@@ -150,8 +168,8 @@ def main():
     if args.image:
         target_repo, target_tag = args.image.split(":", 1)
         configs = [
-            (fw, repo, tag, src)
-            for fw, repo, tag, src in configs
+            (fw, fv, repo, tag, src)
+            for fw, fv, repo, tag, src in configs
             if repo == target_repo and tag == target_tag
         ]
         if not configs:
@@ -168,7 +186,7 @@ def main():
     skipped = 0
     failed = 0
 
-    for framework, repo, tag, source_file in configs:
+    for framework, framework_version, repo, tag, source_file in configs:
         image_key = f"{repo}:{tag}"
         if image_key in seen:
             continue
@@ -182,7 +200,7 @@ def main():
             skipped += 1
             continue
 
-        entries = load_framework_allowlist(framework)
+        entries = load_framework_allowlist(framework, framework_version)
         if entries is None:
             LOG.warning(f"  skip: no allowlist dir for framework '{framework}'")
             skipped += 1
