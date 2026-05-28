@@ -125,11 +125,13 @@ RUN uv pip install --system --no-cache scikit-build-core "cmake<4" \
     && python3 -c "import torch; print(torch.__version__.split('+')[0])" > /tmp/torch_version.txt
 
 # flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA architecture.
-# Must be built from source (requires CUDA devel toolkit).
-RUN NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
-  && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
+# Must be cloned from GitHub (PyPI sdist is missing headers) and built from source.
+RUN cd /sgl-workspace \
+  && git clone https://github.com/deepseek-ai/FlashMLA.git flash-mla \
+  && cd flash-mla && git submodule update --init --recursive \
+  && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
   && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
-     uv pip install --system --no-cache --no-build-isolation flash-mla
+    pip install --no-cache-dir --no-build-isolation -v .
 
 # Persist nvidia pip lib paths for subsequent build steps that import torch
 RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") > /tmp/nvidia_lib_paths
