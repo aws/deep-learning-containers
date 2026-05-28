@@ -71,7 +71,7 @@ benchmark:
       fleet: "x86-g6xl-runner"
       extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
       test_script: "vllm_reranker_benchmark_test.sh"
-      min_rps: 1
+      min_rps: 20
 
     - name: "qwen3-asr-1.7b"
       s3_model: "qwen3-asr-1.7b.tar.gz"
