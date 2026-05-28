@@ -87,7 +87,9 @@ def test_experiments_cpu():
         # ListTrainingJobs — the latter is eventually consistent and racy
         # for jobs that just finished.
         training_job_arn = model_trainer._latest_training_job.training_job_arn
-        assert training_job_arn, "ModelTrainer._latest_training_job did not expose a training_job_arn"
+        assert training_job_arn, (
+            "ModelTrainer._latest_training_job did not expose a training_job_arn"
+        )
 
         # Verify SageMaker auto-created at least one TrialComponent for this
         # training job — this is the actual feature under test.
