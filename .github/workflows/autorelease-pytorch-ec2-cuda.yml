@@ -37,6 +37,7 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
       prod-image: ${{ steps.parse.outputs.prod-image }}
+      framework-short-version: ${{ steps.parse.outputs.framework-short-version }}
     steps:
       - name: Determine config file
         id: config
@@ -77,6 +78,7 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-short-version=$(jq -r '.common.framework_version | split(".") | .[0:2] | join(".")' config.json)" >> $GITHUB_OUTPUT
 
   build-image:
     needs: [load-config]
@@ -103,7 +105,7 @@ jobs:
       - name: Source versions
         id: versions
         run: |
-          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
           source docker/pytorch/${VERSION}/versions-cuda.env
           echo "torch-version=${TORCH_VERSION}" >> $GITHUB_OUTPUT
           echo "cuda-version=${CUDA_VERSION}" >> $GITHUB_OUTPUT
@@ -111,7 +113,7 @@ jobs:
 
       - name: Fetch cached wheels
         run: |
-          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
           source docker/pytorch/${VERSION}/versions-cuda.env
           mkdir -p docker/pytorch/${VERSION}/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
@@ -125,7 +127,7 @@ jobs:
       - name: Build runtime image
         id: build-runtime
         run: |
-          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
           source docker/pytorch/${VERSION}/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-${{ github.run_id }}"
 
@@ -153,7 +155,7 @@ jobs:
 
       - name: Upload built wheels to cache
         run: |
-          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
           source docker/pytorch/${VERSION}/versions-cuda.env
           bash scripts/pytorch/upload_cached_wheels.sh \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
@@ -221,7 +223,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          VERSION=$(echo "${{ needs.load-config.outputs.framework-version }}" | cut -d. -f1,2)
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
           IMAGE="${{ needs.build-image.outputs.ci-image }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
