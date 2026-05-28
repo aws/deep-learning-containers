@@ -29,5 +29,36 @@
       "title": "CVE-2026-32274 - black",
       "reason_to_ignore": "N/A"
     }
+  ],
+  "torch": [
+    {
+      "description": "A vulnerability was identified in PyTorch 2.10.0. The affected element is an unknown function of the component pt2 Loading Handler. The manipulation leads to deserialization. The attack can only be performed from a local environment. The exploit is publicly available and might be used. The project was informed of the problem early through a pull request but has not reacted yet.",
+      "vulnerability_id": "CVE-2026-4538",
+      "name": "CVE-2026-4538",
+      "package_name": "torch",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/torch-2.9.0+cpu.dist-info/METADATA",
+        "name": "torch",
+        "package_manager": "PYTHON",
+        "version": "2.9.0+cpu",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-4538",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2026-4538 - torch",
+      "reason_to_ignore": "Local-only attack vector; no upstream fix available for torch 2.9.x"
+    }
   ]
 }
