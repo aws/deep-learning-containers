@@ -10,8 +10,6 @@
 
 # ── Global ARGs ─────────────────────────────────────────────────────────────
 ARG PYTHON_VERSION=3.12
-ARG XGBOOST_VERSION=3.2.0
-ARG SAGEMAKER_XGBOOST_VERSION=3.0-5
 
 # ── Stage: builder-base ─────────────────────────────────────────────────────
 FROM amazonlinux:2023 AS builder-base
@@ -42,8 +40,6 @@ COPY docker/xgboost/prebuilt.whl /build/dist/sagemaker_xgboost_container-2.0-py2
 FROM nvidia/cuda:12.9.1-base-amzn2023 AS xgboost-sagemaker
 
 ARG PYTHON_VERSION
-ARG XGBOOST_VERSION
-ARG SAGEMAKER_XGBOOST_VERSION
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE

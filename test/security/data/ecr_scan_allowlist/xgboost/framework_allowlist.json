@@ -253,5 +253,20 @@
         "vulnerability_id": "CVE-2026-34282",
         "reason": "java-11-amazon-corretto-headless — Networking vulnerability. Fix version 11.0.31+11 not yet available in AL2023 repo. Java only used for MMS model server, not in data path.",
         "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25087",
+        "reason": "pyarrow 22.0.0 — use-after-free in Arrow C++ IPC reader. Pinned by upstream sagemaker-xgboost-container test assertion. IPC file reading not in serving/training path.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-6357",
+        "reason": "python3-pip-wheel / python3.12-pip-wheel — pip self-update check code injection. pip not invoked at runtime in container.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-6654",
+        "reason": "rust-toolset-srpm-macros — double-free in thin_vec crate. Rust toolchain not used at runtime, only present as build dependency metadata.",
+        "review_by": "2026-08-30"
     }
 ]
