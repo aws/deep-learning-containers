@@ -248,6 +248,10 @@ RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+# Install awscli, boto3 (expected by sanity tests) and upgrade black to fix CVE-2026-32274
+RUN pip install --no-cache-dir awscli boto3 "black>=26.3.1"
+
 ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 
 # Starts framework
