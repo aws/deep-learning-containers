@@ -107,7 +107,7 @@ jobs:
         run: |
           docker pull ${{ env.IMAGE_URI }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
-            --ipc=host --shm-size=10g \
+            --ipc=host \
             -v /dlc-models:/models \
             ${{ env.IMAGE_URI }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -123,14 +123,7 @@ jobs:
         run: |
           TEST_SCRIPT="${{ matrix.test_script || 'sglang_benchmark_test.sh' }}"
           docker exec \
-            -e MIN_THROUGHPUT_TOKENS_PER_SEC=${{ matrix.min_throughput || 100 }} \
-            -e MIN_REQUESTS_PER_SEC=${{ matrix.min_rps || 1 }} \
-            -e BENCHMARK_NUM_PROMPTS=${{ matrix.num_prompts || 64 }} \
-            -e BENCHMARK_INPUT_LEN=${{ matrix.input_len || 512 }} \
-            -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
             -e SGLANG_ENV_VARS="${{ matrix.env_vars || '' }}" \
-            -e RESULTS_DIR=/tmp/benchmark_results \
-            -e SGLANG_PORT=8000 \
             ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \
@@ -176,6 +169,16 @@ jobs:
           aws-account-id: ${{ env.ACCOUNT_ID }}
           aws-region: ${{ env.REGION }}
 
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+          echo "=== Killing stale processes on port 8000 ==="
+          fuser -k 8000/tcp 2>/dev/null || true
+          echo "=== GPU state ==="
+          nvidia-smi
+
       - name: Download model from S3
         uses: ./.github/actions/download-model
         id: model
@@ -189,7 +192,7 @@ jobs:
           echo "Pod GPU UUIDs: ${POD_GPUS}"
           docker pull ${{ env.IMAGE_URI }}
           CONTAINER_ID=$(docker run -d -it --gpus "\"device=${POD_GPUS}\"" --entrypoint /bin/bash \
-            --ipc=host --shm-size=10g \
+            --ipc=host \
             ${{ env.IMAGE_URI }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
@@ -207,14 +210,7 @@ jobs:
           TEST_SCRIPT="${{ matrix.test_script || 'sglang_benchmark_test.sh' }}"
           RUNNER_LABEL="${{ matrix.runner_label || 'gpu-efa-runners' }}"
           docker exec \
-            -e MIN_THROUGHPUT_TOKENS_PER_SEC=${{ matrix.min_throughput || 100 }} \
-            -e MIN_REQUESTS_PER_SEC=${{ matrix.min_rps || 1 }} \
-            -e BENCHMARK_NUM_PROMPTS=${{ matrix.num_prompts || 64 }} \
-            -e BENCHMARK_INPUT_LEN=${{ matrix.input_len || 512 }} \
-            -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
             -e SGLANG_ENV_VARS="${{ matrix.env_vars || '' }}" \
-            -e RESULTS_DIR=/tmp/benchmark_results \
-            -e SGLANG_PORT=8000 \
             ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
               "/models/${{ matrix.name }}" \
               "${{ matrix.name }}" \

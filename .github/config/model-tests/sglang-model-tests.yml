@@ -151,9 +151,6 @@ benchmark:
         BENCHMARK_NUM_PROMPTS=32
         BENCHMARK_INPUT_LEN=512
         BENCHMARK_OUTPUT_LEN=128
-        BENCHMARK_BATCH_SIZE=2
-        RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=8000
 
   multinode-runner-scale-sets:
     # DeepSeek V4 Pro — 1.6T MoE (49B active), requires 2x p5.48xlarge (16x H100)

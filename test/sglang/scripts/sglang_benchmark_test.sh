@@ -27,14 +27,15 @@ RESULTS_DIR="${RESULTS_DIR:-/tmp/benchmark_results}"
 mkdir -p "${RESULTS_DIR}"
 
 if [ -n "${SGLANG_ENV_VARS:-}" ]; then
-  echo "=== Setting server env vars: ${SGLANG_ENV_VARS} ==="
+  echo "=== Setting server env vars ==="
   for var in ${SGLANG_ENV_VARS}; do
     export "${var}"
+    echo "  export ${var}"
   done
 fi
 
 
-SGLANG_PORT="${SGLANG_PORT:-8001}"
+SGLANG_PORT="${SGLANG_PORT:-8000}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-1200}"
 HEALTH_INTERVAL=10
 MIN_THROUGHPUT="${MIN_THROUGHPUT_TOKENS_PER_SEC:-100}"
