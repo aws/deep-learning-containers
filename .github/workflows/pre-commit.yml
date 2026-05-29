@@ -11,7 +11,7 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout DLC source
         uses: actions/checkout@v5
 
       - name: Setup python
