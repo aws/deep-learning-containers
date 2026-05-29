@@ -62,7 +62,10 @@ class TestRequestHeaderForwarding:
                 },
             )
 
-        assert mock_backend.last_request_headers["x-amzn-sagemaker-custom-attributes"] == "trace-id-123"
+        assert (
+            mock_backend.last_request_headers["x-amzn-sagemaker-custom-attributes"]
+            == "trace-id-123"
+        )
 
     def test_multiple_sagemaker_headers_forwarded(self, mock_backend):
         from starlette.testclient import TestClient
@@ -184,9 +187,7 @@ class TestResponseHeaderForwarding:
     def test_response_non_sagemaker_headers_not_forwarded(self, mock_backend):
         from starlette.testclient import TestClient
 
-        mock_post = mock_backend.configure(
-            headers={"X-Internal-Debug": "should-not-leak"}
-        )
+        mock_post = mock_backend.configure(headers={"X-Internal-Debug": "should-not-leak"})
 
         with TestClient(app) as client:
             client.app.state.client = AsyncMock()
