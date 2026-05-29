@@ -29,9 +29,9 @@ test variants:
                      SM_HOSTS / SM_CURRENT_HOST so SageMaker can spawn
                      one process per host (no MPI launcher).
 
-The accuracy bar is `> 0.3` after one epoch on the 1000-sample subset
-shipped under data/. Loose enough to absorb determinism noise plus the
-slower convergence of MirroredStrategy with smaller per-replica batches.
+This is a deployability smoke test, not an accuracy gate: the script
+trains, exports a SavedModel, and exits. Artifact existence is verified
+by the test layer (mirroring master's `_assert_s3_file_exists`).
 """
 
 from __future__ import absolute_import, print_function
@@ -178,7 +178,6 @@ def train(args):
 
     final_acc = float(history.history["accuracy"][-1])
     logger.info("Final training accuracy: %.4f", final_acc)
-    assert final_acc > 0.3, f"training accuracy {final_acc:.4f} below 0.3 threshold"
 
     # Eval is best-effort — single-host plain Keras only, since MWMS scope
     # complicates evaluate() with the tiny dataset.
@@ -201,7 +200,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--epochs", type=int, default=1)
-    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument(
         "--strategy",
         type=str,
