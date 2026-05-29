@@ -61,10 +61,19 @@ SGLANG_PID=$!
 
 cleanup() {
   echo "=== Stopping SGLang server ==="
+  kill "${GPU_MONITOR_PID}" 2>/dev/null || true
   kill "${SGLANG_PID}" 2>/dev/null || true
   wait "${SGLANG_PID}" 2>/dev/null || true
 }
 trap cleanup EXIT
+
+# GPU utilization monitor (background)
+(while true; do
+  nvidia-smi --query-gpu=timestamp,index,utilization.gpu,utilization.memory,memory.used,memory.total \
+    --format=csv,noheader,nounits >> "${RESULTS_DIR}/gpu_util_${ARTIFACT_PREFIX}.csv" 2>/dev/null
+  sleep 5
+done) &
+GPU_MONITOR_PID=$!
 
 echo "=== Waiting for health check ==="
 elapsed=0
@@ -85,6 +94,15 @@ if [ "${elapsed}" -ge "${HEALTH_TIMEOUT}" ]; then
   echo "ERROR: Health check timed out after ${HEALTH_TIMEOUT}s"
   exit 1
 fi
+
+echo ""
+echo "=== Warmup: sending dummy requests ==="
+for i in 1 2 3; do
+  curl -sf http://localhost:${SGLANG_PORT}/v1/completions \
+    -H "Content-Type: application/json" \
+    -d "{\"model\": \"${MODEL_DIR}\", \"prompt\": \"Hello\", \"max_tokens\": 16}" >/dev/null 2>&1 || true
+  echo "  warmup request ${i} done"
+done
 
 OUTPUT_FILE="${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
 
