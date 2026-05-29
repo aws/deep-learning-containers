@@ -74,6 +74,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     initial_instance_count=1,
                     instance_type=instance_type,
                     inference_ami_version=INFERENCE_AMI_VERSION,
+                    container_startup_health_check_timeout_in_seconds=600,
                 ),
             ],
         )

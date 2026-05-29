@@ -66,5 +66,17 @@
     {
         "vulnerability_id": "CVE-2026-39836",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39821",
+        "reason": "golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common 12.9.79 is an OS package from NVIDIA CUDA repo, upgrade to 13.x requires CUDA major version bump"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common 12.9.79 is an OS package from NVIDIA CUDA repo, upgrade to 13.x requires CUDA major version bump"
     }
 ]
