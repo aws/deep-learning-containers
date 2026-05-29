@@ -260,7 +260,7 @@ RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 RUN uv pip install --system --no-cache botocore
 
 # Patch CVEs
-RUN uv pip install --system --no-cache \
+RUN uv pip install --system --no-cache --prerelease=allow \
   "diffusers>=0.38.0" \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
