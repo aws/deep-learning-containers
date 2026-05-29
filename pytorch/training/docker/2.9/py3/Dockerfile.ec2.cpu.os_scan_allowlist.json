@@ -37,10 +37,10 @@
       "name": "CVE-2026-4538",
       "package_name": "torch",
       "package_details": {
-        "file_path": "/usr/local/lib/python3.12/site-packages/torch-2.9.0+cu130.dist-info/METADATA",
+        "file_path": "/usr/local/lib/python3.12/site-packages/torch-2.9.0+cpu.dist-info/METADATA",
         "name": "torch",
         "package_manager": "PYTHON",
-        "version": "2.9.0+cu130",
+        "version": "2.9.0+cpu",
         "release": null
       },
       "remediation": {
