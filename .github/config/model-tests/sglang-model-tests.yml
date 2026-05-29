@@ -145,6 +145,7 @@ benchmark:
       runner_label: "gpu-h100-8gpu-runners"
       extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
       env_vars: >-
+        HEALTH_TIMEOUT=2400
         MIN_THROUGHPUT_TOKENS_PER_SEC=500
         MIN_REQUESTS_PER_SEC=1
         BENCHMARK_NUM_PROMPTS=32

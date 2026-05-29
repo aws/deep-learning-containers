@@ -26,10 +26,17 @@ ARTIFACT_PREFIX="${MODEL_NAME}_${RUNNER_TYPE}"
 RESULTS_DIR="${RESULTS_DIR:-/tmp/benchmark_results}"
 mkdir -p "${RESULTS_DIR}"
 
+if [ -n "${SGLANG_ENV_VARS:-}" ]; then
+  echo "=== Setting server env vars: ${SGLANG_ENV_VARS} ==="
+  for var in ${SGLANG_ENV_VARS}; do
+    export "${var}"
+  done
+fi
+
+
 SGLANG_PORT="${SGLANG_PORT:-8000}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-1200}"
 HEALTH_INTERVAL=10
-
 MIN_THROUGHPUT="${MIN_THROUGHPUT_TOKENS_PER_SEC:-100}"
 MIN_RPS="${MIN_REQUESTS_PER_SEC:-1}"
 NUM_PROMPTS="${BENCHMARK_NUM_PROMPTS:-64}"
@@ -41,13 +48,6 @@ echo "Model dir: ${MODEL_DIR}"
 echo "Runner: ${RUNNER_TYPE}"
 echo "Extra args: ${EXTRA_ARGS}"
 echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req/s"
-
-if [ -n "${SGLANG_ENV_VARS:-}" ]; then
-  echo "=== Setting server env vars: ${SGLANG_ENV_VARS} ==="
-  for var in ${SGLANG_ENV_VARS}; do
-    export "${var}"
-  done
-fi
 
 echo "=== Starting SGLang server ==="
 # shellcheck disable=SC2086
