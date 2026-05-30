@@ -50,9 +50,17 @@ echo "Runner: ${RUNNER_TYPE}"
 echo "Extra args: ${EXTRA_ARGS}"
 echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req/s"
 
+echo ""
+echo "=== Pre-compiling DeepGEMM kernels ==="
+# shellcheck disable=SC2086
+python3 -m sglang.compile_deep_gemm \
+  --model-path "${MODEL_DIR}" \
+  ${EXTRA_ARGS} 2>&1 || echo "WARN: DeepGEMM pre-compile not available or failed (non-fatal)"
+
+echo ""
 echo "=== Starting SGLang server ==="
 # shellcheck disable=SC2086
-python3 -m sglang.launch_server \
+sglang serve \
   --model-path "${MODEL_DIR}" \
   --host 0.0.0.0 \
   --port "${SGLANG_PORT}" \
@@ -96,13 +104,18 @@ if [ "${elapsed}" -ge "${HEALTH_TIMEOUT}" ]; then
 fi
 
 echo ""
-echo "=== Warmup: sending dummy requests ==="
-for i in 1 2 3; do
-  curl -sf http://localhost:${SGLANG_PORT}/v1/completions \
-    -H "Content-Type: application/json" \
-    -d "{\"model\": \"${MODEL_DIR}\", \"prompt\": \"Hello\", \"max_tokens\": 16}" >/dev/null 2>&1 || true
-  echo "  warmup request ${i} done"
-done
+echo "=== Warmup: running mini-benchmark to trigger JIT compilation ==="
+python3 -m sglang.bench_serving \
+  --backend sglang \
+  --host 127.0.0.1 --port "${SGLANG_PORT}" \
+  --dataset-name random \
+  --random-input-len "${INPUT_LEN}" \
+  --random-output-len "${OUTPUT_LEN}" \
+  --num-prompts "${NUM_PROMPTS}" \
+  --model "${MODEL_DIR}" \
+  --output-file /dev/null 2>&1 | tail -5
+echo "=== Warmup benchmark done, waiting 10s ==="
+sleep 10
 
 OUTPUT_FILE="${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
 

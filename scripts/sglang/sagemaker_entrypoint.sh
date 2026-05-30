@@ -46,5 +46,5 @@ if ! [[ " ${ARGS[@]} " =~ " --model-path " ]]; then
     ARGS+=(--model-path "${SM_SGLANG_MODEL_PATH:-/opt/ml/model}")
 fi
 
-echo "Running command: exec python3 -m sglang.launch_server ${ARGS[@]}"
-exec python3 -m sglang.launch_server "${ARGS[@]}"
+echo "Running command: exec sglang serve ${ARGS[@]}"
+exec sglang serve "${ARGS[@]}"

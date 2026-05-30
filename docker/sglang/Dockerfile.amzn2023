@@ -93,7 +93,7 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
 # docs.sglang.ai/whl/cu129/ are compiled against (ABI-sensitive).
 # Uses pip --force-reinstall to bypass local version segment matching issues.
 RUN cd sglang \
-    && uv pip install --system --no-cache -e "python[all]" \
+    && uv pip install --system --no-cache "python[all]" \
     && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
     && python3 -m pip install --no-cache-dir --force-reinstall \
        "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
@@ -241,13 +241,6 @@ RUN mkdir -p /usr/local/nvidia/pip-lib \
     && echo "/usr/local/nvidia/pip-lib" > /etc/ld.so.conf.d/nvidia-pip.conf \
     && ldconfig
 
-# Copy sglang workspace (needed for editable pip install of sglang python package)
-COPY --from=builder /sgl-workspace /sgl-workspace
-# Remove build-time source/artifacts that trigger ECR CVEs (grpc go.mod, Cargo.lock, openssl build dir)
-RUN rm -rf /sgl-workspace/sglang/sgl-model-gateway \
-  /sgl-workspace/DeepEP \
-  /sgl-workspace/sglang/.git
-
 # Copy sglang-router binary
 COPY --from=builder /usr/local/bin/sglang-router /usr/local/bin/sglang-router
 
@@ -267,7 +260,9 @@ RUN uv pip install --system --no-cache --prerelease=allow \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32" \
   "setuptools>=78.1.1" \
-  "aiohttp>=3.13.4"
+  "aiohttp>=3.13.4" \
+  # kernels<0.15: 0.15.x breaks transformers hub_kernels LayerRepository() init
+  "kernels<0.15"
 
 # Re-pin torch (cu129), sgl_kernel, NCCL/cuDNN/cuSparseLt after CVE patches.
 # The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
@@ -283,6 +278,7 @@ RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
   && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig
@@ -359,6 +355,7 @@ COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
+  && mkdir -p /opt/amazon/efa && ln -sf /opt/amazon/efa/lib64 /opt/amazon/efa/lib \
   && bash install_efa_amzn2023.sh ${EFA_VERSION} \
   && rm install_efa_amzn2023.sh \
   && dnf remove -y libnccl-devel \
