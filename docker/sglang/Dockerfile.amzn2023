@@ -93,7 +93,7 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
 # docs.sglang.ai/whl/cu129/ are compiled against (ABI-sensitive).
 # Uses pip --force-reinstall to bypass local version segment matching issues.
 RUN cd sglang \
-    && uv pip install --system --no-cache "python[all]" \
+    && uv pip install --system --no-cache "./python[all]" \
     && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
     && python3 -m pip install --no-cache-dir --force-reinstall \
        "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
