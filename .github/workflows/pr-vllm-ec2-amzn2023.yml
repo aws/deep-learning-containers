@@ -113,6 +113,16 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
       - name: Detect file changes
         id: changes
         uses: dorny/paths-filter@v3
@@ -229,6 +239,7 @@ jobs:
       - name: Sync sccache cache to S3
         if: success() && steps.wheel-cache.outputs.hit != 'true'
         run: bash scripts/vllm/amzn2023/sync_sccache.sh push vllm
+
 
   sanity-test:
     needs: [check-changes, build-image, load-config]
