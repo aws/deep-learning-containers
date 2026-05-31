@@ -51,16 +51,9 @@ echo "Extra args: ${EXTRA_ARGS}"
 echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req/s"
 
 echo ""
-echo "=== Pre-compiling DeepGEMM kernels ==="
-# shellcheck disable=SC2086
-python3 -m sglang.compile_deep_gemm \
-  --model-path "${MODEL_DIR}" \
-  ${EXTRA_ARGS} 2>&1 || echo "WARN: DeepGEMM pre-compile not available or failed (non-fatal)"
-
-echo ""
 echo "=== Starting SGLang server ==="
 # shellcheck disable=SC2086
-sglang serve \
+python3 -m sglang.launch_server \
   --model-path "${MODEL_DIR}" \
   --host 0.0.0.0 \
   --port "${SGLANG_PORT}" \

@@ -18,7 +18,7 @@ ls -la "${MODEL_DIR}"
 
 echo "=== Starting SGLang server ==="
 # shellcheck disable=SC2086
-sglang serve \
+python3 -m sglang.launch_server \
   --model-path "${MODEL_DIR}" \
   --host 0.0.0.0 \
   --port "${SGLANG_PORT}" \
