@@ -10,11 +10,11 @@ common:
   framework: "vllm_server"
   # NOTE: keep framework_version and vllm_ref in sync with docker/vllm/versions.env
   #       (VLLM_VERSION, VLLM_REF). They are used here for image tags/labels/wheel-cache keys.
-  framework_version: "0.20.0.dev361"
-  vllm_ref: "3f5bd482f5c1a5dbdffbbf68d624e20bb7032013"
+  framework_version: "0.22.1rc0"
+  vllm_ref: "6aabe221a56052965e6bb0a95e9ec682d046a6e7"
   job_type: "general"
   python_version: "py312"
-  cuda_version: "cu129"
+  cuda_version: "cu130"
   os_version: "amzn2023"
   customer_type: "ec2"
   platform: "hyperpod"

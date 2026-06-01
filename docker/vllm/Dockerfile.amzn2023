@@ -1,7 +1,7 @@
-ARG CUDA_VERSION=12.9.1
+ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG VLLM_VERSION=0.20.0.dev361
-ARG FLASHINFER_VERSION=0.6.8.post1
+ARG VLLM_VERSION=0.22.1rc0
+ARG FLASHINFER_VERSION=0.6.11.post2
 ARG DEEPEP_COMMIT_HASH=73b6ea4
 
 # =============================================================================
@@ -88,7 +88,7 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${VLLM_VERS
 
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
-#   bash scripts/vllm/amzn2023/fetch_cached_wheels.sh cu129 v0.18.0
+#   bash scripts/vllm/amzn2023/fetch_cached_wheels.sh cu130 v0.22.1rc0
 # The directory is empty by default so COPY always succeeds.
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
