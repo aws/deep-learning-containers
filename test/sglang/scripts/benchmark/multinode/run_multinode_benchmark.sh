@@ -3,11 +3,11 @@ set -euo pipefail
 
 # SGLang Multi-Node Benchmark via LeaderWorkerSet
 #
-# This script runs FROM a lightweight runner pod and orchestrates:
+# This script runs from any runner with kubectl access and orchestrates:
 # 1. Deploy an LWS (leader + worker) serving the model on 2x p5.48xlarge
-# 2. Wait for readiness via the ClusterIP Service
-# 3. Run bench_serving against the service endpoint
-# 4. Validate thresholds
+# 2. Wait for readiness via pod status
+# 3. kubectl exec into leader to run bench_serving (no external deps needed)
+# 4. Copy results back and validate thresholds
 # 5. Tear down the LWS
 #
 # Usage: run_multinode_benchmark.sh <model_name> <image_uri> [extra_args]
@@ -21,7 +21,7 @@ set -euo pipefail
 # RESULTS_DIR - results output directory (default: /tmp/benchmark_results)
 # LWS_MANIFEST - path to LWS YAML (default: auto-detected)
 # LWS_NAMESPACE - k8s namespace (default: arc-runners)
-# HEALTH_TIMEOUT - max wait for LWS ready in seconds (default: 1200)
+# HEALTH_TIMEOUT - max wait for LWS ready in seconds (default: 2400)
 
 MODEL_NAME="${1:?Usage: $0 <model_name> <image_uri> [extra_args]}"
 IMAGE_URI="${2:?Usage: $0 <model_name> <image_uri> [extra_args]}"
@@ -104,49 +104,49 @@ if [ "${elapsed}" -ge "${HEALTH_TIMEOUT}" ]; then
   exit 1
 fi
 
-# Resolve the ClusterIP service endpoint
-SERVICE_IP=$(kubectl get service "${SERVICE_NAME}" -n "${LWS_NAMESPACE}" \
-  -o jsonpath='{.spec.clusterIP}')
-echo "Service endpoint: ${SERVICE_IP}:${SGLANG_PORT}"
-
-# Verify with a health check
-if ! curl -sf "http://${SERVICE_IP}:${SGLANG_PORT}/health" >/dev/null 2>&1; then
-  echo "ERROR: Service endpoint not responding to health check"
-  exit 1
-fi
-echo "Health check passed"
+# Resolve leader pod name
+LEADER_POD=$(kubectl get pods -n "${LWS_NAMESPACE}" \
+  -l "leaderworkerset.sigs.k8s.io/name=${LWS_NAME},role=leader" \
+  -o jsonpath='{.items[0].metadata.name}')
+echo "Leader pod: ${LEADER_POD}"
 
 # --- Step 3: Warmup (trigger DeepGEMM JIT) ---
 echo ""
 echo "=== Warmup: running mini-benchmark to trigger JIT compilation ==="
-python3 -m sglang.bench_serving \
-  --backend sglang \
-  --host "${SERVICE_IP}" --port "${SGLANG_PORT}" \
-  --dataset-name random \
-  --random-input-len "${INPUT_LEN}" \
-  --random-output-len "${OUTPUT_LEN}" \
-  --num-prompts "${NUM_PROMPTS}" \
-  --model "/models/${MODEL_NAME}" \
-  --output-file /dev/null 2>&1 | tail -5
+kubectl exec -n "${LWS_NAMESPACE}" "${LEADER_POD}" -- \
+  python3 -m sglang.bench_serving \
+    --backend sglang \
+    --host 127.0.0.1 --port "${SGLANG_PORT}" \
+    --dataset-name random \
+    --random-input-len "${INPUT_LEN}" \
+    --random-output-len "${OUTPUT_LEN}" \
+    --num-prompts "${NUM_PROMPTS}" \
+    --model "/models/${MODEL_NAME}" \
+    --output-file /dev/null 2>&1 | tail -5
 echo "=== Warmup done, waiting 10s ==="
 sleep 10
 
 # --- Step 4: Run benchmark ---
 echo ""
-echo "=== Running benchmark against ${SERVICE_IP}:${SGLANG_PORT} ==="
+echo "=== Running benchmark (kubectl exec into leader) ==="
 echo "num_prompts=${NUM_PROMPTS}, input_len=${INPUT_LEN}, output_len=${OUTPUT_LEN}"
 
-OUTPUT_FILE="${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
+REMOTE_OUTPUT="/tmp/benchmark_result.json"
 
-python3 -m sglang.bench_serving \
-  --backend sglang \
-  --host "${SERVICE_IP}" --port "${SGLANG_PORT}" \
-  --dataset-name random \
-  --random-input-len "${INPUT_LEN}" \
-  --random-output-len "${OUTPUT_LEN}" \
-  --num-prompts "${NUM_PROMPTS}" \
-  --model "/models/${MODEL_NAME}" \
-  --output-file "${OUTPUT_FILE}" 2>&1 | tee "${RESULTS_DIR}/benchmark_${ARTIFACT_PREFIX}.log"
+kubectl exec -n "${LWS_NAMESPACE}" "${LEADER_POD}" -- \
+  python3 -m sglang.bench_serving \
+    --backend sglang \
+    --host 127.0.0.1 --port "${SGLANG_PORT}" \
+    --dataset-name random \
+    --random-input-len "${INPUT_LEN}" \
+    --random-output-len "${OUTPUT_LEN}" \
+    --num-prompts "${NUM_PROMPTS}" \
+    --model "/models/${MODEL_NAME}" \
+    --output-file "${REMOTE_OUTPUT}" 2>&1 | tee "${RESULTS_DIR}/benchmark_${ARTIFACT_PREFIX}.log"
+
+# Copy results back from pod
+OUTPUT_FILE="${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
+kubectl cp "${LWS_NAMESPACE}/${LEADER_POD}:${REMOTE_OUTPUT}" "${OUTPUT_FILE}"
 
 # --- Step 5: Validate ---
 echo ""

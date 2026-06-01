@@ -245,20 +245,10 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.load-benchmarks.outputs.multinode-matrix) }}
-    runs-on: ${{ matrix.runner_label || 'gpu-efa-runners' }}
+    runs-on: ${{ matrix.runner_label || 'gpu-l4-1gpu-runners' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
-      - name: ECR authenticate
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ env.ACCOUNT_ID }}
-          aws-region: ${{ env.REGION }}
-
-      - name: Install benchmark dependencies
-        run: |
-          pip install -q sglang[all] || pip install -q sglang
 
       - name: Run multinode benchmark
         env:

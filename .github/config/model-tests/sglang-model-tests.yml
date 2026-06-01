@@ -157,7 +157,7 @@ benchmark:
     # Multi-node via LeaderWorkerSet (TP=16, nnodes=2)
     - name: "deepseek-v4-pro"
       s3_model: "deepseek-v4-pro.tar.gz"
-      runner_label: "gpu-h100-8gpu-runners"
+      runner_label: "gpu-l4-1gpu-runners"
       nnodes: 2
       lws_manifest: "test/sglang/scripts/benchmark/multinode/sglang-deepseek-v4-pro-lws.yaml"
       test_script: "multinode/run_multinode_benchmark.sh"
