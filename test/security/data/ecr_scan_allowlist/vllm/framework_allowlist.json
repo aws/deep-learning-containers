@@ -131,5 +131,10 @@
         "vulnerability_id": "CVE-2026-44513",
         "reason": "diffusers fix requires safetensors>=0.8.0rc0 (pre-release) which is not yet available as stable, cannot pin without --prerelease=allow",
         "review_by": "2026-06-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39821",
+        "reason": "golang.org/x/net v0.48.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-06-10"
     }
 ]
