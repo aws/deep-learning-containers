@@ -18,6 +18,11 @@ on:
         description: 'AWS region for ECR authentication'
         required: true
         type: string
+      xgboost-version:
+        description: 'XGBoost version (e.g. 3.0.5 or 3.2.0)'
+        required: false
+        type: string
+        default: '3.2.0'
   workflow_call:
     inputs:
       image-uri:
@@ -32,6 +37,11 @@ on:
         description: 'AWS region for ECR authentication'
         required: true
         type: string
+      xgboost-version:
+        description: 'XGBoost version (e.g. 3.0.5 or 3.2.0)'
+        required: false
+        type: string
+        default: '3.2.0'
 
 env:
   FORCE_COLOR: "1"
@@ -54,12 +64,12 @@ jobs:
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
-          uv pip install xgboost==3.2.0 boto3 numpy
+          uv pip install xgboost==${{ inputs.xgboost-version }} boto3 numpy
 
       - name: Generate and upload models
         run: |
           source .venv/bin/activate
-          python3 test/xgboost/container/generate_models.py
+          XGBOOST_VERSION=${{ inputs.xgboost-version }} python3 test/xgboost/container/generate_models.py
 
   container-test-training:
     timeout-minutes: 90
@@ -208,6 +218,7 @@ jobs:
           cd test/
           python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image-uri ${{ inputs.image-uri }} \
+            --xgboost-version ${{ inputs.xgboost-version }} \
             xgboost/e2e/${{ matrix.test-module }}.py
 
   # ===========================================================================
@@ -248,4 +259,5 @@ jobs:
           cd test/
           python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image-uri ${{ inputs.image-uri }} \
+            --xgboost-version ${{ inputs.xgboost-version }} \
             xgboost/benchmarks/${{ matrix.test-module }}.py

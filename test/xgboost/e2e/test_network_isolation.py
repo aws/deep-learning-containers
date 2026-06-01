@@ -34,8 +34,9 @@ class TestNetworkIsolation:
         assert desc["TrainingJobStatus"] == "Completed"
 
     @pytest.mark.xfail(
+        "config.getoption('--xgboost-version') >= '3.2.0'",
         reason="Network isolation blocks pip from fetching build deps (setuptools) for script mode. "
-        "sagemaker_containers runs 'pip install .' without --no-build-isolation."
+        "sagemaker_containers runs 'pip install .' without --no-build-isolation.",
     )
     def test_script_mode(self, image_uri, role):
         hp = {
