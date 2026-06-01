@@ -55,7 +55,7 @@ jobs:
           echo "config-file=.github/config/image/pytorch-${VERSION}-ec2-cuda.yml" >> $GITHUB_OUTPUT
 
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
@@ -91,7 +91,7 @@ jobs:
       ci-image: ${{ steps.build-runtime.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup buildkitd
         run: .github/scripts/buildkitd.sh
@@ -213,7 +213,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -243,7 +243,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -282,7 +282,7 @@ jobs:
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Check if release is enabled
         id: check-release
