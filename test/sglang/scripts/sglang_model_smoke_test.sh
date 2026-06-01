@@ -9,8 +9,8 @@ MODEL_NAME="${2:?Usage: $0 <model_dir> <model_name> [extra_args...]}"
 shift 2
 EXTRA_ARGS="$*"
 
-SGLANG_PORT="${SGLANG_PORT:-8080}"
-HEALTH_TIMEOUT=1200
+SGLANG_PORT="${SGLANG_PORT:-8000}"
+HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-1200}"
 HEALTH_INTERVAL=10
 
 echo "=== Model directory: ${MODEL_DIR} ==="

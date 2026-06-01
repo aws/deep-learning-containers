@@ -62,19 +62,10 @@ SGLANG_PID=$!
 
 cleanup() {
   echo "=== Stopping SGLang server ==="
-  kill "${GPU_MONITOR_PID}" 2>/dev/null || true
   kill "${SGLANG_PID}" 2>/dev/null || true
   wait "${SGLANG_PID}" 2>/dev/null || true
 }
 trap cleanup EXIT
-
-# GPU utilization monitor (background)
-(while true; do
-  nvidia-smi --query-gpu=timestamp,index,utilization.gpu,utilization.memory,memory.used,memory.total \
-    --format=csv,noheader,nounits >> "${RESULTS_DIR}/gpu_util_${ARTIFACT_PREFIX}.csv" 2>/dev/null
-  sleep 5
-done) &
-GPU_MONITOR_PID=$!
 
 echo "=== Waiting for health check ==="
 elapsed=0

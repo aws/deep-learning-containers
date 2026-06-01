@@ -27,15 +27,27 @@ def get_tp(extra_args):
     return "1"
 
 
+def _parse_env_vars(env_vars_str):
+    """Parse 'KEY=VAL KEY2=VAL2' into dict."""
+    result = {}
+    for item in (env_vars_str or "").split():
+        if "=" in item:
+            k, v = item.split("=", 1)
+            result[k] = v
+    return result
+
+
 def load_model_config(config_path):
     with open(config_path) as f:
         cfg = yaml.safe_load(f)
     bm = cfg.get("benchmark", {})
     models = {}
     for m in bm.get("codebuild-fleet", []):
-        models[m["name"]] = {**m, "runner": m.get("fleet", "")}
+        env = _parse_env_vars(m.get("env_vars", ""))
+        models[m["name"]] = {**m, "runner": m.get("fleet", ""), **env}
     for m in bm.get("runner-scale-sets", []):
-        models[m["name"]] = {**m, "runner": m.get("runner_label", "gpu-efa-runners")}
+        env = _parse_env_vars(m.get("env_vars", ""))
+        models[m["name"]] = {**m, "runner": m.get("runner_label", "gpu-efa-runners"), **env}
     return models
 
 
@@ -65,10 +77,13 @@ def main(results_dir):
         output_tps = r.get("output_throughput", 0)
         rps = r.get("request_throughput", 0)
         total_time = r.get("total_time", 0)
+        input_len = c.get("BENCHMARK_INPUT_LEN", c.get("input_len", ""))
+        output_len = c.get("BENCHMARK_OUTPUT_LEN", c.get("output_len", ""))
+        num_prompts = c.get("BENCHMARK_NUM_PROMPTS", c.get("num_prompts", ""))
         print(
             f"| {name} | {runner} | {tp} "
-            f"| {c.get('input_len', '')} | {c.get('output_len', '')} "
-            f"| {c.get('num_prompts', '')} | {output_tps:.2f} "
+            f"| {input_len} | {output_len} "
+            f"| {num_prompts} | {output_tps:.2f} "
             f"| {rps:.2f} | {total_time:.2f} |"
         )
 
