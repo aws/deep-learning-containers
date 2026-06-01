@@ -27,17 +27,13 @@ spec:
                 value: "WARN"
               - name: NCCL_IB_DISABLE
                 value: "1"
-              - name: NCCL_P2P_DISABLE
-                value: "1"
-              - name: NCCL_NET_GDR_LEVEL
-                value: "0"
-              - name: NCCL_SHM_DISABLE
-                value: "1"
               - name: FI_PROVIDER
                 value: "efa"
               - name: FI_EFA_USE_DEVICE_RDMA
                 value: "1"
               - name: FI_EFA_FORK_SAFE
+                value: "1"
+              - name: SGLANG_SHARED_EXPERT_TP1
                 value: "1"
               - name: HF_HOME
                 value: "/models"
@@ -58,19 +54,23 @@ spec:
                   --nnodes 2 \
                   --node-rank 0 \
                   --dist-init-addr ${POD_IP}:20000 \
-                  --trust-remote-code \
-                  --mem-fraction-static 0.88
+                  --moe-runner-backend marlin \
+                  --mem-fraction-static 0.9 \
+                  --context-length 4096 \
+                  --trust-remote-code
             resources:
               limits:
                 nvidia.com/gpu: "8"
                 cpu: "96"
                 memory: "768Gi"
-                vpc.amazonaws.com/efa: 4
+                hugepages-2Mi: "5120Mi"
+                vpc.amazonaws.com/efa: 32
               requests:
                 nvidia.com/gpu: "8"
                 cpu: "96"
                 memory: "768Gi"
-                vpc.amazonaws.com/efa: 4
+                hugepages-2Mi: "5120Mi"
+                vpc.amazonaws.com/efa: 32
             ports:
               - containerPort: 30000
               - containerPort: 20000
@@ -119,17 +119,13 @@ spec:
                 value: "WARN"
               - name: NCCL_IB_DISABLE
                 value: "1"
-              - name: NCCL_P2P_DISABLE
-                value: "1"
-              - name: NCCL_NET_GDR_LEVEL
-                value: "0"
-              - name: NCCL_SHM_DISABLE
-                value: "1"
               - name: FI_PROVIDER
                 value: "efa"
               - name: FI_EFA_USE_DEVICE_RDMA
                 value: "1"
               - name: FI_EFA_FORK_SAFE
+                value: "1"
+              - name: SGLANG_SHARED_EXPERT_TP1
                 value: "1"
               - name: HF_HOME
                 value: "/models"
@@ -146,19 +142,23 @@ spec:
                   --nnodes 2 \
                   --node-rank 1 \
                   --dist-init-addr $(LWS_LEADER_ADDRESS):20000 \
-                  --trust-remote-code \
-                  --mem-fraction-static 0.88
+                  --moe-runner-backend marlin \
+                  --mem-fraction-static 0.9 \
+                  --context-length 4096 \
+                  --trust-remote-code
             resources:
               limits:
                 nvidia.com/gpu: "8"
                 cpu: "96"
                 memory: "768Gi"
-                vpc.amazonaws.com/efa: 4
+                hugepages-2Mi: "5120Mi"
+                vpc.amazonaws.com/efa: 32
               requests:
                 nvidia.com/gpu: "8"
                 cpu: "96"
                 memory: "768Gi"
-                vpc.amazonaws.com/efa: 4
+                hugepages-2Mi: "5120Mi"
+                vpc.amazonaws.com/efa: 32
             volumeMounts:
               - name: model-volume
                 mountPath: /models

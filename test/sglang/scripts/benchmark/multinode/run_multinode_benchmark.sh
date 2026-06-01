@@ -34,7 +34,7 @@ LWS_NAMESPACE="${LWS_NAMESPACE:-arc-runners}"
 LWS_NAME="sglang-deepseek-v4-pro"
 SERVICE_NAME="${LWS_NAME}-leader"
 SGLANG_PORT=30000
-HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-1200}"
+HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-2400}"
 
 RESULTS_DIR="${RESULTS_DIR:-/tmp/benchmark_results}"
 mkdir -p "${RESULTS_DIR}"
@@ -116,7 +116,22 @@ if ! curl -sf "http://${SERVICE_IP}:${SGLANG_PORT}/health" >/dev/null 2>&1; then
 fi
 echo "Health check passed"
 
-# --- Step 3: Run benchmark ---
+# --- Step 3: Warmup (trigger DeepGEMM JIT) ---
+echo ""
+echo "=== Warmup: running mini-benchmark to trigger JIT compilation ==="
+python3 -m sglang.bench_serving \
+  --backend sglang \
+  --host "${SERVICE_IP}" --port "${SGLANG_PORT}" \
+  --dataset-name random \
+  --random-input-len "${INPUT_LEN}" \
+  --random-output-len "${OUTPUT_LEN}" \
+  --num-prompts "${NUM_PROMPTS}" \
+  --model "/models/${MODEL_NAME}" \
+  --output-file /dev/null 2>&1 | tail -5
+echo "=== Warmup done, waiting 10s ==="
+sleep 10
+
+# --- Step 4: Run benchmark ---
 echo ""
 echo "=== Running benchmark against ${SERVICE_IP}:${SGLANG_PORT} ==="
 echo "num_prompts=${NUM_PROMPTS}, input_len=${INPUT_LEN}, output_len=${OUTPUT_LEN}"
@@ -133,7 +148,7 @@ python3 -m sglang.bench_serving \
   --model "/models/${MODEL_NAME}" \
   --output-file "${OUTPUT_FILE}" 2>&1 | tee "${RESULTS_DIR}/benchmark_${ARTIFACT_PREFIX}.log"
 
-# --- Step 4: Validate ---
+# --- Step 5: Validate ---
 echo ""
 echo "=== Validating results ==="
 python3 -c "

@@ -138,37 +138,36 @@ benchmark:
     #     RESULTS_DIR=/tmp/benchmark_results
     #     SGLANG_PORT=8000
 
-    # DeepSeek V4 Flash — 284B MoE (13B active), requires 8x H100 80GB
-    # Native FP4 checkpoint with Marlin MoE backend
-    - name: "deepseek-v4-flash"
-      s3_model: "deepseek-v4-flash.tar.gz"
-      runner_label: "gpu-h100-8gpu-runners"
-      extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
-      env_vars: >-
-        HEALTH_TIMEOUT=2400
-        MIN_THROUGHPUT_TOKENS_PER_SEC=500
-        MIN_REQUESTS_PER_SEC=1
-        BENCHMARK_NUM_PROMPTS=32
-        BENCHMARK_INPUT_LEN=512
-        BENCHMARK_OUTPUT_LEN=128
+    # - name: "deepseek-v4-flash"
+    #   s3_model: "deepseek-v4-flash.tar.gz"
+    #   runner_label: "gpu-h100-8gpu-runners"
+    #   extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
+    #   env_vars: >-
+    #     HEALTH_TIMEOUT=2400
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=500
+    #     MIN_REQUESTS_PER_SEC=1
+    #     BENCHMARK_NUM_PROMPTS=32
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=128
+    []
 
   multinode-runner-scale-sets:
     # DeepSeek V4 Pro — 1.6T MoE (49B active), requires 2x p5.48xlarge (16x H100)
     # Native FP4 checkpoint with Marlin MoE backend
     # Multi-node via LeaderWorkerSet (TP=16, nnodes=2)
-    # - name: "deepseek-v4-pro"
-    #   s3_model: "deepseek-v4-pro.tar.gz"
-    #   runner_label: "gpu-h100-8gpu-runners"
-    #   nnodes: 2
-    #   lws_manifest: "test/sglang/scripts/benchmark/multinode/sglang-deepseek-v4-pro-lws.yaml"
-    #   test_script: "multinode/run_multinode_benchmark.sh"
-    #   env_vars: >-
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=300
-    #     MIN_REQUESTS_PER_SEC=0.5
-    #     BENCHMARK_NUM_PROMPTS=32
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=128
-    #     BENCHMARK_BATCH_SIZE=2
-    #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=8000
-    []
+    - name: "deepseek-v4-pro"
+      s3_model: "deepseek-v4-pro.tar.gz"
+      runner_label: "gpu-h100-8gpu-runners"
+      nnodes: 2
+      lws_manifest: "test/sglang/scripts/benchmark/multinode/sglang-deepseek-v4-pro-lws.yaml"
+      test_script: "multinode/run_multinode_benchmark.sh"
+      env_vars: >-
+        HEALTH_TIMEOUT=2400
+        MIN_THROUGHPUT_TOKENS_PER_SEC=300
+        MIN_REQUESTS_PER_SEC=0.5
+        BENCHMARK_NUM_PROMPTS=32
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=128
+        BENCHMARK_BATCH_SIZE=2
+        RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000

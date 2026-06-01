@@ -270,7 +270,7 @@ jobs:
           RESULTS_DIR: /tmp/benchmark_results
           LWS_MANIFEST: ${{ matrix.lws_manifest }}
           NNODES: ${{ matrix.nnodes || 2 }}
-          HEALTH_TIMEOUT: "1200"
+          HEALTH_TIMEOUT: "2400"
         run: |
           chmod +x test/sglang/scripts/benchmark/${{ matrix.test_script }}
           bash test/sglang/scripts/benchmark/${{ matrix.test_script }} \
