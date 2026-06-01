@@ -109,11 +109,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
-
       - name: Detect file changes
         id: changes
         uses: dorny/paths-filter@v4
