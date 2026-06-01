@@ -48,7 +48,7 @@ jobs:
   # ============================================================
   # Detect all changed PyTorch versions + file changes
   # ============================================================
-  detect-versions:
+  check-changes:
     needs: [gatekeeper]
     if: success()
     runs-on: ubuntu-latest
@@ -139,15 +139,15 @@ jobs:
   # Build CPU images (matrix over detected versions)
   # ============================================================
   build-images:
-    needs: [detect-versions]
-    if: needs.detect-versions.outputs.build-change == 'true'
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     concurrency:
       group: ${{ github.workflow }}-build-${{ matrix.version }}-${{ github.event.pull_request.number }}
@@ -193,11 +193,11 @@ jobs:
   # Unit tests (CPU-only, no GPU needed)
   # ============================================================
   unit-test:
-    needs: [detect-versions, build-images]
+    needs: [check-changes, build-images]
     if: success()
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -233,13 +233,13 @@ jobs:
   # Sanity tests
   # ============================================================
   sanity-test:
-    needs: [detect-versions, build-images]
+    needs: [check-changes, build-images]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.sanity-test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
@@ -261,11 +261,11 @@ jobs:
   # Security tests
   # ============================================================
   security-test:
-    needs: [detect-versions, build-images]
+    needs: [check-changes, build-images]
     if: success()
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
@@ -279,13 +279,13 @@ jobs:
   # Telemetry tests
   # ============================================================
   telemetry-test:
-    needs: [detect-versions, build-images]
+    needs: [check-changes, build-images]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.telemetry-test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:

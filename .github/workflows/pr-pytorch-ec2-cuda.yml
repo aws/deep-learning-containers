@@ -49,7 +49,7 @@ jobs:
   # ============================================================
   # Detect all changed PyTorch versions + file changes
   # ============================================================
-  detect-versions:
+  check-changes:
     needs: [gatekeeper]
     if: success()
     runs-on: ubuntu-latest
@@ -146,15 +146,15 @@ jobs:
   # Build images (matrix over detected versions)
   # ============================================================
   build-images:
-    needs: [detect-versions]
-    if: needs.detect-versions.outputs.build-change == 'true'
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     concurrency:
       group: ${{ github.workflow }}-build-${{ matrix.version }}-${{ github.event.pull_request.number }}
@@ -231,11 +231,11 @@ jobs:
   # Unit tests (CPU-only, no GPU needed)
   # ============================================================
   unit-test:
-    needs: [detect-versions, build-images]
+    needs: [check-changes, build-images]
     if: success()
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -271,13 +271,13 @@ jobs:
   # Sanity tests (labels, filesystem, OSS compliance)
   # ============================================================
   sanity-test:
-    needs: [detect-versions, build-images]
+    needs: [check-changes, build-images]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.sanity-test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
@@ -299,11 +299,11 @@ jobs:
   # Security tests (ECR scan, CVE allowlist)
   # ============================================================
   security-test:
-    needs: [detect-versions, build-images]
+    needs: [check-changes, build-images]
     if: success()
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
@@ -317,13 +317,13 @@ jobs:
   # Telemetry tests (opt-out, environment variables)
   # ============================================================
   telemetry-test:
-    needs: [detect-versions, build-images]
+    needs: [check-changes, build-images]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.telemetry-test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
@@ -338,11 +338,11 @@ jobs:
   # Single-GPU tests
   # ============================================================
   single-gpu-test:
-    needs: [detect-versions, build-images, unit-test, sanity-test, security-test]
+    needs: [check-changes, build-images, unit-test, sanity-test, security-test]
     if: success()
     strategy:
       matrix:
-        version: ${{ fromJson(needs.detect-versions.outputs.versions) }}
+        version: ${{ fromJson(needs.check-changes.outputs.versions) }}
       fail-fast: false
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -378,14 +378,14 @@ jobs:
   # EFA integration test (2x p4d.24xlarge, NCCL over EFA)
   # ============================================================
   efa-test:
-    needs: [detect-versions, build-images, unit-test, sanity-test, security-test]
+    needs: [check-changes, build-images, unit-test, sanity-test, security-test]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.detect-versions.outputs.build-change == 'true' || needs.detect-versions.outputs.efa-test-change == 'true') &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true') &&
       (needs.build-images.result == 'success' || needs.build-images.result == 'skipped')
     strategy:
       matrix:
-        include: ${{ fromJson(needs.detect-versions.outputs.configs) }}
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
       fail-fast: false
     concurrency:
       group: ${{ github.workflow }}-efa-${{ matrix.version }}-${{ github.event.pull_request.number }}
