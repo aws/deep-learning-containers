@@ -209,10 +209,9 @@ jobs:
       - name: Run unit tests
         run: |
           docker exec ${CONTAINER_ID} bash -c '
-            pip install pytest && \
-            cp /workdir/test/ray/unit/test_sagemaker_serve.py /tmp/ && \
-            cd /tmp && \
-            PYTHONPATH=/workdir/scripts/ray python -m pytest -vs test_sagemaker_serve.py
+            pip install -r /workdir/test/requirements.txt && \
+            cd /workdir/test && \
+            python -m pytest -vs ray/unit/
           '
 
       - name: Run FFmpeg codecs test
