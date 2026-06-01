@@ -59,11 +59,11 @@ def main(results_dir):
     print("## Throughput\n")
     print(
         "| Model | Runner | TP | Input Len | Output Len | Prompts "
-        "| Output Tok/s | Request/s | Total Time (s) |"
+        "| Output Tok/s | Total Tok/s | Requests/s | Elapsed (s) |"
     )
     print(
         "|-------|--------|----|-----------|------------|---------|"
-        "-----------------|-----------|----------------|"
+        "--------------|-------------|------------|-------------|"
     )
     for f in sorted(glob.glob(f"{results_dir}/**/throughput_*.json", recursive=True)):
         name, runner = _parse_artifact_name(f)
@@ -75,8 +75,9 @@ def main(results_dir):
         except (json.JSONDecodeError, OSError):
             continue
         output_tps = r.get("output_throughput", 0)
+        total_tps = r.get("total_throughput", 0)
         rps = r.get("request_throughput", 0)
-        total_time = r.get("total_time", 0)
+        duration = r.get("duration", 0)
         input_len = c.get("BENCHMARK_INPUT_LEN", c.get("input_len", ""))
         output_len = c.get("BENCHMARK_OUTPUT_LEN", c.get("output_len", ""))
         num_prompts = c.get("BENCHMARK_NUM_PROMPTS", c.get("num_prompts", ""))
@@ -84,7 +85,7 @@ def main(results_dir):
             f"| {name} | {runner} | {tp} "
             f"| {input_len} | {output_len} "
             f"| {num_prompts} | {output_tps:.2f} "
-            f"| {rps:.2f} | {total_time:.2f} |"
+            f"| {total_tps:.2f} | {rps:.2f} | {duration:.2f} |"
         )
 
     print("\n## Latency (Online Serving)\n")
