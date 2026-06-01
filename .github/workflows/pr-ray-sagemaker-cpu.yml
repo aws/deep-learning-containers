@@ -204,7 +204,7 @@ jobs:
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Run unit tests
-        run: docker exec ${CONTAINER_ID} bash -c "pip install pytest && python -m pytest -vs /workdir/test/ray/unit/"
+        run: docker exec ${CONTAINER_ID} bash -c "pip install pytest && python -m pytest -vs --confcutdir=/workdir/test/ray/unit --import-mode=importlib /workdir/test/ray/unit/"
 
       - name: Run FFmpeg codecs test
         run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
