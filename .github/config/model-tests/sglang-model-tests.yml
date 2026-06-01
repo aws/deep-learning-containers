@@ -29,11 +29,10 @@ s3_prefix: "s3://dlc-cicd-models/llm-models"
 
 smoke-test:
   codebuild-fleet:
-    # - name: "qwen3.5-0.8b"
-    #   s3_model: "qwen3.5-0.8b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
-    []
+    - name: "qwen3.5-0.8b"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
 
   runner-scale-sets: []
 
@@ -51,7 +50,7 @@ benchmark:
     #     BENCHMARK_OUTPUT_LEN=128
     #     BENCHMARK_BATCH_SIZE=4
     #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=8000
+    #     SGLANG_PORT=30000
     #
     # - name: "qwen3.5-9b"
     #   s3_model: "qwen3.5-9b.tar.gz"
@@ -65,7 +64,7 @@ benchmark:
     #     BENCHMARK_OUTPUT_LEN=128
     #     BENCHMARK_BATCH_SIZE=4
     #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=8000
+    #     SGLANG_PORT=30000
     #
     # - name: "qwen3.5-27b-fp8"
     #   s3_model: "qwen3.5-27b-fp8.tar.gz"
@@ -79,7 +78,7 @@ benchmark:
     #     BENCHMARK_OUTPUT_LEN=128
     #     BENCHMARK_BATCH_SIZE=4
     #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=8000
+    #     SGLANG_PORT=30000
     #
     # - name: "qwen3.5-35b-a3b-fp8"
     #   s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
@@ -93,7 +92,7 @@ benchmark:
     #     BENCHMARK_OUTPUT_LEN=128
     #     BENCHMARK_BATCH_SIZE=4
     #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=8000
+    #     SGLANG_PORT=30000
     #
     # - name: "qwen3-coder-next-fp8"
     #   s3_model: "qwen3-coder-next-fp8.tar.gz"
@@ -107,7 +106,7 @@ benchmark:
     #     BENCHMARK_OUTPUT_LEN=256
     #     BENCHMARK_BATCH_SIZE=2
     #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=8000
+    #     SGLANG_PORT=30000
     #
     # - name: "llama-3.3-70b"
     #   s3_model: "llama-3.3-70b.tar.gz"
@@ -121,7 +120,7 @@ benchmark:
     #     BENCHMARK_OUTPUT_LEN=128
     #     BENCHMARK_BATCH_SIZE=2
     #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=8000
+    #     SGLANG_PORT=30000
     []
 
   runner-scale-sets:
@@ -136,7 +135,7 @@ benchmark:
     #     BENCHMARK_OUTPUT_LEN=256
     #     BENCHMARK_BATCH_SIZE=2
     #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=8000
+    #     SGLANG_PORT=30000
 
     # - name: "deepseek-v4-flash"
     #   s3_model: "deepseek-v4-flash.tar.gz"
@@ -149,7 +148,7 @@ benchmark:
     #     BENCHMARK_NUM_PROMPTS=32
     #     BENCHMARK_INPUT_LEN=512
     #     BENCHMARK_OUTPUT_LEN=128
-    []
+    #     SGLANG_PORT=30000
 
   multinode-runner-scale-sets:
     # DeepSeek V4 Pro — 1.6T MoE (49B active), requires 2x p5.48xlarge (16x H100)
