@@ -32,7 +32,6 @@ jobs:
     outputs:
       codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
       runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
-      multinode-matrix: ${{ steps.parse.outputs.multinode-runner-scale-sets }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -46,18 +45,15 @@ jobs:
               cfg = yaml.safe_load(f)
           bm = cfg.get('benchmark', {})
           prefix = cfg.get('s3_prefix', '')
-          for m in bm.get('codebuild-fleet', []) + bm.get('runner-scale-sets', []) + bm.get('multinode-runner-scale-sets', []):
+          for m in bm.get('codebuild-fleet', []) + bm.get('runner-scale-sets', []):
               m['s3_path'] = prefix + '/' + m.pop('s3_model')
           print('codebuild-fleet=' + json.dumps(bm.get('codebuild-fleet', [])))
           print('runner-scale-sets=' + json.dumps(bm.get('runner-scale-sets', [])))
-          print('multinode-runner-scale-sets=' + json.dumps(bm.get('multinode-runner-scale-sets', [])))
           " > parsed.txt
           grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
           grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
-          grep '^multinode-runner-scale-sets=' parsed.txt | sed 's/^multinode-runner-scale-sets=//' > mn.json
           echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
           echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
-          echo "multinode-runner-scale-sets=$(cat mn.json)" >> $GITHUB_OUTPUT
 
   benchmark-codebuild-fleet:
     name: benchmark (${{ matrix.name }} / ${{ matrix.fleet }})
@@ -237,48 +233,11 @@ jobs:
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
 
-  benchmark-multinode:
-    name: benchmark-multinode (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-benchmarks.outputs.multinode-matrix)[0] != null }}
-    needs: [load-benchmarks]
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.load-benchmarks.outputs.multinode-matrix) }}
-    runs-on: ${{ matrix.runner_label || 'gpu-l4-1gpu-runners' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Run multinode benchmark
-        env:
-          MIN_THROUGHPUT_TOKENS_PER_SEC: ${{ matrix.min_throughput || 100 }}
-          MIN_REQUESTS_PER_SEC: ${{ matrix.min_rps || 1 }}
-          BENCHMARK_NUM_PROMPTS: ${{ matrix.num_prompts || 32 }}
-          BENCHMARK_INPUT_LEN: ${{ matrix.input_len || 512 }}
-          BENCHMARK_OUTPUT_LEN: ${{ matrix.output_len || 128 }}
-          RESULTS_DIR: /tmp/benchmark_results
-          LWS_MANIFEST: ${{ matrix.lws_manifest }}
-          NNODES: ${{ matrix.nnodes || 2 }}
-          HEALTH_TIMEOUT: "2400"
-        run: |
-          chmod +x test/sglang/scripts/benchmark/${{ matrix.test_script }}
-          bash test/sglang/scripts/benchmark/${{ matrix.test_script }} \
-            "${{ matrix.name }}" \
-            "${{ env.IMAGE_URI }}"
-
-      - name: Upload results
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: benchmark-${{ matrix.name }}-multinode
-          path: /tmp/benchmark_results/
-          retention-days: 30
 
   benchmark-report:
     name: benchmark-report
     if: always()
-    needs: [benchmark-codebuild-fleet, benchmark-runner-scale-sets, benchmark-multinode]
+    needs: [benchmark-codebuild-fleet, benchmark-runner-scale-sets]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

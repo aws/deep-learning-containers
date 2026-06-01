@@ -38,135 +38,113 @@ smoke-test:
 
 benchmark:
   codebuild-fleet:
-    # - name: "gpt-oss-20b"
-    #   s3_model: "gpt-oss-20b.tar.gz"
-    #   fleet: "x86-g6exl-runner"
-    #   extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
-    #   env_vars: >-
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=6000
-    #     MIN_REQUESTS_PER_SEC=5
-    #     BENCHMARK_NUM_PROMPTS=64
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=128
-    #     BENCHMARK_BATCH_SIZE=4
-    #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=30000
-    #
-    # - name: "qwen3.5-9b"
-    #   s3_model: "qwen3.5-9b.tar.gz"
-    #   fleet: "x86-g6exl-runner"
-    #   extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
-    #   env_vars: >-
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=2000
-    #     MIN_REQUESTS_PER_SEC=1.5
-    #     BENCHMARK_NUM_PROMPTS=64
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=128
-    #     BENCHMARK_BATCH_SIZE=4
-    #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=30000
-    #
-    # - name: "qwen3.5-27b-fp8"
-    #   s3_model: "qwen3.5-27b-fp8.tar.gz"
-    #   fleet: "x86-g6exl-runner"
-    #   extra_args: "--tp 1 --context-length 4096"
-    #   env_vars: >-
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=100
-    #     MIN_REQUESTS_PER_SEC=0.2
-    #     BENCHMARK_NUM_PROMPTS=64
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=128
-    #     BENCHMARK_BATCH_SIZE=4
-    #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=30000
-    #
-    # - name: "qwen3.5-35b-a3b-fp8"
-    #   s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
-    #   fleet: "x86-g612xl-runner"
-    #   extra_args: "--tp 4 --context-length 4096"
-    #   env_vars: >-
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=400
-    #     MIN_REQUESTS_PER_SEC=0.35
-    #     BENCHMARK_NUM_PROMPTS=64
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=128
-    #     BENCHMARK_BATCH_SIZE=4
-    #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=30000
-    #
-    # - name: "qwen3-coder-next-fp8"
-    #   s3_model: "qwen3-coder-next-fp8.tar.gz"
-    #   fleet: "x86-g6e12xl-runner"
-    #   extra_args: "--tp 4 --context-length 4096"
-    #   env_vars: >-
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=280
-    #     MIN_REQUESTS_PER_SEC=0.25
-    #     BENCHMARK_NUM_PROMPTS=32
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=256
-    #     BENCHMARK_BATCH_SIZE=2
-    #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=30000
-    #
-    # - name: "llama-3.3-70b"
-    #   s3_model: "llama-3.3-70b.tar.gz"
-    #   fleet: "x86-g6e12xl-runner"
-    #   extra_args: "--tp 4 --context-length 4096"
-    #   env_vars: >-
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=400
-    #     MIN_REQUESTS_PER_SEC=0.35
-    #     BENCHMARK_NUM_PROMPTS=32
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=128
-    #     BENCHMARK_BATCH_SIZE=2
-    #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=30000
-    []
-
-  runner-scale-sets:
-    # - name: "qwen3-32b"
-    #   s3_model: "qwen3-32b.tar.gz"
-    #   extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
-    #   env_vars: >-
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=3400
-    #     MIN_REQUESTS_PER_SEC=3
-    #     BENCHMARK_NUM_PROMPTS=32
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=256
-    #     BENCHMARK_BATCH_SIZE=2
-    #     RESULTS_DIR=/tmp/benchmark_results
-    #     SGLANG_PORT=30000
-
-    # - name: "deepseek-v4-flash"
-    #   s3_model: "deepseek-v4-flash.tar.gz"
-    #   runner_label: "gpu-h100-8gpu-runners"
-    #   extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
-    #   env_vars: >-
-    #     HEALTH_TIMEOUT=2400
-    #     MIN_THROUGHPUT_TOKENS_PER_SEC=500
-    #     MIN_REQUESTS_PER_SEC=1
-    #     BENCHMARK_NUM_PROMPTS=32
-    #     BENCHMARK_INPUT_LEN=512
-    #     BENCHMARK_OUTPUT_LEN=128
-    #     SGLANG_PORT=30000
-
-  multinode-runner-scale-sets:
-    # DeepSeek V4 Pro — 1.6T MoE (49B active), requires 2x p5.48xlarge (16x H100)
-    # Native FP4 checkpoint with Marlin MoE backend
-    # Multi-node via LeaderWorkerSet (TP=16, nnodes=2)
-    - name: "deepseek-v4-pro"
-      s3_model: "deepseek-v4-pro.tar.gz"
-      runner_label: "gpu-l4-1gpu-runners"
-      nnodes: 2
-      lws_manifest: "test/sglang/scripts/benchmark/multinode/sglang-deepseek-v4-pro-lws.yaml"
-      test_script: "multinode/run_multinode_benchmark.sh"
+    - name: "gpt-oss-20b"
+      s3_model: "gpt-oss-20b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
       env_vars: >-
-        HEALTH_TIMEOUT=2400
-        MIN_THROUGHPUT_TOKENS_PER_SEC=300
-        MIN_REQUESTS_PER_SEC=0.5
+        MIN_THROUGHPUT_TOKENS_PER_SEC=6000
+        MIN_REQUESTS_PER_SEC=5
+        BENCHMARK_NUM_PROMPTS=64
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=128
+        BENCHMARK_BATCH_SIZE=4
+        RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000
+
+    - name: "qwen3.5-9b"
+      s3_model: "qwen3.5-9b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=2000
+        MIN_REQUESTS_PER_SEC=1.5
+        BENCHMARK_NUM_PROMPTS=64
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=128
+        BENCHMARK_BATCH_SIZE=4
+        RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000
+
+    - name: "qwen3.5-27b-fp8"
+      s3_model: "qwen3.5-27b-fp8.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tp 1 --context-length 4096"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=100
+        MIN_REQUESTS_PER_SEC=0.2
+        BENCHMARK_NUM_PROMPTS=64
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=128
+        BENCHMARK_BATCH_SIZE=4
+        RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000
+
+    - name: "qwen3.5-35b-a3b-fp8"
+      s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
+      fleet: "x86-g612xl-runner"
+      extra_args: "--tp 4 --context-length 4096"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=400
+        MIN_REQUESTS_PER_SEC=0.35
+        BENCHMARK_NUM_PROMPTS=64
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=128
+        BENCHMARK_BATCH_SIZE=4
+        RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000
+
+    - name: "qwen3-coder-next-fp8"
+      s3_model: "qwen3-coder-next-fp8.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tp 4 --context-length 4096"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=280
+        MIN_REQUESTS_PER_SEC=0.25
+        BENCHMARK_NUM_PROMPTS=32
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=2
+        RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000
+
+    - name: "llama-3.3-70b"
+      s3_model: "llama-3.3-70b.tar.gz"
+      fleet: "x86-g6e12xl-runner"
+      extra_args: "--tp 4 --context-length 4096"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=400
+        MIN_REQUESTS_PER_SEC=0.35
         BENCHMARK_NUM_PROMPTS=32
         BENCHMARK_INPUT_LEN=512
         BENCHMARK_OUTPUT_LEN=128
         BENCHMARK_BATCH_SIZE=2
         RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000
+
+  runner-scale-sets:
+    - name: "qwen3-32b"
+      s3_model: "qwen3-32b.tar.gz"
+      extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=3400
+        MIN_REQUESTS_PER_SEC=3
+        BENCHMARK_NUM_PROMPTS=32
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=2
+        RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000
+
+    - name: "deepseek-v4-flash"
+      s3_model: "deepseek-v4-flash.tar.gz"
+      runner_label: "gpu-h100-8gpu-runners"
+      extra_args: "--tp 8 --trust-remote-code --moe-runner-backend marlin --mem-fraction-static 0.88 --context-length 4096"
+      env_vars: >-
+        HEALTH_TIMEOUT=2400
+        MIN_THROUGHPUT_TOKENS_PER_SEC=500
+        MIN_REQUESTS_PER_SEC=1
+        BENCHMARK_NUM_PROMPTS=32
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=128
         SGLANG_PORT=30000
