@@ -16,6 +16,7 @@ on:
       - "scripts/vllm/**"
       - "test/efa/**"
       - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm/**"
       - "test/telemetry/**"
       - "test/vllm/**"
       - "!test/vllm/scripts/amzn2023/**"
@@ -131,6 +132,7 @@ jobs:
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
               - "scripts/vllm/*"
+              - "test/security/data/ecr_scan_allowlist/vllm/**"
               - "test/vllm/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
