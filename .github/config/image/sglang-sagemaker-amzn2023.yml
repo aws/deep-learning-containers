@@ -5,15 +5,16 @@ image:
   name: "sglang-sagemaker-amzn2023"
   description: "SGLang for SageMaker on Amazon Linux 2023"
 common:
-  framework: "sglang"
-  framework_version: "0.5.12"
+  framework: "sglang_server"
+  framework_version: "0.5.12+dlc1"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
   os_version: "amzn2023"
   customer_type: "sagemaker"
+  platform: "sagemaker"
   arch_type: "x86"
-  prod_image: "sglang:0.5-gpu-py312-amzn2023"
+  prod_image: "sglang:server-sagemaker-cuda-v1"
   device_type: "gpu"
   contributor: "None"
 build:
@@ -23,9 +24,9 @@ build:
   deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
   mooncake_version: "0.3.9"
 release:
-  release: false
+  release: true
   force_release: false
-  public_registry: false
-  private_registry: false
-  enable_soci: false
-  environment: gamma
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: production
