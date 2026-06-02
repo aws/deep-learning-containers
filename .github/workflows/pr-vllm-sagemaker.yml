@@ -15,6 +15,7 @@ on:
       - "scripts/telemetry/**"
       - "scripts/vllm/**"
       - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm/**"
       - "test/telemetry/**"
       - "test/vllm/**"
       - "!test/vllm/scripts/amzn2023/**"
@@ -130,6 +131,7 @@ jobs:
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
               - "scripts/vllm/*"
+              - "test/security/data/ecr_scan_allowlist/vllm/**"
               - "test/vllm/scripts/**"
             sagemaker-test-change:
               - "test/vllm/sagemaker/**"

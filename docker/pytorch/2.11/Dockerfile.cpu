@@ -12,6 +12,7 @@
 # ============================================================================
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG DLC_PYTORCH_VERSION=2.11
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG PYTHON_VERSION=3.12
@@ -21,6 +22,7 @@ ARG OPEN_MPI_VERSION=4.1.7
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
 FROM amazonlinux:2023 AS builder-base
+ARG DLC_PYTORCH_VERSION
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
@@ -35,7 +37,7 @@ ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-COPY docker/pytorch/cpu/pyproject.toml docker/pytorch/cpu/uv.lock /tmp/build/
+COPY docker/pytorch/${DLC_PYTORCH_VERSION}/cpu/pyproject.toml docker/pytorch/${DLC_PYTORCH_VERSION}/cpu/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
@@ -122,7 +124,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template
 
 # Security patch
-RUN dnf upgrade -y --security --releasever latest && dnf clean all
+RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dnf clean all
 
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
@@ -150,6 +152,7 @@ CMD ["bash"]
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
 FROM runtime-base AS sagemaker
+ARG DLC_PYTORCH_VERSION
 ARG TORCH_VERSION
 
 # SageMaker BYOC paths
@@ -160,7 +163,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 # SageMaker packages (defined in cpu/pyproject.toml [project.optional-dependencies.sagemaker])
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
-COPY docker/pytorch/cpu/pyproject.toml docker/pytorch/cpu/uv.lock /tmp/build/
+COPY docker/pytorch/${DLC_PYTORCH_VERSION}/cpu/pyproject.toml docker/pytorch/${DLC_PYTORCH_VERSION}/cpu/uv.lock /tmp/build/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
   && rm -rf /tmp/build /tmp/uv-*
 
@@ -183,7 +186,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template
 
 # Security patch
-RUN dnf upgrade -y --security --releasever latest && dnf clean all
+RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dnf clean all
 
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
