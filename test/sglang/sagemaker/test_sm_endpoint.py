@@ -74,6 +74,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     initial_instance_count=1,
                     instance_type=instance_type,
                     inference_ami_version=INFERENCE_AMI_VERSION,
+                    container_startup_health_check_timeout_in_seconds=600,
                 ),
             ],
         )
@@ -91,7 +92,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
+@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
 def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
     endpoint = model_endpoint

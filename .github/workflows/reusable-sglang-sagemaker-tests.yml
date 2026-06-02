@@ -21,7 +21,7 @@ jobs:
       image-exists: ${{ steps.check.outputs.exists }}
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Check image exists
         id: check
         uses: ./.github/actions/check-image-exists
@@ -37,7 +37,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install test dependencies
         run: |

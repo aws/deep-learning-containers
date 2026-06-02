@@ -35,7 +35,7 @@ jobs:
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
@@ -59,9 +59,10 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
       prod-image: ${{ steps.parse.outputs.prod-image }}
+      build-args: ${{ steps.parse.outputs.build-args }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
@@ -85,6 +86,10 @@ jobs:
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
+          # Extract build section as Docker build-args (UPPER_CASE keys)
+          BUILD_ARGS=$(jq -r '.build // {} | to_entries[] | "\(.key | ascii_upcase)=\(.value)"' config.json | tr '\n' ' ')
+          echo "build-args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
+
   check-changes:
     needs: [gatekeeper]
     if: success()
@@ -96,19 +101,15 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
     steps:
       - name: Checkout DLC source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
 
       - name: Detect file changes
         id: changes
@@ -123,11 +124,14 @@ jobs:
               - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
               - "scripts/sglang/*"
-              - "test/sglang/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            model-test-change:
+              - ".github/config/model-tests/sglang-model-tests.yml"
+              - ".github/workflows/reusable-sglang-model-tests.yml"
+              - "test/sglang/scripts/**"
 
   build-image:
     needs: [check-changes, load-config]
@@ -144,7 +148,15 @@ jobs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
+
+      - name: Set build-args from config
+        run: |
+          for pair in ${{ needs.load-config.outputs.build-args }}; do
+            echo "${pair}" >> "$GITHUB_ENV"
+          done
+          EXTRA_KEYS=$(echo "${{ needs.load-config.outputs.build-args }}" | tr ' ' '\n' | cut -d= -f1 | tr '\n' ' ')
+          echo "EXTRA_BUILD_ARGS=${EXTRA_KEYS}" >> "$GITHUB_ENV"
 
       - name: Build image
         id: build
@@ -223,8 +235,10 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   model-test:
-    needs: [build-image, load-config]
-    if: success()
+    needs: [check-changes, build-image, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.build-image.result == 'success' || needs.check-changes.outputs.model-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-model-tests-${{ github.event.pull_request.number }}
       cancel-in-progress: true
