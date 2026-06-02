@@ -2,9 +2,14 @@ name: Auto Release - PyTorch EC2 CPU
 
 on:
   schedule:
-    - cron: '00 17 * * 1,3'
-
+    - cron: '00 17 * * 1,3'   # PyTorch 2.11 — Mon/Wed 9:00 AM PST
+    # - cron: '10 17 * * 1,3' # PyTorch 2.12 — Mon/Wed 9:10 AM PST (future)
   workflow_dispatch:
+    inputs:
+      version:
+        description: "PyTorch version to release (e.g., 2.11)"
+        required: true
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}
@@ -15,7 +20,6 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/image/pytorch-ec2-cpu.yml"
 
 jobs:
   load-config:
@@ -33,15 +37,31 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
       prod-image: ${{ steps.parse.outputs.prod-image }}
+      framework-short-version: ${{ steps.parse.outputs.framework-short-version }}
     steps:
+      - name: Determine config file
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            CRON="${{ github.event.schedule }}"
+            case "$CRON" in
+              "00 17 * * 1,3") VERSION="2.11" ;;
+              # "10 17 * * 1,3") VERSION="2.12" ;;
+              *) echo "::error::Unknown cron: $CRON"; exit 1 ;;
+            esac
+          fi
+          echo "config-file=.github/config/image/pytorch-${VERSION}-ec2-cpu.yml" >> $GITHUB_OUTPUT
+
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: ${{ env.CONFIG_FILE }}
+          config-file: ${{ steps.config.outputs.config-file }}
 
       - name: Parse configuration
         id: parse
@@ -58,6 +78,7 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-short-version=$(jq -r '.common.framework_version | split(".") | .[0:2] | join(".")' config.json)" >> $GITHUB_OUTPUT
 
   build-image:
     needs: [load-config]
@@ -69,7 +90,7 @@ jobs:
       ci-image: ${{ steps.build-runtime.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup buildkitd
         run: .github/scripts/buildkitd.sh
@@ -83,10 +104,12 @@ jobs:
       - name: Build runtime image
         id: build-runtime
         run: |
-          source docker/pytorch/versions-cpu.env
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
+          source docker/pytorch/${VERSION}/versions-cpu.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-cpu-runtime-${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.os-version }}-ec2-${{ github.run_id }}"
 
           docker buildx build --progress plain \
+            --build-arg DLC_PYTORCH_VERSION=${VERSION} \
             --build-arg FRAMEWORK=${{ needs.load-config.outputs.framework }} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
             --build-arg TORCH_VERSION=${TORCH_VERSION} \
@@ -98,7 +121,7 @@ jobs:
             --tag ${CI_IMAGE_URI} \
             --push \
             --target runtime \
-            -f docker/pytorch/Dockerfile.cpu .
+            -f docker/pytorch/${VERSION}/Dockerfile.cpu .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
@@ -142,14 +165,14 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   unit-test:
-    needs: [build-image]
+    needs: [load-config, build-image]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -159,10 +182,11 @@ jobs:
 
       - name: Run unit tests
         run: |
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
           IMAGE="${{ needs.build-image.outputs.ci-image }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir \
+            -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=${VERSION} \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
@@ -178,7 +202,7 @@ jobs:
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Check if release is enabled
         id: check-release
