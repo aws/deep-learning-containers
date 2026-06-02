@@ -4,6 +4,17 @@ Changelog for the Ray Serve DLC images.
 
 * * *
 
+## v1.2.0 — 2026-06-02
+
+**Tags:** `serve-ml-cuda-v1.2` · `serve-ml-cpu-v1.2` · `serve-ml-sagemaker-cuda-v1.2` · `serve-ml-sagemaker-cpu-v1.2`
+
+### Changes
+
+- Fixed SageMaker adapter to forward `X-Amzn-SageMaker-*` headers through Ray Serve to deployments
+- Added unit test coverage for the SageMaker serve adapter
+
+* * *
+
 ## v1.1.0 — 2026-05-12
 
 **Tags:** `serve-ml-cuda-v1.1` · `serve-ml-cpu-v1.1` · `serve-ml-sagemaker-cuda-v1.1` · `serve-ml-sagemaker-cpu-v1.1`
