@@ -34,6 +34,8 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
       test_script: "vllm_reranker_smoke_test.sh"
+      test_fixtures:
+        - "chat-templates/qwen3_reranker.jinja"
 
     - name: "voxtral-mini-4b"
       s3_model: "voxtral-mini-4b.tar.gz"
@@ -72,6 +74,8 @@ benchmark:
       extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
       test_script: "vllm_reranker_benchmark_test.sh"
       min_rps: 20
+      test_fixtures:
+        - "chat-templates/qwen3_reranker.jinja"
 
     - name: "qwen3-asr-1.7b"
       s3_model: "qwen3-asr-1.7b.tar.gz"
@@ -415,4 +419,39 @@ sagemaker:
           fields:
             model: "/opt/ml/model"
         validate: "json_field:text"
+
+  # Qwen3-Reranker-4B — Path C: load as Qwen3ForSequenceClassification so the
+  # Cohere-compatible /v1/rerank endpoint registers. SM_VLLM_HF_OVERRIDES is
+  # passed verbatim to vLLM as --hf-overrides. The chat template is fetched
+  # from the shared test_fixtures bucket at test runtime (the same artifact
+  # the EC2 reranker scripts read from /models/test-fixtures/), then flattened
+  # to single-line with {{ '\n' }} escapes and injected as SM_VLLM_CHAT_TEMPLATE.
+  - name: "qwen3-reranker-4b"
+    s3_model: "qwen3-reranker-4b.tar.gz"
+    instance_type: "ml.g5.xlarge"
+    required_image_pattern: "amzn2023"
+    test_fixtures:
+      - "chat-templates/qwen3_reranker.jinja"
+    inline_chat_template_fixture: "qwen3_reranker.jinja"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_RUNNER: "pooling"
+      SM_VLLM_HF_OVERRIDES: '{"architectures":["Qwen3ForSequenceClassification"],"classifier_from_token":["no","yes"],"is_original_qwen3_reranker":true}'
+      SM_VLLM_DTYPE: "bfloat16"
+      SM_VLLM_MAX_MODEL_LEN: "10000"
+      SM_VLLM_GPU_MEMORY_UTILIZATION: "0.85"
+    test_cases:
+      - name: "rerank-basic"
+        route: "/v1/rerank"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            query: "What is the capital of France?"
+            documents:
+              - "Paris is the capital of France."
+              - "Berlin is the capital of Germany."
+              - "The Eiffel Tower is in Paris."
+              - "Tokyo is the capital of Japan."
+        validate: "json_field:results.0.relevance_score"
 

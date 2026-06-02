@@ -31,21 +31,8 @@ VLLM_PORT=8000
 HEALTH_TIMEOUT=600
 HEALTH_INTERVAL=10
 
-CHAT_TEMPLATE="/tmp/qwen3_reranker.jinja"
-cat > "${CHAT_TEMPLATE}" <<'JINJA'
-<|im_start|>system
-Judge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be "yes" or "no".<|im_end|>
-<|im_start|>user
-<Instruct>: {{ messages | selectattr("role", "eq", "system") | map(attribute="content") | first | default("Given a web search query, retrieve relevant passages that answer the query") }}
-<Query>: {{ messages | selectattr("role", "eq", "query") | map(attribute="content") | first }}
-<Document>: {{ messages | selectattr("role", "eq", "document") | map(attribute="content") | first }}<|im_end|>
-<|im_start|>assistant
-<think>
-
-</think>
-
-
-JINJA
+CHAT_TEMPLATE="/models/test-fixtures/qwen3_reranker.jinja"
+[ -f "${CHAT_TEMPLATE}" ] || { echo "ERROR: chat template not found at ${CHAT_TEMPLATE}"; exit 1; }
 
 HF_OVERRIDES='{"architectures":["Qwen3ForSequenceClassification"],"classifier_from_token":["no","yes"],"is_original_qwen3_reranker":true}'
 

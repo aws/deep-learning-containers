@@ -46,10 +46,12 @@ def _load_sagemaker_config(config_path, model_name=None):
         cfg = yaml.safe_load(f)
     models = cfg.get("sagemaker", [])
     s3_prefix = cfg.get("s3_prefix", "")
+    fixtures_prefix = cfg.get("test_fixtures_prefix", "")
     if model_name:
         models = [m for m in models if m["name"] == model_name]
     for m in models:
         m["s3_path"] = f"{s3_prefix}/{m['s3_model']}"
+        m["test_fixtures_prefix"] = fixtures_prefix
     return models
 
 
@@ -150,10 +152,42 @@ def _get_role_arn(region):
         return f"arn:aws:iam::{account}:role/{SAGEMAKER_ROLE}"
 
 
+def _flatten_jinja(template_str):
+    """Flatten newlines into ``{{ '\\n' }}`` so a jinja template survives the
+    SM entrypoint's line-oriented env-var loop. vLLM's --chat-template falls
+    back to inline Jinja when its value isn't a valid file path and contains
+    '{', '}', or newline; each {{ '\\n' }} expression renders to a real newline
+    at request time, reproducing the original template byte-for-byte.
+    """
+    return template_str.replace("\n", "{{ '\\n' }}")
+
+
+def _fetch_fixture_text(s3_client, fixtures_prefix, fixture_path):
+    """Download a test fixture from S3 and return as text."""
+    s3_uri = f"{fixtures_prefix}/{fixture_path}"
+    return _download_s3(s3_client, s3_uri).decode("utf-8")
+
+
 def _deploy_endpoint(image_uri, model_cfg, region):
     endpoint_name = random_suffix_name(f"vllm-{model_cfg['name']}", 50)
     role_arn = _get_role_arn(region)
-    env_vars = model_cfg.get("env", {})
+    env_vars = dict(model_cfg.get("env", {}))
+
+    inline_fixture = model_cfg.get("inline_chat_template_fixture")
+    if inline_fixture:
+        fixtures_prefix = model_cfg.get("test_fixtures_prefix", "")
+        s3_client = boto3.client("s3", region_name=region)
+        # find the matching test_fixtures entry by basename
+        match = next(
+            (f for f in model_cfg.get("test_fixtures", []) if f.endswith(inline_fixture)),
+            None,
+        )
+        if not match:
+            raise ValueError(
+                f"inline_chat_template_fixture '{inline_fixture}' not found in test_fixtures"
+            )
+        template_text = _fetch_fixture_text(s3_client, fixtures_prefix, match)
+        env_vars["SM_VLLM_CHAT_TEMPLATE"] = _flatten_jinja(template_text)
 
     LOGGER.info(f"Creating model: {endpoint_name}")
     create_kwargs = dict(
