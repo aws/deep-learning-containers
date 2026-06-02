@@ -26,7 +26,7 @@ smoke-test:
     - name: "qwen3-vl-embedding-2b"
       s3_model: "qwen3-vl-embedding-2b.tar.gz"
       fleet: "x86-g6xl-runner"
-      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 8192 --trust-remote-code"
+      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 2048 --trust-remote-code"
       test_script: "vllm_embedding_smoke_test.sh"
 
     - name: "voxtral-mini-4b"
@@ -56,7 +56,7 @@ benchmark:
     - name: "qwen3-vl-embedding-2b"
       s3_model: "qwen3-vl-embedding-2b.tar.gz"
       fleet: "x86-g6xl-runner"
-      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 8192 --trust-remote-code"
+      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 2048 --trust-remote-code"
       test_script: "vllm_embedding_benchmark_test.sh"
       min_rps: 3
 
