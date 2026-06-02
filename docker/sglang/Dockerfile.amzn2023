@@ -1,11 +1,11 @@
-ARG CUDA_VERSION=13.0.3
+ARG CUDA_REF=13.0.3
 
 # =============================================================================
 # STAGE 0: builder — compile sglang and all native dependencies from source
 # =============================================================================
-FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
+FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 
-ARG CUDA_VERSION
+ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
 ARG SGLANG_REF=578d27e56acd6786eb7067b9e1583232fd1d998e
 ARG SGLANG_KERNEL_VERSION=0.4.3
@@ -99,7 +99,7 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
 # Uses pip --force-reinstall to bypass local version segment matching issues.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
-    && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+    && CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
     && python3 -m pip install --no-cache-dir --force-reinstall \
        "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
        --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
@@ -166,9 +166,9 @@ RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERS
 # =============================================================================
 # STAGE 1: runtime — minimal production image with DLC overlay
 # =============================================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+FROM nvidia/cuda:${CUDA_REF}-runtime-amzn2023 AS runtime
 
-ARG CUDA_VERSION
+ARG CUDA_REF
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.11.0
@@ -202,7 +202,7 @@ WORKDIR /
 # need to be installed as RPMs.
 # Set CUDA repo to lower priority so AL2023-vended packages (kernel-headers,
 # glib2, etc.) are preferred over NVIDIA's versions when both repos provide them.
-RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
+RUN CUDA_DASH=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr '.' '-') \
   && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-devel \
@@ -283,7 +283,7 @@ RUN uv pip install --system --no-cache --prerelease=allow \
 # The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
 # which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
 # Also reinstall sgl_kernel from the sglang wheel index (compiled against torch 2.11.0).
-RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \

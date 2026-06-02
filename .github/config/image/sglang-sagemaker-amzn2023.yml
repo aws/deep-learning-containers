@@ -29,7 +29,7 @@ build:
   efa_version: "1.48.0"
   rust_version: "1.90.0"
   gdrcopy_version: "2.5.1"
-  cuda_version: "13.0.3"
+  cuda_ref: "13.0.3"
   torch_cuda_arch_list: "9.0;10.0;10.3"
   dlc_major_version: "1"
   dlc_minor_version: "0"
