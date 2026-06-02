@@ -85,6 +85,12 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
   || (git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
     && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
+# Stamp the sglang package version for CVE scanner compatibility.
+# PEP 440 local version: 0.5.12+dlc1.amzn2023.578d27e5
+# This ensures: version >= 0.5.12 (not flagged) and < 0.5.13 (correct ordering).
+ARG FRAMEWORK_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
+
 # Install sglang from source + flashinfer + sglang-kernel
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
 # We reinstall torch+torchvision+torchaudio from the cu129 index after to match

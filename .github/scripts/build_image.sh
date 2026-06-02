@@ -13,6 +13,7 @@ CONTAINER_TYPE="${CONTAINER_TYPE:?CONTAINER_TYPE is required}"
 AWS_ACCOUNT_ID="${AWS_ACCOUNT_ID:?AWS_ACCOUNT_ID is required}"
 AWS_REGION="${AWS_REGION:?AWS_REGION is required}"
 TAG_PR="${TAG_PR:?TAG_PR is required}"
+TAG_PR="${TAG_PR//+/.}"
 DOCKERFILE_PATH="${DOCKERFILE_PATH:?DOCKERFILE_PATH is required}"
 
 # Optional parameters with defaults
