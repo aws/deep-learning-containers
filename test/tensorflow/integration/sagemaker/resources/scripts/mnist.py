@@ -124,6 +124,92 @@ def _make_strategy(strategy_name):
     return None
 
 
+def _train_mwms(strategy, x_train, y_train, args):
+    """Custom training loop for MultiWorkerMirroredStrategy.
+
+    On TF 2.21 / Keras 3, `model.fit()` under MWMS hits a PerReplica
+    distribution gap (Keras 3's compile/fit pipeline doesn't iterate the
+    PerReplica values produced by the auto-distributed dataset). The
+    workaround validated locally is a manual `strategy.run` loop with
+    `distribute_datasets_from_function` — that path bypasses Keras's
+    fit pipeline and drives gradients directly on each replica.
+
+    Returns the final epoch's average per-replica loss and accuracy.
+    """
+    global_batch_size = args.batch_size * max(strategy.num_replicas_in_sync, 1)
+
+    def dataset_fn(ctx):
+        per_replica_batch = ctx.get_per_replica_batch_size(global_batch_size)
+        ds = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+        # Shard across input pipelines so each worker sees disjoint data.
+        ds = ds.shard(ctx.num_input_pipelines, ctx.input_pipeline_id)
+        return (
+            ds.shuffle(len(x_train), seed=1)
+            .repeat()
+            .batch(per_replica_batch)
+            .prefetch(tf.data.AUTOTUNE)
+        )
+
+    dist_dataset = strategy.distribute_datasets_from_function(dataset_fn)
+
+    with strategy.scope():
+        model = _build_model()
+        optimizer = tf.keras.optimizers.Adam()
+        loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
+            reduction=tf.keras.losses.Reduction.NONE
+        )
+        train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name="train_accuracy")
+
+    @tf.function
+    def train_step(inputs):
+        x_batch, y_batch = inputs
+        with tf.GradientTape() as tape:
+            preds = model(x_batch, training=True)
+            per_example_loss = loss_fn(y_batch, preds)
+            # Scale by GLOBAL batch so gradients average correctly across replicas.
+            loss = tf.nn.compute_average_loss(per_example_loss, global_batch_size=global_batch_size)
+        grads = tape.gradient(loss, model.trainable_variables)
+        optimizer.apply_gradients(zip(grads, model.trainable_variables))
+        train_accuracy.update_state(y_batch, preds)
+        return loss
+
+    @tf.function
+    def distributed_train_step(inputs):
+        per_replica_losses = strategy.run(train_step, args=(inputs,))
+        return strategy.reduce(tf.distribute.ReduceOp.SUM, per_replica_losses, axis=None)
+
+    steps_per_epoch = max(len(x_train) // global_batch_size, 1)
+    logger.info(
+        "MWMS custom loop: global_batch=%d steps_per_epoch=%d epochs=%d",
+        global_batch_size,
+        steps_per_epoch,
+        args.epochs,
+    )
+
+    it = iter(dist_dataset)
+    final_loss = 0.0
+    final_acc = 0.0
+    for epoch in range(args.epochs):
+        train_accuracy.reset_state()
+        epoch_loss_sum = 0.0
+        for step in range(steps_per_epoch):
+            batch = next(it)
+            step_loss = float(distributed_train_step(batch))
+            epoch_loss_sum += step_loss
+        final_loss = epoch_loss_sum / steps_per_epoch
+        final_acc = float(train_accuracy.result())
+        # Match the loss/accuracy log format the existing tuner regex expects.
+        logger.info(
+            "Epoch %d/%d - loss: %.4f - accuracy: %.4f",
+            epoch + 1,
+            args.epochs,
+            final_loss,
+            final_acc,
+        )
+
+    return model, final_loss, final_acc
+
+
 def train(args):
     _log_diagnostics()
 
@@ -138,7 +224,10 @@ def train(args):
     num_replicas = strategy.num_replicas_in_sync if strategy is not None else 1
     logger.info("Strategy=%s num_replicas_in_sync=%d", args.strategy, num_replicas)
 
-    if strategy is None:
+    if args.strategy == "mwms":
+        # MWMS uses a custom training loop — see _train_mwms for the why.
+        model, _, final_acc = _train_mwms(strategy, x_train, y_train, args)
+    elif strategy is None:
         model = _build_model()
         model.compile(
             optimizer="adam",
@@ -146,9 +235,9 @@ def train(args):
             metrics=["accuracy"],
         )
         history = model.fit(x_train, y_train, epochs=args.epochs, batch_size=args.batch_size)
+        final_acc = float(history.history["accuracy"][-1])
     else:
-        # Build datasets sized to global batch — required by Keras when a
-        # tf.distribute.Strategy is active.
+        # MirroredStrategy: model.fit() works fine on a single host.
         global_batch_size = args.batch_size * max(num_replicas, 1)
         train_ds = (
             tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -156,12 +245,6 @@ def train(args):
             .repeat()
             .batch(global_batch_size)
         )
-        if args.strategy == "mwms":
-            options = tf.data.Options()
-            options.experimental_distribute.auto_shard_policy = (
-                tf.data.experimental.AutoShardPolicy.DATA
-            )
-            train_ds = train_ds.with_options(options)
 
         with strategy.scope():
             model = _build_model()
@@ -175,8 +258,8 @@ def train(args):
         history = model.fit(
             train_ds, epochs=args.epochs, steps_per_epoch=steps_per_epoch, verbose=2
         )
+        final_acc = float(history.history["accuracy"][-1])
 
-    final_acc = float(history.history["accuracy"][-1])
     logger.info("Final training accuracy: %.4f", final_acc)
 
     # Eval is best-effort — single-host plain Keras only, since MWMS scope

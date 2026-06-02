@@ -11,10 +11,10 @@ Mirrors master's `test_mnist.py` coverage, translated to SDK v3
                                         coordination, just smoke proves the
                                         2-host launcher path)
   - test_mnist_distributed_mwms_cpu     2-host, MultiWorkerMirroredStrategy
-                                        (RING). Currently @pytest.mark.skip
-                                        because SDK v3 + MWMS PerReplica
-                                        distribution gap blocks it; see
-                                        project memory + TODO follow-up.
+                                        (RING). Uses a custom training loop
+                                        (strategy.run + reduce) on TF 2.21 /
+                                        Keras 3 — model.fit() under MWMS
+                                        hits a PerReplica distribution gap.
 
 We deliberately avoid SDK v3's MPI() distribution: its mpi_driver passes
 process_count_per_node directly as `-np` without multiplying by host_count,
@@ -25,7 +25,6 @@ import os
 from urllib.parse import urlparse
 
 import boto3
-import pytest
 from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
@@ -146,18 +145,13 @@ def test_mnist_multi_host_no_strategy_cpu():
     )
 
 
-@pytest.mark.skip(
-    reason=(
-        "multi-node MultiWorkerMirroredStrategy + SDK v3 has a known PerReplica "
-        "distribution gap. See project memory + TODO.md follow-up before "
-        "re-enabling."
-    )
-)
 def test_mnist_distributed_mwms_cpu():
     """2-node distributed CPU training with MultiWorkerMirroredStrategy (RING).
 
-    Currently skipped — see decorator. The training script wires TF_CONFIG
-    from SM_HOSTS so MWMS handles inter-host gRPC."""
+    The training script wires TF_CONFIG from SM_HOSTS so MWMS handles
+    inter-host gRPC. On TF 2.21 / Keras 3, model.fit() under MWMS hits a
+    PerReplica distribution gap; the script uses a custom strategy.run
+    training loop instead."""
     inputs_s3 = _upload_mnist_data()
     _run_sm_training(
         image_uri=IMAGE_URI,

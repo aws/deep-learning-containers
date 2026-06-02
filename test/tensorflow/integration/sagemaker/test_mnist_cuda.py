@@ -17,10 +17,10 @@ to SDK v3 (ModelTrainer + InputData + SourceCode):
                                         case (one box, all GPUs) without
                                         the MWMS / TF_CONFIG plumbing.
   - test_mnist_distributed_mwms_gpu     2-host, MultiWorkerMirroredStrategy
-                                        (NCCL). Currently @pytest.mark.skip
-                                        because SDK v3 + MWMS has a known
-                                        PerReplica distribution gap; see
-                                        project memory + TODO follow-up.
+                                        (NCCL). Uses a custom training loop
+                                        (strategy.run + reduce) on TF 2.21 /
+                                        Keras 3 — model.fit() under MWMS
+                                        hits a PerReplica distribution gap.
 
 We deliberately avoid SDK v3's MPI() distribution: its mpi_driver passes
 process_count_per_node directly as `-np` without multiplying by host_count,
@@ -33,7 +33,6 @@ import os
 from urllib.parse import urlparse
 
 import boto3
-import pytest
 from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
@@ -174,20 +173,13 @@ def test_mnist_mirrored_strategy_gpu():
     )
 
 
-@pytest.mark.skip(
-    reason=(
-        "multi-node MultiWorkerMirroredStrategy + SDK v3 has a known PerReplica "
-        "distribution gap. See project memory + TODO.md follow-up before "
-        "re-enabling."
-    )
-)
 def test_mnist_distributed_mwms_gpu():
     """2-node distributed GPU training with MultiWorkerMirroredStrategy (NCCL).
 
-    Currently skipped — see decorator. When re-enabled, the training
-    script asserts final accuracy > 0.5 on its own; if NCCL fails to
-    initialise or all_reduce hangs, the SageMaker job fails and pytest
-    surfaces that here."""
+    The training script uses a custom strategy.run loop on TF 2.21 / Keras 3
+    (model.fit() hits a PerReplica distribution gap under MWMS). If NCCL
+    fails to initialise or all_reduce hangs, the SageMaker job fails and
+    pytest surfaces that here."""
     inputs_s3 = _upload_mnist_data()
     _run_sm_training(
         image_uri=IMAGE_URI,
