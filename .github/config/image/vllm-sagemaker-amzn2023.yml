@@ -15,7 +15,7 @@ common:
   customer_type: "sagemaker"
   platform: "sagemaker"
   arch_type: "x86"
-  prod_image: "vllm:0.18-gpu-py312-amzn2023-sagemaker"
+  prod_image: "vllm:server-sagemaker-cuda-v1"
   device_type: "gpu"
   contributor: "None"
 release:
