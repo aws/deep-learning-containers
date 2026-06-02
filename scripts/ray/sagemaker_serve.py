@@ -132,11 +132,14 @@ async def invocations(request: Request):
 
         logger.info(f"Received /invocations request: Content-Type={content_type}, Accept={accept}")
 
-        # Prepare headers for Ray Serve
+        # Forward all X-Amzn-SageMaker-* headers plus Content-Type and Accept
         headers = {
-            "Content-Type": content_type,
-            "Accept": accept,
+            name: value
+            for name, value in request.headers.items()
+            if name.lower().startswith("x-amzn-sagemaker-")
         }
+        headers["Content-Type"] = content_type
+        headers["Accept"] = accept
 
         # Proxy to Ray Serve (default route is "/")
         response = await request.app.state.client.post(
@@ -147,11 +150,18 @@ async def invocations(request: Request):
 
         logger.info(f"Ray Serve response: status={response.status_code}")
 
-        # Return Ray Serve response with proper headers
+        # Collect X-Amzn-SageMaker-* headers from Ray Serve response
+        response_headers = {
+            name: value
+            for name, value in response.headers.items()
+            if name.lower().startswith("x-amzn-sagemaker-")
+        }
+
         return Response(
             content=response.content,
             status_code=response.status_code,
             media_type=response.headers.get("Content-Type", accept),
+            headers=response_headers,
         )
 
     except httpx.TimeoutException as e:

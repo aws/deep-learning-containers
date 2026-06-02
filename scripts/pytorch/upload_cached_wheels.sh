@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # upload_cached_wheels.sh — Extract built wheels from Docker wheel-export stage and upload to S3.
 #
-# Usage: upload_cached_wheels.sh <bucket> <cuda> <torch> <python> <image_uri> <pkg:ver> [...]
+# Usage: upload_cached_wheels.sh <bucket> <cuda> <torch> <python> <image_uri> <dockerfile> <pkg:ver> [...]
 set -euo pipefail
 
-BUCKET="$1"; CUDA="$2"; IMAGE="$5"
-shift 5
+BUCKET="$1"; CUDA="$2"; IMAGE="$5"; DOCKERFILE="$6"
+shift 6
 
 if [ -z "${BUCKET}" ]; then
   echo "⚠️  No wheel cache bucket configured — skipping upload"
@@ -15,7 +15,7 @@ fi
 # Build the wheel-export stage and extract to local dir
 EXPORT_DIR=$(mktemp -d)
 docker buildx build --progress=plain --target wheel-export --output "type=local,dest=${EXPORT_DIR}" \
-  -f docker/pytorch/Dockerfile . 2>/dev/null || {
+  -f "${DOCKERFILE}" . 2>/dev/null || {
   echo "⚠️  wheel-export stage not available — extracting from runtime image"
   CID=$(docker create "${IMAGE}" /bin/true)
   docker cp "${CID}:/tmp/built_wheels/" "${EXPORT_DIR}/wheels/" 2>/dev/null || true

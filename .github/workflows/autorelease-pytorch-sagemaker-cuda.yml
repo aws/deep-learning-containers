@@ -2,9 +2,14 @@ name: Auto Release - PyTorch SageMaker CUDA
 
 on:
   schedule:
-    - cron: '00 17 * * 1,3'
-
+    - cron: '00 17 * * 1,3'   # PyTorch 2.11 — Mon/Wed 9:00 AM PST
+    # - cron: '10 17 * * 1,3' # PyTorch 2.12 — Mon/Wed 9:10 AM PST (future)
   workflow_dispatch:
+    inputs:
+      version:
+        description: "PyTorch version to release (e.g., 2.11)"
+        required: true
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}
@@ -15,7 +20,6 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/image/pytorch-sagemaker-cuda.yml"
 
 jobs:
   load-config:
@@ -33,15 +37,31 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
       prod-image: ${{ steps.parse.outputs.prod-image }}
+      framework-short-version: ${{ steps.parse.outputs.framework-short-version }}
     steps:
+      - name: Determine config file
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            CRON="${{ github.event.schedule }}"
+            case "$CRON" in
+              "00 17 * * 1,3") VERSION="2.11" ;;
+              # "10 17 * * 1,3") VERSION="2.12" ;;
+              *) echo "::error::Unknown cron: $CRON"; exit 1 ;;
+            esac
+          fi
+          echo "config-file=.github/config/image/pytorch-${VERSION}-sagemaker-cuda.yml" >> $GITHUB_OUTPUT
+
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Load configuration
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-file: ${{ env.CONFIG_FILE }}
+          config-file: ${{ steps.config.outputs.config-file }}
 
       - name: Parse configuration
         id: parse
@@ -58,6 +78,7 @@ jobs:
           echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-short-version=$(jq -r '.common.framework_version | split(".") | .[0:2] | join(".")' config.json)" >> $GITHUB_OUTPUT
 
   build-image:
     needs: [load-config]
@@ -70,7 +91,7 @@ jobs:
       ci-image: ${{ steps.build-sagemaker.outputs.image-uri }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Setup buildkitd
         run: .github/scripts/buildkitd.sh
@@ -83,20 +104,22 @@ jobs:
 
       - name: Fetch cached wheels
         run: |
-          source docker/pytorch/versions-cuda.env
-          mkdir -p docker/pytorch/wheels
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
+          mkdir -p docker/pytorch/${VERSION}/wheels
           bash scripts/pytorch/fetch_cached_wheels.sh \
-            docker/pytorch/wheels \
+            docker/pytorch/${VERSION}/wheels \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
-            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
+            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}"
         continue-on-error: true
 
       - name: Build sagemaker image
         id: build-sagemaker
         run: |
-          source docker/pytorch/versions-cuda.env
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-training-${TORCH_VERSION}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-${{ github.run_id }}"
 
           # Derive label values to match check_labels.py expectations
@@ -106,6 +129,7 @@ jobs:
           OS_LABEL=$(echo "${{ needs.load-config.outputs.os-version }}" | tr '.' '-')
 
           docker buildx build --progress plain \
+            --build-arg DLC_PYTORCH_VERSION=${VERSION} \
             --build-arg FRAMEWORK=${{ needs.load-config.outputs.framework }} \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
             --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
@@ -129,19 +153,21 @@ jobs:
             --tag ${CI_IMAGE_URI} \
             --push \
             --target sagemaker \
-            -f docker/pytorch/Dockerfile.cuda .
+            -f docker/pytorch/${VERSION}/Dockerfile.cuda .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
       - name: Upload built wheels to cache
         run: |
-          source docker/pytorch/versions-cuda.env
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
+          source docker/pytorch/${VERSION}/versions-cuda.env
           bash scripts/pytorch/upload_cached_wheels.sh \
             "${{ vars.WHEEL_CACHE_BUCKET }}" \
             "${CUDA_VERSION}" "${TORCH_VERSION}" "${PYTHON_VERSION}" \
             "${{ steps.build-sagemaker.outputs.image-uri }}" \
+            "docker/pytorch/${VERSION}/Dockerfile.cuda" \
             "flash-attn:${FLASH_ATTN_VERSION}" \
-            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}" \
+            "transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}"
         continue-on-error: true
 
   sanity-test:
@@ -184,14 +210,14 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   unit-test:
-    needs: [build-image]
+    needs: [load-config, build-image]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -201,10 +227,11 @@ jobs:
 
       - name: Run unit tests
         run: |
+          VERSION="${{ needs.load-config.outputs.framework-short-version }}"
           IMAGE="${{ needs.build-image.outputs.ci-image }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir \
+            -e DLC_WORKDIR=/workdir -e DLC_PYTORCH_VERSION=${VERSION} \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
@@ -220,7 +247,7 @@ jobs:
         buildspec-override:true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
@@ -247,7 +274,7 @@ jobs:
       should-release: ${{ steps.check-release.outputs.should-release }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Check if release is enabled
         id: check-release

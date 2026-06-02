@@ -16,6 +16,7 @@ on:
       - "scripts/vllm/dockerd_entrypoint.sh"
       - "scripts/vllm/sagemaker_entrypoint.sh"
       - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm_server/**"
       - "test/telemetry/**"
       - "test/vllm/sagemaker/**"
       - "test/vllm/scripts/amzn2023/**"
@@ -138,6 +139,7 @@ jobs:
               - "scripts/vllm/amzn2023/**"
               - "scripts/vllm/dockerd_entrypoint.sh"
               - "scripts/vllm/sagemaker_entrypoint.sh"
+              - "test/security/data/ecr_scan_allowlist/vllm_server/**"
               - "test/vllm/scripts/amzn2023/**"
             sagemaker-test-change:
               - "test/vllm/sagemaker/**"
