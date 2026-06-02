@@ -297,7 +297,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -372,6 +372,7 @@ FROM base AS vllm-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   # dnf needs system python 3.9
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
@@ -386,6 +387,7 @@ FROM base AS vllm-sagemaker-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf install -y --setopt=install_weak_deps=False libsndfile \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   # dnf needs system python 3.9
@@ -398,23 +400,19 @@ ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 
-# ====================== hyperpod =========================================
-FROM base AS vllm-hyperpod-amzn2023
+# # ====================== hyperpod =========================================
+# FROM base AS vllm-hyperpod-amzn2023
 
-LABEL dlc_minor_version="2"
+# LABEL dlc_minor_version="0"
 
-# Override NIXL to include libfabric plugin for disaggregated P/D over EFA,
-# upstream vLLM caps nixl at <=0.10.1.
-RUN --mount=type=cache,target=/root/.cache/uv uv pip uninstall nixl-cu13 || true \
-  && uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu13>=1.0.1"
+# ARG CACHE_REFRESH=0
+# RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+#   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
+#   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+#   # dnf needs system python 3.9
+#   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
-ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
-  # dnf needs system python 3.9
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+# COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+# RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
-COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+# ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
