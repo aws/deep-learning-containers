@@ -220,9 +220,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
     CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
     if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
-        if [ "$CUDA_MAJOR" -ge 13 ]; then \
-            uv pip install nixl-cu13; \
-        fi; \
         uv pip install -r /tmp/kv_connectors.txt --no-build || ( \
             dnf install -y --setopt=install_weak_deps=False \
                 libcusparse-devel-${CUDA_DASH} \
@@ -232,6 +229,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
             && dnf remove -y libcusparse-devel-${CUDA_DASH} libcublas-devel-${CUDA_DASH} libcusolver-devel-${CUDA_DASH} \
             && dnf clean all && rm -rf /var/cache/dnf \
         ); \
+        if [ "$CUDA_MAJOR" -ge 13 ]; then \
+            uv pip install --force-reinstall --no-deps nixl-cu13; \
+        fi; \
     fi
 
 # Download FlashInfer precompiled cubins after all pip installs are done
@@ -406,7 +406,7 @@ LABEL dlc_minor_version="2"
 # Override NIXL to include libfabric plugin for disaggregated P/D over EFA,
 # upstream vLLM caps nixl at <=0.10.1.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip uninstall nixl-cu13 || true \
-  && uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu12>=1.0.1"
+  && uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu13>=1.0.1"
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
