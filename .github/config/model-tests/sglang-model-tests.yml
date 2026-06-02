@@ -38,6 +38,20 @@ smoke-test:
 
 benchmark:
   codebuild-fleet:
+    - name: "qwen3.5-0.8b"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=1000
+        MIN_REQUESTS_PER_SEC=5
+        BENCHMARK_NUM_PROMPTS=64
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=128
+        BENCHMARK_BATCH_SIZE=4
+        RESULTS_DIR=/tmp/benchmark_results
+        SGLANG_PORT=30000
+
     - name: "gpt-oss-20b"
       s3_model: "gpt-oss-20b.tar.gz"
       fleet: "x86-g6exl-runner"
@@ -94,9 +108,10 @@ benchmark:
         RESULTS_DIR=/tmp/benchmark_results
         SGLANG_PORT=30000
 
+  runner-scale-sets:
     - name: "qwen3-coder-next-fp8"
       s3_model: "qwen3-coder-next-fp8.tar.gz"
-      fleet: "x86-g6e12xl-runner"
+      runner_label: "gpu-l40s-4gpu-runners"
       extra_args: "--tp 4 --context-length 4096"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=280
@@ -110,7 +125,7 @@ benchmark:
 
     - name: "llama-3.3-70b"
       s3_model: "llama-3.3-70b.tar.gz"
-      fleet: "x86-g6e12xl-runner"
+      runner_label: "gpu-l40s-4gpu-runners"
       extra_args: "--tp 4 --context-length 4096"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=400
@@ -122,7 +137,6 @@ benchmark:
         RESULTS_DIR=/tmp/benchmark_results
         SGLANG_PORT=30000
 
-  runner-scale-sets:
     - name: "qwen3-32b"
       s3_model: "qwen3-32b.tar.gz"
       extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
