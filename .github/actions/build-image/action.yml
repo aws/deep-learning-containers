@@ -96,7 +96,9 @@ runs:
       id: image-uri-build
       shell: bash
       run: |
-        CI_IMAGE_URI=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${{ inputs.tag-pr }}
+        TAG_PR="${{ inputs.tag-pr }}"
+        TAG_PR="${TAG_PR//+/.}"
+        CI_IMAGE_URI=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${TAG_PR}
         echo "Image URI to build: ${CI_IMAGE_URI}"
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
