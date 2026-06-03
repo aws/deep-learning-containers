@@ -1,7 +1,7 @@
-ARG CUDA_VERSION=12.9.1
+ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG VLLM_VERSION=0.20.0.dev361
-ARG FLASHINFER_VERSION=0.6.8.post1
+ARG VLLM_VERSION=0.22.1rc0
+ARG FLASHINFER_VERSION=0.6.11.post2
 ARG DEEPEP_COMMIT_HASH=73b6ea4
 
 # =============================================================================
@@ -88,7 +88,7 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${VLLM_VERS
 
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
-#   bash scripts/vllm/amzn2023/fetch_cached_wheels.sh cu129 v0.18.0
+#   bash scripts/vllm/amzn2023/fetch_cached_wheels.sh cu130 v0.22.1rc0
 # The directory is empty by default so COPY always succeeds.
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
@@ -220,9 +220,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
     CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
     if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
-        if [ "$CUDA_MAJOR" -ge 13 ]; then \
-            uv pip install nixl-cu13; \
-        fi; \
         uv pip install -r /tmp/kv_connectors.txt --no-build || ( \
             dnf install -y --setopt=install_weak_deps=False \
                 libcusparse-devel-${CUDA_DASH} \
@@ -232,6 +229,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
             && dnf remove -y libcusparse-devel-${CUDA_DASH} libcublas-devel-${CUDA_DASH} libcusolver-devel-${CUDA_DASH} \
             && dnf clean all && rm -rf /var/cache/dnf \
         ); \
+        if [ "$CUDA_MAJOR" -ge 13 ]; then \
+            uv pip install --force-reinstall --no-deps nixl-cu13; \
+        fi; \
     fi
 
 # Download FlashInfer precompiled cubins after all pip installs are done
@@ -297,7 +297,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -372,6 +372,7 @@ FROM base AS vllm-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   # dnf needs system python 3.9
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
@@ -386,6 +387,7 @@ FROM base AS vllm-sagemaker-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf install -y --setopt=install_weak_deps=False libsndfile \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   # dnf needs system python 3.9
@@ -398,23 +400,19 @@ ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 
-# ====================== hyperpod =========================================
-FROM base AS vllm-hyperpod-amzn2023
+# # ====================== hyperpod =========================================
+# FROM base AS vllm-hyperpod-amzn2023
 
-LABEL dlc_minor_version="2"
+# LABEL dlc_minor_version="0"
 
-# Override NIXL to include libfabric plugin for disaggregated P/D over EFA,
-# upstream vLLM caps nixl at <=0.10.1.
-RUN --mount=type=cache,target=/root/.cache/uv uv pip uninstall nixl-cu13 || true \
-  && uv pip install --force-reinstall --no-deps "nixl>=1.0.1" "nixl-cu12>=1.0.1"
+# ARG CACHE_REFRESH=0
+# RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+#   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
+#   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+#   # dnf needs system python 3.9
+#   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
-ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
-  # dnf needs system python 3.9
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+# COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+# RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
-COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+# ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]

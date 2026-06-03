@@ -59,6 +59,11 @@ jobs:
           repository: vllm-project/vllm
           ref: ${{ inputs.vllm-ref != '' && inputs.vllm-ref || format('v{0}', inputs.framework-version) }}
           path: vllm_source
+          sparse-checkout: |
+            tests
+            examples
+            requirements
+            vllm
 
       - name: Start container
         run: |
@@ -100,6 +105,11 @@ jobs:
           repository: vllm-project/vllm
           ref: ${{ inputs.vllm-ref != '' && inputs.vllm-ref || format('v{0}', inputs.framework-version) }}
           path: vllm_source
+          sparse-checkout: |
+            tests
+            examples
+            requirements
+            vllm
 
       - name: Start container
         run: |
@@ -141,6 +151,11 @@ jobs:
           repository: vllm-project/vllm
           ref: ${{ inputs.vllm-ref != '' && inputs.vllm-ref || format('v{0}', inputs.framework-version) }}
           path: vllm_source
+          sparse-checkout: |
+            tests
+            examples
+            requirements
+            vllm
 
       - name: Start container
         run: |
