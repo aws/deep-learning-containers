@@ -134,6 +134,8 @@ jobs:
               - "scripts/vllm/*"
               - "test/security/data/ecr_scan_allowlist/vllm/**"
               - "test/vllm/scripts/**"
+              - "!test/vllm/scripts/amzn2023/**"
+              - "!test/vllm/scripts/benchmark/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

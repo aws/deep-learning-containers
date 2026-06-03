@@ -427,7 +427,7 @@ sagemaker:
   # at request time, reproducing the original template byte-for-byte.
   - name: "qwen3-reranker-4b"
     s3_model: "qwen3-reranker-4b.tar.gz"
-    instance_type: "ml.g5.xlarge"
+    instance_type: "ml.g6.xlarge"
     required_image_pattern: "amzn2023"
     chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"
     env:
