@@ -87,8 +87,8 @@ jobs:
           docker ps -q | xargs -r docker stop 2>/dev/null || true
           docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
           SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oP 'SGLANG_PORT=\K[0-9]+' || echo "not_set")
-          echo "=== Killing stale processes on port 30000 (config SERVING_PORT=${SERVING_PORT}) ==="
-          fuser -k 30000/tcp 2>/dev/null || true
+          echo "=== Killing stale processes on port ${SERVING_PORT}) ==="
+          fuser -k ${SERVING_PORT}/tcp 2>/dev/null || true
           echo "=== Clearing GPU memory ==="
           nvidia-smi --gpu-reset 2>/dev/null || true
           echo ""

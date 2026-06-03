@@ -50,7 +50,6 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
     - name: "gpt-oss-20b"
       s3_model: "gpt-oss-20b.tar.gz"
@@ -64,7 +63,6 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
     - name: "qwen3.5-9b"
       s3_model: "qwen3.5-9b.tar.gz"
@@ -78,7 +76,6 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
@@ -92,7 +89,6 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
   runner-scale-sets:
     - name: "qwen3.5-35b-a3b-fp8"
@@ -107,7 +103,7 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
+        SGLANG_PORT=8000
 
     - name: "qwen3-coder-next-fp8"
       s3_model: "qwen3-coder-next-fp8.tar.gz"
@@ -121,7 +117,7 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
+        SGLANG_PORT=8000
 
     - name: "llama-3.3-70b"
       s3_model: "llama-3.3-70b.tar.gz"
@@ -135,7 +131,7 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
+        SGLANG_PORT=8000
 
     - name: "qwen3-32b"
       s3_model: "qwen3-32b.tar.gz"
@@ -149,7 +145,7 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
+        SGLANG_PORT=8000
 
     - name: "deepseek-v4-flash"
       s3_model: "deepseek-v4-flash.tar.gz"
@@ -164,4 +160,4 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
+        SGLANG_PORT=8000
