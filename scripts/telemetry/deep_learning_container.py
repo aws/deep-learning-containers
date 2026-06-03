@@ -237,6 +237,7 @@ def parse_args():
             "vllm",
             "vllm_server",
             "sglang",
+            "sglang_server",
             "lambda",
             "ray",
             "vllm_omni",
