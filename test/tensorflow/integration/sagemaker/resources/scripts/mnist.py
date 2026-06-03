@@ -155,6 +155,13 @@ def _train_mwms(strategy, x_train, y_train, args):
     with strategy.scope():
         model = _build_model()
         optimizer = tf.keras.optimizers.Adam()
+        # Eagerly build optimizer slot variables (Adam momentum/velocity) before
+        # the @tf.function trace. Without this, slots are created lazily inside
+        # the traced graph's cond branch, which fails cross-worker on multi-host
+        # GPU with "must feed value for placeholder cond/Placeholder_*" — the
+        # cross-worker variable-creation path can't fill in the deferred init.
+        # CPU multi-host doesn't trip this because slot creation stays local.
+        optimizer.build(model.trainable_variables)
         loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(
             reduction=tf.keras.losses.Reduction.NONE
         )
