@@ -26,7 +26,7 @@ resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "
 # Model artifacts for local mode tests - downloaded from HuggingFace Hub at runtime
 MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
 model_dir = os.path.join(resources_path, "qwen3-tts-12hz-1-7b-customvoice")
-model_data = "qwen3-tts-12hz-1-7b-customvoice.tar.gz"
+model_data = "qwen3-tts-12hz-1-7b-customvoice.tar"
 model_data_path = os.path.join(model_dir, model_data)
 
 
@@ -40,7 +40,7 @@ def ensure_model_downloaded():
     os.makedirs(model_dir, exist_ok=True)
     local_model_dir = os.path.join(model_dir, "model")
 
-    print(f"Downloading {MODEL_ID} from HuggingFace Hub...")
+    print(f"Downloading {MODEL_ID} from HuggingFace Hub...", flush=True)
     snapshot_download(
         repo_id=MODEL_ID,
         local_dir=local_model_dir,
@@ -52,15 +52,16 @@ def ensure_model_downloaded():
     if os.path.exists(cache_dir):
         shutil.rmtree(cache_dir)
 
-    print(f"Creating tarball {model_data}...")
-    with tarfile.open(model_data_path, "w:gz") as tar:
+    print(f"Creating tarball {model_data}...", flush=True)
+    with tarfile.open(model_data_path, "w") as tar:
         for item in os.listdir(local_model_dir):
             tar.add(os.path.join(local_model_dir, item), arcname=item)
+            print(f"Adding {item} to tarball...", flush=True)
 
     # Clean up extracted model
     shutil.rmtree(local_model_dir)
 
-    print(f"Model ready at {model_data_path}")
+    print(f"Model ready at {model_data_path}", flush=True)
     return model_data_path
 
 
