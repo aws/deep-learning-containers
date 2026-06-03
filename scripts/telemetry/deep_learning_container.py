@@ -7,6 +7,7 @@ import os
 import re
 import signal
 import sys
+from urllib.parse import quote
 
 import botocore.session
 import requests
@@ -311,8 +312,8 @@ def query_bucket(instance_id, region):
                 REGION_MAPPING[region],
                 region,
                 instance_id,
-                framework,
-                framework_version,
+                quote(framework, safe=""),
+                quote(framework_version, safe=""),
                 py_version,
                 container_type,
             )
