@@ -46,6 +46,17 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
+      # /tmp is a 7.6 GiB tmpfs on this fleet and isn't always purged between
+      # jobs. Free leftover ray-ec2-* and similar dirs to avoid ENOSPC during
+      # the vllm checkout below.
+      - name: Free /tmp from stale test leftovers
+        run: |
+          df -h /tmp
+          find /tmp -mindepth 1 -maxdepth 1 \
+            \( -name 'ray-ec2-*' -o -name 'agent-log' -o -name 'mcetmp*' -o -name 'ray_test_images' \) \
+            -exec rm -rf {} + 2>/dev/null || true
+          df -h /tmp
+
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
@@ -87,6 +98,17 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
+      # /tmp is a 7.6 GiB tmpfs on this fleet and isn't always purged between
+      # jobs. Free leftover ray-ec2-* and similar dirs to avoid ENOSPC during
+      # the vllm checkout below.
+      - name: Free /tmp from stale test leftovers
+        run: |
+          df -h /tmp
+          find /tmp -mindepth 1 -maxdepth 1 \
+            \( -name 'ray-ec2-*' -o -name 'agent-log' -o -name 'mcetmp*' -o -name 'ray_test_images' \) \
+            -exec rm -rf {} + 2>/dev/null || true
+          df -h /tmp
+
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
@@ -127,6 +149,17 @@ jobs:
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
+
+      # /tmp is a 7.6 GiB tmpfs on this fleet and isn't always purged between
+      # jobs. Free leftover ray-ec2-* and similar dirs to avoid ENOSPC during
+      # the vllm checkout below.
+      - name: Free /tmp from stale test leftovers
+        run: |
+          df -h /tmp
+          find /tmp -mindepth 1 -maxdepth 1 \
+            \( -name 'ray-ec2-*' -o -name 'agent-log' -o -name 'mcetmp*' -o -name 'ray_test_images' \) \
+            -exec rm -rf {} + 2>/dev/null || true
+          df -h /tmp
 
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
