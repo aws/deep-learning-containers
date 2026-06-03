@@ -43,8 +43,8 @@ benchmark:
       fleet: "x86-g6xl-runner"
       extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=500
-        MIN_REQUESTS_PER_SEC=3
+        MIN_THROUGHPUT_TOKENS_PER_SEC=1250
+        MIN_REQUESTS_PER_SEC=9.5
         BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
         BENCHMARK_OUTPUT_LEN=256
@@ -57,8 +57,8 @@ benchmark:
       fleet: "x86-g6exl-runner"
       extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=150
-        MIN_REQUESTS_PER_SEC=2
+        MIN_THROUGHPUT_TOKENS_PER_SEC=615
+        MIN_REQUESTS_PER_SEC=4.7
         BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
         BENCHMARK_OUTPUT_LEN=256
@@ -71,8 +71,8 @@ benchmark:
       fleet: "x86-g6exl-runner"
       extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=200
-        MIN_REQUESTS_PER_SEC=1
+        MIN_THROUGHPUT_TOKENS_PER_SEC=555
+        MIN_REQUESTS_PER_SEC=4.2
         BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
         BENCHMARK_OUTPUT_LEN=256
@@ -85,8 +85,8 @@ benchmark:
       fleet: "x86-g6exl-runner"
       extra_args: "--tp 1 --context-length 4096"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=20
-        MIN_REQUESTS_PER_SEC=0.15
+        MIN_THROUGHPUT_TOKENS_PER_SEC=67
+        MIN_REQUESTS_PER_SEC=0.5
         BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
         BENCHMARK_OUTPUT_LEN=256

@@ -36,6 +36,7 @@ fi
 
 
 SGLANG_PORT="${SGLANG_PORT:-30000}"
+SGLANG_PORT=$((SGLANG_PORT + RANDOM % 1000))
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-1200}"
 HEALTH_INTERVAL=10
 MIN_THROUGHPUT="${MIN_THROUGHPUT_TOKENS_PER_SEC:-100}"
@@ -51,7 +52,7 @@ echo "Extra args: ${EXTRA_ARGS}"
 echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req/s"
 
 echo ""
-echo "=== Starting SGLang server ==="
+echo "=== Starting SGLang server on port ${SGLANG_PORT} ==="
 # shellcheck disable=SC2086
 python3 -m sglang.launch_server \
   --model-path "${MODEL_DIR}" \
