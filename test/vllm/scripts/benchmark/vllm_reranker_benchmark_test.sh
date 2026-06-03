@@ -31,7 +31,7 @@ VLLM_PORT=8000
 HEALTH_TIMEOUT=600
 HEALTH_INTERVAL=10
 
-CHAT_TEMPLATE="/models/test-fixtures/qwen3_reranker.jinja"
+CHAT_TEMPLATE="/models/qwen3_reranker_chat_template.jinja"
 [ -f "${CHAT_TEMPLATE}" ] || { echo "ERROR: chat template not found at ${CHAT_TEMPLATE}"; exit 1; }
 
 HF_OVERRIDES='{"architectures":["Qwen3ForSequenceClassification"],"classifier_from_token":["no","yes"],"is_original_qwen3_reranker":true}'
