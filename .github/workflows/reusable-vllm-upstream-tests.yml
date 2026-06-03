@@ -87,6 +87,12 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
+      - name: DIAG disk after DLC checkout
+        run: |
+          echo "=== df -h ==="; df -h
+          echo "=== top 20 /tmp consumers ==="; du -sh /tmp/* 2>/dev/null | sort -h | tail -20 || true
+          echo "=== top 20 /var/lib/docker consumers ==="; du -sh /var/lib/docker/* 2>/dev/null | sort -h | tail -20 || true
+
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
@@ -94,12 +100,24 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
+      - name: DIAG disk after container pull
+        run: |
+          echo "=== df -h ==="; df -h
+          echo "=== top 20 /tmp consumers ==="; du -sh /tmp/* 2>/dev/null | sort -h | tail -20 || true
+          echo "=== docker images ==="; docker images --format 'table {{.Repository}}:{{.Tag}}\t{{.Size}}' | head -10
+
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
           ref: ${{ inputs.vllm-ref != '' && inputs.vllm-ref || format('v{0}', inputs.framework-version) }}
           path: vllm_source
+
+      - name: DIAG disk after vllm checkout
+        run: |
+          echo "=== df -h ==="; df -h
+          echo "=== vllm_source size ==="; du -sh vllm_source 2>/dev/null || true
+          echo "=== top 20 /tmp consumers ==="; du -sh /tmp/* 2>/dev/null | sort -h | tail -20 || true
 
       - name: Start container
         run: |
@@ -115,9 +133,23 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} ${{ inputs.setup-script }}
 
+      - name: DIAG disk after setup
+        if: always()
+        run: |
+          echo "=== df -h ==="; df -h
+          echo "=== top 20 /tmp consumers ==="; du -sh /tmp/* 2>/dev/null | sort -h | tail -20 || true
+          echo "=== container disk usage ==="; docker exec ${CONTAINER_ID} df -h 2>/dev/null || true
+          echo "=== container /root/.cache size ==="; docker exec ${CONTAINER_ID} du -sh /root/.cache/* 2>/dev/null | sort -h || true
+
       - name: Run vLLM CUDA tests
         run: |
           docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_cuda_test.sh
+
+      - name: DIAG disk after tests
+        if: always()
+        run: |
+          echo "=== df -h ==="; df -h
+          echo "=== top 20 /tmp consumers ==="; du -sh /tmp/* 2>/dev/null | sort -h | tail -20 || true
 
   example-test:
     runs-on:
