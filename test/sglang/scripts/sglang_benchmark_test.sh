@@ -52,6 +52,8 @@ echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req
 
 echo ""
 echo "=== Starting SGLang server ==="
+fuser -k "${SGLANG_PORT}/tcp" 2>/dev/null || true
+sleep 1
 # shellcheck disable=SC2086
 python3 -m sglang.launch_server \
   --model-path "${MODEL_DIR}" \
