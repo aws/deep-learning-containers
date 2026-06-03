@@ -34,7 +34,7 @@ from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-CONFIG_PATH = Path(__file__).parents[3] / ".github/config/model-tests/vllm-model-tests.yml"
+CONFIG_PATH = Path(__file__).parents[4] / ".github/config/model-tests/vllm-model-tests.yml"
 
 
 def pytest_addoption(parser):
@@ -167,7 +167,7 @@ def _deploy_endpoint(image_uri, model_cfg, region):
 
     chat_template_file = model_cfg.get("chat_template_file")
     if chat_template_file:
-        repo_root = Path(__file__).parents[3]
+        repo_root = Path(__file__).parents[4]
         template_path = repo_root / chat_template_file
         env_vars["SM_VLLM_CHAT_TEMPLATE"] = _flatten_jinja(template_path.read_text())
 

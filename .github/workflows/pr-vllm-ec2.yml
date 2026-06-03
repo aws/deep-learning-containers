@@ -5,6 +5,8 @@ on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
+    # Enumerate exact paths instead of using !-negation; negation patterns
+    # in dorny/paths-filter (and sometimes GHA's own filter) are unreliable.
     paths:
       - ".github/config/image/vllm-ec2.yml"
       - ".github/workflows/pr-vllm-ec2.yml"
@@ -13,17 +15,14 @@ on:
       - "docker/vllm/Dockerfile"
       - "scripts/common/**"
       - "scripts/telemetry/**"
-      - "scripts/vllm/**"
+      - "scripts/vllm/dockerd_entrypoint.sh"
+      - "scripts/vllm/sagemaker_entrypoint.sh"
+      - "scripts/vllm/sagemaker_serve.py"
       - "test/efa/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/vllm/**"
       - "test/telemetry/**"
-      - "test/vllm/**"
-      - "!test/vllm/scripts/amzn2023/**"
-      - "!test/vllm/scripts/benchmark/**"
-      - "!docs/**"
-      - "!scripts/vllm/amzn2023/**"
-      - "!scripts/vllm/omni_*"
+      - "test/vllm/scripts/*.sh"
 
 permissions:
   contents: read
@@ -131,11 +130,13 @@ jobs:
               - "scripts/common/install_efa.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
-              - "scripts/vllm/*"
+              - "scripts/vllm/dockerd_entrypoint.sh"
+              - "scripts/vllm/sagemaker_entrypoint.sh"
+              - "scripts/vllm/sagemaker_serve.py"
               - "test/security/data/ecr_scan_allowlist/vllm/**"
-              - "test/vllm/scripts/**"
-              - "!test/vllm/scripts/amzn2023/**"
-              - "!test/vllm/scripts/benchmark/**"
+              # only top-level scripts; amzn2023/** and benchmark/** are excluded
+              # because they're consumed only by AMZN2023 and dispatch workflows
+              - "test/vllm/scripts/*.sh"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
