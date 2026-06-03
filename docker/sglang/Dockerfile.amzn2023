@@ -120,7 +120,7 @@ RUN cd /sgl-workspace \
   && git clone https://github.com/deepseek-ai/FlashMLA.git flash-mla \
   && cd flash-mla && git submodule update --init --recursive \
   && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-  && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
+  && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
     pip install --no-cache-dir --no-build-isolation -v .
 
 # DeepEP
@@ -134,7 +134,7 @@ RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
 
 RUN cd /sgl-workspace/DeepEP \
   && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-  && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
+  && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
     uv pip install --system --no-cache --no-build-isolation .
 
 # Mooncake: force-install because the 0.3.9 wheel declares manylinux_2_35 (glibc 2.35)
