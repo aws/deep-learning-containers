@@ -51,71 +51,7 @@ echo "Extra args: ${EXTRA_ARGS}"
 echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req/s"
 
 echo ""
-echo "=== [DEBUG] Port state BEFORE starting server ==="
-echo "--- All python/sglang processes ---"
-ps aux | grep -iE "python|sglang" | grep -v grep || echo "No python/sglang processes"
-echo "--- Checking port ${SGLANG_PORT} ---"
-(ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || cat /proc/net/tcp 2>/dev/null) | grep -i "${SGLANG_PORT}\|$(printf '%X' ${SGLANG_PORT})" || echo "Nothing on ${SGLANG_PORT}"
-echo "=== [END DEBUG] ==="
-
-echo ""
-echo "=== Killing any process occupying port ${SGLANG_PORT} ==="
-python3 -c "
-import socket, os, signal, glob, struct
-
-port = ${SGLANG_PORT}
-hex_port = '%04X' % port
-
-# Find PIDs using the port via /proc/net/tcp
-pids_on_port = set()
-try:
-    with open('/proc/net/tcp') as f:
-        for line in f.readlines()[1:]:
-            parts = line.split()
-            local_addr = parts[1]
-            local_port = int(local_addr.split(':')[1], 16)
-            if local_port == port:
-                inode = parts[9]
-                # Find which PID owns this inode
-                for fd_dir in glob.glob('/proc/[0-9]*/fd/*'):
-                    try:
-                        link = os.readlink(fd_dir)
-                        if 'socket:[' + inode + ']' in link:
-                            pid = int(fd_dir.split('/')[2])
-                            pids_on_port.add(pid)
-                    except (OSError, ValueError):
-                        pass
-except FileNotFoundError:
-    pass
-
-if pids_on_port:
-    print(f'Found PIDs on port {port}: {pids_on_port}')
-    for pid in pids_on_port:
-        try:
-            cmdline = open(f'/proc/{pid}/cmdline').read().replace('\x00', ' ').strip()
-            print(f'  Killing PID {pid}: {cmdline[:120]}')
-            os.kill(pid, signal.SIGKILL)
-        except (OSError, FileNotFoundError) as e:
-            print(f'  PID {pid}: {e}')
-else:
-    # Verify port is actually free
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        s.bind(('0.0.0.0', port))
-        s.close()
-        print(f'Port {port} is free')
-    except OSError as e:
-        print(f'Port {port} appears occupied but no PID found: {e}')
-        # Fallback: kill all sglang-related processes
-        os.system('pkill -9 -f sglang 2>/dev/null')
-        os.system('pkill -9 -f uvicorn 2>/dev/null')
-"
-sleep 2
-echo "--- After cleanup ---"
-ps aux | grep -iE "python|sglang|uvicorn" | grep -v grep || echo "Clean: no stale processes"
-
-echo ""
-echo "=== Starting SGLang server on port ${SGLANG_PORT} ==="
+echo "=== Starting SGLang server ==="
 # shellcheck disable=SC2086
 python3 -m sglang.launch_server \
   --model-path "${MODEL_DIR}" \
@@ -152,15 +88,6 @@ if [ "${elapsed}" -ge "${HEALTH_TIMEOUT}" ]; then
 fi
 
 echo ""
-echo "=== [DEBUG] Port state WHILE SERVING (after health check passes) ==="
-echo "--- All python/sglang processes ---"
-ps aux | grep -iE "python|sglang|uvicorn" | grep -v grep || echo "No python processes"
-echo "--- SGLang PID ${SGLANG_PID} open sockets ---"
-ls -la /proc/${SGLANG_PID}/fd 2>/dev/null | head -20 || echo "/proc not available"
-cat /proc/${SGLANG_PID}/net/tcp 2>/dev/null | head -10 || true
-echo "=== [END DEBUG] ==="
-
-echo ""
 echo "=== Warmup: running mini-benchmark to trigger JIT compilation ==="
 python3 -m sglang.bench_serving \
   --backend sglang \
@@ -175,14 +102,6 @@ echo "=== Warmup benchmark done, waiting 10s ==="
 sleep 10
 
 OUTPUT_FILE="${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
-
-echo ""
-echo "=== [DEBUG] Port state BEFORE running benchmark ==="
-echo "--- All python/sglang processes ---"
-ps aux | grep -iE "python|sglang|uvicorn" | grep -v grep || echo "No python processes"
-echo "--- /proc/net/tcp (port ${SGLANG_PORT} = 0x$(printf '%04X' ${SGLANG_PORT})) ---"
-cat /proc/net/tcp 2>/dev/null | head -5 || true
-echo "=== [END DEBUG] ==="
 
 echo ""
 echo "=== Running benchmark (random dataset) ==="

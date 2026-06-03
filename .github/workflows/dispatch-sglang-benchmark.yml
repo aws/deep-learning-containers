@@ -86,9 +86,9 @@ jobs:
           echo "=== Stopping stale containers ==="
           docker ps -q | xargs -r docker stop 2>/dev/null || true
           docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
-          echo "=== Killing stale sglang/python processes ==="
-          pkill -9 -f "sglang" 2>/dev/null || true
-          pkill -9 -f "uvicorn" 2>/dev/null || true
+          echo "=== Killing stale SGLang server ==="
+          SGLANG_PORT=$(echo "${{ matrix.env_vars }}" | grep -oP 'SGLANG_PORT=\K[0-9]+' || echo "30000")
+          fuser -k ${SGLANG_PORT}/tcp 2>/dev/null || true
           echo "=== Clearing GPU memory ==="
           nvidia-smi --gpu-reset 2>/dev/null || true
           echo ""
@@ -173,26 +173,11 @@ jobs:
           echo "=== Stopping stale containers ==="
           docker ps -q | xargs -r docker stop 2>/dev/null || true
           docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
-          echo "=== Killing stale sglang/python processes ==="
-          pkill -9 -f "sglang" 2>/dev/null || true
-          pkill -9 -f "uvicorn" 2>/dev/null || true
-          sleep 2
+          echo "=== Killing stale SGLang server ==="
+          SGLANG_PORT=$(echo "${{ matrix.env_vars }}" | grep -oP 'SGLANG_PORT=\K[0-9]+' || echo "30000")
+          fuser -k ${SGLANG_PORT}/tcp 2>/dev/null || true
           echo "=== GPU state ==="
           nvidia-smi
-
-      - name: "[DEBUG] Host port state before container start"
-        run: |
-          set +e
-          SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oE 'SGLANG_PORT=[0-9]+' | cut -d= -f2)
-          SERVING_PORT=${SERVING_PORT:-30000}
-          echo "=== Detected SERVING_PORT=${SERVING_PORT} (hex=$(printf '%04X' ${SERVING_PORT})) ==="
-          echo ""
-          echo "=== /proc/net/tcp ==="
-          cat /proc/net/tcp 2>/dev/null || echo "/proc/net/tcp not available"
-          echo ""
-          echo "=== Running containers ==="
-          docker ps 2>/dev/null || echo "docker not available"
-          true
 
       - name: Download model from S3
         uses: ./.github/actions/download-model
@@ -210,39 +195,6 @@ jobs:
             --ipc=host \
             ${{ env.IMAGE_URI }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      - name: "[DEBUG] Container port state before benchmark"
-        run: |
-          set +e
-          SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oE 'SGLANG_PORT=[0-9]+' | cut -d= -f2)
-          SERVING_PORT=${SERVING_PORT:-30000}
-          echo "=== Inside container: /proc/net/tcp and port check ==="
-          docker exec ${CONTAINER_ID} python3 -c "
-          import os, glob
-          port = ${SERVING_PORT}
-          hex_port = '%04X' % port
-          print(f'Looking for port {port} (0x{hex_port}) in /proc/net/tcp:')
-          with open('/proc/net/tcp') as f:
-              lines = f.readlines()
-              print(lines[0].strip())  # header
-              found = [l for l in lines[1:] if ':' + hex_port + ' ' in l.split()[1]]
-              if found:
-                  for l in found: print(l.strip())
-              else:
-                  print(f'  Port {port} is NOT in use')
-          print()
-          print(f'Total TCP connections: {len(lines)-1}')
-          print()
-          print('All LISTEN sockets (state=0A):')
-          for l in lines[1:]:
-              if l.split()[3] == '0A':
-                  local = l.split()[1]
-                  lport = int(local.split(':')[1], 16)
-                  print(f'  :{lport}')
-          "
-          echo ""
-          echo "=== Inside container: all processes ==="
-          docker exec ${CONTAINER_ID} ps aux
 
       - name: Copy files into container
         run: |
@@ -264,40 +216,6 @@ jobs:
               "${{ matrix.name }}" \
               "${RUNNER_LABEL}" \
               ${{ matrix.extra_args }}
-
-      - name: "[DEBUG] Port state during/after benchmark"
-        if: always()
-        run: |
-          set +e
-          SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oE 'SGLANG_PORT=[0-9]+' | cut -d= -f2)
-          SERVING_PORT=${SERVING_PORT:-30000}
-          echo "=== Inside container: port and process state ==="
-          docker exec ${CONTAINER_ID} python3 -c "
-          import os, glob
-          port = ${SERVING_PORT}
-          hex_port = '%04X' % port
-          print(f'Port {port} (0x{hex_port}) in /proc/net/tcp:')
-          try:
-              with open('/proc/net/tcp') as f:
-                  lines = f.readlines()
-              found = [l for l in lines[1:] if ':' + hex_port + ' ' in l.split()[1]]
-              if found:
-                  for l in found: print('  ' + l.strip())
-              else:
-                  print(f'  Port {port} is NOT in use')
-              print()
-              print('All LISTEN sockets (state=0A):')
-              for l in lines[1:]:
-                  if l.split()[3] == '0A':
-                      lport = int(l.split()[1].split(':')[1], 16)
-                      inode = l.split()[9]
-                      print(f'  :{lport} (inode={inode})')
-          except Exception as e:
-              print(f'Error: {e}')
-          " 2>/dev/null || true
-          echo ""
-          echo "=== Inside container: all processes ==="
-          docker exec ${CONTAINER_ID} ps aux 2>/dev/null || true
 
       - name: Extract results
         if: always()
