@@ -52,29 +52,67 @@ echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req
 
 echo ""
 echo "=== [DEBUG] Port state BEFORE starting server ==="
-echo "--- All listening ports ---"
-ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
-echo "--- Checking port ${SGLANG_PORT} specifically ---"
-ss -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || netstat -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || echo "Nothing on ${SGLANG_PORT}"
-echo "--- fuser ${SGLANG_PORT}/tcp ---"
-fuser "${SGLANG_PORT}/tcp" 2>&1 || echo "fuser: nothing on ${SGLANG_PORT}"
-echo "--- All python processes ---"
-ps aux | grep -i python | grep -v grep || echo "No python processes"
+echo "--- All python/sglang processes ---"
+ps aux | grep -iE "python|sglang" | grep -v grep || echo "No python/sglang processes"
+echo "--- Checking port ${SGLANG_PORT} ---"
+(ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || cat /proc/net/tcp 2>/dev/null) | grep -i "${SGLANG_PORT}\|$(printf '%X' ${SGLANG_PORT})" || echo "Nothing on ${SGLANG_PORT}"
 echo "=== [END DEBUG] ==="
 
 echo ""
-echo "=== Killing any process on port ${SGLANG_PORT} before starting server ==="
-fuser -k "${SGLANG_PORT}/tcp" 2>/dev/null || true
-# Also kill any stale sglang/python server processes from a previous run
-pkill -f "sglang.launch_server" 2>/dev/null || true
-pkill -f "python3.*sglang" 2>/dev/null || true
-sleep 3
-# Verify port is free
-if fuser "${SGLANG_PORT}/tcp" 2>/dev/null; then
-  echo "WARNING: Port ${SGLANG_PORT} still occupied after kill, force killing..."
-  fuser -k -9 "${SGLANG_PORT}/tcp" 2>/dev/null || true
-  sleep 2
-fi
+echo "=== Killing any process occupying port ${SGLANG_PORT} ==="
+python3 -c "
+import socket, os, signal, glob, struct
+
+port = ${SGLANG_PORT}
+hex_port = '%04X' % port
+
+# Find PIDs using the port via /proc/net/tcp
+pids_on_port = set()
+try:
+    with open('/proc/net/tcp') as f:
+        for line in f.readlines()[1:]:
+            parts = line.split()
+            local_addr = parts[1]
+            local_port = int(local_addr.split(':')[1], 16)
+            if local_port == port:
+                inode = parts[9]
+                # Find which PID owns this inode
+                for fd_dir in glob.glob('/proc/[0-9]*/fd/*'):
+                    try:
+                        link = os.readlink(fd_dir)
+                        if 'socket:[' + inode + ']' in link:
+                            pid = int(fd_dir.split('/')[2])
+                            pids_on_port.add(pid)
+                    except (OSError, ValueError):
+                        pass
+except FileNotFoundError:
+    pass
+
+if pids_on_port:
+    print(f'Found PIDs on port {port}: {pids_on_port}')
+    for pid in pids_on_port:
+        try:
+            cmdline = open(f'/proc/{pid}/cmdline').read().replace('\x00', ' ').strip()
+            print(f'  Killing PID {pid}: {cmdline[:120]}')
+            os.kill(pid, signal.SIGKILL)
+        except (OSError, FileNotFoundError) as e:
+            print(f'  PID {pid}: {e}')
+else:
+    # Verify port is actually free
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.bind(('0.0.0.0', port))
+        s.close()
+        print(f'Port {port} is free')
+    except OSError as e:
+        print(f'Port {port} appears occupied but no PID found: {e}')
+        # Fallback: kill all sglang-related processes
+        os.system('pkill -9 -f sglang 2>/dev/null')
+        os.system('pkill -9 -f uvicorn 2>/dev/null')
+"
+sleep 2
+echo "--- After cleanup ---"
+ps aux | grep -iE "python|sglang|uvicorn" | grep -v grep || echo "Clean: no stale processes"
 
 echo ""
 echo "=== Starting SGLang server on port ${SGLANG_PORT} ==="
@@ -115,14 +153,11 @@ fi
 
 echo ""
 echo "=== [DEBUG] Port state WHILE SERVING (after health check passes) ==="
-echo "--- All listening ports ---"
-ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
-echo "--- Checking port ${SGLANG_PORT} specifically ---"
-ss -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || netstat -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || echo "Nothing on ${SGLANG_PORT}"
-echo "--- All python processes ---"
-ps aux | grep -i python | grep -v grep || echo "No python processes"
-echo "--- SGLang PID ${SGLANG_PID} status ---"
+echo "--- All python/sglang processes ---"
+ps aux | grep -iE "python|sglang|uvicorn" | grep -v grep || echo "No python processes"
+echo "--- SGLang PID ${SGLANG_PID} open sockets ---"
 ls -la /proc/${SGLANG_PID}/fd 2>/dev/null | head -20 || echo "/proc not available"
+cat /proc/${SGLANG_PID}/net/tcp 2>/dev/null | head -10 || true
 echo "=== [END DEBUG] ==="
 
 echo ""
@@ -143,12 +178,10 @@ OUTPUT_FILE="${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
 
 echo ""
 echo "=== [DEBUG] Port state BEFORE running benchmark ==="
-echo "--- All listening ports ---"
-ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
-echo "--- Checking port ${SGLANG_PORT} specifically ---"
-ss -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || netstat -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || echo "Nothing on ${SGLANG_PORT}"
-echo "--- All python processes ---"
-ps aux | grep -i python | grep -v grep || echo "No python processes"
+echo "--- All python/sglang processes ---"
+ps aux | grep -iE "python|sglang|uvicorn" | grep -v grep || echo "No python processes"
+echo "--- /proc/net/tcp (port ${SGLANG_PORT} = 0x$(printf '%04X' ${SGLANG_PORT})) ---"
+cat /proc/net/tcp 2>/dev/null | head -5 || true
 echo "=== [END DEBUG] ==="
 
 echo ""
