@@ -52,15 +52,29 @@ echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req
 
 echo ""
 echo "=== [DEBUG] Port state BEFORE starting server ==="
-echo "--- ss -tlnp (all listening ports) ---"
+echo "--- All listening ports ---"
 ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
 echo "--- Checking port ${SGLANG_PORT} specifically ---"
-ss -tlnp | grep ":${SGLANG_PORT}" 2>/dev/null || echo "Nothing on ${SGLANG_PORT}"
+ss -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || netstat -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || echo "Nothing on ${SGLANG_PORT}"
 echo "--- fuser ${SGLANG_PORT}/tcp ---"
 fuser "${SGLANG_PORT}/tcp" 2>&1 || echo "fuser: nothing on ${SGLANG_PORT}"
 echo "--- All python processes ---"
 ps aux | grep -i python | grep -v grep || echo "No python processes"
 echo "=== [END DEBUG] ==="
+
+echo ""
+echo "=== Killing any process on port ${SGLANG_PORT} before starting server ==="
+fuser -k "${SGLANG_PORT}/tcp" 2>/dev/null || true
+# Also kill any stale sglang/python server processes from a previous run
+pkill -f "sglang.launch_server" 2>/dev/null || true
+pkill -f "python3.*sglang" 2>/dev/null || true
+sleep 3
+# Verify port is free
+if fuser "${SGLANG_PORT}/tcp" 2>/dev/null; then
+  echo "WARNING: Port ${SGLANG_PORT} still occupied after kill, force killing..."
+  fuser -k -9 "${SGLANG_PORT}/tcp" 2>/dev/null || true
+  sleep 2
+fi
 
 echo ""
 echo "=== Starting SGLang server on port ${SGLANG_PORT} ==="
@@ -101,10 +115,10 @@ fi
 
 echo ""
 echo "=== [DEBUG] Port state WHILE SERVING (after health check passes) ==="
-echo "--- ss -tlnp (all listening ports) ---"
+echo "--- All listening ports ---"
 ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
 echo "--- Checking port ${SGLANG_PORT} specifically ---"
-ss -tlnp | grep ":${SGLANG_PORT}" 2>/dev/null || echo "Nothing on ${SGLANG_PORT}"
+ss -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || netstat -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || echo "Nothing on ${SGLANG_PORT}"
 echo "--- All python processes ---"
 ps aux | grep -i python | grep -v grep || echo "No python processes"
 echo "--- SGLang PID ${SGLANG_PID} status ---"
@@ -129,10 +143,10 @@ OUTPUT_FILE="${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
 
 echo ""
 echo "=== [DEBUG] Port state BEFORE running benchmark ==="
-echo "--- ss -tlnp (all listening ports) ---"
+echo "--- All listening ports ---"
 ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
 echo "--- Checking port ${SGLANG_PORT} specifically ---"
-ss -tlnp | grep ":${SGLANG_PORT}" 2>/dev/null || echo "Nothing on ${SGLANG_PORT}"
+ss -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || netstat -tlnp 2>/dev/null | grep ":${SGLANG_PORT}" || echo "Nothing on ${SGLANG_PORT}"
 echo "--- All python processes ---"
 ps aux | grep -i python | grep -v grep || echo "No python processes"
 echo "=== [END DEBUG] ==="
