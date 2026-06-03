@@ -4,10 +4,6 @@ permissions:
   contents: read
 
 on:
-  # TEMPORARY: auto-trigger on PR 6179 for debugging [Errno 98] port-in-use
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [main]
   workflow_dispatch:
     inputs:
       image-uri:
@@ -26,15 +22,12 @@ on:
         default: ""
 
 env:
-  # TEMPORARY: hardcoded image for PR 6179 debugging
-  IMAGE_URI: "${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:sglang_server-0.5.12.dlc1-gpu-py312-cu130-amzn2023-sagemaker-pr-6179"
+  IMAGE_URI: ${{ inputs.image-uri }}
   ACCOUNT_ID: ${{ inputs.aws-account-id || vars.CI_AWS_ACCOUNT_ID }}
   REGION: ${{ inputs.aws-region || vars.AWS_REGION }}
 
 jobs:
   load-benchmarks:
-    # TEMPORARY: only auto-trigger on PR 6179, always run on workflow_dispatch
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 6179 }}
     runs-on: ubuntu-latest
     outputs:
       codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
