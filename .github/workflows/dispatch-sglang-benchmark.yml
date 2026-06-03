@@ -189,18 +189,17 @@ jobs:
 
       - name: "[DEBUG] Host port state before container start"
         run: |
+          set +e
           SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oE 'SGLANG_PORT=[0-9]+' | cut -d= -f2)
           SERVING_PORT=${SERVING_PORT:-30000}
-          echo "=== Detected SERVING_PORT=${SERVING_PORT} ==="
+          echo "=== Detected SERVING_PORT=${SERVING_PORT} (hex=$(printf '%04X' ${SERVING_PORT})) ==="
           echo ""
-          echo "=== /proc/net/tcp (hex port $(printf '%04X' ${SERVING_PORT})) ==="
+          echo "=== /proc/net/tcp ==="
           cat /proc/net/tcp 2>/dev/null || echo "/proc/net/tcp not available"
           echo ""
-          echo "=== All processes ==="
-          ps aux
-          echo ""
           echo "=== Running containers ==="
-          docker ps
+          docker ps 2>/dev/null || echo "docker not available"
+          true
 
       - name: Download model from S3
         uses: ./.github/actions/download-model
@@ -221,6 +220,7 @@ jobs:
 
       - name: "[DEBUG] Container port state before benchmark"
         run: |
+          set +e
           SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oE 'SGLANG_PORT=[0-9]+' | cut -d= -f2)
           SERVING_PORT=${SERVING_PORT:-30000}
           echo "=== Inside container: /proc/net/tcp and port check ==="
@@ -275,6 +275,7 @@ jobs:
       - name: "[DEBUG] Port state during/after benchmark"
         if: always()
         run: |
+          set +e
           SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oE 'SGLANG_PORT=[0-9]+' | cut -d= -f2)
           SERVING_PORT=${SERVING_PORT:-30000}
           echo "=== Inside container: port and process state ==="
