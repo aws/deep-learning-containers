@@ -114,6 +114,10 @@ RUN cd sglang \
 # Persist nvidia pip lib paths for subsequent build steps that import torch
 RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") > /tmp/nvidia_lib_paths
 
+# CUDA 13 moved CCCL headers from include/cuda/std/ to include/cccl/cuda/std/.
+# Symlink for backward compat with libraries that expect the old layout (FlashMLA, CUTLASS).
+RUN ln -sf /usr/local/cuda/include/cccl/cuda /usr/local/cuda/include/cuda || true
+
 # flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA architecture.
 # Must be cloned from GitHub (PyPI sdist is missing headers) and built from source.
 RUN cd /sgl-workspace \
