@@ -4,6 +4,10 @@ permissions:
   contents: read
 
 on:
+  # TEMPORARY: auto-trigger on PR 6179 for debugging [Errno 98] port-in-use
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
   workflow_dispatch:
     inputs:
       image-uri:
@@ -22,12 +26,15 @@ on:
         default: ""
 
 env:
-  IMAGE_URI: ${{ inputs.image-uri }}
+  # TEMPORARY: hardcoded image for PR 6179 debugging
+  IMAGE_URI: "${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:sglang_server-0.5.12.dlc1-gpu-py312-cu130-amzn2023-sagemaker-pr-6179"
   ACCOUNT_ID: ${{ inputs.aws-account-id || vars.CI_AWS_ACCOUNT_ID }}
   REGION: ${{ inputs.aws-region || vars.AWS_REGION }}
 
 jobs:
   load-benchmarks:
+    # TEMPORARY: only auto-trigger on PR 6179, always run on workflow_dispatch
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.number == 6179 }}
     runs-on: ubuntu-latest
     outputs:
       codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
@@ -179,6 +186,23 @@ jobs:
           echo "=== GPU state ==="
           nvidia-smi
 
+      - name: "[DEBUG] Host port state before container start"
+        run: |
+          SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oP 'SGLANG_PORT=\K[0-9]+' || echo "30000")
+          echo "=== Detected SERVING_PORT=${SERVING_PORT} ==="
+          echo ""
+          echo "=== Processes listening on port ${SERVING_PORT} ==="
+          ss -tlnp | grep ":${SERVING_PORT}" || echo "Nothing on ${SERVING_PORT}"
+          echo ""
+          echo "=== All listening TCP ports ==="
+          ss -tlnp
+          echo ""
+          echo "=== fuser port ${SERVING_PORT} ==="
+          fuser ${SERVING_PORT}/tcp 2>&1 || echo "fuser: nothing on ${SERVING_PORT}"
+          echo ""
+          echo "=== Running containers ==="
+          docker ps
+
       - name: Download model from S3
         uses: ./.github/actions/download-model
         id: model
@@ -195,6 +219,21 @@ jobs:
             --ipc=host \
             ${{ env.IMAGE_URI }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: "[DEBUG] Container port state before benchmark"
+        run: |
+          SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oP 'SGLANG_PORT=\K[0-9]+' || echo "30000")
+          echo "=== Inside container: processes on port ${SERVING_PORT} ==="
+          docker exec ${CONTAINER_ID} bash -c "ss -tlnp | grep ':${SERVING_PORT}' || echo 'Nothing on ${SERVING_PORT}'"
+          echo ""
+          echo "=== Inside container: all listening ports ==="
+          docker exec ${CONTAINER_ID} bash -c 'ss -tlnp'
+          echo ""
+          echo "=== Inside container: running processes ==="
+          docker exec ${CONTAINER_ID} bash -c 'ps aux'
+          echo ""
+          echo "=== Host: ports after container start ==="
+          ss -tlnp | grep ":${SERVING_PORT}" || echo "Nothing on ${SERVING_PORT} on host"
 
       - name: Copy files into container
         run: |
@@ -216,6 +255,22 @@ jobs:
               "${{ matrix.name }}" \
               "${RUNNER_LABEL}" \
               ${{ matrix.extra_args }}
+
+      - name: "[DEBUG] Port state during/after benchmark"
+        if: always()
+        run: |
+          SERVING_PORT=$(echo "${{ matrix.env_vars }}" | grep -oP 'SGLANG_PORT=\K[0-9]+' || echo "30000")
+          echo "=== Inside container: processes on port ${SERVING_PORT} ==="
+          docker exec ${CONTAINER_ID} bash -c "ss -tlnp | grep ':${SERVING_PORT}' || echo 'Nothing on ${SERVING_PORT}'" 2>/dev/null || true
+          echo ""
+          echo "=== Inside container: all listening ports ==="
+          docker exec ${CONTAINER_ID} bash -c 'ss -tlnp' 2>/dev/null || true
+          echo ""
+          echo "=== Inside container: running processes ==="
+          docker exec ${CONTAINER_ID} bash -c 'ps aux' 2>/dev/null || true
+          echo ""
+          echo "=== Host: port state ==="
+          ss -tlnp | grep ":${SERVING_PORT}" || echo "Nothing on ${SERVING_PORT} on host"
 
       - name: Extract results
         if: always()
