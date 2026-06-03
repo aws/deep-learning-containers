@@ -1,0 +1,13 @@
+framework: TEI
+version: "1.8.2"
+accelerator: gpu
+python: py310
+cuda: cu122
+os: ubuntu22.04
+platform: sagemaker
+ecr_repository: tei
+example_ecr_account: "683313688378"
+example_region: "us-east-1"
+
+tags:
+  - "2.0.1-tei1.8.2-gpu-py310-cu122-ubuntu22.04"
