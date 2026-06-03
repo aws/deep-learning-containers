@@ -51,6 +51,18 @@ echo "Extra args: ${EXTRA_ARGS}"
 echo "Thresholds: min_throughput=${MIN_THROUGHPUT} tok/s, min_rps=${MIN_RPS} req/s"
 
 echo ""
+echo "=== [DEBUG] Port state BEFORE starting server ==="
+echo "--- ss -tlnp (all listening ports) ---"
+ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
+echo "--- Checking port ${SGLANG_PORT} specifically ---"
+ss -tlnp | grep ":${SGLANG_PORT}" 2>/dev/null || echo "Nothing on ${SGLANG_PORT}"
+echo "--- fuser ${SGLANG_PORT}/tcp ---"
+fuser "${SGLANG_PORT}/tcp" 2>&1 || echo "fuser: nothing on ${SGLANG_PORT}"
+echo "--- All python processes ---"
+ps aux | grep -i python | grep -v grep || echo "No python processes"
+echo "=== [END DEBUG] ==="
+
+echo ""
 echo "=== Starting SGLang server on port ${SGLANG_PORT} ==="
 # shellcheck disable=SC2086
 python3 -m sglang.launch_server \
@@ -88,6 +100,18 @@ if [ "${elapsed}" -ge "${HEALTH_TIMEOUT}" ]; then
 fi
 
 echo ""
+echo "=== [DEBUG] Port state WHILE SERVING (after health check passes) ==="
+echo "--- ss -tlnp (all listening ports) ---"
+ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
+echo "--- Checking port ${SGLANG_PORT} specifically ---"
+ss -tlnp | grep ":${SGLANG_PORT}" 2>/dev/null || echo "Nothing on ${SGLANG_PORT}"
+echo "--- All python processes ---"
+ps aux | grep -i python | grep -v grep || echo "No python processes"
+echo "--- SGLang PID ${SGLANG_PID} status ---"
+ls -la /proc/${SGLANG_PID}/fd 2>/dev/null | head -20 || echo "/proc not available"
+echo "=== [END DEBUG] ==="
+
+echo ""
 echo "=== Warmup: running mini-benchmark to trigger JIT compilation ==="
 python3 -m sglang.bench_serving \
   --backend sglang \
@@ -102,6 +126,16 @@ echo "=== Warmup benchmark done, waiting 10s ==="
 sleep 10
 
 OUTPUT_FILE="${RESULTS_DIR}/throughput_${ARTIFACT_PREFIX}.json"
+
+echo ""
+echo "=== [DEBUG] Port state BEFORE running benchmark ==="
+echo "--- ss -tlnp (all listening ports) ---"
+ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
+echo "--- Checking port ${SGLANG_PORT} specifically ---"
+ss -tlnp | grep ":${SGLANG_PORT}" 2>/dev/null || echo "Nothing on ${SGLANG_PORT}"
+echo "--- All python processes ---"
+ps aux | grep -i python | grep -v grep || echo "No python processes"
+echo "=== [END DEBUG] ==="
 
 echo ""
 echo "=== Running benchmark (random dataset) ==="
