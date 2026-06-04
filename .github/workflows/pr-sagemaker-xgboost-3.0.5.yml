@@ -243,9 +243,13 @@ jobs:
           cd /tmp/xgboost-integ
           python3.12 -m venv /tmp/xgboost-integ/.venv
           . /tmp/xgboost-integ/.venv/bin/activate
-          pip install --upgrade pip setuptools
+          pip install --upgrade pip "setuptools<70"
           pip install --no-deps -e .
-          pip install "sagemaker>=2.0,<3.0" "sagemaker-containers>=2.8.6" "protobuf>=3.20.0,<=3.20.3" boto3 botocore docker pytest pytest-cov pytest-xdist pyyaml
+          pip install "sagemaker>=2.0,<3.0" "sagemaker-containers>=2.8.6" "protobuf>=3.20.0,<=3.20.3" \
+            "flask<2.0" "jinja2<3.1" "markupsafe<2.1" "werkzeug<2.0" "itsdangerous<2.1" \
+            boto3 botocore docker pytest pytest-cov pytest-xdist pyyaml
+          # Patch sagemaker-containers for Python 3.12 (collections.Mapping removed in 3.10)
+          find .venv -path '*/sagemaker_containers/_mapping.py' -exec sed -i -e 's/import collections$/import collections\nimport collections.abc/' -e 's/collections\.Mapping/collections.abc.Mapping/' {} +
           docker compose version || (curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose)
 
       - name: Run integration tests
