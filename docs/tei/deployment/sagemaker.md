@@ -1,6 +1,6 @@
 # Amazon SageMaker AI Deployment
 
-Deploy TEI on Amazon SageMaker AI endpoints. The container accepts model configuration via environment variables and serves on port 8080.
+Deploy Text Embeddings Inference (TEI) on Amazon SageMaker AI endpoints. The container accepts model configuration via environment variables and serves on port 8080.
 
 ## Specifying the Model
 
