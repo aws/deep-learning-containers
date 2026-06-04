@@ -239,7 +239,17 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--framework",
-        choices=["tensorflow", "mxnet", "pytorch", "base", "vllm", "sglang"],
+        choices=[
+            "tensorflow",
+            "mxnet",
+            "pytorch",
+            "base",
+            "vllm",
+            "sglang",
+            "huggingface_vllm",
+            "huggingface_vllm_omni",
+            "huggingface_sglang",
+        ],
         help="framework of container image.",
         required=True,
     )
