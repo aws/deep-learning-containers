@@ -433,7 +433,10 @@ sagemaker:
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_RUNNER: "pooling"
-      SM_VLLM_HF_OVERRIDES: '{"architectures":["Qwen3ForSequenceClassification"],"classifier_from_token":["no","yes"],"is_original_qwen3_reranker":true}'
+      # Pre-wrapped in literal single quotes so the JSON survives standard-supervisor's
+      # `" ".join(argv)` + supervisord shlex.split round-trip, which would otherwise
+      # strip the inner double quotes from --hf-overrides and break json.loads.
+      SM_VLLM_HF_OVERRIDES: '''{"architectures":["Qwen3ForSequenceClassification"],"classifier_from_token":["no","yes"],"is_original_qwen3_reranker":true}'''
       SM_VLLM_DTYPE: "bfloat16"
       SM_VLLM_MAX_MODEL_LEN: "10000"
       SM_VLLM_GPU_MEMORY_UTILIZATION: "0.85"
