@@ -66,9 +66,7 @@ def _test_vllm_omni_speech_generation(
         framework_version: Optional version info
         **kwargs: Additional args from helper (boto_session, sagemaker_client, etc.)
     """
-    endpoint_name = sagemaker.utils.unique_name_from_base(
-        "sagemaker-hf-vllm-omni-serving"
-    )
+    endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-hf-vllm-omni-serving")
 
     env = {
         "SM_VLLM_MODEL": model_id,

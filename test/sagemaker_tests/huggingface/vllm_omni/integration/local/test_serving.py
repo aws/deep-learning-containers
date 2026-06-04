@@ -60,6 +60,7 @@ def _predictor(monkeypatch, image, sagemaker_local_session, instance_type):
             if predictor:
                 predictor.delete_endpoint()
 
+
 def _assert_vllm_omni_speech_generation(predictor):
     """Test vLLM-Omni inference through the bundled SageMaker middleware."""
     predictor.serializer = JSONSerializer()
@@ -70,7 +71,7 @@ def _assert_vllm_omni_speech_generation(predictor):
         "voice": "ryan",
         "language": "English",
     }
-    
+
     output = predictor.predict(
         data=data,
         initial_args={
