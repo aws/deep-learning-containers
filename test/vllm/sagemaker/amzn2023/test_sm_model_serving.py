@@ -151,13 +151,33 @@ def _get_role_arn(region):
 
 
 def _flatten_jinja(template_str):
-    """Flatten newlines into ``{{ '\\n' }}`` so a jinja template survives the
-    SM entrypoint's line-oriented env-var loop. vLLM's --chat-template falls
-    back to inline Jinja when its value isn't a valid file path and contains
-    '{', '}', or newline; each {{ '\\n' }} expression renders to a real newline
-    at request time, reproducing the original template byte-for-byte.
+    """Flatten newlines into ``{{ "\\n" }}`` and wrap in literal single quotes.
+
+    Two transports to survive:
+
+    1. The SM entrypoint reads env vars via ``IFS='=' read`` from a line-oriented
+       ``env`` listing, so multi-line values would break across lines. Replacing
+       physical newlines with ``{{ "\\n" }}`` keeps the value single-line; vLLM's
+       ``--chat-template`` falls back to inline Jinja when the value isn't a
+       valid file path and contains ``{``, ``}``, or newline, and each
+       ``{{ "\\n" }}`` expression evaluates to a real newline at request time.
+
+    2. Inside the SM container, ``standard-supervisor`` joins argv with single
+       spaces into one string, then supervisord re-parses it with
+       ``shlex.split`` — which strips unprotected double quotes and breaks
+       tokens on whitespace. Wrapping the value in literal single quotes makes
+       supervisord's shlex.split treat the entire jinja string as one argv
+       element with the inner ``"`` chars intact. Double-quoted ``\\n`` (rather
+       than single-quoted) is used so the inner Jinja expressions don't clash
+       with the outer shell single-quote wrapping.
     """
-    return template_str.replace("\n", "{{ '\\n' }}")
+    flat = template_str.replace("\n", '{{ "\\n" }}')
+    if "'" in flat:
+        raise ValueError(
+            "chat template contains a single quote; outer shell-quote wrapping "
+            "would clash. Use only double quotes inside Jinja expressions."
+        )
+    return f"'{flat}'"
 
 
 def _deploy_endpoint(image_uri, model_cfg, region):
