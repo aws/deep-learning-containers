@@ -48,6 +48,19 @@ smoke-test:
           audio_fixture: "asr_en.wav"
           validate: "json_field:text"
 
+    - name: "granite-speech-4-1-2b"
+      s3_model: "granite-speech-4.1-2b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--max-model-len 2048"
+      test_script: "vllm_asr_smoke_test.sh"
+      test_fixtures:
+        - "audio/asr_en.wav"
+      test_cases:
+        - name: "transcription-en"
+          route: "/v1/audio/transcriptions"
+          audio_fixture: "asr_en.wav"
+          validate: "json_field:text"
+
   runner-scale-sets: []
 
 benchmark:
@@ -390,6 +403,26 @@ sagemaker:
             model: "/opt/ml/model"
         validate: "json_field:text"
 
+  - name: "granite-speech-4-1-2b"
+    s3_model: "granite-speech-4.1-2b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "2048"
+    test_cases:
+      - name: "transcription-en"
+        route: "/v1/audio/transcriptions"
+        content_type: "multipart/form-data"
+        request:
+          file_s3: "s3://dlc-cicd-models/test-fixtures/audio/asr_en.wav"
+          file_field: "file"
+          file_name: "test.wav"
+          file_content_type: "audio/wav"
+          fields:
+            model: "/opt/ml/model"
+        validate: "json_field:text"
+
   - name: "voxtral-mini-4b-network-isolated"
     s3_model: "voxtral-mini-4b-isolated.tar.gz"
     instance_type: "ml.g6.xlarge"
@@ -402,6 +435,28 @@ sagemaker:
       SM_VLLM_LOAD_FORMAT: "mistral"
       SM_VLLM_ENFORCE_EAGER: "true"
       SM_VLLM_MAX_MODEL_LEN: "8192"
+      STANDARD_PIP_ARGS: "--no-index --find-links /opt/ml/model/requirements -r /opt/ml/model/requirements.txt"
+    test_cases:
+      - name: "transcription-en-isolated"
+        route: "/v1/audio/transcriptions"
+        content_type: "multipart/form-data"
+        request:
+          file_s3: "s3://dlc-cicd-models/test-fixtures/audio/asr_en.wav"
+          file_field: "file"
+          file_name: "test.wav"
+          file_content_type: "audio/wav"
+          fields:
+            model: "/opt/ml/model"
+        validate: "json_field:text"
+
+  - name: "granite-speech-4-1-2b-network-isolated"
+    s3_model: "granite-speech-4.1-2b-isolated.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
+    network_isolation: true
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "2048"
       STANDARD_PIP_ARGS: "--no-index --find-links /opt/ml/model/requirements -r /opt/ml/model/requirements.txt"
     test_cases:
       - name: "transcription-en-isolated"
