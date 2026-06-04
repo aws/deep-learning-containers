@@ -1,7 +1,6 @@
 framework: TEI
 version: "1.8.2"
 accelerator: gpu
-python: py310
 cuda: cu122
 os: ubuntu22.04
 platform: sagemaker

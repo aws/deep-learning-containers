@@ -1,7 +1,6 @@
 framework: TEI
 version: "1.8.2"
 accelerator: cpu
-python: py310
 os: ubuntu22.04
 platform: sagemaker
 ecr_repository: tei-cpu
