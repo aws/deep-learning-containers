@@ -104,6 +104,9 @@ jobs:
           if [ -f "test/vllm/scripts/amzn2023/${{ matrix.test_script || '' }}" ]; then
             docker cp "test/vllm/scripts/amzn2023/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
           fi
+          for f in test/vllm/scripts/amzn2023/*.jinja; do
+            [ -e "$f" ] && docker cp "$f" ${CONTAINER_ID}:/models/
+          done
 
       - name: Download and copy test fixtures
         if: ${{ matrix.test_fixtures_paths != '' }}
@@ -187,6 +190,9 @@ jobs:
           if [ -f "test/vllm/scripts/amzn2023/${{ matrix.test_script || '' }}" ]; then
             docker cp "test/vllm/scripts/amzn2023/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
           fi
+          for f in test/vllm/scripts/amzn2023/*.jinja; do
+            [ -e "$f" ] && docker cp "$f" ${CONTAINER_ID}:/models/
+          done
 
       - name: Download and copy test fixtures
         if: ${{ matrix.test_fixtures_paths != '' }}

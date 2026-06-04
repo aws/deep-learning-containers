@@ -193,6 +193,12 @@ RUN --mount=type=cache,target=/root/.cache/uv ls /tmp/vllm-dist/*.whl \
   && uv pip install "${VLLM_WHL}" \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
+# Pin transformers to <5.10 to avoid the prepare_inputs_layout->fetch_audio
+# AttributeError on voxtral with vllm 0.22.1rc0 + mistral-common 1.11.2.
+# See https://github.com/huggingface/transformers/blob/v5.10.1/src/transformers/processing_utils.py#L726
+# (call lacks hasattr guard; MistralCommonFeatureExtractor doesn't implement fetch_audio).
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "transformers<5.10"
+
 # Install FlashInfer jit-cache after vllm wheel (pin both flashinfer-python and
 # flashinfer-jit-cache to ensure version match for flashinfer download-cubin)
 ARG FLASHINFER_VERSION

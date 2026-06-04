@@ -29,6 +29,12 @@ smoke-test:
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 2048 --trust-remote-code"
       test_script: "vllm_embedding_smoke_test.sh"
 
+    - name: "qwen3-reranker-4b"
+      s3_model: "qwen3-reranker-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
+      test_script: "vllm_reranker_smoke_test.sh"
+
     - name: "voxtral-mini-4b"
       s3_model: "voxtral-mini-4b.tar.gz"
       fleet: "x86-g6xl-runner"
@@ -59,6 +65,13 @@ benchmark:
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 2048 --trust-remote-code"
       test_script: "vllm_embedding_benchmark_test.sh"
       min_rps: 3
+
+    - name: "qwen3-reranker-4b"
+      s3_model: "qwen3-reranker-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
+      test_script: "vllm_reranker_benchmark_test.sh"
+      min_rps: 20
 
     - name: "qwen3-asr-1.7b"
       s3_model: "qwen3-asr-1.7b.tar.gz"
@@ -402,4 +415,43 @@ sagemaker:
           fields:
             model: "/opt/ml/model"
         validate: "json_field:text"
+
+  # Qwen3-Reranker-4B — Path C: load as Qwen3ForSequenceClassification so the
+  # Cohere-compatible /v1/rerank endpoint registers. SM_VLLM_HF_OVERRIDES is
+  # passed verbatim to vLLM as --hf-overrides. The chat template is read from
+  # test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja (shared with
+  # the EC2 reranker scripts), flattened to single-line with {{ '\n' }} escapes
+  # at test runtime, and injected as SM_VLLM_CHAT_TEMPLATE. vLLM's
+  # --chat-template falls back to inline jinja for non-path values containing
+  # '{', '}', or newline; the {{ '\n' }} expressions render to real newlines
+  # at request time, reproducing the original template byte-for-byte.
+  - name: "qwen3-reranker-4b"
+    s3_model: "qwen3-reranker-4b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
+    chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_RUNNER: "pooling"
+      # Pre-wrapped in literal single quotes so the JSON survives standard-supervisor's
+      # `" ".join(argv)` + supervisord shlex.split round-trip, which would otherwise
+      # strip the inner double quotes from --hf-overrides and break json.loads.
+      SM_VLLM_HF_OVERRIDES: '''{"architectures":["Qwen3ForSequenceClassification"],"classifier_from_token":["no","yes"],"is_original_qwen3_reranker":true}'''
+      SM_VLLM_DTYPE: "bfloat16"
+      SM_VLLM_MAX_MODEL_LEN: "10000"
+      SM_VLLM_GPU_MEMORY_UTILIZATION: "0.85"
+    test_cases:
+      - name: "rerank-basic"
+        route: "/v1/rerank"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            query: "What is the capital of France?"
+            documents:
+              - "Paris is the capital of France."
+              - "Berlin is the capital of Germany."
+              - "The Eiffel Tower is in Paris."
+              - "Tokyo is the capital of Japan."
+        validate: "json_field:results.0.relevance_score"
 
