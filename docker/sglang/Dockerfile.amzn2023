@@ -7,13 +7,15 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
 
 ARG CUDA_VERSION
 ARG PYTHON_VERSION=3.12
-ARG SGL_VERSION=0.5.10
-ARG SGLANG_KERNEL_VERSION=0.4.1
-ARG FLASHINFER_VERSION=0.6.7.post2
+ARG SGL_VERSION=0.5.12
+ARG SGLANG_REF=v${SGL_VERSION}
+ARG SGLANG_KERNEL_VERSION=0.4.3
+ARG FLASHINFER_VERSION=0.6.11.post1
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
 ARG MOONCAKE_VERSION=0.3.9
 ARG GDRCOPY_VERSION=2.5.1
 ARG RUST_VERSION=1.90.0
+ARG TORCH_VERSION=2.11.0
 
 # CUDA / GPU
 ARG NCCL_VERSION=2.28.3
@@ -58,7 +60,8 @@ ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
-RUN uv pip install --system --no-cache pip setuptools wheel pybind11 cmake
+RUN python3 -m pip install --upgrade "setuptools>=78.1.1" \
+  && uv pip install --system --no-cache pip wheel pybind11 cmake
 
 # GDRCopy
 RUN mkdir -p /tmp/gdrcopy && cd /tmp \
@@ -74,18 +77,30 @@ RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 
 WORKDIR /sgl-workspace
 
-# Clone sglang
-RUN git clone --depth=1 --branch v${SGL_VERSION} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang
+# Install Rust (needed by granian in [http2] extras and sgl-model-gateway)
+RUN curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION}
+ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Install sglang-kernel from pip (pre-built CUDA kernels)
-RUN uv pip install --system --no-cache sglang-kernel==${SGLANG_KERNEL_VERSION}
+# Clone sglang (supports tags, branches, and commit hashes via SGLANG_REF)
+RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
+  || (git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
+    && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
-# Install sglang from source + flashinfer
+# Install sglang from source + flashinfer + sglang-kernel
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
-# We reinstall torch from the cu129 index after to match our CUDA 12.9 toolkit.
+# We reinstall torch+torchvision+torchaudio from the cu129 index after to match
+# our CUDA 12.9 toolkit. TORCH_VERSION must match what sgl_kernel wheels on
+# docs.sglang.ai/whl/cu129/ are compiled against (ABI-sensitive).
+# Uses pip --force-reinstall to bypass local version segment matching issues.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
-    && uv pip install --system --no-cache "torch==$(pip show torch | grep '^Version:' | cut -d' ' -f2)" --index-url https://download.pytorch.org/whl/cu$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') --reinstall \
+    && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+    && python3 -m pip install --no-cache-dir --force-reinstall \
+       "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
+       --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
+    && uv pip install --system --no-cache --no-deps \
+       sglang-kernel==${SGLANG_KERNEL_VERSION} \
+       --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
     && NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
@@ -93,6 +108,15 @@ RUN cd sglang \
 
 # Persist nvidia pip lib paths for subsequent build steps that import torch
 RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") > /tmp/nvidia_lib_paths
+
+# flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA architecture.
+# Must be cloned from GitHub (PyPI sdist is missing headers) and built from source.
+RUN cd /sgl-workspace \
+  && git clone https://github.com/deepseek-ai/FlashMLA.git flash-mla \
+  && cd flash-mla && git submodule update --init --recursive \
+  && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
+  && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
+    pip install --no-cache-dir --no-build-isolation -v .
 
 # DeepEP
 RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
@@ -119,11 +143,9 @@ RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platf
 
 # sgl-model-gateway (Rust — patch source for crate API changes)
 RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-    && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain ${RUST_VERSION} \
-    && export PATH="/root/.cargo/bin:${PATH}" \
     && uv pip install --system --no-cache maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
-    && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close(); print('Patch 2 applied')" \
+    && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close()" \
     && cd bindings/python \
     && ulimit -n 65536 && maturin build --release --features vendored-openssl --out dist \
     && uv pip install --system --no-cache --reinstall dist/*.whl \
@@ -144,7 +166,9 @@ FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 ARG CUDA_VERSION
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
-ARG EFA_VERSION=1.47.0
+ARG TORCH_VERSION=2.11.0
+ARG SGLANG_KERNEL_VERSION=0.4.3
+ARG EFA_VERSION=1.48.0
 ARG NCCL_VERSION=2.28.3
 ARG CUDNN_VERSION=9.16.0.29
 
@@ -193,7 +217,7 @@ RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERS
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
   && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf /usr/bin/yum \
   && python3 -m ensurepip --upgrade \
-  && python3 -m pip install --upgrade pip \
+  && python3 -m pip install --upgrade pip "setuptools>=78.1.1" \
   && curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ENV PATH="/root/.local/bin:${PATH}"
@@ -217,9 +241,8 @@ RUN mkdir -p /usr/local/nvidia/pip-lib \
     && echo "/usr/local/nvidia/pip-lib" > /etc/ld.so.conf.d/nvidia-pip.conf \
     && ldconfig
 
-# Copy sglang workspace (needed for editable pip install of sglang python package)
+# Copy sglang workspace (needed for editable pip install)
 COPY --from=builder /sgl-workspace /sgl-workspace
-# Remove build-time source/artifacts that trigger ECR CVEs (grpc go.mod, Cargo.lock, openssl build dir)
 RUN rm -rf /sgl-workspace/sglang/sgl-model-gateway \
   /sgl-workspace/DeepEP \
   /sgl-workspace/sglang/.git
@@ -237,22 +260,75 @@ RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 RUN uv pip install --system --no-cache botocore
 
 # Patch CVEs
-RUN uv pip install --system --no-cache \
+RUN uv pip install --system --no-cache --prerelease=allow \
+  "diffusers>=0.38.0" \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32" \
   "setuptools>=78.1.1" \
-  "aiohttp>=3.13.4"
+  "aiohttp>=3.13.4" \
+  # kernels<0.15: 0.15.x breaks transformers hub_kernels LayerRepository() init
+  "kernels<0.15"
 
-# Re-pin NCCL/cuDNN/cuSparseLt after CVE patches (transitive deps may downgrade or remove them)
-# cuSparseLt installed without --no-deps in case it wasn't present from builder
-RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
+# Re-pin torch (cu129), sgl_kernel, NCCL/cuDNN/cuSparseLt after CVE patches.
+# The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
+# which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
+# Also reinstall sgl_kernel from the sglang wheel index (compiled against torch 2.11.0).
+RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
+     "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
+     --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
+     sglang-kernel==${SGLANG_KERNEL_VERSION} \
+     --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
+  && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
+  && ldconfig
+
+# tilelang compatibility fixes for AL2023:
+# 1. z3-libs: TVM (bundled in tilelang) requires libz3.so at runtime
+# 2. _xxsubinterpreters: CPython internal module needed by tilelang's cython
+#    wrapper. Debian/Ubuntu ship it but AL2023 does not — compile from source.
+# 3. Patch tilelang's cudart.cc stub: in child processes, CUDA symbols aren't
+#    in the global namespace yet. Add a dlopen("libcudart.so") fallback before
+#    the abort() so it loads the library explicitly when dlsym fails.
+RUN dnf install -y --setopt=install_weak_deps=False z3-libs \
+  && ln -sf /usr/lib64/libz3.so.4.8 /usr/lib64/libz3.so \
   && ldconfig \
-  && find / -name 'libcusparseLt.so*' 2>/dev/null || echo "WARNING: libcusparseLt.so not found anywhere"
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN PYVER=$(python${PYTHON_VERSION} -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')") \
+  && cd /tmp \
+  && curl --retry 3 -sSL https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz | tar xz \
+  && cd Python-${PYVER} \
+  && PYTHON_INCLUDE=$(python${PYTHON_VERSION} -c "import sysconfig; print(sysconfig.get_path('include'))") \
+  && gcc -shared -fPIC -O2 -I${PYTHON_INCLUDE} -I. -IInclude -IInclude/internal \
+     Modules/_xxsubinterpretersmodule.c \
+     -o _xxsubinterpreters.so -L/usr/lib64 -lpython${PYTHON_VERSION} \
+  && SITE=$(python${PYTHON_VERSION} -c "import site; print(site.getsitepackages()[0])") \
+  && cp _xxsubinterpreters.so ${SITE}/ \
+  && cd / && rm -rf /tmp/Python-*
+
+RUN TILELANG=$(python${PYTHON_VERSION} -c "import tilelang, os; print(os.path.dirname(tilelang.__file__))") \
+  && python${PYTHON_VERSION} -c "\
+import os; \
+src = '${TILELANG}/src/target/stubs/cudart.cc'; \
+content = open(src).read(); \
+target = '  fprintf(stderr,\n          \"TileLang Error: libcudart symbols not found globally.'; \
+insert = '  // AL2023 fix: try dlopen as fallback\n  void *handle = dlopen(\"libcudart.so\", RTLD_NOW | RTLD_GLOBAL);\n  if (handle != nullptr) {\n    return handle;\n  }\n'; \
+assert target in content, 'cudart.cc patch target not found'; \
+open(src, 'w').write(content.replace(target, insert + target))" \
+  && g++ -shared -fPIC -O2 \
+     -I/usr/local/cuda/include \
+     -I${TILELANG}/3rdparty/tvm/include \
+     ${TILELANG}/src/target/stubs/cudart.cc \
+     -o ${TILELANG}/lib/libcudart_stub.so \
+     -ldl
+
 
 # Telemetry, common scripts, and OSS compliance
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -285,6 +361,7 @@ COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
+  && mkdir -p /opt/amazon/efa && ln -sf /opt/amazon/efa/lib64 /opt/amazon/efa/lib \
   && bash install_efa_amzn2023.sh ${EFA_VERSION} \
   && rm install_efa_amzn2023.sh \
   && dnf remove -y libnccl-devel \

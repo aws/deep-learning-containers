@@ -62,6 +62,7 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
       prod-image: ${{ steps.parse.outputs.prod-image }}
+      release: ${{ steps.parse.outputs.release }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -76,6 +77,7 @@ jobs:
         id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "release=$(jq -r 'if .release.release then "true" else "false" end' config.json)" >> $GITHUB_OUTPUT
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "vllm-ref=$(jq -r '.common.vllm_ref // "v" + .common.framework_version' config.json)" >> $GITHUB_OUTPUT
@@ -130,7 +132,6 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/vllm-hyperpod-amzn2023.yml"
-              - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/common/install_efa_amzn2023.sh"
               - "scripts/common/setup_oss_compliance.sh"
               - "scripts/telemetry/bash_telemetry.sh.template"
@@ -148,7 +149,7 @@ jobs:
 
   build-image:
     needs: [check-changes, load-config]
-    if: needs.check-changes.outputs.build-change == 'true'
+    if: needs.check-changes.outputs.build-change == 'true' && needs.load-config.outputs.release == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-vllm-build-runner
@@ -245,6 +246,7 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
+      needs.load-config.outputs.release == 'true' &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
@@ -283,6 +285,7 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
+      needs.load-config.outputs.release == 'true' &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number }}
@@ -317,6 +320,7 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
+      needs.load-config.outputs.release == 'true' &&
       (needs.build-image.result == 'success' || needs.check-changes.outputs.model-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-model-smoke-tests-${{ github.event.pull_request.number }}

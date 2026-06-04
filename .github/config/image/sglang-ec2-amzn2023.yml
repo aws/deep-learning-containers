@@ -1,10 +1,12 @@
 # SGLang EC2 AL2023 Image Configuration
+# Single source of truth for image identity, build pins, and release settings.
+# Workflow extracts both image tags and --build-args from this file.
 image:
   name: "sglang-ec2-amzn2023"
   description: "SGLang for EC2 instances (AL2023, built from source)"
 common:
   framework: "sglang"
-  framework_version: "0.5.10"
+  framework_version: "0.5.12.dev543"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
@@ -14,6 +16,12 @@ common:
   prod_image: "sglang:0.5-gpu-py312-amzn2023-ec2"
   device_type: "gpu"
   contributor: "None"
+build:
+  sglang_ref: "578d27e56acd6786eb7067b9e1583232fd1d998e"
+  sglang_kernel_version: "0.4.3"
+  flashinfer_version: "0.6.11.post1"
+  deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
+  mooncake_version: "0.3.9"
 release:
   release: false
   force_release: false
