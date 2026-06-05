@@ -28,6 +28,7 @@ FRAMEWORKS = {
     "vllm",
     "sglang",
     "huggingface_vllm",
+    "huggingface_vllm_omni",
     "huggingface_sglang",
     "huggingface_llamacpp",
 }

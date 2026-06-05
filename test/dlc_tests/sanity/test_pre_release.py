@@ -189,24 +189,43 @@ def test_python_version(image):
 @pytest.mark.model("N/A")
 def test_ubuntu_version(image):
     """
-    Check that the ubuntu version in the image tag is the same as the one on a running container.
+    Check that the OS version in the image tag is the same as the one on a running container.
 
     :param image: ECR image URI
     """
     ctx = Context()
     container_name = get_container_name("ubuntu-version", image)
 
-    ubuntu_version = ""
+    expected_os = ""
+    expected_os_version = ""
     for tag_split in image.split("-"):
         if tag_split.startswith("ubuntu"):
-            ubuntu_version = tag_split.split("ubuntu")[-1]
+            expected_os = "ubuntu"
+            expected_os_version = tag_split.split("ubuntu")[-1]
+        elif tag_split.startswith("amzn"):
+            expected_os = "amzn"
+            expected_os_version = tag_split.split("amzn")[-1]
 
     start_container(container_name, image, ctx)
     output = run_cmd_on_container(container_name, ctx, "cat /etc/os-release")
-    container_ubuntu_version = output.stdout
+    container_os_release = output.stdout
 
-    assert "Ubuntu" in container_ubuntu_version
-    assert ubuntu_version in container_ubuntu_version
+    is_amazon_linux = (
+        "Amazon Linux" in container_os_release
+        or 'ID="amzn"' in container_os_release
+        or "ID=amzn" in container_os_release
+    )
+    if is_amazon_linux:
+        if expected_os == "amzn":
+            assert expected_os_version in container_os_release
+        return
+
+    if expected_os == "amzn":
+        assert 'ID="amzn"' in container_os_release or "ID=amzn" in container_os_release
+        assert expected_os_version in container_os_release
+    else:
+        assert "Ubuntu" in container_os_release
+        assert expected_os_version in container_os_release
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
