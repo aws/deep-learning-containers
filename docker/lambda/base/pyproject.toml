@@ -9,6 +9,6 @@ dependencies = [
     "pip-licenses==5.5.1",
     "requests==2.33.0",
     "setuptools==82.0.1",
-    "urllib3==2.6.3",
+    "urllib3==2.7.0",
     "pytest==8.4.1",
 ]
