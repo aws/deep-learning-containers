@@ -39,9 +39,9 @@ def trained_model(image_uri, role):
 
 
 @pytest.fixture(scope="module")
-def gpu_trained_model(image_uri, role):
+def gpu_trained_model(image_uri, role, gpu_tree_method):
     """Train a GPU model once for GPU e2e tests."""
-    hp = {**E2E_HP, "tree_method": "hist"}
+    hp = {**E2E_HP, "tree_method": gpu_tree_method}
     _, _, desc = run_training_job(
         image_uri=image_uri,
         role=role,
@@ -75,7 +75,10 @@ class TestE2E:
             if endpoint_name:
                 delete_endpoint(endpoint_name)
 
-    @pytest.mark.xfail(reason="GPU endpoint health check timeout — MMS startup slow on g4dn")
+    @pytest.mark.xfail(
+        "config.getoption('--xgboost-version') >= '3.2.0'",
+        reason="GPU endpoint health check timeout — MMS startup slow on g4dn",
+    )
     def test_gpu_train_and_deploy(self, image_uri, role, gpu_trained_model):
         endpoint_name = None
         try:
@@ -94,10 +97,10 @@ class TestE2E:
             if endpoint_name:
                 delete_endpoint(endpoint_name)
 
-    def test_dask_gpu_train(self, image_uri, role):
+    def test_dask_gpu_train(self, image_uri, role, gpu_tree_method):
         hp = {
             **E2E_HP,
-            "tree_method": "hist",
+            "tree_method": gpu_tree_method,
             "use_dask_gpu_training": "true",
         }
         _, _, desc = run_training_job(

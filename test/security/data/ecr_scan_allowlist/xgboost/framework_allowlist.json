@@ -268,5 +268,45 @@
         "vulnerability_id": "CVE-2026-6654",
         "reason": "rust-toolset-srpm-macros — double-free in thin_vec crate. Rust toolchain not used at runtime, only present as build dependency metadata.",
         "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39820",
+        "reason": "libcap — Go net/mail ParseAddress DoS. Go not used in container.",
+        "review_by": "2026-07-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42499",
+        "reason": "libcap — Go net/mail consumePhrase DoS. Go not used in container.",
+        "review_by": "2026-07-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33814",
+        "reason": "libcap — Go net/http2 SETTINGS infinite loop. Go not used in container.",
+        "review_by": "2026-07-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33811",
+        "reason": "libcap — Go net LookupCNAME double-free. Go not used in container.",
+        "review_by": "2026-07-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42010",
+        "reason": "gnutls — RSA-PSK NUL character auth bypass. DTLS/RSA-PSK not used in serving/training.",
+        "review_by": "2026-07-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42009",
+        "reason": "gnutls — DTLS packet ordering undefined behavior. DTLS not used in container.",
+        "review_by": "2026-07-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33846",
+        "reason": "gnutls — DTLS fragment heap overwrite. DTLS not used in container.",
+        "review_by": "2026-07-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42945",
+        "reason": "nginx — ngx_http_rewrite_module double-free. Rewrite rules not chained in XGBoost MMS config.",
+        "review_by": "2026-07-15"
     }
 ]
