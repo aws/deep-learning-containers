@@ -4,6 +4,7 @@ nav:
     - user_guide/index.md
     - vLLM: vllm
     - vLLM-Omni: vllm-omni
+    - TEI: tei
     - Ray: ray
     - PyTorch: pytorch
     - Base: base
