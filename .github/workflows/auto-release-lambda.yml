@@ -1,0 +1,356 @@
+name: Auto Release - Lambda
+
+on:
+  schedule:
+    # Runs at 10:00 AM PST/PDT on Monday and Wednesday
+    - cron: '00 17 * * 1,3'
+
+  # Manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+  DOCKERFILE_PATH: "docker/lambda/Dockerfile"
+
+jobs:
+  # ============================================================
+  # Load config for each Lambda image variant
+  # ============================================================
+  load-config-base:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/lambda-base.yml
+
+  load-config-cupy:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/lambda-cupy.yml
+
+  load-config-pytorch:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/lambda-pytorch.yml
+
+  # ============================================================
+  # Build all 3 Lambda image targets
+  # ============================================================
+  build-images:
+    needs: [load-config-base, load-config-cupy, load-config-pytorch]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ matrix.target.name }}-${{ github.run_id }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: base-py3, tag: gpu-base-py3 }
+          - { name: cupy-py3, tag: gpu-cupy-py3 }
+          - { name: pytorch-py3, tag: gpu-pytorch-py3 }
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build ${{ matrix.target.name }}
+        id: build
+        run: |
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-${{ github.run_id }}"
+          echo "Building ${CI_IMAGE_URI}"
+
+          docker buildx build --progress plain \
+            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target ${{ matrix.target.name }} \
+            -f ${{ env.DOCKERFILE_PATH }} .
+
+  # ============================================================
+  # Sanity tests
+  # ============================================================
+  sanity-test:
+    needs: [build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
+    concurrency:
+      group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-${{ github.run_id }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+      python-version: py3
+      cuda-version: cu129
+      os-version: amzn2023
+      customer-type: lambda
+      arch-type: x86
+      device-type: gpu
+      contributor: None
+      container-type: general
+
+  # ============================================================
+  # Security tests
+  # ============================================================
+  security-test:
+    needs: [build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
+    concurrency:
+      group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-${{ github.run_id }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+
+  # ============================================================
+  # Telemetry tests
+  # ============================================================
+  telemetry-test:
+    needs: [build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-${{ matrix.target.tag }}-${{ github.run_id }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-${{ github.run_id }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+      container-type: general
+
+  # ============================================================
+  # Validation tests (GPU required)
+  # ============================================================
+  validate-images:
+    needs: [sanity-test, security-test, telemetry-test]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: base-py3
+            tag: gpu-base-py3
+            tests: /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_base.py
+          - name: cupy-py3
+            tag: gpu-cupy-py3
+            tests: /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py
+          - name: pytorch-py3
+            tag: gpu-pytorch-py3
+            tests: /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_environment_pytorch.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py
+    concurrency:
+      group: ${{ github.workflow }}-validate-${{ matrix.target.name }}-${{ github.run_id }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Validate ${{ matrix.target.name }}
+        run: |
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-${{ github.run_id }}"
+          docker pull ${IMAGE}
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest ${{ matrix.target.tests }} -v
+
+  # ============================================================
+  # Release — base
+  # ============================================================
+  generate-release-spec-base:
+    needs: [load-config-base, build-images, validate-images]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config-base.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-base.outputs.config }}
+
+  release-base:
+    needs: [load-config-base, build-images, generate-release-spec-base]
+    if: needs.generate-release-spec-base.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-base-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-base-py3-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-base.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config-base.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — cupy
+  # ============================================================
+  generate-release-spec-cupy:
+    needs: [load-config-cupy, build-images, validate-images]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config-cupy.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-cupy.outputs.config }}
+
+  release-cupy:
+    needs: [load-config-cupy, build-images, generate-release-spec-cupy]
+    if: needs.generate-release-spec-cupy.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-cupy-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-cupy-py3-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-cupy.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config-cupy.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: true
+    secrets: inherit
+
+  # ============================================================
+  # Release — pytorch
+  # ============================================================
+  generate-release-spec-pytorch:
+    needs: [load-config-pytorch, build-images, validate-images]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config-pytorch.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-pytorch.outputs.config }}
+
+  release-pytorch:
+    needs: [load-config-pytorch, build-images, generate-release-spec-pytorch]
+    if: needs.generate-release-spec-pytorch.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-pytorch-${{ github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-py3-${{ github.run_id }}
+      release-spec: ${{ needs.generate-release-spec-pytorch.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config-pytorch.outputs.config).release.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: true
+    secrets: inherit
