@@ -6,10 +6,12 @@ dependencies = [
     "tensorflow==2.21.0",
     # CUDA runtime libs (cuDNN + NCCL) — installed via pip because AL2023 core repo
     # and NVIDIA's amzn2023 CUDA repo don't ship libcudnn / libnccl RPMs.
-    # Versions match TF 2.21's upstream-tested cuDNN 9.3 and the NCCL_VERSION pin
-    # in versions-cuda.env. Dockerfile.cuda copies the .so files out of these
-    # packages into /usr/local/cuda/lib64.
-    "nvidia-cudnn-cu12==9.3.0.75",
+    # cuDNN 9.5.1.17 patches CVE-2025-23339 (vs. TF 2.21's upstream-tested 9.3.0.75);
+    # cuDNN 9.x ships forward-ABI-compatible SONAMEs so TF 2.21's 9.3-linked binary
+    # loads against 9.5 without rebuild. NCCL_VERSION matches versions-cuda.env.
+    # Dockerfile.cuda copies the .so files out of these packages into
+    # /usr/local/cuda/lib64.
+    "nvidia-cudnn-cu12==9.5.1.17",
     "nvidia-nccl-cu12==2.29.7",
     "mpi4py",
     "boto3",

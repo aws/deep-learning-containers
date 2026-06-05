@@ -255,6 +255,14 @@ RUN curl -fsSLO "https://sourceforge.net/projects/boost/files/boost/1.82.0/boost
 RUN /opt/venv/bin/jupyter-kernelspec remove -f python3 2>/dev/null || true \
   && rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
 
+# Remove jupyterlab/staging (yarn.lock + webpack config). Build-tooling only;
+# never invoked at training/inference time. Eliminates a class of vendored-npm
+# CVEs (cross-spawn, qs, picomatch, path-to-regexp, validator, tmp, etc.) that
+# would otherwise need allowlisting in framework_allowlist.json.
+RUN STAGING_DIR="$(python -c 'import jupyterlab, os; print(os.path.join(os.path.dirname(jupyterlab.__file__), "staging"))')" && \
+    rm -rf "$STAGING_DIR" && \
+    echo "Removed jupyterlab build-tooling at $STAGING_DIR (yarn.lock not needed at runtime)"
+
 # TF does NOT need the PT-style changehostname.c workaround.
 # sagemaker_tensorflow_container reads /opt/ml/input/config/resourceconfig.json
 # directly via jq (installed in runtime-base) to discover peer hosts — no
@@ -274,8 +282,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template
 
 # Security patch — run after all installers so every OS package is covered.
+# Force libcurl refresh — AL2023's --security filter sometimes misses libcurl
+# CVE patches that ship as regular updates rather than security advisories.
 RUN dnf upgrade -y --security --releasever latest \
   && dnf upgrade -y cuda-compat-* \
+  && dnf upgrade -y libcurl libcurl-minimal --refresh \
   && dnf clean all
 
 # Telemetry bashrc hook — MUST be after `dnf upgrade --security` because dnf may

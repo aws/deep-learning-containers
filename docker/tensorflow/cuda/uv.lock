@@ -2067,13 +2067,13 @@ wheels = [
 
 [[package]]
 name = "nvidia-cudnn-cu12"
-version = "9.3.0.75"
+version = "9.5.1.17"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "nvidia-cublas-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8e/56/bb5c08a8d401fc1b21a10e9c58907e70e8f18bdfca34b7ecfb87bbcdad63/nvidia_cudnn_cu12-9.3.0.75-py3-none-manylinux2014_x86_64.whl", hash = "sha256:9ad9c6929ebb5295eb4a1728024666d1c88283373e265a0c5c883e6f9d5cd76d", size = 577163502, upload-time = "2024-08-05T20:10:57.111Z" },
+    { url = "https://files.pythonhosted.org/packages/2a/78/4535c9c7f859a64781e43c969a3a7e84c54634e319a996d43ef32ce46f83/nvidia_cudnn_cu12-9.5.1.17-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:30ac3869f6db17d170e0e556dd6cc5eee02647abc31ca856634d5a40f82c15b2", size = 570988386, upload-time = "2024-10-25T19:54:26.39Z" },
 ]
 
 [[package]]
@@ -3618,7 +3618,7 @@ requires-dist = [
     { name = "mpi4py" },
     { name = "numba", marker = "extra == 'sagemaker'" },
     { name = "numpy", specifier = "==1.26.4" },
-    { name = "nvidia-cudnn-cu12", specifier = "==9.3.0.75" },
+    { name = "nvidia-cudnn-cu12", specifier = "==9.5.1.17" },
     { name = "nvidia-nccl-cu12", specifier = "==2.29.7" },
     { name = "opencv-python", marker = "extra == 'sagemaker'", specifier = "==4.11.0.86" },
     { name = "packaging" },
