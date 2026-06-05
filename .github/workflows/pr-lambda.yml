@@ -2,7 +2,7 @@ name: PR - Lambda
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, junpu/feat-lmi-gpu]
     types: [opened, reopened, synchronize]
     paths:
       - "docker/lambda/**"
