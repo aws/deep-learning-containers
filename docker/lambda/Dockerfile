@@ -140,6 +140,8 @@ RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
 
 FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-pytorch-py3
 COPY --from=builder-pytorch-py3 /var/lang /var/lang
+RUN dnf install -y --setopt=install_weak_deps=False openssl-libs \
+  && dnf clean all && rm -rf /var/cache/dnf
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
