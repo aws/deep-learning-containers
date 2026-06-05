@@ -265,6 +265,7 @@ ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
   LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/usr/local/lib:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
   PYTHONPATH="/var/runtime" \
   PYTHONDONTWRITEBYTECODE=1 \
+  TORCH_HOME=/tmp/torch \
   DLC_CONTAINER_TYPE=general \
   LAMBDA_TASK_ROOT=/var/task \
   LAMBDA_RUNTIME_DIR=/var/runtime \
