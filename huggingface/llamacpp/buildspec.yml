@@ -3,8 +3,8 @@ prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK llamacpp
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION "b8882"
-short_version: &SHORT_VERSION "b8882"
+version: &VERSION "b9522"
+short_version: &SHORT_VERSION "b9522"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
 
@@ -19,9 +19,6 @@ repository_info:
 
 context:
   build_context: &BUILD_CONTEXT
-    deep_learning_container:
-      source: ../../src/deep_learning_container.py
-      target: deep_learning_container.py
     start_cuda_compat:
       source: build_artifacts/start_cuda_compat.sh
       target: start_cuda_compat.sh

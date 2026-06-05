@@ -435,7 +435,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     :param sts_client: boto3 Client for STS
     :param region: str Name of region where test is executed
     """
-    upstream_types = ["vllm", "sglang"]
+    upstream_types = ["vllm", "sglang", "llamacpp"]
     if any(t in image for t in upstream_types):
         pytest.skip(
             f"{', '.join(upstream_types)} images do not require test_ecr_enhanced_scan check as they are managed by upstream devs. Skipping test."

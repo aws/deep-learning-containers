@@ -1028,6 +1028,12 @@ def test_oss_compliance(image):
     Run oss compliance check on a container to check if license attribution files exist.
     And upload source of third party packages to S3 bucket.
     """
+    upstream_types = ["vllm", "sglang", "llamacpp"]
+    if any(t in image for t in upstream_types):
+        pytest.skip(
+            f"{', '.join(upstream_types)} images do not require oss compliance check as they are managed by upstream devs. Skipping test."
+        )
+
     THIRD_PARTY_SOURCE_CODE_BUCKET = "aws-dlinfra-licenses"
     THIRD_PARTY_SOURCE_CODE_BUCKET_PATH = "third_party_source_code"
     file = "THIRD_PARTY_SOURCE_CODE_URLS"

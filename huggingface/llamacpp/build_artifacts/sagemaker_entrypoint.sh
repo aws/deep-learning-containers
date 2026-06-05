@@ -1,10 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Check if telemetry file exists before executing
-# Execute telemetry script if it exists, suppress errors
-bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
-
 # Source CUDA compat for older drivers (e.g., g5 instances)
 if [ -f /usr/local/bin/start_cuda_compat.sh ] \
     && command -v nvidia-smi >/dev/null 2>&1 \
