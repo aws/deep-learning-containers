@@ -6,6 +6,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/vllm-sagemaker-amzn2023.yml"
+      - ".github/config/model-tests/vllm-model-tests.yml"
       - ".github/workflows/pr-vllm-sagemaker-amzn2023.yml"
       - ".github/workflows/reusable-vllm-sagemaker-tests.yml"
       - ".github/workflows/reusable-vllm-upstream-tests.yml"
@@ -111,6 +112,7 @@ jobs:
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -147,6 +149,9 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            model-test-change:
+              - ".github/config/model-tests/vllm-model-tests.yml"
+              - ".github/workflows/reusable-vllm-sagemaker-tests.yml"
 
   build-image:
     needs: [check-changes, load-config]
@@ -311,7 +316,7 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' || needs.check-changes.outputs.model-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number }}
       cancel-in-progress: false
