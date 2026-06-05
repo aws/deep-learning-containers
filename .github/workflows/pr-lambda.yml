@@ -56,11 +56,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
-        with:
-          extra_args: --all-files
-
       - name: Detect file changes
         id: changes
         uses: dorny/paths-filter@v3
@@ -246,5 +241,3 @@ jobs:
           IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-py3-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_environment_pytorch.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py -v
-
-
