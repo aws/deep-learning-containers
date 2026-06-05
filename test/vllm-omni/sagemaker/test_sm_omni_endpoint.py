@@ -87,14 +87,14 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
-        endpoint.wait_for_status("InService")
+        endpoint.wait_for_status("InService", timeout=1800)
 
         yield endpoint
     finally:
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
+@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_endpoint(model_endpoint):
     """TTS via /invocations routed to /v1/audio/speech by the serve proxy."""
@@ -188,7 +188,7 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
                 endpoint_name=endpoint_name,
                 endpoint_config_name=endpoint_name,
             )
-            endpoint.wait_for_status("InService")
+            endpoint.wait_for_status("InService", timeout=1800)
         except Exception as e:
             if any(tok in str(e) for tok in _CAPACITY_TOKENS):
                 pytest.skip(f"SageMaker capacity unavailable for {instance_type}: {e}")
@@ -199,7 +199,7 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g5.xlarge"], indirect=True)
+@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_async_endpoint(async_endpoint):
     """TTS via async inference — no 60s timeout, up to 1 hour."""
@@ -240,16 +240,16 @@ def test_vllm_omni_tts_async_endpoint(async_endpoint):
     pytest.fail("Async inference timed out after 300s")
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g5.2xlarge"], indirect=True)
+@pytest.mark.parametrize("instance_type", ["ml.g6.2xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Wan-AI/Wan2.1-VACE-1.3B-diffusers"], indirect=True)
 def test_vllm_omni_video_async_endpoint(async_endpoint):
     """Video gen via async inference + /v1/videos/sync.
 
-    Instance choice (ml.g5.2xlarge): A10G 24 GB VRAM (compute 8.6) + 32 GB host
-    RAM. Validated end-to-end on 2026-05-11: 45 KB MP4 returned in 10s.
-    A10G uses PyTorch SDPA fallback (no FA3 dependency since VACE diffusion
-    runs through standard attention). Host RAM is the constraint that bit us
-    earlier on 16 GB instances during HF model load.
+    Instance choice (ml.g6.2xlarge): L4 24 GB VRAM (compute 8.9) + 32 GB host
+    RAM. Equivalent VRAM/host RAM to g5.2xlarge but with better us-west-2
+    capacity. L4 uses PyTorch SDPA fallback (no FA3 dependency since VACE
+    diffusion runs through standard attention). Host RAM is the constraint
+    that bit us earlier on 16 GB instances during HF model load.
 
     Async inference removes SageMaker's 60s real-time invoke timeout, so this
     pattern is the recommended way to serve video generation behind a
