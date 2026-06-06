@@ -24,12 +24,19 @@ DEFAULT_TIMEOUT = 600
 # Permanent SG looked up by name.
 EFA_SG_NAME = "dlc-cicd-efa-test"
 
-# Tag key applied to every EIP we allocate, so the stale-EIP sweep can tell our
-# leaked EIPs apart from any other (incl. a concurrent run's in-flight) EIP.
-EFA_EIP_TAG_KEY = "dlc-efa-test"
-# Tag recording allocation time (ISO-8601 UTC) so the sweep can apply an age guard;
-# describe_addresses does not return an allocation timestamp.
+# Ownership marker applied to every instance AND EIP this test creates, so the
+# stale-resource sweeps can tell our leaked resources apart from anything else
+# (incl. a concurrent run's in-flight EIP). Same key on both resource types.
+EFA_TEST_TAG_KEY = "dlc-efa-test"
+# Tag recording EIP allocation time (ISO-8601 UTC) so the EIP sweep can apply an
+# age guard; describe_addresses does not return an allocation timestamp.
+# (Instances need no equivalent — describe_instances returns LaunchTime.)
 EFA_EIP_ALLOCATED_AT_TAG_KEY = "dlc-efa-test-allocated-at"
+
+# Reap leaked instances/EIPs older than this. The job timeout is 60 min
+# (reusable-efa-tests.yml), so anything older than this cannot belong to a live
+# run — making it safe to terminate even if global concurrency were ever relaxed.
+EFA_STALE_AGE_MINUTES = 90
 
 
 def get_efa_devices(conn):
@@ -226,7 +233,12 @@ def _build_efa_run_params(ami_id, instance_type, key_name, network_interfaces, a
         "TagSpecifications": [
             {
                 "ResourceType": "instance",
-                "Tags": [{"Key": "Name", "Value": f"CI-CD EFA {name}"}],
+                "Tags": [
+                    {"Key": "Name", "Value": f"CI-CD EFA {name}"},
+                    # Ownership marker so cleanup_stale_instances can reap this if the
+                    # runner is killed before efa_instances' finally-block terminates it.
+                    {"Key": EFA_TEST_TAG_KEY, "Value": "true"},
+                ],
             },
         ],
         "IamInstanceProfile": {"Name": EC2_INSTANCE_ROLE_NAME},
@@ -382,7 +394,7 @@ def get_private_ip(aws_session, instance_id):
 def allocate_and_associate_eip(aws_session, instance_id, run_id=""):
     """Allocate an Elastic IP and associate it with the instance's primary network interface.
 
-    Tags the EIP with EFA_EIP_TAG_KEY (and the per-run `run_id`) so a leaked EIP — one
+    Tags the EIP with EFA_TEST_TAG_KEY (and the per-run `run_id`) so a leaked EIP — one
     whose owning run was killed before its `finally` released it — can later be reclaimed
     by cleanup_stale_eips without touching a concurrent run's in-flight EIP. An allocation
     timestamp is recorded in the EFA_EIP_ALLOCATED_AT_TAG_KEY tag so the sweep can apply an
@@ -398,7 +410,7 @@ def allocate_and_associate_eip(aws_session, instance_id, run_id=""):
             {
                 "ResourceType": "elastic-ip",
                 "Tags": [
-                    {"Key": EFA_EIP_TAG_KEY, "Value": "true"},
+                    {"Key": EFA_TEST_TAG_KEY, "Value": "true"},
                     {"Key": "Name", "Value": f"efa-test-{run_id}" if run_id else "efa-test"},
                     {"Key": "efa-test-run", "Value": run_id},
                     {
@@ -437,16 +449,85 @@ def release_eip(aws_session, alloc_id):
         LOGGER.warning(f"Failed to release EIP {alloc_id}: {e}")
 
 
-def cleanup_stale_eips(aws_session, min_age_minutes=60):
-    """Release leaked EIPs left by killed/crashed previous runs.
+def cleanup_stale_instances(aws_session, min_age_minutes=EFA_STALE_AGE_MINUTES):
+    """Terminate leaked EFA instances (and free their EIPs) left by killed/crashed runs.
 
-    The account/region EIP quota is small (default 5). A run whose process is killed
-    before its `finally` block never releases the 2 EIPs it allocated, so they leak
-    permanently and eventually exhaust the quota with AddressLimitExceeded.
+    This is the primary leak source: the cleanup in efa_instances() lives in a `finally`
+    block, which the CodeBuild runner skips when it is hard-killed — on job timeout
+    (timeout-minutes in reusable-efa-tests.yml), PR cancellation (cancel-in-progress),
+    or OOM. The 2 p4d instances then keep running for days, each holding an EIP, until
+    the EIP quota is exhausted (AddressLimitExceeded) — and that EIP is *associated*, so
+    cleanup_stale_eips alone can never reclaim it. We must reap the instance first.
+
+    No in-process mechanism (finally / atexit / signal handler) survives SIGKILL, so the
+    only reliable cleanup is this next-run reaper. EFA tests are globally serialized
+    (concurrency group efa-test-global, cancel-in-progress: false), so no live run can
+    own an instance older than the job timeout — the age guard makes termination safe.
+
+    Terminates instances that are ALL of:
+      - tagged with EFA_TEST_TAG_KEY (ours — never touches other instances)
+      - in a non-terminal state (pending/running/stopping/stopped)
+      - launched more than `min_age_minutes` ago (cannot belong to a live run)
+
+    For each reaped instance, releases any EIP currently associated with it (covers the
+    associated-EIP case directly, regardless of whether the EIP carries our tag — e.g.
+    EIPs allocated before tagging existed). Best-effort: logs and continues on error.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    resp = aws_session.ec2.describe_instances(
+        Filters=[
+            {"Name": f"tag:{EFA_TEST_TAG_KEY}", "Values": ["true"]},
+            {
+                "Name": "instance-state-name",
+                "Values": ["pending", "running", "stopping", "stopped"],
+            },
+        ]
+    )
+    instances = [i for r in resp.get("Reservations", []) for i in r.get("Instances", [])]
+
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=min_age_minutes)
+    reaped = 0
+    for inst in instances:
+        instance_id = inst["InstanceId"]
+        launch_time = inst.get("LaunchTime")
+        if launch_time and launch_time > cutoff:
+            # Too recent to be a leak — could be the current (or a queued) run.
+            continue
+
+        # Release any EIP associated with this leaked instance before terminating, so
+        # the address is returned to the quota rather than left dangling/unassociated.
+        eips = aws_session.ec2.describe_addresses(
+            Filters=[{"Name": "instance-id", "Values": [instance_id]}]
+        ).get("Addresses", [])
+        for eip in eips:
+            if eip.get("AllocationId"):
+                release_eip(aws_session, eip["AllocationId"])
+
+        try:
+            aws_session.ec2.terminate_instances(InstanceIds=[instance_id])
+            LOGGER.info(f"Reaped stale EFA instance {instance_id} (launched {launch_time})")
+            reaped += 1
+        except Exception as e:
+            LOGGER.warning(f"Failed to reap stale instance {instance_id}: {e}")
+
+    if reaped:
+        LOGGER.info(f"Reaped {reaped} stale EFA instance(s)")
+    else:
+        LOGGER.info("No stale EFA instances to reap")
+
+
+def cleanup_stale_eips(aws_session, min_age_minutes=EFA_STALE_AGE_MINUTES):
+    """Release leaked, *unassociated* EIPs left by killed/crashed previous runs.
+
+    Complements cleanup_stale_instances: this catches EIPs that have no instance to reap —
+    e.g. allocated but the instance launch failed, or the instance was already terminated
+    without the address being released. The account/region EIP quota is small, so these
+    leaks eventually exhaust it with AddressLimitExceeded.
 
     Only releases EIPs that are ALL of:
-      - tagged with EFA_EIP_TAG_KEY (ours — never touches other resources)
-      - unassociated (no AssociationId — a live instance is not using it)
+      - tagged with EFA_TEST_TAG_KEY (ours — never touches other resources)
+      - unassociated (no AssociationId — associated ones are handled via the instance reaper)
       - older than `min_age_minutes` (avoids racing a concurrent run that just
         allocated an EIP but hasn't associated it yet)
 
@@ -455,7 +536,7 @@ def cleanup_stale_eips(aws_session, min_age_minutes=60):
     from datetime import datetime, timedelta, timezone
 
     addrs = aws_session.ec2.describe_addresses(
-        Filters=[{"Name": f"tag:{EFA_EIP_TAG_KEY}", "Values": ["true"]}]
+        Filters=[{"Name": f"tag:{EFA_TEST_TAG_KEY}", "Values": ["true"]}]
     ).get("Addresses", [])
 
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=min_age_minutes)
@@ -519,12 +600,14 @@ def efa_instances(
     try:
         key_name, key_path = aws_session.create_key_pair()
 
-        # Clean up stale runner SSH rules and leaked EIPs from any previous test that
-        # failed to clean up (e.g., runner process killed). Only touches resources our
-        # test tagged; the EIP sweep additionally skips anything allocated recently so a
-        # concurrent run's in-flight EIP is never reclaimed.
-        cleanup_stale_runner_ssh_rules(aws_session, sg_id)
+        # Reap resources leaked by previous runs whose runner was hard-killed (job
+        # timeout, PR cancellation, OOM) so the `finally` cleanup below never ran. Only
+        # touches resources our test tagged, and only past the job-timeout age, so a
+        # queued/live run is never affected. Order matters: reap instances first (frees
+        # their associated EIPs), then sweep any remaining unassociated EIPs, then SSH.
+        cleanup_stale_instances(aws_session)
         cleanup_stale_eips(aws_session)
+        cleanup_stale_runner_ssh_rules(aws_session, sg_id)
 
         # Authorize SSH from this runner's public IP on the permanent SG.
         # Permanent SG allows corp prefix list only; CodeBuild runner IPs aren't in it.
