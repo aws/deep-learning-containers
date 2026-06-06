@@ -16,6 +16,12 @@ dependencies = [
     "mpi4py",
     "boto3",
     "botocore",
+    # Security pin: aiohttp >=3.14.0 patches CVE-2026-34993 (CookieJar.load RCE
+    # on untrusted input) and CVE-2026-47265 (cookies leaking on cross-origin
+    # redirect). Pulled transitively by aiobotocore, aws-embedded-metrics,
+    # mlflow, s3fs, tritonclient. Direct pin forces resolver to pick the patched
+    # line regardless of what the transitives request.
+    "aiohttp>=3.14.0",
     # TF compat pins — declared here (not as inline `uv pip install` in the
     # Dockerfile) so OSS license scanning, uv.lock reproducibility, and resolver
     # conflict detection all work. See migration doc Locked Decisions.
