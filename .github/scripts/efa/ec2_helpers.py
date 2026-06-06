@@ -24,6 +24,13 @@ DEFAULT_TIMEOUT = 600
 # Permanent SG looked up by name.
 EFA_SG_NAME = "dlc-cicd-efa-test"
 
+# Tag key applied to every EIP we allocate, so the stale-EIP sweep can tell our
+# leaked EIPs apart from any other (incl. a concurrent run's in-flight) EIP.
+EFA_EIP_TAG_KEY = "dlc-efa-test"
+# Tag recording allocation time (ISO-8601 UTC) so the sweep can apply an age guard;
+# describe_addresses does not return an allocation timestamp.
+EFA_EIP_ALLOCATED_AT_TAG_KEY = "dlc-efa-test-allocated-at"
+
 
 def get_efa_devices(conn):
     """Get list of EFA device paths on an instance."""
@@ -372,12 +379,36 @@ def get_private_ip(aws_session, instance_id):
     return response["Reservations"][0]["Instances"][0]["PrivateIpAddress"]
 
 
-def allocate_and_associate_eip(aws_session, instance_id):
+def allocate_and_associate_eip(aws_session, instance_id, run_id=""):
     """Allocate an Elastic IP and associate it with the instance's primary network interface.
+
+    Tags the EIP with EFA_EIP_TAG_KEY (and the per-run `run_id`) so a leaked EIP — one
+    whose owning run was killed before its `finally` released it — can later be reclaimed
+    by cleanup_stale_eips without touching a concurrent run's in-flight EIP. An allocation
+    timestamp is recorded in the EFA_EIP_ALLOCATED_AT_TAG_KEY tag so the sweep can apply an
+    age guard (describe_addresses does not return an allocation time).
 
     Returns (allocation_id, public_ip).
     """
-    eip = aws_session.ec2.allocate_address(Domain="vpc")
+    from datetime import datetime, timezone
+
+    eip = aws_session.ec2.allocate_address(
+        Domain="vpc",
+        TagSpecifications=[
+            {
+                "ResourceType": "elastic-ip",
+                "Tags": [
+                    {"Key": EFA_EIP_TAG_KEY, "Value": "true"},
+                    {"Key": "Name", "Value": f"efa-test-{run_id}" if run_id else "efa-test"},
+                    {"Key": "efa-test-run", "Value": run_id},
+                    {
+                        "Key": EFA_EIP_ALLOCATED_AT_TAG_KEY,
+                        "Value": datetime.now(timezone.utc).isoformat(),
+                    },
+                ],
+            }
+        ],
+    )
     alloc_id = eip["AllocationId"]
     public_ip = eip["PublicIp"]
 
@@ -404,6 +435,58 @@ def release_eip(aws_session, alloc_id):
         LOGGER.info(f"Released EIP {alloc_id}")
     except Exception as e:
         LOGGER.warning(f"Failed to release EIP {alloc_id}: {e}")
+
+
+def cleanup_stale_eips(aws_session, min_age_minutes=60):
+    """Release leaked EIPs left by killed/crashed previous runs.
+
+    The account/region EIP quota is small (default 5). A run whose process is killed
+    before its `finally` block never releases the 2 EIPs it allocated, so they leak
+    permanently and eventually exhaust the quota with AddressLimitExceeded.
+
+    Only releases EIPs that are ALL of:
+      - tagged with EFA_EIP_TAG_KEY (ours — never touches other resources)
+      - unassociated (no AssociationId — a live instance is not using it)
+      - older than `min_age_minutes` (avoids racing a concurrent run that just
+        allocated an EIP but hasn't associated it yet)
+
+    Mirrors cleanup_stale_runner_ssh_rules. Best-effort: logs and continues on error.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    addrs = aws_session.ec2.describe_addresses(
+        Filters=[{"Name": f"tag:{EFA_EIP_TAG_KEY}", "Values": ["true"]}]
+    ).get("Addresses", [])
+
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=min_age_minutes)
+    reclaimed = 0
+    for addr in addrs:
+        alloc_id = addr.get("AllocationId")
+        if not alloc_id or addr.get("AssociationId"):
+            # No allocation id, or in use by a live instance — leave it alone.
+            continue
+
+        # Age guard: only reclaim EIPs older than the cutoff, so a concurrent run that
+        # just allocated (but hasn't associated yet) is never touched. Read the time we
+        # stamped at allocation; if it's missing or unparsable, conservatively skip.
+        allocated_at = None
+        for tag in addr.get("Tags", []):
+            if tag.get("Key") == EFA_EIP_ALLOCATED_AT_TAG_KEY:
+                try:
+                    allocated_at = datetime.fromisoformat(tag["Value"])
+                except ValueError:
+                    allocated_at = None
+                break
+        if allocated_at is None or allocated_at > cutoff:
+            continue
+
+        release_eip(aws_session, alloc_id)
+        reclaimed += 1
+
+    if reclaimed:
+        LOGGER.info(f"Reclaimed {reclaimed} stale EFA-test EIP(s)")
+    else:
+        LOGGER.info("No stale EFA-test EIPs to reclaim")
 
 
 @contextmanager
@@ -436,9 +519,12 @@ def efa_instances(
     try:
         key_name, key_path = aws_session.create_key_pair()
 
-        # Clean up stale runner SSH rules from any previous test that failed to clean up
-        # (e.g., runner process killed). Only touches rules our test created.
+        # Clean up stale runner SSH rules and leaked EIPs from any previous test that
+        # failed to clean up (e.g., runner process killed). Only touches resources our
+        # test tagged; the EIP sweep additionally skips anything allocated recently so a
+        # concurrent run's in-flight EIP is never reclaimed.
         cleanup_stale_runner_ssh_rules(aws_session, sg_id)
+        cleanup_stale_eips(aws_session)
 
         # Authorize SSH from this runner's public IP on the permanent SG.
         # Permanent SG allows corp prefix list only; CodeBuild runner IPs aren't in it.
@@ -455,9 +541,14 @@ def efa_instances(
         aws_session.wait_for_instance_ready(master_id)
         aws_session.wait_for_instance_ready(worker_id)
 
-        # EIPs: multi-NIC EFA instances don't get auto public IPs.
-        master_eip_alloc, master_ip = allocate_and_associate_eip(aws_session, master_id)
-        worker_eip_alloc, worker_ip = allocate_and_associate_eip(aws_session, worker_id)
+        # EIPs: multi-NIC EFA instances don't get auto public IPs. Tagged with the run's
+        # key_name so cleanup_stale_eips can reclaim them if this run is killed mid-test.
+        master_eip_alloc, master_ip = allocate_and_associate_eip(
+            aws_session, master_id, run_id=key_name
+        )
+        worker_eip_alloc, worker_ip = allocate_and_associate_eip(
+            aws_session, worker_id, run_id=key_name
+        )
 
         master_conn = LoggedConnection(
             host=master_ip,
