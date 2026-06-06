@@ -261,6 +261,7 @@ RUN /opt/venv/bin/jupyter-kernelspec remove -f python3 2>/dev/null || true \
 # would otherwise need allowlisting in framework_allowlist.json.
 RUN STAGING_DIR="$(python -c 'import jupyterlab, os; print(os.path.join(os.path.dirname(jupyterlab.__file__), "staging"))')" && \
     rm -rf "$STAGING_DIR" && \
+    python -c "import jupyterlab" && \
     echo "Removed jupyterlab build-tooling at $STAGING_DIR (yarn.lock not needed at runtime)"
 
 # TF does NOT need the PT-style changehostname.c workaround.
