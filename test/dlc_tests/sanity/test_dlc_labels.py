@@ -31,7 +31,7 @@ def test_dlc_major_version_label(image, region):
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
-    upstream_types = ["vllm", "sglang"]
+    upstream_types = ["vllm", "sglang", "llamacpp"]
     if any(t in image for t in upstream_types):
         pytest.skip(
             f"{', '.join(upstream_types)} images do not require test_dlc_standard_labels check as they are managed by upstream devs. Skipping test."
@@ -136,6 +136,9 @@ def test_dlc_major_version_dockerfiles(image):
 
     :param image: <str> ECR image URI
     """
+    if "llamacpp" in image:
+        pytest.skip("Llamacpp images do not include Python versioned Dockerfile paths.")
+
     dlc_dir = os.getcwd().split(f"{os.sep}test{os.sep}")[0]
     job_type = test_utils.get_job_type_from_image(image)
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)

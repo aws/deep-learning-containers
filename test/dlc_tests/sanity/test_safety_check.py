@@ -1092,6 +1092,9 @@ def test_safety(image):
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
     error if an issue is fixable.
     """
+    if "llamacpp" in image:
+        pytest.skip("Llamacpp images do not include Python safety tooling. Skipping test.")
+
     from dlc.safety_check import SafetyCheck
 
     safety_check = SafetyCheck()

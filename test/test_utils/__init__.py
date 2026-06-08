@@ -1823,6 +1823,7 @@ def get_framework_and_version_from_tag(image_uri):
         "huggingface_vllm_omni",
         "huggingface_vllm",
         "huggingface_sglang",
+        "huggingface_llamacpp",
         "stabilityai_pytorch",
         "pytorch_trcomp",
         "tensorflow",
@@ -1836,7 +1837,14 @@ def get_framework_and_version_from_tag(image_uri):
             f"from allowed frameworks {allowed_frameworks}"
         )
 
-    tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
+    _, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    if tested_framework == "huggingface_llamacpp":
+        tag_framework_version = image_tag.split("-")[0]
+    else:
+        version_match = re.search(r"(\d+(\.\d+){1,2})", image_tag)
+        if not version_match:
+            raise RuntimeError(f"Cannot find framework version in image tag {image_tag}")
+        tag_framework_version = version_match.group(1)
 
     return tested_framework, tag_framework_version
 
@@ -1941,6 +1949,7 @@ def get_framework_from_image_uri(image_uri):
         "huggingface-pytorch": "huggingface_pytorch",
         "huggingface-vllm": "huggingface_vllm",
         "huggingface-sglang": "huggingface_sglang",
+        "huggingface-llamacpp": "huggingface_llamacpp",
         "stabilityai-pytorch": "stabilityai_pytorch",
         "mxnet": "mxnet",
         "pytorch": "pytorch",
@@ -2082,6 +2091,7 @@ def get_job_type_from_image(image_uri):
         "base": "general",
         "vllm": "general",
         "sglang": "general",
+        "llamacpp": "general",
     }
 
     for key, job_type in job_type_mapping.items():

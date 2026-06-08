@@ -629,6 +629,15 @@ def main():
             sm_utils.generate_empty_report(report, test_type, "sglang")
             return
 
+        # Skip base llamacpp (not huggingface_llamacpp) - huggingface_llamacpp has local tests
+        if "llamacpp" in dlc_images and "huggingface" not in dlc_images:
+            LOGGER.info(
+                f"Skipping - there are no local mode tests for base Llamacpp. Images: {dlc_images}"
+            )
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "llamacpp")
+            return
+
         testing_image_list = [
             image
             for image in standard_images_list
