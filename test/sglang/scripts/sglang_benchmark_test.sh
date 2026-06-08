@@ -14,7 +14,7 @@ set -euo pipefail
 # BENCHMARK_OUTPUT_LEN - output token length (default: 128)
 # SGLANG_ENV_VARS - space-separated env vars for server (e.g., "SGLANG_DSV4_FP4_EXPERTS=0")
 # RESULTS_DIR - directory for JSON results (default: /tmp/benchmark_results)
-# SGLANG_PORT - server port (default: 8000)
+# SGLANG_PORT - server port (default: 30000)
 
 MODEL_DIR="${1:?Usage: $0 <model_dir> <model_name> <runner_type> [extra_sglang_args...]}"
 MODEL_NAME="${2:?Usage: $0 <model_dir> <model_name> <runner_type> [extra_sglang_args...]}"
