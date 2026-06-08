@@ -104,6 +104,12 @@ def test_dlc_standard_labels(image, region):
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_max_sagemaker_labels(image, region):
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
+        pytest.skip(
+            f"{', '.join(upstream_types)} images do not require test_max_sagemaker_labels check as they are managed by upstream devs. Skipping test."
+        )
+
     # Max ml engines sagemaker labels allowed:
     max_labels = 10
 
