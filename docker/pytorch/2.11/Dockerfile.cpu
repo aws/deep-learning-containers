@@ -1,5 +1,6 @@
 # ============================================================================
 # PyTorch DLC — Amazon Linux 2023 (CPU)
+# (test PR — do not merge; validating CI sec scan)
 # Multi-stage build:
 #
 #   builder-base ── builder-oss (OSS license generation)
