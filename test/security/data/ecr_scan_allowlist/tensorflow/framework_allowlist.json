@@ -1,135 +1,78 @@
 [
     {
         "vulnerability_id": "CVE-2024-21538",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2024-52798",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "cross-spawn@7.0.3 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/test_no_hyphens/yarn.lock. This is a JupyterLab test fixture lockfile (used by the upstream JupyterLab test suite to exercise extension-build behaviour) and is not consumed by any runtime path in the container; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2025-0725",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2025-12758",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "curl/libcurl@8.11.0 — flagged from /opt/venv/lib/python3.12/site-packages/tensorflow/include/external/curl/include/curl/curlver.h. This is a header-only curl version stamp shipped inside the TensorFlow wheel for downstream C++-extension builds; no compiled libcurl binary or shared library is bundled. The OS libcurl (which is what runs at execution time) is refreshed at build time via `dnf upgrade -y libcurl libcurl-minimal --refresh` in Dockerfile.{cuda,cpu}. Will be cleared once the TensorFlow upstream rolls its bundled curl version (tracked in tensorflow/third_party/curl).",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2025-23308",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "cuda-toolkit-config-common@12.9.79 ships with the nvidia/cuda:12.9.1-base-amzn2023 base image. Advisory affects the NVIDIA driver / privileged GPU tooling reachable only by a local attacker on the host; the container itself does not invoke the affected codepath at training time. Will be picked up via the next CUDA base image refresh from NVIDIA.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2025-23339",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2025-59840",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2025-64756",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "cuda-toolkit-config-common@12.9.79 ships with the nvidia/cuda:12.9.1-base-amzn2023 base image. Advisory affects an NVML/driver path reachable only by a local privileged caller on the host; not on the in-container training/inference path. Will be picked up via the next CUDA base image refresh from NVIDIA.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2025-69873",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-2391",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-24001",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-24842",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-26960",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "ajv@6.12.6 and ajv@8.12.0 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-26996",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "minimatch@3.1.2 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-27903",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "minimatch@3.1.2 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-27904",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33671",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "minimatch@3.1.2 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-33750",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33937",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33938",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33939",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33940",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33941",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "brace-expansion@1.1.11 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-34043",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-41907",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "serialize-javascript@6.0.2 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-45736",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "ws@8.18.1 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-4800",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-4867",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "lodash@4.17.21 and lodash-es@4.17.21 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-5773",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "curl/libcurl@8.11.0 — flagged from /opt/venv/lib/python3.12/site-packages/tensorflow/include/external/curl/include/curl/curlver.h. This is a header-only curl version stamp shipped inside the TensorFlow wheel for downstream C++-extension builds; no compiled libcurl binary or shared library is bundled. The OS libcurl (which is what runs at execution time) is refreshed at build time via `dnf upgrade -y libcurl libcurl-minimal --refresh` in Dockerfile.{cuda,cpu}. Will be cleared once the TensorFlow upstream rolls its bundled curl version (tracked in tensorflow/third_party/curl).",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-6276",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-6321",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
-    },
-    {
-        "vulnerability_id": "CVE-2026-6322",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "curl/libcurl@8.11.0 — flagged from /opt/venv/lib/python3.12/site-packages/tensorflow/include/external/curl/include/curl/curlver.h. This is a header-only curl version stamp shipped inside the TensorFlow wheel for downstream C++-extension builds; no compiled libcurl binary or shared library is bundled. The OS libcurl (which is what runs at execution time) is refreshed at build time via `dnf upgrade -y libcurl libcurl-minimal --refresh` in Dockerfile.{cuda,cpu}. Will be cleared once the TensorFlow upstream rolls its bundled curl version (tracked in tensorflow/third_party/curl).",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "GHSA-5c6j-r48x-rmvq",
-        "reason": "tensorflow-2.21 PR-6107 initial submission; pending upstream patch identification"
+        "reason": "serialize-javascript@6.0.2 — flagged from /opt/venv/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock. JupyterLab test fixture lockfiles, not on any runtime path; the python3 Jupyter kernel is removed at build time (Dockerfile.{cuda,cpu} `rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json`), so there is no notebook entry point. The yarn.lock is a static fixture, never resolved or executed. Latest jupyterlab 4.5.7 still ships these fixtures with the same pin; no upstream fix is available without patching jupyterlab's own test data.",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "GHSA-ph9p-34f9-6g65",
