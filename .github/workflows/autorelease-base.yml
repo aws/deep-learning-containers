@@ -35,7 +35,6 @@ jobs:
     outputs:
       cuda-version: ${{ steps.resolve.outputs.cuda }}
       configs: ${{ steps.matrix.outputs.configs }}
-      release-configs: ${{ steps.matrix.outputs.release-configs }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -67,7 +66,6 @@ jobs:
         run: |
           CUDA="${{ steps.resolve.outputs.cuda }}"
           CONFIGS="[]"
-          RELEASE_CONFIGS="[]"
 
           for TARGET in runtime devel; do
             CONFIG_FILE=".github/config/image/base-${CUDA}-${TARGET}.yml"
@@ -85,7 +83,6 @@ jobs:
             AT=$(yq -r '.common.arch_type // "x86"' "$CONFIG_FILE")
             CONTRIB=$(yq -r '.common.contributor // "None"' "$CONFIG_FILE")
             CUST=$(yq -r '.common.customer_type // ""' "$CONFIG_FILE")
-            SHOULD_RELEASE=$(yq -r '.release.release // false' "$CONFIG_FILE")
             ENVIRONMENT=$(yq -r '.release.environment // "production"' "$CONFIG_FILE")
 
             # check_base_image.sh expects "<py-major.minor> <cuda-major.minor>"
@@ -111,15 +108,10 @@ jobs:
                 cuda_script:$cuda_script, environment:$env}')
 
             CONFIGS=$(echo "$CONFIGS" | jq -c --argjson e "$ENTRY" '. + [$e]')
-            if [ "$SHOULD_RELEASE" = "true" ]; then
-              RELEASE_CONFIGS=$(echo "$RELEASE_CONFIGS" | jq -c --argjson e "$ENTRY" '. + [$e]')
-            fi
           done
 
           echo "configs=${CONFIGS}" >> "$GITHUB_OUTPUT"
-          echo "release-configs=${RELEASE_CONFIGS}" >> "$GITHUB_OUTPUT"
           echo "Configs matrix: ${CONFIGS}"
-          echo "Release configs: ${RELEASE_CONFIGS}"
 
   # ============================================================
   # Build base images for this CUDA version (runtime + devel)
@@ -266,9 +258,10 @@ jobs:
   # ============================================================
   generate-release-spec:
     needs: [load-config, build-images, sanity-test, base-sanity-test, cuda-test]
-    if: success() && needs.load-config.outputs.release-configs != '[]'
+    if: success()
     runs-on: ubuntu-latest
     outputs:
+      should-release: ${{ steps.check-release.outputs.should-release }}
       runtime-spec: ${{ steps.spec-runtime.outputs.release-spec }}
       devel-spec: ${{ steps.spec-devel.outputs.release-spec }}
     steps:
@@ -281,20 +274,31 @@ jobs:
         with:
           config-file: .github/config/image/base-${{ needs.load-config.outputs.cuda-version }}-runtime.yml
 
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ steps.cfg-runtime.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
       - name: Generate runtime release spec
         id: spec-runtime
+        if: steps.check-release.outputs.should-release == 'true'
         uses: ./.github/actions/generate-release-spec
         with:
           config-json: ${{ steps.cfg-runtime.outputs.config }}
 
       - name: Load devel config
         id: cfg-devel
+        if: steps.check-release.outputs.should-release == 'true'
         uses: ./.github/actions/load-config
         with:
           config-file: .github/config/image/base-${{ needs.load-config.outputs.cuda-version }}-devel.yml
 
       - name: Generate devel release spec
         id: spec-devel
+        if: steps.check-release.outputs.should-release == 'true'
         uses: ./.github/actions/generate-release-spec
         with:
           config-json: ${{ steps.cfg-devel.outputs.config }}
@@ -304,11 +308,11 @@ jobs:
   # ============================================================
   release:
     needs: [load-config, generate-release-spec]
-    if: success() && needs.load-config.outputs.release-configs != '[]'
+    if: needs.generate-release-spec.outputs.should-release == 'true'
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-config.outputs.release-configs) }}
+        include: ${{ fromJson(needs.load-config.outputs.configs) }}
     concurrency:
       group: ${{ github.workflow }}-release-${{ matrix.ci_tag }}-${{ github.run_id }}
       cancel-in-progress: true
