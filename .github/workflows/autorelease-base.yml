@@ -27,9 +27,8 @@ env:
 jobs:
   # ============================================================
   # Resolve the CUDA version for this run (cron → version, or
-  # workflow_dispatch input), build the runtime+devel build/test
-  # matrix for it, and render each target's release spec via the
-  # generate-release-spec action.
+  # workflow_dispatch input) and build the runtime+devel build/test
+  # matrix for it.
   # ============================================================
   load-config:
     runs-on: ubuntu-latest
@@ -37,8 +36,6 @@ jobs:
       cuda-version: ${{ steps.resolve.outputs.cuda }}
       configs: ${{ steps.matrix.outputs.configs }}
       release-configs: ${{ steps.matrix.outputs.release-configs }}
-      runtime-spec: ${{ steps.spec-runtime.outputs.release-spec }}
-      devel-spec: ${{ steps.spec-devel.outputs.release-spec }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -123,32 +120,6 @@ jobs:
           echo "release-configs=${RELEASE_CONFIGS}" >> "$GITHUB_OUTPUT"
           echo "Configs matrix: ${CONFIGS}"
           echo "Release configs: ${RELEASE_CONFIGS}"
-
-      # Render each target's release spec via the shared action
-      # (load-config → generate-release-spec, same chain as pr-pytorch).
-      - name: Load runtime config
-        id: cfg-runtime
-        uses: ./.github/actions/load-config
-        with:
-          config-file: .github/config/image/base-${{ steps.resolve.outputs.cuda }}-runtime.yml
-
-      - name: Generate runtime release spec
-        id: spec-runtime
-        uses: ./.github/actions/generate-release-spec
-        with:
-          config-json: ${{ steps.cfg-runtime.outputs.config }}
-
-      - name: Load devel config
-        id: cfg-devel
-        uses: ./.github/actions/load-config
-        with:
-          config-file: .github/config/image/base-${{ steps.resolve.outputs.cuda }}-devel.yml
-
-      - name: Generate devel release spec
-        id: spec-devel
-        uses: ./.github/actions/generate-release-spec
-        with:
-          config-json: ${{ steps.cfg-devel.outputs.config }}
 
   # ============================================================
   # Build base images for this CUDA version (runtime + devel)
@@ -288,12 +259,51 @@ jobs:
         run: docker exec ${CONTAINER_ID} bash /workdir/test/cuda/scripts/${{ matrix.cuda_script }} ${{ matrix.check_cuda }}
 
   # ============================================================
+  # Generate release specs — after all tests pass, before release
+  # (same placement as pr-pytorch). Runs the generate-release-spec
+  # action once per target via the load-config → generate-release-spec
+  # chain, exposing a runtime spec and a devel spec.
+  # ============================================================
+  generate-release-spec:
+    needs: [load-config, build-images, sanity-test, base-sanity-test, cuda-test]
+    if: success() && needs.load-config.outputs.release-configs != '[]'
+    runs-on: ubuntu-latest
+    outputs:
+      runtime-spec: ${{ steps.spec-runtime.outputs.release-spec }}
+      devel-spec: ${{ steps.spec-devel.outputs.release-spec }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Load runtime config
+        id: cfg-runtime
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-${{ needs.load-config.outputs.cuda-version }}-runtime.yml
+
+      - name: Generate runtime release spec
+        id: spec-runtime
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ steps.cfg-runtime.outputs.config }}
+
+      - name: Load devel config
+        id: cfg-devel
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-${{ needs.load-config.outputs.cuda-version }}-devel.yml
+
+      - name: Generate devel release spec
+        id: spec-devel
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ steps.cfg-devel.outputs.config }}
+
+  # ============================================================
   # Release — runtime + devel for this CUDA version.
-  # Spec comes from the generate-release-spec action run in
-  # load-config; selected per target.
   # ============================================================
   release:
-    needs: [load-config, build-images, sanity-test, base-sanity-test, cuda-test]
+    needs: [load-config, generate-release-spec]
     if: success() && needs.load-config.outputs.release-configs != '[]'
     strategy:
       fail-fast: false
@@ -305,7 +315,7 @@ jobs:
     uses: ./.github/workflows/reusable-release-image.yml
     with:
       source-image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-${{ github.run_id }}
-      release-spec: ${{ matrix.target == 'devel' && needs.load-config.outputs.devel-spec || needs.load-config.outputs.runtime-spec }}
+      release-spec: ${{ matrix.target == 'devel' && needs.generate-release-spec.outputs.devel-spec || needs.generate-release-spec.outputs.runtime-spec }}
       environment: ${{ matrix.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
