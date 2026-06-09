@@ -1,7 +1,11 @@
+ARG CUDA_VERSION=13.0.2
+# Short CUDA tag — also the docker/base/<dir> name (cu129, cu130, ...)
+ARG CUDA_VERSION_SHORT=cu130
+
 # ============================================================
 # Python builder (compile from source on cuda-base)
 # ============================================================
-FROM nvidia/cuda:13.0.2-base-amzn2023 AS python-builder
+FROM nvidia/cuda:${CUDA_VERSION}-base-amzn2023 AS python-builder
 
 ARG PYTHON_VERSION="3.13.12"
 ARG PYTHON_SHORT_VERSION="3.13"
@@ -17,9 +21,10 @@ RUN --mount=type=cache,target=/root/.cache/pip bash install_python.sh ${PYTHON_V
 # ============================================================
 # Runtime: CUDA runtime libs + Python
 # ============================================================
-FROM nvidia/cuda:13.0.2-runtime-amzn2023 AS runtime
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 
 ARG PYTHON_SHORT_VERSION="3.13"
+ARG CUDA_VERSION_SHORT
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
@@ -55,7 +60,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
 
 COPY --from=ghcr.io/astral-sh/uv:0.11.17 /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
-COPY ./docker/base/v2/pyproject.toml ./docker/base/v2/uv.lock /tmp/deps/
+COPY ./docker/base/${CUDA_VERSION_SHORT}/pyproject.toml ./docker/base/${CUDA_VERSION_SHORT}/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
   && rm -rf /tmp/deps /tmp/uv-*.lock
@@ -74,9 +79,10 @@ CMD ["/bin/bash"]
 # ============================================================
 # Devel: CUDA devel libs + Python + build tools
 # ============================================================
-FROM nvidia/cuda:13.0.2-devel-amzn2023 AS devel
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS devel
 
 ARG PYTHON_SHORT_VERSION="3.13"
+ARG CUDA_VERSION_SHORT
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
@@ -113,7 +119,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
 
 COPY --from=ghcr.io/astral-sh/uv:0.11.17 /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
-COPY ./docker/base/v2/pyproject.toml ./docker/base/v2/uv.lock /tmp/deps/
+COPY ./docker/base/${CUDA_VERSION_SHORT}/pyproject.toml ./docker/base/${CUDA_VERSION_SHORT}/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
   && rm -rf /tmp/deps /tmp/uv-*.lock
