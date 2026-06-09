@@ -295,3 +295,53 @@ COPY --from=oss-pytorch-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/test
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
+
+# ============================================================
+# RIC preview builder (compile thread-mode RIC with C extensions)
+# ============================================================
+FROM builder-base as builder-ric-preview
+RUN dnf install -y --setopt=install_weak_deps=False \
+  gcc gcc-c++ cmake make autoconf automake libtool \
+  && dnf clean all && rm -rf /var/cache/dnf
+COPY --from=lambda-python /var/lang/bin /var/lang/bin
+COPY --from=lambda-python /var/lang/include /var/lang/include
+COPY --from=lambda-python /var/lang/lib /var/lang/lib
+RUN rm -rf /var/lang/lib/python3.13/site-packages
+ENV PATH="/var/lang/bin:$PATH"
+RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
+COPY ./docker/lambda/artifacts/awslambdaric-3.1.1.tar.gz /tmp/
+RUN uv pip install --python /var/lang/bin/python3.13 --no-deps /tmp/awslambdaric-3.1.1.tar.gz \
+  && rm /tmp/awslambdaric-3.1.1.tar.gz
+
+# ============================================================
+# Preview: Base Python 3.13 (+ thread-mode RIC)
+# ============================================================
+FROM base-py3 as base-preview-py3
+RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
+  && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric /var/lang/lib/python3.13/site-packages/awslambdaric
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so
+ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
+
+# ============================================================
+# Preview: CuPy Python 3.13 (+ thread-mode RIC)
+# ============================================================
+FROM cupy-py3 as cupy-preview-py3
+RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
+  && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric /var/lang/lib/python3.13/site-packages/awslambdaric
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so
+ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
+
+# ============================================================
+# Preview: PyTorch Python 3.13 (+ thread-mode RIC)
+# ============================================================
+FROM pytorch-py3 as pytorch-preview-py3
+RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
+  && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric /var/lang/lib/python3.13/site-packages/awslambdaric
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so
+ENV AWS_LAMBDA_CONCURRENCY_MODE=thread

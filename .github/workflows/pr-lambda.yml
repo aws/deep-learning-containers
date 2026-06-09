@@ -69,7 +69,7 @@ jobs:
               - "test/security/data/ecr_scan_allowlist/lambda/**"
 
   # ============================================================
-  # Build all 6 image targets
+  # Build all image targets
   # ============================================================
   build-images:
     needs: [check-changes]
@@ -88,6 +88,9 @@ jobs:
           - { name: base-py3, tag: gpu-base-py3 }
           - { name: cupy-py3, tag: gpu-cupy-py3 }
           - { name: pytorch-py3, tag: gpu-pytorch-py3 }
+          - { name: base-preview-py3, tag: gpu-base-preview-py3 }
+          - { name: cupy-preview-py3, tag: gpu-cupy-preview-py3 }
+          - { name: pytorch-preview-py3, tag: gpu-pytorch-preview-py3 }
     outputs:
       base-py3: ${{ steps.build.outputs.image-uri }}
     steps:
@@ -102,6 +105,12 @@ jobs:
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Download RIC preview tarball
+        if: contains(matrix.target.name, 'preview')
+        run: |
+          mkdir -p docker/lambda/artifacts
+          aws s3 cp s3://dlc-cicd-wheels/lambda-ric/awslambdaric-3.1.1.tar.gz docker/lambda/artifacts/awslambdaric-3.1.1.tar.gz --region us-west-2
 
       - name: Build ${{ matrix.target.name }}
         id: build
@@ -133,6 +142,9 @@ jobs:
           - { tag: gpu-base-py3 }
           - { tag: gpu-cupy-py3 }
           - { tag: gpu-pytorch-py3 }
+          - { tag: gpu-base-preview-py3 }
+          - { tag: gpu-cupy-preview-py3 }
+          - { tag: gpu-pytorch-preview-py3 }
     concurrency:
       group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -165,6 +177,9 @@ jobs:
           - { tag: gpu-base-py3 }
           - { tag: gpu-cupy-py3 }
           - { tag: gpu-pytorch-py3 }
+          - { tag: gpu-base-preview-py3 }
+          - { tag: gpu-cupy-preview-py3 }
+          - { tag: gpu-pytorch-preview-py3 }
     concurrency:
       group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -189,6 +204,9 @@ jobs:
           - { tag: gpu-base-py3 }
           - { tag: gpu-cupy-py3 }
           - { tag: gpu-pytorch-py3 }
+          - { tag: gpu-base-preview-py3 }
+          - { tag: gpu-cupy-preview-py3 }
+          - { tag: gpu-pytorch-preview-py3 }
     concurrency:
       group: ${{ github.workflow }}-telemetry-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
@@ -239,5 +257,23 @@ jobs:
       - name: Validate pytorch-py3
         run: |
           IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-py3-pr-${{ github.event.pull_request.number }}"
+          docker pull ${IMAGE}
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_environment_pytorch.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py -v
+
+      - name: Validate base-preview-py3
+        run: |
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-base-preview-py3-pr-${{ github.event.pull_request.number }}"
+          docker pull ${IMAGE}
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_base.py -v
+
+      - name: Validate cupy-preview-py3
+        run: |
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-cupy-preview-py3-pr-${{ github.event.pull_request.number }}"
+          docker pull ${IMAGE}
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py -v
+
+      - name: Validate pytorch-preview-py3
+        run: |
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-preview-py3-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} -m pytest /test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_environment_pytorch.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py /test/unit/test_imports_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py -v
