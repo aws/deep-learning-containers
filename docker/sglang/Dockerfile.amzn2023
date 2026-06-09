@@ -297,6 +297,8 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
+     "nvidia-cutlass-dsl>=4.5.2" "nvidia-cutlass-dsl-libs-cu13>=4.5.2" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
