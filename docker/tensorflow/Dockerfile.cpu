@@ -182,6 +182,24 @@ RUN STAGING_DIR="$(python -c 'import jupyterlab, os; print(os.path.join(os.path.
     python -c "import jupyterlab" && \
     echo "Removed jupyterlab build-tooling at $STAGING_DIR (yarn.lock not needed at runtime)"
 
+# Remove jupyterlab/tests (test_*.py + mock_packages/yarn.lock fixtures).
+# Test data only, never on the training/inference path. Eliminates ~10 vendored-npm
+# CVEs (cross-spawn, ajv, minimatch, brace-expansion, serialize-javascript, ws,
+# lodash, etc.) flagged from mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock.
+RUN TESTS_DIR="$(python -c 'import jupyterlab, os; print(os.path.join(os.path.dirname(jupyterlab.__file__), "tests"))')" && \
+    rm -rf "$TESTS_DIR" && \
+    python -c "import jupyterlab" && \
+    echo "Removed jupyterlab tests at $TESTS_DIR (test fixtures not needed at runtime)"
+
+# Remove TF-vendored curl headers. Header-only directory used by downstream
+# C++ custom-op builds; not needed in a runtime DLC. Eliminates 3 curl CVEs
+# (CVE-2025-0725, CVE-2026-5773, CVE-2026-6276) flagged from curlver.h.
+# Only the curl subtree is removed; tf.sysconfig.get_include() still resolves.
+RUN CURL_DIR="$(python -c 'import tensorflow as tf, os; print(os.path.join(tf.sysconfig.get_include(), "external", "curl"))')" && \
+    rm -rf "$CURL_DIR" && \
+    python -c "import tensorflow as tf; tf.sysconfig.get_include()" && \
+    echo "Removed TF-vendored curl headers at $CURL_DIR"
+
 # TF does NOT need the PT-style changehostname.c workaround.
 # sagemaker_tensorflow_container reads /opt/ml/input/config/resourceconfig.json
 # directly via jq (installed in runtime-base) to discover peer hosts.
