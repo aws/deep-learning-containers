@@ -3,5 +3,10 @@
         "vulnerability_id": "CVE-2026-25087",
         "reason": "pyarrow 22.0.0 — use-after-free in Arrow C++ IPC reader. Pinned by upstream sagemaker-xgboost-container test assertion. IPC file reading not in serving/training path.",
         "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-0994",
+        "reason": "protobuf 3.20.3 — pinned to <=3.20.3 in pyproject.toml; required by smdebug. Bump to 6.33.5 requires removing the cap, which needs framework owner review.",
+        "review_by": "2026-09-07"
     }
 ]

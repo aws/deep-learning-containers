@@ -101,6 +101,7 @@ RUN dnf remove -y kernel-headers gcc gcc-c++ make cpp || true \
     libcap \
     libnghttp2 libnghttp2-devel \
     libpng \
+    libsolv \
     libssh libssh-config libssh-devel \
     libtasn1 \
     libxml2 \
