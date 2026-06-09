@@ -14,6 +14,7 @@ REQUIRED_PACKAGES = [
     "librosa",
     "numpy",
     "PIL",
+    "s3torchconnector",
     "safetensors",
     "scipy",
     "soundfile",

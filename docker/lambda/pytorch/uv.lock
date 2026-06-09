@@ -497,6 +497,7 @@ dependencies = [
     { name = "pip-licenses" },
     { name = "pytest" },
     { name = "requests" },
+    { name = "s3torchconnector" },
     { name = "safetensors" },
     { name = "sam-2" },
     { name = "scipy" },
@@ -524,6 +525,7 @@ requires-dist = [
     { name = "pip-licenses", specifier = "==5.5.1" },
     { name = "pytest", specifier = "==8.4.1" },
     { name = "requests", specifier = "==2.33.0" },
+    { name = "s3torchconnector", specifier = "==1.5.0" },
     { name = "safetensors", specifier = "==0.8.0rc1" },
     { name = "sam-2", git = "https://github.com/facebookresearch/segment-anything-2.git?rev=2b90b9f5ceec907a1c18123530e92e794ad901a4" },
     { name = "scipy", specifier = "==1.17.1" },
@@ -1178,6 +1180,27 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/b3/c6/f3b320c27991c46f43ee9d856302c70dc2d0fb2dba4842ff739d5f46b393/rich-14.3.3.tar.gz", hash = "sha256:b8daa0b9e4eef54dd8cf7c86c03713f53241884e814f4e2f5fb342fe520f639b", size = 230582, upload-time = "2026-02-19T17:23:12.474Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/14/25/b208c5683343959b670dc001595f2f3737e051da617f66c31f7c4fa93abc/rich-14.3.3-py3-none-any.whl", hash = "sha256:793431c1f8619afa7d3b52b2cdec859562b950ea0d4b6b505397612db8d5362d", size = 310458, upload-time = "2026-02-19T17:23:13.732Z" },
+]
+
+[[package]]
+name = "s3torchconnector"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "s3torchconnectorclient" },
+    { name = "torch" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/0f/24/a3422bc7e3d8f2a55a64250a6d5a07416c49d6f5695879445ff72c695612/s3torchconnector-1.5.0.tar.gz", hash = "sha256:44167d8e7bc0fce6d97627fc10aa7e215f4b58e0bb7037e87858c41eefd5b5af", size = 103050, upload-time = "2026-02-20T13:05:41.437Z" }
+
+[[package]]
+name = "s3torchconnectorclient"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a5/8d/e04febe3e7ff7c91bc4678a16bec1c87674fc9c160c75a8f8745e516e563/s3torchconnectorclient-1.5.0.tar.gz", hash = "sha256:09ffceca1fd025abd8a4a4cbd94b3f70a7c8ccfbf3e0f76337e180f95ce58e61", size = 85516, upload-time = "2026-02-20T13:05:42.435Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5a/86/a0cb960df36ebc42292bcdf9e0cd3b60e076d50b1abf9ab3cc5654856225/s3torchconnectorclient-1.5.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:f615a084432761242466c59c55bf7b0cf53555d903d33e5a8a638c7cc40569b3", size = 2019087, upload-time = "2026-02-20T13:05:20.483Z" },
+    { url = "https://files.pythonhosted.org/packages/aa/cb/75e57ef933b95144569010788ff25ce3aee771d49aa2cc8946f0a6452844/s3torchconnectorclient-1.5.0-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:9c99e52176e2874e172afd4123ed3df818ad7752084a6eec45982356a58f2b90", size = 3592684, upload-time = "2026-02-20T13:05:22.006Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/2b/1c99152a29da2d5936d20d3ff52bbcae064e612048b12c3d7f9b95df57a3/s3torchconnectorclient-1.5.0-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:e7e53ab3d066bf1a2508b5d5ad880245cb6af4e7d2f4e8edec63cec09b86ba2b", size = 3747483, upload-time = "2026-02-20T13:05:23.424Z" },
 ]
 
 [[package]]
