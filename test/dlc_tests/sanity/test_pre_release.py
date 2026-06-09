@@ -706,10 +706,10 @@ def test_pip_check(image):
     # This is a version conflict between TorchServe and ipython's transitive deps.
     # Note: don't use ^...$ anchors — re.findall without re.MULTILINE won't match non-first lines.
     allowed_exceptions.append(
-        r"ipython \d+(\.\d+)* has requirement psutil>=\d+, but you have psutil \d+(\.\d+)*\."
+        r"ipython \d+(\.\d+)* has requirement psutil>=\d+[^,]*, but you have psutil \d+(\.\d+)*\."
     )
     allowed_exceptions.append(
-        r"ipython \d+(\.\d+)* requires psutil>=\d+, but you have psutil \d+(\.\d+)* which is incompatible\."
+        r"ipython \d+(\.\d+)* requires psutil>=\d+[^,]*, but you have psutil \d+(\.\d+)* which is incompatible\."
     )
 
     # tox and pyproject-api require packaging>=25, but packaging is pinned to 24.2 in some images
