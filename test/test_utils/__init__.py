@@ -12,7 +12,7 @@ from collections.abc import Callable
 from typing import Any
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 def random_suffix_name(resource_name: str, max_length: int, delimiter: str = "-") -> str:
