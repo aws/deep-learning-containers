@@ -11,6 +11,7 @@ on:
       - "docker/xgboost/resources/**"
       - ".github/config/image/sagemaker-xgboost.yml"
       - ".github/workflows/pr-sagemaker-xgboost.yml"
+      - "test/security/data/ecr_scan_allowlist/xgboost/**"
       - "!docs/**"
 
 permissions:
