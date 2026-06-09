@@ -94,7 +94,9 @@ benchmark:
     - name: "qwen3.5-35b-a3b-fp8"
       s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
       runner_label: "gpu-h100-8gpu-runners"
-      extra_args: "--tp 8 --context-length 4096"
+      # tp=4 (not 8): FP8 block quant requires gate/up output_size divisible by
+      # block_n=128; tp=8 shards it to 64 and fails to load.
+      extra_args: "--tp 4 --context-length 4096"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=80
         MIN_REQUESTS_PER_SEC=0.35
@@ -108,7 +110,9 @@ benchmark:
     - name: "qwen3-coder-next-fp8"
       s3_model: "qwen3-coder-next-fp8.tar.gz"
       runner_label: "gpu-h100-8gpu-runners"
-      extra_args: "--tp 8 --context-length 4096"
+      # tp=4 (not 8): FP8 block quant requires gate/up output_size divisible by
+      # block_n=128; tp=8 shards it to 64 and fails to load.
+      extra_args: "--tp 4 --context-length 4096"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=93
         MIN_REQUESTS_PER_SEC=0.25
@@ -136,7 +140,9 @@ benchmark:
     - name: "qwen3-32b"
       s3_model: "qwen3-32b.tar.gz"
       extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
-      runner_label: "gpu-efa-runners"
+      # Dedicated H100 pod instead of shared gpu-efa-runners: the shared pod had a
+      # leftover process holding port 8000, causing "address already in use".
+      runner_label: "gpu-h100-8gpu-runners"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=1000
         MIN_REQUESTS_PER_SEC=3
