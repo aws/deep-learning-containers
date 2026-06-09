@@ -1,42 +1,17 @@
 [
     {
-        "vulnerability_id": "CVE-2025-23339",
-        "reason": "cuda-toolkit-config-common from NVIDIA CUDA repo — cuobjdump not used in XGBoost serving/training.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2025-23308",
-        "reason": "cuda-toolkit-config-common from NVIDIA CUDA repo — nvdisasm not used in XGBoost serving/training.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2026-0994",
-        "reason": "protobuf pinned to 3.20.x — required by smdebug. Cannot upgrade to 6.x.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2026-23949",
-        "reason": "jaraco.context vendored inside setuptools. tarball() not used in serving/training.",
-        "review_by": "2026-08-30"
-    },
-    {
         "vulnerability_id": "CVE-2026-28387",
-        "reason": "openssl from CUDA base image pins 3.2.2 — AL2023 repo patch not yet available for this epoch.",
+        "reason": "openssl from CUDA base image pins 3.2.2 \u2014 AL2023 repo patch not yet available for this epoch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-15468",
-        "reason": "openssl from CUDA base image pins 3.2.2 — QUIC not used in XGBoost container.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2025-15467",
-        "reason": "openssl from CUDA base image pins 3.2.2 — CMS not used in XGBoost container.",
+        "reason": "openssl from CUDA base image pins 3.2.2 \u2014 QUIC not used in XGBoost container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-69421",
-        "reason": "openssl from CUDA base image pins 3.2.2 — PKCS12 parsing not in serving/training path.",
+        "reason": "openssl from CUDA base image pins 3.2.2 \u2014 PKCS12 parsing not in serving/training path.",
         "review_by": "2026-08-30"
     },
     {
@@ -51,262 +26,252 @@
     },
     {
         "vulnerability_id": "CVE-2026-27654",
-        "reason": "nginx — dnf update did not pull latest. ngx_http_dav_module not enabled.",
+        "reason": "nginx \u2014 dnf update did not pull latest. ngx_http_dav_module not enabled.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-32647",
-        "reason": "nginx — ngx_http_mp4_module not used in XGBoost serving.",
+        "reason": "nginx \u2014 ngx_http_mp4_module not used in XGBoost serving.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-27651",
-        "reason": "nginx — ngx_mail_auth_http_module not enabled.",
+        "reason": "nginx \u2014 ngx_mail_auth_http_module not enabled.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-27784",
-        "reason": "nginx — 32-bit mp4 module vulnerability, container is 64-bit.",
+        "reason": "nginx \u2014 32-bit mp4 module vulnerability, container is 64-bit.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-49794",
-        "reason": "libxml2 — dnf update did not pull latest patch from AL2023 repo.",
+        "reason": "libxml2 \u2014 dnf update did not pull latest patch from AL2023 repo.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-49795",
-        "reason": "libxml2 — dnf update did not pull latest patch.",
+        "reason": "libxml2 \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-49796",
-        "reason": "libxml2 — dnf update did not pull latest patch.",
+        "reason": "libxml2 \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-7425",
-        "reason": "libxml2/libxslt — XSLT not used in XGBoost container.",
+        "reason": "libxml2/libxslt \u2014 XSLT not used in XGBoost container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-33416",
-        "reason": "libpng — dnf update did not pull latest patch.",
+        "reason": "libpng \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-66293",
-        "reason": "libpng — dnf update did not pull latest patch.",
+        "reason": "libpng \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-65018",
-        "reason": "libpng — dnf update did not pull latest patch.",
+        "reason": "libpng \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-33636",
-        "reason": "libpng — dnf update did not pull latest patch.",
+        "reason": "libpng \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-50059",
-        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "reason": "java-11-amazon-corretto-headless \u2014 dnf update did not pull latest.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-50106",
-        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "reason": "java-11-amazon-corretto-headless \u2014 dnf update did not pull latest.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-30749",
-        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "reason": "java-11-amazon-corretto-headless \u2014 dnf update did not pull latest.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-21945",
-        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "reason": "java-11-amazon-corretto-headless \u2014 dnf update did not pull latest.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-21932",
-        "reason": "java-11-amazon-corretto-headless — dnf update did not pull latest.",
+        "reason": "java-11-amazon-corretto-headless \u2014 dnf update did not pull latest.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-13151",
-        "reason": "libtasn1 — dnf update did not pull latest patch.",
+        "reason": "libtasn1 \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-68973",
-        "reason": "gnupg2-minimal — dnf update did not pull latest patch.",
+        "reason": "gnupg2-minimal \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-24882",
-        "reason": "gnupg2-minimal — tpm2daemon not used in container.",
+        "reason": "gnupg2-minimal \u2014 tpm2daemon not used in container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-13601",
-        "reason": "glib2 — dnf update did not pull latest patch.",
+        "reason": "glib2 \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-14087",
-        "reason": "glib2 — dnf update did not pull latest patch.",
+        "reason": "glib2 \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-47912",
-        "reason": "libcap — Go net/url vulnerability, Go not used in container.",
+        "reason": "libcap \u2014 Go net/url vulnerability, Go not used in container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-58188",
-        "reason": "libcap — Go crypto/x509 vulnerability, Go not used in container.",
+        "reason": "libcap \u2014 Go crypto/x509 vulnerability, Go not used in container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-27614",
-        "reason": "git — dnf update did not pull latest. gitk not used in container.",
+        "reason": "git \u2014 dnf update did not pull latest. gitk not used in container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-48384",
-        "reason": "git — dnf update did not pull latest.",
+        "reason": "git \u2014 dnf update did not pull latest.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-48385",
-        "reason": "git — dnf update did not pull latest.",
+        "reason": "git \u2014 dnf update did not pull latest.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-59375",
-        "reason": "expat — dnf update did not pull latest patch.",
+        "reason": "expat \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-0966",
-        "reason": "libssh — dnf update did not pull latest patch.",
+        "reason": "libssh \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-27135",
-        "reason": "libnghttp2 — dnf update did not pull latest patch.",
+        "reason": "libnghttp2 \u2014 dnf update did not pull latest patch.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2025-8194",
-        "reason": "python3.12 — tarfile vulnerability, not exploitable in serving/training path.",
+        "reason": "python3.12 \u2014 tarfile vulnerability, not exploitable in serving/training path.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-4519",
-        "reason": "python3.12 — webbrowser.open() not used in container.",
+        "reason": "python3.12 \u2014 webbrowser.open() not used in container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-21441",
-        "reason": "urllib3 2.4.0 — streaming API vulnerability. Pinned by dask-cuda compatibility.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66471",
-        "reason": "urllib3 2.4.0 — streaming API vulnerability. Pinned by dask-cuda compatibility.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66418",
-        "reason": "urllib3 2.4.0 — decompression chain vulnerability. Pinned by dask-cuda compatibility.",
+        "reason": "urllib3 2.4.0 \u2014 streaming API vulnerability. Pinned by dask-cuda compatibility.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-35385",
-        "reason": "openssh — scp setuid/setgid issue with -O flag. Legacy scp protocol not used in container.",
+        "reason": "openssh \u2014 scp setuid/setgid issue with -O flag. Legacy scp protocol not used in container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-4046",
-        "reason": "glibc — iconv() crash with IBM1390/IBM1399 charsets. Not used in serving/training path.",
+        "reason": "glibc \u2014 iconv() crash with IBM1390/IBM1399 charsets. Not used in serving/training path.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-4786",
-        "reason": "python3.12 — webbrowser.open() bypass of CVE-2026-4519 mitigation. webbrowser not used in container.",
+        "reason": "python3.12 \u2014 webbrowser.open() bypass of CVE-2026-4519 mitigation. webbrowser not used in container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-6100",
-        "reason": "python3.12 — UAF in lzma/bz2/gzip decompressor on MemoryError. Not exploitable in serving/training path.",
+        "reason": "python3.12 \u2014 UAF in lzma/bz2/gzip decompressor on MemoryError. Not exploitable in serving/training path.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-22016",
-        "reason": "java-11-amazon-corretto-headless — JAXP vulnerability. Fix version 11.0.31+11 not yet available in AL2023 repo. Java only used for MMS model server, not in data path.",
+        "reason": "java-11-amazon-corretto-headless \u2014 JAXP vulnerability. Fix version 11.0.31+11 not yet available in AL2023 repo. Java only used for MMS model server, not in data path.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-34282",
-        "reason": "java-11-amazon-corretto-headless — Networking vulnerability. Fix version 11.0.31+11 not yet available in AL2023 repo. Java only used for MMS model server, not in data path.",
+        "reason": "java-11-amazon-corretto-headless \u2014 Networking vulnerability. Fix version 11.0.31+11 not yet available in AL2023 repo. Java only used for MMS model server, not in data path.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-25087",
-        "reason": "pyarrow 22.0.0 — use-after-free in Arrow C++ IPC reader. Pinned by upstream sagemaker-xgboost-container test assertion. IPC file reading not in serving/training path.",
+        "reason": "pyarrow 22.0.0 \u2014 use-after-free in Arrow C++ IPC reader. Pinned by upstream sagemaker-xgboost-container test assertion. IPC file reading not in serving/training path.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-6357",
-        "reason": "python3-pip-wheel / python3.12-pip-wheel — pip self-update check code injection. pip not invoked at runtime in container.",
+        "reason": "python3-pip-wheel / python3.12-pip-wheel \u2014 pip self-update check code injection. pip not invoked at runtime in container.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-6654",
-        "reason": "rust-toolset-srpm-macros — double-free in thin_vec crate. Rust toolchain not used at runtime, only present as build dependency metadata.",
+        "reason": "rust-toolset-srpm-macros \u2014 double-free in thin_vec crate. Rust toolchain not used at runtime, only present as build dependency metadata.",
         "review_by": "2026-08-30"
     },
     {
         "vulnerability_id": "CVE-2026-39820",
-        "reason": "libcap — Go net/mail ParseAddress DoS. Go not used in container.",
+        "reason": "libcap \u2014 Go net/mail ParseAddress DoS. Go not used in container.",
         "review_by": "2026-07-15"
     },
     {
         "vulnerability_id": "CVE-2026-42499",
-        "reason": "libcap — Go net/mail consumePhrase DoS. Go not used in container.",
+        "reason": "libcap \u2014 Go net/mail consumePhrase DoS. Go not used in container.",
         "review_by": "2026-07-15"
     },
     {
         "vulnerability_id": "CVE-2026-33814",
-        "reason": "libcap — Go net/http2 SETTINGS infinite loop. Go not used in container.",
+        "reason": "libcap \u2014 Go net/http2 SETTINGS infinite loop. Go not used in container.",
         "review_by": "2026-07-15"
     },
     {
         "vulnerability_id": "CVE-2026-33811",
-        "reason": "libcap — Go net LookupCNAME double-free. Go not used in container.",
+        "reason": "libcap \u2014 Go net LookupCNAME double-free. Go not used in container.",
         "review_by": "2026-07-15"
     },
     {
         "vulnerability_id": "CVE-2026-42010",
-        "reason": "gnutls — RSA-PSK NUL character auth bypass. DTLS/RSA-PSK not used in serving/training.",
+        "reason": "gnutls \u2014 RSA-PSK NUL character auth bypass. DTLS/RSA-PSK not used in serving/training.",
         "review_by": "2026-07-15"
     },
     {
         "vulnerability_id": "CVE-2026-42009",
-        "reason": "gnutls — DTLS packet ordering undefined behavior. DTLS not used in container.",
+        "reason": "gnutls \u2014 DTLS packet ordering undefined behavior. DTLS not used in container.",
         "review_by": "2026-07-15"
     },
     {
         "vulnerability_id": "CVE-2026-33846",
-        "reason": "gnutls — DTLS fragment heap overwrite. DTLS not used in container.",
+        "reason": "gnutls \u2014 DTLS fragment heap overwrite. DTLS not used in container.",
         "review_by": "2026-07-15"
     },
     {
         "vulnerability_id": "CVE-2026-42945",
-        "reason": "nginx — ngx_http_rewrite_module double-free. Rewrite rules not chained in XGBoost MMS config.",
+        "reason": "nginx \u2014 ngx_http_rewrite_module double-free. Rewrite rules not chained in XGBoost MMS config.",
         "review_by": "2026-07-15"
     }
 ]
