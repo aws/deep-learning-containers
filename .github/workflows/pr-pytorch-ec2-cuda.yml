@@ -13,6 +13,8 @@ on:
       - "scripts/common/**"
       - "scripts/pytorch/**"
       - "scripts/telemetry/**"
+      - ".github/scripts/efa/**"
+      - ".github/workflows/reusable-efa-tests.yml"
       - "test/pytorch/**"
       - "test/efa/**"
       - "test/sanity/**"

@@ -36,6 +36,7 @@ sagemaker = [
     "seaborn",
     "cloudpickle",
     "s3fs>=2026.2.0",
+    "aiohttp>=3.14.0",
 ]
 
 [tool.uv]
