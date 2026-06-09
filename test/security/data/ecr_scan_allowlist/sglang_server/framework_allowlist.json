@@ -83,5 +83,10 @@
         "vulnerability_id": "CVE-2026-39821",
         "reason": "golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
         "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42504",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, MIME header parsing CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
+        "review_by": "2026-08-30"
     }
 ]

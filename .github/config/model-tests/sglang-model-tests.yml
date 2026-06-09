@@ -93,8 +93,8 @@ benchmark:
   runner-scale-sets:
     - name: "qwen3.5-35b-a3b-fp8"
       s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
-      runner_label: "gpu-l40s-4gpu-runners"
-      extra_args: "--tp 4 --context-length 4096"
+      runner_label: "gpu-h100-8gpu-runners"
+      extra_args: "--tp 8 --context-length 4096"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=80
         MIN_REQUESTS_PER_SEC=0.35
@@ -107,8 +107,8 @@ benchmark:
 
     - name: "qwen3-coder-next-fp8"
       s3_model: "qwen3-coder-next-fp8.tar.gz"
-      runner_label: "gpu-l40s-4gpu-runners"
-      extra_args: "--tp 4 --context-length 4096"
+      runner_label: "gpu-h100-8gpu-runners"
+      extra_args: "--tp 8 --context-length 4096"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=93
         MIN_REQUESTS_PER_SEC=0.25
@@ -121,8 +121,8 @@ benchmark:
 
     - name: "llama-3.3-70b"
       s3_model: "llama-3.3-70b.tar.gz"
-      runner_label: "gpu-l40s-4gpu-runners"
-      extra_args: "--tp 4 --context-length 4096"
+      runner_label: "gpu-h100-8gpu-runners"
+      extra_args: "--tp 8 --context-length 4096 --mem-fraction-static 0.88"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=80
         MIN_REQUESTS_PER_SEC=0.35
