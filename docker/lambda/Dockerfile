@@ -319,9 +319,7 @@ RUN uv pip install --python /var/lang/bin/python3.13 --no-deps /tmp/awslambdaric
 FROM base-py3 as base-preview-py3
 RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
   && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric /var/lang/lib/python3.13/site-packages/awslambdaric
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/ /var/lang/lib/python3.13/site-packages/
 ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
 
 # ============================================================
@@ -330,9 +328,7 @@ ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
 FROM cupy-py3 as cupy-preview-py3
 RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
   && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric /var/lang/lib/python3.13/site-packages/awslambdaric
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/ /var/lang/lib/python3.13/site-packages/
 ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
 
 # ============================================================
@@ -341,7 +337,5 @@ ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
 FROM pytorch-py3 as pytorch-preview-py3
 RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
   && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric /var/lang/lib/python3.13/site-packages/awslambdaric
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info /var/lang/lib/python3.13/site-packages/awslambdaric-3.1.1.dist-info
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so /var/lang/lib/python3.13/site-packages/runtime_client.cpython-313-x86_64-linux-gnu.so
+COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/ /var/lang/lib/python3.13/site-packages/
 ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
