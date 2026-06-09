@@ -89,6 +89,27 @@ RUN pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger
 # Remove build-time packages to reduce CVE surface
 RUN dnf remove -y kernel-headers gcc gcc-c++ make cpp || true \
   && dnf update -y --security nginx glib2 gnutls \
+  # Explicitly pull AL2023 latest patched versions for CVE-impacted packages
+  && dnf upgrade -y --releasever latest \
+    expat \
+    git git-core git-core-doc perl-Git \
+    glib2 \
+    glibc glibc-common glibc-gconv-extra glibc-minimal-langpack \
+    gnupg2-minimal \
+    gnutls \
+    java-11-amazon-corretto-headless \
+    libcap \
+    libnghttp2 libnghttp2-devel \
+    libpng \
+    libssh libssh-config libssh-devel \
+    libtasn1 \
+    libxml2 \
+    nginx nginx-core nginx-filesystem \
+    openssh openssh-clients \
+    openssl-libs openssl-devel openssl-fips-provider-latest \
+    python3 python3-libs python3-pip-wheel \
+    python3.12 python3.12-libs python3.12-devel python3.12-pip-wheel \
+    rust-toolset-srpm-macros \
   && dnf clean all
 
 # Patch sagemaker-inference decoder.py (CWE-502 fix)
