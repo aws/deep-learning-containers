@@ -1,22 +1,7 @@
 [
     {
-        "vulnerability_id": "CVE-2025-23339",
-        "reason": "cuda-toolkit-config-common from NVIDIA CUDA repo — cuobjdump not used in XGBoost serving/training.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2025-23308",
-        "reason": "cuda-toolkit-config-common from NVIDIA CUDA repo — nvdisasm not used in XGBoost serving/training.",
-        "review_by": "2026-08-30"
-    },
-    {
         "vulnerability_id": "CVE-2026-0994",
         "reason": "protobuf pinned to 3.20.x — required by smdebug. Cannot upgrade to 6.x.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2026-23949",
-        "reason": "jaraco.context vendored inside setuptools. tarball() not used in serving/training.",
         "review_by": "2026-08-30"
     },
     {
@@ -212,16 +197,6 @@
     {
         "vulnerability_id": "CVE-2026-21441",
         "reason": "urllib3 2.4.0 — streaming API vulnerability. Pinned by dask-cuda compatibility.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66471",
-        "reason": "urllib3 2.4.0 — streaming API vulnerability. Pinned by dask-cuda compatibility.",
-        "review_by": "2026-08-30"
-    },
-    {
-        "vulnerability_id": "CVE-2025-66418",
-        "reason": "urllib3 2.4.0 — decompression chain vulnerability. Pinned by dask-cuda compatibility.",
         "review_by": "2026-08-30"
     },
     {
