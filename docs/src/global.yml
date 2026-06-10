@@ -87,6 +87,7 @@ display_names:
     huggingface-pytorch-training: "HuggingFace PyTorch Training"
     huggingface-pytorch-inference: "HuggingFace PyTorch Inference"
     huggingface-vllm: "HuggingFace vLLM Inference"
+    huggingface-vllm-omni: "HuggingFace vLLM-Omni Inference"
     huggingface-sglang: "HuggingFace SGLang Inference"
     huggingface-tei: "HuggingFace Text Embeddings Inference"
     huggingface-vllm-inference-neuronx: "HuggingFace vLLM Inference NeuronX"
@@ -200,6 +201,7 @@ table_order:
   - huggingface-pytorch-training
   - huggingface-pytorch-inference
   - huggingface-vllm
+  - huggingface-vllm-omni
   - huggingface-sglang
   - huggingface-tei
   - huggingface-vllm-inference-neuronx
