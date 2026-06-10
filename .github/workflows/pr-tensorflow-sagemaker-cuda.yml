@@ -309,10 +309,11 @@ jobs:
 
       - name: Run unit tests
         run: |
+          VERSION="${{ matrix.version }}"
           IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:tensorflow-training-${{ matrix.framework_version }}-gpu-py312-cu129-sagemaker-${{ matrix.version }}-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir \
+            -e DLC_WORKDIR=/workdir -e DLC_TENSORFLOW_VERSION=${VERSION} \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q
@@ -348,11 +349,12 @@ jobs:
 
       - name: Run single-GPU tests
         run: |
+          VERSION="${{ matrix.version }}"
           IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:tensorflow-training-${{ matrix.framework_version }}-gpu-py312-cu129-sagemaker-${{ matrix.version }}-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
             --entrypoint /bin/bash \
-            -e DLC_WORKDIR=/workdir \
+            -e DLC_WORKDIR=/workdir -e DLC_TENSORFLOW_VERSION=${VERSION} \
             -v $(pwd):/workdir --workdir /workdir \
             ${IMAGE} -c 'sleep infinity')
           docker exec ${CONTAINER_ID} pip install pytest -q

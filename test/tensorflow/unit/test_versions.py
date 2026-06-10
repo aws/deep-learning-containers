@@ -7,11 +7,13 @@ import sys
 
 import pytest
 
-# Detect GPU vs CPU image by checking for CUDA, then pick the right versions file.
+# DLC_TENSORFLOW_VERSION selects which versioned directory to read (e.g., "2.21").
 _WORKDIR = os.environ.get("DLC_WORKDIR", "/workdir")
+_TF_VERSION = os.environ.get("DLC_TENSORFLOW_VERSION", "")
+assert _TF_VERSION, "DLC_TENSORFLOW_VERSION env var is required (e.g., '2.21')"
 IS_CUDA = os.path.isdir("/usr/local/cuda")
 _VERSIONS_FILE = "versions-cuda.env" if IS_CUDA else "versions-cpu.env"
-VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "tensorflow", _VERSIONS_FILE)
+VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "tensorflow", _TF_VERSION, _VERSIONS_FILE)
 cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
 
 
