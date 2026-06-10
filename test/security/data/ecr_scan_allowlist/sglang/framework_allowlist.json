@@ -78,5 +78,9 @@
     {
         "vulnerability_id": "CVE-2025-23308",
         "reason": "cuda-toolkit-config-common 12.9.79 is an OS package from NVIDIA CUDA repo, upgrade to 13.x requires CUDA major version bump"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42504",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.4+"
     }
 ]
