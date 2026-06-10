@@ -124,6 +124,8 @@ jobs:
               - "docker/xgboost/uv.lock"
               - "docker/xgboost/resources/**"
               - ".github/config/image/sagemaker-xgboost.yml"
+              - "test/security/data/ecr_scan_allowlist/xgboost/framework_allowlist.json"
+              - "test/security/data/ecr_scan_allowlist/xgboost/xgboost-3.2.0.json"
 
   build-wheel:
     needs: [check-changes, load-config]
