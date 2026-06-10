@@ -120,6 +120,8 @@ jobs:
               - "docker/xgboost/3.0-5/**"
               - "docker/xgboost/resources/**"
               - ".github/config/image/sagemaker-xgboost-3.0.yml"
+              - "test/security/data/ecr_scan_allowlist/xgboost/framework_allowlist.json"
+              - "test/security/data/ecr_scan_allowlist/xgboost/xgboost-3.0.5.json"
 
   build-image:
     needs: [check-changes, load-config]
