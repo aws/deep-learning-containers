@@ -4,6 +4,38 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v2.0.0 — 2026-06-05
+
+**Tags:** `server-cuda-v2.0` · `server-sagemaker-cuda-v2.0`
+
+**vLLM source:** [6aabe22](https://github.com/vllm-project/vllm/commit/6aabe221a56052965e6bb0a95e9ec682d046a6e7) (`0.22.1rc0+amzn2023.6aabe221`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.11.post2 · DeepEP [73b6ea4](https://github.com/deepseek-ai/DeepEP/commit/73b6ea4)
+
+### Highlights
+
+- **vLLM 0.22.1rc0** — major version bump from 0.20.0.dev361 (v1.4)
+- **CUDA 13.0.2** — upgraded from 12.9.1; requires NVIDIA driver 580+
+- **FlashInfer 0.6.11.post2** — upgraded from 0.6.8.post1; precompiled cubins now bundled
+- **EC2 entrypoint simplified** — uses `vllm serve` CLI instead of `python3 -m vllm.entrypoints.openai.api_server`
+- **nixl-cu13 fix** — KV connector NIXL now correctly linked against CUDA 13
+- **transformers pinned to <5.10** — avoids AttributeError on Voxtral with mistral-common 1.11.2
+
+### New Model Support
+
+- Qwen3-Embedding-0.6B and Qwen3-VL-Embedding-2B (embedding)
+- Qwen3-Reranker-4B (reranking)
+- IBM Granite-Speech-4.1-2B (ASR)
+- Gemma 4 family: 26B-A4B-it, 31B-it, E4B-it, E2B-it
+- Qwen3.5 (0.8B, 2B) and Qwen3.6 (27B, 35B-A3B)
+
+### Security
+
+- CVE-2025-33219: explicit `cuda-compat-13-0` upgrade in EC2 and SageMaker stages
+- `model-hosting-container-standards` bumped to ≥0.1.15
+
+* * *
+
 ## v1.4.0 — 2026-05-22
 
 **Tags:** `server-cuda-v1.4` · `server-sagemaker-cuda-v1.4`

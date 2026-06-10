@@ -1,8 +1,9 @@
 """Training tests with CSV content type.
 
 Migrated from SMFrameworksXGBoost3_0-5Tests/src/integration_tests/test_training_csv.py
-Note: Pipe mode tests removed — MLIO dropped in 3.2.0, pipe mode no longer supported.
 """
+
+import pytest
 
 from .conftest import run_training_job
 
@@ -46,8 +47,45 @@ class TestTrainingCsv:
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
-    def test_dask_gpu_single(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "hist", "use_dask_gpu_training": "true"}
+    @pytest.mark.skipif(
+        "config.getoption('--xgboost-version') >= '3.2.0'",
+        reason="Pipe mode not supported in 3.2.0+ (MLIO dropped)",
+    )
+    def test_pipe_mode_single_instance(self, image_uri, role):
+        _, duration, desc = run_training_job(
+            image_uri=image_uri,
+            role=role,
+            hyperparameters=BASE_HP,
+            train_s3_key="csv/train",
+            validation_s3_key="csv/test",
+            content_type="text/csv",
+            test_name="csv-pipe",
+            input_mode="Pipe",
+        )
+        assert desc["TrainingJobStatus"] == "Completed"
+        assert 1 <= duration <= 1800
+
+    @pytest.mark.skipif(
+        "config.getoption('--xgboost-version') >= '3.2.0'",
+        reason="Pipe mode not supported in 3.2.0+ (MLIO dropped)",
+    )
+    def test_pipe_mode_distributed(self, image_uri, role):
+        hp = {**BASE_HP, "tree_method": "hist"}
+        _, _, desc = run_training_job(
+            image_uri=image_uri,
+            role=role,
+            hyperparameters=hp,
+            train_s3_key="csv/train",
+            validation_s3_key="csv/test",
+            content_type="text/csv",
+            test_name="csv-pipe-dist",
+            input_mode="Pipe",
+            instance_count=2,
+        )
+        assert desc["TrainingJobStatus"] == "Completed"
+
+    def test_dask_gpu_single(self, image_uri, role, gpu_tree_method):
+        hp = {**BASE_HP, "tree_method": gpu_tree_method, "use_dask_gpu_training": "true"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,
@@ -61,8 +99,8 @@ class TestTrainingCsv:
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
-    def test_dask_gpu_multi_instance(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "hist", "use_dask_gpu_training": "true"}
+    def test_dask_gpu_multi_instance(self, image_uri, role, gpu_tree_method):
+        hp = {**BASE_HP, "tree_method": gpu_tree_method, "use_dask_gpu_training": "true"}
         _, _, desc = run_training_job(
             image_uri=image_uri,
             role=role,
@@ -77,10 +115,10 @@ class TestTrainingCsv:
         )
         assert desc["TrainingJobStatus"] == "Completed"
 
-    def test_dask_gpu_binary_class(self, image_uri, role):
+    def test_dask_gpu_binary_class(self, image_uri, role, gpu_tree_method):
         hp = {
             **BASE_HP,
-            "tree_method": "hist",
+            "tree_method": gpu_tree_method,
             "use_dask_gpu_training": "true",
             "objective": "binary:logistic",
         }

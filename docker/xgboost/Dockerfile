@@ -87,7 +87,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 RUN pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32
 
 # Remove build-time packages to reduce CVE surface
-RUN dnf remove -y kernel-headers gcc gcc-c++ make cpp || true && dnf clean all
+RUN dnf remove -y kernel-headers gcc gcc-c++ make cpp || true \
+  && dnf upgrade -y --security --releasever latest \
+  && dnf clean all
 
 # Patch sagemaker-inference decoder.py (CWE-502 fix)
 COPY docker/xgboost/resources/patches/decoder.py /opt/venv/lib64/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py

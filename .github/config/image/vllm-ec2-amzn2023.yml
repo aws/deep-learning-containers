@@ -19,7 +19,7 @@ common:
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "vllm:server-cuda-v1"
+  prod_image: "vllm:server-cuda-v2"
   device_type: "gpu"
   contributor: "None"
 

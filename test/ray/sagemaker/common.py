@@ -29,7 +29,7 @@ from ray.utils import (
 from sagemaker.core.resources import Endpoint, EndpointConfig, Model
 from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
-from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
+from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -151,8 +151,8 @@ def make_model_endpoint_fixture(device, instance_type):
                 instance_type=instance_type,
             )
             if device == "gpu":
-                variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION
-                LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION}")
+                variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
+                LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION_CU12}")
 
             endpoint_config = EndpointConfig.create(
                 endpoint_config_name=endpoint_name,
