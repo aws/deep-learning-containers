@@ -88,7 +88,7 @@ RUN pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger
 
 # Remove build-time packages to reduce CVE surface
 RUN dnf remove -y kernel-headers gcc gcc-c++ make cpp || true \
-  && dnf update -y --security nginx glib2 gnutls \
+  && dnf upgrade -y --security --releasever latest \
   && dnf clean all
 
 # Patch sagemaker-inference decoder.py (CWE-502 fix)
