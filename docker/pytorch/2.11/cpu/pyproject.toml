@@ -3,7 +3,7 @@ name = "pytorch-dlc-cpu"
 version = "2.11.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "torch==2.11.0",
+    "torch==2.12.0",
     "torchvision==0.26.0",
     "torchaudio==2.11.0",
     "deepspeed==0.18.8",
@@ -26,7 +26,7 @@ dependencies = [
 [project.optional-dependencies]
 sagemaker = [
     "smclarify",
-    "sagemaker>=3.4.0",
+    "sagemaker>=3.13.1",
     "sagemaker-pytorch-training",
     "sagemaker-training",
     "mlflow>=3.9.0",
@@ -40,7 +40,7 @@ sagemaker = [
     "seaborn",
     "cloudpickle",
     "s3fs>=2026.2.0",
-    "aiohttp>=3.14.0",
+    "aiohttp>=3.14.1",
 ]
 
 [tool.uv]
