@@ -6,7 +6,7 @@
 #                       framework wheel rebuild needed)
 #   runtime-base ──── sagemaker      (SageMaker Training)
 #
-# All version defaults mirror docker/tensorflow/versions-cuda.env. Workflows
+# All version defaults mirror docker/tensorflow/2.21/versions-cuda.env. Workflows
 # source versions-cuda.env and pass ARGs via --build-arg — single source of
 # truth.
 # ============================================================================
@@ -39,7 +39,7 @@ ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-COPY docker/tensorflow/cuda/pyproject.toml docker/tensorflow/cuda/uv.lock /tmp/build/
+COPY docker/tensorflow/2.21/cuda/pyproject.toml docker/tensorflow/2.21/cuda/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact
 
@@ -228,12 +228,12 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 # `--inexact` keeps the venv contents already laid down by builder-base.
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
-COPY docker/tensorflow/cuda/pyproject.toml docker/tensorflow/cuda/uv.lock /tmp/build/
+COPY docker/tensorflow/2.21/cuda/pyproject.toml docker/tensorflow/2.21/cuda/uv.lock /tmp/build/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
   && rm -rf /tmp/build /tmp/uv-*
 
 # NOTE: Every Python package shipped in this image is enumerated in
-# docker/tensorflow/cuda/pyproject.toml — no inline `uv pip install` blocks.
+# docker/tensorflow/2.21/cuda/pyproject.toml — no inline `uv pip install` blocks.
 # Pins (cython<3, numpy==1.26.4, opencv-python==4.11.0.86, awscli<2,
 # tensorflow-io==0.37.*, sagemaker-experiments==0.1.45, sparkmagic==0.22.0,
 # s3fs>=2026.2.0, etc.) live in pyproject.toml so OSS license scanning, uv.lock
