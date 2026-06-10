@@ -24,6 +24,10 @@
 #   gpu-h100-8gpu-runners  = 8x H100 640GB VRAM
 #   gpu-efa-runners        = 4x A100/H100 160-320GB VRAM (4 GPU per pod limit)
 #   gpu-p4d-runners        = 4x A100 160GB VRAM (reserved)
+#
+# Server port: leave SGLANG_PORT unset so the server uses the SGLang default
+# (30000). Port 8000 is occupied on the gpu-h100-8gpu-runners pods and caused
+# every GPU benchmark to fail with "[Errno 98] address already in use".
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 
@@ -105,7 +109,6 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=8000
 
     - name: "qwen3-coder-next-fp8"
       s3_model: "qwen3-coder-next-fp8.tar.gz"
@@ -121,12 +124,13 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=8000
 
     - name: "llama-3.3-70b"
       s3_model: "llama-3.3-70b.tar.gz"
       runner_label: "gpu-h100-8gpu-runners"
-      extra_args: "--tp 8 --context-length 4096 --mem-fraction-static 0.88"
+      # --disable-piecewise-cuda-graph: graph capture (FusedAddRMSNorm) starved the
+      # runner during warmup_compile; disabling it cuts compile-time host memory.
+      extra_args: "--tp 8 --context-length 4096 --mem-fraction-static 0.88 --disable-piecewise-cuda-graph"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=80
         MIN_REQUESTS_PER_SEC=0.35
@@ -135,13 +139,14 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=8000
 
     - name: "qwen3-32b"
       s3_model: "qwen3-32b.tar.gz"
-      extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
-      # Dedicated H100 pod instead of shared gpu-efa-runners: the shared pod had a
-      # leftover process holding port 8000, causing "address already in use".
+      # --disable-piecewise-cuda-graph: warmup_compile crashed with "FusedAddRMSNorm
+      # failed ... an illegal memory access" during piecewise CUDA graph capture (an
+      # experimental SGLang default). Same workaround as llama-3.3-70b.
+      extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85 --disable-piecewise-cuda-graph"
+      # Dedicated H100 pod instead of shared gpu-efa-runners.
       runner_label: "gpu-h100-8gpu-runners"
       env_vars: >-
         MIN_THROUGHPUT_TOKENS_PER_SEC=1000
@@ -151,7 +156,6 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=8000
 
     - name: "deepseek-v4-flash"
       s3_model: "deepseek-v4-flash.tar.gz"
@@ -166,4 +170,3 @@ benchmark:
         BENCHMARK_OUTPUT_LEN=256
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=8000
