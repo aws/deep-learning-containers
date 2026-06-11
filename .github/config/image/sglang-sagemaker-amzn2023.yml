@@ -18,8 +18,8 @@ common:
   device_type: "gpu"
   contributor: "None"
 build:
-  sglang_ref: "d9d719b270729eaf93a923677c2fef06b9f5fded"
-  sglang_kernel_version: "0.4.2.post2"
+  sglang_ref: "578d27e56acd6786eb7067b9e1583232fd1d998e"
+  sglang_kernel_version: "0.4.3"
   flashinfer_version: "0.6.11.post1"
   deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
   mooncake_version: "0.3.9"
@@ -39,4 +39,4 @@ release:
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: gamma
+  environment: production

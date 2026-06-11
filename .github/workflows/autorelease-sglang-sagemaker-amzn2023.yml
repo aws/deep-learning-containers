@@ -3,11 +3,14 @@ name: Auto Release - SGLang SageMaker AMZN2023
 on:
   # schedule run must be on the default branch
   schedule:
-    # Runs at 9AM/10AM PST/PDT on Tuesdays and Thursdays
-    - cron: '00 19 * * 1,3'
-  # Trigger when an auto-update PR is merged
-  push:
-    branches: [main]
+    # Runs at 11AM/12PM PST/PDT on Tuesdays and Thursdays
+    - cron: '00 19 * * 2,4'
+
+  # PR triggers for testing
+  # pull_request:
+  #   paths:
+  #     - "**sglang**"
+  #     - "!docs/**"
 
   # Manual trigger
   workflow_dispatch:
@@ -27,24 +30,13 @@ env:
   CONFIG_FILE: '.github/config/image/sglang-sagemaker-amzn2023.yml'
 
 jobs:
-  # Gate: skip push events unless it's a merged auto-update PR for sglang
-  autocurrency-pr-gate:
-    if: >-
-      github.event_name != 'push' || (
-        contains(github.event.head_commit.message, '[Auto-Update] sglang') &&
-        github.event.head_commit.author.name == 'aws-deep-learning-containers-ci[bot]'
-      )
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Gate passed"
-
   load-config:
-    needs: [autocurrency-pr-gate]
     runs-on: ubuntu-latest
     outputs:
       config: ${{ steps.load.outputs.config }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
+      sglang-ref: ${{ steps.parse.outputs.sglang-ref }}
       python-version: ${{ steps.parse.outputs.python-version }}
       cuda-version: ${{ steps.parse.outputs.cuda-version }}
       os-version: ${{ steps.parse.outputs.os-version }}
@@ -70,6 +62,7 @@ jobs:
           echo '${{ steps.load.outputs.config }}' > config.json
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "sglang-ref=$(jq -r '.build.sglang_ref // ""' config.json)" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
@@ -99,7 +92,7 @@ jobs:
         with:
           config-json: ${{ needs.load-config.outputs.config }}
           framework: ${{ needs.load-config.outputs.framework }}
-          target: sglang-sagemaker-amzn2023
+          target: sglang-sagemaker
           base-image: nvidia/cuda:13.0.3-devel-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
@@ -152,6 +145,7 @@ jobs:
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
+      sglang-ref: ${{ needs.load-config.outputs.sglang-ref }}
       benchmark-start-command: >-
         docker run -d -it --rm --gpus=all
         -v ${HOME}/.cache/huggingface:/root/.cache/huggingface
