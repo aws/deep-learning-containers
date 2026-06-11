@@ -1,8 +1,5 @@
 # syntax=docker/dockerfile:1
 
-# AWS-published vLLM DLC this image layers on top of. The build workflow passes
-# the resolved base via --build-arg BASE_IMAGE (build_image.sh always forwards
-# it); this default keeps standalone `docker build` working.
 ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
@@ -10,9 +7,6 @@ FROM ${BASE_IMAGE} AS base
 LABEL maintainer="Hugging Face"
 LABEL hf_dlc_major_version="1"
 
-# Build-args the DLC harness (build_image.sh) always forwards. Declared so they
-# are consumed (no "unconsumed build-arg" warnings); the SageMaker dlc.* labels
-# themselves are attached by the harness, not here.
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
@@ -30,7 +24,17 @@ RUN uv pip install --system \
   "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
   "hf-xet==${HF_XET_VERSION}" \
   "grpcio>=1.79.3" \
-  && uv cache clean
+  && uv cache clean \
+  && rm -rf /tmp/uv*
+
+
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+RUN sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+  -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+  -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+  /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template
 
 # HF auto-optimization layer. Sourced by the entrypoint to set performance
 # defaults at run time: expandable_segments allocator and LMCache CPU
@@ -42,13 +46,10 @@ COPY --chmod=755 ./scripts/huggingface/vllm/hf_optimizations.sh /usr/local/bin/h
 
 FROM base AS huggingface-vllm-sagemaker
 
-# Daily cache-bust knob forwarded by build_image.sh (date stamp), matching the
-# docker/vllm convention.
 ARG CACHE_REFRESH=0
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:inference:hf-vllm"
 
-# Copy CUDA compat and entrypoint scripts
 COPY --chmod=755 ./scripts/huggingface/vllm/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY --chmod=755 ./scripts/huggingface/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 
@@ -57,16 +58,20 @@ RUN apt-get purge -y ffmpeg libav* || true && apt-get autoremove -y
 
 ARG FFMPEG_TAG=n8.1
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  pkg-config \
-  nasm \
-  yasm \
-  libmp3lame-dev \
-  libopus-dev \
-  libvorbis-dev \
-  libvpx-dev \
-  libx264-dev \
-  libx265-dev \
+# Patch openssl/libssl3 CVEs carried by the ubuntu22.04 base
+# (CVE-2026-45447 CRITICAL, CVE-2026-34180/45445/7383/9076 HIGH;
+# fixed in 3.0.2-0ubuntu1.25).
+RUN apt-get update && apt-get install -y --only-upgrade openssl libssl3 \
+  && apt-get install -y --no-install-recommends \
+    pkg-config \
+    nasm \
+    yasm \
+    libmp3lame-dev \
+    libopus-dev \
+    libvorbis-dev \
+    libvpx-dev \
+    libx264-dev \
+    libx265-dev \
   && git clone https://git.ffmpeg.org/ffmpeg.git /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
   && git checkout "${FFMPEG_TAG}" \
@@ -104,6 +109,7 @@ RUN HOME_DIR=/root \
   && chmod +x /usr/local/bin/testOSSCompliance \
   && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
   && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 \
-  && rm -rf ${HOME_DIR}/oss_compliance*
+  && rm -rf ${HOME_DIR}/oss_compliance* \
+  && rm -rf /tmp/uv* /tmp/tmp*
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
