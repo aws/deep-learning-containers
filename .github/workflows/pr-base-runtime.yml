@@ -1,4 +1,4 @@
-name: PR - Base
+name: PR - Base Runtime
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ on:
       - "test/cuda/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/base/**"
-      - ".github/config/image/base-cu*.yml"
-      - ".github/workflows/pr-base.yml"
+      - ".github/config/image/base-cu*-runtime.yml"
+      - ".github/workflows/pr-base-runtime.yml"
       - "!docs/**"
 
 permissions:
@@ -20,6 +20,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
+  TARGET: runtime
   LATEST_CUDA_VERSION: "cu130"
 
 jobs:
@@ -42,8 +43,9 @@ jobs:
         uses: ./.github/actions/pr-permission-gate
 
   # ============================================================
-  # Detect changed base variants + file changes.
-  # Each base-<cuda>-<target>.yml config becomes one matrix entry.
+  # Detect changed CUDA versions for this target. Each
+  # base-<cuda>-runtime.yml becomes one matrix entry (matrix is over
+  # CUDA version only — the target is fixed by this workflow).
   # If no CUDA version is detected in the diff (e.g. a shared test-only
   # change), fall back to LATEST_CUDA_VERSION — same as pr-pytorch-*.
   # ============================================================
@@ -97,7 +99,7 @@ jobs:
           fi
 
           CONFIGS="[]"
-          for CONFIG_FILE in .github/config/image/base-cu*-*.yml; do
+          for CONFIG_FILE in .github/config/image/base-cu*-${TARGET}.yml; do
             [ -f "$CONFIG_FILE" ] || continue
             CUDA=$(yq -r '.common.cuda_version' "$CONFIG_FILE")
             echo "$CHANGED" | grep -qx "$CUDA" || continue
@@ -107,7 +109,6 @@ jobs:
             PY=$(yq -r '.common.python_version' "$CONFIG_FILE")
             OS=$(yq -r '.common.os_version' "$CONFIG_FILE")
             JOB=$(yq -r '.common.job_type' "$CONFIG_FILE")
-            TARGET=$(yq -r '.common.build_target' "$CONFIG_FILE")
             CI_TAG=$(yq -r '.common.ci_tag' "$CONFIG_FILE")
             DT=$(yq -r '.common.device_type // "gpu"' "$CONFIG_FILE")
             AT=$(yq -r '.common.arch_type // "x86"' "$CONFIG_FILE")
@@ -117,11 +118,6 @@ jobs:
 
             CHECK_PY=$(echo "$PY" | sed -E 's/^py([0-9])([0-9]+)$/\1.\2/')
             CHECK_CUDA=$(echo "$FWV" | cut -d. -f1,2)
-            if [ "$TARGET" = "devel" ]; then
-              CUDA_SCRIPT="cuda_devel_test.sh"
-            else
-              CUDA_SCRIPT="cuda_runtime_test.sh"
-            fi
 
             ENTRY=$(jq -nc \
               --arg cuda "$CUDA" --arg ci_tag "$CI_TAG" --arg target "$TARGET" \
@@ -129,12 +125,11 @@ jobs:
               --arg py "$PY" --arg os "$OS" --arg job "$JOB" \
               --arg dt "$DT" --arg at "$AT" --arg contrib "$CONTRIB" --arg cust "$CUST" \
               --arg prod "$PROD" --arg check_py "$CHECK_PY" --arg check_cuda "$CHECK_CUDA" \
-              --arg cuda_script "$CUDA_SCRIPT" \
               '{cuda_version:$cuda, ci_tag:$ci_tag, target:$target, dockerfile:$dockerfile,
                 framework:$fw, framework_version:$fwv, python_version:$py, os_version:$os,
                 job_type:$job, device_type:$dt, arch_type:$at, contributor:$contrib,
                 customer_type:$cust, prod_image:$prod, check_py:$check_py,
-                check_cuda:$check_cuda, cuda_script:$cuda_script}')
+                check_cuda:$check_cuda}')
             CONFIGS=$(echo "$CONFIGS" | jq -c --argjson e "$ENTRY" '. + [$e]')
           done
           echo "configs=${CONFIGS}" >> "$GITHUB_OUTPUT"
@@ -148,7 +143,7 @@ jobs:
             build-change:
               - "docker/base/**"
               - "scripts/common/**"
-              - ".github/config/image/base-cu*.yml"
+              - ".github/config/image/base-cu*-runtime.yml"
               - "test/security/data/ecr_scan_allowlist/base/**"
             sanity-test-change:
               - "test/sanity/**"
@@ -156,7 +151,7 @@ jobs:
               - "test/cuda/**"
 
   # ============================================================
-  # Build images (matrix over changed variants)
+  # Build images (matrix over changed CUDA versions)
   # ============================================================
   build-images:
     needs: [check-changes]
@@ -195,7 +190,7 @@ jobs:
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
             --push \
-            --target ${{ matrix.target }} \
+            --target ${{ env.TARGET }} \
             -f ${{ matrix.dockerfile }} .
 
   # ============================================================
@@ -320,4 +315,4 @@ jobs:
             ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
       - name: Run CUDA test
-        run: docker exec ${CONTAINER_ID} bash /workdir/test/cuda/scripts/${{ matrix.cuda_script }} ${{ matrix.check_cuda }}
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/cuda/scripts/cuda_runtime_test.sh ${{ matrix.check_cuda }}
