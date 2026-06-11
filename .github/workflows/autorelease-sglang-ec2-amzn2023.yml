@@ -45,6 +45,7 @@ jobs:
       config: ${{ steps.load.outputs.config }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
+      sglang-ref: ${{ steps.parse.outputs.sglang-ref }}
       python-version: ${{ steps.parse.outputs.python-version }}
       cuda-version: ${{ steps.parse.outputs.cuda-version }}
       os-version: ${{ steps.parse.outputs.os-version }}
@@ -70,6 +71,7 @@ jobs:
           echo '${{ steps.load.outputs.config }}' > config.json
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "sglang-ref=$(jq -r '.build.sglang_ref // ""' config.json)" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
@@ -152,6 +154,7 @@ jobs:
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
+      sglang-ref: ${{ needs.load-config.outputs.sglang-ref }}
       benchmark-start-command: >-
         docker run -d -it --rm --gpus=all
         -v ${HOME}/.cache/huggingface:/root/.cache/huggingface
