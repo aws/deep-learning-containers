@@ -273,13 +273,30 @@ jobs:
         with:
           config-file: .github/config/image/base-${{ needs.load-config.outputs.cuda-version }}-runtime.yml
 
+      - name: Load devel config
+        id: cfg-devel
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-${{ needs.load-config.outputs.cuda-version }}-devel.yml
+
+      # base's runtime and devel images are two targets of one build and
+      # always release together. The release gate below reads a single flag,
+      # so require both configs to agree — otherwise the intent is ambiguous.
       - name: Check if release is enabled
         id: check-release
         run: |
-          echo '${{ steps.cfg-runtime.outputs.config }}' > config.json
-          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
-          echo "Release enabled: ${RELEASE_ENABLED}"
-          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+          echo '${{ steps.cfg-runtime.outputs.config }}' > runtime.json
+          echo '${{ steps.cfg-devel.outputs.config }}' > devel.json
+          RUNTIME_RELEASE=$(jq -r '.release.release // false' runtime.json)
+          DEVEL_RELEASE=$(jq -r '.release.release // false' devel.json)
+          if [ "${RUNTIME_RELEASE}" != "${DEVEL_RELEASE}" ]; then
+            echo "::error::runtime and devel release flags must match \
+              (runtime=${RUNTIME_RELEASE}, devel=${DEVEL_RELEASE}); \
+              base targets release together."
+            exit 1
+          fi
+          echo "Release enabled: ${RUNTIME_RELEASE}"
+          echo "should-release=${RUNTIME_RELEASE}" >> $GITHUB_OUTPUT
 
       - name: Generate runtime release spec
         id: spec-runtime
@@ -287,13 +304,6 @@ jobs:
         uses: ./.github/actions/generate-release-spec
         with:
           config-json: ${{ steps.cfg-runtime.outputs.config }}
-
-      - name: Load devel config
-        id: cfg-devel
-        if: steps.check-release.outputs.should-release == 'true'
-        uses: ./.github/actions/load-config
-        with:
-          config-file: .github/config/image/base-${{ needs.load-config.outputs.cuda-version }}-devel.yml
 
       - name: Generate devel release spec
         id: spec-devel
