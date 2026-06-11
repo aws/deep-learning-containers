@@ -69,8 +69,8 @@ if [ "$PROCESSOR_TYPE" != "cpu" ]; then
         export LD_LIBRARY_PATH="${CONDA_PREFIX}/lib:${CONDA_PREFIX}/targets/sbsa-linux/lib:${LD_LIBRARY_PATH:-}"
         export LIBRARY_PATH="${CONDA_PREFIX}/lib:${CONDA_PREFIX}/targets/sbsa-linux/lib:${LIBRARY_PATH:-}"
         export CPATH="${CONDA_PREFIX}/targets/sbsa-linux/include:${CPATH:-}"
-        # Match the arch list from build_cuda.sh 13.0 case after aarch64 filtering
-        # No +PTX: upstream dropped it for CUDA 13.0 to reduce binary size
+        # Match the arch list from build_cuda.sh 13.0|13.2 case after aarch64 filtering
+        # (our SM 7.5 patch keeps 7.5). No +PTX: upstream dropped it on CUDA 13.x.
         export TORCH_CUDA_ARCH_LIST="7.5;8.0;9.0;10.0;11.0;12.0"
     else
         export CUDA_HOME="/usr/local/cuda-${CUDA_VERSION}"
@@ -87,20 +87,13 @@ fi
 pip install /artifacts/*.whl
 
 if [[ "$ARCH_TYPE" == "arm64" && "$PROCESSOR_TYPE" != "cpu" ]]; then
+    # Match the cu132 CUDA libs declared by the torch wheel (build_torch.sh) so
+    # cmake can link torchvision/torchaudio. The cuda-toolkit[...] bundle drops the
+    # component nvidia-* wheels into site-packages/nvidia/*/lib (scanned below);
+    # cudnn is added explicitly since vision/audio link against it.
     pip install \
-        "nvidia-cuda-nvrtc==13.0.88" \
-        "nvidia-cuda-runtime==13.0.96" \
-        "nvidia-cuda-cupti==13.0.85" \
-        "nvidia-cudnn-cu13==9.19.0.56" \
-        "nvidia-cublas==13.1.0.3" \
-        "nvidia-cufft==12.0.0.61" \
-        "nvidia-curand==10.4.0.35" \
-        "nvidia-cusolver==12.0.4.66" \
-        "nvidia-cusparse==12.6.3.3" \
-        "nvidia-cusparselt-cu13==0.8.0" \
-        "nvidia-nccl-cu13==2.29.7" \
-        "nvidia-nvtx==13.0.85" \
-        "nvidia-nvjitlink==13.0.88"
+        "cuda-toolkit[nvrtc,cudart,cupti,cufft,curand,cusolver,cusparse,cublas,cufile,nvjitlink,nvtx]==13.2.1" \
+        "nvidia-cudnn-cu13==9.20.0.48"
 
     # Extend library paths to include nvidia PyPI package libs
     # so cmake linker can find libcudart, libcublas, libcudnn etc.
