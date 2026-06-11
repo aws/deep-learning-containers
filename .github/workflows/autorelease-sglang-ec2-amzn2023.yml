@@ -99,7 +99,7 @@ jobs:
         with:
           config-json: ${{ needs.load-config.outputs.config }}
           framework: ${{ needs.load-config.outputs.framework }}
-          target: sglang-ec2-amzn2023
+          target: sglang-ec2
           base-image: nvidia/cuda:13.0.3-devel-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
