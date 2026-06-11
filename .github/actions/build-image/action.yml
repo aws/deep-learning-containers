@@ -69,6 +69,10 @@ inputs:
     description: 'Transformers library version (e.g., 4.28.1)'
     required: false
     default: ''
+  config-json:
+    description: 'Full config JSON from load-config. When provided, the build section is automatically extracted and forwarded as Docker build-args.'
+    required: false
+    default: ''
 
 outputs:
   image-uri:
@@ -92,10 +96,31 @@ runs:
       id: image-uri-build
       shell: bash
       run: |
-        CI_IMAGE_URI=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${{ inputs.tag-pr }}
+        TAG_PR="${{ inputs.tag-pr }}"
+        TAG_PR="${TAG_PR//+/.}"
+        CI_IMAGE_URI=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${TAG_PR}
         echo "Image URI to build: ${CI_IMAGE_URI}"
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
+
+    - name: Extract build-args from config
+      if: inputs.config-json != ''
+      shell: bash
+      run: |
+        python3 << 'EOF'
+        import json, os
+
+        config = json.loads('''${{ inputs.config-json }}''')
+        build = config.get('build', {})
+        env_file = os.environ['GITHUB_ENV']
+        keys = []
+        with open(env_file, 'a') as f:
+            for key, value in build.items():
+                env_key = key.upper()
+                f.write(f'{env_key}={value}\n')
+                keys.append(env_key)
+            f.write(f'EXTRA_BUILD_ARGS={" ".join(keys)}\n')
+        EOF
 
     - name: Build image
       shell: bash

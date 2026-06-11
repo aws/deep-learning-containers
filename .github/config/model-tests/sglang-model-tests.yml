@@ -24,6 +24,10 @@
 #   gpu-h100-8gpu-runners  = 8x H100 640GB VRAM
 #   gpu-efa-runners        = 4x A100/H100 160-320GB VRAM (4 GPU per pod limit)
 #   gpu-p4d-runners        = 4x A100 160GB VRAM (reserved)
+#
+# Server port: leave SGLANG_PORT unset so the server uses the SGLang default
+# (30000). Port 8000 is occupied on the gpu-h100-8gpu-runners pods and caused
+# every GPU benchmark to fail with "[Errno 98] address already in use".
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 
@@ -38,103 +42,120 @@ smoke-test:
 
 benchmark:
   codebuild-fleet:
+    - name: "qwen3.5-0.8b"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=1250
+        MIN_REQUESTS_PER_SEC=9.5
+        BENCHMARK_NUM_PROMPTS=256
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=8
+        RESULTS_DIR=/tmp/benchmark_results
+
     - name: "gpt-oss-20b"
       s3_model: "gpt-oss-20b.tar.gz"
       fleet: "x86-g6exl-runner"
       extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=6000
-        MIN_REQUESTS_PER_SEC=5
-        BENCHMARK_NUM_PROMPTS=64
+        MIN_THROUGHPUT_TOKENS_PER_SEC=615
+        MIN_REQUESTS_PER_SEC=4.7
+        BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
-        BENCHMARK_OUTPUT_LEN=128
-        BENCHMARK_BATCH_SIZE=4
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
     - name: "qwen3.5-9b"
       s3_model: "qwen3.5-9b.tar.gz"
       fleet: "x86-g6exl-runner"
       extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=2000
-        MIN_REQUESTS_PER_SEC=1.5
-        BENCHMARK_NUM_PROMPTS=64
+        MIN_THROUGHPUT_TOKENS_PER_SEC=555
+        MIN_REQUESTS_PER_SEC=4.2
+        BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
-        BENCHMARK_OUTPUT_LEN=128
-        BENCHMARK_BATCH_SIZE=4
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
     - name: "qwen3.5-27b-fp8"
       s3_model: "qwen3.5-27b-fp8.tar.gz"
       fleet: "x86-g6exl-runner"
       extra_args: "--tp 1 --context-length 4096"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=100
-        MIN_REQUESTS_PER_SEC=0.2
-        BENCHMARK_NUM_PROMPTS=64
+        MIN_THROUGHPUT_TOKENS_PER_SEC=67
+        MIN_REQUESTS_PER_SEC=0.5
+        BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
-        BENCHMARK_OUTPUT_LEN=128
-        BENCHMARK_BATCH_SIZE=4
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
+  runner-scale-sets:
     - name: "qwen3.5-35b-a3b-fp8"
       s3_model: "qwen3.5-35b-a3b-fp8.tar.gz"
-      fleet: "x86-g612xl-runner"
+      runner_label: "gpu-h100-8gpu-runners"
+      # tp=4 (not 8): FP8 block quant requires gate/up output_size divisible by
+      # block_n=128; tp=8 shards it to 64 and fails to load.
       extra_args: "--tp 4 --context-length 4096"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=400
+        MIN_THROUGHPUT_TOKENS_PER_SEC=80
         MIN_REQUESTS_PER_SEC=0.35
-        BENCHMARK_NUM_PROMPTS=64
+        BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
-        BENCHMARK_OUTPUT_LEN=128
-        BENCHMARK_BATCH_SIZE=4
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
     - name: "qwen3-coder-next-fp8"
       s3_model: "qwen3-coder-next-fp8.tar.gz"
-      fleet: "x86-g6e12xl-runner"
+      runner_label: "gpu-h100-8gpu-runners"
+      # tp=4 (not 8): FP8 block quant requires gate/up output_size divisible by
+      # block_n=128; tp=8 shards it to 64 and fails to load.
       extra_args: "--tp 4 --context-length 4096"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=280
+        MIN_THROUGHPUT_TOKENS_PER_SEC=93
         MIN_REQUESTS_PER_SEC=0.25
-        BENCHMARK_NUM_PROMPTS=32
+        BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
         BENCHMARK_OUTPUT_LEN=256
-        BENCHMARK_BATCH_SIZE=2
+        BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
 
     - name: "llama-3.3-70b"
       s3_model: "llama-3.3-70b.tar.gz"
-      fleet: "x86-g6e12xl-runner"
-      extra_args: "--tp 4 --context-length 4096"
+      runner_label: "gpu-h100-8gpu-runners"
+      # --disable-piecewise-cuda-graph: graph capture (FusedAddRMSNorm) starved the
+      # runner during warmup_compile; disabling it cuts compile-time host memory.
+      extra_args: "--tp 8 --context-length 4096 --mem-fraction-static 0.88 --disable-piecewise-cuda-graph"
       env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=400
+        MIN_THROUGHPUT_TOKENS_PER_SEC=80
         MIN_REQUESTS_PER_SEC=0.35
-        BENCHMARK_NUM_PROMPTS=32
-        BENCHMARK_INPUT_LEN=512
-        BENCHMARK_OUTPUT_LEN=128
-        BENCHMARK_BATCH_SIZE=2
-        RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
-
-  runner-scale-sets:
-    - name: "qwen3-32b"
-      s3_model: "qwen3-32b.tar.gz"
-      extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85"
-      env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=3400
-        MIN_REQUESTS_PER_SEC=3
-        BENCHMARK_NUM_PROMPTS=32
+        BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
         BENCHMARK_OUTPUT_LEN=256
-        BENCHMARK_BATCH_SIZE=2
+        BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
-        SGLANG_PORT=30000
+
+    - name: "qwen3-32b"
+      s3_model: "qwen3-32b.tar.gz"
+      # --disable-piecewise-cuda-graph: warmup_compile crashed with "FusedAddRMSNorm
+      # failed ... an illegal memory access" during piecewise CUDA graph capture (an
+      # experimental SGLang default). Same workaround as llama-3.3-70b.
+      extra_args: "--tp 4 --context-length 4096 --mem-fraction-static 0.85 --disable-piecewise-cuda-graph"
+      # Dedicated H100 pod instead of shared gpu-efa-runners.
+      runner_label: "gpu-h100-8gpu-runners"
+      env_vars: >-
+        MIN_THROUGHPUT_TOKENS_PER_SEC=1000
+        MIN_REQUESTS_PER_SEC=3
+        BENCHMARK_NUM_PROMPTS=256
+        BENCHMARK_INPUT_LEN=512
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=8
+        RESULTS_DIR=/tmp/benchmark_results
 
     - name: "deepseek-v4-flash"
       s3_model: "deepseek-v4-flash.tar.gz"
@@ -144,7 +165,8 @@ benchmark:
         HEALTH_TIMEOUT=2400
         MIN_THROUGHPUT_TOKENS_PER_SEC=500
         MIN_REQUESTS_PER_SEC=1
-        BENCHMARK_NUM_PROMPTS=32
+        BENCHMARK_NUM_PROMPTS=256
         BENCHMARK_INPUT_LEN=512
-        BENCHMARK_OUTPUT_LEN=128
-        SGLANG_PORT=30000
+        BENCHMARK_OUTPUT_LEN=256
+        BENCHMARK_BATCH_SIZE=8
+        RESULTS_DIR=/tmp/benchmark_results

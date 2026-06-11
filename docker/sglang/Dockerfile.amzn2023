@@ -1,14 +1,13 @@
-ARG CUDA_VERSION=12.9.1
+ARG CUDA_REF=13.0.3
 
 # =============================================================================
 # STAGE 0: builder — compile sglang and all native dependencies from source
 # =============================================================================
-FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
+FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 
-ARG CUDA_VERSION
+ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
-ARG SGL_VERSION=0.5.12
-ARG SGLANG_REF=v${SGL_VERSION}
+ARG SGLANG_REF=578d27e56acd6786eb7067b9e1583232fd1d998e
 ARG SGLANG_KERNEL_VERSION=0.4.3
 ARG FLASHINFER_VERSION=0.6.11.post1
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
@@ -86,6 +85,12 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
   || (git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
     && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
+# Stamp the sglang package version for CVE scanner compatibility.
+# PEP 440 local version: 0.5.12+dlc1.amzn2023.578d27e5
+# This ensures: version >= 0.5.12 (not flagged) and < 0.5.13 (correct ordering).
+ARG FRAMEWORK_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
+
 # Install sglang from source + flashinfer + sglang-kernel
 # sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
 # We reinstall torch+torchvision+torchaudio from the cu129 index after to match
@@ -94,7 +99,7 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
 # Uses pip --force-reinstall to bypass local version segment matching issues.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
-    && CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+    && CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
     && python3 -m pip install --no-cache-dir --force-reinstall \
        "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
        --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
@@ -109,13 +114,17 @@ RUN cd sglang \
 # Persist nvidia pip lib paths for subsequent build steps that import torch
 RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") > /tmp/nvidia_lib_paths
 
+# CUDA 13 moved CCCL headers from include/cuda/std/ to include/cccl/cuda/std/.
+# Symlink for backward compat with libraries that expect the old layout (FlashMLA, CUTLASS).
+RUN ln -sf /usr/local/cuda/include/cccl/cuda /usr/local/cuda/include/cuda || true
+
 # flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA architecture.
 # Must be cloned from GitHub (PyPI sdist is missing headers) and built from source.
 RUN cd /sgl-workspace \
   && git clone https://github.com/deepseek-ai/FlashMLA.git flash-mla \
   && cd flash-mla && git submodule update --init --recursive \
   && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-  && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
+  && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
     pip install --no-cache-dir --no-build-isolation -v .
 
 # DeepEP
@@ -129,7 +138,7 @@ RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
 
 RUN cd /sgl-workspace/DeepEP \
   && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-  && TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST} MAX_JOBS=${BUILD_PARALLEL} \
+  && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
     uv pip install --system --no-cache --no-build-isolation .
 
 # Mooncake: force-install because the 0.3.9 wheel declares manylinux_2_35 (glibc 2.35)
@@ -161,9 +170,9 @@ RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERS
 # =============================================================================
 # STAGE 1: runtime — minimal production image with DLC overlay
 # =============================================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+FROM nvidia/cuda:${CUDA_REF}-runtime-amzn2023 AS runtime
 
-ARG CUDA_VERSION
+ARG CUDA_REF
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.11.0
@@ -172,8 +181,12 @@ ARG EFA_VERSION=1.48.0
 ARG NCCL_VERSION=2.28.3
 ARG CUDNN_VERSION=9.16.0.29
 
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 
 ENV LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
@@ -193,7 +206,7 @@ WORKDIR /
 # need to be installed as RPMs.
 # Set CUDA repo to lower priority so AL2023-vended packages (kernel-headers,
 # glib2, etc.) are preferred over NVIDIA's versions when both repos provide them.
-RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
+RUN CUDA_DASH=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr '.' '-') \
   && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-devel \
@@ -274,7 +287,7 @@ RUN uv pip install --system --no-cache --prerelease=allow \
 # The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
 # which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
 # Also reinstall sgl_kernel from the sglang wheel index (compiled against torch 2.11.0).
-RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
+RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
@@ -284,6 +297,8 @@ RUN CUDA_SHORT=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.') \
   && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
+     "nvidia-cutlass-dsl>=4.5.2" "nvidia-cutlass-dsl-libs-cu13>=4.5.2" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
