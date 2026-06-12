@@ -28,11 +28,14 @@ RUN uv pip install --system \
   && rm -rf /tmp/uv*
 
 
+# Same as vllm Dockerfile to make telemetry work
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-RUN sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-  -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
-  -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
-  /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && rm /tmp/bash_telemetry.sh.template
 
