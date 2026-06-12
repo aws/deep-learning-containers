@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail
+set -xeo pipefail
 
 while test $# -gt 0
 do

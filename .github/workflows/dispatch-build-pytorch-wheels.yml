@@ -2,15 +2,6 @@ name: Build PyTorch Wheels
 
 on:
   workflow_dispatch:
-  # >>> TEMP: DO NOT MERGE — remove before merging this PR. <<<
-  # Lets the wheel build run automatically on this PR for testing.
-  # If this reaches main, every PR to the repo triggers an ~18h Graviton build.
-  pull_request:
-    branches: [main]
-    paths:
-      - '.github/scripts/binary_build/pytorch/**'
-      - '.github/workflows/dispatch-build-pytorch-wheels.yml'
-  # >>> END TEMP <<<
 
 concurrency:
   group: ${{ github.workflow }}
