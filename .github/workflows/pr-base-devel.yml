@@ -21,7 +21,6 @@ permissions:
 env:
   FORCE_COLOR: "1"
   TARGET: devel
-  LATEST_CUDA_VERSION: "cu130"
 
 jobs:
   # ============================================================
@@ -47,7 +46,7 @@ jobs:
   # base-<cuda>-runtime.yml becomes one matrix entry (matrix is over
   # CUDA version only — the target is fixed by this workflow).
   # If no CUDA version is detected in the diff (e.g. a shared test-only
-  # change), fall back to LATEST_CUDA_VERSION — same as pr-pytorch-*.
+  # change), fall back to the latest CUDA version found on disk.
   # ============================================================
   check-changes:
     needs: [gatekeeper]
@@ -93,9 +92,11 @@ jobs:
           CHANGED=$(git diff --name-only origin/main...HEAD \
             | grep -oP '(?:docker/base/|base-)\Kcu[0-9]+' \
             | sort -u)
-          # Fallback: no version detected (e.g. shared test-only change) → latest
+          # Fallback: no version detected (e.g. shared test-only change) →
+          # latest CUDA version, discovered from the config files on disk.
           if [ -z "$CHANGED" ]; then
-            CHANGED="$LATEST_CUDA_VERSION"
+            CHANGED=$(ls .github/config/image/base-cu*-${TARGET}.yml \
+              | grep -oP 'cu\d+' | sort -V | tail -1)
           fi
 
           CONFIGS="[]"
