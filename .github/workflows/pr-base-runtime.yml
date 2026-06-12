@@ -119,9 +119,16 @@ jobs:
 
             CHECK_PY=$(echo "$PY" | sed -E 's/^py([0-9])([0-9]+)$/\1.\2/')
             CHECK_CUDA=$(echo "$FWV" | cut -d. -f1,2)
-            # build: section → space-separated KEY=value pairs (UPPER_CASE keys)
-            BUILD_ARGS=$(yq -o=json '.build // {}' "$CONFIG_FILE" \
-              | jq -r 'to_entries[] | "\(.key | ascii_upcase)=\(.value)"' | tr '\n' ' ')
+            # Docker --build-args: CUDA_VERSION (full) + CUDA_VERSION_SHORT from
+            # common, plus every key in the config build: block. Newline-separated
+            # KEY=value so the build-image action can forward them via
+            # EXTRA_BUILD_ARGS (space-safe; no word splitting on values).
+            BUILD_ARGS=$(
+              echo "CUDA_VERSION=${FWV}"
+              echo "CUDA_VERSION_SHORT=${CUDA}"
+              yq -o=json '.build // {}' "$CONFIG_FILE" \
+                | jq -r 'to_entries[] | "\(.key | ascii_upcase)=\(.value)"'
+            )
 
             ENTRY=$(jq -nc \
               --arg cuda "$CUDA" --arg ci_tag "$CI_TAG" --arg target "$TARGET" \
@@ -175,34 +182,38 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup buildkitd
-        run: .github/scripts/buildkitd.sh
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
+      # Turn this matrix entry's build-args (newline-separated KEY=value) into
+      # environment variables + an EXTRA_BUILD_ARGS name list for build-image.
+      # Reading line-by-line keeps values with spaces intact (no word splitting).
+      - name: Set build-args from config
+        run: |
+          NAMES=""
+          while IFS= read -r pair; do
+            [ -n "$pair" ] || continue
+            echo "$pair" >> "$GITHUB_ENV"
+            NAMES="${NAMES} ${pair%%=*}"
+          done <<< "${{ matrix.build_args }}"
+          echo "EXTRA_BUILD_ARGS=${NAMES}" >> "$GITHUB_ENV"
 
       - name: Build ${{ matrix.ci_tag }}
-        run: |
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }}"
-          echo "Building ${CI_IMAGE_URI}"
-          # Expand the config build: pins (KEY=value pairs) into --build-arg flags
-          BUILD_ARG_FLAGS=""
-          for pair in ${{ matrix.build_args }}; do
-            BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg ${pair}"
-          done
-          docker buildx build --progress plain \
-            --build-arg CUDA_VERSION=${{ matrix.framework_version }} \
-            --build-arg CUDA_VERSION_SHORT=${{ matrix.cuda_version }} \
-            ${BUILD_ARG_FLAGS} \
-            --cache-to=type=inline \
-            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-            --tag ${CI_IMAGE_URI} \
-            --push \
-            --target ${{ env.TARGET }} \
-            -f ${{ matrix.dockerfile }} .
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ matrix.framework }}
+          target: ${{ env.TARGET }}
+          base-image: nvidia/cuda:${{ matrix.framework_version }}-${{ env.TARGET }}-amzn2023
+          framework-version: ${{ matrix.framework_version }}
+          container-type: ${{ matrix.job_type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: ${{ matrix.dockerfile }}
+          arch-type: ${{ matrix.arch_type }}
+          device-type: ${{ matrix.device_type }}
+          os-version: ${{ matrix.os_version }}
+          contributor: ${{ matrix.contributor }}
+          customer-type: ${{ matrix.customer_type }}
+          # NOTE: cuda-version/python-version inputs intentionally omitted — see
+          # autorelease-base-runtime.yml for the env-collision rationale.
 
   # ============================================================
   # Sanity tests — run against all built variants

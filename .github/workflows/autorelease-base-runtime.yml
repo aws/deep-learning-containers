@@ -104,9 +104,17 @@ jobs:
           echo "check-py=$(echo "$PY" | sed -E 's/^py([0-9])([0-9]+)$/\1.\2/')" >> $GITHUB_OUTPUT
           echo "check-cuda=$(echo "$FWV" | cut -d. -f1,2)" >> $GITHUB_OUTPUT
           echo "environment=$(jq -r '.release.environment // "production"' config.json)" >> $GITHUB_OUTPUT
-          # build: section → space-separated KEY=value pairs (UPPER_CASE keys)
-          BUILD_ARGS=$(jq -r '.build // {} | to_entries[] | "\(.key | ascii_upcase)=\(.value)"' config.json | tr '\n' ' ')
-          echo "build-args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
+          # Docker --build-args: CUDA_VERSION (full) + CUDA_VERSION_SHORT from
+          # common, plus every key in the config build: block. Emitted as
+          # newline-separated KEY=value so the build-image action can forward
+          # them via EXTRA_BUILD_ARGS (space-safe; no word splitting on values).
+          {
+            echo "build-args<<EOF"
+            echo "CUDA_VERSION=${FWV}"
+            echo "CUDA_VERSION_SHORT=$(jq -r '.common.cuda_version' config.json)"
+            jq -r '.build // {} | to_entries[] | "\(.key | ascii_upcase)=\(.value)"' config.json
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
   # ============================================================
   # Build the runtime image
@@ -122,36 +130,41 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup buildkitd
-        run: .github/scripts/buildkitd.sh
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
+      # Turn the config-derived build-args (newline-separated KEY=value) into
+      # environment variables + an EXTRA_BUILD_ARGS name list for build-image.
+      # Reading line-by-line keeps values with spaces intact (no word splitting).
+      - name: Set build-args from config
+        run: |
+          NAMES=""
+          while IFS= read -r pair; do
+            [ -n "$pair" ] || continue
+            echo "$pair" >> "$GITHUB_ENV"
+            NAMES="${NAMES} ${pair%%=*}"
+          done <<< "${{ needs.load-config.outputs.build-args }}"
+          echo "EXTRA_BUILD_ARGS=${NAMES}" >> "$GITHUB_ENV"
 
       - name: Build ${{ needs.load-config.outputs.ci-tag }}
         id: build
-        run: |
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ needs.load-config.outputs.ci-tag }}-${{ github.run_id }}"
-          echo "Building ${CI_IMAGE_URI}"
-          # Expand the config build: pins (KEY=value pairs) into --build-arg flags
-          BUILD_ARG_FLAGS=""
-          for pair in ${{ needs.load-config.outputs.build-args }}; do
-            BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg ${pair}"
-          done
-          docker buildx build --progress plain \
-            --build-arg CUDA_VERSION=${{ needs.load-config.outputs.framework-version }} \
-            --build-arg CUDA_VERSION_SHORT=${{ needs.load-config.outputs.cuda-version }} \
-            ${BUILD_ARG_FLAGS} \
-            --cache-to=type=inline \
-            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-            --tag ${CI_IMAGE_URI} \
-            --push \
-            --target ${{ env.TARGET }} \
-            -f ${{ needs.load-config.outputs.dockerfile }} .
-          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config.outputs.framework }}
+          target: ${{ env.TARGET }}
+          base-image: nvidia/cuda:${{ needs.load-config.outputs.framework-version }}-${{ env.TARGET }}-amzn2023
+          framework-version: ${{ needs.load-config.outputs.framework-version }}
+          container-type: ${{ needs.load-config.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: base-${{ needs.load-config.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config.outputs.arch-type }}
+          device-type: ${{ needs.load-config.outputs.device-type }}
+          os-version: ${{ needs.load-config.outputs.os-version }}
+          contributor: ${{ needs.load-config.outputs.contributor }}
+          customer-type: ${{ needs.load-config.outputs.customer-type }}
+          # NOTE: cuda-version/python-version inputs are intentionally omitted —
+          # they only feed SageMaker labels (base is ec2-only) and would set env
+          # vars that collide with the full-value CUDA_VERSION/PYTHON_VERSION
+          # build-args forwarded via EXTRA_BUILD_ARGS.
 
   # ============================================================
   # Sanity tests
