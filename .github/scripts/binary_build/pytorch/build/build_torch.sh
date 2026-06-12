@@ -10,9 +10,9 @@ ARCH_TYPE=$4        # "x86" or "arm64"
 cd /
 git clone https://github.com/pytorch/pytorch -b v${PYTORCH_VERSION} --recurse-submodules --quiet
 
-# Apply SM 7.5 patch for arm64 cu130 builds (Graviton + T4 GPU support)
-if [[ "$PYTORCH_VERSION" == "2.11.0" && "$ARCH_TYPE" == "arm64" && "$PROCESSOR_TYPE" == "cu130" ]]; then
-    git -C /pytorch apply /scripts/patches/pytorch-2.11.0-sm75-aarch64.patch
+# Apply SM 7.5 patch for arm64 cu132 builds (Graviton + T4 GPU support)
+if [[ "$PYTORCH_VERSION" == "2.12.0" && "$ARCH_TYPE" == "arm64" && "$PROCESSOR_TYPE" == "cu132" ]]; then
+    git -C /pytorch apply /scripts/patches/pytorch-2.12.0-sm75-aarch64.patch
 fi
 
 # set common environment variables
@@ -48,8 +48,10 @@ else # arm64
         export GPU_ARCH_TYPE="cuda-aarch64"
         export GPU_ARCH_VERSION=${PROCESSOR_TYPE:2:2}.${PROCESSOR_TYPE:4}
         # TORCH_CUDA_ARCH_LIST is set to "7.5;8.0;9.0;10.0;11.0;12.0" through patch file
-        # Use PyPI NVIDIA packages
-        export PYTORCH_EXTRA_INSTALL_REQUIREMENTS="nvidia-cuda-nvrtc==13.0.88; platform_system == 'Linux' | nvidia-cuda-runtime==13.0.96; platform_system == 'Linux' | nvidia-cuda-cupti==13.0.85; platform_system == 'Linux' | nvidia-cudnn-cu13==9.19.0.56; platform_system == 'Linux' | nvidia-cublas==13.1.0.3; platform_system == 'Linux' | nvidia-cufft==12.0.0.61; platform_system == 'Linux' | nvidia-curand==10.4.0.35; platform_system == 'Linux' | nvidia-cusolver==12.0.4.66; platform_system == 'Linux' | nvidia-cusparse==12.6.3.3; platform_system == 'Linux' | nvidia-cusparselt-cu13==0.8.0; platform_system == 'Linux' | nvidia-nccl-cu13==2.29.7; platform_system == 'Linux' | nvidia-nvshmem-cu13==3.4.5; platform_system == 'Linux' | nvidia-nvtx==13.0.85; platform_system == 'Linux' | nvidia-nvjitlink==13.0.88; platform_system == 'Linux' | nvidia-cufile==1.15.1.6; platform_system == 'Linux'"
+        # Mirror upstream PyTorch 2.12 cu132 deps: CUDA runtime libs come via the
+        # cuda-toolkit[...] bundle; cudnn/cusparselt/nccl/nvshmem stay standalone.
+        # Source: pytorch/pytorch v2.12.0 .github/scripts/generate_binary_build_matrix.py ("13.2" entry)
+        export PYTORCH_EXTRA_INSTALL_REQUIREMENTS="cuda-toolkit[nvrtc,cudart,cupti,cufft,curand,cusolver,cusparse,cublas,cufile,nvjitlink,nvtx]==13.2.1; platform_system == 'Linux' | cuda-bindings>=13.0.3,<14; platform_system == 'Linux' | nvidia-cudnn-cu13==9.20.0.48; platform_system == 'Linux' | nvidia-cusparselt-cu13==0.8.1; platform_system == 'Linux' | nvidia-nccl-cu13==2.29.7; platform_system == 'Linux' | nvidia-nvshmem-cu13==3.4.5; platform_system == 'Linux'"
     fi
 fi
 

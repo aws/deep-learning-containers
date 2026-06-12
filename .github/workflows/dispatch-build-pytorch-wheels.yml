@@ -14,10 +14,13 @@ env:
   FORCE_COLOR: "1"
   # ── Version pins (update per release) ──
   ARCH_TYPE: "arm64"
-  PROCESSOR_TYPE: "cu130"
-  PYTORCH_VERSION: "2.11.0"
+  PROCESSOR_TYPE: "cu132"
+  PYTORCH_VERSION: "2.12.0"
   PYTHON_VERSION: "3.13"
-  TORCHVISION_VERSION: "0.26.0"
+  TORCHVISION_VERSION: "0.27.0"
+  # torchaudio is in maintenance mode and no longer tracks torch's version —
+  # latest release is 2.11.0 (no 2.12.0 tag). It builds fine against torch 2.12
+  # (its setup.py pins no torch version).
   TORCHAUDIO_VERSION: "2.11.0"
   TORCHTEXT_VERSION: "0.18.0"
   TORCHDATA_VERSION: "0.11.0"
