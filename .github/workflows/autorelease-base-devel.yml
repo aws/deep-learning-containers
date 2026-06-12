@@ -8,6 +8,16 @@ on:
     - cron: '50 21 * * 1,3'   # cu130 (CUDA 13.0) —  1:50 PM PST Mon/Wed
     # - cron: '50 22 * * 1,3' # cuXXX (future)     —  2:50 PM PST Mon/Wed
 
+  # PR trigger for gamma testing — uncomment to run the release path on a PR.
+  # On pull_request the release goes to gamma (see release-image environment)
+  # and the CUDA version is pinned in the Resolve step below.
+  # pull_request:
+  #   paths:
+  #     - "docker/base/**"
+  #     - ".github/config/image/base-cu*-devel.yml"
+  #     - ".github/workflows/autorelease-base-devel.yml"
+  #     - "!docs/**"
+
   # Manual trigger — release a single CUDA version on demand
   workflow_dispatch:
     inputs:
@@ -56,6 +66,9 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             CUDA="${{ inputs.cuda-version }}"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            # PR gamma test: pin to a single CUDA version to validate the path.
+            CUDA="cu130"
           else
             # Each cron maps to one CUDA version. When adding/removing a version,
             # update both on.schedule and this case.
@@ -284,7 +297,8 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
-      environment: ${{ needs.load-config.outputs.environment }}
+      # PR runs release to gamma; scheduled/dispatch runs use the config env.
+      environment: ${{ github.event_name == 'pull_request' && 'gamma' || needs.load-config.outputs.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
       publish-only: false
