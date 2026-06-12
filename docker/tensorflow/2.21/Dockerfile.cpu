@@ -1,0 +1,252 @@
+# ============================================================================
+# TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CPU)
+# Multi-stage build:
+#   builder-base ──── builder-oss   (OSS license generation — isolated)
+#   runtime-base ──── sagemaker     (SageMaker Training)
+#
+# All version defaults mirror docker/tensorflow/2.21/versions-cpu.env. Workflows
+# source versions-cpu.env and pass ARGs via --build-arg — single source of
+# truth.
+# ============================================================================
+
+# ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+ARG PYTHON_VERSION=3.12
+ARG TF_VERSION=2.21.0
+ARG OPEN_MPI_VERSION=4.1.8
+
+
+# ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────
+FROM amazonlinux:2023 AS builder-base
+ARG PYTHON_VERSION
+
+RUN dnf install -y --allowerasing \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  gcc gcc-c++ make cmake git openssl-devel ninja-build \
+  tar xz curl wget \
+  && dnf clean all
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+COPY docker/tensorflow/2.21/cpu/pyproject.toml docker/tensorflow/2.21/cpu/uv.lock /tmp/build/
+WORKDIR /tmp/build
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact
+
+
+# ── Stage: builder-oss (generates license files in isolation) ───────────────
+FROM amazonlinux:2023 AS builder-oss
+ARG PYTHON_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=builder-base /opt/venv /opt/venv
+COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+
+# ── Stage: runtime-base (shared base for output stages) ─────────────────────
+FROM amazonlinux:2023 AS runtime-base
+ARG PYTHON_VERSION
+ARG TF_VERSION
+ARG OPEN_MPI_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+
+# Labels live on runtime-base so all output stages inherit them (PT pattern).
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+LABEL framework="tensorflow"
+LABEL framework_version="${TF_VERSION}"
+
+ENV OPEN_MPI_PATH=/opt/amazon/openmpi \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  KMP_AFFINITY="granularity=fine,compact,1,0" \
+  KMP_BLOCKTIME=1 \
+  KMP_SETTINGS=0 \
+  TF_AUTOTUNE_THRESHOLD=2 \
+  DLC_CONTAINER_TYPE=training
+
+# Runtime system deps via dnf — translation of TF 2.19 master CPU apt-get block.
+# jq is REQUIRED — sagemaker_tensorflow_container parses resourceconfig.json via
+# jq for multi-node host discovery (CPU multi-node uses this too).
+# libSM + libXext are OpenCV X11 runtime deps.
+# krb5 + cyrus-sasl packages: master CPU SM stage installs equivalents
+# (libkrb5-dev, libsasl2-dev, libsasl2-modules, krb5-user) for
+# sagemaker-studio-analytics-extension + sparkmagic SASL/Kerberos auth.
+# GPU image doesn't need these (different SM Studio extension footprint).
+RUN dnf install -y --allowerasing \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
+  gcc gcc-c++ make cmake git \
+  shadow-utils tar gzip xz which findutils util-linux perl \
+  libpng-devel freetype-devel zlib-devel xz-devel tk-devel \
+  gtk3-devel mesa-libGL glib2 libSM libXext \
+  openssh-server openssh-clients openssl \
+  hwloc protobuf-compiler jq unzip \
+  krb5-devel krb5-libs krb5-workstation \
+  cyrus-sasl-devel cyrus-sasl-lib cyrus-sasl-gssapi cyrus-sasl-plain \
+  curl wget \
+  && dnf clean all
+
+# Copy venv from builder-base
+COPY --from=builder-base /opt/venv /opt/venv
+
+ENV PATH="/opt/venv/bin:${OPEN_MPI_PATH}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
+
+# OpenMPI 4.1.8 from source (CPU has no EFA, no NCCL — plain OMPI is enough).
+# SageMaker requires the --allow-run-as-root mpirun wrapper.
+RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
+  && curl -fsSLO "https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz" \
+  && tar xf openmpi-${OPEN_MPI_VERSION}.tar.gz && cd openmpi-${OPEN_MPI_VERSION} \
+  && ./configure --enable-orterun-prefix-by-default --prefix=${OPEN_MPI_PATH} \
+  && make -j$(nproc) all && make install && ldconfig \
+  && mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
+  && echo '#!/bin/bash' >${OPEN_MPI_PATH}/bin/mpirun \
+  && echo 'mpirun.real --allow-run-as-root "$@"' >>${OPEN_MPI_PATH}/bin/mpirun \
+  && chmod +x ${OPEN_MPI_PATH}/bin/mpirun \
+  && echo "hwloc_base_binding_policy = none" >>${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
+  && echo "rmaps_base_mapping_policy = slot" >>${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
+  && rm -rf /tmp/openmpi
+
+# SSH setup for SM multi-node (CPU multi-node training uses SSH like GPU does).
+#
+# `ssh-keygen -A` generates HOST keys at /etc/ssh/ssh_host_*_key, required
+# for sshd to listen. SDK v3's MPI driver invokes /usr/sbin/sshd -D before
+# bootstrap; without host keys sshd silently exits and the bootstrap fails
+# with "Cannot connect to host algo-X" (timeout). The user identity key
+# (/root/.ssh/id_rsa) is separate — used as authorized_keys for MPI peers.
+RUN mkdir -p /var/run/sshd /root/.ssh \
+  && ssh-keygen -A \
+  && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+  && printf "Host *\n  StrictHostKeyChecking no\n" >>/root/.ssh/config \
+  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking >/etc/ssh/ssh_config.new \
+  && echo "    StrictHostKeyChecking no" >>/etc/ssh/ssh_config.new \
+  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+  && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+# License file (S3 bucket pre-provisioned for tensorflow-2.21)
+RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-2.21/license.txt"
+
+WORKDIR /
+
+
+# ── Stage: sagemaker (SageMaker Training output) ────────────────────────────
+FROM runtime-base AS sagemaker
+ARG TF_VERSION
+ARG PYTHON_VERSION
+# (Labels are inherited from runtime-base — do not redeclare.)
+
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main
+
+# SageMaker BYOC paths
+RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
+
+# SageMaker packages — installed via uv sync of the [sagemaker] extra.
+# `--inexact` keeps the venv contents already laid down by builder-base.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
+COPY docker/tensorflow/2.21/cpu/pyproject.toml docker/tensorflow/2.21/cpu/uv.lock /tmp/build/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
+  && rm -rf /tmp/build /tmp/uv-*
+
+# NOTE: Every Python package shipped in this image is enumerated in
+# docker/tensorflow/2.21/cpu/pyproject.toml — no inline `uv pip install` blocks.
+# Pins (cython<3, numpy==1.26.4, opencv-python==4.11.0.86 [unified with CUDA],
+# awscli<2, tensorflow-io==0.37.*, sagemaker-experiments==0.1.45,
+# sparkmagic==0.22.0, s3fs>=2026.2.0, etc.) live in pyproject.toml so OSS
+# license scanning, uv.lock reproducibility, and resolver conflict detection
+# all work. tf-models-official and tensorflow-text are intentionally NOT
+# installed for TF 2.21 — Google has not published 2.21-compatible releases on
+# PyPI. See migration doc Locked Decisions.
+
+# Remove the jupyter python kernel installed by sparkmagic (not used in training)
+RUN /opt/venv/bin/jupyter-kernelspec remove -f python3 2>/dev/null || true \
+  && rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
+
+# Remove jupyterlab/staging (yarn.lock + webpack config). Build-tooling only;
+# never invoked at training/inference time. Eliminates a class of vendored-npm
+# CVEs (cross-spawn, qs, picomatch, path-to-regexp, validator, tmp, etc.) that
+# would otherwise need allowlisting in framework_allowlist.json.
+RUN STAGING_DIR="$(python -c 'import jupyterlab, os; print(os.path.join(os.path.dirname(jupyterlab.__file__), "staging"))')" && \
+    rm -rf "$STAGING_DIR" && \
+    python -c "import jupyterlab" && \
+    echo "Removed jupyterlab build-tooling at $STAGING_DIR (yarn.lock not needed at runtime)"
+
+# Remove jupyterlab/tests (test_*.py + mock_packages/yarn.lock fixtures).
+# Test data only, never on the training/inference path. Eliminates ~10 vendored-npm
+# CVEs (cross-spawn, ajv, minimatch, brace-expansion, serialize-javascript, ws,
+# lodash, etc.) flagged from mock_packages/{test-hyphens-underscore,test_no_hyphens}/yarn.lock.
+RUN TESTS_DIR="$(python -c 'import jupyterlab, os; print(os.path.join(os.path.dirname(jupyterlab.__file__), "tests"))')" && \
+    rm -rf "$TESTS_DIR" && \
+    python -c "import jupyterlab" && \
+    echo "Removed jupyterlab tests at $TESTS_DIR (test fixtures not needed at runtime)"
+
+# Remove TF-vendored curl headers. Header-only directory used by downstream
+# C++ custom-op builds; not needed in a runtime DLC. Eliminates 3 curl CVEs
+# (CVE-2025-0725, CVE-2026-5773, CVE-2026-6276) flagged from curlver.h.
+# Only the curl subtree is removed; tf.sysconfig.get_include() still resolves.
+RUN CURL_DIR="$(python -c 'import tensorflow as tf, os; print(os.path.join(tf.sysconfig.get_include(), "external", "curl"))')" && \
+    rm -rf "$CURL_DIR" && \
+    python -c "import tensorflow as tf; tf.sysconfig.get_include()" && \
+    echo "Removed TF-vendored curl headers at $CURL_DIR"
+
+# TF does NOT need the PT-style changehostname.c workaround.
+# sagemaker_tensorflow_container reads /opt/ml/input/config/resourceconfig.json
+# directly via jq (installed in runtime-base) to discover peer hosts.
+
+# Telemetry (copy from PT pattern verbatim)
+COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK="tensorflow_runtime"
+ARG CONTAINER_TYPE="training"
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TF_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template
+
+# Security patch — run after all installers so every OS package is covered.
+# Force libcurl refresh — AL2023's --security filter sometimes misses libcurl
+# CVE patches that ship as regular updates rather than security advisories.
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf upgrade -y libcurl libcurl-minimal --refresh \
+  && dnf clean all
+
+# Telemetry bashrc hook — MUST be after `dnf upgrade --security` because dnf may
+# replace /etc/bashrc during the upgrade, silently wiping out any `source` line
+# added earlier. PT main's Dockerfile.cpu enforces this same ordering.
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+
+# OSS compliance (copy artifacts from builder-oss)
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# SM entrypoint — same single bash script as GPU. start_cuda_compat.sh is a
+# safe no-op on CPU (the compat .so file does not exist), so we ship it for
+# uniformity with the GPU image's entrypoint contract.
+COPY scripts/tensorflow/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh /usr/local/bin/start_cuda_compat.sh
+
+RUN rm -rf /tmp/* /root/.cache
+
+EXPOSE 22
+WORKDIR /workspace
+ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
+CMD ["/bin/bash"]

@@ -1,0 +1,94 @@
+[project]
+name = "tensorflow-dlc-cpu"
+version = "2.21.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # PyPI ships CPU and GPU as distinct package names — `tensorflow` is the GPU
+    # build, `tensorflow_cpu` is the CPU build (matches master's two different
+    # wheel URLs).
+    "tensorflow_cpu==2.21.0",
+    "mpi4py",
+    "boto3",
+    "botocore",
+    # Security pin: aiohttp >=3.14.0 patches CVE-2026-34993 (CookieJar.load RCE
+    # on untrusted input) and CVE-2026-47265 (cookies leaking on cross-origin
+    # redirect). Pulled transitively by aiobotocore, aws-embedded-metrics,
+    # mlflow, s3fs, tritonclient. Direct pin forces resolver to pick the patched
+    # line regardless of what the transitives request.
+    "aiohttp>=3.14.0",
+    # TF compat pins — declared here (not as inline `uv pip install` in the
+    # Dockerfile) so OSS license scanning, uv.lock reproducibility, and resolver
+    # conflict detection all work. See migration doc Locked Decisions.
+    "cython<3",
+    "numpy==1.26.4",
+    "requests",
+    "packaging",
+    # carry-forward from TF 2.19 master "common" stage (Dockerfile.cpu/gpu)
+    "pybind11",
+    "scipy",
+    "Pillow",
+    "python-dateutil",
+    "awscli<2",
+    "h5py",
+    "absl-py",
+    "werkzeug",
+    "urllib3",
+    "protobuf",
+    # CPU-only: master CPU pip install has psutil; master GPU does not.
+    "psutil",
+]
+
+[project.optional-dependencies]
+sagemaker = [
+    "sagemaker-tensorflow-training",
+    "sagemaker-training",
+    "smclarify",
+    "sagemaker>=3.4.0",
+    "mlflow>=3.9.0",
+    "torch",  # transitive via sagemaker>=3; declared direct so [tool.uv.sources] can redirect to CPU index
+    # TF ecosystem extras + ad-hoc utilities — moved here from inline pip installs
+    # in the sagemaker stage. Per migration doc Locked Decision, every package
+    # shipped in the image must be enumerated in pyproject.toml. Verify on each
+    # release that this list still matches the Dockerfile inline-install history.
+    # opencv-python unified at 4.11.0.86 across CPU and CUDA images. The 4.12.x
+    # series requires numpy>=2, which conflicts with TF 2.21's numpy==1.26.4 pin.
+    # See migration doc Locked Decisions.
+    "tensorflow-io==0.37.*",
+    "tensorflow-datasets",
+    "opencv-python==4.11.0.86",
+    "numba",
+    "bokeh",
+    "imageio",
+    "plotly",
+    "seaborn",
+    "shap<0.50",
+    "pandas",
+    "scikit-learn",
+    "cloudpickle",
+    "sagemaker-experiments==0.1.45",
+    "y-py",
+    "sagemaker-studio-analytics-extension",
+    "sparkmagic==0.22.0",
+    "sagemaker-studio-sparkmagic-lib",
+    "s3fs>=2026.2.0",
+]
+
+[tool.uv]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+
+# Why pytorch-cpu index in a TensorFlow image:
+#   - sagemaker>=3 is a hard requirement.
+#   - sagemaker v3 transitively pulls `torch`. The default PyPI `torch` wheel
+#     declares NVIDIA CUDA pip packages (nvidia-cublas-cu12, etc.) as deps,
+#     adding ~500 MB of GPU libraries we do not need in a CPU image.
+#   - [tool.uv.sources] only redirects *direct* dependencies, so `torch` is
+#     also listed in [project.optional-dependencies].sagemaker above.
+#   - Net result: CPU image gets the CPU-only torch wheel from
+#     download.pytorch.org/whl/cpu (no nvidia-* packages).
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]

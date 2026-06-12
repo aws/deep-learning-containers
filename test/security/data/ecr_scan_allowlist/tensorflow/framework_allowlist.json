@@ -1,0 +1,12 @@
+[
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common@12.9.79 ships with the nvidia/cuda:12.9.1-base-amzn2023 base image. Advisory affects the NVIDIA driver / privileged GPU tooling reachable only by a local attacker on the host; the container itself does not invoke the affected codepath at training time (nvdisasm and similar privileged binaries are already removed in the Dockerfile). Upstream fix is only available in CUDA 13.0; a 12.9 -> 13.0 bump is out of scope for this PR (TF 2.21 compatibility risk). Will be picked up via the next CUDA base image refresh from NVIDIA.",
+        "review_by": "2026-12-08"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common@12.9.79 ships with the nvidia/cuda:12.9.1-base-amzn2023 base image. Advisory affects an NVML/driver path reachable only by a local privileged caller on the host; not on the in-container training/inference path (nvdisasm and similar privileged binaries are already removed in the Dockerfile). Upstream fix is only available in CUDA 13.0; a 12.9 -> 13.0 bump is out of scope for this PR (TF 2.21 compatibility risk). Will be picked up via the next CUDA base image refresh from NVIDIA.",
+        "review_by": "2026-12-08"
+    }
+]

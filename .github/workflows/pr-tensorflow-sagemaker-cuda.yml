@@ -1,0 +1,401 @@
+name: PR - TensorFlow SageMaker CUDA
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/tensorflow-*-sagemaker-cuda.yml"
+      - ".github/workflows/pr-tensorflow-sagemaker-cuda.yml"
+      - "docker/tensorflow/*/Dockerfile.cuda"
+      - "docker/tensorflow/*/cuda/**"
+      - "docker/tensorflow/*/versions-cuda.env"
+      - "scripts/common/**"
+      - "scripts/tensorflow/**"
+      - "scripts/telemetry/**"
+      - "test/tensorflow/**"
+      - "test/sanity/**"
+      - "test/telemetry/**"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+  LATEST_TENSORFLOW_VERSION: "2.21"
+
+jobs:
+  # ============================================================
+  # Gate: permission check on base branch
+  # ============================================================
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
+  # ============================================================
+  # Detect changed TensorFlow versions + build per-version configs
+  # matrix + run pre-commit + path-based change detection
+  # ============================================================
+  check-changes:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      versions: ${{ steps.versions.outputs.versions }}
+      configs: ${{ steps.versions.outputs.configs }}
+      build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Install yq
+        run: |
+          if ! command -v yq &> /dev/null; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+
+      - name: Detect TensorFlow versions and build configs matrix
+        id: versions
+        run: |
+          VERSIONS=$(git diff --name-only origin/main...HEAD \
+            | grep -oP '(?:docker/tensorflow/|tensorflow-)\K[0-9]+\.[0-9]+' \
+            | sort -u)
+          if [ -z "$VERSIONS" ]; then
+            VERSIONS="$LATEST_TENSORFLOW_VERSION"
+          fi
+          JSON=$(echo "$VERSIONS" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "versions=${JSON}" >> $GITHUB_OUTPUT
+          echo "Detected versions: ${JSON}"
+
+          # Build a configs matrix: each entry carries all metadata fields
+          CONFIGS="[]"
+          for V in $VERSIONS; do
+            CONFIG_FILE=".github/config/image/tensorflow-${V}-sagemaker-cuda.yml"
+            if [ -f "$CONFIG_FILE" ]; then
+              CONFIGS=$(echo "$CONFIGS" | jq -c \
+                --arg v "$V" \
+                --arg fw "$(yq '.common.framework' $CONFIG_FILE)" \
+                --arg fwv "$(yq '.common.framework_version' $CONFIG_FILE)" \
+                --arg py "$(yq '.common.python_version' $CONFIG_FILE)" \
+                --arg cuda "$(yq '.common.cuda_version' $CONFIG_FILE)" \
+                --arg os "$(yq '.common.os_version' $CONFIG_FILE)" \
+                --arg ct "$(yq '.common.job_type' $CONFIG_FILE)" \
+                --arg dt "$(yq '.common.device_type // "gpu"' $CONFIG_FILE)" \
+                --arg at "$(yq '.common.arch_type // "x86"' $CONFIG_FILE)" \
+                --arg contrib "$(yq '.common.contributor // "None"' $CONFIG_FILE)" \
+                --arg cust "$(yq '.common.customer_type // ""' $CONFIG_FILE)" \
+                --arg prod "$(yq '.common.prod_image' $CONFIG_FILE)" \
+                '. + [{"version": $v, "framework": $fw, "framework_version": $fwv, "python_version": $py, "cuda_version": $cuda, "os_version": $os, "container_type": $ct, "device_type": $dt, "arch_type": $at, "contributor": $contrib, "customer_type": $cust, "prod_image": $prod}]')
+            fi
+          done
+          echo "configs=${CONFIGS}" >> $GITHUB_OUTPUT
+          echo "Configs matrix: ${CONFIGS}"
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v4
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/tensorflow-*-sagemaker-cuda.yml"
+              - "docker/tensorflow/*/Dockerfile.cuda"
+              - "docker/tensorflow/*/cuda/**"
+              - "docker/tensorflow/*/versions-cuda.env"
+              - "scripts/common/setup_oss_compliance.sh"
+              - "scripts/common/install_efa_amzn2023.sh"
+              - "scripts/common/start_cuda_compat.sh"
+              - "scripts/tensorflow/*"
+              - "scripts/telemetry/bash_telemetry.sh.template"
+            sanity-test-change:
+              - "test/sanity/**"
+            telemetry-test-change:
+              - "test/telemetry/**"
+
+  # ============================================================
+  # Build SageMaker images (matrix over detected versions)
+  # ============================================================
+  build-image:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+      fail-fast: false
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ matrix.version }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build sagemaker image
+        id: build-sagemaker
+        run: |
+          VERSION="${{ matrix.version }}"
+          source docker/tensorflow/${VERSION}/versions-cuda.env
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:tensorflow-training-${TF_VERSION}-gpu-py312-cu129-sagemaker-${{ matrix.version }}-pr-${{ github.event.pull_request.number }}"
+
+          # Derive label values to match check_labels.py expectations
+          FRAMEWORK_LABEL=$(echo "${{ matrix.framework }}" | tr '_' '-')
+          FWK_VER_LABEL=$(echo "${{ matrix.framework_version }}" | tr '.' '-')
+          CUDA_LABEL="${{ matrix.cuda_version }}"
+          OS_LABEL=$(echo "${{ matrix.os_version }}" | tr '.' '-')
+
+          docker buildx build --progress plain \
+            --build-arg FRAMEWORK=${{ matrix.framework }} \
+            --build-arg CUDA_VERSION=${CUDA_VERSION} \
+            --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
+            --build-arg TF_VERSION=${TF_VERSION} \
+            --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
+            --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
+            --build-arg NCCL_VERSION=${NCCL_VERSION} \
+            --build-arg NCCL_OFI_VERSION=${NCCL_OFI_VERSION} \
+            --build-arg EFA_VERSION=${EFA_VERSION} \
+            --build-arg OPEN_MPI_VERSION=${OPEN_MPI_VERSION} \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.framework.${FRAMEWORK_LABEL}.${FWK_VER_LABEL}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.device.gpu.${CUDA_LABEL}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.job.${{ matrix.container_type }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.${{ matrix.arch_type }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.os.${OS_LABEL}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.${{ matrix.python_version }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.${{ matrix.contributor }}=true" \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target sagemaker \
+            -f docker/tensorflow/${VERSION}/Dockerfile.cuda .
+
+          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Sanity tests (labels, filesystem, OSS compliance)
+  # ============================================================
+  sanity-test:
+    needs: [check-changes, build-image]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+      fail-fast: false
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && format('{0}.dkr.ecr.{1}.amazonaws.com/ci:tensorflow-training-{2}-gpu-py312-cu129-sagemaker-{3}-pr-{4}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.framework_version, matrix.version, github.event.pull_request.number) || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.prod_image) }}
+      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ matrix.framework }}
+      framework-version: ${{ matrix.framework_version }}
+      python-version: ${{ matrix.python_version }}
+      cuda-version: ${{ matrix.cuda_version }}
+      os-version: ${{ matrix.os_version }}
+      customer-type: ${{ matrix.customer_type }}
+      arch-type: ${{ matrix.arch_type }}
+      device-type: ${{ matrix.device_type }}
+      contributor: ${{ matrix.contributor }}
+      container-type: ${{ matrix.container_type }}
+
+  # ============================================================
+  # Security tests (ECR scan, CVE allowlist)
+  # ============================================================
+  security-test:
+    needs: [check-changes, build-image]
+    if: success()
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+      fail-fast: false
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && format('{0}.dkr.ecr.{1}.amazonaws.com/ci:tensorflow-training-{2}-gpu-py312-cu129-sagemaker-{3}-pr-{4}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.framework_version, matrix.version, github.event.pull_request.number) || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.prod_image) }}
+      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ matrix.framework }}
+      framework-version: ${{ matrix.framework_version }}
+
+  # ============================================================
+  # Telemetry tests (opt-out, environment variables)
+  # ============================================================
+  telemetry-test:
+    needs: [check-changes, build-image]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+      fail-fast: false
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ matrix.version }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && format('{0}.dkr.ecr.{1}.amazonaws.com/ci:tensorflow-training-{2}-gpu-py312-cu129-sagemaker-{3}-pr-{4}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.framework_version, matrix.version, github.event.pull_request.number) || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.prod_image) }}
+      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ matrix.framework }}
+      framework-version: ${{ matrix.framework_version }}
+      container-type: ${{ matrix.container_type }}
+
+  # ============================================================
+  # Unit tests
+  # ============================================================
+  unit-test:
+    needs: [check-changes, build-image]
+    if: success()
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+      fail-fast: false
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-unit-${{ matrix.version }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Run unit tests
+        run: |
+          VERSION="${{ matrix.version }}"
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:tensorflow-training-${{ matrix.framework_version }}-gpu-py312-cu129-sagemaker-${{ matrix.version }}-pr-${{ github.event.pull_request.number }}"
+          docker pull ${IMAGE}
+          CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir -e DLC_TENSORFLOW_VERSION=${VERSION} \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/tensorflow/unit/ -v
+          docker kill ${CONTAINER_ID}
+
+  # ============================================================
+  # Single-GPU tests (in-container smoke on a real GPU runner)
+  # ============================================================
+  single-gpu-test:
+    needs: [check-changes, build-image, sanity-test, security-test, unit-test]
+    if: success()
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+      fail-fast: false
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-single-gpu-${{ matrix.version }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Run single-GPU tests
+        run: |
+          VERSION="${{ matrix.version }}"
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:tensorflow-training-${{ matrix.framework_version }}-gpu-py312-cu129-sagemaker-${{ matrix.version }}-pr-${{ github.event.pull_request.number }}"
+          docker pull ${IMAGE}
+          CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
+            --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir -e DLC_TENSORFLOW_VERSION=${VERSION} \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/tensorflow/single_gpu/ -v
+          docker kill ${CONTAINER_ID}
+
+  # ============================================================
+  # SageMaker integration tests (launch real SM training jobs)
+  # ============================================================
+  sagemaker-test:
+    needs: [check-changes, build-image, sanity-test, security-test, unit-test]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+      fail-fast: false
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-${{ matrix.version }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Install test dependencies
+        run: |
+          pip install -r test/tensorflow/integration/sagemaker/requirements.txt
+
+      - name: Run SageMaker training tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}/test
+          TEST_IMAGE_URI: ${{ format('{0}.dkr.ecr.{1}.amazonaws.com/ci:tensorflow-training-{2}-gpu-py312-cu129-sagemaker-{3}-pr-{4}', vars.CI_AWS_ACCOUNT_ID, vars.AWS_REGION, matrix.framework_version, matrix.version, github.event.pull_request.number) }}
+          SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
+        run: |
+          pytest test/tensorflow/integration/sagemaker/test_mnist_cuda.py -v
