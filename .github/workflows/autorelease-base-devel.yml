@@ -8,15 +8,15 @@ on:
     - cron: '50 21 * * 1,3'   # cu130 (CUDA 13.0) —  1:50 PM PST Mon/Wed
     # - cron: '50 22 * * 1,3' # cuXXX (future)     —  2:50 PM PST Mon/Wed
 
-  # PR trigger for gamma testing — uncomment to run the release path on a PR.
-  # On pull_request the release goes to gamma (see release-image environment)
-  # and the CUDA version is pinned in the Resolve step below.
-  # pull_request:
-  #   paths:
-  #     - "docker/base/**"
-  #     - ".github/config/image/base-cu*-devel.yml"
-  #     - ".github/workflows/autorelease-base-devel.yml"
-  #     - "!docs/**"
+  # PR trigger for gamma testing — runs the release path on a PR to gamma
+  # (see release-image environment); CUDA version is pinned in Resolve below.
+  # TODO: comment this out before merge — gamma validation only.
+  pull_request:
+    paths:
+      - "docker/base/**"
+      - ".github/config/image/base-cu*-devel.yml"
+      - ".github/workflows/autorelease-base-devel.yml"
+      - "!docs/**"
 
   # Manual trigger — release a single CUDA version on demand
   workflow_dispatch:
@@ -28,6 +28,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 env:
   FORCE_COLOR: "1"
