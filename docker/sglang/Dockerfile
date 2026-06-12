@@ -36,6 +36,7 @@ RUN pip install \
 
 # patch CVEs
 RUN pip install \
+  "aiohttp>=3.14.0" \
   "black>=26.3.1" \
   "diffusers>=0.38.0" \
   "lxml>=6.1.0" \
