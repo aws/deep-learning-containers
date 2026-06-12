@@ -56,12 +56,25 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             CUDA="${{ inputs.cuda-version }}"
           else
+            # Each cron maps to one CUDA version. When adding/removing a version,
+            # update both on.schedule and this case.
             case "${{ github.event.schedule }}" in
               "40 20 * * 1,3") CUDA="cu129" ;;
               "40 21 * * 1,3") CUDA="cu130" ;;
-              *) echo "::error::Unknown cron: ${{ github.event.schedule }}"; exit 1 ;;
+              *) echo "::error::Unknown cron '${{ github.event.schedule }}'. Add a matching case entry or remove the cron from on.schedule."; exit 1 ;;
             esac
           fi
+
+          # Fail fast with a clear message if the resolved version is missing a
+          # config — otherwise this surfaces later as a confusing yq error.
+          for TARGET in runtime devel; do
+            CONFIG=".github/config/image/base-${CUDA}-${TARGET}.yml"
+            if [ ! -f "$CONFIG" ]; then
+              echo "::error::Resolved CUDA=${CUDA} but missing config: ${CONFIG}. Add the config file or update the cron mapping."
+              exit 1
+            fi
+          done
+
           echo "Resolved CUDA version: ${CUDA}"
           echo "cuda=${CUDA}" >> "$GITHUB_OUTPUT"
 
