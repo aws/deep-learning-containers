@@ -26,7 +26,7 @@ env:
 jobs:
   # ============================================================
   # Resolve the CUDA version (cron → version, or dispatch input),
-  # load the runtime config, and expose its fields.
+  # load the devel config, and expose its fields.
   # ============================================================
   load-config:
     runs-on: ubuntu-latest
@@ -94,7 +94,7 @@ jobs:
           echo "environment=$(jq -r '.release.environment // "production"' config.json)" >> $GITHUB_OUTPUT
 
   # ============================================================
-  # Build the runtime image
+  # Build the devel image
   # ============================================================
   build-image:
     needs: [load-config]
@@ -241,7 +241,7 @@ jobs:
           config-json: ${{ steps.load.outputs.config }}
 
   # ============================================================
-  # Release the runtime image
+  # Release the devel image
   # ============================================================
   release-image:
     needs: [load-config, build-image, generate-release-spec]
