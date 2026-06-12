@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xeo pipefail
+set -eo pipefail
 
 DESIRED_NCCL_TAG=$1
 
