@@ -1,6 +1,13 @@
 ARG CUDA_VERSION=13.0.2
 # Short CUDA tag — also the docker/base/<dir> name (cu129, cu130, ...)
 ARG CUDA_VERSION_SHORT=cu130
+# uv release to copy the binary from (pinned via the config build: block)
+ARG UV_VERSION=0.11.17
+
+# ============================================================
+# uv binary source (pinned)
+# ============================================================
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
 
 # ============================================================
 # Python builder (compile from source on cuda-base)
@@ -58,7 +65,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.17 /uv /usr/local/bin/uv
+COPY --from=uv /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
 COPY ./docker/base/${CUDA_VERSION_SHORT}/pyproject.toml ./docker/base/${CUDA_VERSION_SHORT}/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
@@ -117,7 +124,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY --from=ghcr.io/astral-sh/uv:0.11.17 /uv /usr/local/bin/uv
+COPY --from=uv /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT=/usr/local
 COPY ./docker/base/${CUDA_VERSION_SHORT}/pyproject.toml ./docker/base/${CUDA_VERSION_SHORT}/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \

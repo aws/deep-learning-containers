@@ -23,6 +23,11 @@ common:
   contributor: "None"
   prod_image: "base:runtime-cu129-amzn2023"
 
+# Build pins passed to the Dockerfile as --build-args (UPPER_CASE keys)
+build:
+  python_version: "3.13.12"
+  uv_version: "0.11.17"
+
 # Release configuration
 release:
   release: true

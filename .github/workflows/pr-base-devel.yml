@@ -118,6 +118,9 @@ jobs:
 
             CHECK_PY=$(echo "$PY" | sed -E 's/^py([0-9])([0-9]+)$/\1.\2/')
             CHECK_CUDA=$(echo "$FWV" | cut -d. -f1,2)
+            # build: section → space-separated KEY=value pairs (UPPER_CASE keys)
+            BUILD_ARGS=$(yq -o=json '.build // {}' "$CONFIG_FILE" \
+              | jq -r 'to_entries[] | "\(.key | ascii_upcase)=\(.value)"' | tr '\n' ' ')
 
             ENTRY=$(jq -nc \
               --arg cuda "$CUDA" --arg ci_tag "$CI_TAG" --arg target "$TARGET" \
@@ -125,11 +128,12 @@ jobs:
               --arg py "$PY" --arg os "$OS" --arg job "$JOB" \
               --arg dt "$DT" --arg at "$AT" --arg contrib "$CONTRIB" --arg cust "$CUST" \
               --arg prod "$PROD" --arg check_py "$CHECK_PY" --arg check_cuda "$CHECK_CUDA" \
+              --arg build_args "$BUILD_ARGS" \
               '{cuda_version:$cuda, ci_tag:$ci_tag, target:$target, dockerfile:$dockerfile,
                 framework:$fw, framework_version:$fwv, python_version:$py, os_version:$os,
                 job_type:$job, device_type:$dt, arch_type:$at, contributor:$contrib,
                 customer_type:$cust, prod_image:$prod, check_py:$check_py,
-                check_cuda:$check_cuda}')
+                check_cuda:$check_cuda, build_args:$build_args}')
             CONFIGS=$(echo "$CONFIGS" | jq -c --argjson e "$ENTRY" '. + [$e]')
           done
           echo "configs=${CONFIGS}" >> "$GITHUB_OUTPUT"
@@ -183,9 +187,15 @@ jobs:
         run: |
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }}"
           echo "Building ${CI_IMAGE_URI}"
+          # Expand the config build: pins (KEY=value pairs) into --build-arg flags
+          BUILD_ARG_FLAGS=""
+          for pair in ${{ matrix.build_args }}; do
+            BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg ${pair}"
+          done
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${{ matrix.framework_version }} \
             --build-arg CUDA_VERSION_SHORT=${{ matrix.cuda_version }} \
+            ${BUILD_ARG_FLAGS} \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \

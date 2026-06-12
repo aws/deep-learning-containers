@@ -46,6 +46,7 @@ jobs:
       check-py: ${{ steps.parse.outputs.check-py }}
       check-cuda: ${{ steps.parse.outputs.check-cuda }}
       environment: ${{ steps.parse.outputs.environment }}
+      build-args: ${{ steps.parse.outputs.build-args }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -103,6 +104,9 @@ jobs:
           echo "check-py=$(echo "$PY" | sed -E 's/^py([0-9])([0-9]+)$/\1.\2/')" >> $GITHUB_OUTPUT
           echo "check-cuda=$(echo "$FWV" | cut -d. -f1,2)" >> $GITHUB_OUTPUT
           echo "environment=$(jq -r '.release.environment // "production"' config.json)" >> $GITHUB_OUTPUT
+          # build: section → space-separated KEY=value pairs (UPPER_CASE keys)
+          BUILD_ARGS=$(jq -r '.build // {} | to_entries[] | "\(.key | ascii_upcase)=\(.value)"' config.json | tr '\n' ' ')
+          echo "build-args=${BUILD_ARGS}" >> $GITHUB_OUTPUT
 
   # ============================================================
   # Build the devel image
@@ -132,9 +136,15 @@ jobs:
         run: |
           CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ needs.load-config.outputs.ci-tag }}-${{ github.run_id }}"
           echo "Building ${CI_IMAGE_URI}"
+          # Expand the config build: pins (KEY=value pairs) into --build-arg flags
+          BUILD_ARG_FLAGS=""
+          for pair in ${{ needs.load-config.outputs.build-args }}; do
+            BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg ${pair}"
+          done
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${{ needs.load-config.outputs.framework-version }} \
             --build-arg CUDA_VERSION_SHORT=${{ needs.load-config.outputs.cuda-version }} \
+            ${BUILD_ARG_FLAGS} \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
