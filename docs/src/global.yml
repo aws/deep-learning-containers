@@ -69,7 +69,8 @@ display_names:
     base: "Base"
     ray: "Ray"
     sagemaker-xgboost: "XGBoost"
-    sglang: "SGLang"
+    sglang: "SGLang (Ubuntu)"
+    sglang-server: "SGLang"
     vllm: "vLLM (Ubuntu)"
     vllm-server: "vLLM"
     vllm-arm64: "vLLM ARM64"
@@ -183,6 +184,7 @@ table_order:
   - base
   - ray
   - sglang
+  - sglang-server
   - vllm
   - vllm-server
   - vllm-arm64
