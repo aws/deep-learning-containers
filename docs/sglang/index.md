@@ -20,7 +20,8 @@ In addition to SGLang and its core stack (PyTorch 2.11, CUDA 13.0, NCCL, Python 
 - **[FlashInfer](https://github.com/flashinfer-ai/flashinfer)** — fused attention kernels with precompiled cubins for fast cold start
 - **[DeepEP](https://github.com/deepseek-ai/DeepEP)** — expert-parallel kernels for large MoE models (DeepSeek, Qwen MoE)
 - **[Mooncake](https://github.com/kvcache-ai/Mooncake)** — KV-cache transfer engine for disaggregated prefill/decode
-- **[sgl-kernel](https://github.com/sgl-project/sglang/tree/main/sgl-kernel)** — SGLang's custom CUDA kernels, built from source for the bundled CUDA arch list
+- **[sgl-kernel](https://github.com/sgl-project/sglang/tree/main/sgl-kernel)** — SGLang's custom CUDA kernels, built from source for the bundled CUDA
+  arch list
 - **[EFA](https://aws.amazon.com/hpc/efa/) and [OpenMPI](https://www.open-mpi.org/)** — high-throughput multi-node networking on supported instances
 
 The images are built from SGLang source against the H100 (sm_90) and Blackwell (sm_100, sm_103) CUDA architectures.
