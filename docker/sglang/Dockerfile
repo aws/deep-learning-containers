@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.12
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.13
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -93,6 +93,10 @@ RUN rm -rf \
   /sgl-workspace/sglang/sgl-model-gateway/Cargo.lock \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
+
+# Remove oh-my-zsh to avoid false positive in credentials scan
+# (plugins/dotenv/README.md contains example private key headers)
+RUN rm -rf /root/.oh-my-zsh
 
 # Run OSS compliance script
 # ==========================
