@@ -49,9 +49,9 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     ---
 
-    Deploy large language models with vLLM on EC2, EKS, or Amazon SageMaker AI.
+    Deploy large language models with vLLM or SGLang on EC2, EKS, or Amazon SageMaker AI.
 
-    [vLLM Guide](vllm/index.md) · [SGLang Images](reference/available_images.md#sglang)
+    [vLLM Guide](vllm/index.md) · [SGLang Guide](sglang/index.md)
 
 -   **Serve Multimodal Models**
 

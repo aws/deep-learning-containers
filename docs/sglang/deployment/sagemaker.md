@@ -29,7 +29,7 @@ model = Model(
 predictor = model.deploy(
     instance_type="ml.g5.2xlarge",
     initial_instance_count=1,
-    inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
+    inference_ami_version="al2023-ami-sagemaker-inference-gpu-4-1",
     serializer=JSONSerializer(),
 )
 
@@ -70,7 +70,7 @@ ep_cfg = EndpointConfig.create(
             model_name="sglang-model",
             instance_type="ml.g5.2xlarge",
             initial_instance_count=1,
-            inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
+            inference_ami_version="al2023-ami-sagemaker-inference-gpu-4-1",
         ),
     ],
 )
@@ -121,7 +121,7 @@ sm.create_endpoint_config(
         "ModelName": "sglang-model",
         "InstanceType": "ml.g5.2xlarge",
         "InitialInstanceCount": 1,
-        "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
+        "InferenceAmiVersion": "al2023-ami-sagemaker-inference-gpu-4-1",
     }],
 )
 

@@ -43,12 +43,11 @@ flag entirely.
 | `SM_SGLANG_DTYPE` | Data type (auto, bfloat16, float16) | `auto` |
 | `SM_SGLANG_QUANTIZATION` | Quantization method (fp8, awq, gptq, …) | None |
 | `SM_SGLANG_TRUST_REMOTE_CODE` | Allow custom model code from the Hub | `false` |
-| `SM_SGLANG_PORT` | Server port | `8080` |
-| `SM_SGLANG_HOST` | Bind address | `0.0.0.0` |
 | `HF_TOKEN` | Hugging Face token for gated models | — |
 
-The entrypoint always supplies `--port 8080`, `--host 0.0.0.0`, and `--model-path /opt/ml/model` unless you override them via the matching
-`SM_SGLANG_*` variable.
+The entrypoint defaults to `--port 8080` and `--host 0.0.0.0`, and you should leave them there: SageMaker forwards `/ping` and `/invocations` to
+port 8080, so changing the port or host breaks endpoint routing. The `--model-path` defaults to `/opt/ml/model` (where SageMaker mounts model
+artifacts) unless you set `SM_SGLANG_MODEL_PATH`.
 
 ## Full Reference
 
