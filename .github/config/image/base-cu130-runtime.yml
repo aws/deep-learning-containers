@@ -1,10 +1,10 @@
-# Base v2 runtime (CUDA 13.0.2, amzn2023) Image Configuration
-# This file contains all configuration for building, testing, and releasing the base-v2 runtime image
+# Base cu130 runtime (CUDA 13.0.2, amzn2023) Image Configuration
+# This file contains all configuration for building, testing, and releasing the base-cu130 runtime image
 
 # Image identification
 image:
-  name: "base-v2-runtime"
-  description: "Base v2 runtime GPU image with CUDA 13.0.2 and Python on amzn2023"
+  name: "base-cu130-runtime"
+  description: "Base cu130 runtime GPU image with CUDA 13.0.2 and Python on amzn2023"
 
 # Build configuration
 common:
@@ -16,12 +16,17 @@ common:
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  container_type: "runtime-cuda"
+  container_type: "runtime"
   build_target: "runtime"
   ci_tag: "cuda130-runtime-amzn2023"
   device_type: "gpu"
   contributor: "None"
-  prod_image: "base:runtime-cuda-v2"
+  prod_image: "base:runtime-cu130-amzn2023"
+
+# Build pins passed to the Dockerfile as --build-args (UPPER_CASE keys)
+build:
+  python_version: "3.13.12"
+  uv_version: "0.11.17"
 
 # Release configuration
 release:

@@ -1,10 +1,10 @@
-# Base v1 devel (CUDA 12.9.1, amzn2023) Image Configuration
-# This file contains all configuration for building, testing, and releasing the base-v1 devel image
+# Base cu129 devel (CUDA 12.9.1, amzn2023) Image Configuration
+# This file contains all configuration for building, testing, and releasing the base-cu129 devel image
 
 # Image identification
 image:
-  name: "base-v1-devel"
-  description: "Base v1 devel GPU image with CUDA 12.9.1, Python, and build tools on amzn2023"
+  name: "base-cu129-devel"
+  description: "Base cu129 devel GPU image with CUDA 12.9.1, Python, and build tools on amzn2023"
 
 # Build configuration
 common:
@@ -16,12 +16,17 @@ common:
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  container_type: "devel-cuda"
+  container_type: "devel"
   build_target: "devel"
   ci_tag: "cuda129-devel-amzn2023"
   device_type: "gpu"
   contributor: "None"
-  prod_image: "base:devel-cuda-v1"
+  prod_image: "base:devel-cu129-amzn2023"
+
+# Build pins passed to the Dockerfile as --build-args (UPPER_CASE keys)
+build:
+  python_version: "3.13.12"
+  uv_version: "0.11.17"
 
 # Release configuration
 release:

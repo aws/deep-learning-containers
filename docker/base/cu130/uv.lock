@@ -37,7 +37,7 @@ wheels = [
 ]
 
 [[package]]
-name = "dlc-base-v2"
+name = "dlc-base-cu130"
 version = "2.0.0"
 source = { virtual = "." }
 dependencies = [
