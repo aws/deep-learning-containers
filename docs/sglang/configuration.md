@@ -45,9 +45,9 @@ flag entirely.
 | `SM_SGLANG_TRUST_REMOTE_CODE` | Allow custom model code from the Hub | `false` |
 | `HF_TOKEN` | Hugging Face token for gated models | — |
 
-The entrypoint defaults to `--port 8080` and `--host 0.0.0.0`, and you should leave them there: SageMaker forwards `/ping` and `/invocations` to
-port 8080, so changing the port or host breaks endpoint routing. The `--model-path` defaults to `/opt/ml/model` (where SageMaker mounts model
-artifacts) unless you set `SM_SGLANG_MODEL_PATH`.
+The entrypoint defaults to `--port 8080` and `--host 0.0.0.0`, and you should leave them there: SageMaker forwards `/ping` and `/invocations` to port
+8080, so changing the port or host breaks endpoint routing. The `--model-path` defaults to `/opt/ml/model` (where SageMaker mounts model artifacts)
+unless you set `SM_SGLANG_MODEL_PATH`.
 
 ## Full Reference
 
