@@ -94,6 +94,10 @@ RUN rm -rf \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
+# Remove oh-my-zsh to avoid false positive in credentials scan
+# (plugins/dotenv/README.md contains example private key headers)
+RUN rm -rf /root/.oh-my-zsh
+
 # Run OSS compliance script
 # ==========================
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc \
