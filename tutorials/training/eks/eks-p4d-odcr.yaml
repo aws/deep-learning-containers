@@ -1,0 +1,78 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: eks-p4d
+  region: us-west-2
+  version: "1.33"
+
+# List availability zones where cluster subnets will be created
+availabilityZones:
+  - us-west-2a
+  - us-west-2b
+  - us-west-2c
+  - us-west-2d
+iam:
+  withOIDC: true
+
+# EKS-managed node group(s)
+managedNodeGroups:
+  # Nodegroup for system pods
+  - name: sys
+    instanceType: c5.2xlarge
+    desiredCapacity: 1
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        cloudWatch: true
+    nodeRepairConfig:
+      enabled: true
+  # GPU nodegroup
+  # List availability zones where instances in from this nodegroup will be launched
+  - name: p4d
+    instanceType: p4d.24xlarge
+    instancePrefix: p4d
+    privateNetworking: true
+    efaEnabled: true
+    minSize: 0
+    desiredCapacity: 2
+    maxSize: 4
+    availabilityZones: ["us-west-2a"]
+    capacityReservation:
+      capacityReservationTarget:
+        capacityReservationID: "cr-xxxxxxxxxx"
+    # Utilize the local instance store volume(s)
+    overrideBootstrapCommand: |
+      apiVersion: node.eks.aws/v1alpha1
+      kind: NodeConfig
+      spec:
+        instance:
+          localStorage:
+            strategy: RAID0
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        cloudWatch: true
+        ebs: true
+        fsx: true
+    nodeRepairConfig:
+      enabled: true
+
+addons:
+# - name: vpc-cni # no version is specified so it deploys the default version
+#   attachPolicyARNs:
+#     - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+# - name: coredns
+#   version: latest # auto discovers the latest available
+# - name: kube-proxy
+#   version: latest
+  - name: aws-ebs-csi-driver
+    wellKnownPolicies:      # add IAM and service account
+      ebsCSIController: true
+  - name: eks-node-monitoring-agent
+    resolveConflicts: overwrite
+  - name: amazon-cloudwatch-observability
+    resolveConflicts: overwrite
+    attachPolicyARNs:
+      - arn:aws:iam::aws:policy/CloudWatchFullAccess
+
