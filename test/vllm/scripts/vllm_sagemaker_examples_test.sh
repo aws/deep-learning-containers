@@ -7,33 +7,24 @@ cd vllm_source
 # vLLM v0.23.0 moved the sagemaker entrypoint tests under serve/
 if [ -d "tests/entrypoints/serve/sagemaker" ]; then
   SM_TEST_DIR="tests/entrypoints/serve/sagemaker"
-elif [ -d "tests/entrypoints/sagemaker" ]; then
-  SM_TEST_DIR="tests/entrypoints/sagemaker"
 else
-  echo "WARNING: SageMaker test directory not found, skipping SageMaker-specific tests"
-  SM_TEST_DIR=""
+  SM_TEST_DIR="tests/entrypoints/sagemaker"
 fi
 
-if [ -n "${SM_TEST_DIR}" ]; then
-  # Test LoRA adapter loading/unloading via SageMaker endpoints
-  pytest ${SM_TEST_DIR}/test_sagemaker_lora_adapters.py -v
+# Test LoRA adapter loading/unloading via SageMaker endpoints
+pytest ${SM_TEST_DIR}/test_sagemaker_lora_adapters.py -v
 
-  # Test stateful session management
-  pytest ${SM_TEST_DIR}/test_sagemaker_stateful_sessions.py -v
+# Test stateful session management
+pytest ${SM_TEST_DIR}/test_sagemaker_stateful_sessions.py -v
 
-  # Test sagemaker custom middleware
-  pytest ${SM_TEST_DIR}/test_sagemaker_middleware_integration.py -v
+# Test sagemaker custom middleware
+pytest ${SM_TEST_DIR}/test_sagemaker_middleware_integration.py -v
 
-  # Test sagemaker endpoint overrides
-  pytest ${SM_TEST_DIR}/test_sagemaker_handler_overrides.py -v
-fi
+# Test sagemaker endpoint overrides
+pytest ${SM_TEST_DIR}/test_sagemaker_handler_overrides.py -v
 
 # Test LoRA adapter loading/unloading via original OpenAI API server endpoints
-if [ -f "tests/entrypoints/serve/lora/test_lora_adapters.py" ]; then
-  pytest tests/entrypoints/serve/lora/test_lora_adapters.py -v
-elif [ -f "tests/entrypoints/openai/test_lora_adapters.py" ]; then
-  pytest tests/entrypoints/openai/test_lora_adapters.py -v
-fi
+pytest tests/entrypoints/serve/lora/test_lora_adapters.py -v
 
 cd examples
 pip install tensorizer # for tensorizer test
