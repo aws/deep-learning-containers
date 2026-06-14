@@ -382,6 +382,7 @@ sagemaker:
   - name: "voxtral-mini-4b"
     s3_model: "voxtral-mini-4b.tar.gz"
     instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_TOKENIZER_MODE: "mistral"
@@ -405,6 +406,7 @@ sagemaker:
   - name: "granite-speech-4-1-2b"
     s3_model: "granite-speech-4.1-2b.tar.gz"
     instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_MAX_MODEL_LEN: "2048"
@@ -424,6 +426,7 @@ sagemaker:
   - name: "voxtral-mini-4b-network-isolated"
     s3_model: "voxtral-mini-4b-isolated.tar.gz"
     instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
     network_isolation: true
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
@@ -449,6 +452,7 @@ sagemaker:
   - name: "granite-speech-4-1-2b-network-isolated"
     s3_model: "granite-speech-4.1-2b-isolated.tar.gz"
     instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
     network_isolation: true
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
@@ -479,6 +483,7 @@ sagemaker:
   - name: "qwen3-reranker-4b"
     s3_model: "qwen3-reranker-4b.tar.gz"
     instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
     chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
