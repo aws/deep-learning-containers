@@ -1,0 +1,31 @@
+name: 'Upload ECR Allowlists'
+description: 'Upload per-image security scan allowlists to S3 based on image configs'
+
+inputs:
+  dry-run:
+    description: 'Print what would be uploaded without writing to S3'
+    required: false
+    default: 'false'
+  image:
+    description: 'Target a single image (repo:tag), e.g. vllm:omni-cuda-v1'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload ECR allowlists
+      shell: bash
+      run: |
+        ARGS=""
+        if [[ "${{ inputs.dry-run }}" == "true" ]]; then
+          ARGS="--dry-run"
+        fi
+        if [[ -n "${{ inputs.image }}" ]]; then
+          ARGS="${ARGS} --image ${{ inputs.image }}"
+        fi
+        python3 "${{ github.action_path }}/upload_ecr_allowlists.py" ${ARGS}
+      env:
+        ECR_ACCOUNT_ID: ${{ vars.CI_AWS_ACCOUNT_ID }}
+        AWS_REGION: ${{ vars.AWS_REGION }}
+        SCANNER_ALLOWLIST_S3_BUCKET: ${{ vars.SCANNER_ALLOWLIST_S3_BUCKET }}

@@ -1,22 +1,22 @@
-# SGLang EC2 AL2023 Image Configuration
-# Single source of truth for image identity, build pins, and release settings.
-# Workflow extracts both image tags and --build-args from this file.
 image:
-  name: "sglang-ec2-amzn2023"
-  description: "SGLang for EC2 instances (AL2023, built from source)"
-common:
+  name: "sglang-sagemaker-amzn2023"
+  description: "SGLang for SageMaker (AL2023, built from source)"
+
+metadata:
   framework: "sglang_server"
   framework_version: "0.5.12+dlc1"
-  job_type: "general"
-  python_version: "py312"
-  cuda_version: "cu130"
   os_version: "amzn2023"
-  customer_type: "ec2"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
   arch_type: "x86"
-  prod_image: "sglang:server-cuda-v1"
   device_type: "gpu"
-  contributor: "None"
+  job_type: "general"
+
 build:
+  dockerfile: "docker/sglang/Dockerfile.amzn2023"
+  target: "sglang-sagemaker"
+  python_version: "3.12"
+  cuda_version: "13.0.3"
   sglang_ref: "578d27e56acd6786eb7067b9e1583232fd1d998e"
   sglang_kernel_version: "0.4.3"
   flashinfer_version: "0.6.11.post1"
@@ -28,14 +28,23 @@ build:
   efa_version: "1.48.0"
   rust_version: "1.90.0"
   gdrcopy_version: "2.5.1"
-  cuda_ref: "13.0.3"
   torch_cuda_arch_list: "9.0;10.0;10.3"
   dlc_major_version: "1"
   dlc_minor_version: "0"
+
+tests:
+  upstream:
+    workflow: "./.github/workflows/reusable-sglang-upstream-tests.yml"
+  model:
+    workflow: "./.github/workflows/reusable-sglang-model-tests.yml"
+  sagemaker:
+    workflow: "./.github/workflows/reusable-sglang-sagemaker-tests.yml"
+
 release:
   release: true
+  prod_image: "sglang:server-sagemaker-cuda-v1"
   force_release: false
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: production
+  environment: "production"

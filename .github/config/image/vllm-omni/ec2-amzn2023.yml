@@ -1,0 +1,41 @@
+image:
+  name: "vllm-omni-ec2-amzn2023"
+  description: "vLLM-Omni for EC2 instances (AL2023, omni-modality serving)"
+
+metadata:
+  framework: "vllm_omni"
+  framework_version: "0.21.0rc1"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+
+build:
+  dockerfile: "docker/vllm_omni/Dockerfile.amzn2023"
+  target: "vllm-omni-ec2"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  vllm_ref: "v0.21.0"
+  vllm_omni_version: "0.21.0rc1"
+  flashinfer_version: "0.6.8.post1"
+  deepep_commit_hash: "73b6ea4"
+  efa_version: "1.47.0"
+  torch_cuda_arch_list: "7.5 8.0 8.6 8.9 9.0 10.0 11.0 12.0+PTX"
+  install_kv_connectors: "true"
+  dlc_major_version: "1"
+  dlc_minor_version: "3"
+  use_sccache: "true"
+
+tests:
+  model:
+    workflow: "./.github/workflows/reusable-vllm-omni-model-tests.yml"
+
+release:
+  release: true
+  prod_image: "vllm:omni-cuda-v1"
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"

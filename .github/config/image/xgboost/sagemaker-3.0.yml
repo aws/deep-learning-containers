@@ -1,0 +1,34 @@
+image:
+  name: "sagemaker-xgboost-3.0"
+  description: "SageMaker XGBoost 3.0.5"
+
+metadata:
+  framework: "xgboost"
+  framework_version: "3.0.5"
+  os_version: "ubuntu20.04"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "cpu"
+  job_type: "general"
+
+build:
+  dockerfile: "docker/xgboost/3.0-5/Dockerfile"
+  target: "xgboost-sagemaker"
+  base_image: "nvidia/cuda:12.6.0-base-ubuntu20.04"
+  python_version: "3.10"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+tests:
+  integ:
+    workflow: "./.github/workflows/reusable-sagemaker-xgboost-integ-tests.yml"
+
+release:
+  release: true
+  prod_image: "sagemaker-xgboost:3.0-5-cpu-py3"
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: false
+  environment: "preprod"

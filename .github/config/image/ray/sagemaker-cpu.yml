@@ -1,0 +1,33 @@
+image:
+  name: "ray-sagemaker-cpu"
+  description: "Ray for SageMaker (CPU)"
+
+metadata:
+  framework: "ray"
+  framework_version: "2.55.1"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "cpu"
+  job_type: "inference"
+
+build:
+  dockerfile: "docker/ray/Dockerfile.cpu"
+  target: "ray-sagemaker-cpu"
+  python_version: "3.13.12"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+tests:
+  serve:
+    workflow: "./.github/workflows/reusable-ray-serve-test.yml"
+
+release:
+  release: true
+  prod_image: "ray:serve-ml-sagemaker-cpu"
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"
