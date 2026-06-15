@@ -1,0 +1,90 @@
+[project]
+name = "tensorflow-serving-inference-dlc"
+version = "2.20.0"
+requires-python = ">=3.12,<3.13"
+# ──────────────────────────────────────────────────────────────────────────────
+# TF Serving 2.20 CUDA AL2023 inference DLC — runtime-base dependencies
+#
+# The TF Serving binary itself is NOT installed via pip — it is COPYed out of
+# tensorflow/serving:2.20.0-devel-gpu in the Dockerfile. The
+# `tensorflow-serving-api-gpu` wheel is the matched gRPC stub (used by
+# python_service.py to call the local serving binary on port 8500).
+#
+# IMPORTANT — locked decision Q1 (handoff):
+#   `tensorflow-serving-api-gpu==2.20.0` is INTENTIONALLY OMITTED from this
+#   `dependencies` list. The PyPI wheel declares a hard `tensorflow` runtime
+#   dep (≈600 MB framework wheel) which we do not want in an inference image.
+#   uv's resolver does not support per-package `--no-deps`, so the wheel is
+#   instead installed inline in the Dockerfile via:
+#       uv pip install --no-deps tensorflow-serving-api-gpu==2.20.0
+#   The transitive runtime needs of tfs-api (numpy, protobuf, grpcio) are
+#   declared explicitly below so a coherent venv is locked. OSS license
+#   tracking still picks up tfs-api at compliance-scan time because the
+#   wheel is physically present in the image.
+#
+# Source for this dep list: master TF 2.19 inference Dockerfile.gpu
+# (RUN pip install blocks at lines ~155 and SM-stage line ~265), translated
+# to uv/pyproject form per training PR #6107 pattern.
+# ──────────────────────────────────────────────────────────────────────────────
+dependencies = [
+    # ── tfs-api transitive runtime needs (explicit pins; see header note) ─────
+    # numpy 1.26.4 — TF SavedModel/numpy ABI compat. Must match the version
+    # the TF 2.21 training image uses to export SavedModels (handoff §16).
+    "numpy==1.26.4",
+    # protobuf — tfs-api uses protobuf for the gRPC stubs. Master 2.19 pinned
+    # protobuf==6.33.4; we relax to >=3.20,<7 here so the resolver can pick the
+    # latest line that satisfies the rest of the venv. Floor 3.20 matches the
+    # tfs-api wheel's metadata; ceiling 7 prevents future major-version churn.
+    "protobuf>=3.20,<7",
+    # grpcio — gRPC client used by python_service.py. Latest stable line.
+    "grpcio>=1.0",
+
+    # ── AWS / network / common utilities (carried over from master 2.19) ─────
+    "awscli<2",
+    "boto3",
+    "botocore",
+    "requests",
+    "packaging",
+    "gevent",
+
+    # ── Falcon-based SM handler stack ─────────────────────────────────────────
+    # Both pins user-locked per handoff §16. Master GPU used falcon==3.0.1, but
+    # we standardize on 3.1.0 (matches master CPU and is forward-compatible).
+    "falcon==3.1.0",
+    "gunicorn>=22.0.0",
+
+    # ── Compat / security pins inherited from training PR #6107 ───────────────
+    # cython<3 — TF/numpy ABI compat; same constraint as training image.
+    "cython<3",
+    # aiohttp>=3.14.0 — security pin (CVE-2026-34993, CVE-2026-47265). Pulled
+    # transitively by aiobotocore / boto3 ecosystem. Direct pin forces resolver
+    # to pick the patched line.
+    "aiohttp>=3.14.0",
+    "urllib3",
+]
+
+[project.optional-dependencies]
+sagemaker = [
+    # NOTE: `sagemaker-tensorflow-serving-container` is NOT on PyPI (verified
+    # via `uv lock` failure on 2026-06-11; handoff §14.4 flagged this risk).
+    # Master TF 2.19 inference references it but never pip-installs it from
+    # PyPI — it is vendored as the local handler scripts under
+    # docker/build_artifacts/sagemaker/, which we port to scripts/tensorflow/
+    # inference/sagemaker/ in Phase 3.
+    #
+    # Master TF 2.19 inference SM stage does NOT install the `sagemaker` SDK
+    # (verified by re-reading tensorflow/inference/docker/2.19/py3/cu122/Dockerfile.gpu
+    # lines 247-275). The handler scripts (python_service.py, multi_model_utils.py)
+    # use boto3 directly. Removing the SDK from this extra avoids transitively
+    # pulling torch + ~20 nvidia-cu13 packages we have no use for in an
+    # inference image.
+    #
+    # Lightweight data tooling — kept so customer inference handlers can use
+    # them without an extra pip install:
+    "pandas",
+    "scikit-learn",
+    "cloudpickle",
+]
+
+[tool.uv]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
