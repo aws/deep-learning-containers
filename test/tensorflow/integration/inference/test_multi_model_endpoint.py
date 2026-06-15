@@ -3,6 +3,12 @@
 Builds two tiny SavedModels (``y = 2x`` and ``y = 3x``), uploads both to a
 shared S3 prefix, deploys a SageMaker MME backed by the v2 inference image,
 and asserts that ``TargetModel`` routes invocations correctly.
+
+Uses boto3 directly (sagemaker, sagemaker-runtime, s3 clients) rather than
+the SageMaker Python SDK, because the v3.x ``sagemaker`` package removed
+the v2 ``MultiDataModel`` / ``TensorFlowModel`` classes this test originally
+relied on. MME is a thin server-side construct anyway: ``Mode: MultiModel``
+on the PrimaryContainer plus a model_data S3 prefix.
 """
 
 from __future__ import annotations
@@ -18,9 +24,9 @@ from .resources.build_sample_model import build_sample_model
 INSTANCE_TYPE = "ml.c5.xlarge"
 
 
-def _decode(response) -> dict:
-    """Normalize an MME runtime invoke response Body into a Python dict."""
-    body = response["Body"].read() if hasattr(response, "get") else response
+def _decode(invoke_response) -> dict:
+    """Decode an ``invoke_endpoint`` response Body into a Python dict."""
+    body = invoke_response["Body"].read()
     if isinstance(body, (bytes, bytearray)):
         body = body.decode("utf-8")
     return json.loads(body)
@@ -36,15 +42,16 @@ def _values_from_predictions(predictions) -> list:
 
 
 def test_mme_two_models(
-    sagemaker_session,
+    sagemaker_client,
+    sagemaker_runtime_client,
     sagemaker_role_arn,
     inference_image_uri,
+    default_bucket,
+    upload_to_s3,
     unique_name,
     cleanup_endpoint,
+    wait_for_endpoint,
 ):
-    from sagemaker.multidatamodel import MultiDataModel
-    from sagemaker.tensorflow.serving import TensorFlowModel
-
     with tempfile.TemporaryDirectory(prefix="tf220-mme-") as workdir:
         workdir_path = Path(workdir)
 
@@ -59,48 +66,55 @@ def test_mme_two_models(
             output_dir=model2_dir, multiplier=3.0, model_name="model", tar_filename="model2.tar.gz"
         )
 
-        bucket = sagemaker_session.default_bucket()
         run_id = unique_name("mme")
         s3_key_prefix = f"tf220-inference-tests/mme-models/{run_id}"
 
         # Upload each tarball under the shared MME prefix so the runtime can
         # resolve TargetModel relative to the same S3 location.
-        sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
-        sagemaker_session.upload_data(path=model2_tar, bucket=bucket, key_prefix=s3_key_prefix)
-        s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
+        upload_to_s3(model1_tar, default_bucket, f"{s3_key_prefix}/model1.tar.gz")
+        upload_to_s3(model2_tar, default_bucket, f"{s3_key_prefix}/model2.tar.gz")
+        s3_model_prefix = f"s3://{default_bucket}/{s3_key_prefix}/"
 
         endpoint_name = unique_name("tf220-mme")
         base_model_name = unique_name("tf220-mme-model")
         cleanup_endpoint(endpoint_name, model_name=base_model_name)
 
-        # The TensorFlowModel acts as the container template; MultiDataModel
-        # reuses its image_uri + execution role for the endpoint config.
-        base_model = TensorFlowModel(
-            model_data=model1_tar,  # placeholder; MME ignores model_data at runtime
-            role=sagemaker_role_arn,
-            image_uri=inference_image_uri,
-            sagemaker_session=sagemaker_session,
-            name=base_model_name,
+        # ``Mode: MultiModel`` plus an S3 prefix is the entire MME contract on
+        # the control plane; the runtime resolves ``TargetModel`` relative to
+        # ModelDataUrl.
+        sagemaker_client.create_model(
+            ModelName=base_model_name,
+            ExecutionRoleArn=sagemaker_role_arn,
+            PrimaryContainer={
+                "Image": inference_image_uri,
+                "ModelDataUrl": s3_model_prefix,
+                "Mode": "MultiModel",
+            },
         )
 
-        mme = MultiDataModel(
-            name=base_model_name,
-            model_data_prefix=s3_model_prefix,
-            model=base_model,
-            sagemaker_session=sagemaker_session,
+        sagemaker_client.create_endpoint_config(
+            EndpointConfigName=endpoint_name,
+            ProductionVariants=[
+                {
+                    "VariantName": "AllTraffic",
+                    "ModelName": base_model_name,
+                    "InitialInstanceCount": 1,
+                    "InstanceType": INSTANCE_TYPE,
+                    "InitialVariantWeight": 1.0,
+                }
+            ],
         )
 
-        mme.deploy(
-            initial_instance_count=1,
-            instance_type=INSTANCE_TYPE,
-            endpoint_name=endpoint_name,
+        sagemaker_client.create_endpoint(
+            EndpointName=endpoint_name,
+            EndpointConfigName=endpoint_name,
         )
+        wait_for_endpoint(endpoint_name)
 
-        runtime = sagemaker_session.boto_session.client("sagemaker-runtime")
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
 
         # Invoke model1 (x * 2.0)
-        resp1 = runtime.invoke_endpoint(
+        resp1 = sagemaker_runtime_client.invoke_endpoint(
             EndpointName=endpoint_name,
             ContentType="application/json",
             TargetModel="model1.tar.gz",
@@ -112,7 +126,7 @@ def test_mme_two_models(
         assert values1 == pytest.approx([2.0, 4.0, 6.0]), f"model1 got {values1!r}"
 
         # Invoke model2 (x * 3.0)
-        resp2 = runtime.invoke_endpoint(
+        resp2 = sagemaker_runtime_client.invoke_endpoint(
             EndpointName=endpoint_name,
             ContentType="application/json",
             TargetModel="model2.tar.gz",
