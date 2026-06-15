@@ -70,7 +70,7 @@ ARG NJS_VERSION
 
 RUN dnf install -y --allowerasing \
   gcc gcc-c++ make \
-  pcre-devel pcre2-devel zlib-devel openssl-devel \
+  pcre-devel pcre2-devel zlib-devel openssl-devel libxml2-devel libxslt-devel \
   curl tar gzip xz \
   && dnf clean all
 
