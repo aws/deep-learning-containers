@@ -34,10 +34,10 @@ FROM amazonlinux:2023 AS builder-base
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
-    python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-    gcc gcc-c++ make cmake git openssl-devel ninja-build \
-    tar xz curl wget \
- && dnf clean all
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  gcc gcc-c++ make cmake git openssl-devel ninja-build \
+  tar xz curl wget \
+  && dnf clean all
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
@@ -57,7 +57,7 @@ RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
 COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
- && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 
 # ── Stage: builder-njs (compile nginx + njs dynamic module from source) ─────
@@ -69,26 +69,26 @@ ARG NGINX_VERSION
 ARG NJS_VERSION
 
 RUN dnf install -y --allowerasing \
-    gcc gcc-c++ make \
-    pcre-devel pcre2-devel zlib-devel openssl-devel \
-    curl tar xz \
- && dnf clean all
+  gcc gcc-c++ make \
+  pcre-devel pcre2-devel zlib-devel openssl-devel \
+  curl tar xz \
+  && dnf clean all
 
 WORKDIR /tmp/njs-build
 
 RUN curl -fsSLO "https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" \
- && tar xzf nginx-${NGINX_VERSION}.tar.gz \
- && curl -fsSL "https://github.com/nginx/njs/archive/refs/tags/${NJS_VERSION}.tar.gz" -o njs-${NJS_VERSION}.tar.gz \
- && tar xzf njs-${NJS_VERSION}.tar.gz
+  && tar xzf nginx-${NGINX_VERSION}.tar.gz \
+  && curl -fsSL "https://github.com/nginx/njs/archive/refs/tags/${NJS_VERSION}.tar.gz" -o njs-${NJS_VERSION}.tar.gz \
+  && tar xzf njs-${NJS_VERSION}.tar.gz
 
 RUN cd nginx-${NGINX_VERSION} \
- && ./configure \
+  && ./configure \
     --with-compat \
     --add-dynamic-module=/tmp/njs-build/njs-${NJS_VERSION}/nginx \
- && make -j$(nproc) modules \
- && mkdir -p /out/modules \
- && cp objs/ngx_http_js_module.so /out/modules/ \
- && cp objs/ngx_stream_js_module.so /out/modules/
+  && make -j$(nproc) modules \
+  && mkdir -p /out/modules \
+  && cp objs/ngx_http_js_module.so /out/modules/ \
+  && cp objs/ngx_stream_js_module.so /out/modules/
 
 
 # ── Stage: runtime-base (shared base for output stages) ─────────────────────
@@ -107,23 +107,23 @@ LABEL framework="tensorflow"
 LABEL framework_version="${TF_SERVING_VERSION}"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONIOENCODING=UTF-8 \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    DLC_CONTAINER_TYPE=inference \
-    MODEL_BASE_PATH=/models \
-    MODEL_NAME=model
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=inference \
+  MODEL_BASE_PATH=/models \
+  MODEL_NAME=model
 
 # Runtime system deps via dnf — equivalent of master TF 2.19 CPU apt-get block.
 RUN dnf install -y --allowerasing \
-    python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
-    nginx \
-    gcc gcc-c++ make git \
-    tar gzip xz which findutils util-linux \
-    libpng-devel freetype-devel zlib-devel \
-    openssl unzip jq curl wget \
- && dnf clean all
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
+  nginx \
+  gcc gcc-c++ make git \
+  tar gzip xz which findutils util-linux \
+  libpng-devel freetype-devel zlib-devel \
+  openssl unzip jq curl wget \
+  && dnf clean all
 
 # Copy venv from builder-base
 COPY --from=builder-base /opt/venv /opt/venv
@@ -137,7 +137,7 @@ COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/local/bin/te
 
 # python symlink — some TF tooling expects /usr/local/bin/python.
 RUN ln -sf $(which python${PYTHON_VERSION}) /usr/local/bin/python \
- && ln -sf $(which pip3) /usr/local/bin/pip
+  && ln -sf $(which pip3) /usr/local/bin/pip
 
 ENV PATH="/opt/venv/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -172,7 +172,7 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 # tensorflow-serving-api — installed inline with --no-deps; see locked
 # decision Q1 in cpu/pyproject.toml header.
 RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api==${TF_SERVING_VERSION}" 2>/dev/null \
- || /opt/venv/bin/pip install --no-deps --no-cache-dir "tensorflow-serving-api==${TF_SERVING_VERSION}"
+  || /opt/venv/bin/pip install --no-deps --no-cache-dir "tensorflow-serving-api==${TF_SERVING_VERSION}"
 
 # SageMaker handler artifacts (TFS toolkit ported in Phase 3 from master TF 2.19
 # build_artifacts/sagemaker/: serve/serve.py, python_service.py, tfs_utils.py,
@@ -185,21 +185,21 @@ COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templat
 ARG FRAMEWORK="tensorflow"
 ARG CONTAINER_TYPE="inference"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
- && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-        -e "s/{{FRAMEWORK_VERSION}}/${TF_SERVING_VERSION}/g" \
-        -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
-        /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
- && chmod +x /usr/local/bin/bash_telemetry.sh \
- && rm /tmp/bash_telemetry.sh.template
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TF_SERVING_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template
 
 # Security patch — run after all installers so every OS package is covered.
 RUN dnf upgrade -y --security --releasever latest \
- && dnf upgrade -y libcurl libcurl-minimal --refresh \
- && dnf clean all
+  && dnf upgrade -y libcurl libcurl-minimal --refresh \
+  && dnf clean all
 
 # Telemetry bashrc hook — MUST be after `dnf upgrade --security`.
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
- && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # OSS compliance
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
@@ -215,8 +215,8 @@ COPY scripts/tensorflow/inference/dockerd_entrypoint.sh /usr/local/bin/dockerd_e
 COPY scripts/tensorflow/inference/tf_serving_entrypoint.sh /usr/local/bin/tf_serving_entrypoint.sh
 COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh \
-             /usr/local/bin/tf_serving_entrypoint.sh \
-             /usr/local/bin/start_cuda_compat.sh
+  /usr/local/bin/tf_serving_entrypoint.sh \
+  /usr/local/bin/start_cuda_compat.sh
 
 RUN rm -rf /tmp/* /root/.cache
 
