@@ -44,45 +44,45 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
 <div class="grid cards" style="grid-template-columns: repeat(3, 1fr);" markdown>
 
-- **Serve Large Language Models**
+-   **Serve Large Language Models**
 
-  * * *
+    ---
 
-  Deploy large language models with vLLM or SGLang on EC2, EKS, or Amazon SageMaker AI.
+    Deploy large language models with vLLM or SGLang on EC2, EKS, or Amazon SageMaker AI.
 
-  [vLLM Guide](vllm/index.md) · [SGLang Guide](sglang/index.md)
+    [vLLM Guide](vllm/index.md) · [SGLang Guide](sglang/index.md)
 
-- **Serve Multimodal Models**
+-   **Serve Multimodal Models**
 
-  * * *
+    ---
 
-  Serve TTS, image generation, video generation, and omni-chat models with vLLM-Omni.
+    Serve TTS, image generation, video generation, and omni-chat models with vLLM-Omni.
 
-  [vLLM-Omni Guide](vllm-omni/index.md)
+    [vLLM-Omni Guide](vllm-omni/index.md)
 
-- **Serve ML Models**
+-   **Serve ML Models**
 
-  * * *
+    ---
 
-  Deploy any ML model with Ray Serve on EC2 or Amazon SageMaker AI — NLP, vision, audio, and tabular.
+    Deploy any ML model with Ray Serve on EC2 or Amazon SageMaker AI — NLP, vision, audio, and tabular.
 
-  [Ray Guide](ray/index.md)
+    [Ray Guide](ray/index.md)
 
-- **Train Models**
+-   **Train Models**
 
-  * * *
+    ---
 
-  Run distributed training with PyTorch on GPU or CPU, with EFA, NCCL, flash-attn, and DeepSpeed pre-installed.
+    Run distributed training with PyTorch on GPU or CPU, with EFA, NCCL, flash-attn, and DeepSpeed pre-installed.
 
-  [PyTorch Guide](pytorch/index.md)
+    [PyTorch Guide](pytorch/index.md)
 
-- **Build Your Own Image**
+-   **Build Your Own Image**
 
-  * * *
+    ---
 
-  Use the lightweight Base images (CUDA + Python on Amazon Linux 2023) as the `FROM` for your custom AI/ML container.
+    Use the lightweight Base images (CUDA + Python on Amazon Linux 2023) as the `FROM` for your custom AI/ML container.
 
-  [Base Guide](base/index.md)
+    [Base Guide](base/index.md)
 
 </div>
 
