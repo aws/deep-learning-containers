@@ -1,0 +1,340 @@
+name: PR - Base Runtime
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "docker/base/**"
+      - "scripts/common/**"
+      - "test/cuda/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/base/**"
+      - ".github/config/image/base-cu*-runtime.yml"
+      - ".github/workflows/pr-base-runtime.yml"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+  TARGET: runtime
+
+jobs:
+  # ============================================================
+  # Gate: permission check on base branch
+  # ============================================================
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
+  # ============================================================
+  # Detect changed CUDA versions for this target. Each
+  # base-<cuda>-runtime.yml becomes one matrix entry (matrix is over
+  # CUDA version only — the target is fixed by this workflow).
+  # If no CUDA version is detected in the diff (e.g. a shared test-only
+  # change), fall back to the latest CUDA version found on disk.
+  # ============================================================
+  check-changes:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-detect-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      configs: ${{ steps.configs.outputs.configs }}
+      build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      cuda-test-change: ${{ steps.changes.outputs.cuda-test-change }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          # Full history so `git diff origin/main...HEAD` can resolve the
+          # merge-base for CUDA-version detection (shallow clone has no origin/main).
+          fetch-depth: 0
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Install yq
+        run: |
+          if ! command -v yq &> /dev/null; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
+
+      - name: Detect changed CUDA versions and build configs matrix
+        id: configs
+        run: |
+          # Which CUDA versions are touched by this PR? (config or docker dir)
+          CHANGED=$(git diff --name-only origin/main...HEAD \
+            | grep -oP '(?:docker/base/|base-)\Kcu[0-9]+' \
+            | sort -u)
+          # Fallback: no version detected (e.g. shared test-only change) →
+          # latest CUDA version, discovered from the config files on disk.
+          if [ -z "$CHANGED" ]; then
+            CHANGED=$(ls .github/config/image/base-cu*-${TARGET}.yml \
+              | grep -oP 'cu\d+' | sort -V | tail -1)
+          fi
+
+          CONFIGS="[]"
+          for CONFIG_FILE in .github/config/image/base-cu*-${TARGET}.yml; do
+            [ -f "$CONFIG_FILE" ] || continue
+            CUDA=$(yq -r '.common.cuda_version' "$CONFIG_FILE")
+            echo "$CHANGED" | grep -qx "$CUDA" || continue
+
+            FW=$(yq -r '.common.framework' "$CONFIG_FILE")
+            FWV=$(yq -r '.common.framework_version' "$CONFIG_FILE")
+            PY=$(yq -r '.common.python_version' "$CONFIG_FILE")
+            OS=$(yq -r '.common.os_version' "$CONFIG_FILE")
+            JOB=$(yq -r '.common.job_type' "$CONFIG_FILE")
+            CI_TAG=$(yq -r '.common.ci_tag' "$CONFIG_FILE")
+            DT=$(yq -r '.common.device_type // "gpu"' "$CONFIG_FILE")
+            AT=$(yq -r '.common.arch_type // "x86"' "$CONFIG_FILE")
+            CONTRIB=$(yq -r '.common.contributor // "None"' "$CONFIG_FILE")
+            CUST=$(yq -r '.common.customer_type // ""' "$CONFIG_FILE")
+            PROD=$(yq -r '.common.prod_image' "$CONFIG_FILE")
+
+            CHECK_PY=$(echo "$PY" | sed -E 's/^py([0-9])([0-9]+)$/\1.\2/')
+            CHECK_CUDA=$(echo "$FWV" | cut -d. -f1,2)
+            # Docker --build-args: CUDA_VERSION (full) + CUDA_VERSION_SHORT from
+            # common, plus every key in the config build: block. Newline-separated
+            # KEY=value so the build-image action can forward them via
+            # EXTRA_BUILD_ARGS (space-safe; no word splitting on values).
+            BUILD_ARGS=$(
+              echo "CUDA_VERSION=${FWV}"
+              echo "CUDA_VERSION_SHORT=${CUDA}"
+              yq -o=json '.build // {}' "$CONFIG_FILE" \
+                | jq -r 'to_entries[] | "\(.key | ascii_upcase)=\(.value)"'
+            )
+
+            ENTRY=$(jq -nc \
+              --arg cuda "$CUDA" --arg ci_tag "$CI_TAG" --arg target "$TARGET" \
+              --arg dockerfile "docker/base/${CUDA}/Dockerfile" --arg fw "$FW" --arg fwv "$FWV" \
+              --arg py "$PY" --arg os "$OS" --arg job "$JOB" \
+              --arg dt "$DT" --arg at "$AT" --arg contrib "$CONTRIB" --arg cust "$CUST" \
+              --arg prod "$PROD" --arg check_py "$CHECK_PY" --arg check_cuda "$CHECK_CUDA" \
+              --arg build_args "$BUILD_ARGS" \
+              '{cuda_version:$cuda, ci_tag:$ci_tag, target:$target, dockerfile:$dockerfile,
+                framework:$fw, framework_version:$fwv, python_version:$py, os_version:$os,
+                job_type:$job, device_type:$dt, arch_type:$at, contributor:$contrib,
+                customer_type:$cust, prod_image:$prod, check_py:$check_py,
+                check_cuda:$check_cuda, build_args:$build_args}')
+            CONFIGS=$(echo "$CONFIGS" | jq -c --argjson e "$ENTRY" '. + [$e]')
+          done
+          echo "configs=${CONFIGS}" >> "$GITHUB_OUTPUT"
+          echo "Configs matrix: ${CONFIGS}"
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            build-change:
+              - "docker/base/**"
+              - "scripts/common/**"
+              - ".github/config/image/base-cu*-runtime.yml"
+              - "test/security/data/ecr_scan_allowlist/base/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            cuda-test-change:
+              - "test/cuda/**"
+
+  # ============================================================
+  # Build images (matrix over changed CUDA versions)
+  # ============================================================
+  build-images:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ matrix.ci_tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v6
+
+      # Turn this matrix entry's build-args (newline-separated KEY=value) into
+      # environment variables + an EXTRA_BUILD_ARGS name list for build-image.
+      # Reading line-by-line keeps values with spaces intact (no word splitting).
+      - name: Set build-args from config
+        run: |
+          NAMES=""
+          while IFS= read -r pair; do
+            [ -n "$pair" ] || continue
+            echo "$pair" >> "$GITHUB_ENV"
+            NAMES="${NAMES} ${pair%%=*}"
+          done <<< "${{ matrix.build_args }}"
+          echo "EXTRA_BUILD_ARGS=${NAMES}" >> "$GITHUB_ENV"
+
+      - name: Build ${{ matrix.ci_tag }}
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ matrix.framework }}
+          target: ${{ env.TARGET }}
+          base-image: nvidia/cuda:${{ matrix.framework_version }}-${{ env.TARGET }}-amzn2023
+          framework-version: ${{ matrix.framework_version }}
+          container-type: ${{ matrix.job_type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: ${{ matrix.dockerfile }}
+          arch-type: ${{ matrix.arch_type }}
+          device-type: ${{ matrix.device_type }}
+          os-version: ${{ matrix.os_version }}
+          contributor: ${{ matrix.contributor }}
+          customer-type: ${{ matrix.customer_type }}
+          # NOTE: cuda-version/python-version inputs intentionally omitted — see
+          # autorelease-base-runtime.yml for the env-collision rationale.
+
+  # ============================================================
+  # Sanity tests — run against all built variants
+  # ============================================================
+  sanity-test:
+    needs: [check-changes, build-images]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+    concurrency:
+      group: ${{ github.workflow }}-sanity-${{ matrix.ci_tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ matrix.framework }}
+      framework-version: ${{ matrix.framework_version }}
+      python-version: ${{ matrix.python_version }}
+      cuda-version: ${{ matrix.cuda_version }}
+      os-version: ${{ matrix.os_version }}
+      customer-type: ${{ matrix.customer_type }}
+      arch-type: ${{ matrix.arch_type }}
+      device-type: ${{ matrix.device_type }}
+      contributor: ${{ matrix.contributor }}
+      container-type: ${{ matrix.job_type }}
+
+  # ============================================================
+  # Base-specific sanity tests (CPU only — Python, compiler flags)
+  # ============================================================
+  base-sanity-test:
+    needs: [check-changes, build-images]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+    concurrency:
+      group: ${{ github.workflow }}-base-sanity-${{ matrix.ci_tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v6
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run base image checks
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh ${{ matrix.check_py }} ${{ matrix.check_cuda }}
+
+  # ============================================================
+  # Security tests — run against all built variants
+  # ============================================================
+  security-test:
+    needs: [check-changes, build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+    concurrency:
+      group: ${{ github.workflow }}-security-${{ matrix.ci_tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ matrix.framework }}
+      framework-version: ${{ matrix.framework_version }}
+
+  # ============================================================
+  # CUDA tests — GPU sanity checks for all built variants
+  # ============================================================
+  cuda-test:
+    needs: [check-changes, build-images]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.cuda-test-change == 'true')
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.check-changes.outputs.configs) }}
+    concurrency:
+      group: ${{ github.workflow }}-cuda-${{ matrix.ci_tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v6
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.ci_tag }}-pr-${{ github.event.pull_request.number }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run CUDA test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/cuda/scripts/cuda_runtime_test.sh ${{ matrix.check_cuda }}

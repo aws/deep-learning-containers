@@ -1,12 +1,12 @@
 framework: Base
-version: "2"
+version: "1"
 accelerator: gpu
 python: py313
-cuda: cu130
+cuda: cu129
 os: amzn2023
 platform: ec2
 public_registry: true
 
 tags:
-  - "devel-cuda-v2"
-  - "runtime-cuda-v2"
+  - "devel-cu129-amzn2023"
+  - "runtime-cu129-amzn2023"

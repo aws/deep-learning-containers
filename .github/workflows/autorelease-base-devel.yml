@@ -1,0 +1,291 @@
+name: Auto Release - Base Devel
+
+on:
+  # schedule run must be on the default branch.
+  # One cron per CUDA version — each run releases a single devel image.
+  schedule:
+    - cron: '50 20 * * 1,3'   # cu129 (CUDA 12.9) — 12:50 PM PST Mon/Wed
+    - cron: '50 21 * * 1,3'   # cu130 (CUDA 13.0) —  1:50 PM PST Mon/Wed
+    # - cron: '50 22 * * 1,3' # cuXXX (future)     —  2:50 PM PST Mon/Wed
+
+  # Manual trigger — release a single CUDA version on demand
+  workflow_dispatch:
+    inputs:
+      cuda-version:
+        description: "CUDA version to release (e.g. cu129, cu130)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  FORCE_COLOR: "1"
+  TARGET: devel
+
+jobs:
+  # ============================================================
+  # Resolve the CUDA version (cron → version, or dispatch input),
+  # load the devel config, and expose its fields.
+  # ============================================================
+  load-config:
+    runs-on: ubuntu-latest
+    outputs:
+      cuda-version: ${{ steps.resolve.outputs.cuda }}
+      ci-tag: ${{ steps.parse.outputs.ci-tag }}
+      dockerfile: ${{ steps.parse.outputs.dockerfile }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      check-py: ${{ steps.parse.outputs.check-py }}
+      check-cuda: ${{ steps.parse.outputs.check-cuda }}
+      environment: ${{ steps.parse.outputs.environment }}
+      build-args: ${{ steps.parse.outputs.build-args }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Resolve CUDA version
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            CUDA="${{ inputs.cuda-version }}"
+          else
+            # Each cron maps to one CUDA version. When adding/removing a version,
+            # update both on.schedule and this case.
+            case "${{ github.event.schedule }}" in
+              "50 20 * * 1,3") CUDA="cu129" ;;
+              "50 21 * * 1,3") CUDA="cu130" ;;
+              *) echo "::error::Unknown cron '${{ github.event.schedule }}'. Add a matching case entry or remove the cron from on.schedule."; exit 1 ;;
+            esac
+          fi
+
+          # Fail fast with a clear message if the resolved version is missing a
+          # config — otherwise this surfaces later as a confusing yq error.
+          CONFIG=".github/config/image/base-${CUDA}-${{ env.TARGET }}.yml"
+          if [ ! -f "$CONFIG" ]; then
+            echo "::error::Resolved CUDA=${CUDA} but missing config: ${CONFIG}. Add the config file or update the cron mapping."
+            exit 1
+          fi
+
+          echo "Resolved CUDA version: ${CUDA}"
+          echo "cuda=${CUDA}" >> "$GITHUB_OUTPUT"
+
+      - name: Load config
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-${{ steps.resolve.outputs.cuda }}-${{ env.TARGET }}.yml
+
+      - name: Parse configuration
+        id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          FWV=$(jq -r '.common.framework_version' config.json)
+          PY=$(jq -r '.common.python_version' config.json)
+          echo "ci-tag=$(jq -r '.common.ci_tag' config.json)" >> $GITHUB_OUTPUT
+          echo "dockerfile=docker/base/${{ steps.resolve.outputs.cuda }}/Dockerfile" >> $GITHUB_OUTPUT
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=${FWV}" >> $GITHUB_OUTPUT
+          echo "python-version=${PY}" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          # check_base_image.sh expects "<py-major.minor> <cuda-major.minor>"
+          echo "check-py=$(echo "$PY" | sed -E 's/^py([0-9])([0-9]+)$/\1.\2/')" >> $GITHUB_OUTPUT
+          echo "check-cuda=$(echo "$FWV" | cut -d. -f1,2)" >> $GITHUB_OUTPUT
+          echo "environment=$(jq -r '.release.environment // "production"' config.json)" >> $GITHUB_OUTPUT
+          # Docker --build-args: CUDA_VERSION (full) + CUDA_VERSION_SHORT from
+          # common, plus every key in the config build: block. Emitted as
+          # newline-separated KEY=value so the build-image action can forward
+          # them via EXTRA_BUILD_ARGS (space-safe; no word splitting on values).
+          {
+            echo "build-args<<EOF"
+            echo "CUDA_VERSION=${FWV}"
+            echo "CUDA_VERSION_SHORT=$(jq -r '.common.cuda_version' config.json)"
+            jq -r '.build // {} | to_entries[] | "\(.key | ascii_upcase)=\(.value)"' config.json
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Build the devel image
+  # ============================================================
+  build-image:
+    needs: [load-config]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+
+      # Turn the config-derived build-args (newline-separated KEY=value) into
+      # environment variables + an EXTRA_BUILD_ARGS name list for build-image.
+      # Reading line-by-line keeps values with spaces intact (no word splitting).
+      - name: Set build-args from config
+        run: |
+          NAMES=""
+          while IFS= read -r pair; do
+            [ -n "$pair" ] || continue
+            echo "$pair" >> "$GITHUB_ENV"
+            NAMES="${NAMES} ${pair%%=*}"
+          done <<< "${{ needs.load-config.outputs.build-args }}"
+          echo "EXTRA_BUILD_ARGS=${NAMES}" >> "$GITHUB_ENV"
+
+      - name: Build ${{ needs.load-config.outputs.ci-tag }}
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config.outputs.framework }}
+          target: ${{ env.TARGET }}
+          base-image: nvidia/cuda:${{ needs.load-config.outputs.framework-version }}-${{ env.TARGET }}-amzn2023
+          framework-version: ${{ needs.load-config.outputs.framework-version }}
+          container-type: ${{ needs.load-config.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: base-${{ needs.load-config.outputs.ci-tag }}-${{ github.run_id }}
+          dockerfile-path: ${{ needs.load-config.outputs.dockerfile }}
+          arch-type: ${{ needs.load-config.outputs.arch-type }}
+          device-type: ${{ needs.load-config.outputs.device-type }}
+          os-version: ${{ needs.load-config.outputs.os-version }}
+          contributor: ${{ needs.load-config.outputs.contributor }}
+          customer-type: ${{ needs.load-config.outputs.customer-type }}
+          # NOTE: cuda-version/python-version inputs are intentionally omitted —
+          # they only feed SageMaker labels (base is ec2-only) and would set env
+          # vars that collide with the full-value CUDA_VERSION/PYTHON_VERSION
+          # build-args forwarded via EXTRA_BUILD_ARGS.
+
+  # ============================================================
+  # Sanity tests
+  # ============================================================
+  sanity-test:
+    needs: [load-config, build-image]
+    if: success()
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      python-version: ${{ needs.load-config.outputs.python-version }}
+      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
+      os-version: ${{ needs.load-config.outputs.os-version }}
+      customer-type: ${{ needs.load-config.outputs.customer-type }}
+      arch-type: ${{ needs.load-config.outputs.arch-type }}
+      device-type: ${{ needs.load-config.outputs.device-type }}
+      contributor: ${{ needs.load-config.outputs.contributor }}
+      container-type: ${{ needs.load-config.outputs.container-type }}
+
+  # ============================================================
+  # Base-specific sanity tests (CPU only — Python, compiler flags)
+  # ============================================================
+  base-sanity-test:
+    needs: [load-config, build-image]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-image.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run base image checks
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh ${{ needs.load-config.outputs.check-py }} ${{ needs.load-config.outputs.check-cuda }}
+
+  # ============================================================
+  # CUDA tests — GPU sanity checks
+  # ============================================================
+  cuda-test:
+    needs: [load-config, build-image]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.ci-image }}
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.build-image.outputs.ci-image }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      - name: Run CUDA test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/cuda/scripts/cuda_devel_test.sh ${{ needs.load-config.outputs.check-cuda }}
+
+  # ============================================================
+  # Generate release spec — after all tests pass, before release
+  # ============================================================
+  generate-release-spec:
+    needs: [load-config, build-image, sanity-test, base-sanity-test, cuda-test]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Load config
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/image/base-${{ needs.load-config.outputs.cuda-version }}-${{ env.TARGET }}.yml
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ steps.load.outputs.config }}
+
+  # ============================================================
+  # Release the devel image
+  # ============================================================
+  release-image:
+    needs: [load-config, build-image, generate-release-spec]
+    if: needs.generate-release-spec.outputs.should-release == 'true'
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-image.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
+      environment: ${{ needs.load-config.outputs.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+      publish-only: false
+    secrets: inherit
