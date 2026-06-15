@@ -1,0 +1,20 @@
+name: 'Generate Release Spec'
+description: 'Generate release specification YAML from image config file'
+
+inputs:
+  config-file:
+    description: 'Path to the image config YAML file'
+    required: true
+
+outputs:
+  release-spec:
+    description: 'Generated release specification YAML'
+    value: ${{ steps.generate.outputs.release-spec }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate release spec
+      id: generate
+      shell: bash
+      run: bash "${{ github.action_path }}/generate_release_spec.sh" --config-file "${{ inputs.config-file }}"

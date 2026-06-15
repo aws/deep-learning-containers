@@ -1,0 +1,144 @@
+name: 'Build Docker Image'
+description: 'Build and push a Docker image using config-file-driven build args, with pre/post build hooks.'
+
+inputs:
+  config-file:
+    description: 'Path to the image config YAML file'
+    required: true
+  aws-account-id:
+    description: 'AWS account ID for ECR'
+    required: true
+  aws-region:
+    description: 'AWS region for ECR'
+    required: true
+  tag-suffix:
+    description: 'Suffix for the CI image tag (e.g., github.run_id or pr-NUMBER)'
+    required: true
+
+outputs:
+  image-uri:
+    description: 'Full ECR image URI that was built and pushed'
+    value: ${{ steps.build.outputs.image-uri }}
+  ci-tag:
+    description: 'Computed CI image tag'
+    value: ${{ steps.ci-tag.outputs.ci-tag }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Compute CI tag
+      id: ci-tag
+      shell: bash
+      run: bash "${{ github.action_path }}/compute_ci_tag.sh" --config-file "${{ inputs.config-file }}" --tag-suffix "${{ inputs.tag-suffix }}"
+
+    - name: Resolve build args
+      shell: bash
+      run: python3 "${{ github.action_path }}/resolve_build_args.py" --config-file "${{ inputs.config-file }}"
+
+    - name: Extract build metadata
+      id: metadata
+      shell: bash
+      run: |
+        CONFIG_FILE="${{ inputs.config-file }}"
+        echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "customer-type=$(yq '.metadata.customer_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "dockerfile=$(yq '.build.dockerfile' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "target=$(yq '.build.target // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+
+    - name: Run pre-build hook
+      shell: bash
+      run: |
+        FRAMEWORK="${{ steps.metadata.outputs.framework }}"
+        HOOK=".github/scripts/build/${FRAMEWORK}/pre_build.sh"
+        if [[ -f "$HOOK" ]]; then
+          echo "Running pre-build hook: $HOOK"
+          bash "$HOOK" --config-file "${{ inputs.config-file }}"
+        else
+          echo "No pre-build hook for ${FRAMEWORK}"
+        fi
+      env:
+        WHEEL_CACHE_BUCKET: ${{ vars.WHEEL_CACHE_BUCKET }}
+
+    - name: Setup buildkitd
+      shell: bash
+      run: .github/scripts/buildkitd.sh
+
+    - name: ECR login
+      uses: ./.github/actions/ecr-authenticate
+      with:
+        aws-account-id: ${{ inputs.aws-account-id }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Build and push image
+      id: build
+      shell: bash
+      run: |
+        CI_TAG="${{ steps.ci-tag.outputs.ci-tag }}"
+        CI_IMAGE_URI="${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${CI_TAG}"
+        DOCKERFILE="${{ steps.metadata.outputs.dockerfile }}"
+        TARGET="${{ steps.metadata.outputs.target }}"
+        FRAMEWORK="${{ steps.metadata.outputs.framework }}"
+        FRAMEWORK_VERSION="${{ steps.metadata.outputs.framework-version }}"
+        CUSTOMER_TYPE="${{ steps.metadata.outputs.customer-type }}"
+
+        # Build --build-arg flags from EXTRA_BUILD_ARGS
+        BUILD_ARG_FLAGS=""
+        for var in ${EXTRA_BUILD_ARGS:-}; do
+          if [[ -n "${!var:-}" ]]; then
+            BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg ${var}=${!var}"
+          fi
+        done
+
+        # Always pass framework metadata as build-args
+        BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg FRAMEWORK=${FRAMEWORK}"
+        BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg FRAMEWORK_VERSION=${FRAMEWORK_VERSION}"
+
+        # Target flag (optional)
+        TARGET_FLAG=""
+        if [[ -n "$TARGET" ]]; then
+          TARGET_FLAG="--target ${TARGET}"
+        fi
+
+        # Export intermediate stages if requested (wheel cache miss)
+        if [[ -n "${EXPORT_TARGETS:-}" ]]; then
+          IFS=',' read -ra EXPORTS <<< "${EXPORT_TARGETS}"
+          for EXPORT in "${EXPORTS[@]}"; do
+            EXPORT_TARGET="${EXPORT%%:*}"
+            EXPORT_DEST="${EXPORT##*:}"
+            echo "Exporting stage '${EXPORT_TARGET}' to ${EXPORT_DEST}..."
+            docker buildx build --progress plain \
+              ${BUILD_ARG_FLAGS} \
+              --target "${EXPORT_TARGET}" \
+              --output "type=local,dest=${EXPORT_DEST}" \
+              -f "${DOCKERFILE}" . || echo "Export ${EXPORT_TARGET} failed (non-fatal)"
+          done
+        fi
+
+        # Main build
+        echo "Building ${CI_IMAGE_URI}"
+        docker buildx build --progress plain \
+          ${BUILD_ARG_FLAGS} \
+          --cache-to=type=inline \
+          --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+          --tag ${CI_IMAGE_URI} \
+          --push \
+          ${TARGET_FLAG} \
+          -f "${DOCKERFILE}" .
+
+        echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+        echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> $GITHUB_ENV
+
+    - name: Run post-build hook
+      shell: bash
+      run: |
+        FRAMEWORK="${{ steps.metadata.outputs.framework }}"
+        HOOK=".github/scripts/build/${FRAMEWORK}/post_build.sh"
+        if [[ -f "$HOOK" ]]; then
+          echo "Running post-build hook: $HOOK"
+          bash "$HOOK" --config-file "${{ inputs.config-file }}"
+        else
+          echo "No post-build hook for ${FRAMEWORK}"
+        fi
+      env:
+        WHEEL_CACHE_BUCKET: ${{ vars.WHEEL_CACHE_BUCKET }}
