@@ -141,4 +141,4 @@ runs:
           echo "No post-build hook for ${FRAMEWORK}"
         fi
       env:
-        WHEEL_CACHE_BUCKET: ${{ vars.WHEEL_CACHE_BUCKET }}
+        WHEEL_CACHE_BUCKET: h{{ vars.WHEEL_CACHE_BUCKET }}

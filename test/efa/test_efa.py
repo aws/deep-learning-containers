@@ -14,7 +14,7 @@ Usage:
 
 import os
 
-from efa.ec2_helpers import (
+from test_utils.efa_helpers import (
     DEFAULT_TIMEOUT,
     HOSTS_FILE_LOCATION,
     MASTER_CONTAINER_NAME,
