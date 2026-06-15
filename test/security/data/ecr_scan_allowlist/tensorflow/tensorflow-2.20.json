@@ -1,1 +1,12 @@
-[]
+[
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common 12.9.79 — fix requires CUDA 13 major bump (>=0:13.0.48-1) which cascades through TFS binary compatibility, cuDNN, and the parallel TF 2.21 training PR. CUDA 12.9 is pinned to match the AL2023 base image; CUDA 13 currency tracked separately.",
+        "review_by": "2026-09-13"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common 12.9.79 — fix requires CUDA 13 major bump (>=0:13.0.48-1) which cascades through TFS binary compatibility, cuDNN, and the parallel TF 2.21 training PR. CUDA 12.9 is pinned to match the AL2023 base image; CUDA 13 currency tracked separately.",
+        "review_by": "2026-09-13"
+    }
+]
