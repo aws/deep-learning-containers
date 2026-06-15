@@ -15,7 +15,6 @@ import pytest
 
 from .resources.build_sample_model import build_sample_model
 
-
 INSTANCE_TYPE = "ml.c5.xlarge"
 
 

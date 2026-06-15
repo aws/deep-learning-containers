@@ -10,15 +10,15 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-import boto3
 import logging
 import os
 import re
 import signal
 import subprocess
-import tfs_utils
-
 from contextlib import contextmanager
+
+import boto3
+import tfs_utils
 
 logging.basicConfig(
     format="%(process)d %(asctime)s %(levelname)-8s %(message)s", force=True, level=logging.INFO
@@ -208,7 +208,7 @@ class ServiceManager(object):
             lib_path_exists = os.path.exists(PYTHON_LIB_PATH)
             requirements_exists = os.path.exists(REQUIREMENTS_PATH)
             python_path_content = ["/opt/ml/model/code"]
-            python_path_option = "--pythonpath "
+            python_path_option = "--pythonpath "  # noqa: F841
 
             if lib_path_exists:
                 python_path_content.append(PYTHON_LIB_PATH)

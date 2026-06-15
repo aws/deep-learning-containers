@@ -15,7 +15,6 @@ import pytest
 
 from .resources.build_sample_model import build_sample_model
 
-
 INSTANCE_TYPE = "ml.c5.xlarge"
 
 
@@ -66,12 +65,8 @@ def test_mme_two_models(
 
         # Upload each tarball under the shared MME prefix so the runtime can
         # resolve TargetModel relative to the same S3 location.
-        sagemaker_session.upload_data(
-            path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix
-        )
-        sagemaker_session.upload_data(
-            path=model2_tar, bucket=bucket, key_prefix=s3_key_prefix
-        )
+        sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
+        sagemaker_session.upload_data(path=model2_tar, bucket=bucket, key_prefix=s3_key_prefix)
         s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
 
         endpoint_name = unique_name("tf220-mme")

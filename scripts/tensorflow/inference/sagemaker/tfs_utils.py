@@ -11,19 +11,18 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import json
 import logging
 import multiprocessing
 import os
 import re
-import requests
-import json
 import time
-
-from multi_model_utils import timeout
-from urllib3.util.retry import Retry
-from urllib3.exceptions import NewConnectionError, MaxRetryError
 from collections import namedtuple
+
+import requests
 from multi_model_utils import MultiModelException
+from urllib3.exceptions import MaxRetryError, NewConnectionError
+from urllib3.util.retry import Retry
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -166,7 +165,7 @@ def _find_saved_model_files(path):
 
 def get_tfs_batching_args(enable_batching, tfs_batching_config):
     if enable_batching:
-        return "--enable_batching=true " "--batching_parameters_file={}".format(tfs_batching_config)
+        return "--enable_batching=true --batching_parameters_file={}".format(tfs_batching_config)
     else:
         return ""
 
@@ -220,7 +219,7 @@ def create_batching_config(batching_config_file):
             "num_batch_threads",
             "SAGEMAKER_TFS_NUM_BATCH_THREADS",
             cpu_count,
-            "num_batch_threads defaulted to {}," "the number of CPUs. Set {} to override default.",
+            "num_batch_threads defaulted to {},the number of CPUs. Set {} to override default.",
         ),
         _BatchingParameter(
             "max_enqueued_batches",

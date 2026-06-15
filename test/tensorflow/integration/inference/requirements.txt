@@ -1,5 +1,5 @@
-pytest>=8.0.0
-sagemaker>=3.4.0
 boto3>=1.34.0
 numpy>=1.26.4
+pytest>=8.0.0
+sagemaker>=3.4.0
 tensorflow-serving-api==2.20.0

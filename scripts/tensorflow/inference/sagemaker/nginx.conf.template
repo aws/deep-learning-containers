@@ -17,7 +17,7 @@ http {
   access_log /dev/stdout combined;
   js_import tensorflowServing.js;
 
-  proxy_read_timeout %PROXY_READ_TIMEOUT%;  
+  proxy_read_timeout %PROXY_READ_TIMEOUT%;
 
   upstream tfs_upstream {
     %TFS_UPSTREAM%;
@@ -64,4 +64,3 @@ http {
     keepalive_timeout 3;
   }
 }
-  

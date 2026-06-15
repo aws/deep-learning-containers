@@ -16,26 +16,24 @@ import gevent.monkey
 
 gevent.monkey.patch_all()
 
-import bisect
-import argparse
-import importlib.util
-import json
-import logging
-import os
-import signal
-import subprocess
-import grpc
-import sys
-import shutil
-import copy
-import pickle
+import argparse  # noqa: E402
+import copy  # noqa: E402
+import importlib.util  # noqa: E402
+import json  # noqa: E402
+import logging  # noqa: E402
+import os  # noqa: E402
+import pickle  # noqa: E402
+import random  # noqa: E402
+import shutil  # noqa: E402
+import signal  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
 
-import falcon
-import requests
-import random
-
-from multi_model_utils import MultiModelException, lock
-import tfs_utils
+import falcon  # noqa: E402
+import grpc  # noqa: E402
+import requests  # noqa: E402
+import tfs_utils  # noqa: E402
+from multi_model_utils import MultiModelException, lock  # noqa: E402
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
 INFERENCE_SCRIPT_PATH = (
@@ -656,13 +654,13 @@ if __name__ == "__main__":
         "raw_env": [
             f"TFS_GRPC_PORTS={TFS_GRPC_PORTS}",
             f"TFS_REST_PORTS={TFS_REST_PORTS}",
-            f'SAGEMAKER_MULTI_MODEL={os.environ.get("SAGEMAKER_MULTI_MODEL")}',
+            f"SAGEMAKER_MULTI_MODEL={os.environ.get('SAGEMAKER_MULTI_MODEL')}",
             f"SAGEMAKER_SAFE_PORT_RANGE={SAGEMAKER_TFS_PORT_RANGE}",
-            f'SAGEMAKER_TFS_WAIT_TIME_SECONDS={os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS")}',
-            f'SAGEMAKER_TFS_INTER_OP_PARALLELISM={os.environ.get("SAGEMAKER_TFS_INTER_OP_PARALLELISM", 0)}',
-            f'SAGEMAKER_TFS_INTRA_OP_PARALLELISM={os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)}',
-            f'SAGEMAKER_TFS_INSTANCE_COUNT={os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", "1")}',
-            f'SAGEMAKER_GUNICORN_WORKERS={os.environ.get("SAGEMAKER_GUNICORN_WORKERS", "1")}',
+            f"SAGEMAKER_TFS_WAIT_TIME_SECONDS={os.environ.get('SAGEMAKER_TFS_WAIT_TIME_SECONDS')}",
+            f"SAGEMAKER_TFS_INTER_OP_PARALLELISM={os.environ.get('SAGEMAKER_TFS_INTER_OP_PARALLELISM', 0)}",
+            f"SAGEMAKER_TFS_INTRA_OP_PARALLELISM={os.environ.get('SAGEMAKER_TFS_INTRA_OP_PARALLELISM', 0)}",
+            f"SAGEMAKER_TFS_INSTANCE_COUNT={os.environ.get('SAGEMAKER_TFS_INSTANCE_COUNT', '1')}",
+            f"SAGEMAKER_GUNICORN_WORKERS={os.environ.get('SAGEMAKER_GUNICORN_WORKERS', '1')}",
         ],
     }
 
