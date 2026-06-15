@@ -79,7 +79,7 @@ ARG NJS_VERSION
 RUN dnf install -y --allowerasing \
   gcc gcc-c++ make \
   pcre-devel pcre2-devel zlib-devel openssl-devel \
-  curl tar xz \
+  curl tar gzip xz \
   && dnf clean all
 
 WORKDIR /tmp/njs-build
