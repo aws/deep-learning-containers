@@ -20,9 +20,6 @@ build:
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
-build_options:
-  runner_fleet: "default-runner"
-
 tests:
   integ:
     workflow: "./.github/workflows/reusable-sagemaker-xgboost-integ-tests.yml"

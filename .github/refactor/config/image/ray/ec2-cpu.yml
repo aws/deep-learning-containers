@@ -18,9 +18,6 @@ build:
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
-build_options:
-  runner_fleet: "default-runner"
-
 tests:
   serve:
     workflow: "./.github/workflows/reusable-ray-serve-test.yml"

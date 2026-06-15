@@ -22,18 +22,7 @@ build:
   deepep_commit_hash: "73b6ea4"
   dlc_major_version: "1"
   dlc_minor_version: "0"
-
-build_options:
-  runner_fleet: "x86-vllm-build-runner"
-  use_sccache: true
-
-wheel_cache:
-  enabled: true
-  fetch_script: "scripts/vllm/amzn2023/fetch_cached_wheels.sh"
-  upload_script: "scripts/vllm/amzn2023/upload_cached_wheels.sh"
-  sccache:
-    sync_script: "scripts/vllm/amzn2023/sync_sccache.sh"
-    namespace: "vllm"
+  use_sccache: "true"
 
 tests:
   upstream:

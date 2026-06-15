@@ -31,9 +31,6 @@ build:
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
-build_options:
-  runner_fleet: "x86-sglang-build-runner"
-
 tests:
   upstream:
     workflow: "./.github/workflows/reusable-sglang-upstream-tests.yml"

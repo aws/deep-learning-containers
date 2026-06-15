@@ -25,18 +25,7 @@ build:
   install_kv_connectors: "true"
   dlc_major_version: "1"
   dlc_minor_version: "3"
-
-build_options:
-  runner_fleet: "x86-vllm-build-runner"
-  use_sccache: true
-
-wheel_cache:
-  enabled: true
-  fetch_script: "scripts/vllm_omni/fetch_cached_wheels.sh"
-  upload_script: "scripts/vllm_omni/upload_cached_wheels.sh"
-  sccache:
-    sync_script: "scripts/vllm_omni/sync_sccache.sh"
-    namespace: "vllm-omni"
+  use_sccache: "true"
 
 tests:
   model:

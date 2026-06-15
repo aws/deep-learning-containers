@@ -23,9 +23,6 @@ build:
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
-build_options:
-  runner_fleet: "x86-build-runner"
-
 tests:
   unit:
     workflow: "./.github/workflows/reusable-pytorch-unit-test.yml"
