@@ -1,0 +1,56 @@
+image:
+  name: "vllm-sagemaker-amzn2023"
+  description: "vLLM for SageMaker (AL2023, built from source)"
+
+metadata:
+  framework: "vllm_server"
+  framework_version: "0.22.1rc0"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+
+build:
+  dockerfile: "docker/vllm/Dockerfile.amzn2023"
+  target: "vllm-sagemaker-amzn2023"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  vllm_ref: "6aabe221a56052965e6bb0a95e9ec682d046a6e7"
+  flashinfer_version: "0.6.11.post2"
+  deepep_commit_hash: "73b6ea4"
+  dlc_major_version: "2"
+  dlc_minor_version: "0"
+
+build_options:
+  runner_fleet: "x86-vllm-build-runner"
+  use_sccache: true
+
+wheel_cache:
+  enabled: true
+  fetch_script: "scripts/vllm/amzn2023/fetch_cached_wheels.sh"
+  upload_script: "scripts/vllm/amzn2023/upload_cached_wheels.sh"
+  sccache:
+    sync_script: "scripts/vllm/amzn2023/sync_sccache.sh"
+    namespace: "vllm"
+
+tests:
+  upstream:
+    workflow: "./.github/workflows/reusable-vllm-upstream-tests.yml"
+    with:
+      setup-script: "test/vllm/scripts/vllm_test_setup.sh"
+      example-test-script: "test/vllm/scripts/amzn2023/vllm_sagemaker_examples_test.sh"
+  model:
+    workflow: "./.github/workflows/reusable-vllm-model-tests.yml"
+  sagemaker:
+    workflow: "./.github/workflows/reusable-vllm-sagemaker-tests.yml"
+
+release:
+  release: true
+  prod_image: "vllm:server-sagemaker-cuda-v2"
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"

@@ -1,0 +1,41 @@
+image:
+  name: "base-cu129-runtime"
+  description: "Base runtime GPU image with CUDA 12.9.1 and Python 3.13 on AL2023"
+
+metadata:
+  framework: "base_dlc"
+  framework_version: "12.9.1"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+
+build:
+  dockerfile: "docker/base/cu129/Dockerfile"
+  target: "runtime"
+  python_version: "3.13.12"
+  cuda_version: "12.9.1"
+  uv_version: "0.11.17"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+build_options:
+  runner_fleet: "x86-build-runner"
+
+tests:
+  cuda:
+    workflow: "./.github/workflows/reusable-cuda-test.yml"
+    with:
+      script: "test/cuda/scripts/cuda_runtime_test.sh"
+  base_sanity:
+    workflow: "./.github/workflows/reusable-base-sanity-test.yml"
+
+release:
+  release: true
+  prod_image: "base:runtime-cu129-amzn2023"
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"
