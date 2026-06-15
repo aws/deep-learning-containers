@@ -1,7 +1,7 @@
 # Using {{ dlc }}
 
 This page shows common deployment patterns across frameworks. For framework-specific deep dives, see the dedicated guides: [vLLM](../vllm/index.md),
-[vLLM-Omni](../vllm-omni/index.md), [Ray](../ray/index.md).
+[SGLang](../sglang/index.md), [vLLM-Omni](../vllm-omni/index.md), [Ray](../ray/index.md).
 
 ## Additional Resources
 
@@ -18,7 +18,7 @@ This page shows common deployment patterns across frameworks. For framework-spec
 from sagemaker.model import Model
 
 model = Model(
-    image_uri="{{ images.latest_sglang_sagemaker }}",
+    image_uri="{{ images.latest_sglang_server_sagemaker }}",
     role="arn:aws:iam::<account_id>:role/<role_name>",
     env={
         "SM_SGLANG_MODEL_PATH": "meta-llama/Llama-3.1-8B-Instruct",
@@ -64,7 +64,7 @@ sagemaker = boto3.client("sagemaker")
 sagemaker.create_model(
     ModelName="sglang-model",
     PrimaryContainer={
-        "Image": "{{ images.latest_sglang_sagemaker }}",
+        "Image": "{{ images.latest_sglang_server_sagemaker }}",
         "Environment": {
             "SM_SGLANG_MODEL_PATH": "meta-llama/Llama-3.1-8B-Instruct",
             "HF_TOKEN": "<your_hf_token>",
@@ -81,7 +81,7 @@ sagemaker.create_endpoint_config(
             "ModelName": "sglang-model",
             "InstanceType": "ml.g5.2xlarge",
             "InitialInstanceCount": 1,
-            "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
+            "InferenceAmiVersion": "al2023-ami-sagemaker-inference-gpu-4-1",
         }
     ],
 )
@@ -150,5 +150,6 @@ docker run -it --gpus all -v /local/data:/data {{ images.latest_pytorch_training
 - [Available Images](../reference/available_images.md) - Browse all container images
 - [Support Policy](../reference/support_policy.md) - Framework versions and timelines
 - [vLLM Guide](../vllm/index.md) - Detailed vLLM deployment (EC2, SageMaker, EKS)
+- [SGLang Guide](../sglang/index.md) - Detailed SGLang deployment (EC2, SageMaker, EKS)
 - [Ray Guide](../ray/index.md) - Ray Serve deployment with examples
 - [vLLM-Omni Guide](../vllm-omni/index.md) - Multimodal serving (TTS, image, video)

@@ -3,24 +3,23 @@ hide:
   - navigation
   - toc
 ---
-
-<div align="center">
-<img src="assets/logos/AWS_logo_RGB.svg#only-light" alt="AWS Logo" width="30%">
-<img src="assets/logos/AWS_logo_RGB_REV.svg#only-dark" alt="AWS Logo" width="30%">
-</div>
+<div align="center"> <img src="assets/logos/AWS_logo_RGB.svg#only-light" alt="AWS Logo" width="30%">
+<img src="assets/logos/AWS_logo_RGB_REV.svg#only-dark" alt="AWS Logo" width="30%"> </div>
 
 <h1 align="center">AWS Deep Learning Containers</h1>
 
-<p align="center"><strong>Pre-built Docker images for running AI/ML workloads on AWS.</strong></p>
-<p align="center">Tested for performance and patched for security vulnerabilities.</p>
+<p align="center"><strong>Pre-built Docker images for running AI/ML workloads on AWS.</strong></p> <p align="center">Tested for performance and
+patched for security vulnerabilities.</p>
 
----
+* * *
 
 ## What are DLCs?
 
-AWS Deep Learning Containers (DLCs) are Docker images pre-configured with deep learning frameworks and tools. AWS builds, tests, and security-patches them so you can focus on your workload instead of environment setup.
+AWS Deep Learning Containers (DLCs) are Docker images pre-configured with deep learning frameworks and tools. AWS builds, tests, and security-patches
+them so you can focus on your workload instead of environment setup.
 
-Each image includes a framework (e.g. vLLM, PyTorch, Ray), its dependencies, and optimized libraries — ready to run on AWS compute services. All DLC images are provided at no cost — you only pay for the compute resources you use.
+Each image includes a framework (e.g. vLLM, PyTorch, Ray), its dependencies, and optimized libraries — ready to run on AWS compute services. All DLC
+images are provided at no cost — you only pay for the compute resources you use.
 
 ## Getting Started
 
@@ -49,9 +48,9 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     ---
 
-    Deploy large language models with vLLM on EC2, EKS, or Amazon SageMaker AI.
+    Deploy large language models with vLLM or SGLang on EC2, EKS, or Amazon SageMaker AI.
 
-    [vLLM Guide](vllm/index.md) · [SGLang Images](reference/available_images.md#sglang)
+    [vLLM Guide](vllm/index.md) · [SGLang Guide](sglang/index.md)
 
 -   **Serve Multimodal Models**
 
@@ -87,15 +86,13 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
 </div>
 
-For step-by-step walkthroughs on EKS, SageMaker, and more, see our [blog posts](tutorials/index.md). You can also [subscribe to release notifications](get_started/release_notifications.md) to stay up to date with new images.
+For step-by-step walkthroughs on EKS, SageMaker, and more, see our [blog posts](tutorials/index.md). You can also
+[subscribe to release notifications](get_started/release_notifications.md) to stay up to date with new images.
 
 Looking for something else? [Let us know on GitHub](https://github.com/aws/deep-learning-containers/issues).
 
----
+* * *
 
-<p align="center">
-<a href="https://github.com/aws/deep-learning-containers">GitHub</a> ·
-<a href="https://gallery.ecr.aws/deep-learning-containers">ECR Gallery</a> ·
-<a href="reference/support_policy/">Support Policy</a> ·
-<a href="security/">Security</a>
-</p>
+<p align="center"> <a href="https://github.com/aws/deep-learning-containers">GitHub</a> ·
+<a href="https://gallery.ecr.aws/deep-learning-containers">ECR Gallery</a> · <a href="reference/support_policy/">Support Policy</a> ·
+<a href="security/">Security</a> </p>
