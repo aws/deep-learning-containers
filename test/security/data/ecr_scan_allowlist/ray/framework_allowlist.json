@@ -18,5 +18,15 @@
     "vulnerability_id": "CVE-2026-34480",
     "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
     "review_by": "2026-08-24"
+  },
+  {
+    "vulnerability_id": "CVE-2026-47265",
+    "reason": "aiohttp 3.13.5 vendored in Ray's _private/runtime_env/agent/thirdparty_files; cannot patch without upstream ray rebuild",
+    "review_by": "2026-09-13"
+  },
+  {
+    "vulnerability_id": "CVE-2026-34993",
+    "reason": "aiohttp 3.13.5 vendored in Ray's _private/runtime_env/agent/thirdparty_files; cannot patch without upstream ray rebuild",
+    "review_by": "2026-09-13"
   }
 ]
