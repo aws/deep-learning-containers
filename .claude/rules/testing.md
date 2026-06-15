@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## inclusion: always description: Test strategy and guidelines for the deep-learning-containers repository.
+---
+description: Test strategy, conventions, and guidelines for DLC integration and unit tests
+globs: test/**/*
+---
 
 # Test Strategy & Guidelines
 
