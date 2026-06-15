@@ -344,10 +344,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          # TODO: Phase 5 — replace with `pip install -r
-          #       test/tensorflow/integration/inference/requirements.txt` once
-          #       Phase 5 supplies that file.
-          pip install pytest sagemaker boto3
+          pip install -r test/tensorflow/integration/inference/requirements.txt
 
       - name: Run SageMaker inference tests
         env:
