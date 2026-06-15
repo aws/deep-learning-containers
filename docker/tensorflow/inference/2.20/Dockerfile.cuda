@@ -67,7 +67,7 @@ RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHO
 
 
 # ── Stage: builder-njs (compile nginx + njs dynamic module from source) ─────
-# Output: /out/modules/ngx_http_js_module.so + /out/modules/ngx_stream_js_module.so
+# Output: /out/modules/ngx_http_js_module.so
 # We use the CUDA -devel base for build toolchain consistency with builder-base;
 # this stage produces a CPU-only .so artifact that is identical for cuda and cpu
 # variants (kept in this Dockerfile as well as Dockerfile.cpu for self-contained
@@ -100,8 +100,7 @@ RUN cd nginx-${NGINX_VERSION} \
     --add-dynamic-module=/tmp/njs-build/njs-${NJS_VERSION}/nginx \
   && make -j$(nproc) modules \
   && mkdir -p /out/modules \
-  && cp objs/ngx_http_js_module.so /out/modules/ \
-  && cp objs/ngx_stream_js_module.so /out/modules/
+  && cp objs/ngx_http_js_module.so /out/modules/
 
 
 # ── Stage: runtime-base (shared base for output stages) ─────────────────────
@@ -151,7 +150,6 @@ COPY --from=builder-base /opt/venv /opt/venv
 # nginx (1.24.x) on AL2023 honors `load_module modules/ngx_http_js_module.so`
 # in its conf, since we built with --with-compat against matching nginx headers.
 COPY --from=builder-njs /out/modules/ngx_http_js_module.so /usr/lib64/nginx/modules/
-COPY --from=builder-njs /out/modules/ngx_stream_js_module.so /usr/lib64/nginx/modules/
 
 # TF Serving binary — copied from the official upstream devel image.
 COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/local/bin/tensorflow_model_server
