@@ -4,10 +4,13 @@ Builds a tiny ``y = 2x`` SavedModel, deploys it to a single-instance SageMaker
 endpoint backed by the v2 inference image under test, and asserts the
 predicted values.
 
-Uses boto3 directly (sagemaker, sagemaker-runtime, s3 clients) rather than
-the SageMaker Python SDK, because the v3.x ``sagemaker`` package removed the
-v2 ``sagemaker.tensorflow.serving.TensorFlowModel`` flow this test originally
-relied on.
+Uses the SageMaker Python SDK v3 ``sagemaker-core`` resource layer
+(``Endpoint``, ``EndpointConfig``, ``Model``, ``ContainerDefinition``,
+``ProductionVariant``) — the v2 ``TensorFlowModel`` / ``Predictor`` classes
+were removed in v3. ``ModelBuilder`` is the v3 entry point for
+auto-detected deployments, but for DLC tests we already supply the
+``image_uri`` and a pre-built ``model.tar.gz``, so we go straight to the
+resource layer (the same surface ``ModelBuilder`` calls underneath).
 """
 
 from __future__ import annotations
@@ -23,25 +26,22 @@ from .resources.build_sample_model import build_sample_model
 INSTANCE_TYPE = "ml.c5.xlarge"
 
 
-def _decode(invoke_response) -> dict:
-    """Decode an ``invoke_endpoint`` response Body into a Python dict."""
-    body = invoke_response["Body"].read()
-    if isinstance(body, (bytes, bytearray)):
-        body = body.decode("utf-8")
-    return json.loads(body)
-
-
 def test_single_model_predict(
-    sagemaker_client,
-    sagemaker_runtime_client,
+    boto_session,
+    sagemaker_session,
     sagemaker_role_arn,
     inference_image_uri,
-    default_bucket,
-    upload_to_s3,
     unique_name,
     cleanup_endpoint,
-    wait_for_endpoint,
 ):
+    from sagemaker.core.resources import (
+        ContainerDefinition,
+        Endpoint,
+        EndpointConfig,
+        Model,
+        ProductionVariant,
+    )
+
     with tempfile.TemporaryDirectory(prefix="tf220-single-") as workdir:
         tar_path = build_sample_model(
             output_dir=workdir,
@@ -49,54 +49,66 @@ def test_single_model_predict(
             model_name="model",
         )
 
-        run_id = unique_name("single")
-        s3_key = f"tf220-inference-tests/{Path(tar_path).stem}-{run_id}/{Path(tar_path).name}"
-        model_data = upload_to_s3(tar_path, default_bucket, s3_key)
+        # Upload the tarball via the v3 helper Session — same default-bucket /
+        # upload_data ergonomics as v2.
+        bucket = sagemaker_session.default_bucket()
+        key_prefix = f"tf220-inference-tests/{Path(tar_path).stem}-{unique_name('single')}"
+        model_data = sagemaker_session.upload_data(
+            path=tar_path,
+            bucket=bucket,
+            key_prefix=key_prefix,
+        )
 
         endpoint_name = unique_name("tf220-single")
         model_name = unique_name("tf220-single-model")
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
-        # Equivalent to v2 ``TensorFlowModel(image_uri=..., model_data=...).deploy(...)``
-        # but expressed as the underlying control-plane API calls.
-        sagemaker_client.create_model(
-            ModelName=model_name,
-            ExecutionRoleArn=sagemaker_role_arn,
-            PrimaryContainer={
-                "Image": inference_image_uri,
-                "ModelDataUrl": model_data,
-            },
+        # 1. Create the SageMaker Model — points at our DLC image and the
+        #    uploaded SavedModel tar.gz.
+        Model.create(
+            model_name=model_name,
+            primary_container=ContainerDefinition(
+                image=inference_image_uri,
+                model_data_url=model_data,
+            ),
+            execution_role_arn=sagemaker_role_arn,
+            session=boto_session,
         )
 
-        sagemaker_client.create_endpoint_config(
-            EndpointConfigName=endpoint_name,
-            ProductionVariants=[
-                {
-                    "VariantName": "AllTraffic",
-                    "ModelName": model_name,
-                    "InitialInstanceCount": 1,
-                    "InstanceType": INSTANCE_TYPE,
-                    "InitialVariantWeight": 1.0,
-                }
+        # 2. Create the EndpointConfig with a single ProductionVariant.
+        EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=model_name,
+                    initial_instance_count=1,
+                    instance_type=INSTANCE_TYPE,
+                ),
             ],
+            session=boto_session,
         )
 
-        sagemaker_client.create_endpoint(
-            EndpointName=endpoint_name,
-            EndpointConfigName=endpoint_name,
+        # 3. Create the Endpoint and wait for it to come InService.
+        endpoint = Endpoint.create(
+            endpoint_name=endpoint_name,
+            endpoint_config_name=endpoint_name,
+            session=boto_session,
         )
-        wait_for_endpoint(endpoint_name)
+        endpoint.wait_for_status("InService")
 
+        # 4. Invoke. ``Endpoint.invoke`` returns an InvokeEndpointOutput whose
+        #    ``body`` is a streaming bytes-like object.
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
-        response = sagemaker_runtime_client.invoke_endpoint(
-            EndpointName=endpoint_name,
-            ContentType="application/json",
-            Body=payload,
+        result = endpoint.invoke(
+            body=payload,
+            content_type="application/json",
+            accept="application/json",
         )
-        body = _decode(response)
+        response = json.loads(result.body.read().decode("utf-8"))
 
-        assert "predictions" in body, f"missing predictions key in {body!r}"
-        predictions = body["predictions"]
+        assert "predictions" in response, f"missing predictions key in {response!r}"
+        predictions = response["predictions"]
         assert predictions and isinstance(predictions, list)
 
         # Output signature is {"output": x * 2.0} -> TFS surfaces the tensor

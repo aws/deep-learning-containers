@@ -1,11 +1,15 @@
 """Pytest fixtures for TF 2.20 inference integration tests on SageMaker.
 
-These fixtures use boto3 directly (sagemaker, sagemaker-runtime, s3 clients)
-rather than the SageMaker Python SDK. The PyPI ``sagemaker`` package v3.x
-removed the legacy v2 surfaces this suite relied on (``sagemaker.Session``,
-``sagemaker.tensorflow.serving.TensorFlowModel``, ``sagemaker.multidatamodel``),
-and the v3 ``ModelBuilder`` flow is heavier than what these integration tests
-need. Going boto3-only keeps the tests transparent and SDK-version-independent.
+Uses the SageMaker Python SDK v3 (``sagemaker>=3.0.0``) — the v2 Estimator /
+Model / Predictor classes were removed in v3 in favor of the unified
+``ModelBuilder`` and the ``sagemaker-core`` resource layer
+(``Endpoint``, ``EndpointConfig``, ``Model``, ``ContainerDefinition``,
+``ProductionVariant``). For these DLC tests we already have a custom
+``image_uri`` and a pre-built ``model.tar.gz``, so the simplest v3 path is
+the resource layer directly: ``Model.create -> EndpointConfig.create ->
+Endpoint.create -> endpoint.invoke()``. ``ModelBuilder`` is the right choice
+when the SDK should auto-detect the framework / container / packaging — for
+us, those are all fixed by the test fixture inputs.
 
 Fixtures intentionally defer all AWS calls until test-execution time so that
 ``pytest --collect-only`` works in environments without AWS credentials.
@@ -46,58 +50,29 @@ def inference_image_uri() -> str:
 
 @pytest.fixture(scope="session")
 def boto_session(aws_region: str):
-    """A boto3 session bound to the configured region."""
+    """A boto3 session bound to the configured region.
+
+    Used purely as a transport for ``sagemaker.core.helper.session_helper.Session``
+    and for the underlying ``s3`` client when uploading model artifacts; no
+    SageMaker control-plane calls go through it directly.
+    """
     import boto3
 
     return boto3.Session(region_name=aws_region)
 
 
 @pytest.fixture(scope="session")
-def sagemaker_client(boto_session):
-    """Low-level SageMaker control-plane client (create/delete model, endpoint, ...)."""
-    return boto_session.client("sagemaker")
+def sagemaker_session(boto_session):
+    """A SageMaker SDK v3 session.
 
-
-@pytest.fixture(scope="session")
-def sagemaker_runtime_client(boto_session):
-    """SageMaker runtime client used to invoke endpoints."""
-    return boto_session.client("sagemaker-runtime")
-
-
-@pytest.fixture(scope="session")
-def s3_client(boto_session):
-    """S3 client used to upload sample model tarballs."""
-    return boto_session.client("s3")
-
-
-@pytest.fixture(scope="session")
-def default_bucket(boto_session, aws_region: str, s3_client) -> str:
-    """Resolve the ``sagemaker-<region>-<account>`` default bucket, creating it if absent.
-
-    Mirrors the behaviour of the v2 SDK's ``Session.default_bucket()`` so test
-    bodies can keep using a single, predictable bucket without callers having
-    to plumb one in.
+    ``sagemaker.core.helper.session_helper.Session`` is the v3 replacement for
+    the v2 ``sagemaker.Session``. We use it for ``default_bucket()`` and
+    ``upload_data()``; resource-layer ``create()`` calls accept it via the
+    ``session=`` kwarg.
     """
-    sts = boto_session.client("sts")
-    account_id = sts.get_caller_identity()["Account"]
-    bucket = f"sagemaker-{aws_region}-{account_id}"
+    from sagemaker.core.helper.session_helper import Session
 
-    try:
-        s3_client.head_bucket(Bucket=bucket)
-    except Exception:
-        # Bucket missing or inaccessible — try to create it. us-east-1 must omit
-        # LocationConstraint; every other region requires it.
-        create_kwargs: dict = {"Bucket": bucket}
-        if aws_region != "us-east-1":
-            create_kwargs["CreateBucketConfiguration"] = {"LocationConstraint": aws_region}
-        try:
-            s3_client.create_bucket(**create_kwargs)
-        except Exception:
-            # Race or pre-existing-but-403 — leave the original error to surface
-            # at upload time rather than masking it here.
-            pass
-
-    return bucket
+    return Session(boto_session=boto_session)
 
 
 @pytest.fixture
@@ -115,61 +90,20 @@ def unique_name():
 
 
 @pytest.fixture
-def upload_to_s3(s3_client):
-    """Yield-style helper that uploads a local file to ``s3://<bucket>/<key>``.
-
-    Returns the resulting ``s3://`` URI. Failures propagate; teardown is
-    intentionally not provided since SageMaker model artifacts are typically
-    left in the bucket for forensic inspection.
-    """
-
-    def _upload(local_path: str, bucket: str, key: str) -> str:
-        s3_client.upload_file(local_path, bucket, key)
-        return f"s3://{bucket}/{key}"
-
-    return _upload
-
-
-@pytest.fixture
-def wait_for_endpoint(sagemaker_client):
-    """Poll ``describe_endpoint`` until the endpoint reaches ``InService``.
-
-    Raises ``RuntimeError`` if the endpoint enters ``Failed`` / ``OutOfService``
-    or if the wait exceeds ``timeout_seconds`` (default 1800s = 30 min, which
-    matches typical first-pull cold-start latency for inference DLCs).
-    """
-
-    def _wait(endpoint_name: str, timeout_seconds: int = 1800, poll_seconds: int = 30) -> None:
-        deadline = time.time() + timeout_seconds
-        while time.time() < deadline:
-            resp = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
-            status = resp["EndpointStatus"]
-            if status == "InService":
-                return
-            if status in {"Failed", "OutOfService"}:
-                reason = resp.get("FailureReason", "<no FailureReason>")
-                raise RuntimeError(
-                    f"endpoint {endpoint_name} entered terminal state {status}: {reason}"
-                )
-            time.sleep(poll_seconds)
-        raise RuntimeError(
-            f"endpoint {endpoint_name} did not reach InService within {timeout_seconds}s"
-        )
-
-    return _wait
-
-
-@pytest.fixture
-def cleanup_endpoint(sagemaker_client):
+def cleanup_endpoint(boto_session):
     """Yield-style fixture that tears down endpoint, endpoint config, and model.
+
+    Uses the v3 ``sagemaker-core`` resource layer (``Endpoint.get(...).delete()``,
+    etc.) rather than raw boto3 SDK calls, so cleanup code matches the deploy
+    code in the tests. The ``session=`` kwarg on resource ``get`` / ``create``
+    methods accepts a raw ``boto3.session.Session`` (see
+    ``sagemaker.core.utils.utils.SageMakerClient``); pass ``boto_session``
+    rather than the helper ``Session``.
 
     Usage:
         def test_x(cleanup_endpoint, ...):
             cleanup_endpoint(endpoint_name, model_name=model_name)
             # ... deploy + predict ...
-
-    Endpoint config is registered under the same name as the endpoint, matching
-    what the test bodies pass to ``create_endpoint_config``.
     """
     registered: list[dict] = []
 
@@ -178,22 +112,26 @@ def cleanup_endpoint(sagemaker_client):
 
     yield _register
 
+    # Import lazily so collection works without the SDK installed.
+    from sagemaker.core.resources import Endpoint, EndpointConfig, Model
+
     for item in registered:
         endpoint_name = item["endpoint_name"]
         model_name = item["model_name"]
 
-        for delete_call, kwargs in (
-            (sagemaker_client.delete_endpoint, {"EndpointName": endpoint_name}),
-            (sagemaker_client.delete_endpoint_config, {"EndpointConfigName": endpoint_name}),
+        # Endpoint config name == endpoint name in our deploy flow below.
+        for resource_cls, get_kwargs in (
+            (Endpoint, {"endpoint_name": endpoint_name}),
+            (EndpointConfig, {"endpoint_config_name": endpoint_name}),
         ):
             try:
-                delete_call(**kwargs)
+                resource_cls.get(session=boto_session, **get_kwargs).delete()
             except Exception:
-                # Swallow NotFound / already-deleted; teardown is best-effort.
+                # Best-effort teardown: swallow NotFound / already-deleted.
                 pass
 
         if model_name:
             try:
-                sagemaker_client.delete_model(ModelName=model_name)
+                Model.get(model_name=model_name, session=boto_session).delete()
             except Exception:
                 pass
