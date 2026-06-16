@@ -170,7 +170,13 @@ class DLCReleaseInformation:
         return self._soci_image_details["imageDigest"]
 
     @property
+    def _is_no_python_image(self):
+        return "llamacpp" in self.dlc_repository
+
+    @property
     def bom_pip_packages(self):
+        if self._is_no_python_image:
+            return ""
         return self.get_container_command_output("pip freeze")
 
     @property
@@ -179,6 +185,8 @@ class DLCReleaseInformation:
 
     @property
     def bom_pipdeptree(self):
+        if self._is_no_python_image:
+            return ""
         # TODO: Change how this process works as this using qemu with graviton is making part of the image
         # OS read-only. Thus, when installing pipdeptree, it does not install in the expected location and
         # the pipdeptree command will fail for graviton.
@@ -202,6 +210,8 @@ class DLCReleaseInformation:
 
     @property
     def imp_pip_packages(self):
+        if self._is_no_python_image:
+            return {}
         imp_pip_packages = {}
         container_pip_packages = json.loads(
             self.get_container_command_output("pip list --disable-pip-version-check --format=json")
