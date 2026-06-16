@@ -4,6 +4,10 @@ on:
   schedule:
     # 4 AM UTC daily
     - cron: '0 4 * * *'
+  # pull_request:
+  #   paths:
+  #     - ".github/actions/upload-ecr-allowlists/**"
+  #     - ".github/workflows/scheduled-upload-ecr-allowlists.yml"
   workflow_dispatch:
     inputs:
       dry-run:
