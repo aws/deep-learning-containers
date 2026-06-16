@@ -12,6 +12,10 @@ permissions:
   contents: read
   pull-requests: read
 
+env:
+  # CI environment configuration
+  FORCE_COLOR: "1"
+
 jobs:
   gatekeeper:
     runs-on: ubuntu-latest
@@ -47,9 +51,10 @@ jobs:
         with:
           filters: |
             docs-change:
+              - ".github/workflows/docs.pr-test*"
               - "docs/**"
               - "test/docs/**"
-              - ".github/workflows/docs.pr-test*"
+              - "README.md"
 
   documentation-test:
     needs: [check-changes]
