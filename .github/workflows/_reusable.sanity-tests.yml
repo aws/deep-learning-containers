@@ -223,5 +223,6 @@ jobs:
 
       - name: Run CUDA tests
         run: |
+          CUDA_SHORT=$(echo '${{ needs.preflight.outputs.cuda-version }}' | cut -d. -f1,2)
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/cuda_${{ needs.preflight.outputs.target }}_test.sh \
-            ${{ needs.preflight.outputs.cuda-version }}
+            "${CUDA_SHORT}"
