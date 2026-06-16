@@ -2,6 +2,15 @@ name: 'Upload ECR Allowlists'
 description: 'Upload per-image security scan allowlists to S3 based on image configs'
 
 inputs:
+  aws-account-id:
+    description: 'AWS account ID for ECR'
+    required: true
+  aws-region:
+    description: 'AWS region'
+    required: true
+  s3-bucket:
+    description: 'S3 bucket for scanner allowlists'
+    required: true
   dry-run:
     description: 'Print what would be uploaded without writing to S3'
     required: false
@@ -17,6 +26,10 @@ runs:
     - name: Upload ECR allowlists
       shell: bash
       run: |
+        uv venv --python 3.12
+        source .venv/bin/activate
+        uv pip install boto3 pyyaml
+
         ARGS=""
         if [[ "${{ inputs.dry-run }}" == "true" ]]; then
           ARGS="--dry-run"
@@ -26,6 +39,6 @@ runs:
         fi
         python3 "${{ github.action_path }}/upload_ecr_allowlists.py" ${ARGS}
       env:
-        ECR_ACCOUNT_ID: ${{ vars.CI_AWS_ACCOUNT_ID }}
-        AWS_REGION: ${{ vars.AWS_REGION }}
-        SCANNER_ALLOWLIST_S3_BUCKET: ${{ vars.SCANNER_ALLOWLIST_S3_BUCKET }}
+        ECR_ACCOUNT_ID: ${{ inputs.aws-account-id }}
+        AWS_REGION: ${{ inputs.aws-region }}
+        SCANNER_ALLOWLIST_S3_BUCKET: ${{ inputs.s3-bucket }}

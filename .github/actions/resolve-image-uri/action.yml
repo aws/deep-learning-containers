@@ -9,6 +9,15 @@ inputs:
   config-file:
     description: 'Path to image config YAML (used to derive prod URI when image-uri is empty)'
     required: true
+  ci-aws-account-id:
+    description: 'CI AWS account ID'
+    required: true
+  prod-aws-account-id:
+    description: 'Prod AWS account ID'
+    required: true
+  aws-region:
+    description: 'AWS region'
+    required: true
 
 outputs:
   image-uri:
@@ -27,9 +36,9 @@ runs:
       run: |
         if [[ -n "${{ inputs.image-uri }}" ]]; then
           echo "image-uri=${{ inputs.image-uri }}" >> $GITHUB_OUTPUT
-          echo "aws-account-id=${{ vars.CI_AWS_ACCOUNT_ID }}" >> $GITHUB_OUTPUT
+          echo "aws-account-id=${{ inputs.ci-aws-account-id }}" >> $GITHUB_OUTPUT
         else
           PROD_IMAGE=$(yq '.release.prod_image' "${{ inputs.config-file }}")
-          echo "image-uri=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${PROD_IMAGE}" >> $GITHUB_OUTPUT
-          echo "aws-account-id=${{ vars.PROD_AWS_ACCOUNT_ID }}" >> $GITHUB_OUTPUT
+          echo "image-uri=${{ inputs.prod-aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${PROD_IMAGE}" >> $GITHUB_OUTPUT
+          echo "aws-account-id=${{ inputs.prod-aws-account-id }}" >> $GITHUB_OUTPUT
         fi

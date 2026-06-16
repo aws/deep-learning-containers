@@ -57,8 +57,6 @@ runs:
         else
           echo "No pre-build hook for ${FRAMEWORK}"
         fi
-      env:
-        WHEEL_CACHE_BUCKET: ${{ vars.WHEEL_CACHE_BUCKET }}
 
     - name: Setup buildkitd
       shell: bash
@@ -140,5 +138,3 @@ runs:
         else
           echo "No post-build hook for ${FRAMEWORK}"
         fi
-      env:
-        WHEEL_CACHE_BUCKET: h{{ vars.WHEEL_CACHE_BUCKET }}
