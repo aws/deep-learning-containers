@@ -38,7 +38,7 @@ runs:
           echo "image-uri=${{ inputs.image-uri }}" >> $GITHUB_OUTPUT
           echo "aws-account-id=${{ inputs.ci-aws-account-id }}" >> $GITHUB_OUTPUT
         else
-          PROD_IMAGE=$(yq '.release.prod_image' "${{ inputs.config-file }}")
+          PROD_IMAGE=$(yq '.metadata.prod_image' "${{ inputs.config-file }}")
           echo "image-uri=${{ inputs.prod-aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${PROD_IMAGE}" >> $GITHUB_OUTPUT
           echo "aws-account-id=${{ inputs.prod-aws-account-id }}" >> $GITHUB_OUTPUT
         fi

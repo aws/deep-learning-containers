@@ -11,6 +11,7 @@ metadata:
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
+  prod_image: "vllm:omni-sagemaker-cuda-v1"
 
 build:
   dockerfile: "docker/vllm_omni/Dockerfile.amzn2023"
@@ -30,7 +31,6 @@ build:
 
 release:
   release: true
-  prod_image: "vllm:omni-sagemaker-cuda-v1"
   force_release: false
   public_registry: true
   private_registry: true

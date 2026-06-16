@@ -43,7 +43,7 @@ def load_image_configs():
             continue
         metadata = data.get("metadata", {})
         release = data.get("release", {})
-        prod_image = release.get("prod_image")
+        prod_image = metadata.get("prod_image")
         framework = metadata.get("framework")
         if not prod_image or not framework:
             LOG.debug(f"skip {path.name}: no prod_image or framework")

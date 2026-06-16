@@ -64,8 +64,6 @@ FORCE_RELEASE=$(yq '.release.force_release // ""' "$CONFIG_FILE")
 PUBLIC_REGISTRY=$(yq '.release.public_registry // ""' "$CONFIG_FILE")
 PRIVATE_REGISTRY=$(yq '.release.private_registry // ""' "$CONFIG_FILE")
 ENABLE_SOCI=$(yq '.release.enable_soci // ""' "$CONFIG_FILE")
-PROD_IMAGE=$(yq '.release.prod_image // ""' "$CONFIG_FILE")
-
 echo "Generating release spec:"
 echo "  Framework: ${FRAMEWORK}"
 echo "  Version: ${VERSION}"
@@ -83,7 +81,6 @@ SPEC+="version: \"${VERSION}\""$'\n'
 [[ -n "$CUSTOMER_TYPE" ]]   && SPEC+="customer_type: \"${CUSTOMER_TYPE}\""$'\n'
 [[ -n "$CUDA_VERSION" ]]    && SPEC+="cuda_version: \"${CUDA_VERSION}\""$'\n'
 [[ -n "$PLATFORM" ]]        && SPEC+="platform: \"${PLATFORM}\""$'\n'
-[[ -n "$PROD_IMAGE" ]]      && SPEC+="prod_image: \"${PROD_IMAGE}\""$'\n'
 [[ -n "$FORCE_RELEASE" ]]   && SPEC+="force_release: ${FORCE_RELEASE}"$'\n'
 [[ -n "$PUBLIC_REGISTRY" ]] && SPEC+="public_registry: ${PUBLIC_REGISTRY}"$'\n'
 [[ -n "$PRIVATE_REGISTRY" ]] && SPEC+="private_registry: ${PRIVATE_REGISTRY}"$'\n'

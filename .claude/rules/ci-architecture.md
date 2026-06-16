@@ -113,6 +113,7 @@ metadata:
   arch_type: "x86"
   device_type: "<gpu|cpu>"
   job_type: "<general|training|inference>"
+  prod_image: "<repo:tag>"
   # platform: "sagemaker"                 # only for sagemaker/hyperpod variants
 
 build:
@@ -125,7 +126,6 @@ build:
 
 release:
   release: <true|false>
-  prod_image: "<repo:tag>"
   force_release: <true|false>
   public_registry: <true|false>
   private_registry: <true|false>

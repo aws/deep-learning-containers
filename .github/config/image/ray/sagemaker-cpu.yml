@@ -11,6 +11,7 @@ metadata:
   arch_type: "x86"
   device_type: "cpu"
   job_type: "inference"
+  prod_image: "ray:serve-ml-sagemaker-cpu"
 
 build:
   dockerfile: "docker/ray/Dockerfile.cpu"
@@ -21,7 +22,6 @@ build:
 
 release:
   release: true
-  prod_image: "ray:serve-ml-sagemaker-cpu"
   force_release: false
   public_registry: true
   private_registry: true

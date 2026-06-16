@@ -10,6 +10,7 @@ metadata:
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
+  prod_image: "base:runtime-cu130-amzn2023"
 
 build:
   dockerfile: "docker/base/cu130/Dockerfile"
@@ -22,7 +23,6 @@ build:
 
 release:
   release: true
-  prod_image: "base:runtime-cu130-amzn2023"
   force_release: false
   public_registry: true
   private_registry: true
