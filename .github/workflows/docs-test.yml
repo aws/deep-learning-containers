@@ -6,7 +6,6 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "**docs**"
-      - "README.md"
 
 permissions:
   contents: read
@@ -64,6 +63,7 @@ jobs:
               - "docs/**"
               - "test/docs/**"
               - ".github/workflows/docs-test*"
+              - "README.md"
 
   documentation-test:
     needs: [check-changes]
