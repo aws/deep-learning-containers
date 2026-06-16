@@ -317,8 +317,17 @@ def main():
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
             )
             return
+        elif all("llamacpp" in image_uri for image_uri in all_image_list) and test_type not in {
+            "functionality_sanity",
+            "security_sanity",
+            "sagemaker",
+        }:
+            LOGGER.info(
+                f"NOTE: {specific_test_type} tests not supported on llamacpp images. Skipping..."
+            )
+            return
 
-    # Skip telemetry tests for sglang in all contexts (PR and MAINLINE)
+    # Skip telemetry tests for sglang and llamacpp in all contexts (PR and MAINLINE)
     is_sglang_image = all("sglang" in image_uri for image_uri in all_image_list)
     if is_sglang_image and specific_test_type == "telemetry":
         LOGGER.info(
@@ -326,6 +335,15 @@ def main():
         )
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "sglang")
+        return
+
+    is_llamacpp_image = all("llamacpp" in image_uri for image_uri in all_image_list)
+    if is_llamacpp_image and specific_test_type == "telemetry":
+        LOGGER.info(
+            f"NOTE: {specific_test_type} tests not supported on Llamacpp Containers. Skipping..."
+        )
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "llamacpp")
         return
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
@@ -456,16 +474,17 @@ def main():
             "-n=auto",
         ]
 
-        # Skip telemetry tests for sglang images or add specified tests filter
+        # Skip telemetry tests for sglang and llamacpp images or add specified tests filter
+        skip_telemetry = is_sglang_image or is_llamacpp_image
         if specified_tests:
             test_expr = " or ".join(f"test_{t}" for t in specified_tests)
-            if is_sglang_image and specific_test_type == "ec2":
+            if skip_telemetry and specific_test_type == "ec2":
                 test_expr = f"({test_expr}) and not telemetry"
-                LOGGER.info("Excluding telemetry tests from sglang ec2 suite")
+                LOGGER.info("Excluding telemetry tests from ec2 suite")
             pytest_cmd.extend(["-k", f"({test_expr})"])
-        elif is_sglang_image and specific_test_type == "ec2":
+        elif skip_telemetry and specific_test_type == "ec2":
             pytest_cmd.extend(["-k", "not telemetry"])
-            LOGGER.info("Excluding telemetry tests from sglang ec2 suite")
+            LOGGER.info("Excluding telemetry tests from ec2 suite")
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
