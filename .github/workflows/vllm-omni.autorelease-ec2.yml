@@ -1,0 +1,22 @@
+name: "Auto Release - vLLM-Omni EC2"
+
+on:
+  schedule:
+    - cron: '00 20 * * 2,4'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/vllm-omni.pipeline.yml
+    with:
+      config-file: .github/config/image/vllm-omni/ec2-amzn2023.yml
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit

@@ -50,22 +50,7 @@ jobs:
       - name: Parse model config
         if: steps.check.outputs.exists == 'true'
         id: parse
-        run: |
-          python3 -c "
-          import yaml, json
-          with open('.github/config/model-tests/sglang-model-tests.yml') as f:
-              cfg = yaml.safe_load(f)
-          st = cfg.get('smoke-test', {})
-          prefix = cfg.get('s3_prefix', '')
-          for m in st.get('codebuild-fleet', []) + st.get('runner-scale-sets', []):
-              m['s3_path'] = prefix + '/' + m.pop('s3_model')
-          print('codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
-          print('runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
-          " > parsed.txt
-          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
-          grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
-          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
-          echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
+        run: python3 .github/scripts/parse_model_config.py --config .github/config/model-tests/sglang-model-tests.yml
 
   test-model-codebuild-fleet:
     name: test-model (${{ matrix.name }})

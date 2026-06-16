@@ -1,0 +1,203 @@
+name: Reusable vLLM-Omni Model Tests
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
+      customer-type: ${{ steps.config.outputs.customer-type }}
+      matrix: ${{ steps.parse.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Parse customer type
+        id: config
+        run: |
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
+      - name: Parse model config
+        if: steps.check.outputs.exists == 'true'
+        id: parse
+        run: python3 .github/scripts/parse_model_config.py --config .github/config/model-tests/vllm-omni-model-tests.yml --runner-type codebuild-fleet
+
+  smoke-test:
+    name: smoke-test (${{ matrix.model.name }})
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.matrix)[0] != null }}
+    needs: [preflight]
+    strategy:
+      fail-fast: false
+      matrix:
+        model: ${{ fromJson(needs.preflight.outputs.matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.model.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Download model from S3
+        if: matrix.model.model_source == 's3'
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.model.s3_path }}
+          model-name: ${{ matrix.model.name }}
+
+      - name: Resolve model path
+        id: resolve
+        run: |
+          if [ "${{ matrix.model.model_source }}" = "s3" ]; then
+            echo "model_path=/models/${{ matrix.model.name }}" >> $GITHUB_OUTPUT
+            echo "volume=-v /dlc-models:/models" >> $GITHUB_OUTPUT
+          else
+            echo "model_path=${{ matrix.model.hf_model }}" >> $GITHUB_OUTPUT
+            echo "volume=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Start container (EC2)
+        if: needs.preflight.outputs.customer-type == 'ec2'
+        run: |
+          docker pull ${{ needs.preflight.outputs.image-uri }}
+          CONTAINER_ID=$(docker run -d --gpus all --shm-size=4g \
+            ${{ steps.resolve.outputs.volume }} \
+            -e HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            -p 8080:8080 \
+            ${{ needs.preflight.outputs.image-uri }} \
+            --model ${{ steps.resolve.outputs.model_path }} \
+            --port 8080 \
+            --stage-init-timeout 900 \
+            ${{ matrix.model.extra_args }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Convert extra_args to SM env vars
+        if: needs.preflight.outputs.customer-type == 'sagemaker'
+        id: sm-env
+        run: |
+          EXTRA_ENV=""
+          ARGS="${{ matrix.model.extra_args }}"
+          while [[ -n "$ARGS" ]]; do
+            if [[ "$ARGS" =~ ^--([a-z][a-z0-9-]*)[[:space:]]*(.*) ]]; then
+              KEY=$(echo "${BASH_REMATCH[1]}" | tr '-' '_' | tr '[:lower:]' '[:upper:]')
+              REST="${BASH_REMATCH[2]}"
+              if [[ "$REST" =~ ^--[a-z] ]] || [[ -z "$REST" ]]; then
+                EXTRA_ENV="$EXTRA_ENV -e SM_VLLM_${KEY}=true"
+                ARGS="$REST"
+              else
+                VALUE="${REST%% --*}"
+                EXTRA_ENV="$EXTRA_ENV -e SM_VLLM_${KEY}=${VALUE}"
+                ARGS="${REST#"$VALUE"}"
+              fi
+              ARGS="${ARGS# }"
+            else
+              break
+            fi
+          done
+          echo "env_flags=$EXTRA_ENV" >> $GITHUB_OUTPUT
+
+      - name: Start container (SageMaker)
+        if: needs.preflight.outputs.customer-type == 'sagemaker'
+        run: |
+          docker pull ${{ needs.preflight.outputs.image-uri }}
+          CONTAINER_ID=$(docker run -d --gpus all --shm-size=4g \
+            ${{ steps.resolve.outputs.volume }} \
+            -e SM_VLLM_MODEL=${{ steps.resolve.outputs.model_path }} \
+            -e SM_VLLM_STAGE_INIT_TIMEOUT=600 \
+            -e HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            ${{ steps.sm-env.outputs.env_flags }} \
+            -p 8080:8080 \
+            ${{ needs.preflight.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy test scripts
+        run: |
+          docker cp test/vllm-omni/scripts/vllm_omni_${{ needs.preflight.outputs.customer-type }}_smoke_test.sh \
+            ${CONTAINER_ID}:/tmp/smoke_test.sh
+
+      - name: Prepare test request
+        run: |
+          set -euo pipefail
+          REQUEST='${{ matrix.model.test_request }}'
+          if [[ "$REQUEST" == *ref_audio_s3* ]]; then
+            REF_S3=$(python3 -c 'import json,sys;print(json.loads(sys.stdin.read()).get("ref_audio_s3",""))' <<< "$REQUEST")
+            if [ -n "$REF_S3" ]; then
+              echo "Fetching ref_audio from $REF_S3"
+              aws s3 cp "$REF_S3" /tmp/ref_audio.wav --quiet
+              REQUEST=$(REQUEST="$REQUEST" python3 <<'PY'
+          import base64, json, os
+          payload = json.loads(os.environ["REQUEST"])
+          with open("/tmp/ref_audio.wav", "rb") as f:
+              payload["ref_audio"] = "data:audio/wav;base64," + base64.b64encode(f.read()).decode()
+          payload.pop("ref_audio_s3", None)
+          print(json.dumps(payload))
+          PY
+              )
+            fi
+          fi
+          printf '%s' "$REQUEST" > /tmp/test_request.body
+          echo "Request size: $(wc -c < /tmp/test_request.body) bytes"
+          docker cp /tmp/test_request.body ${CONTAINER_ID}:/tmp/test_request.body
+
+      - name: Run smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /tmp/smoke_test.sh \
+            "${{ matrix.model.route }}" \
+            '@/tmp/test_request.body' \
+            "${{ matrix.model.validate }}" \
+            "${{ matrix.model.content_type || 'application/json' }}"
+
+      - name: Dump container logs
+        if: always()
+        run: |
+          docker logs ${CONTAINER_ID} 2>&1 | tail -500 || true
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ needs.preflight.outputs.image-uri }} 2>/dev/null || true
+          rm -rf /dlc-models

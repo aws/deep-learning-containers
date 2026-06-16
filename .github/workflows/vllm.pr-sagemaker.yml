@@ -3,21 +3,21 @@ name: "PR - vLLM SageMaker"
 on:
   # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/vllm/sagemaker-amzn2023.yml"
-      - ".github/config/model-tests/vllm-model-tests.yml"
-      - "docker/vllm/**"
-      - "scripts/common/**"
-      - "scripts/vllm/**"
-      - "test/vllm/**"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - ".github/workflows/vllm.pr-sagemaker.yml"
-      - ".github/workflows/vllm.pipeline.yml"
-      - "!docs/**"
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/vllm/sagemaker-amzn2023.yml"
+  #     - ".github/config/model-tests/vllm-model-tests.yml"
+  #     - "docker/vllm/**"
+  #     - "scripts/common/**"
+  #     - "scripts/vllm/**"
+  #     - "test/vllm/**"
+  #     - "test/sanity/**"
+  #     - "test/telemetry/**"
+  #     - ".github/workflows/vllm.pr-sagemaker.yml"
+  #     - ".github/workflows/vllm.pipeline.yml"
+  #     - "!docs/**"
 
 permissions:
   contents: read

@@ -1,23 +1,23 @@
-name: "PR - SGLang EC2"
+name: "PR - vLLM-Omni EC2"
 
 on:
   # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/sglang/ec2-amzn2023.yml"
-      - ".github/config/model-tests/sglang-model-tests.yml"
-      - "docker/sglang/**"
-      - "scripts/common/**"
-      - "scripts/sglang/**"
-      - "test/sglang/**"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - ".github/workflows/sglang.pr-ec2.yml"
-      - ".github/workflows/sglang.pipeline.yml"
-      - "!docs/**"
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/vllm-omni/ec2-amzn2023.yml"
+  #     - ".github/config/model-tests/vllm-omni-model-tests.yml"
+  #     - "docker/vllm_omni/**"
+  #     - "scripts/common/**"
+  #     - "scripts/vllm/omni_*"
+  #     - "test/vllm-omni/**"
+  #     - "test/sanity/**"
+  #     - "test/telemetry/**"
+  #     - ".github/workflows/vllm-omni.pr-ec2.yml"
+  #     - ".github/workflows/vllm-omni.pipeline.yml"
+  #     - "!docs/**"
 
 permissions:
   contents: read
@@ -40,7 +40,6 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
-      upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
       model-test-change: ${{ steps.changes.outputs.model-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -49,30 +48,29 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/sglang/ec2-amzn2023.yml"
-              - "docker/sglang/Dockerfile.amzn2023"
+              - ".github/config/image/vllm-omni/ec2-amzn2023.yml"
+              - "docker/vllm_omni/Dockerfile.amzn2023"
               - "scripts/common/**"
-              - "scripts/sglang/**"
+              - "scripts/vllm/omni_*"
+              - "test/vllm-omni/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
-            upstream-test-change:
-              - "test/sglang/scripts/**"
             model-test-change:
-              - ".github/config/model-tests/sglang-model-tests.yml"
-              - "test/sglang/scripts/**"
+              - ".github/config/model-tests/vllm-omni-model-tests.yml"
+              - "test/vllm-omni/**"
 
   pipeline:
     needs: [check-changes]
-    uses: ./.github/workflows/sglang.pipeline.yml
+    uses: ./.github/workflows/vllm-omni.pipeline.yml
     with:
-      config-file: .github/config/image/sglang/ec2-amzn2023.yml
+      config-file: .github/config/image/vllm-omni/ec2-amzn2023.yml
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
-      run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-sagemaker-test: false
       release: false
