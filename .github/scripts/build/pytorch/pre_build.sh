@@ -7,7 +7,7 @@
 #
 # Inputs:
 #   --config-file      - config file path
-#   WHEEL_CACHE_BUCKET - S3 bucket for wheel cache (env var, from workflow vars)
+#   WHEELS_BUCKET - S3 bucket for wheel cache (env var, from workflow vars)
 #
 # Outputs (env vars written to $GITHUB_ENV):
 #   WHEEL_CACHE_HIT    - "true" if all wheels found, "false" otherwise
@@ -45,7 +45,7 @@ PACKAGES=()
 
 PACKAGES_STR=$(IFS=','; echo "${PACKAGES[*]}")
 echo "Fetching cached wheels: ${PACKAGES_STR:-none}"
-if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --dest-dir "$DEST" --bucket "${WHEEL_CACHE_BUCKET:-dlc-cicd-wheels}" \
+if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --dest-dir "$DEST" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
     --cuda-version "$CUDA_VERSION" --packages "$PACKAGES_STR"; then
   echo "WHEEL_CACHE_HIT=true" >> "${GITHUB_ENV:-/dev/null}"
   echo "Wheel cache hit"

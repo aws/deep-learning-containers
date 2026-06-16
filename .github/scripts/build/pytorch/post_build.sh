@@ -8,7 +8,7 @@
 # Inputs:
 #   --config-file      - config file path
 #   WHEEL_CACHE_HIT    - "true" to skip upload (env var from pre_build)
-#   WHEEL_CACHE_BUCKET - S3 bucket (env var)
+#   WHEELS_BUCKET - S3 bucket (env var)
 #   CI_IMAGE_URI       - built image URI (env var)
 #
 # Outputs: none (uploads to S3)
@@ -44,6 +44,6 @@ PACKAGES=()
 
 PACKAGES_STR=$(IFS=','; echo "${PACKAGES[*]}")
 echo "Uploading wheels to cache: ${PACKAGES_STR:-none}"
-bash "$SCRIPT_DIR/lib/upload_wheels.sh" --bucket "${WHEEL_CACHE_BUCKET:-dlc-cicd-wheels}" \
+bash "$SCRIPT_DIR/lib/upload_wheels.sh" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
   --cuda-version "$CUDA_VERSION" --image-uri "${CI_IMAGE_URI}" \
   --dockerfile "$DOCKERFILE" --packages "$PACKAGES_STR" || true

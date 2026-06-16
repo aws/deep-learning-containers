@@ -32,7 +32,8 @@ done
 [[ -n "$FRAMEWORK_VERSION" ]] || { echo "ERROR: --framework-version is required" >&2; exit 1; }
 
 SOURCE_HASH=$("${SCRIPT_DIR}/source_hash.sh" --ref "${VLLM_REF}" --version "${FRAMEWORK_VERSION}")
-PREFIX="wheels/vllm/${CUDA}/${SOURCE_HASH}/"
+CUDA_SHORT="cu$(echo "${CUDA}" | cut -d. -f1)$(echo "${CUDA}" | cut -d. -f2)"
+PREFIX="wheels/vllm/${CUDA_SHORT}/${SOURCE_HASH}/"
 
 mkdir -p "${DEST_DIR}"
 

@@ -7,7 +7,7 @@
 #
 # Inputs:
 #   --config-file      - config file path
-#   WHEEL_CACHE_BUCKET - S3 bucket (env var, default: dlc-cicd-wheels)
+#   WHEELS_BUCKET - S3 bucket (env var, default: dlc-cicd-wheels)
 #
 # Outputs (env vars written to $GITHUB_ENV):
 #   WHEEL_CACHE_HIT    - "true" if wheel found, "false" otherwise
@@ -34,7 +34,7 @@ done
 [[ -n "$CONFIG_FILE" ]] || { echo "ERROR: --config-file is required" >&2; exit 1; }
 [[ -f "$CONFIG_FILE" ]] || { echo "ERROR: Config file not found: $CONFIG_FILE" >&2; exit 1; }
 
-BUCKET="${WHEEL_CACHE_BUCKET:-dlc-cicd-wheels}"
+BUCKET="${WHEELS_BUCKET:-dlc-cicd-wheels}"
 
 CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
 VLLM_REF=$(yq '.build.vllm_ref' "$CONFIG_FILE")

@@ -32,11 +32,12 @@ done
 [[ -n "$FRAMEWORK_VERSION" ]] || { echo "ERROR: --framework-version is required" >&2; exit 1; }
 
 SOURCE_HASH=$("${SCRIPT_DIR}/source_hash.sh" --ref "${VLLM_REF}" --version "${FRAMEWORK_VERSION}")
+CUDA_SHORT="cu$(echo "${CUDA}" | cut -d. -f1)$(echo "${CUDA}" | cut -d. -f2)"
 
 for WHL in "${WHEEL_DIR}"/*.whl; do
   [[ -f "${WHL}" ]] || { echo "No wheels found in ${WHEEL_DIR}"; exit 0; }
   FNAME=$(basename "${WHL}")
-  S3_KEY="wheels/vllm/${CUDA}/${SOURCE_HASH}/${FNAME}"
+  S3_KEY="wheels/vllm/${CUDA_SHORT}/${SOURCE_HASH}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
     echo "Already cached: ${S3_KEY}"
