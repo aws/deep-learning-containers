@@ -43,6 +43,12 @@ runs:
         echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
         echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
         echo "customer-type=$(yq '.metadata.customer_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "job-type=$(yq '.metadata.job_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "arch-type=$(yq '.metadata.arch_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "device-type=$(yq '.metadata.device_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "os-version=$(yq '.metadata.os_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "python-version=$(yq '.build.python_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "cuda-version=$(yq '.build.cuda_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
         echo "dockerfile=$(yq '.build.dockerfile' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
         echo "target=$(yq '.build.target // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
@@ -79,6 +85,7 @@ runs:
         FRAMEWORK="${{ steps.metadata.outputs.framework }}"
         FRAMEWORK_VERSION="${{ steps.metadata.outputs.framework-version }}"
         CUSTOMER_TYPE="${{ steps.metadata.outputs.customer-type }}"
+        JOB_TYPE="${{ steps.metadata.outputs.job-type }}"
 
         # Build --build-arg flags from EXTRA_BUILD_ARGS
         BUILD_ARG_FLAGS=""
@@ -91,6 +98,30 @@ runs:
         # Always pass framework metadata as build-args
         BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg FRAMEWORK=${FRAMEWORK}"
         BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg FRAMEWORK_VERSION=${FRAMEWORK_VERSION}"
+        BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg CONTAINER_TYPE=${JOB_TYPE}"
+        BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg CACHE_REFRESH=$(date +%Y-%m-%d)"
+
+        # SageMaker labels
+        LABEL_FLAGS=""
+        if [[ "$CUSTOMER_TYPE" == "sagemaker" ]]; then
+          LABEL_FRAMEWORK=$(echo "${FRAMEWORK}" | tr '_' '-')
+          LABEL_FRAMEWORK_VERSION=$(echo "${FRAMEWORK_VERSION}" | tr '.' '-')
+          LABEL_ARCH="${{ steps.metadata.outputs.arch-type }}"
+          LABEL_DEVICE_TYPE="${{ steps.metadata.outputs.device-type }}"
+          CUDA_VER="${{ steps.metadata.outputs.cuda-version }}"
+          if [[ "$LABEL_DEVICE_TYPE" == "gpu" && -n "$CUDA_VER" ]]; then
+            LABEL_DEVICE_TYPE="gpu.${CUDA_VER}"
+          fi
+          LABEL_OS=$(echo "${{ steps.metadata.outputs.os-version }}" | tr '.' '-')
+          LABEL_PYTHON=$(echo "${{ steps.metadata.outputs.python-version }}" | tr '.' '-')
+
+          LABEL_FLAGS="--label com.amazonaws.ml.engines.sagemaker.dlc.arch.${LABEL_ARCH}=true"
+          LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.device.${LABEL_DEVICE_TYPE}=true"
+          LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.framework.${LABEL_FRAMEWORK}.${LABEL_FRAMEWORK_VERSION}=true"
+          LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.job.${JOB_TYPE}=true"
+          [[ -n "$LABEL_OS" ]] && LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.os.${LABEL_OS}=true"
+          [[ -n "$LABEL_PYTHON" ]] && LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.python.${LABEL_PYTHON}=true"
+        fi
 
         # Target flag (optional)
         TARGET_FLAG=""
@@ -114,9 +145,11 @@ runs:
         fi
 
         # Main build
+        docker buildx use default 2>/dev/null || true
         echo "Building ${CI_IMAGE_URI}"
         docker buildx build --progress plain \
           ${BUILD_ARG_FLAGS} \
+          ${LABEL_FLAGS} \
           --cache-to=type=inline \
           --cache-from=type=registry,ref=${CI_IMAGE_URI} \
           --tag ${CI_IMAGE_URI} \
@@ -126,6 +159,9 @@ runs:
 
         echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> $GITHUB_ENV
+
+        # Cleanup local image
+        docker rmi ${CI_IMAGE_URI} 2>/dev/null || true
 
     - name: Run post-build hook
       shell: bash

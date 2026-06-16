@@ -24,7 +24,7 @@ import yaml
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 LOG = logging.getLogger(__name__)
 
-REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 CONFIG_DIR = REPO_ROOT / ".github" / "config" / "image"
 ALLOWLIST_DIR = REPO_ROOT / "test" / "security" / "data" / "ecr_scan_allowlist"
 ECR_ACCOUNT = os.environ.get("ECR_ACCOUNT_ID", "")

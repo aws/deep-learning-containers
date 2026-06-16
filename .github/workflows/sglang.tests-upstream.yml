@@ -81,7 +81,7 @@ jobs:
             --port 30000)
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
           echo "Waiting for serving endpoint startup ..."
-          sleep 120s
+          sleep 1200s
           docker logs ${CONTAINER_ID}
 
       - name: Run SGLang benchmark
