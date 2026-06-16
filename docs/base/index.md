@@ -7,10 +7,10 @@ a quick interactive environment for prototyping. Built and patched continuously 
 
 | Variant | Image | CUDA | Use Case |
 | --- | --- | --- | --- |
-| Runtime, CUDA 12.9 | `public.ecr.aws/deep-learning-containers/base:runtime-cu129-amzn2023` | 12.9.1 | Run a CUDA application — minimal size, no compilers |
-| Devel, CUDA 12.9 | `public.ecr.aws/deep-learning-containers/base:devel-cu129-amzn2023` | 12.9.1 | Compile CUDA code — adds `nvcc`, headers, gcc, cmake |
-| Runtime, CUDA 13.0 | `public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023` | 13.0.2 | Same as cu129 but on CUDA 13 |
-| Devel, CUDA 13.0 | `public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023` | 13.0.2 | Same as cu129 but on CUDA 13 |
+| Runtime, CUDA 12.9 | `public.ecr.aws/deep-learning-containers/base:runtime-cu129-amzn2023` | 12.9 | Run a CUDA application — minimal size, no compilers |
+| Devel, CUDA 12.9 | `public.ecr.aws/deep-learning-containers/base:devel-cu129-amzn2023` | 12.9 | Compile CUDA code — adds `nvcc`, headers, gcc, cmake |
+| Runtime, CUDA 13.0 | `public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023` | 13.0 | Same as cu129 but on CUDA 13 |
+| Devel, CUDA 13.0 | `public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023` | 13.0 | Same as cu129 but on CUDA 13 |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/base). For private ECR URIs, see
 [Image Access](../get_started/index.md).
@@ -22,7 +22,7 @@ All four variants share the same core stack:
 - **Amazon Linux 2023** with continuous security patching
 - **Python 3.13.12** built from source with hardening flags, available as `python` / `python3`
 - **uv** package manager, pre-installed at `/usr/local/bin/uv`
-- **NVIDIA CUDA Toolkit** (12.9.1 for cu129, 13.0.2 for cu130), based on the upstream `nvidia/cuda:*-amzn2023` images
+- **NVIDIA CUDA Toolkit** (12.9 for cu129, 13.0 for cu130), based on the upstream `nvidia/cuda:*-amzn2023` images
 
 The **devel** variants additionally include the full CUDA Toolkit (`nvcc`, headers, libraries) plus `gcc`, `gcc-c++`, `cmake`, `automake`, `autoconf`,
 `git`, `make`, and `tar` — sufficient for compiling CUDA C/C++ code or wheels with native extensions.
