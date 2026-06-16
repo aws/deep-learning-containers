@@ -17,11 +17,14 @@ permissions:
   contents: read
 
 jobs:
-  ecr-vulnerability-scan:
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -41,34 +44,40 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: ECR authenticate
-        if: steps.check.outputs.exists == 'true'
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-
       - name: Parse config
         if: steps.check.outputs.exists == 'true'
-        id: config
+        id: parse
         run: |
           CONFIG_FILE="${{ inputs.config-file }}"
           echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
+  ecr-vulnerability-scan:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
       - name: Setup test dependencies
-        if: steps.check.outputs.exists == 'true'
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
 
       - name: ECR enhanced vulnerability scan
-        if: steps.check.outputs.exists == 'true'
         run: |
           source .venv/bin/activate
           PYTHONPATH=$(pwd):$(pwd)/test:$PYTHONPATH python3 test/security/scripts/ecr_scan.py \
-            --image-uri "${{ steps.image.outputs.image-uri }}" \
-            --framework "${{ steps.config.outputs.framework }}" \
-            --framework-version "${{ steps.config.outputs.framework-version }}"
-
+            --image-uri "${{ needs.preflight.outputs.image-uri }}" \
+            --framework "${{ needs.preflight.outputs.framework }}" \
+            --framework-version "${{ needs.preflight.outputs.framework-version }}"

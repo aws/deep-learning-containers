@@ -17,11 +17,12 @@ permissions:
   contents: read
 
 jobs:
-  endpoint-test:
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
     steps:
       - uses: actions/checkout@v6
 
@@ -41,16 +42,24 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+  endpoint-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
       - name: ECR login
-        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ steps.image.outputs.image-uri }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Install test dependencies
-        if: steps.check.outputs.exists == 'true'
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
@@ -58,9 +67,7 @@ jobs:
           uv pip install -r test/sglang/sagemaker/requirements.txt
 
       - name: Run SageMaker endpoint tests
-        if: steps.check.outputs.exists == 'true'
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ steps.image.outputs.image-uri }} sglang/sagemaker
-
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} sglang/sagemaker
