@@ -18,7 +18,10 @@ permissions:
 
 jobs:
   preflight:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       image-uri: ${{ steps.image.outputs.image-uri }}
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
