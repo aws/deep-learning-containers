@@ -1,6 +1,6 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG VLLM_VERSION=0.22.1rc0
+ARG FRAMEWORK_VERSION=0.22.1rc0
 ARG FLASHINFER_VERSION=0.6.11.post2
 ARG DEEPEP_COMMIT_HASH=73b6ea4
 
@@ -10,8 +10,8 @@ ARG DEEPEP_COMMIT_HASH=73b6ea4
 FROM alpine/git AS source
 
 ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
-ARG VLLM_VERSION
-ARG VLLM_REF=v${VLLM_VERSION}
+ARG FRAMEWORK_VERSION
+ARG VLLM_REF=v${FRAMEWORK_VERSION}
 
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
   || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
@@ -80,11 +80,9 @@ ENV NVCC_THREADS=${nvcc_threads}
 
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
-ARG VLLM_VERSION
-# Wheel version tag — pass via --build-arg from workflow (see docker/vllm/versions.env).
-# Example: 0.19.2rc0+amzn2023.6ef1efd5
+ARG FRAMEWORK_VERSION
 ARG SETUPTOOLS_SCM_PRETEND_VERSION
-ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${VLLM_VERSION}+amzn2023}
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${FRAMEWORK_VERSION}+amzn2023}
 
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
@@ -96,7 +94,7 @@ COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 # USE_PREBUILT_WHEEL: set to 0 to force source build even when prebuilt wheel exists
 # USE_SCCACHE: set to 1 to enable sccache compilation cache
 ARG USE_PREBUILT_WHEEL=1
-ARG USE_SCCACHE=0
+ARG USE_SCCACHE=false
 
 # Seed sccache cache from build context (synced from S3 before build)
 COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
@@ -106,7 +104,7 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && rm -rf dist && mkdir -p dist \
       && cp /tmp/prebuilt_wheels/*.whl dist/; \
-    elif [ "$USE_SCCACHE" = "1" ]; then \
+    elif [ "$USE_SCCACHE" = "true" ]; then \
       echo "🔧 Building vLLM with sccache..." \
       && curl -L -o /tmp/sccache.tar.gz \
         "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \

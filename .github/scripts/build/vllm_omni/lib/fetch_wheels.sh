@@ -1,1 +1,1 @@
-../../vllm/lib/fetch_wheels.sh
+../../vllm_server/lib/fetch_wheels.sh

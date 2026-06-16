@@ -1,1 +1,1 @@
-../../vllm/lib/sync_sccache.sh
+../../vllm_server/lib/sync_sccache.sh

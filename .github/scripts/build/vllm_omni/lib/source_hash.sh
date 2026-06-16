@@ -1,1 +1,1 @@
-../../vllm/lib/source_hash.sh
+../../vllm_server/lib/source_hash.sh

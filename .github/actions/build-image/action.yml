@@ -101,6 +101,11 @@ runs:
         BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg CONTAINER_TYPE=${JOB_TYPE}"
         BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg CACHE_REFRESH=$(date +%Y-%m-%d)"
 
+        # Pass hook-injected env vars (set by pre_build hooks via GITHUB_ENV)
+        if [[ -n "${USE_PREBUILT_WHEEL:-}" ]]; then
+          BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg USE_PREBUILT_WHEEL=${USE_PREBUILT_WHEEL}"
+        fi
+
         # SageMaker labels
         LABEL_FLAGS=""
         if [[ "$CUSTOMER_TYPE" == "sagemaker" ]]; then

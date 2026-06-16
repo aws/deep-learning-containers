@@ -1,1 +1,1 @@
-../vllm/pre_build.sh
+../vllm_server/pre_build.sh
