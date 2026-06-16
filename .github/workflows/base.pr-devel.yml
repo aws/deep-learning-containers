@@ -1,4 +1,4 @@
-name: "PR - Base Devel"
+name: "PR - Base Development"
 
 on:
   # TEMP: Enable after all frameworks are refactored
