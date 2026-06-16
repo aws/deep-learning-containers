@@ -102,16 +102,13 @@ jobs:
             ${{ steps.image.outputs.image-uri }}
 
       - name: Run inference engine sanity tests
-        if: steps.check.outputs.exists == 'true' && (steps.config.outputs.framework == 'vllm' || steps.config.outputs.framework == 'sglang')
+        if: steps.check.outputs.exists == 'true' && (contains(steps.config.outputs.framework, 'vllm') || contains(steps.config.outputs.framework, 'sglang'))
         run: |
-          PYTHON_SHORT="py$(echo '${{ steps.config.outputs.python-version }}' | tr -d '.')"
-          CUDA_SHORT=""
-          if [ -n "${{ steps.config.outputs.cuda-version }}" ]; then
-            CUDA_SHORT="cu$(echo '${{ steps.config.outputs.cuda-version }}' | tr -d '.' | cut -c1-3)"
-          fi
-          IMAGE_TAG="${{ steps.config.outputs.framework }}:${{ steps.config.outputs.framework-version }}-${{ steps.config.outputs.device-type }}-${PYTHON_SHORT}-${CUDA_SHORT}-${{ steps.config.outputs.os-version }}-${{ steps.config.outputs.customer-type }}"
-          docker exec -e IMAGE_TAG="${IMAGE_TAG}" ${CONTAINER_ID} \
-            python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
+          docker exec \
+            -e EXPECTED_FRAMEWORK_VERSION=${{ steps.config.outputs.framework-version }} \
+            -e EXPECTED_PYTHON_VERSION=${{ steps.config.outputs.python-version }} \
+            -e EXPECTED_CUDA_VERSION=${{ steps.config.outputs.cuda-version }} \
+            ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
 
       - name: Run OSS compliance check
         if: steps.check.outputs.exists == 'true'
