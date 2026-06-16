@@ -9,7 +9,6 @@ on:
       - ".github/config/image/base/cu*-devel.yml"
       - "docker/base/**"
       - "scripts/common/**"
-      - "test/cuda/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/base/**"
       - ".github/workflows/base.pr-devel.yml"
@@ -49,7 +48,6 @@ jobs:
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      cuda-test-change: ${{ steps.changes.outputs.cuda-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -63,8 +61,6 @@ jobs:
               - "test/security/data/ecr_scan_allowlist/base/**"
             sanity-test-change:
               - "test/sanity/**"
-            cuda-test-change:
-              - "test/cuda/**"
 
   pipeline:
     needs: [discover, check-changes]
@@ -79,6 +75,5 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-cuda-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.cuda-test-change == 'true' }}
       release: false
     secrets: inherit

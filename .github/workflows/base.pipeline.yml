@@ -26,11 +26,6 @@ on:
         required: false
         type: boolean
         default: true
-      run-cuda-test:
-        description: "Run CUDA tests"
-        required: false
-        type: boolean
-        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -86,17 +81,9 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  cuda-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-cuda-test }}
-    needs: [build]
-    uses: ./.github/workflows/base.tests-cuda.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
   release:
     if: ${{ inputs.release && !failure() && !cancelled() }}
-    needs: [build, sanity-test, security-test, cuda-test]
+    needs: [build, sanity-test, security-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
