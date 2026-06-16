@@ -1,21 +1,23 @@
 name: "PR - SGLang SageMaker"
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/sglang/sagemaker-amzn2023.yml"
-      - ".github/config/model-tests/sglang-model-tests.yml"
-      - "docker/sglang/**"
-      - "scripts/common/**"
-      - "scripts/sglang/**"
-      - "test/sglang/**"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - ".github/workflows/sglang.pr-sagemaker.yml"
-      - ".github/workflows/sglang.pipeline.yml"
-      - "!docs/**"
+  # TEMP: Enable after all frameworks are refactored
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/sglang/sagemaker-amzn2023.yml"
+  #     - ".github/config/model-tests/sglang-model-tests.yml"
+  #     - "docker/sglang/**"
+  #     - "scripts/common/**"
+  #     - "scripts/sglang/**"
+  #     - "test/sglang/**"
+  #     - "test/sanity/**"
+  #     - "test/telemetry/**"
+  #     - ".github/workflows/sglang.pr-sagemaker.yml"
+  #     - ".github/workflows/sglang.pipeline.yml"
+  #     - "!docs/**"
+  workflow_dispatch:
 
 permissions:
   contents: read

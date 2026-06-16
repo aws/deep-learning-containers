@@ -101,7 +101,15 @@ jobs:
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/inspect_docker.py \
             ${{ steps.image.outputs.image-uri }}
 
-      - name: Run inference engine sanity tests
+      - name: Run base image checks
+        if: steps.check.outputs.exists == 'true' && steps.config.outputs.framework == 'base_dlc'
+        run: |
+          PYTHON_SHORT=$(echo '${{ steps.config.outputs.python-version }}' | cut -d. -f1,2)
+          CUDA_SHORT=$(echo '${{ steps.config.outputs.cuda-version }}' | cut -d. -f1,2)
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh \
+            "${PYTHON_SHORT}" "${CUDA_SHORT}"
+
+      - name: Run inference engine checks
         if: steps.check.outputs.exists == 'true' && (contains(steps.config.outputs.framework, 'vllm') || contains(steps.config.outputs.framework, 'sglang'))
         run: |
           docker exec \
@@ -203,4 +211,3 @@ jobs:
             --container-type "${{ steps.config.outputs.job-type }}" \
             --contributor "${{ steps.config.outputs.contributor }}" \
             --transformers-version "${{ steps.config.outputs.transformers-version }}"
-

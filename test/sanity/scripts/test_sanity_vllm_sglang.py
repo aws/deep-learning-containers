@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 GPU-free sanity tests for vLLM and SGLang DLC images.
 
