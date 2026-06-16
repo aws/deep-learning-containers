@@ -20,7 +20,19 @@ env:
   TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
 
 jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
   local-benchmark-test:
+    needs: [ci-config]
+    if: ${{ needs.ci-config.outputs.customer-type == 'ec2' }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -81,7 +93,7 @@ jobs:
             --port 30000)
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
           echo "Waiting for serving endpoint startup ..."
-          sleep 1200s
+          sleep 120s
           docker logs ${CONTAINER_ID}
 
       - name: Run SGLang benchmark
