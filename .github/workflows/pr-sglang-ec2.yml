@@ -1,0 +1,113 @@
+name: "PR - SGLang EC2"
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/sglang/ec2-amzn2023.yml"
+      - ".github/config/model-tests/sglang-model-tests.yml"
+      - "docker/sglang/**"
+      - "scripts/common/**"
+      - "scripts/sglang/**"
+      - "test/sglang/**"
+      - "test/sanity/**"
+      - "test/telemetry/**"
+      - ".github/workflows/pr-sglang-ec2.yml"
+      - ".github/workflows/pipeline-sglang.yml"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  CONFIG_FILE: ".github/config/image/sglang/ec2-amzn2023.yml"
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  check-changes:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: changes
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/sglang/ec2-amzn2023.yml"
+              - "docker/sglang/Dockerfile.amzn2023"
+              - "scripts/common/**"
+              - "scripts/sglang/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            telemetry-test-change:
+              - "test/telemetry/**"
+            upstream-test-change:
+              - "test/sglang/scripts/**"
+            model-test-change:
+              - ".github/config/model-tests/sglang-model-tests.yml"
+              - "test/sglang/scripts/**"
+
+  # Build change → full pipeline (build + all tests)
+  pipeline:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'true'
+    uses: ./.github/workflows/pipeline-sglang.yml
+    with:
+      config-file: .github/config/image/sglang/ec2-amzn2023.yml
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      release: false
+    secrets: inherit
+
+  # Test-only changes → run specific tests against prod image
+  sanity-test-only:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'false' && needs.check-changes.outputs.sanity-test-change == 'true'
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      config-file: .github/config/image/sglang/ec2-amzn2023.yml
+      image-uri: ""
+    secrets: inherit
+
+  telemetry-test-only:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'false' && needs.check-changes.outputs.telemetry-test-change == 'true'
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      config-file: .github/config/image/sglang/ec2-amzn2023.yml
+      image-uri: ""
+    secrets: inherit
+
+  upstream-test-only:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'false' && needs.check-changes.outputs.upstream-test-change == 'true'
+    uses: ./.github/workflows/reusable-sglang-upstream-tests.yml
+    with:
+      config-file: .github/config/image/sglang/ec2-amzn2023.yml
+      image-uri: ""
+    secrets: inherit
+
+  model-test-only:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'false' && needs.check-changes.outputs.model-test-change == 'true'
+    uses: ./.github/workflows/reusable-sglang-model-tests.yml
+    with:
+      config-file: .github/config/image/sglang/ec2-amzn2023.yml
+      image-uri: ""
+    secrets: inherit

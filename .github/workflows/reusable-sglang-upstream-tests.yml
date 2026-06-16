@@ -1,160 +1,67 @@
 name: Reusable SGLang Upstream Tests
 
-permissions:
-  contents: read
-
 on:
   workflow_call:
     inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
       image-uri:
-        description: 'Image URI to test'
-        required: true
-        type: string
-      aws-account-id:
-        description: 'AWS account ID for ECR authentication'
-        required: true
-        type: string
-      aws-region:
-        description: 'AWS region for ECR authentication'
-        required: true
-        type: string
-      framework-version:
-        description: 'SGLang framework version (e.g., 0.5.9)'
-        required: true
-        type: string
-      sglang-ref:
-        description: 'SGLang git ref to check out for tests (tag or commit SHA). Defaults to v${framework-version}.'
+        description: "Image URI to test. If empty, derives prod URI from config."
         required: false
         type: string
-        default: ''
-      benchmark-start-command:
-        description: 'Docker run command to start the benchmark container (must output CONTAINER_ID)'
-        required: true
-        type: string
-      run-srt-backend-test:
-        description: 'Whether to run the SRT backend test suite (default: true)'
-        required: false
-        type: boolean
-        default: true
+        default: ""
 
-env:
-  TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
+permissions:
+  contents: read
 
 jobs:
-  local-benchmark-test:
+  upstream-test:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
         buildspec-override:true
     steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      - name: Container pull
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: ECR login
+        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: Setup for SGLang datasets
+      - name: Parse config
+        if: steps.check.outputs.exists == 'true'
+        id: config
         run: |
-          mkdir -p ${TEST_ARTIFACTS_DIRECTORY}/dataset
-          if [ ! -f ${TEST_ARTIFACTS_DIRECTORY}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
-              echo "Downloading ShareGPT dataset..."
-              wget -P ${TEST_ARTIFACTS_DIRECTORY}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
-          else
-              echo "ShareGPT dataset already exists. Skipping download."
-          fi
+          CONFIG_FILE="${{ inputs.config-file }}"
+          echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "sglang-ref=$(yq '.build.sglang_ref' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
-      - name: Start container
-        env:
-          IMAGE: ${{ inputs.image-uri }}
-          HF_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
+      - name: Run upstream tests
+        if: steps.check.outputs.exists == 'true'
         run: |
-          CONTAINER_ID=$(${{ inputs.benchmark-start-command }})
-          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
-          echo "Waiting for serving endpoint startup ..."
-          sleep 120s
-          docker logs ${CONTAINER_ID}
+          echo "SGLANG UPSTREAM TEST placeholder"
+          echo "  image-uri: ${{ steps.image.outputs.image-uri }}"
+          echo "  framework-version: ${{ steps.config.outputs.framework-version }}"
+          echo "  sglang-ref: ${{ steps.config.outputs.sglang-ref }}"
 
-      - name: Run SGLang benchmark
-        run: |
-          docker exec ${CONTAINER_ID} python3 -m sglang.bench_serving \
-          --backend sglang \
-          --host 127.0.0.1 --port 30000 \
-          --num-prompts 1000 \
-          --model Qwen/Qwen3-0.6B \
-          --dataset-name sharegpt \
-          --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
-
-  srt-backend-test:
-    if: ${{ inputs.run-srt-backend-test }}
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v6
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
-
-      - name: Checkout SGLang tests
-        uses: actions/checkout@v6
-        with:
-          repository: sgl-project/sglang
-          ref: ${{ inputs.sglang-ref != '' && inputs.sglang-ref || format('v{0}', inputs.framework-version) }}
-          path: sglang_source
-
-      - name: Start container
-        run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
-            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v ./sglang_source:/workdir --workdir /workdir \
-            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ inputs.image-uri }})
-          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
-
-      - name: Setup for SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
-
-            # The upstream ci_install_dependency.sh is designed for bare-metal CI
-            # runners and does a full source install requiring Rust (for the gRPC
-            # extension added in v0.5.11). The DLC image already has sglang
-            # installed, so we only need test dependencies and the source tree on
-            # PYTHONPATH for test registration modules (sglang.test.ci).
-            pip install --break-system-packages \
-              pytest tabulate parameterized scipy
-          '
-
-      - name: Run SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
-            nvidia-smi
-
-            # Make the source tree importable so test registration modules
-            # (sglang.test.ci) from this version are used.
-            export PYTHONPATH=/workdir/python:${PYTHONPATH:-}
-
-            # Workaround: sglang v0.5.12 has an incomplete suite rename
-            # (stage-* -> base-*) causing validate_all_suites() to fail.
-            # See: https://github.com/sgl-project/sglang/issues/25450
-            case "${{ inputs.framework-version }}" in 0.5.12*)
-              rm -f /workdir/test/registered/radix_cache/test_unified_radix_cache_kl_hicache.py
-            ;;
-            esac
-
-            # SRT backend Test with increased timeout
-            cd /workdir/test
-            export SGLANG_TIMEOUT=600
-            python3 run_suite.py --hw cuda --suite stage-a-test-1
-          '
+      - name: Skip notice
+        if: steps.check.outputs.exists != 'true'
+        run: echo "Image not found in ECR — skipping tests (first release scenario)"

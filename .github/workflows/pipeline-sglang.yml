@@ -1,0 +1,107 @@
+name: "Pipeline - SGLang"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      tag-suffix:
+        description: "CI tag suffix (run_id or pr-NUMBER)"
+        required: true
+        type: string
+      release:
+        description: "Run release job after tests pass"
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      image-uri:
+        description: "Built image URI"
+        value: ${{ jobs.build.outputs.image-uri }}
+
+jobs:
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
+  build:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-sglang-build-runner
+        buildspec-override:true
+    timeout-minutes: 720
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: build
+        uses: ./.github/actions/build-image
+        with:
+          config-file: ${{ inputs.config-file }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-suffix: ${{ inputs.tag-suffix }}
+
+  sanity-test:
+    needs: [build]
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri }}
+
+  telemetry-test:
+    needs: [build]
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri }}
+
+  upstream-tests:
+    needs: [build]
+    uses: ./.github/workflows/reusable-sglang-upstream-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri }}
+    secrets: inherit
+
+  model-tests:
+    needs: [build]
+    uses: ./.github/workflows/reusable-sglang-model-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri }}
+
+  sagemaker-tests:
+    needs: [build, config]
+    if: needs.config.outputs.customer-type == 'sagemaker'
+    uses: ./.github/workflows/reusable-sglang-sagemaker-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri }}
+
+  release:
+    if: ${{ inputs.release && !failure() && !cancelled() }}
+    needs: [build, sanity-test, telemetry-test, upstream-tests, model-tests, sagemaker-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - id: check
+        run: |
+          SHOULD_RELEASE=$(yq '.release.release' "${{ inputs.config-file }}")
+          echo "should-release=${SHOULD_RELEASE}" >> $GITHUB_OUTPUT
+      - id: spec
+        if: steps.check.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-file: ${{ inputs.config-file }}
+      - name: Release image
+        if: steps.check.outputs.should-release == 'true'
+        run: echo "RELEASE placeholder - would call reusable-release-image.yml with spec"

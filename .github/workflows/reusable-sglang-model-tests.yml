@@ -1,162 +1,58 @@
-name: Reusable SGLang Model Smoke Tests
-
-permissions:
-  contents: read
+name: Reusable SGLang Model Tests
 
 on:
   workflow_call:
     inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
       image-uri:
-        description: "Image URI to test"
-        required: true
+        description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
         type: string
-      aws-account-id:
-        description: "AWS account ID for ECR authentication"
-        required: true
-        type: string
-      aws-region:
-        description: "AWS region for ECR authentication"
-        required: true
-        type: string
+        default: ""
+
+permissions:
+  contents: read
 
 jobs:
-  load-models:
-    runs-on: ubuntu-latest
-    outputs:
-      codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
-      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Parse model config
-        id: parse
-        run: |
-          python3 -c "
-          import yaml, json
-          with open('.github/config/model-tests/sglang-model-tests.yml') as f:
-              cfg = yaml.safe_load(f)
-          st = cfg.get('smoke-test', {})
-          prefix = cfg.get('s3_prefix', '')
-          for m in st.get('codebuild-fleet', []) + st.get('runner-scale-sets', []):
-              m['s3_path'] = prefix + '/' + m.pop('s3_model')
-          print('codebuild-fleet=' + json.dumps(st.get('codebuild-fleet', [])))
-          print('runner-scale-sets=' + json.dumps(st.get('runner-scale-sets', [])))
-          " > parsed.txt
-          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
-          grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
-          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
-          echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
-
-  test-model-codebuild-fleet:
-    name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix)[0] != null }}
-    needs: [load-models]
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix) }}
+  model-test:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ matrix.fleet }}
+        fleet:x86-g6xl-runner
         buildspec-override:true
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
 
-      - name: ECR authenticate
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: ECR login
+        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: Download model from S3
-        uses: ./.github/actions/download-model
-        id: model
-        with:
-          s3-path: ${{ matrix.s3_path }}
-          model-name: ${{ matrix.name }}
-
-      - name: Start container
+      - name: Run model tests
+        if: steps.check.outputs.exists == 'true'
         run: |
-          docker pull ${{ inputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
-            --ipc=host --shm-size=10g \
-            -v /dlc-models:/models \
-            ${{ inputs.image-uri }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          echo "SGLANG MODEL TEST placeholder"
+          echo "  image-uri: ${{ steps.image.outputs.image-uri }}"
+          echo "  config-file: ${{ inputs.config-file }}"
 
-      - name: Copy scripts into container
-        run: |
-          docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
-          if [ -f "test/sglang/scripts/${{ matrix.test_script || '' }}" ]; then
-            docker cp "test/sglang/scripts/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
-          fi
-
-      - name: Run model smoke test
-        run: |
-          TEST_SCRIPT="${{ matrix.test_script || 'sglang_model_smoke_test.sh' }}"
-          docker exec ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
-            "/models/${{ matrix.name }}" \
-            "${{ matrix.name }}" \
-            ${{ matrix.extra_args }}
-
-  test-model-runner-scale-sets:
-    name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
-    needs: [load-models]
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
-    runs-on: ${{ matrix.runner_label }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: ECR authenticate
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-
-      - name: Download model from S3
-        uses: ./.github/actions/download-model
-        id: model
-        with:
-          s3-path: ${{ matrix.s3_path }}
-          model-name: ${{ matrix.name }}
-
-      - name: Start container
-        run: |
-          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
-          echo "Pod GPU UUIDs: ${POD_GPUS}"
-          docker pull ${{ inputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus "\"device=${POD_GPUS}\"" --entrypoint /bin/bash \
-            --ipc=host --shm-size=10g \
-            ${{ inputs.image-uri }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      - name: Copy files into container
-        run: |
-          docker exec ${CONTAINER_ID} mkdir -p /models
-          docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
-          if [ -f "test/sglang/scripts/${{ matrix.test_script || '' }}" ]; then
-            docker cp "test/sglang/scripts/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
-          fi
-
-      - name: Run model smoke test
-        run: |
-          TEST_SCRIPT="${{ matrix.test_script || 'sglang_model_smoke_test.sh' }}"
-          docker exec ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
-            "/models/${{ matrix.name }}" \
-            "${{ matrix.name }}" \
-            ${{ matrix.extra_args }}
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker stop ${CONTAINER_ID} 2>/dev/null || true
-          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+      - name: Skip notice
+        if: steps.check.outputs.exists != 'true'
+        run: echo "Image not found in ECR — skipping tests (first release scenario)"

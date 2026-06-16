@@ -185,8 +185,30 @@ Workflow (thin orchestrator)
 - Glob patterns are safe within a family: `.github/config/image/base/*.yml`
 - Adding a new variant = drop a config file in the family directory
 
+### Workflow organization
+Three layers of workflows, named by role:
+
+- `pr-{framework}-{variant}.yml` — thin caller, triggers on PR paths for one image variant
+- `autorelease-{framework}-{variant}.yml` — thin caller, scheduled/dispatch trigger for one image variant
+- `pipeline-{framework}.yml` — reusable orchestrator, handles build → tests → release for one config
+- `reusable-{name}.yml` — single-purpose building block (test suite, release step)
+
+### Workflow hierarchy
+```
+pr-sglang-ec2.yml (trigger + gatekeeper)
+  └── pipeline-sglang.yml (orchestrator)
+        ├── build-image action
+        ├── reusable-sanity-tests.yml
+        ├── reusable-telemetry-tests.yml
+        ├── reusable-sglang-upstream-tests.yml
+        ├── reusable-sglang-model-tests.yml
+        ├── reusable-sglang-sagemaker-tests.yml (gated: sagemaker only)
+        └── release (gated: inputs.release)
+```
+
 ### Workflow patterns
-- **Single-config autorelease:** one workflow per image, `CONFIG_FILE` env var points to config
-- **Multi-config matrix (PR):** uses `discover-configs` action to glob a family, matrix over results
-- **Framework-specific tests:** statically listed as jobs with `if:` gates based on config content
-- **Universal tests (sanity, security, telemetry):** always run, not declared in config
+- **Callers are per-variant:** `pr-sglang-ec2.yml` and `pr-sglang-sagemaker.yml` are separate files with scoped path triggers. Shared path changes (Dockerfile) fire both; config-only changes fire one.
+- **Pipeline is per-framework:** one `pipeline-sglang.yml` handles all SGLang variants. A `config` job parses the config to gate variant-specific tests (e.g., sagemaker test only runs for sagemaker configs).
+- **PR vs release:** identical pipeline call, different `release:` flag. Callers pass `release: false` (PR) or `release: true` (autorelease).
+- **Multi-config matrix:** callers use `discover-configs` action to glob a family, matrix over results calling the pipeline per entry.
+- **Release gating:** `if: ${{ inputs.release && !failure() && !cancelled() }}` — skipped jobs don't block, failures do.
