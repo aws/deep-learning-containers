@@ -1,8 +1,8 @@
-name: "Auto Release - SGLang EC2"
+name: "Auto Release - SGLang SageMaker"
 
 on:
   schedule:
-    - cron: '00 19 * * 2,4'
+    - cron: '00 20 * * 2,4'
   workflow_dispatch:
 
 concurrency:
@@ -14,9 +14,9 @@ permissions:
 
 jobs:
   pipeline:
-    uses: ./.github/workflows/pipeline-sglang.yml
+    uses: ./.github/workflows/sglang.pipeline.yml
     with:
-      config-file: .github/config/image/sglang/ec2-amzn2023.yml
+      config-file: .github/config/image/sglang/sagemaker-amzn2023.yml
       tag-suffix: ${{ github.run_id }}
       release: true
     secrets: inherit

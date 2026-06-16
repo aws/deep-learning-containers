@@ -7,7 +7,7 @@ on:
   # pull_request:
   #   paths:
   #     - ".github/actions/upload-ecr-allowlists/**"
-  #     - ".github/workflows/scheduled-upload-ecr-allowlists.yml"
+  #     - ".github/workflows/_scheduled.upload-ecr-allowlists.yml"
   workflow_dispatch:
     inputs:
       dry-run:

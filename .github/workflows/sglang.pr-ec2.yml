@@ -13,8 +13,8 @@ on:
       - "test/sglang/**"
       - "test/sanity/**"
       - "test/telemetry/**"
-      - ".github/workflows/pr-sglang-ec2.yml"
-      - ".github/workflows/pipeline-sglang.yml"
+      - ".github/workflows/sglang.pr-ec2.yml"
+      - ".github/workflows/sglang.pipeline.yml"
       - "!docs/**"
 
 permissions:
@@ -53,10 +53,10 @@ jobs:
               - "scripts/sglang/**"
             sanity-test-change:
               - "test/sanity/**"
-              - ".github/workflows/reusable-sanity-tests.yml"
+              - ".github/workflows/_reusable.sanity-tests.yml"
             telemetry-test-change:
               - "test/telemetry/**"
-              - ".github/workflows/reusable-telemetry-tests.yml"
+              - ".github/workflows/_reusable.telemetry-tests.yml"
             upstream-test-change:
               - "test/sglang/scripts/**"
             model-test-change:
@@ -65,7 +65,7 @@ jobs:
 
   pipeline:
     needs: [check-changes]
-    uses: ./.github/workflows/pipeline-sglang.yml
+    uses: ./.github/workflows/sglang.pipeline.yml
     with:
       config-file: .github/config/image/sglang/ec2-amzn2023.yml
       tag-suffix: pr-${{ github.event.pull_request.number }}

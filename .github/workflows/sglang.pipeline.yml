@@ -86,7 +86,7 @@ jobs:
   sanity-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
     needs: [build]
-    uses: ./.github/workflows/reusable-sanity-tests.yml
+    uses: ./.github/workflows/_reusable.sanity-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -94,7 +94,7 @@ jobs:
   telemetry-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
     needs: [build]
-    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    uses: ./.github/workflows/_reusable.telemetry-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -102,7 +102,7 @@ jobs:
   upstream-tests:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
     needs: [build]
-    uses: ./.github/workflows/reusable-sglang-upstream-tests.yml
+    uses: ./.github/workflows/sglang.tests-upstream.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -111,7 +111,7 @@ jobs:
   model-tests:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test }}
     needs: [build]
-    uses: ./.github/workflows/reusable-sglang-model-tests.yml
+    uses: ./.github/workflows/sglang.tests-model.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -119,7 +119,7 @@ jobs:
   sagemaker-tests:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
     needs: [build, ci-config]
-    uses: ./.github/workflows/reusable-sglang-sagemaker-tests.yml
+    uses: ./.github/workflows/sglang.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}

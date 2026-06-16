@@ -13,8 +13,8 @@ on:
       - "test/sglang/**"
       - "test/sanity/**"
       - "test/telemetry/**"
-      - ".github/workflows/pr-sglang-sagemaker.yml"
-      - ".github/workflows/pipeline-sglang.yml"
+      - ".github/workflows/sglang.pr-sagemaker.yml"
+      - ".github/workflows/sglang.pipeline.yml"
       - "!docs/**"
 
 permissions:
@@ -66,7 +66,7 @@ jobs:
 
   pipeline:
     needs: [check-changes]
-    uses: ./.github/workflows/pipeline-sglang.yml
+    uses: ./.github/workflows/sglang.pipeline.yml
     with:
       config-file: .github/config/image/sglang/sagemaker-amzn2023.yml
       tag-suffix: pr-${{ github.event.pull_request.number }}
