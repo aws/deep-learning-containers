@@ -52,7 +52,7 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
-  config:
+  ci-config:
     runs-on: ubuntu-latest
     outputs:
       customer-type: ${{ steps.parse.outputs.customer-type }}
@@ -117,8 +117,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   sagemaker-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, config]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
+    needs: [build, ci-config]
     uses: ./.github/workflows/reusable-sglang-sagemaker-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
