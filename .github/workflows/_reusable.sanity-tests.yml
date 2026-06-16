@@ -126,7 +126,7 @@ jobs:
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
 
-  sagemaker-only:
+  sanity-sagemaker:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
