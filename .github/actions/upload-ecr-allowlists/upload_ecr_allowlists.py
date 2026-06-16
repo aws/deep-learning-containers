@@ -6,9 +6,9 @@ image's SHA in ECR, reads the framework's allowlist from the repo, and uploads
 to s3://$SCANNER_ALLOWLIST_S3_BUCKET/<sha>/ecr_allowlist.json.
 
 Usage:
-    python3 .github/scripts/upload_ecr_allowlists.py              # all images
-    python3 .github/scripts/upload_ecr_allowlists.py --dry-run    # print only
-    python3 .github/scripts/upload_ecr_allowlists.py --image vllm:omni-cuda-v1
+    python3 upload_ecr_allowlists.py              # all images
+    python3 upload_ecr_allowlists.py --dry-run    # print only
+    python3 upload_ecr_allowlists.py --image vllm:omni-cuda-v1
 """
 
 import argparse

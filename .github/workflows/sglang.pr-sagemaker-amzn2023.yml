@@ -1,4 +1,4 @@
-name: "PR - SGLang SageMaker"
+name: "PR - SGLang SageMaker AL2023"
 
 on:
   # TEMP: Enable after all frameworks are refactored

@@ -1,4 +1,4 @@
-name: "Auto Release - vLLM SageMaker"
+name: "Auto Release - vLLM SageMaker AL2023"
 
 on:
   schedule:

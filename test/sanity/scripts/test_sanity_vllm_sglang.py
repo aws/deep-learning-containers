@@ -379,7 +379,7 @@ class TestEntrypointContract(unittest.TestCase):
             self.skipTest("Not a SageMaker image")
         with open(ep) as f:
             content = f.read()
-        has_vllm = "vllm.entrypoints.openai.api_server" in content
+        has_vllm = "vllm.entrypoints.openai.api_server" in content or "vllm serve" in content
         has_sglang = "sglang.launch_server" in content
         self.assertTrue(has_vllm or has_sglang, "Entrypoint does not invoke vllm or sglang server")
 

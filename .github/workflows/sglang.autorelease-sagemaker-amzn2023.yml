@@ -1,4 +1,4 @@
-name: "Auto Release - SGLang SageMaker"
+name: "Auto Release - SGLang SageMaker AL2023"
 
 on:
   schedule:

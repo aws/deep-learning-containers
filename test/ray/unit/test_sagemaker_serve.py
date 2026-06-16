@@ -7,7 +7,9 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "scripts", "ray"))
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "scripts", "docker", "ray")
+)
 
 from sagemaker_serve import app  # noqa: E402
 

@@ -1,4 +1,4 @@
-name: "PR - vLLM SageMaker"
+name: "PR - vLLM SageMaker AL2023"
 
 on:
   # TEMP: Enable after all frameworks are refactored

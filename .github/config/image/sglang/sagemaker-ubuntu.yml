@@ -17,7 +17,7 @@ build:
   dockerfile: "docker/sglang/Dockerfile"
   target: "sglang-sagemaker"
   base_image: "lmsysorg/sglang:v0.5.13"
-  efa_version: "1.46.0"
+  efa_version: "1.48.0"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

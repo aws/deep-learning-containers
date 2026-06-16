@@ -1,4 +1,4 @@
-name: "PR - SGLang EC2"
+name: "PR - SGLang EC2 AL2023"
 
 on:
   # TEMP: Enable after all frameworks are refactored

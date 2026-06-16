@@ -1,4 +1,4 @@
-name: "Auto Release - vLLM HyperPod"
+name: "Auto Release - vLLM HyperPod AL2023"
 
 on:
   workflow_dispatch:

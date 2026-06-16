@@ -1,4 +1,4 @@
-name: "PR - vLLM HyperPod"
+name: "PR - vLLM HyperPod AL2023"
 
 on:
   # TEMP: Enable after all frameworks are refactored

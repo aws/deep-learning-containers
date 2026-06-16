@@ -4,8 +4,10 @@ import asyncio
 import os
 import sys
 
-# Allow importing omni_sagemaker_serve from scripts/vllm/
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "scripts", "vllm"))
+# Allow importing omni_sagemaker_serve from scripts/docker/vllm/
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "scripts", "docker", "vllm")
+)
 
 import pytest
 from omni_sagemaker_serve import SageMakerRouteMiddleware, _parse_route

@@ -1,4 +1,4 @@
-name: "Auto Release - SGLang EC2"
+name: "Auto Release - SGLang EC2 AL2023"
 
 on:
   schedule:
