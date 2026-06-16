@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  telemetry-test:
+  telemetry-environment:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -54,18 +54,85 @@ jobs:
         id: config
         run: |
           CONFIG_FILE="${{ inputs.config-file }}"
+          echo "job-type=$(yq '.metadata.job_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+
+      - name: Start container
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ steps.image.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Check telemetry environment
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          docker exec ${CONTAINER_ID} test -f /usr/local/bin/deep_learning_container.py
+          docker exec ${CONTAINER_ID} test -f /usr/local/bin/bash_telemetry.sh
+          docker exec ${CONTAINER_ID} bash -c '! grep -q "{{" /usr/local/bin/bash_telemetry.sh'
+          docker exec ${CONTAINER_ID} bash -c "grep -q 'bash_telemetry.sh' /etc/bash.bashrc 2>/dev/null || grep -q 'bash_telemetry.sh' /etc/bashrc"
+          ACTUAL=$(docker exec ${CONTAINER_ID} printenv DLC_CONTAINER_TYPE)
+          if [ "$ACTUAL" != "${{ steps.config.outputs.job-type }}" ]; then
+            echo "DLC_CONTAINER_TYPE expected '${{ steps.config.outputs.job-type }}' but got '$ACTUAL'"
+            exit 1
+          fi
+
+      - name: Skip notice
+        if: steps.check.outputs.exists != 'true'
+        run: echo "Image not found in ECR — skipping tests (first release scenario)"
+
+  telemetry-instance:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Parse config
+        if: steps.check.outputs.exists == 'true'
+        id: config
+        run: |
+          CONFIG_FILE="${{ inputs.config-file }}"
           echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "job-type=$(yq '.metadata.job_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
-      - name: Run telemetry tests
+      - name: Setup test dependencies
         if: steps.check.outputs.exists == 'true'
         run: |
-          echo "TELEMETRY TEST placeholder"
-          echo "  image-uri: ${{ steps.image.outputs.image-uri }}"
-          echo "  framework: ${{ steps.config.outputs.framework }}"
-          echo "  framework-version: ${{ steps.config.outputs.framework-version }}"
-          echo "  container-type: ${{ steps.config.outputs.job-type }}"
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/telemetry/requirements.txt
+
+      - name: Run instance telemetry tests
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          source .venv/bin/activate
+          cd test/
+          PYTHONPATH=$(pwd)/../scripts/telemetry:$PYTHONPATH pytest -vs -rA telemetry \
+            --image-uri "${{ steps.image.outputs.image-uri }}" \
+            --framework "${{ steps.config.outputs.framework }}" \
+            --framework-version "${{ steps.config.outputs.framework-version }}" \
+            --container-type "${{ steps.config.outputs.job-type }}" \
+            --region "${{ vars.AWS_REGION }}"
 
       - name: Skip notice
         if: steps.check.outputs.exists != 'true'

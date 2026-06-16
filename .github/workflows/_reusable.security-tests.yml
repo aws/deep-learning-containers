@@ -1,4 +1,4 @@
-name: Reusable SGLang SageMaker Tests
+name: Reusable Security Tests
 
 on:
   workflow_call:
@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 jobs:
-  endpoint-test:
+  ecr-vulnerability-scan:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -41,28 +41,36 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: ECR login
+      - name: ECR authenticate
         if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ steps.image.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: Install test dependencies
+      - name: Parse config
+        if: steps.check.outputs.exists == 'true'
+        id: config
+        run: |
+          CONFIG_FILE="${{ inputs.config-file }}"
+          echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+
+      - name: Setup test dependencies
         if: steps.check.outputs.exists == 'true'
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
-          uv pip install -r test/sglang/sagemaker/requirements.txt
 
-      - name: Run SageMaker endpoint tests
+      - name: ECR enhanced vulnerability scan
         if: steps.check.outputs.exists == 'true'
         run: |
           source .venv/bin/activate
-          cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ steps.image.outputs.image-uri }} sglang/sagemaker
+          PYTHONPATH=$(pwd):$(pwd)/test:$PYTHONPATH python3 test/security/scripts/ecr_scan.py \
+            --image-uri "${{ steps.image.outputs.image-uri }}" \
+            --framework "${{ steps.config.outputs.framework }}" \
+            --framework-version "${{ steps.config.outputs.framework-version }}"
 
       - name: Skip notice
         if: steps.check.outputs.exists != 'true'
