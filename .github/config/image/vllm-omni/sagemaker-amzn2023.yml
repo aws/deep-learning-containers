@@ -15,7 +15,7 @@ metadata:
 
 build:
   dockerfile: "docker/vllm_omni/Dockerfile.amzn2023"
-  target: "vllm-omni-sagemaker"
+  target: "vllm-omni-sagemaker-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
   vllm_ref: "v0.21.0"
