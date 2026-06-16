@@ -56,7 +56,7 @@ runs:
       shell: bash
       run: |
         FRAMEWORK="${{ steps.metadata.outputs.framework }}"
-        HOOK=".github/scripts/build/${FRAMEWORK}/pre_build.sh"
+        HOOK="scripts/ci/build/${FRAMEWORK}/pre_build.sh"
         if [[ -f "$HOOK" ]]; then
           echo "Running pre-build hook: $HOOK"
           bash "$HOOK" --config-file "${{ inputs.config-file }}"
@@ -191,7 +191,7 @@ runs:
       shell: bash
       run: |
         FRAMEWORK="${{ steps.metadata.outputs.framework }}"
-        HOOK=".github/scripts/build/${FRAMEWORK}/post_build.sh"
+        HOOK="scripts/ci/build/${FRAMEWORK}/post_build.sh"
         if [[ -f "$HOOK" ]]; then
           echo "Running post-build hook: $HOOK"
           bash "$HOOK" --config-file "${{ inputs.config-file }}"

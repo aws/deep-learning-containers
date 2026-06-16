@@ -1,6 +1,6 @@
 ---
 description: CI/CD architecture, image config schema, build lifecycle, and workflow conventions
-globs: .github/**/*,scripts/wheels/**/*
+globs: .github/**/*,scripts/ci/**/*
 ---
 
 # CI/CD Architecture
@@ -24,79 +24,92 @@ globs: .github/**/*,scripts/wheels/**/*
 │   ├── upload-ecr-allowlists/       # Upload security scan allowlists to S3
 │   │   ├── action.yml
 │   │   └── upload_ecr_allowlists.py
-│   ├── ecr-authenticate/            # ECR login
+│   ├── ecr-authenticate/            # ECR login + optional image pull
 │   ├── pr-permission-gate/          # PR permission check
 │   ├── check-image-exists/          # Probe ECR for existing image
-│   ├── download-model/              # Download model from S3 for tests
+│   ├── download-model/              # Download model from S3 with caching + locking
+│   ├── resolve-image-uri/           # Resolve CI or prod image URI from config
 │   └── setup-release-package/       # Download release tooling from S3
-├── config/image/                    # Image configs (one file = one released image)
-│   ├── base/
-│   ├── pytorch/
-│   ├── sglang/
-│   ├── vllm/
-│   ├── vllm-omni/
-│   ├── ray/
-│   └── xgboost/
-├── scripts/
-│   ├── build/                       # Framework-specific build lifecycle hooks
+├── config/
+│   ├── image/                       # Image configs (one file = one released image)
+│   │   ├── base/
 │   │   ├── pytorch/
-│   │   │   ├── pre_build.sh         # Hook: fetch wheel cache before build
-│   │   │   ├── post_build.sh        # Hook: upload wheel cache after build
-│   │   │   └── lib/                 # Utilities called by hooks
-│   │   │       ├── fetch_wheels.sh
-│   │   │       └── upload_wheels.sh
+│   │   ├── sglang/
 │   │   ├── vllm/
-│   │   │   ├── pre_build.sh         # Hook: fetch wheel + sccache
-│   │   │   ├── post_build.sh        # Hook: upload wheel + sccache
+│   │   ├── vllm-omni/
+│   │   ├── ray/
+│   │   └── xgboost/
+│   └── model-tests/                 # Model test matrices (one per framework)
+│       ├── sglang-model-tests.yml
+│       ├── vllm-model-tests.yml
+│       └── vllm-omni-model-tests.yml
+├── scripts/
+│   └── buildspec-cb-fleet.yml       # CodeBuild fleet runner setup (installs uv, yq, jq)
+├── workflows/                       # GitHub Actions workflows
+│   ├── {framework}.pipeline.yml     # Reusable orchestrator per framework
+│   ├── {framework}.pr-{variant}.yml # PR caller per variant
+│   ├── {framework}.autorelease-{variant}.yml  # Scheduled release per variant
+│   ├── {framework}.tests-{suite}.yml          # Framework-specific reusable tests
+│   ├── _reusable.{name}.yml        # Cross-framework reusable tests (sanity, security, telemetry)
+│   ├── _prcheck.{name}.yml         # PR meta-checks (pre-commit, merge conditions)
+│   ├── _scheduled.{name}.yml       # Cron jobs (stale issues, ECR allowlists, upstream checks)
+│   └── docs.{name}.yml             # Documentation builds
+└── archive/                         # Old workflows preserved for reference during refactor
+    └── done/                        # Successfully transferred workflows
+
+scripts/
+├── ci/                              # CI orchestration (runs on the runner, never inside containers)
+│   ├── build/                       # Framework-specific build lifecycle hooks
+│   │   ├── vllm_server/            # Real files (canonical for vllm family)
+│   │   │   ├── pre_build.sh
+│   │   │   ├── post_build.sh
 │   │   │   └── lib/
 │   │   │       ├── fetch_wheels.sh
 │   │   │       ├── upload_wheels.sh
 │   │   │       ├── sync_sccache.sh
 │   │   │       └── source_hash.sh
-│   │   └── vllm_omni/ → vllm/      # Symlinks (shares vllm's hooks)
-│   └── buildspec-cb-fleet.yml       # CodeBuild fleet runner config
-├── workflows/                       # GitHub Actions workflows
-│   ├── autorelease-*.yml            # Scheduled image releases
-│   ├── pr-*.yml                     # PR validation builds
-│   ├── dispatch-*.yml               # Manual triggers (benchmarks, wheels, releases)
-│   ├── reusable-*.yml               # Reusable test/release workflows
-│   ├── scheduled-*.yml              # Cron jobs (stale issues, ECR allowlists)
-│   ├── prcheck-*.yml                # PR meta-checks (pre-commit, merge conditions)
-│   └── docs-*.yml                   # Documentation builds
-└── archive/                         # Old workflows preserved for reference during refactor
-
-scripts/
-├── common/                          # Shared install scripts (COPY'd into Docker images)
-├── pytorch/                         # PyTorch install scripts (COPY'd into images)
-├── vllm/                            # vLLM install scripts (COPY'd into images)
-├── sglang/                          # SGLang install scripts (COPY'd into images)
-└── wheels/                          # Standalone wheel compilation tool
-    └── pytorch/
-        ├── build/                   # Compile PyTorch from source
-        └── test/                    # Smoke test compiled wheels
+│   │   ├── vllm/                   # Per-file symlinks → vllm_server/
+│   │   ├── vllm_omni/             # Per-file symlinks → vllm_server/
+│   │   └── pytorch/
+│   │       ├── pre_build.sh
+│   │       ├── post_build.sh
+│   │       └── lib/
+│   ├── autocurrency/               # Version detection, upstream checks, docs PR
+│   ├── wheels/                     # Standalone wheel compilation tool
+│   │   └── pytorch/
+│   │       ├── build/
+│   │       └── test/
+│   └── parse_model_config.py       # Model test config → GHA matrix JSON
+│
+├── docker/                          # Docker build artifacts (COPY'd into images, run inside containers)
+│   ├── common/                     # Shared install scripts (EFA, OSS compliance, Python)
+│   ├── telemetry/                  # DLC telemetry (deep_learning_container.py, bash_telemetry template)
+│   ├── vllm/                       # vLLM entrypoints, sagemaker_serve, patches
+│   ├── sglang/                     # SGLang entrypoints
+│   ├── pytorch/                    # PyTorch entrypoints, SSH config, NCCL
+│   └── ray/                        # Ray entrypoints, sagemaker_serve
 
 test/
 ├── test_utils/                      # Shared test infrastructure (imported by tests)
-│   ├── aws.py
-│   ├── efa_helpers.py               # EFA instance lifecycle (setup/teardown)
-│   └── ...
-├── efa/                             # EFA integration tests
-├── sanity/                          # Sanity checks (labels, filesystem)
-├── cuda/                            # CUDA runtime/devel tests
-├── vllm/                            # vLLM framework tests
+├── sanity/                          # Sanity checks (labels, filesystem, credentials)
+├── security/                        # ECR vulnerability scan
+├── telemetry/                       # Telemetry environment + instance tests
+├── vllm/                            # vLLM framework tests (upstream, model, sagemaker)
+├── vllm-omni/                       # vLLM-Omni model tests (omni-modality)
 ├── sglang/                          # SGLang framework tests
-└── pytorch/                         # PyTorch framework tests
+├── pytorch/                         # PyTorch framework tests
+└── efa/                             # EFA integration tests
 ```
 
 ## Design Axioms
 
 1. **One config file = one released image.** Each YAML in `config/image/{family}/` declares a concrete artifact.
 2. **Config `build:` block = single source of truth** for all version pins passed to Docker as `--build-arg`.
-3. **Convention over configuration for build hooks.** If `.github/scripts/build/{framework}/pre_build.sh` exists, it runs before docker build. No config field needed.
+3. **Convention over configuration for build hooks.** If `scripts/ci/build/{framework}/pre_build.sh` exists, it runs before docker build. No config field needed.
 4. **Actions are self-contained.** Each action bundles its own scripts — no cross-references to other actions' internals.
 5. **Workflows are thin orchestrators.** They declare triggers, job graph, and runner fleets. Build logic lives in actions/scripts.
 6. **Computed values belong in Dockerfiles.** Things like `SETUPTOOLS_SCM_PRETEND_VERSION` are derived inside the Dockerfile from ARGs passed by the build action.
-7. **`scripts/` (repo root) = Docker build artifacts** (COPY'd into images, run inside containers). **`.github/scripts/` = CI orchestration** (run on the CI runner, never inside containers).
+7. **`scripts/docker/` = Docker build artifacts** (COPY'd into images, run inside containers). **`scripts/ci/` = CI orchestration** (run on the CI runner, never inside containers).
 
 ## Image Config Schema
 
@@ -113,7 +126,7 @@ metadata:
   arch_type: "x86"
   device_type: "<gpu|cpu>"
   job_type: "<general|training|inference>"
-  prod_image: "<repo:tag>"
+  prod_image: "<repo:tag>"                # Prod ECR destination (used by resolve-image-uri for test fallback)
   # platform: "sagemaker"                 # only for sagemaker/hyperpod variants
 
 build:
@@ -147,62 +160,87 @@ release:
 ```
 Workflow (thin orchestrator)
   └── build-image action
-        ├── compute_ci_tag.sh          → CI_TAG
-        ├── resolve_build_args.py      → EXTRA_BUILD_ARGS + individual env vars
-        ├── pre_build/{framework}.sh   → wheel cache fetch, sccache pull (if exists)
-        ├── buildkitd.sh               → BuildKit daemon ready
-        ├── ecr-authenticate           → Docker logged into ECR
-        ├── docker buildx build        → image built + pushed to ECR
-        └── post_build/{framework}.sh  → wheel cache upload, sccache push (if exists)
+        ├── compute_ci_tag.sh                    → CI_TAG
+        ├── resolve_build_args.py                → EXTRA_BUILD_ARGS + individual env vars
+        ├── scripts/ci/build/{framework}/pre_build.sh  → wheel cache fetch, sccache pull (if exists)
+        ├── buildkitd.sh                         → BuildKit daemon ready
+        ├── ecr-authenticate                     → Docker logged into ECR
+        ├── docker buildx build                  → image built + pushed to ECR
+        └── scripts/ci/build/{framework}/post_build.sh → wheel cache upload, sccache push (if exists)
 ```
+
+### Hook-injected build-args
+The pre_build hook can set additional env vars via `$GITHUB_ENV` that the build step passes to Docker:
+- `USE_PREBUILT_WHEEL` — explicitly passed by build-image action if set
+- `EXPORT_TARGETS` — triggers intermediate stage exports (wheel-export, sccache-export)
+
+The build-image action also hardcodes these build-args from metadata:
+- `FRAMEWORK` — from `metadata.framework`
+- `FRAMEWORK_VERSION` — from `metadata.framework_version`
+- `CONTAINER_TYPE` — from `metadata.job_type`
+- `CACHE_REFRESH` — current date (busts security patch layer cache)
 
 ## Conventions
 
+### Script organization
+- **`scripts/ci/`** — runs on the CI runner. Question: "Does this execute during CI?" → put it here.
+- **`scripts/docker/`** — COPY'd into Docker images. Question: "Does this run inside the container?" → put it here.
+- **Action-bundled scripts** — if ONLY used by one action → lives inside that action's directory.
+
 ### Script interfaces
-- **Python scripts:** use `argparse` with named flags (e.g., `--config-file`)
+- **Python scripts:** use `argparse` with named flags (e.g., `--config-file`). Fall back to `yq` if `pyyaml` not available.
 - **Bash scripts:** use `while [[ $# -gt 0 ]]; case` loop with named flags
 - **GitHub Actions outputs:** write to `$GITHUB_OUTPUT` (e.g., `echo "key=value" >> $GITHUB_OUTPUT`)
 - **Cross-step state:** write to `$GITHUB_ENV` (e.g., `echo "KEY=value" >> $GITHUB_ENV`)
 
-### Action organization
-- If a script is ONLY used by one action → lives inside that action's directory
-- If a script is called from multiple places → lives in `.github/scripts/`
-
 ### Build hook convention
-- `.github/scripts/build/{framework}/pre_build.sh` — runs before docker build
-- `.github/scripts/build/{framework}/post_build.sh` — runs after docker build
-- `.github/scripts/build/{framework}/lib/` — utility scripts called by hooks (never called directly by workflows)
+- `scripts/ci/build/{framework}/pre_build.sh` — runs before docker build
+- `scripts/ci/build/{framework}/post_build.sh` — runs after docker build
+- `scripts/ci/build/{framework}/lib/` — utility scripts called by hooks (never called directly by workflows)
 - If no hook exists for a framework (base, ray, sglang) — nothing runs, no error
+- Hook directory name matches `metadata.framework` (e.g., `vllm_server`, `vllm_omni`, `pytorch_runtime`)
+- Symlinks allow sharing hooks across related frameworks (e.g., `vllm/` → `vllm_server/`)
 
 ### Config file organization
 - Configs grouped by family in subdirectories: `config/image/{family}/*.yml`
 - Glob patterns are safe within a family: `.github/config/image/base/*.yml`
 - Adding a new variant = drop a config file in the family directory
 
-### Workflow organization
-Three layers of workflows, named by role:
+### Workflow naming convention
+Dot-namespaced by framework, prefixed by `_` for cross-framework utilities:
 
-- `pr-{framework}-{variant}.yml` — thin caller, triggers on PR paths for one image variant
-- `autorelease-{framework}-{variant}.yml` — thin caller, scheduled/dispatch trigger for one image variant
-- `pipeline-{framework}.yml` — reusable orchestrator, handles build → tests → release for one config
-- `reusable-{name}.yml` — single-purpose building block (test suite, release step)
+- `{framework}.pipeline.yml` — reusable orchestrator per framework
+- `{framework}.pr-{variant}.yml` — PR trigger per variant
+- `{framework}.autorelease-{variant}.yml` — scheduled/dispatch release per variant
+- `{framework}.tests-{suite}.yml` — framework-specific reusable tests
+- `_reusable.{name}.yml` — cross-framework reusable tests (sanity, security, telemetry)
+- `_prcheck.{name}.yml` — PR meta-checks
+- `_scheduled.{name}.yml` — cron jobs
 
 ### Workflow hierarchy
 ```
-pr-sglang-ec2.yml (trigger + gatekeeper)
-  └── pipeline-sglang.yml (orchestrator)
+sglang.pr-ec2.yml (trigger + gatekeeper + check-changes)
+  └── sglang.pipeline.yml (orchestrator)
         ├── build-image action
-        ├── reusable-sanity-tests.yml
-        ├── reusable-telemetry-tests.yml
-        ├── reusable-sglang-upstream-tests.yml
-        ├── reusable-sglang-model-tests.yml
-        ├── reusable-sglang-sagemaker-tests.yml (gated: sagemaker only)
+        ├── _reusable.sanity-tests.yml
+        ├── _reusable.security-tests.yml
+        ├── _reusable.telemetry-tests.yml
+        ├── sglang.tests-upstream.yml
+        ├── sglang.tests-model.yml
+        ├── sglang.tests-sagemaker.yml (gated: sagemaker only)
         └── release (gated: inputs.release)
 ```
 
 ### Workflow patterns
-- **Callers are per-variant:** `pr-sglang-ec2.yml` and `pr-sglang-sagemaker.yml` are separate files with scoped path triggers. Shared path changes (Dockerfile) fire both; config-only changes fire one.
-- **Pipeline is per-framework:** one `pipeline-sglang.yml` handles all SGLang variants. A `config` job parses the config to gate variant-specific tests (e.g., sagemaker test only runs for sagemaker configs).
+- **Callers are per-variant:** `sglang.pr-ec2.yml` and `sglang.pr-sagemaker.yml` are separate files with scoped path triggers. Shared path changes (Dockerfile) fire both; config-only changes fire one.
+- **Pipeline is per-framework:** one `sglang.pipeline.yml` handles all SGLang variants. A `ci-config` job parses the config to gate variant-specific tests (e.g., sagemaker test only runs for sagemaker configs).
 - **PR vs release:** identical pipeline call, different `release:` flag. Callers pass `release: false` (PR) or `release: true` (autorelease).
-- **Multi-config matrix:** callers use `discover-configs` action to glob a family, matrix over results calling the pipeline per entry.
+- **Multi-config matrix:** callers use `discover-configs` action to glob a family, matrix over results calling the pipeline per entry (used by base images).
 - **Release gating:** `if: ${{ inputs.release && !failure() && !cancelled() }}` — skipped jobs don't block, failures do.
+- **Test-only runs:** when build is skipped (only test files changed), test jobs receive empty `image-uri` → `resolve-image-uri` action falls back to prod image from `metadata.prod_image`.
+- **Graceful skip:** `check-image-exists` action probes ECR; if image not found (first release scenario), tests skip cleanly.
+
+### Concurrency
+- Pipeline jobs include `${{ inputs.config-file }}` in concurrency group keys to allow parallel runs of different configs.
+- Autorelease callers use `cancel-in-progress: false` (never cancel a release).
+- PR callers use `cancel-in-progress: true` for build/test jobs (supersede stale runs).

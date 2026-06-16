@@ -55,4 +55,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           PR_BRANCH: ${{ github.event.pull_request.head.ref }}
-        run: bash scripts/autocurrency/detect-versions.sh
+        run: bash scripts/ci/autocurrency/detect-versions.sh

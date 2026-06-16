@@ -47,7 +47,7 @@ FROM amazonlinux:2023 AS builder-oss
 ARG PYTHON_VERSION
 RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
-COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
@@ -99,7 +99,7 @@ RUN mv /opt/amazon/openmpi/bin/mpirun /opt/amazon/openmpi/bin/mpirun.real \
   && echo "rmaps_base_mapping_policy = slot" >>/opt/amazon/openmpi/etc/openmpi-mca-params.conf
 
 # OpenSSH (root, port 22)
-COPY scripts/pytorch/configure_ssh.sh /tmp/configure_ssh.sh
+COPY scripts/docker/pytorch/configure_ssh.sh /tmp/configure_ssh.sh
 RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
 
 # ldconfig
@@ -111,8 +111,8 @@ FROM runtime-base AS runtime
 ARG TORCH_VERSION
 
 # Telemetry
-COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK="pytorch"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -137,7 +137,7 @@ COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FR
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 # Entrypoint
-COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/docker/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # PATH and LD_LIBRARY_PATH
@@ -168,13 +168,13 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen 
   && rm -rf /tmp/build /tmp/uv-*
 
 # SageMaker hostname workaround
-COPY scripts/pytorch/changehostname.c /
-COPY scripts/pytorch/start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+COPY scripts/docker/pytorch/changehostname.c /
+COPY scripts/docker/pytorch/start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 # Telemetry
-COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK="pytorch"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -199,7 +199,7 @@ COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FR
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 # Entrypoint
-COPY scripts/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/docker/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # PATH and LD_LIBRARY_PATH

@@ -50,7 +50,7 @@ jobs:
       - name: Parse model config
         if: steps.check.outputs.exists == 'true'
         id: parse
-        run: python3 .github/scripts/parse_model_config.py --config .github/config/model-tests/sglang-model-tests.yml
+        run: python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/sglang-model-tests.yml
 
   test-model-codebuild-fleet:
     name: test-model (${{ matrix.name }})

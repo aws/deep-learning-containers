@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Build PyTorch wheels
-        working-directory: scripts/wheels/pytorch/build
+        working-directory: scripts/ci/wheels/pytorch/build
         run: |
           bash entrypoint.sh \
             --arch_type "${ARCH_TYPE}" \
@@ -62,7 +62,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run wheel tests
-        working-directory: scripts/wheels/pytorch/test
+        working-directory: scripts/ci/wheels/pytorch/test
         run: |
           bash entrypoint.sh \
             --arch_type "${ARCH_TYPE}" \

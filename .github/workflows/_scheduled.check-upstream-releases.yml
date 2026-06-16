@@ -65,7 +65,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           DRY_RUN: ${{ inputs.dry-run || false }}
           FRAMEWORK_FILTER: ${{ inputs.framework || '' }}
-        run: bash scripts/autocurrency/check-upstream-releases.sh
+        run: bash scripts/ci/autocurrency/check-upstream-releases.sh
 
   notify-on-failure:
     runs-on: ubuntu-latest

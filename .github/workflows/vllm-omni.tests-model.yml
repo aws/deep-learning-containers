@@ -55,7 +55,7 @@ jobs:
       - name: Parse model config
         if: steps.check.outputs.exists == 'true'
         id: parse
-        run: python3 .github/scripts/parse_model_config.py --config .github/config/model-tests/vllm-omni-model-tests.yml --runner-type codebuild-fleet
+        run: python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/vllm-omni-model-tests.yml --runner-type codebuild-fleet
 
   smoke-test:
     name: smoke-test (${{ matrix.model.name }})

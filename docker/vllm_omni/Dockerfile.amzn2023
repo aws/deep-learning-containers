@@ -16,7 +16,7 @@ ARG VLLM_REF=v${FRAMEWORK_VERSION}
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
   || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
 
-COPY scripts/vllm/amzn2023/patches/ /tmp/patches/
+COPY scripts/docker/vllm/amzn2023/patches/ /tmp/patches/
 RUN cd /src && \
     for p in /tmp/patches/*.patch; do \
       [ -f "$p" ] && [ "$(basename "$p")" != ".gitkeep" ] && \
@@ -92,7 +92,7 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${FRAMEWORK
 
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
-#   bash scripts/vllm/amzn2023/fetch_cached_wheels.sh cu130 v0.20.0
+#   bash scripts/docker/vllm/amzn2023/fetch_cached_wheels.sh cu130 v0.20.0
 # The directory is empty by default so COPY always succeeds.
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
@@ -335,7 +335,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss-omni
 ARG PYTHON_VERSION
 RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=omni-deps /opt/venv /opt/venv
-COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
@@ -377,8 +377,8 @@ RUN uv pip install --no-cache-dir \
   "gradio>=6.7.0" \
   "model-hosting-container-standards>=0.1.14,<1.0.0"
 
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
@@ -408,7 +408,7 @@ COPY --from=builder-oss-omni /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUI
 COPY --from=builder-oss-omni /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 # install EFA
-COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
+COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 ARG EFA_VERSION="1.47.0"
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
@@ -430,7 +430,7 @@ RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=Fal
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
-COPY ./scripts/vllm/omni_dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY ./scripts/docker/vllm/omni_dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
@@ -446,8 +446,8 @@ RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=Fal
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
-COPY ./scripts/vllm/omni_sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
-COPY ./scripts/vllm/omni_sagemaker_serve.py /usr/local/bin/omni_sagemaker_serve.py
+COPY ./scripts/docker/vllm/omni_sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/docker/vllm/omni_sagemaker_serve.py /usr/local/bin/omni_sagemaker_serve.py
 ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 

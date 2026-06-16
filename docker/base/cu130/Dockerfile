@@ -22,7 +22,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   openssl-devel libffi-devel bzip2-devel xz-devel zlib-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./scripts/common/install_python.sh install_python.sh
+COPY ./scripts/docker/common/install_python.sh install_python.sh
 RUN --mount=type=cache,target=/root/.cache/pip bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
 # ============================================================
@@ -72,7 +72,7 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
   && rm -rf /tmp/deps /tmp/uv-*.lock
 
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
 ARG PYTHON="python3"
 RUN bash /tmp/setup_oss_compliance.sh ${PYTHON} \
@@ -131,7 +131,7 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
   && rm -rf /tmp/deps /tmp/uv-*.lock
 
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
 ARG PYTHON="python3"
 RUN bash /tmp/setup_oss_compliance.sh ${PYTHON} \

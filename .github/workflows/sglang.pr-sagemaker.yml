@@ -10,8 +10,8 @@ on:
   #     - ".github/config/image/sglang/sagemaker-amzn2023.yml"
   #     - ".github/config/model-tests/sglang-model-tests.yml"
   #     - "docker/sglang/**"
-  #     - "scripts/common/**"
-  #     - "scripts/sglang/**"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/sglang/**"
   #     - "test/sglang/**"
   #     - "test/sanity/**"
   #     - "test/telemetry/**"
@@ -52,8 +52,8 @@ jobs:
             build-change:
               - ".github/config/image/sglang/sagemaker-amzn2023.yml"
               - "docker/sglang/Dockerfile.amzn2023"
-              - "scripts/common/**"
-              - "scripts/sglang/**"
+              - "scripts/docker/common/**"
+              - "scripts/docker/sglang/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

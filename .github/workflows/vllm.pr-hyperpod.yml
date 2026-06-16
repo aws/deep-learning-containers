@@ -9,8 +9,8 @@ on:
   #   paths:
   #     - ".github/config/image/vllm/hyperpod-amzn2023.yml"
   #     - "docker/vllm/**"
-  #     - "scripts/common/**"
-  #     - "scripts/vllm/**"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/vllm/**"
   #     - "test/vllm/**"
   #     - "test/sanity/**"
   #     - "test/telemetry/**"
@@ -49,8 +49,8 @@ jobs:
             build-change:
               - ".github/config/image/vllm/hyperpod-amzn2023.yml"
               - "docker/vllm/Dockerfile.amzn2023"
-              - "scripts/common/**"
-              - "scripts/vllm/**"
+              - "scripts/docker/common/**"
+              - "scripts/docker/vllm/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

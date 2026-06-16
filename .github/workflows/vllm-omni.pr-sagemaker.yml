@@ -10,8 +10,8 @@ on:
   #     - ".github/config/image/vllm-omni/sagemaker-amzn2023.yml"
   #     - ".github/config/model-tests/vllm-omni-model-tests.yml"
   #     - "docker/vllm_omni/**"
-  #     - "scripts/common/**"
-  #     - "scripts/vllm/omni_*"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/vllm/omni_*"
   #     - "test/vllm-omni/**"
   #     - "test/sanity/**"
   #     - "test/telemetry/**"
@@ -51,8 +51,8 @@ jobs:
             build-change:
               - ".github/config/image/vllm-omni/sagemaker-amzn2023.yml"
               - "docker/vllm_omni/Dockerfile.amzn2023"
-              - "scripts/common/**"
-              - "scripts/vllm/omni_*"
+              - "scripts/docker/common/**"
+              - "scripts/docker/vllm/omni_*"
               - "test/vllm-omni/**"
             sanity-test-change:
               - "test/sanity/**"

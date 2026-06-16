@@ -114,7 +114,7 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          PYTHONPATH=$(pwd)/../scripts/telemetry:$PYTHONPATH pytest -vs -rA telemetry \
+          PYTHONPATH=$(pwd)/../scripts/docker/telemetry:$PYTHONPATH pytest -vs -rA telemetry \
             --image-uri "${{ needs.preflight.outputs.image-uri }}" \
             --framework "${{ needs.preflight.outputs.framework }}" \
             --framework-version "${{ needs.preflight.outputs.framework-version }}" \
