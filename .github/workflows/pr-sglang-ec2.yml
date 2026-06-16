@@ -47,14 +47,16 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/sglang/ec2-amzn2023.yml"
+              # - ".github/config/image/sglang/ec2-amzn2023.yml"
               - "docker/sglang/Dockerfile.amzn2023"
               - "scripts/common/**"
               - "scripts/sglang/**"
             sanity-test-change:
               - "test/sanity/**"
+              - ".github/workflows/reusable-sanity-tests.yml"
             telemetry-test-change:
               - "test/telemetry/**"
+              - ".github/workflows/reusable-telemetry-tests.yml"
             upstream-test-change:
               - "test/sglang/scripts/**"
             model-test-change:
