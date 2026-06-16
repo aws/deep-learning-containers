@@ -87,27 +87,27 @@ runs:
         CUSTOMER_TYPE="${{ steps.metadata.outputs.customer-type }}"
         JOB_TYPE="${{ steps.metadata.outputs.job-type }}"
 
-        # Build --build-arg flags from EXTRA_BUILD_ARGS
-        BUILD_ARG_FLAGS=""
+        # Build --build-arg flags from EXTRA_BUILD_ARGS (use array for space-safe values)
+        BUILD_ARGS=()
         for var in ${EXTRA_BUILD_ARGS:-}; do
           if [[ -n "${!var:-}" ]]; then
-            BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg ${var}=${!var}"
+            BUILD_ARGS+=("--build-arg" "${var}=${!var}")
           fi
         done
 
         # Always pass framework metadata as build-args
-        BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg FRAMEWORK=${FRAMEWORK}"
-        BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg FRAMEWORK_VERSION=${FRAMEWORK_VERSION}"
-        BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg CONTAINER_TYPE=${JOB_TYPE}"
-        BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg CACHE_REFRESH=$(date +%Y-%m-%d)"
+        BUILD_ARGS+=("--build-arg" "FRAMEWORK=${FRAMEWORK}")
+        BUILD_ARGS+=("--build-arg" "FRAMEWORK_VERSION=${FRAMEWORK_VERSION}")
+        BUILD_ARGS+=("--build-arg" "CONTAINER_TYPE=${JOB_TYPE}")
+        BUILD_ARGS+=("--build-arg" "CACHE_REFRESH=$(date +%Y-%m-%d)")
 
         # Pass hook-injected env vars (set by pre_build hooks via GITHUB_ENV)
         if [[ -n "${USE_PREBUILT_WHEEL:-}" ]]; then
-          BUILD_ARG_FLAGS="${BUILD_ARG_FLAGS} --build-arg USE_PREBUILT_WHEEL=${USE_PREBUILT_WHEEL}"
+          BUILD_ARGS+=("--build-arg" "USE_PREBUILT_WHEEL=${USE_PREBUILT_WHEEL}")
         fi
 
         # SageMaker labels
-        LABEL_FLAGS=""
+        LABEL_ARGS=()
         if [[ "$CUSTOMER_TYPE" == "sagemaker" ]]; then
           LABEL_FRAMEWORK=$(echo "${FRAMEWORK}" | tr '_' '-')
           LABEL_FRAMEWORK_VERSION=$(echo "${FRAMEWORK_VERSION}" | tr '.' '-')
@@ -139,18 +139,18 @@ runs:
 
           LABEL_OS=$(echo "${{ steps.metadata.outputs.os-version }}" | tr '.' '-')
 
-          LABEL_FLAGS="--label com.amazonaws.ml.engines.sagemaker.dlc.arch.${LABEL_ARCH}=true"
-          LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.device.${LABEL_DEVICE_TYPE}=true"
-          LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.framework.${LABEL_FRAMEWORK}.${LABEL_FRAMEWORK_VERSION}=true"
-          LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.job.${JOB_TYPE}=true"
-          [[ -n "$LABEL_OS" ]] && LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.os.${LABEL_OS}=true"
-          [[ -n "$LABEL_PYTHON" ]] && LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.python.${LABEL_PYTHON}=true"
+          LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.arch.${LABEL_ARCH}=true")
+          LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.device.${LABEL_DEVICE_TYPE}=true")
+          LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.framework.${LABEL_FRAMEWORK}.${LABEL_FRAMEWORK_VERSION}=true")
+          LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.job.${JOB_TYPE}=true")
+          [[ -n "$LABEL_OS" ]] && LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.os.${LABEL_OS}=true")
+          [[ -n "$LABEL_PYTHON" ]] && LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.python.${LABEL_PYTHON}=true")
         fi
 
         # Target flag (optional)
-        TARGET_FLAG=""
+        TARGET_ARGS=()
         if [[ -n "$TARGET" ]]; then
-          TARGET_FLAG="--target ${TARGET}"
+          TARGET_ARGS+=("--target" "${TARGET}")
         fi
 
         # Export intermediate stages if requested (wheel cache miss)
@@ -161,7 +161,7 @@ runs:
             EXPORT_DEST="${EXPORT##*:}"
             echo "Exporting stage '${EXPORT_TARGET}' to ${EXPORT_DEST}..."
             docker buildx build --progress plain \
-              ${BUILD_ARG_FLAGS} \
+              "${BUILD_ARGS[@]}" \
               --target "${EXPORT_TARGET}" \
               --output "type=local,dest=${EXPORT_DEST}" \
               -f "${DOCKERFILE}" . || echo "Export ${EXPORT_TARGET} failed (non-fatal)"
@@ -172,13 +172,13 @@ runs:
         docker buildx use default 2>/dev/null || true
         echo "Building ${CI_IMAGE_URI}"
         docker buildx build --progress plain \
-          ${BUILD_ARG_FLAGS} \
-          ${LABEL_FLAGS} \
+          "${BUILD_ARGS[@]}" \
+          "${LABEL_ARGS[@]}" \
           --cache-to=type=inline \
-          --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-          --tag ${CI_IMAGE_URI} \
+          --cache-from=type=registry,ref="${CI_IMAGE_URI}" \
+          --tag "${CI_IMAGE_URI}" \
           --push \
-          ${TARGET_FLAG} \
+          "${TARGET_ARGS[@]}" \
           -f "${DOCKERFILE}" .
 
         echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
