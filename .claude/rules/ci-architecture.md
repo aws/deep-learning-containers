@@ -123,12 +123,6 @@ build:
   cuda_version: "<semver>"                # e.g., 13.0.2 (omit for CPU)
   # ... framework-specific pins
 
-tests:
-  <test-name>:
-    workflow: "<reusable-workflow-path>"
-    with:                                 # optional inputs to the workflow
-      <key>: "<value>"
-
 release:
   release: <true|false>
   prod_image: "<repo:tag>"
