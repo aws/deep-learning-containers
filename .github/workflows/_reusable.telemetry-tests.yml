@@ -77,10 +77,6 @@ jobs:
             exit 1
           fi
 
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"
-
   telemetry-instance:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -134,6 +130,3 @@ jobs:
             --container-type "${{ steps.config.outputs.job-type }}" \
             --region "${{ vars.AWS_REGION }}"
 
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"

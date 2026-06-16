@@ -49,7 +49,7 @@ jobs:
             docs-change:
               - "docs/**"
               - "test/docs/**"
-              - ".github/workflows/_docs.pr-test*"
+              - ".github/workflows/docs.pr-test*"
 
   documentation-test:
     needs: [check-changes]

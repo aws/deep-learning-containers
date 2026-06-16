@@ -64,6 +64,9 @@ jobs:
 
   build:
     if: ${{ inputs.build }}
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-sglang-build-runner
@@ -86,6 +89,9 @@ jobs:
   sanity-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/_reusable.sanity-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -94,6 +100,9 @@ jobs:
   telemetry-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
     uses: ./.github/workflows/_reusable.telemetry-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -102,6 +111,9 @@ jobs:
   upstream-tests:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-upstream-tests-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/sglang.tests-upstream.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -111,6 +123,9 @@ jobs:
   model-tests:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-model-tests-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/sglang.tests-model.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -119,6 +134,9 @@ jobs:
   sagemaker-tests:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
     needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
     uses: ./.github/workflows/sglang.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}

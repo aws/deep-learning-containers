@@ -72,6 +72,3 @@ jobs:
             --framework "${{ steps.config.outputs.framework }}" \
             --framework-version "${{ steps.config.outputs.framework-version }}"
 
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"
