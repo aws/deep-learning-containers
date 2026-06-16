@@ -1,12 +1,11 @@
 """SageMaker Experiments tracking integration test for the TF DLC.
 
-Mirrors master's `test_experiments.py` pattern: create an Experiment +
-Trial, launch a training job, look up the auto-created TrialComponent
-from the training job's ARN, associate it with the Trial, then clean up.
+Creates an Experiment + Trial, launches a training job, looks up the
+auto-created TrialComponent from the training job's ARN, associates it with
+the Trial, then cleans up.
 
-Translated to SDK v3 (`sagemaker.core.experiments.Experiment` /
-`_Trial` / `_TrialComponent` and `ModelTrainer` instead of the v2
-`smexperiments` package + `TensorFlow` estimator).
+Uses SDK v3 (`sagemaker.core.experiments.Experiment` / `_Trial` /
+`_TrialComponent` and `ModelTrainer`).
 
 CPU-only by design: the feature under test is the SageMaker Experiments
 control plane, not anything CUDA-specific.
@@ -38,15 +37,14 @@ def test_experiments_cpu():
     """Create an Experiment + Trial, run a training job, associate the
     auto-created TrialComponent, then clean everything up.
 
-    Equivalent to master's `test_experiments.test_training`. After
-    `train(wait=True)` returns, we read the training job ARN from
+    After `train(wait=True)` returns, we read the training job ARN from
     `model_trainer._latest_training_job` (avoiding ListTrainingJobs
-    eventual-consistency races) and list TrialComponents whose
-    `source_arn` matches the job ARN to verify auto-creation."""
+    eventual-consistency races) and list TrialComponents whose `source_arn`
+    matches the job ARN to verify auto-creation."""
     boto_session = boto3.session.Session(region_name=DEFAULT_REGION)
     sagemaker_session = Session(boto_session)
 
-    # Match master's unique-id format so concurrent CI runs don't collide.
+    # Random unique-id to keep concurrent CI runs from colliding.
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 6000)
     experiment_name = f"tf-dlc-integ-test-{unique_id}-{int(time.time())}"
@@ -100,8 +98,8 @@ def test_experiments_cpu():
             f"no TrialComponent was auto-created for training job {training_job_arn}"
         )
 
-        # Associate the TrialComponent with our Trial — mirrors master's
-        # pattern. Then immediately remove + delete to keep cleanup simple.
+        # Associate the TrialComponent with our Trial, then immediately
+        # remove + delete to keep cleanup simple.
         trial_component_summary = trial_components[0]
         trial_component = _TrialComponent.load(
             trial_component_name=trial_component_summary.trial_component_name,

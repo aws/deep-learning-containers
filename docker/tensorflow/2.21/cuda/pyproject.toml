@@ -4,32 +4,25 @@ version = "2.21.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "tensorflow==2.21.0",
-    # CUDA runtime libs (cuDNN + NCCL) — installed via pip because AL2023 core repo
-    # and NVIDIA's amzn2023 CUDA repo don't ship libcudnn / libnccl RPMs.
-    # cuDNN 9.5.1.17 patches CVE-2025-23339 (vs. TF 2.21's upstream-tested 9.3.0.75);
-    # cuDNN 9.x ships forward-ABI-compatible SONAMEs so TF 2.21's 9.3-linked binary
-    # loads against 9.5 without rebuild. NCCL_VERSION matches versions-cuda.env.
-    # Dockerfile.cuda copies the .so files out of these packages into
+    # cuDNN + NCCL come from pip because AL2023 core and NVIDIA's amzn2023 CUDA
+    # repo don't ship the RPMs. cuDNN 9.5.1.17 patches CVE-2025-23339; cuDNN 9.x
+    # ships forward-ABI-compatible SONAMEs so TF 2.21's 9.3-linked binary loads
+    # against 9.5 without rebuild. Dockerfile.cuda copies the .so files out into
     # /usr/local/cuda/lib64.
     "nvidia-cudnn-cu12==9.5.1.17",
     "nvidia-nccl-cu12==2.29.7",
     "mpi4py",
     "boto3",
     "botocore",
-    # Security pin: aiohttp >=3.14.0 patches CVE-2026-34993 (CookieJar.load RCE
-    # on untrusted input) and CVE-2026-47265 (cookies leaking on cross-origin
-    # redirect). Pulled transitively by aiobotocore, aws-embedded-metrics,
-    # mlflow, s3fs, tritonclient. Direct pin forces resolver to pick the patched
-    # line regardless of what the transitives request.
+    # Security pin: aiohttp >=3.14.0 patches CVE-2026-34993 (CookieJar.load RCE)
+    # and CVE-2026-47265 (cookie leak on cross-origin redirect). Pulled
+    # transitively; direct pin forces the patched line.
     "aiohttp>=3.14.0",
-    # TF compat pins — declared here (not as inline `uv pip install` in the
-    # Dockerfile) so OSS license scanning, uv.lock reproducibility, and resolver
-    # conflict detection all work. See migration doc Locked Decisions.
+    # TF compat pins
     "cython<3",
     "numpy==1.26.4",
     "requests",
     "packaging",
-    # carry-forward from TF 2.19 master "common" stage (Dockerfile.cpu/gpu)
     "pybind11",
     "scipy",
     "Pillow",
@@ -49,10 +42,6 @@ sagemaker = [
     "smclarify",
     "sagemaker>=3.4.0",
     "mlflow>=3.9.0",
-    # TF ecosystem extras + ad-hoc utilities — moved here from inline pip installs
-    # in the sagemaker stage. Per migration doc Locked Decision, every package
-    # shipped in the image must be enumerated in pyproject.toml. Verify on each
-    # release that this list still matches the Dockerfile inline-install history.
     "tensorflow-io==0.37.*",
     "tensorflow-datasets",
     "opencv-python==4.11.0.86",

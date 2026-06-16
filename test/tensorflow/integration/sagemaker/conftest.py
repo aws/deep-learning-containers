@@ -7,6 +7,5 @@ GitHub Actions workflow injects:
   SM_ROLE_ARN     — execution role for the training job
   PYTHONPATH      — set to <repo>/test so `test_utils` is importable
 
-No fixtures are needed — the tests read these env vars directly, mirroring
-the PyTorch SageMaker integration tests.
+The tests read these env vars directly; no fixtures needed.
 """

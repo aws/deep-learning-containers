@@ -1,20 +1,17 @@
 """SageMaker CPU training integration tests for TensorFlow DLC.
 
-Mirrors master's `test_mnist.py` coverage, translated to SDK v3
-(ModelTrainer + InputData + SourceCode):
+Uses SDK v3 (ModelTrainer + InputData + SourceCode):
 
   - test_mnist_single_node_cpu          single-host, plain Keras
-  - test_mnist_multi_host_no_strategy_cpu  2-host, plain Keras (mirrors
-                                        master's `test_distributed_mnist_no_ps`
-                                        — each host trains independently
-                                        from the same input channel; no
-                                        coordination, just smoke proves the
+  - test_mnist_multi_host_no_strategy_cpu  2-host, plain Keras (each host
+                                        trains independently; smoke-tests the
                                         2-host launcher path)
   - test_mnist_distributed_mwms_cpu     2-host, MultiWorkerMirroredStrategy
-                                        (RING). Uses a custom training loop
-                                        (strategy.run + reduce) on TF 2.21 /
-                                        Keras 3 — model.fit() under MWMS
-                                        hits a PerReplica distribution gap.
+                                        (RING). On TF 2.21 / Keras 3,
+                                        model.fit() under MWMS hits a
+                                        PerReplica distribution gap, so the
+                                        entry script uses a custom training
+                                        loop (strategy.run + reduce).
 
 We deliberately avoid SDK v3's MPI() distribution: its mpi_driver passes
 process_count_per_node directly as `-np` without multiplying by host_count,
@@ -41,9 +38,8 @@ DEFAULT_REGION = "us-west-2"
 def _upload_mnist_data(key_prefix="scriptmode/mnist"):
     """Upload the bundled .npy MNIST subset to S3 and return the resulting URI.
 
-    Mirrors master's `estimator.sagemaker_session.upload_data(...)` pattern.
-    The Session is constructed with an explicit region because CI runners
-    don't always have a default boto region configured.
+    Session is constructed with an explicit region because CI runners don't
+    always have a default boto region configured.
     """
     sagemaker_session = Session(boto3.session.Session(region_name=DEFAULT_REGION))
     return sagemaker_session.upload_data(path=MNIST_DATA_DIR, key_prefix=key_prefix)
@@ -89,9 +85,8 @@ def _run_sm_training(
 def _assert_s3_file_exists(region, s3_url):
     """Verify that the given s3:// URL points to an existing object.
 
-    Mirrors master's `_assert_s3_file_exists` — head-object via boto3
-    raises if the key is missing, which surfaces as a clear test
-    failure when SageMaker didn't upload the model artifact."""
+    head-object via boto3 raises if the key is missing, which surfaces as a
+    clear test failure when SageMaker didn't upload the model artifact."""
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource("s3", region_name=region)
     s3.Object(parsed_url.netloc, parsed_url.path.lstrip("/")).load()
@@ -100,10 +95,9 @@ def _assert_s3_file_exists(region, s3_url):
 def test_mnist_single_node_cpu():
     """Single-node CPU training with plain Keras.
 
-    Mirrors master's `test_mnist`. The bundled .npy subset is uploaded to
-    S3 and surfaced to the container at SM_CHANNEL_TRAINING. After the
-    job completes we assert the model artifact was uploaded to S3 — the
-    same deployability smoke check master performs."""
+    The bundled .npy subset is uploaded to S3 and surfaced to the container
+    at SM_CHANNEL_TRAINING. After the job completes we assert the model
+    artifact was uploaded to S3 — a deployability smoke check."""
     inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,
@@ -123,12 +117,10 @@ def test_mnist_single_node_cpu():
 def test_mnist_multi_host_no_strategy_cpu():
     """2-host CPU training with NO distribution strategy.
 
-    Mirrors master's `test_distributed_mnist_no_ps` — runs the same plain
-    Keras script on each host independently. There's no collective op or
-    parameter coordination; the test exists to smoke-test the multi-host
-    SageMaker launcher path with a TF DLC. Each host writes the same
-    artifact, but only the chief saves to SM_MODEL_DIR (the script
-    enforces the chief gate)."""
+    Runs the same plain Keras script on each host independently — no
+    collective op or parameter coordination. Smoke-tests the multi-host
+    SageMaker launcher path. Each host writes the same artifact, but only
+    the chief saves to SM_MODEL_DIR (the script enforces the chief gate)."""
     inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,

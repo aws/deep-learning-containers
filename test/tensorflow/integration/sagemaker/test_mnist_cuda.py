@@ -1,26 +1,21 @@
 """SageMaker GPU training integration tests for TensorFlow DLC.
 
-Mirrors master's `test_mnist.py` coverage for the CUDA image, translated
-to SDK v3 (ModelTrainer + InputData + SourceCode):
+Uses SDK v3 (ModelTrainer + InputData + SourceCode):
 
   - test_mnist_single_node_gpu          single-host single-GPU, plain Keras
-  - test_mnist_multi_host_no_strategy_gpu  2-host, plain Keras (mirrors
-                                        master's `test_distributed_mnist_no_ps`
-                                        — each host trains independently
-                                        with no strategy; smoke-tests the
-                                        multi-host launcher on the GPU
-                                        image)
-  - test_mnist_mirrored_strategy_gpu    single-host multi-GPU,
-                                        tf.distribute.MirroredStrategy.
-                                        Master doesn't test this directly,
-                                        but it covers a common DLC use
-                                        case (one box, all GPUs) without
-                                        the MWMS / TF_CONFIG plumbing.
+  - test_mnist_multi_host_no_strategy_gpu  2-host, plain Keras (each host
+                                        trains independently; smoke-tests
+                                        the multi-host launcher path on
+                                        the GPU image)
+  - test_mnist_mirrored_strategy_gpu    single-host multi-GPU with
+                                        tf.distribute.MirroredStrategy
+                                        (one box, all GPUs)
   - test_mnist_distributed_mwms_gpu     2-host, MultiWorkerMirroredStrategy
-                                        (NCCL). Uses a custom training loop
-                                        (strategy.run + reduce) on TF 2.21 /
-                                        Keras 3 — model.fit() under MWMS
-                                        hits a PerReplica distribution gap.
+                                        (NCCL). On TF 2.21 / Keras 3,
+                                        model.fit() under MWMS hits a
+                                        PerReplica distribution gap, so the
+                                        entry script uses a custom training
+                                        loop (strategy.run + reduce).
 
 We deliberately avoid SDK v3's MPI() distribution: its mpi_driver passes
 process_count_per_node directly as `-np` without multiplying by host_count,
@@ -99,9 +94,8 @@ def _run_sm_training(
 def _assert_s3_file_exists(region, s3_url):
     """Verify that the given s3:// URL points to an existing object.
 
-    Mirrors master's `_assert_s3_file_exists` — head-object via boto3
-    raises if the key is missing, which surfaces as a clear test
-    failure when SageMaker didn't upload the model artifact."""
+    head-object via boto3 raises if the key is missing, which surfaces as a
+    clear test failure when SageMaker didn't upload the model artifact."""
     parsed_url = urlparse(s3_url)
     s3 = boto3.resource("s3", region_name=region)
     s3.Object(parsed_url.netloc, parsed_url.path.lstrip("/")).load()
@@ -110,8 +104,8 @@ def _assert_s3_file_exists(region, s3_url):
 def test_mnist_single_node_gpu():
     """Single-host single-GPU training with plain Keras (no strategy).
 
-    Mirrors master's `test_mnist` for the GPU image. TF will pick up the
-    one visible GPU automatically without any explicit distribute scope."""
+    TF picks up the one visible GPU automatically without any explicit
+    distribute scope."""
     inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,
@@ -131,9 +125,8 @@ def test_mnist_single_node_gpu():
 def test_mnist_multi_host_no_strategy_gpu():
     """2-host single-GPU training with NO distribution strategy.
 
-    Mirrors master's `test_distributed_mnist_no_ps` for the GPU image.
-    Each host trains independently — no NCCL, no TF_CONFIG. Smoke-tests
-    the GPU multi-host launcher path."""
+    Each host trains independently — no NCCL, no TF_CONFIG. Smoke-tests the
+    GPU multi-host launcher path."""
     inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,
@@ -153,10 +146,10 @@ def test_mnist_multi_host_no_strategy_gpu():
 def test_mnist_mirrored_strategy_gpu():
     """Single-host multi-GPU training with tf.distribute.MirroredStrategy.
 
-    Not tested directly by master, but covers the common DLC scenario of
-    one box with all GPUs. MirroredStrategy doesn't need TF_CONFIG and
-    uses NCCL all-reduce across the local GPUs only — keeps the test
-    cheap (one instance) while exercising the GPU collective path."""
+    Covers the common DLC scenario of one box with all GPUs. MirroredStrategy
+    doesn't need TF_CONFIG and uses NCCL all-reduce across the local GPUs
+    only — keeps the test cheap (one instance) while exercising the GPU
+    collective path."""
     inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,

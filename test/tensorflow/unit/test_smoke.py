@@ -1,11 +1,11 @@
 """Smoke tests: TF imports and runs a real op; CUDA libraries are loadable.
 
 Unit tests run on no-GPU CodeBuild runners, so we cannot assert
-`list_physical_devices("GPU")` returns a non-empty list — the host has
-no GPU even though the image was built for CUDA. Instead, mirror PT's
-pattern: validate that TF was BUILT with CUDA support and that CUDA
-libraries are PRESENT and LOADABLE. Real GPU compute is verified later
-by `sagemaker-test` on actual GPU instances.
+`list_physical_devices("GPU")` returns a non-empty list — the host has no GPU
+even though the image was built for CUDA. Instead, validate that TF was
+BUILT with CUDA support and that CUDA libraries are PRESENT and LOADABLE.
+Real GPU compute is verified later by `sagemaker-test` on actual GPU
+instances.
 """
 
 import ctypes

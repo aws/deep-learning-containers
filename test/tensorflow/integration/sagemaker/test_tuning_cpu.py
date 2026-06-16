@@ -1,8 +1,7 @@
 """SageMaker hyperparameter-tuning integration test for the TF DLC.
 
-Mirrors master's `test_tuning_model_dir.py` (HPO tuner smoke). Translated
-to SDK v3: a `HyperparameterTuner` is constructed around a `ModelTrainer`
-and `.tune(...)` is invoked instead of the v2-era `tuner.fit(...)`.
+A `HyperparameterTuner` is constructed around a `ModelTrainer` and
+`.tune(...)` is invoked. SDK v3 API.
 
 CPU-only: the feature under test is the SageMaker HPO control plane,
 not anything CUDA-specific."""
@@ -29,10 +28,9 @@ def test_tuning_model_dir_cpu():
     """Smoke-test SageMaker HPO with the TF DLC.
 
     Tunes the `epochs` hyperparameter over [1, 2] with max_jobs=2 and
-    max_parallel_jobs=2, mirroring master's `test_tuning` rates. The
-    objective metric is parsed from training logs via the same `accuracy`
-    regex master uses. The training script is the standard `mnist.py`
-    which already prints `accuracy: <val>` per epoch via Keras."""
+    max_parallel_jobs=2. The objective metric is parsed from training logs
+    via the `accuracy` regex; the standard `mnist.py` entry script already
+    prints `accuracy: <val>` per epoch via Keras."""
     sagemaker_session = Session(boto3.session.Session(region_name=DEFAULT_REGION))
     inputs_s3 = sagemaker_session.upload_data(path=MNIST_DATA_DIR, key_prefix="scriptmode/mnist")
 

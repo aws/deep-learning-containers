@@ -13,25 +13,21 @@
 
 """MNIST training entry script for SageMaker integration tests.
 
-Loads MNIST `.npy` files from the `training` channel (SM_CHANNEL_TRAINING)
-mirroring the master branch script. The same script is reused across all
-test variants:
+Loads MNIST `.npy` files from the `training` channel (SM_CHANNEL_TRAINING).
+The same script is reused across all test variants:
 
   STRATEGY=none      Plain Keras (single-host single-device, or per-host
-                     independent training when instance_count > 1 — this
-                     mirrors master's `test_distributed_mnist_no_ps` "no
-                     parameter server" smoke test, which just runs the
-                     identical plain script on each host).
+                     independent training when instance_count > 1).
   STRATEGY=mirrored  tf.distribute.MirroredStrategy — single-host
-                     multi-GPU training. Selects all visible GPUs.
+                     multi-GPU. Selects all visible GPUs.
   STRATEGY=mwms      tf.distribute.MultiWorkerMirroredStrategy — multi-
-                     host distributed training. Builds TF_CONFIG from
-                     SM_HOSTS / SM_CURRENT_HOST so SageMaker can spawn
-                     one process per host (no MPI launcher).
+                     host distributed. Builds TF_CONFIG from SM_HOSTS /
+                     SM_CURRENT_HOST so SageMaker spawns one process per
+                     host (no MPI launcher).
 
 This is a deployability smoke test, not an accuracy gate: the script
 trains, exports a SavedModel, and exits. Artifact existence is verified
-by the test layer (mirroring master's `_assert_s3_file_exists`).
+by the test layer.
 """
 
 from __future__ import absolute_import, print_function
@@ -46,8 +42,8 @@ import sys
 import numpy as np
 import tensorflow as tf
 
-# Reproducibility — mirrors PT main's torch.manual_seed(1) pattern. Cuts down
-# accuracy-bar flakes when training a tiny subset for one epoch.
+# Reproducibility — seed all RNGs to cut accuracy-bar flakes when training a
+# tiny subset for one epoch.
 os.environ.setdefault("PYTHONHASHSEED", "1")
 random.seed(1)
 np.random.seed(1)
@@ -82,8 +78,8 @@ def _build_tf_config():
 
 
 def _build_model():
-    """Same dense MLP as master's mnist.py — keeps the test fast and the
-    accuracy bar achievable in 1 epoch on the 1000-sample subset."""
+    """Small dense MLP — fast enough that the accuracy bar is achievable
+    in 1 epoch on the 1000-sample subset."""
     return tf.keras.models.Sequential(
         [
             tf.keras.layers.Flatten(input_shape=(28, 28)),
@@ -275,9 +271,9 @@ def train(args):
         loss, acc = model.evaluate(x_test, y_test, verbose=2)
         logger.info("Eval loss=%.4f acc=%.4f", loss, acc)
 
-    # Only the chief saves — avoids cross-worker write races to the same
-    # /opt/ml/model/ path. Save under "1" so the artifact follows the
-    # SavedModel layout master uses (model_dir/<version>).
+    # Only the chief saves — avoids cross-worker write races on the same
+    # /opt/ml/model/ path. The "1" subdir is the standard SavedModel
+    # version layout (model_dir/<version>).
     if is_chief:
         model_dir = args.model_dir
         save_path = os.path.join(model_dir, "1")

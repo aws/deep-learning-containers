@@ -1,9 +1,7 @@
 #!/bin/bash
-# dockerd_entrypoint.sh — Unified TF training entrypoint (CPU + GPU).
-# Fires telemetry, runs CUDA forward-compat shim (no-op on CPU because
-# /usr/local/cuda/compat/libcuda.so.1 does not exist), then execs the
-# user command. Replaces TF 2.19 master's split GPU-Python /
-# CPU-bash entrypoints with a single bash file.
+# TF training entrypoint (CPU + GPU). Fires telemetry, runs CUDA
+# forward-compat shim (no-op on CPU because /usr/local/cuda/compat/libcuda.so.1
+# does not exist), then execs the user command.
 set -e
 
 # Telemetry — sourced (not exec'd) so it runs in this shell. The telemetry
