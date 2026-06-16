@@ -108,12 +108,31 @@ runs:
           LABEL_FRAMEWORK_VERSION=$(echo "${FRAMEWORK_VERSION}" | tr '.' '-')
           LABEL_ARCH="${{ steps.metadata.outputs.arch-type }}"
           LABEL_DEVICE_TYPE="${{ steps.metadata.outputs.device-type }}"
-          CUDA_VER="${{ steps.metadata.outputs.cuda-version }}"
-          if [[ "$LABEL_DEVICE_TYPE" == "gpu" && -n "$CUDA_VER" ]]; then
-            LABEL_DEVICE_TYPE="gpu.${CUDA_VER}"
+
+          # Convert raw cuda version (13.0.2) to short form (cu130)
+          CUDA_RAW="${{ steps.metadata.outputs.cuda-version }}"
+          if [[ -n "$CUDA_RAW" ]]; then
+            CUDA_MAJOR=$(echo "$CUDA_RAW" | cut -d. -f1)
+            CUDA_MINOR=$(echo "$CUDA_RAW" | cut -d. -f2)
+            LABEL_CUDA="cu${CUDA_MAJOR}${CUDA_MINOR}"
+          else
+            LABEL_CUDA=""
           fi
+          if [[ "$LABEL_DEVICE_TYPE" == "gpu" && -n "$LABEL_CUDA" ]]; then
+            LABEL_DEVICE_TYPE="gpu.${LABEL_CUDA}"
+          fi
+
+          # Convert raw python version (3.12) to short form (py312)
+          PYTHON_RAW="${{ steps.metadata.outputs.python-version }}"
+          if [[ -n "$PYTHON_RAW" ]]; then
+            PY_MAJOR=$(echo "$PYTHON_RAW" | cut -d. -f1)
+            PY_MINOR=$(echo "$PYTHON_RAW" | cut -d. -f2)
+            LABEL_PYTHON="py${PY_MAJOR}${PY_MINOR}"
+          else
+            LABEL_PYTHON=""
+          fi
+
           LABEL_OS=$(echo "${{ steps.metadata.outputs.os-version }}" | tr '.' '-')
-          LABEL_PYTHON=$(echo "${{ steps.metadata.outputs.python-version }}" | tr '.' '-')
 
           LABEL_FLAGS="--label com.amazonaws.ml.engines.sagemaker.dlc.arch.${LABEL_ARCH}=true"
           LABEL_FLAGS="${LABEL_FLAGS} --label com.amazonaws.ml.engines.sagemaker.dlc.device.${LABEL_DEVICE_TYPE}=true"
