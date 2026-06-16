@@ -8,12 +8,12 @@ on:
   #   types: [opened, reopened, synchronize]
   #   paths:
   #     - ".github/config/image/base/cu*-runtime.yml"
+  #     - ".github/workflows/base.pipeline.yml"
+  #     - ".github/workflows/base.pr-runtime.yml"
   #     - "docker/base/**"
   #     - "scripts/docker/common/**"
   #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/base/**"
-  #     - ".github/workflows/base.pr-runtime.yml"
-  #     - ".github/workflows/base.pipeline.yml"
+  #     - "test/security/data/ecr_scan_allowlist/base_dlc/**"
   #     - "!docs/**"
 
 permissions:
@@ -59,6 +59,7 @@ jobs:
               - "docker/base/**"
               - "scripts/docker/common/**"
               - "test/security/data/ecr_scan_allowlist/base/**"
+              - "test/security/data/ecr_scan_allowlist/base_dlc/**"
             sanity-test-change:
               - "test/sanity/**"
 

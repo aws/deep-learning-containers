@@ -9,14 +9,16 @@ on:
   #   paths:
   #     - ".github/config/image/sglang/sagemaker-ubuntu.yml"
   #     - ".github/config/model-tests/sglang-model-tests.yml"
+  #     - ".github/workflows/sglang.pipeline.yml"
+  #     - ".github/workflows/sglang.pr-sagemaker-ubuntu.yml"
   #     - "docker/sglang/Dockerfile"
   #     - "scripts/docker/common/**"
   #     - "scripts/docker/sglang/**"
-  #     - "test/sglang/**"
   #     - "test/sanity/**"
+  #     - "test/security/data/ecr_scan_allowlist/sglang/**"
+  #     - "test/sglang/**"
   #     - "test/telemetry/**"
-  #     - ".github/workflows/sglang.pr-sagemaker-ubuntu.yml"
-  #     - ".github/workflows/sglang.pipeline.yml"
+  #     - "!docker/sglang/Dockerfile.amzn2023"
   #     - "!docs/**"
 
 permissions:
@@ -38,11 +40,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
-      model-test-change: ${{ steps.changes.outputs.model-test-change }}
-      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -54,17 +56,18 @@ jobs:
               - "docker/sglang/Dockerfile"
               - "scripts/docker/common/**"
               - "scripts/docker/sglang/**"
+              - "test/security/data/ecr_scan_allowlist/sglang/**"
+            model-test-change:
+              - ".github/config/model-tests/sglang-model-tests.yml"
+              - "test/sglang/scripts/**"
+            sagemaker-test-change:
+              - "test/sglang/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
             upstream-test-change:
               - "test/sglang/scripts/**"
-            model-test-change:
-              - ".github/config/model-tests/sglang-model-tests.yml"
-              - "test/sglang/scripts/**"
-            sagemaker-test-change:
-              - "test/sglang/sagemaker/**"
 
   pipeline:
     needs: [check-changes]

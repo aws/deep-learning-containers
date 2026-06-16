@@ -9,14 +9,15 @@ on:
     paths:
       - ".github/config/image/vllm-omni/sagemaker-amzn2023.yml"
       - ".github/config/model-tests/vllm-omni-model-tests.yml"
-      - "docker/vllm_omni/**"
+      - ".github/workflows/vllm-omni.pipeline.yml"
+      - ".github/workflows/vllm-omni.pr-sagemaker.yml"
+      - "docker/vllm_omni/Dockerfile.amzn2023"
       - "scripts/docker/common/**"
       - "scripts/docker/vllm/omni_*"
-      - "test/vllm-omni/**"
       - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm_omni/**"
       - "test/telemetry/**"
-      - ".github/workflows/vllm-omni.pr-sagemaker.yml"
-      - ".github/workflows/vllm-omni.pipeline.yml"
+      - "test/vllm-omni/**"
       - "!docs/**"
 
 permissions:
@@ -38,10 +39,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
-      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       model-test-change: ${{ steps.changes.outputs.model-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -53,16 +54,17 @@ jobs:
               - "docker/vllm_omni/Dockerfile.amzn2023"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/omni_*"
+              - "test/security/data/ecr_scan_allowlist/vllm_omni/**"
               - "test/vllm-omni/**"
-            sanity-test-change:
-              - "test/sanity/**"
-            telemetry-test-change:
-              - "test/telemetry/**"
             model-test-change:
               - ".github/config/model-tests/vllm-omni-model-tests.yml"
               - "test/vllm-omni/**"
             sagemaker-test-change:
               - "test/vllm-omni/sagemaker/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            telemetry-test-change:
+              - "test/telemetry/**"
 
   pipeline:
     needs: [check-changes]

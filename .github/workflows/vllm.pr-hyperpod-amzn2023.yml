@@ -8,14 +8,15 @@ on:
   #   types: [opened, reopened, synchronize]
   #   paths:
   #     - ".github/config/image/vllm/hyperpod-amzn2023.yml"
-  #     - "docker/vllm/**"
+  #     - ".github/workflows/vllm.pipeline.yml"
+  #     - ".github/workflows/vllm.pr-hyperpod-amzn2023.yml"
+  #     - "docker/vllm/Dockerfile.amzn2023"
   #     - "scripts/docker/common/**"
   #     - "scripts/docker/vllm/**"
-  #     - "test/vllm/**"
   #     - "test/sanity/**"
+  #     - "test/security/data/ecr_scan_allowlist/vllm_server/**"
   #     - "test/telemetry/**"
-  #     - ".github/workflows/vllm.pr-hyperpod.yml"
-  #     - ".github/workflows/vllm.pipeline.yml"
+  #     - "test/vllm/**"
   #     - "!docs/**"
 
 permissions:
@@ -51,6 +52,7 @@ jobs:
               - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/**"
+              - "test/security/data/ecr_scan_allowlist/vllm_server/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

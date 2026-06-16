@@ -9,16 +9,18 @@ on:
     paths:
       - ".github/config/image/vllm/ec2-ubuntu.yml"
       - ".github/config/model-tests/vllm-model-tests.yml"
+      - ".github/workflows/vllm.pipeline.yml"
+      - ".github/workflows/vllm.pr-ec2-ubuntu.yml"
       - "docker/vllm/Dockerfile"
       - "scripts/docker/common/**"
       - "scripts/docker/vllm/**"
-      - "test/vllm/**"
+      - "test/efa/**"
       - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm/**"
       - "test/telemetry/**"
-      - ".github/workflows/vllm.pr-ec2-ubuntu.yml"
-      - ".github/workflows/vllm.pipeline.yml"
-      - "!docs/**"
+      - "test/vllm/**"
       - "!docker/vllm/Dockerfile.amzn2023"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -39,11 +41,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
-      model-test-change: ${{ steps.changes.outputs.model-test-change }}
-      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -55,17 +57,18 @@ jobs:
               - "docker/vllm/Dockerfile"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/**"
+              - "test/security/data/ecr_scan_allowlist/vllm/**"
+            efa-test-change:
+              - "test/efa/**"
+            model-test-change:
+              - ".github/config/model-tests/vllm-model-tests.yml"
+              - "test/vllm/scripts/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
             upstream-test-change:
               - "test/vllm/scripts/**"
-            model-test-change:
-              - ".github/config/model-tests/vllm-model-tests.yml"
-              - "test/vllm/scripts/**"
-            efa-test-change:
-              - "test/efa/**"
 
   pipeline:
     needs: [check-changes]

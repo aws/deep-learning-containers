@@ -133,7 +133,11 @@ jobs:
             "${PYTHON_SHORT}" "${CUDA_SHORT}"
 
       - name: Run inference engine checks
-        if: contains(needs.preflight.outputs.framework, 'vllm') || contains(needs.preflight.outputs.framework, 'sglang')
+        if: |
+          needs.preflight.outputs.framework == 'vllm' ||
+          needs.preflight.outputs.framework == 'vllm_server' ||
+          needs.preflight.outputs.framework == 'sglang' ||
+          needs.preflight.outputs.framework == 'sglang_server'
         run: |
           docker exec \
             -e EXPECTED_FRAMEWORK_VERSION=${{ needs.preflight.outputs.framework-version }} \

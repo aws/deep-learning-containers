@@ -9,14 +9,15 @@ on:
     paths:
       - ".github/config/image/vllm/sagemaker-amzn2023.yml"
       - ".github/config/model-tests/vllm-model-tests.yml"
-      - "docker/vllm/**"
+      - ".github/workflows/vllm.pipeline.yml"
+      - ".github/workflows/vllm.pr-sagemaker-amzn2023.yml"
+      - "docker/vllm/Dockerfile.amzn2023"
       - "scripts/docker/common/**"
       - "scripts/docker/vllm/**"
-      - "test/vllm/**"
       - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm_server/**"
       - "test/telemetry/**"
-      - ".github/workflows/vllm.pr-sagemaker.yml"
-      - ".github/workflows/vllm.pipeline.yml"
+      - "test/vllm/**"
       - "!docs/**"
 
 permissions:
@@ -38,11 +39,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
-      model-test-change: ${{ steps.changes.outputs.model-test-change }}
-      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -54,17 +55,18 @@ jobs:
               - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/**"
+              - "test/security/data/ecr_scan_allowlist/vllm_server/**"
+            model-test-change:
+              - ".github/config/model-tests/vllm-model-tests.yml"
+              - "test/vllm/scripts/**"
+            sagemaker-test-change:
+              - "test/vllm/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
             upstream-test-change:
               - "test/vllm/scripts/**"
-            model-test-change:
-              - ".github/config/model-tests/vllm-model-tests.yml"
-              - "test/vllm/scripts/**"
-            sagemaker-test-change:
-              - "test/vllm/sagemaker/**"
 
   pipeline:
     needs: [check-changes]
