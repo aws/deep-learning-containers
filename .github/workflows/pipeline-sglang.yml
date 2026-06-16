@@ -11,6 +11,36 @@ on:
         description: "CI tag suffix (run_id or pr-NUMBER)"
         required: true
         type: string
+      build:
+        description: "Whether to build the image (false = skip build, test against prod)"
+        required: false
+        type: boolean
+        default: true
+      run-sanity-test:
+        description: "Run sanity tests"
+        required: false
+        type: boolean
+        default: true
+      run-telemetry-test:
+        description: "Run telemetry tests"
+        required: false
+        type: boolean
+        default: true
+      run-upstream-test:
+        description: "Run upstream tests"
+        required: false
+        type: boolean
+        default: true
+      run-model-test:
+        description: "Run model tests"
+        required: false
+        type: boolean
+        default: true
+      run-sagemaker-test:
+        description: "Run SageMaker endpoint tests"
+        required: false
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -18,7 +48,7 @@ on:
         default: false
     outputs:
       image-uri:
-        description: "Built image URI"
+        description: "Built image URI (empty if build was skipped)"
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
@@ -33,6 +63,7 @@ jobs:
           echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
 
   build:
+    if: ${{ inputs.build }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-sglang-build-runner
@@ -53,41 +84,45 @@ jobs:
           tag-suffix: ${{ inputs.tag-suffix }}
 
   sanity-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
     needs: [build]
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
     needs: [build]
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   upstream-tests:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
     needs: [build]
     uses: ./.github/workflows/reusable-sglang-upstream-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
     secrets: inherit
 
   model-tests:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test }}
     needs: [build]
     uses: ./.github/workflows/reusable-sglang-model-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   sagemaker-tests:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.config.outputs.customer-type == 'sagemaker' }}
     needs: [build, config]
-    if: needs.config.outputs.customer-type == 'sagemaker'
     uses: ./.github/workflows/reusable-sglang-sagemaker-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   release:
     if: ${{ inputs.release && !failure() && !cancelled() }}
