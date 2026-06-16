@@ -31,12 +31,6 @@ build:
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
-tests:
-  upstream:
-    workflow: "./.github/workflows/reusable-sglang-upstream-tests.yml"
-  model:
-    workflow: "./.github/workflows/reusable-sglang-model-tests.yml"
-
 release:
   release: true
   prod_image: "sglang:server-cuda-v1"

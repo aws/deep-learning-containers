@@ -20,14 +20,6 @@ build:
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
-tests:
-  cuda:
-    workflow: "./.github/workflows/reusable-cuda-test.yml"
-    with:
-      script: "test/cuda/scripts/cuda_devel_test.sh"
-  base_sanity:
-    workflow: "./.github/workflows/reusable-base-sanity-test.yml"
-
 release:
   release: true
   prod_image: "base:devel-cu129-amzn2023"

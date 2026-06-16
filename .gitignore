@@ -21,3 +21,4 @@ docker/xgboost/prebuilt.whl
 
 # tmp
 .github/archive
+HANDOVER.md

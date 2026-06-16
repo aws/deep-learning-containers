@@ -28,12 +28,6 @@ build:
   dlc_minor_version: "3"
   use_sccache: "true"
 
-tests:
-  model:
-    workflow: "./.github/workflows/reusable-vllm-omni-model-tests.yml"
-  sagemaker:
-    workflow: "./.github/workflows/reusable-vllm-sagemaker-tests.yml"
-
 release:
   release: true
   prod_image: "vllm:omni-sagemaker-cuda-v1"

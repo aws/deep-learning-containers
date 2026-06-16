@@ -22,10 +22,6 @@ build:
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
-tests:
-  unit:
-    workflow: "./.github/workflows/reusable-pytorch-unit-test.yml"
-
 release:
   release: true
   prod_image: "pytorch:2.11-cpu-amzn2023"

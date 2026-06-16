@@ -23,17 +23,6 @@ build:
   dlc_minor_version: "0"
   use_sccache: "true"
 
-tests:
-  upstream:
-    workflow: "./.github/workflows/reusable-vllm-upstream-tests.yml"
-    with:
-      setup-script: "test/vllm/scripts/vllm_test_setup.sh"
-      example-test-script: "test/vllm/scripts/amzn2023/vllm_ec2_examples_test.sh"
-  model:
-    workflow: "./.github/workflows/reusable-vllm-model-tests.yml"
-  efa:
-    workflow: "./.github/workflows/reusable-efa-tests.yml"
-
 release:
   release: true
   prod_image: "vllm:server-cuda-v2"

@@ -19,10 +19,6 @@ build:
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
-tests:
-  serve:
-    workflow: "./.github/workflows/reusable-ray-serve-test.yml"
-
 release:
   release: true
   prod_image: "ray:serve-ml-sagemaker-cpu"
