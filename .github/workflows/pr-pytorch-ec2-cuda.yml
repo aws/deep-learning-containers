@@ -68,6 +68,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          # Full history so `git diff origin/main...HEAD` can resolve the
+          # merge-base for version detection (shallow clone has no origin/main).
+          fetch-depth: 0
 
       - name: Setup python
         uses: actions/setup-python@v6
