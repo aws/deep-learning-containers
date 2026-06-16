@@ -1,0 +1,20 @@
+name: "Auto Release - vLLM HyperPod"
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/vllm.pipeline.yml
+    with:
+      config-file: .github/config/image/vllm/hyperpod-amzn2023.yml
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit
