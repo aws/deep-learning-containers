@@ -1,0 +1,22 @@
+name: "Auto Release - SGLang EC2 Ubuntu"
+
+on:
+  schedule:
+    - cron: '00 17 * * 2,4'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/sglang.pipeline.yml
+    with:
+      config-file: .github/config/image/sglang/ec2-ubuntu.yml
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit
