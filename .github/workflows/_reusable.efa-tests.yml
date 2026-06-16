@@ -1,0 +1,91 @@
+name: Reusable EFA Tests
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
+        type: string
+        default: ""
+      efa-instance-type:
+        description: "EFA-enabled instance type (default: p4d.24xlarge)"
+        required: false
+        type: string
+        default: "p4d.24xlarge"
+      run-nixl-tests:
+        description: "Run NIXL libfabric smoke + disaggregated PD tests"
+        required: false
+        type: boolean
+        default: false
+      container-entrypoint:
+        description: "Override container entrypoint (e.g., /bin/bash for vLLM)"
+        required: false
+        type: string
+        default: ""
+      container-cmd:
+        description: "CMD passed to container (default: bash)"
+        required: false
+        type: string
+        default: "bash"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: efa-test-global
+  cancel-in-progress: false
+
+jobs:
+  efa-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Setup test dependencies
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
+      - name: Run EFA integration test
+        if: steps.check.outputs.exists == 'true'
+        env:
+          TEST_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+          EFA_INSTANCE_TYPE: ${{ inputs.efa-instance-type }}
+          RUN_NIXL_TESTS: ${{ inputs.run-nixl-tests && '1' || '0' }}
+          EFA_CONTAINER_ENTRYPOINT: ${{ inputs.container-entrypoint }}
+          EFA_CONTAINER_CMD: ${{ inputs.container-cmd }}
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH \
+          python -m pytest test/efa/test_efa.py -vs -rA --tb=long
+
+      - name: Skip notice
+        if: steps.check.outputs.exists != 'true'
+        run: echo "Image not found in ECR — skipping tests (first release scenario)"

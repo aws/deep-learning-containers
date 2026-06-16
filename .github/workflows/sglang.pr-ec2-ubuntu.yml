@@ -3,22 +3,22 @@ name: "PR - SGLang EC2 Ubuntu"
 on:
   # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/sglang/ec2-ubuntu.yml"
-      - ".github/config/model-tests/sglang-model-tests.yml"
-      - "docker/sglang/Dockerfile"
-      - "scripts/docker/common/**"
-      - "scripts/docker/sglang/**"
-      - "test/sglang/**"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - ".github/workflows/sglang.pr-ec2-ubuntu.yml"
-      - ".github/workflows/sglang.pipeline.yml"
-      - "!docs/**"
-      - "!docker/sglang/Dockerfile.amzn2023"
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/sglang/ec2-ubuntu.yml"
+  #     - ".github/config/model-tests/sglang-model-tests.yml"
+  #     - "docker/sglang/Dockerfile"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/sglang/**"
+  #     - "test/sglang/**"
+  #     - "test/sanity/**"
+  #     - "test/telemetry/**"
+  #     - ".github/workflows/sglang.pr-ec2-ubuntu.yml"
+  #     - ".github/workflows/sglang.pipeline.yml"
+  #     - "!docs/**"
+  #     - "!docker/sglang/Dockerfile.amzn2023"
 
 permissions:
   contents: read
