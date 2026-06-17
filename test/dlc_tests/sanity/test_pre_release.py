@@ -187,7 +187,7 @@ def test_python_version(image):
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
-def test_ubuntu_version(image):
+def test_os_version(image):
     """
     Check that the OS version in the image tag is the same as the one on a running container.
 
