@@ -611,7 +611,7 @@ def efa_instances(
 
         master_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
         worker_conn.run("mkdir -p ~/test/efa/scripts ~/test/efa/logs")
-        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
         scripts_dir = os.path.join(repo_root, "test", "efa", "scripts")
         for script in os.listdir(scripts_dir):
             # SFTP does not expand ~; use paths relative to SSH home.
