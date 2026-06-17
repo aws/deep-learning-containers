@@ -1,0 +1,247 @@
+name: SGLang Benchmark Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-uri:
+        description: "Image URI to benchmark (ECR URI)"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR auth (defaults to CI account)"
+        required: false
+        type: string
+        default: ""
+      aws-region:
+        description: "AWS region for ECR auth (defaults to repo var)"
+        required: false
+        type: string
+        default: ""
+
+env:
+  IMAGE_URI: ${{ inputs.image-uri }}
+  ACCOUNT_ID: ${{ inputs.aws-account-id || vars.CI_AWS_ACCOUNT_ID }}
+  REGION: ${{ inputs.aws-region || vars.AWS_REGION }}
+
+jobs:
+  load-benchmarks:
+    runs-on: ubuntu-latest
+    outputs:
+      codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
+      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Parse benchmark config
+        id: parse
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install pyyaml
+          python3 scripts/ci/parse_model_config.py \
+            --config .github/config/model-tests/sglang-model-tests.yml \
+            --section benchmark
+
+  benchmark-codebuild-fleet:
+    name: benchmark (${{ matrix.name }} / ${{ matrix.fleet }})
+    if: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix)[0] != null }}
+    needs: [load-benchmarks]
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Pre-cleanup GPU state ==="
+          nvidia-smi
+          echo ""
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+          echo "=== Killing stale SGLang server ==="
+          SGLANG_PORT=$(echo "${{ matrix.env_vars }}" | grep -oP 'SGLANG_PORT=\K[0-9]+' || echo "30000")
+          fuser -k ${SGLANG_PORT}/tcp 2>/dev/null || true
+          echo "=== Clearing GPU memory ==="
+          nvidia-smi --gpu-reset 2>/dev/null || true
+          echo ""
+          echo "=== Post-cleanup GPU state ==="
+          nvidia-smi
+
+      - name: Download model from S3
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
+
+      - name: Start container
+        run: |
+          docker pull ${{ env.IMAGE_URI }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            --ipc=host \
+            -v /dlc-models:/models \
+            ${{ env.IMAGE_URI }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy scripts into container
+        run: |
+          docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/sglang/scripts/benchmark/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/sglang/scripts/benchmark/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
+
+      - name: Run benchmark
+        run: |
+          TEST_SCRIPT="${{ matrix.test_script || 'sglang_benchmark_test.sh' }}"
+          docker exec \
+            -e SGLANG_ENV_VARS="${{ matrix.env_vars || '' }}" \
+            ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
+              "/models/${{ matrix.name }}" \
+              "${{ matrix.name }}" \
+              "${{ matrix.fleet }}" \
+              ${{ matrix.extra_args }}
+
+      - name: Extract results
+        if: always()
+        run: |
+          docker cp ${CONTAINER_ID}:/tmp/benchmark_results/. ./benchmark_results/ 2>/dev/null || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-${{ matrix.name }}-${{ matrix.fleet }}
+          path: benchmark_results/
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+
+  benchmark-runner-scale-sets:
+    name: benchmark (${{ matrix.name }} / ${{ matrix.runner_label || 'gpu-efa-runners' }})
+    if: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix)[0] != null }}
+    needs: [load-benchmarks]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-benchmarks.outputs.runner-scale-sets-matrix) }}
+    runs-on: ${{ matrix.runner_label || 'gpu-efa-runners' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ env.ACCOUNT_ID }}
+          aws-region: ${{ env.REGION }}
+
+      - name: GPU cleanup and status
+        run: |
+          echo "=== Stopping stale containers ==="
+          docker ps -q | xargs -r docker stop 2>/dev/null || true
+          docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+          echo "=== Killing stale SGLang server ==="
+          SGLANG_PORT=$(echo "${{ matrix.env_vars }}" | grep -oP 'SGLANG_PORT=\K[0-9]+' || echo "30000")
+          fuser -k ${SGLANG_PORT}/tcp 2>/dev/null || true
+          echo "=== GPU state ==="
+          nvidia-smi
+
+      - name: Download model from S3
+        uses: ./.github/actions/download-model
+        id: model
+        with:
+          s3-path: ${{ matrix.s3_path }}
+          model-name: ${{ matrix.name }}
+
+      - name: Start container
+        run: |
+          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
+          echo "Pod GPU UUIDs: ${POD_GPUS}"
+          docker pull ${{ env.IMAGE_URI }}
+          CONTAINER_ID=$(docker run -d -it --gpus "\"device=${POD_GPUS}\"" --entrypoint /bin/bash \
+            --ipc=host \
+            ${{ env.IMAGE_URI }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy files into container
+        run: |
+          docker exec ${CONTAINER_ID} mkdir -p /models
+          docker cp ${{ steps.model.outputs.model-dir }} ${CONTAINER_ID}:/models/${{ matrix.name }}
+          docker cp test/sglang/scripts/sglang_benchmark_test.sh ${CONTAINER_ID}:/models/
+          if [ -f "test/sglang/scripts/benchmark/${{ matrix.test_script || '' }}" ]; then
+            docker cp "test/sglang/scripts/benchmark/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
+          fi
+
+      - name: Run benchmark
+        run: |
+          TEST_SCRIPT="${{ matrix.test_script || 'sglang_benchmark_test.sh' }}"
+          RUNNER_LABEL="${{ matrix.runner_label || 'gpu-efa-runners' }}"
+          docker exec \
+            -e SGLANG_ENV_VARS="${{ matrix.env_vars || '' }}" \
+            ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
+              "/models/${{ matrix.name }}" \
+              "${{ matrix.name }}" \
+              "${RUNNER_LABEL}" \
+              ${{ matrix.extra_args }}
+
+      - name: Extract results
+        if: always()
+        run: |
+          docker cp ${CONTAINER_ID}:/tmp/benchmark_results/. ./benchmark_results/ 2>/dev/null || true
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-${{ matrix.name }}-${{ matrix.runner_label || 'gpu-efa-runners' }}
+          path: benchmark_results/
+          retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+
+  benchmark-report:
+    name: benchmark-report
+    if: always()
+    needs: [benchmark-codebuild-fleet, benchmark-runner-scale-sets]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Download all benchmark artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: benchmark-*
+          path: results/
+
+      - name: Generate report
+        run: python3 test/sglang/scripts/benchmark/benchmark_report.py results >> "$GITHUB_STEP_SUMMARY"
