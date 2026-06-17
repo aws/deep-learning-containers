@@ -13,10 +13,26 @@ permissions:
   contents: read
 
 jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/pytorch/*-ec2-cuda.yml"
+
   pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
     uses: ./.github/workflows/pytorch.pipeline.yml
     with:
-      config-file: .github/config/image/pytorch/2.11-ec2-cuda.yml
+      config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
       release: true
     secrets: inherit
