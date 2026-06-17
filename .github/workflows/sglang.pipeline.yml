@@ -103,7 +103,7 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   security-test:
-    if: ${{ inputs.run-security-test }}
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
     needs: [build]
     concurrency:
       group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}

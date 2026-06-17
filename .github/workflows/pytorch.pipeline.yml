@@ -105,7 +105,7 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   security-test:
-    if: ${{ inputs.run-security-test }}
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
     needs: [build]
     concurrency:
       group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
@@ -164,10 +164,21 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+      - name: Parse config
+        if: steps.check.outputs.exists == 'true'
+        id: config
+        run: |
+          CONFIG_FILE="${{ inputs.config-file }}"
+          FRAMEWORK_VERSION=$(yq '.metadata.framework_version' "$CONFIG_FILE")
+          # DLC_PYTORCH_VERSION is the short form (e.g., "2.11")
+          echo "pytorch-version=$(echo "$FRAMEWORK_VERSION" | cut -d. -f1,2)" >> $GITHUB_OUTPUT
+
       - name: Run unit tests
         if: steps.check.outputs.exists == 'true'
         run: |
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir \
+            -e DLC_PYTORCH_VERSION=${{ steps.config.outputs.pytorch-version }} \
             -v $(pwd):/workdir --workdir /workdir \
             ${{ steps.image.outputs.image-uri }} -c 'sleep infinity')
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
