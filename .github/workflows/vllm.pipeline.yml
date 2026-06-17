@@ -167,6 +167,9 @@ jobs:
   efa-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/_reusable.efa-tests.yml
     with:
       config-file: ${{ inputs.config-file }}

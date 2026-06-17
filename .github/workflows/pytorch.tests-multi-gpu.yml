@@ -57,7 +57,7 @@ jobs:
             -v $(pwd):/workdir --workdir /workdir \
             ${{ steps.image.outputs.image-uri }} -c 'sleep infinity')
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pip install -r /workdir/test/requirements.txt -q
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
             torchrun --nproc_per_node=2 --master_port=29500 \
             /workdir/test/pytorch/multi_gpu/test_ddp.py

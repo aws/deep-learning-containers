@@ -57,7 +57,7 @@ jobs:
             -v $(pwd):/workdir --workdir /workdir \
             ${{ steps.image.outputs.image-uri }} -c 'sleep infinity')
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pip install -r /workdir/test/requirements.txt -q
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
             pytest /workdir/test/pytorch/single_gpu/ -v
           docker kill ${CONTAINER_ID}
