@@ -58,8 +58,7 @@ jobs:
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
           docker exec ${CONTAINER_ID} pip install -r /workdir/test/requirements.txt -q
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
-            pytest /workdir/test/pytorch/unit/ \
-            --config-file /workdir/${{ inputs.config-file }} -v
+            pytest /workdir/test/pytorch/unit/ -v
           docker kill ${CONTAINER_ID}
 
       - name: Skip notice
