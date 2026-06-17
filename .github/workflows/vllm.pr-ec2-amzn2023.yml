@@ -3,23 +3,23 @@ name: "PR - vLLM EC2 AL2023"
 on:
   # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/vllm/ec2-amzn2023.yml"
-      - ".github/config/model-tests/vllm-model-tests.yml"
-      - ".github/workflows/vllm.pipeline.yml"
-      - ".github/workflows/vllm.pr-ec2-amzn2023.yml"
-      - "docker/vllm/Dockerfile.amzn2023"
-      - "scripts/docker/common/**"
-      - "scripts/docker/vllm/**"
-      - "test/efa/**"
-      - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/vllm_server/**"
-      - "test/telemetry/**"
-      - "test/vllm/**"
-      - "!docs/**"
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/vllm/ec2-amzn2023.yml"
+  #     - ".github/config/model-tests/vllm-model-tests.yml"
+  #     - ".github/workflows/vllm.pipeline.yml"
+  #     - ".github/workflows/vllm.pr-ec2-amzn2023.yml"
+  #     - "docker/vllm/Dockerfile.amzn2023"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/vllm/**"
+  #     - "test/efa/**"
+  #     - "test/sanity/**"
+  #     - "test/security/data/ecr_scan_allowlist/vllm_server/**"
+  #     - "test/telemetry/**"
+  #     - "test/vllm/**"
+  #     - "!docs/**"
 
 permissions:
   contents: read

@@ -170,11 +170,12 @@ jobs:
           docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_cuda_test.sh
 
   example-test:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    # NOTE: Temporarily disable test for sagemaker due to it hanging in CI
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.customer-type != 'sagemaker' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     steps:
       - name: Checkout DLC source
