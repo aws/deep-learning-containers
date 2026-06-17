@@ -1,4 +1,4 @@
-name: Build PyTorch Wheels
+name: "Dispatch - PyTorch Build Wheels"
 
 on:
   workflow_dispatch:

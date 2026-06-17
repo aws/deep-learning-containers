@@ -2,7 +2,7 @@
 # Lambda Dockerfile and configs live on the `lambda` branch (pre-GA).
 # Discovers all Lambda config files and runs the pipeline for each variant.
 
-name: Release - Lambda
+name: "Dispatch - Lambda Release"
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: vLLM Benchmark Tests
+name: "Dispatch - vLLM Benchmark"
 
 permissions:
   contents: read

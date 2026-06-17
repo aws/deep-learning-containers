@@ -1,4 +1,4 @@
-name: SGLang Benchmark Tests
+name: "Dispatch - SGLang Benchmark"
 
 permissions:
   contents: read
