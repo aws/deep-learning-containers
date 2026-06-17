@@ -362,6 +362,8 @@ def setup_worker_ssh(conn, master_pub_key):
         conn,
         f"eval `ssh-agent -s` && ssh-add $HOME/.ssh/{WORKER_SSH_KEY_NAME}",
     )
+    # Generate host keys if missing (AL2023 containers don't have pre-generated host keys).
+    run_on_container(WORKER_CONTAINER_NAME, conn, "ssh-keygen -A")
     # Start sshd directly (AL2023 base image has no sysvinit).
     run_on_container(WORKER_CONTAINER_NAME, conn, "/usr/sbin/sshd")
     status = run_on_container(WORKER_CONTAINER_NAME, conn, "pgrep -x sshd", warn=True)
