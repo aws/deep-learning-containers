@@ -57,7 +57,7 @@ for spec in "${SPECS[@]}"; do
   fi
 
   FNAME=$(basename "${WHL}")
-  S3_KEY="wheels/${CUDA_SHORT}/${PKG_UNDER}/${FNAME}"
+  S3_KEY="wheels/${PKG_UNDER}/${CUDA_SHORT}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
     echo "Already cached: ${S3_KEY}"
