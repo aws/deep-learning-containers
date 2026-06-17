@@ -174,7 +174,7 @@ jobs:
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     steps:
       - name: Checkout DLC source
