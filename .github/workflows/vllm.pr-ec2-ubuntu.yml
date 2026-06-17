@@ -77,12 +77,11 @@ jobs:
       config-file: .github/config/image/vllm/ec2-ubuntu.yml
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      # TEMP: Disabled while debugging upstream/efa tests
-      run-sanity-test: false
-      run-security-test: false
-      run-telemetry-test: false
+      run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
-      run-model-test: false
+      run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-sagemaker-test: false
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
