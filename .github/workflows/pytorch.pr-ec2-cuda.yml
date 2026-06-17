@@ -39,8 +39,10 @@ jobs:
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
-      gpu-test-change: ${{ steps.changes.outputs.gpu-test-change }}
+      multi-gpu-test-change: ${{ steps.changes.outputs.multi-gpu-test-change }}
+      multi-node-test-change: ${{ steps.changes.outputs.multi-node-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
@@ -56,7 +58,11 @@ jobs:
               - "scripts/docker/pytorch/**"
             efa-test-change:
               - "test/efa/**"
-            gpu-test-change:
+            multi-gpu-test-change:
+              - "test/pytorch/multi_gpu/**"
+            multi-node-test-change:
+              - "test/pytorch/multi_node/**"
+            single-gpu-test-change:
               - "test/pytorch/single_gpu/**"
             sanity-test-change:
               - "test/sanity/**"
@@ -73,9 +79,11 @@ jobs:
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
+      run-multi-gpu-test: false
+      run-multi-node-test: false
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.gpu-test-change == 'true' }}
+      run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       release: false
