@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-security-test:
+        description: "Run security tests"
+        required: false
+        type: boolean
+        default: true
       run-telemetry-test:
         description: "Run telemetry tests"
         required: false
@@ -97,6 +102,17 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  security-test:
+    if: ${{ inputs.run-security-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.security-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   telemetry-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
     needs: [build]
@@ -144,7 +160,7 @@ jobs:
 
   release-gate:
     if: ${{ inputs.release && !failure() && !cancelled() }}
-    needs: [build, sanity-test, telemetry-test, upstream-tests, model-tests, sagemaker-tests]
+    needs: [build, sanity-test, security-test, telemetry-test, upstream-tests, model-tests, sagemaker-tests]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
