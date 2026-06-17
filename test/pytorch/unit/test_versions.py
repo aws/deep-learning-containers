@@ -6,19 +6,13 @@ import subprocess
 
 import pytest
 
-# DLC_PYTORCH_VERSION selects which versioned directory to read (e.g., "2.11").
-_WORKDIR = os.environ.get("DLC_WORKDIR", "/workdir")
-_PT_VERSION = os.environ.get("DLC_PYTORCH_VERSION", "")
-assert _PT_VERSION, "DLC_PYTORCH_VERSION env var is required (e.g., '2.11')"
 IS_CUDA = os.path.isdir("/usr/local/cuda")
-_VERSIONS_FILE = "versions-cuda.env" if IS_CUDA else "versions-cpu.env"
-VERSIONS_ENV = os.path.join(_WORKDIR, "docker", "pytorch", _PT_VERSION, _VERSIONS_FILE)
 cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
 
 
-def _parse_versions_env():
+def _parse_versions_env(path):
     versions = {}
-    with open(VERSIONS_ENV) as f:
+    with open(path) as f:
         for line in f:
             m = re.match(r'^export\s+(\w+)="?([^"$]+)"?', line.strip())
             if m:
@@ -26,7 +20,14 @@ def _parse_versions_env():
     return versions
 
 
-ENV = _parse_versions_env()
+@pytest.fixture(scope="session")
+def versions_env(request):
+    pt_version = request.config.getoption("--pytorch-version")
+    workdir = request.config.getoption("--workdir")
+    versions_file = "versions-cuda.env" if IS_CUDA else "versions-cpu.env"
+    path = os.path.join(workdir, "docker", "pytorch", pt_version, versions_file)
+    return _parse_versions_env(path)
+
 
 COMMON_PACKAGE_VERSION_MAP = {
     "torch": "TORCH_VERSION",
@@ -43,10 +44,10 @@ GPU_PACKAGE_VERSION_MAP = {
     list(COMMON_PACKAGE_VERSION_MAP.items()),
     ids=list(COMMON_PACKAGE_VERSION_MAP.keys()),
 )
-def test_version(package, env_var):
+def test_version(package, env_var, versions_env):
     mod = __import__(package)
     actual = mod.__version__
-    expected = ENV[env_var]
+    expected = versions_env[env_var]
     assert actual.startswith(expected), f"{package}: expected {expected}*, got {actual}"
 
 
@@ -56,33 +57,33 @@ def test_version(package, env_var):
     list(GPU_PACKAGE_VERSION_MAP.items()),
     ids=list(GPU_PACKAGE_VERSION_MAP.keys()),
 )
-def test_version_gpu(package, env_var):
+def test_version_gpu(package, env_var, versions_env):
     mod = __import__(package)
     actual = mod.__version__
-    expected = ENV[env_var]
+    expected = versions_env[env_var]
     assert actual.startswith(expected), f"{package}: expected {expected}*, got {actual}"
 
 
-def test_deepspeed_version():
+def test_deepspeed_version(versions_env):
     import deepspeed
 
-    expected = ENV["DEEPSPEED_VERSION"]
+    expected = versions_env["DEEPSPEED_VERSION"]
     assert deepspeed.__version__.startswith(expected), (
         f"deepspeed: expected {expected}*, got {deepspeed.__version__}"
     )
 
 
-def test_python_version():
-    expected = ENV["PYTHON_VERSION"]
+def test_python_version(versions_env):
+    expected = versions_env["PYTHON_VERSION"]
     out = subprocess.check_output(["python", "--version"], text=True).strip()
     assert expected in out, f"Expected Python {expected}, got {out}"
 
 
 @cuda_only
-def test_cuda_version():
+def test_cuda_version(versions_env):
     import torch
 
-    expected = ".".join(ENV["CUDA_VERSION"].split(".")[:2])
+    expected = ".".join(versions_env["CUDA_VERSION"].split(".")[:2])
     assert torch.version.cuda.startswith(expected), (
         f"Expected CUDA {expected}*, got {torch.version.cuda}"
     )
