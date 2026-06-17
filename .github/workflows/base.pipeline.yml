@@ -82,7 +82,7 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   release-gate:
-    if: ${{ inputs.release && !failure() && !cancelled() }}
+    if: ${{ always() && !failure() && !cancelled() && inputs.release && needs.build.result == 'success' }}
     needs: [build, sanity-test, security-test]
     runs-on: ubuntu-latest
     outputs:

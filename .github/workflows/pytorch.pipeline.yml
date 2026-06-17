@@ -151,7 +151,7 @@ jobs:
   # Single-GPU tests — only for GPU images
   single-gpu-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-single-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config, unit-test, sanity-test, security-test]
+    needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -163,7 +163,7 @@ jobs:
   # Multi-GPU tests — only for GPU images
   multi-gpu-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-multi-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config, single-gpu-test]
+    needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-multi-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -175,7 +175,7 @@ jobs:
   # Multi-node GPU tests — only for GPU images
   multi-node-gpu-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-multi-node-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config, multi-gpu-test]
+    needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-multi-node-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -187,7 +187,7 @@ jobs:
   # EFA tests — only for GPU images
   efa-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config, unit-test, sanity-test, security-test]
+    needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -197,7 +197,7 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   release-gate:
-    if: ${{ inputs.release && !failure() && !cancelled() }}
+    if: ${{ always() && !failure() && !cancelled() && inputs.release && needs.build.result == 'success' }}
     needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, multi-gpu-test, multi-node-gpu-test, efa-test]
     runs-on: ubuntu-latest
     outputs:

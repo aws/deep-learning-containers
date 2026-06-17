@@ -166,7 +166,7 @@ jobs:
 
   efa-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
-    needs: [build, sanity-test, security-test]
+    needs: [build]
     uses: ./.github/workflows/_reusable.efa-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -176,7 +176,7 @@ jobs:
       container-cmd: "-c 'sleep infinity'"
 
   release-gate:
-    if: ${{ inputs.release && !failure() && !cancelled() }}
+    if: ${{ always() && !failure() && !cancelled() && inputs.release && needs.build.result == 'success' }}
     needs: [build, sanity-test, security-test, telemetry-test, upstream-tests, model-tests, sagemaker-tests, efa-test]
     runs-on: ubuntu-latest
     outputs:
