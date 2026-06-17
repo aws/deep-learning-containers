@@ -8,9 +8,9 @@ No Docker-related fixtures are needed.
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--pytorch-version",
-        required=True,
-        help="Short PyTorch version for locating version pins (e.g., '2.11')",
+        "--config-file",
+        default="",
+        help="Path to image config YAML (e.g., '.github/config/image/pytorch/2.11-ec2-cpu.yml')",
     )
     parser.addoption(
         "--workdir",

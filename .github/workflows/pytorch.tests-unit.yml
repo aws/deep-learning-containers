@@ -49,14 +49,6 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: Parse config
-        if: steps.check.outputs.exists == 'true'
-        id: config
-        run: |
-          CONFIG_FILE="${{ inputs.config-file }}"
-          FRAMEWORK_VERSION=$(yq '.metadata.framework_version' "$CONFIG_FILE")
-          echo "pytorch-version=$(echo "$FRAMEWORK_VERSION" | cut -d. -f1,2)" >> $GITHUB_OUTPUT
-
       - name: Run unit tests
         if: steps.check.outputs.exists == 'true'
         run: |
@@ -67,8 +59,7 @@ jobs:
           docker exec ${CONTAINER_ID} pip install -r /workdir/test/requirements.txt -q
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
             pytest /workdir/test/pytorch/unit/ \
-            --pytorch-version ${{ steps.config.outputs.pytorch-version }} \
-            --workdir /workdir -v
+            --config-file /workdir/${{ inputs.config-file }} -v
           docker kill ${CONTAINER_ID}
 
       - name: Skip notice
