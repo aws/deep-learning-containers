@@ -6,7 +6,8 @@
 #     --packages "flash-attn:2.8.3,transformer-engine-torch:2.12.0"
 #
 # Exit code: 0 if all wheels found, 1 if any cache miss.
-# Cache key: s3://<bucket>/wheels/<cuda>/<pkg_underscore>/<wheel_filename>
+# Cache key: s3://<bucket>/wheels/<cuda_short>/<pkg_underscore>/<wheel_filename>
+# Example: s3://dlc-cicd-wheels/wheels/cu130/flash_attn/flash_attn-2.8.3-cp312-cp312-linux_x86_64.whl
 
 set -euo pipefail
 
@@ -33,6 +34,11 @@ if [[ -z "$BUCKET" ]]; then
   exit 1
 fi
 
+# Derive short CUDA string: 13.0.2 → cu130
+CUDA_MAJOR=$(echo "$CUDA" | cut -d. -f1)
+CUDA_MINOR=$(echo "$CUDA" | cut -d. -f2)
+CUDA_SHORT="cu${CUDA_MAJOR}${CUDA_MINOR}"
+
 mkdir -p "${DEST_DIR}"
 
 ALL_HIT=true
@@ -42,9 +48,9 @@ for spec in "${SPECS[@]}"; do
   PKG="${spec%%:*}"
   VER="${spec##*:}"
   PKG_UNDER="${PKG//-/_}"
-  PREFIX="wheels/${CUDA}/${PKG_UNDER}/"
+  PREFIX="wheels/${CUDA_SHORT}/${PKG_UNDER}/"
 
-  echo "Looking for ${PKG}==${VER} (${CUDA}) in s3://${BUCKET}/${PREFIX} ..."
+  echo "Looking for ${PKG}==${VER} (${CUDA_SHORT}) in s3://${BUCKET}/${PREFIX} ..."
   aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive --exclude "*" --include "*.whl" 2>/dev/null || true
   if ls "${DEST_DIR}"/${PKG_UNDER}*.whl >/dev/null 2>&1; then
     echo "Cache hit: ${PKG}==${VER}"

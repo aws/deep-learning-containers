@@ -29,6 +29,11 @@ done
 [[ -n "$IMAGE" ]]      || { echo "ERROR: --image-uri is required" >&2; exit 1; }
 [[ -n "$DOCKERFILE" ]] || { echo "ERROR: --dockerfile is required" >&2; exit 1; }
 
+# Derive short CUDA string: 13.0.2 → cu130
+CUDA_MAJOR=$(echo "$CUDA" | cut -d. -f1)
+CUDA_MINOR=$(echo "$CUDA" | cut -d. -f2)
+CUDA_SHORT="cu${CUDA_MAJOR}${CUDA_MINOR}"
+
 EXPORT_DIR=$(mktemp -d)
 
 docker buildx build --progress=plain --target wheel-export --output "type=local,dest=${EXPORT_DIR}" \
@@ -52,7 +57,7 @@ for spec in "${SPECS[@]}"; do
   fi
 
   FNAME=$(basename "${WHL}")
-  S3_KEY="wheels/${CUDA}/${PKG_UNDER}/${FNAME}"
+  S3_KEY="wheels/${CUDA_SHORT}/${PKG_UNDER}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
     echo "Already cached: ${S3_KEY}"
