@@ -21,8 +21,7 @@ ARG OPEN_MPI_VERSION=4.1.7
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
 FROM amazonlinux:2023 AS builder-base
-ARG FRAMEWORK_VERSION=2.11.0
-ARG TORCH_SHORT_VERSION=${FRAMEWORK_VERSION%.*}
+ARG FRAMEWORK_SHORT_VERSION=2.11
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
@@ -37,7 +36,7 @@ ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-COPY docker/pytorch/${TORCH_SHORT_VERSION}/cpu/pyproject.toml docker/pytorch/${TORCH_SHORT_VERSION}/cpu/uv.lock /tmp/build/
+COPY docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cpu/pyproject.toml docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cpu/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
@@ -152,8 +151,7 @@ CMD ["bash"]
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
 FROM runtime-base AS sagemaker
-ARG FRAMEWORK_VERSION=2.11.0
-ARG TORCH_SHORT_VERSION=${FRAMEWORK_VERSION%.*}
+ARG FRAMEWORK_SHORT_VERSION=2.11
 ARG TORCH_VERSION
 
 # SageMaker BYOC paths
@@ -164,7 +162,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 # SageMaker packages (defined in cpu/pyproject.toml [project.optional-dependencies.sagemaker])
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
-COPY docker/pytorch/${TORCH_SHORT_VERSION}/cpu/pyproject.toml docker/pytorch/${TORCH_SHORT_VERSION}/cpu/uv.lock /tmp/build/
+COPY docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cpu/pyproject.toml docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cpu/uv.lock /tmp/build/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
   && rm -rf /tmp/build /tmp/uv-*
 

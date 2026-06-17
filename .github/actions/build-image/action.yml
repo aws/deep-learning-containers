@@ -105,6 +105,9 @@ runs:
         if [[ -n "${USE_PREBUILT_WHEEL:-}" ]]; then
           BUILD_ARGS+=("--build-arg" "USE_PREBUILT_WHEEL=${USE_PREBUILT_WHEEL}")
         fi
+        if [[ -n "${FRAMEWORK_SHORT_VERSION:-}" ]]; then
+          BUILD_ARGS+=("--build-arg" "FRAMEWORK_SHORT_VERSION=${FRAMEWORK_SHORT_VERSION}")
+        fi
 
         # SageMaker labels
         LABEL_ARGS=()

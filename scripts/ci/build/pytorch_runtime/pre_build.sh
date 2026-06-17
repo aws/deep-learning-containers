@@ -36,6 +36,9 @@ TRANSFORMER_ENGINE_VERSION=$(yq '.build.transformer_engine_version // ""' "$CONF
 FRAMEWORK_VERSION=$(yq '.metadata.framework_version' "$CONFIG_FILE")
 PYTORCH_SHORT=$(echo "$FRAMEWORK_VERSION" | cut -d. -f1,2)
 
+# Pass short version as build-arg for Dockerfile COPY paths
+echo "FRAMEWORK_SHORT_VERSION=${PYTORCH_SHORT}" >> "${GITHUB_ENV:-/dev/null}"
+
 DEST="docker/pytorch/${PYTORCH_SHORT}/wheels"
 mkdir -p "$DEST"
 

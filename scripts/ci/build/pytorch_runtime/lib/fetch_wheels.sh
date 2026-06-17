@@ -45,7 +45,8 @@ for spec in "${SPECS[@]}"; do
   PREFIX="wheels/${CUDA}/${PKG_UNDER}/"
 
   echo "Looking for ${PKG}==${VER} (${CUDA}) in s3://${BUCKET}/${PREFIX} ..."
-  if aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive --exclude "*" --include "*.whl" 2>/dev/null; then
+  aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive --exclude "*" --include "*.whl" 2>/dev/null || true
+  if ls "${DEST_DIR}"/${PKG_UNDER}*.whl >/dev/null 2>&1; then
     echo "Cache hit: ${PKG}==${VER}"
   else
     echo "Cache miss: ${PKG}==${VER}"
