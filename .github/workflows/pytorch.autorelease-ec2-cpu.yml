@@ -1,0 +1,22 @@
+name: "Auto Release - PyTorch EC2 CPU"
+
+on:
+  schedule:
+    - cron: '10 17 * * 1,3'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/pytorch.pipeline.yml
+    with:
+      config-file: .github/config/image/pytorch/2.11-ec2-cpu.yml
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit

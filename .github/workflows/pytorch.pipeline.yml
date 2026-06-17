@@ -1,0 +1,279 @@
+name: "Pipeline - PyTorch"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      tag-suffix:
+        description: "CI tag suffix (run_id or pr-NUMBER)"
+        required: true
+        type: string
+      build:
+        description: "Whether to build the image (false = skip build, test against prod)"
+        required: false
+        type: boolean
+        default: true
+      run-sanity-test:
+        description: "Run sanity tests"
+        required: false
+        type: boolean
+        default: true
+      run-security-test:
+        description: "Run security tests"
+        required: false
+        type: boolean
+        default: true
+      run-telemetry-test:
+        description: "Run telemetry tests"
+        required: false
+        type: boolean
+        default: true
+      run-unit-test:
+        description: "Run unit tests"
+        required: false
+        type: boolean
+        default: true
+      run-single-gpu-test:
+        description: "Run single-GPU tests (skipped for CPU images)"
+        required: false
+        type: boolean
+        default: true
+      run-efa-test:
+        description: "Run EFA tests (skipped for CPU images)"
+        required: false
+        type: boolean
+        default: true
+      release:
+        description: "Run release job after tests pass"
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      image-uri:
+        description: "Built image URI (empty if build was skipped)"
+        value: ${{ jobs.build.outputs.image-uri }}
+
+jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      device-type: ${{ steps.parse.outputs.device-type }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
+  build:
+    if: ${{ inputs.build }}
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    timeout-minutes: 720
+    env:
+      WHEEL_CACHE_BUCKET: ${{ vars.WHEEL_CACHE_BUCKET }}
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: build
+        uses: ./.github/actions/build-image
+        with:
+          config-file: ${{ inputs.config-file }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-suffix: ${{ inputs.tag-suffix }}
+
+  sanity-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.sanity-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  security-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.security-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  telemetry-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.telemetry-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  # Unit tests — CPU-only runner, works for both CPU and GPU images
+  unit-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ needs.build.outputs.image-uri || '' }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: ECR login
+        if: steps.check.outputs.exists == 'true'
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Run unit tests
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ steps.image.outputs.image-uri }} -c 'sleep infinity')
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v
+          docker kill ${CONTAINER_ID}
+
+      - name: Skip notice
+        if: steps.check.outputs.exists != 'true'
+        run: echo "Image not found in ECR — skipping tests (first release scenario)"
+
+  # Single-GPU tests — only for GPU images
+  single-gpu-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-single-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
+    needs: [build, ci-config, unit-test, sanity-test, security-test]
+    concurrency:
+      group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ needs.build.outputs.image-uri || '' }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: ECR login
+        if: steps.check.outputs.exists == 'true'
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Run single-GPU tests
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
+            --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ steps.image.outputs.image-uri }} -c 'sleep infinity')
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/single_gpu/ -v
+          docker kill ${CONTAINER_ID}
+
+      - name: Skip notice
+        if: steps.check.outputs.exists != 'true'
+        run: echo "Image not found in ECR — skipping tests (first release scenario)"
+
+  # EFA tests — only for GPU images
+  efa-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' }}
+    needs: [build, ci-config, unit-test, sanity-test, security-test]
+    concurrency:
+      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  release-gate:
+    if: ${{ inputs.release && !failure() && !cancelled() }}
+    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, efa-test]
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      release-spec: ${{ steps.spec.outputs.release-spec }}
+      environment: ${{ steps.check.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: check
+        run: |
+          SHOULD_RELEASE=$(yq '.release.release' "${{ inputs.config-file }}")
+          ENVIRONMENT=$(yq '.release.environment' "${{ inputs.config-file }}")
+          echo "should-release=${SHOULD_RELEASE}" >> $GITHUB_OUTPUT
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+      - id: spec
+        if: steps.check.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-file: ${{ inputs.config-file }}
+
+  release:
+    if: ${{ needs.release-gate.outputs.should-release == 'true' }}
+    needs: [build, release-gate]
+    uses: ./.github/workflows/_reusable.release-image.yml
+    with:
+      source-image-uri: ${{ needs.build.outputs.image-uri }}
+      release-spec: ${{ needs.release-gate.outputs.release-spec }}
+      environment: ${{ needs.release-gate.outputs.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+    secrets: inherit

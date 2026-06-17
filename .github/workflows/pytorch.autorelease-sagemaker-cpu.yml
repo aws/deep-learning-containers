@@ -1,0 +1,22 @@
+name: "Auto Release - PyTorch SageMaker CPU"
+
+on:
+  schedule:
+    - cron: '30 17 * * 1,3'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/pytorch.pipeline.yml
+    with:
+      config-file: .github/config/image/pytorch/2.11-sagemaker-cpu.yml
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit
