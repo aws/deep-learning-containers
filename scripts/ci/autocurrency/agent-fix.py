@@ -225,7 +225,7 @@ def load_context_files(framework: str, failed_jobs: list) -> dict:
             p: read_file(p)
             for p in [
                 f"docker/{framework}/Dockerfile",
-                f".github/config/image/{framework}-ec2.yml",
+                f".github/config/image/{framework}/ec2-ubuntu.yml",
                 f"test/security/data/ecr_scan_allowlist/{framework}/framework_allowlist.json",
             ]
             if read_file(p)

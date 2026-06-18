@@ -3,6 +3,9 @@ name: "Auto Release - SGLang SageMaker Ubuntu"
 on:
   schedule:
     - cron: '30 21 * * 2,4'
+  # Trigger when an auto-update PR is merged
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -13,7 +16,19 @@ permissions:
   contents: read
 
 jobs:
+  # Gate: skip push events unless it's a merged auto-update PR for sglang
+  autocurrency-pr-gate:
+    if: >-
+      github.event_name != 'push' || (
+        contains(github.event.head_commit.message, '[Auto-Update] sglang') &&
+        github.event.head_commit.author.name == 'aws-deep-learning-containers-ci[bot]'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Gate passed"
+
   discover:
+    needs: [autocurrency-pr-gate]
     runs-on: ubuntu-latest
     outputs:
       configs: ${{ steps.discover.outputs.configs }}

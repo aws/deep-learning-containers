@@ -94,10 +94,10 @@ is_newer_version() {
 
 ###############################################################################
 # get_current_version(config_file)
-#   Reads common.framework_version from a config YAML using yq.
+#   Reads metadata.framework_version from a config YAML using yq.
 #   Echoes the version string.
 #
-#   Usage: version=$(get_current_version ".github/config/image/vllm-ec2.yml")
+#   Usage: version=$(get_current_version ".github/config/image/vllm/ec2-ubuntu.yml")
 ###############################################################################
 get_current_version() {
   local config_file="${1:?Usage: get_current_version CONFIG_FILE}"
@@ -108,10 +108,10 @@ get_current_version() {
   fi
 
   local version
-  version="$(yq eval '.common.framework_version' "${config_file}")"
+  version="$(yq eval '.metadata.framework_version' "${config_file}")"
 
   if [[ -z "${version}" || "${version}" == "null" ]]; then
-    echo "Error: common.framework_version not found in ${config_file}" >&2
+    echo "Error: metadata.framework_version not found in ${config_file}" >&2
     return 1
   fi
 

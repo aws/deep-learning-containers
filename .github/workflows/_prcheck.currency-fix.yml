@@ -55,7 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
+          TRACKED="PR - vLLM Ubuntu|PR - SGLang Ubuntu"
           SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
           echo "HEAD_SHA=$SHA" >> $GITHUB_ENV
           TIMEOUT=1800
@@ -80,7 +80,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TRACKED="PR - vLLM EC2|PR - vLLM SageMaker|PR - SGLang EC2|PR - SGLang SageMaker"
+          TRACKED="PR - vLLM Ubuntu|PR - SGLang Ubuntu"
           SHA="${HEAD_SHA}"
 
           FAILED_RUN_IDS=$(gh api "/repos/${{ github.repository }}/actions/runs?head_sha=${SHA}&status=completed&per_page=50" \
