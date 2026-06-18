@@ -39,6 +39,7 @@ jobs:
       integ-test-change: ${{ steps.changes.outputs.integ-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -55,6 +56,8 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            unit-test-change:
+              - "docker/xgboost/**"
 
   discover:
     needs: [check-changes]
@@ -83,6 +86,6 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
-      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       release: false
     secrets: inherit

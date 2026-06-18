@@ -107,81 +107,16 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # Unit tests — clones sagemaker-xgboost-container, builds test image, runs pytest
   unit-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
     needs: [build]
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Resolve image URI
-        id: image
-        uses: ./.github/actions/resolve-image-uri
-        with:
-          image-uri: ${{ needs.build.outputs.image-uri || '' }}
-          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-          config-file: ${{ inputs.config-file }}
-
-      - name: Check image exists
-        id: check
-        uses: ./.github/actions/check-image-exists
-        with:
-          image-uri: ${{ steps.image.outputs.image-uri }}
-
-      - name: ECR login
-        if: steps.check.outputs.exists == 'true'
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ steps.image.outputs.image-uri }}
-
-      - name: Parse config
-        if: steps.check.outputs.exists == 'true'
-        id: config
-        run: |
-          CONFIG_FILE="${{ inputs.config-file }}"
-          echo "xgboost-branch=$(yq '.build.xgboost_container_branch // "master"' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
-
-      - name: Clone sagemaker-xgboost-container
-        if: steps.check.outputs.exists == 'true'
-        run: |
-          rm -rf /tmp/xgboost-unit
-          git clone --depth 1 --branch ${{ steps.config.outputs.xgboost-branch }} \
-            https://github.com/aws/sagemaker-xgboost-container.git /tmp/xgboost-unit
-
-      - name: Build test image
-        if: steps.check.outputs.exists == 'true'
-        run: |
-          CI_IMAGE_URI="${{ steps.image.outputs.image-uri }}"
-          cd /tmp/xgboost-unit
-          printf "FROM ${CI_IMAGE_URI}\nADD . /app\nWORKDIR /app\nRUN pip install --no-deps -e . && pip install black coverage docker flake8 isort mock pytest pytest-cov pytest-xdist 'sagemaker>=2.0,<3.0' 'protobuf>=3.20.0,<=3.20.3' tox setuptools" > Dockerfile.test
-          docker build -t test-xgboost -f Dockerfile.test .
-
-      - name: Run unit tests
-        if: steps.check.outputs.exists == 'true'
-        run: |
-          docker run --rm test-xgboost sh -c \
-            'python3 -m pytest --cov=sagemaker_xgboost_container --cov-fail-under=60 test/unit'
-
-      - name: Run flake8
-        if: steps.check.outputs.exists == 'true'
-        run: |
-          docker run --rm test-xgboost sh -c 'python3 -m flake8 setup.py src test'
-
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"
+    uses: ./.github/workflows/xgboost.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   # Integration tests — local Docker compose + SageMaker e2e
   integ-test:

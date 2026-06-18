@@ -21,7 +21,10 @@ env:
 
 jobs:
   preflight:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       exists: ${{ steps.check.outputs.exists }}
       image-uri: ${{ steps.image.outputs.image-uri }}

@@ -26,10 +26,18 @@ done
 [[ -n "$CONFIG_FILE" ]] || { echo "ERROR: --config-file is required" >&2; exit 1; }
 [[ -f "$CONFIG_FILE" ]] || { echo "ERROR: Config file not found: $CONFIG_FILE" >&2; exit 1; }
 
-XGBOOST_CONTAINER_BRANCH=$(yq '.build.xgboost_container_branch // "master"' "$CONFIG_FILE")
-XGBOOST_CONTAINER_REPO="https://github.com/aws/sagemaker-xgboost-container.git"
+FRAMEWORK_VERSION=$(yq '.metadata.framework_version' "$CONFIG_FILE")
+
+# 3.0.x builds the wheel inside its Dockerfile multi-stage — no pre_build needed.
+if [[ "$FRAMEWORK_VERSION" == 3.0* ]]; then
+  echo "XGBoost ${FRAMEWORK_VERSION} builds wheel internally — skipping"
+  exit 0
+fi
+
 DOCKERFILE=$(yq '.build.dockerfile' "$CONFIG_FILE")
 DOCKER_DIR=$(dirname "$DOCKERFILE")
+XGBOOST_CONTAINER_BRANCH=$(yq '.build.xgboost_container_branch // "master"' "$CONFIG_FILE")
+XGBOOST_CONTAINER_REPO="https://github.com/aws/sagemaker-xgboost-container.git"
 
 echo "Cloning sagemaker-xgboost-container (branch: ${XGBOOST_CONTAINER_BRANCH})..."
 rm -rf /tmp/xgboost-wheel
