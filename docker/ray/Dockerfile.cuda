@@ -63,7 +63,6 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 
 # Build Python from source with security hardening
 ARG PYTHON_VERSION=3.13.12
-ARG PYTHON_SHORT_VERSION=3.13
 COPY ./scripts/docker/common/install_python.sh /tmp/install_python.sh
 RUN bash /tmp/install_python.sh ${PYTHON_VERSION} && rm /tmp/install_python.sh
 
@@ -88,15 +87,14 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 LABEL dlc_minor_version="2"
 
-ARG PYTHON="python"
+ARG PYTHON_VERSION=3.13.12
+ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK="ray"
 ARG FRAMEWORK_VERSION="2.55.1"
 ARG CONTAINER_TYPE="inference"
 
 # Enable video capability to mount NVENC/NVDEC driver libraries
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
-
-ARG PYTHON_SHORT_VERSION=3.13
 
 # Copy Python and packages from python-builder
 COPY --from=python-builder /usr/local/bin/ /usr/local/bin/
@@ -132,7 +130,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && bash setup_oss_compliance.sh ${PYTHON} \
+  && bash setup_oss_compliance.sh python \
   && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \

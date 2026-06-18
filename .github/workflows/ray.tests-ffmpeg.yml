@@ -69,12 +69,15 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           image-uri: ${{ needs.preflight.outputs.image-uri }}
 
-      - name: Run FFmpeg codecs test
+      - name: Start container
         run: |
-          docker run --rm \
-            -v "${{ github.workspace }}:/workdir" \
-            ${{ needs.preflight.outputs.image-uri }} \
-            bash /workdir/test/ray/test_ffmpeg_codecs.sh
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.preflight.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
 
   ffmpeg-gpu:
     if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.device-type == 'gpu' }}
@@ -94,9 +97,15 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           image-uri: ${{ needs.preflight.outputs.image-uri }}
 
-      - name: Run FFmpeg GPU test
+      - name: Start container
         run: |
-          docker run --rm --gpus all \
-            -v "${{ github.workspace }}:/workdir" \
-            ${{ needs.preflight.outputs.image-uri }} \
-            bash /workdir/test/ray/test_ffmpeg_gpu.sh
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ needs.preflight.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run FFmpeg codecs test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_codecs.sh
+
+      - name: Run FFmpeg GPU test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_gpu.sh

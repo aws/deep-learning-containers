@@ -108,6 +108,10 @@ runs:
         if [[ -n "${FRAMEWORK_SHORT_VERSION:-}" ]]; then
           BUILD_ARGS+=("--build-arg" "FRAMEWORK_SHORT_VERSION=${FRAMEWORK_SHORT_VERSION}")
         fi
+        if [[ -n "${PYTHON_VERSION:-}" ]]; then
+          PYTHON_SHORT_VERSION=$(echo "${PYTHON_VERSION}" | cut -d. -f1,2)
+          BUILD_ARGS+=("--build-arg" "PYTHON_SHORT_VERSION=${PYTHON_SHORT_VERSION}")
+        fi
 
         # SageMaker labels
         LABEL_ARGS=()

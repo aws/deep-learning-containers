@@ -184,7 +184,7 @@ jobs:
       - name: Check standard SageMaker labels
         run: |
           source .venv/bin/activate
-          PYTHON_SHORT="py$(echo '${{ needs.preflight.outputs.python-version }}' | tr -d '.')"
+          PYTHON_SHORT="py$(echo '${{ needs.preflight.outputs.python-version }}' | cut -d. -f1,2 | tr -d '.')"
           CUDA_SHORT=""
           if [ -n "${{ needs.preflight.outputs.cuda-version }}" ]; then
             CUDA_SHORT="cu$(echo '${{ needs.preflight.outputs.cuda-version }}' | tr -d '.' | cut -c1-3)"

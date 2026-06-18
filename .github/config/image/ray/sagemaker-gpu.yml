@@ -14,7 +14,7 @@ metadata:
   prod_image: "ray:serve-ml-sagemaker-cuda"
 
 build:
-  dockerfile: "docker/ray/Dockerfile.gpu"
+  dockerfile: "docker/ray/Dockerfile.cuda"
   target: "ray-sagemaker-gpu"
   python_version: "3.13.12"
   cuda_version: "12.9.1"
