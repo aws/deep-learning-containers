@@ -1,4 +1,35 @@
 {
+  "mesa": [
+    {
+      "description": "An issue was discovered in the mesa graphics library, as distributed by Ubuntu 22.04 in version 23.0.4-0ubuntu1~22.04.1.",
+      "vulnerability_id": "CVE-2026-40393",
+      "name": "CVE-2026-40393",
+      "package_name": "mesa",
+      "package_details": {
+        "file_path": null,
+        "name": "mesa",
+        "package_manager": "OS",
+        "version": "23.0.4",
+        "release": "0ubuntu1~22.04.1"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 0.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 0.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2026/CVE-2026-40393.html",
+      "source": "UBUNTU_CVE",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2026-40393 - mesa",
+      "reason_to_ignore": "N/A"
+    }
+  ],
   "flash_attn": [
     {
       "description": "The flash-attention training framework thru commit e724e2588cbe754beb97cf7c011b5e7e34119e62 (2025-13-04) contains an insecure deserialization vulnerability (CWE-502) in its checkpoint loading mechanism. The load_checkpoint() function in checkpoint.py and the checkpoint loading code in eval.py use torch.load() without enabling the security-restrictive weights_only=True parameter. This allows the deserialization of arbitrary Python objects via the pickle module. An attacker can exploit this by providing a maliciously crafted checkpoint file. When a victim loads this checkpoint during model warmstarting or evaluation, arbitrary code is executed on the victim's system.",
