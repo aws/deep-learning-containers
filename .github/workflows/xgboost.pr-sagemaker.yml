@@ -3,19 +3,19 @@ name: "PR - XGBoost SageMaker"
 on:
   # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/xgboost/*.yml"
-      - ".github/workflows/xgboost.pipeline.yml"
-      - ".github/workflows/xgboost.pr-sagemaker.yml"
-      - "docker/xgboost/**"
-      - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/xgboost/**"
-      - "test/telemetry/**"
-      - "test/xgboost/**"
-      - "!docs/**"
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/xgboost/*.yml"
+  #     - ".github/workflows/xgboost.pipeline.yml"
+  #     - ".github/workflows/xgboost.pr-sagemaker.yml"
+  #     - "docker/xgboost/**"
+  #     - "test/sanity/**"
+  #     - "test/security/data/ecr_scan_allowlist/xgboost/**"
+  #     - "test/telemetry/**"
+  #     - "test/xgboost/**"
+  #     - "!docs/**"
 
 permissions:
   contents: read
