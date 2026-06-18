@@ -256,9 +256,11 @@ RUN mkdir -p /usr/local/nvidia/pip-lib \
 
 # Copy sglang workspace (needed for editable pip install)
 COPY --from=builder /sgl-workspace /sgl-workspace
+# Drop build-only source (rust/ Cargo.lock trips the CVE scan; binary already copied)
 RUN rm -rf /sgl-workspace/sglang/sgl-model-gateway \
   /sgl-workspace/DeepEP \
-  /sgl-workspace/sglang/.git
+  /sgl-workspace/sglang/.git \
+  /sgl-workspace/sglang/rust
 
 # Copy sglang-router binary
 COPY --from=builder /usr/local/bin/sglang-router /usr/local/bin/sglang-router
@@ -272,13 +274,11 @@ RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 # Install DLC Python dependencies
 RUN uv pip install --system --no-cache botocore
 
-# runai-model-streamer for S3/GCS/Azure weight streaming. sglang[all] omits the
-# [s3] extra, so install explicitly.
+# runai-model-streamer S3 extra (not pulled by sglang[all])
 RUN uv pip install --system --no-cache \
   "runai-model-streamer[s3,gcs,azure]>=0.15.7"
 
-# NIXL: KV connector for PD-disaggregation. The `nixl` stub hard-pins nixl-cu12, so
-# install --no-deps and pair with the matching CUDA binary.
+# NIXL KV connector for PD-disaggregation (--no-deps to skip the stub's cu12 pin)
 RUN CUDA_MAJOR=$(echo ${CUDA_REF} | cut -d. -f1) \
   && uv pip install --system --no-cache --no-deps nixl "nixl-cu${CUDA_MAJOR}"
 
@@ -290,6 +290,7 @@ RUN uv pip install --system --no-cache --prerelease=allow \
   "xgrammar>=0.1.32" \
   "setuptools>=78.1.1" \
   "aiohttp>=3.14.0" \
+  "starlette>=1.3.1" \
   # kernels<0.15: 0.15.x breaks transformers hub_kernels LayerRepository() init
   "kernels<0.15"
 

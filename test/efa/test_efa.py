@@ -26,9 +26,7 @@ from efa.ec2_helpers import (
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 EFA_INSTANCE_TYPE = os.environ.get("EFA_INSTANCE_TYPE", "p4d.24xlarge")
 RUN_NIXL_TESTS = os.environ.get("RUN_NIXL_TESTS", "0") == "1"
-# Disagg PD orchestrator scripts are vLLM-specific (vllm serve, VLLM_NIXL_*).
-# Frameworks without those scripts (e.g. SGLang) set RUN_NIXL_DISAGG=0 to run the
-# framework-agnostic libfabric smoke test only.
+# Disagg-PD orchestration is vLLM-specific; set 0 to run the libfabric smoke only.
 RUN_NIXL_DISAGG = os.environ.get("RUN_NIXL_DISAGG", "1") == "1"
 NIXL_MODEL = os.environ.get("NIXL_TEST_MODEL", "facebook/opt-125m")
 

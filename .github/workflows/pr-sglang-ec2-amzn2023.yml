@@ -238,12 +238,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit
 
-  # ============================================================
-  # EFA integration test (NCCL over EFA) + NIXL libfabric smoke.
-  # Reuses the shared EFA test (test/efa/test_efa.py). NIXL smoke verifies the
-  # nixl-cu13 wheel ships the LIBFABRIC plugin and binds the EFA provider.
-  # Disagg-PD is vLLM-specific (run-nixl-disagg: false).
-  # ============================================================
+  # EFA test + NIXL libfabric smoke (disagg-PD is vLLM-specific, so disabled)
   efa-test:
     needs: [check-changes, build-image, sanity-test, security-test, load-config]
     if: |
@@ -259,7 +254,6 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       run-nixl-tests: true
       run-nixl-disagg: false
-      # SGLang's entrypoint execs `sglang.launch_server "$@"` and would parse any
-      # CMD as a launch arg — override to bash and keep the container alive.
+      # Override the launch_server entrypoint so the container stays up for docker exec
       container-entrypoint: /bin/bash
       container-cmd: -c 'sleep infinity'
