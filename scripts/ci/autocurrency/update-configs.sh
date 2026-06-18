@@ -21,8 +21,8 @@ source "${SCRIPT_DIR}/utils.sh"
 #
 #   Usage:
 #     updated=$(update_config_files "vllm" "0.17.0" '[
-#       {"path": ".github/config/image/vllm-ec2.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312-ec2"},
-#       {"path": ".github/config/image/vllm-sagemaker.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312"}
+#       {"path": ".github/config/image/vllm/ec2-ubuntu.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312-ec2"},
+#       {"path": ".github/config/image/vllm/sagemaker-ubuntu.yml", "prod_image_template": "vllm:{major}.{minor}-gpu-py312"}
 #     ]')
 ###############################################################################
 update_config_files() {
@@ -131,8 +131,8 @@ update_dockerfiles() {
 #       {
 #         "pattern": "test/vllm/scripts/vllm_{version_underscored}_test_setup.sh",
 #         "workflow_files": [
-#           ".github/workflows/autorelease-vllm-sagemaker.yml",
-#           ".github/workflows/autorelease-vllm-ec2.yml"
+#           ".github/workflows/vllm.autorelease-sagemaker-ubuntu.yml",
+#           ".github/workflows/vllm.autorelease-ec2-ubuntu.yml"
 #         ]
 #       }
 #
@@ -140,8 +140,8 @@ update_dockerfiles() {
 #     updated=$(rename_test_setup_script "0.16.0" "0.17.0" '{
 #       "pattern": "test/vllm/scripts/vllm_{version_underscored}_test_setup.sh",
 #       "workflow_files": [
-#         ".github/workflows/autorelease-vllm-sagemaker.yml",
-#         ".github/workflows/autorelease-vllm-ec2.yml"
+#         ".github/workflows/vllm.autorelease-sagemaker-ubuntu.yml",
+#         ".github/workflows/vllm.autorelease-ec2-ubuntu.yml"
 #       ]
 #     }')
 ###############################################################################
