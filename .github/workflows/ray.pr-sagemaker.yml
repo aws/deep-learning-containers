@@ -3,20 +3,20 @@ name: "PR - Ray SageMaker"
 on:
   # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/ray/sagemaker-*.yml"
-      - ".github/workflows/ray.pipeline.yml"
-      - ".github/workflows/ray.pr-sagemaker.yml"
-      - "docker/ray/**"
-      - "scripts/docker/common/**"
-      - "scripts/docker/ray/**"
-      - "test/ray/**"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - "!docs/**"
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/ray/sagemaker-*.yml"
+  #     - ".github/workflows/ray.pipeline.yml"
+  #     - ".github/workflows/ray.pr-sagemaker.yml"
+  #     - "docker/ray/**"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/ray/**"
+  #     - "test/ray/**"
+  #     - "test/sanity/**"
+  #     - "test/telemetry/**"
+  #     - "!docs/**"
 
 permissions:
   contents: read
