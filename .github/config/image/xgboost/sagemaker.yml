@@ -18,6 +18,7 @@ build:
   target: "xgboost-sagemaker"
   base_image: "nvidia/cuda:12.9.1-base-amzn2023"
   python_version: "3.12"
+  xgboost_container_branch: "master"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

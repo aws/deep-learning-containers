@@ -18,6 +18,7 @@ build:
   target: "xgboost-sagemaker"
   base_image: "nvidia/cuda:12.6.0-base-ubuntu20.04"
   python_version: "3.10"
+  xgboost_container_branch: "release-3.0.5"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
