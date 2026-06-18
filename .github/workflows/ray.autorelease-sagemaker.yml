@@ -1,8 +1,8 @@
-name: "Auto Release - Ray"
+name: "Auto Release - Ray SageMaker"
 
 on:
   schedule:
-    - cron: '00 20 * * 2,4'
+    - cron: '00 21 * * 2,4'
   workflow_dispatch:
 
 concurrency:
@@ -22,7 +22,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/ray/*.yml"
+          pattern: ".github/config/image/ray/sagemaker-*.yml"
 
   pipeline:
     needs: [discover]

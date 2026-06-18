@@ -1,4 +1,4 @@
-name: "PR - Ray SageMaker"
+name: "PR - SGLang AL2023"
 
 on:
   # TEMP: Enable after all frameworks are refactored
@@ -7,14 +7,18 @@ on:
   #   branches: [main]
   #   types: [opened, reopened, synchronize]
   #   paths:
-  #     - ".github/config/image/ray/sagemaker-*.yml"
-  #     - ".github/workflows/ray.pipeline.yml"
-  #     - ".github/workflows/ray.pr-sagemaker.yml"
-  #     - "docker/ray/**"
+  #     - ".github/config/image/sglang/*-amzn2023.yml"
+  #     - ".github/config/model-tests/sglang-model-tests.yml"
+  #     - ".github/workflows/sglang.pipeline.yml"
+  #     - ".github/workflows/sglang.pr-amzn2023.yml"
+  #     - "docker/sglang/Dockerfile.amzn2023"
   #     - "scripts/docker/common/**"
-  #     - "scripts/docker/ray/**"
-  #     - "test/ray/**"
+  #     - "scripts/docker/sglang/**"
+  #     - "scripts/docker/telemetry/**"
   #     - "test/sanity/**"
+  #     - "test/security/data/ecr_scan_allowlist/sglang_server/**"
+  #     - "test/sglang/sagemaker/**"
+  #     - "test/sglang/scripts/**"
   #     - "test/telemetry/**"
   #     - "!docs/**"
 
@@ -37,10 +41,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
-      ffmpeg-test-change: ${{ steps.changes.outputs.ffmpeg-test-change }}
+      model-test-change: ${{ steps.changes.outputs.model-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -48,20 +53,23 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/ray/sagemaker-*.yml"
-              - "docker/ray/**"
+              - ".github/config/image/sglang/*-amzn2023.yml"
+              - "docker/sglang/Dockerfile.amzn2023"
               - "scripts/docker/common/**"
-              - "scripts/docker/ray/**"
-              - "test/security/data/ecr_scan_allowlist/ray/**"
-            ffmpeg-test-change:
-              - "test/ray/test_ffmpeg_codecs.sh"
-              - "test/ray/test_ffmpeg_gpu.sh"
+              - "scripts/docker/sglang/**"
+              - "test/security/data/ecr_scan_allowlist/sglang_server/**"
+            model-test-change:
+              - ".github/config/model-tests/sglang-model-tests.yml"
+              - "test/sglang/scripts/**"
             sagemaker-test-change:
-              - "test/ray/sagemaker/**"
+              - "test/sglang/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
+              - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
+            upstream-test-change:
+              - "test/sglang/scripts/**"
 
   discover:
     needs: [check-changes]
@@ -73,7 +81,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/ray/sagemaker-*.yml"
+          pattern: ".github/config/image/sglang/*-amzn2023.yml"
 
   pipeline:
     needs: [check-changes, discover]
@@ -81,7 +89,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.discover.outputs.configs) }}
-    uses: ./.github/workflows/ray.pipeline.yml
+    uses: ./.github/workflows/sglang.pipeline.yml
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
@@ -89,8 +97,8 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
-      run-ffmpeg-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ffmpeg-test-change == 'true' }}
-      run-serve-test: false
+      run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
+      run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false
     secrets: inherit

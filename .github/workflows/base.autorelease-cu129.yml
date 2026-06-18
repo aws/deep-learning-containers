@@ -1,4 +1,4 @@
-name: "Auto Release - Base Runtime"
+name: "Auto Release - Base cu129"
 
 on:
   schedule:
@@ -22,7 +22,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/base/*-runtime.yml"
+          pattern: ".github/config/image/base/cu129-*.yml"
 
   pipeline:
     needs: [discover]

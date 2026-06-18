@@ -1,4 +1,4 @@
-name: "PR - SGLang SageMaker AL2023"
+name: "PR - vLLM AL2023"
 
 on:
   # TEMP: Enable after all frameworks are refactored
@@ -7,17 +7,20 @@ on:
   #   branches: [main]
   #   types: [opened, reopened, synchronize]
   #   paths:
-  #     - ".github/config/image/sglang/sagemaker-amzn2023.yml"
-  #     - ".github/config/model-tests/sglang-model-tests.yml"
-  #     - ".github/workflows/sglang.pipeline.yml"
-  #     - ".github/workflows/sglang.pr-sagemaker-amzn2023.yml"
-  #     - "docker/sglang/Dockerfile.amzn2023"
+  #     - ".github/config/image/vllm/*-amzn2023.yml"
+  #     - ".github/config/model-tests/vllm-model-tests.yml"
+  #     - ".github/workflows/vllm.pipeline.yml"
+  #     - ".github/workflows/vllm.pr-amzn2023.yml"
+  #     - "docker/vllm/Dockerfile.amzn2023"
   #     - "scripts/docker/common/**"
-  #     - "scripts/docker/sglang/**"
+  #     - "scripts/docker/telemetry/**"
+  #     - "scripts/docker/vllm/**"
+  #     - "test/efa/**"
   #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/sglang_server/**"
-  #     - "test/sglang/**"
+  #     - "test/security/data/ecr_scan_allowlist/vllm_server/**"
   #     - "test/telemetry/**"
+  #     - "test/vllm/sagemaker/**"
+  #     - "test/vllm/scripts/**"
   #     - "!docs/**"
 
 permissions:
@@ -39,6 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
       model-test-change: ${{ steps.changes.outputs.model-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
@@ -51,28 +55,51 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/sglang/sagemaker-amzn2023.yml"
-              - "docker/sglang/Dockerfile.amzn2023"
+              - ".github/config/image/vllm/*-amzn2023.yml"
+              - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/docker/common/**"
-              - "scripts/docker/sglang/**"
-              - "test/security/data/ecr_scan_allowlist/sglang_server/**"
+              - "scripts/docker/vllm/**"
+              - "test/security/data/ecr_scan_allowlist/vllm_server/**"
+            efa-test-change:
+              - "test/efa/**"
             model-test-change:
-              - ".github/config/model-tests/sglang-model-tests.yml"
-              - "test/sglang/scripts/**"
+              - ".github/config/model-tests/vllm-model-tests.yml"
+              - "test/vllm/scripts/**"
             sagemaker-test-change:
-              - "test/sglang/sagemaker/**"
+              - "test/vllm/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
+              - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
             upstream-test-change:
-              - "test/sglang/scripts/**"
+              - "test/vllm/scripts/**"
+
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.filter.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/vllm/*-amzn2023.yml"
+      - id: filter
+        run: |
+          FILTERED=$(echo '${{ steps.discover.outputs.configs }}' | jq -c '[.[] | select(.name | contains("hyperpod") | not)]')
+          echo "configs=${FILTERED}" >> $GITHUB_OUTPUT
 
   pipeline:
-    needs: [check-changes]
-    uses: ./.github/workflows/sglang.pipeline.yml
+    needs: [discover, check-changes]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/vllm.pipeline.yml
     with:
-      config-file: .github/config/image/sglang/sagemaker-amzn2023.yml
+      config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
@@ -81,5 +108,6 @@ jobs:
       run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
     secrets: inherit

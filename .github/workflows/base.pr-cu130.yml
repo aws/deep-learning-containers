@@ -1,4 +1,4 @@
-name: "PR - Base Development"
+name: "PR - Base cu130"
 
 on:
   # TEMP: Enable after all frameworks are refactored
@@ -7,12 +7,13 @@ on:
   #   branches: [main]
   #   types: [opened, reopened, synchronize]
   #   paths:
-  #     - ".github/config/image/base/cu*-devel.yml"
+  #     - ".github/config/image/base/cu130-*.yml"
   #     - ".github/workflows/base.pipeline.yml"
-  #     - ".github/workflows/base.pr-devel.yml"
-  #     - "docker/base/**"
+  #     - ".github/workflows/base.pr-cu130.yml"
+  #     - "docker/base/cu130/**"
   #     - "scripts/docker/common/**"
   #     - "test/sanity/**"
+  #     - "test/security/data/ecr_scan_allowlist/base/**"
   #     - "test/security/data/ecr_scan_allowlist/base_dlc/**"
   #     - "!docs/**"
 
@@ -30,18 +31,6 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/pr-permission-gate
 
-  discover:
-    needs: [gatekeeper]
-    runs-on: ubuntu-latest
-    outputs:
-      configs: ${{ steps.discover.outputs.configs }}
-    steps:
-      - uses: actions/checkout@v6
-      - id: discover
-        uses: ./.github/actions/discover-configs
-        with:
-          pattern: ".github/config/image/base/*-devel.yml"
-
   check-changes:
     needs: [gatekeeper]
     runs-on: ubuntu-latest
@@ -55,16 +44,28 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/base/cu*-devel.yml"
-              - "docker/base/**"
+              - ".github/config/image/base/cu130-*.yml"
+              - "docker/base/cu130/**"
               - "scripts/docker/common/**"
               - "test/security/data/ecr_scan_allowlist/base/**"
               - "test/security/data/ecr_scan_allowlist/base_dlc/**"
             sanity-test-change:
               - "test/sanity/**"
 
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/base/cu130-*.yml"
+
   pipeline:
-    needs: [discover, check-changes]
+    needs: [check-changes, discover]
     strategy:
       fail-fast: false
       matrix:

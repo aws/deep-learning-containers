@@ -1,4 +1,4 @@
-name: "PR - vLLM SageMaker Ubuntu"
+name: "PR - vLLM Ubuntu"
 
 on:
   # TEMP: Enable after all frameworks are refactored
@@ -7,17 +7,20 @@ on:
   #   branches: [main]
   #   types: [opened, reopened, synchronize]
   #   paths:
-  #     - ".github/config/image/vllm/sagemaker-ubuntu.yml"
+  #     - ".github/config/image/vllm/*-ubuntu.yml"
   #     - ".github/config/model-tests/vllm-model-tests.yml"
   #     - ".github/workflows/vllm.pipeline.yml"
-  #     - ".github/workflows/vllm.pr-sagemaker-ubuntu.yml"
+  #     - ".github/workflows/vllm.pr-ubuntu.yml"
   #     - "docker/vllm/Dockerfile"
   #     - "scripts/docker/common/**"
+  #     - "scripts/docker/telemetry/**"
   #     - "scripts/docker/vllm/**"
+  #     - "test/efa/**"
   #     - "test/sanity/**"
   #     - "test/security/data/ecr_scan_allowlist/vllm/**"
   #     - "test/telemetry/**"
-  #     - "test/vllm/**"
+  #     - "test/vllm/sagemaker/**"
+  #     - "test/vllm/scripts/**"
   #     - "!docker/vllm/Dockerfile.amzn2023"
   #     - "!docs/**"
 
@@ -40,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
       model-test-change: ${{ steps.changes.outputs.model-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
@@ -52,11 +56,13 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/vllm/sagemaker-ubuntu.yml"
+              - ".github/config/image/vllm/*-ubuntu.yml"
               - "docker/vllm/Dockerfile"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/**"
               - "test/security/data/ecr_scan_allowlist/vllm/**"
+            efa-test-change:
+              - "test/efa/**"
             model-test-change:
               - ".github/config/model-tests/vllm-model-tests.yml"
               - "test/vllm/scripts/**"
@@ -65,23 +71,40 @@ jobs:
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
+              - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
             upstream-test-change:
               - "test/vllm/scripts/**"
 
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/vllm/*-ubuntu.yml"
+
   pipeline:
-    needs: [check-changes]
+    needs: [discover, check-changes]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
     uses: ./.github/workflows/vllm.pipeline.yml
     with:
-      config-file: .github/config/image/vllm/sagemaker-ubuntu.yml
+      config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      # TEMP: Disabled while debugging upstream tests
-      run-sanity-test: false
-      run-security-test: false
-      run-telemetry-test: false
+      run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
-      run-model-test: false
-      run-sagemaker-test: false
+      run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
     secrets: inherit

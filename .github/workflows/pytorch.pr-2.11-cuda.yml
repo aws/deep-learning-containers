@@ -1,4 +1,4 @@
-name: "PR - PyTorch EC2 CUDA"
+name: "PR - PyTorch 2.11 CUDA"
 
 on:
   # TEMP: Enable after all frameworks are refactored
@@ -7,15 +7,20 @@ on:
   #   branches: [main]
   #   types: [opened, reopened, synchronize]
   #   paths:
-  #     - ".github/config/image/pytorch/*-ec2-cuda.yml"
+  #     - ".github/config/image/pytorch/2.11-*-cuda.yml"
   #     - ".github/workflows/pytorch.pipeline.yml"
-  #     - ".github/workflows/pytorch.pr-ec2-cuda.yml"
-  #     - "docker/pytorch/*/Dockerfile.cuda"
+  #     - ".github/workflows/pytorch.pr-2.11-cuda.yml"
+  #     - "docker/pytorch/2.11/Dockerfile.cuda"
   #     - "scripts/docker/common/**"
   #     - "scripts/docker/pytorch/**"
+  #     - "scripts/docker/telemetry/**"
   #     - "test/efa/**"
-  #     - "test/pytorch/**"
+  #     - "test/pytorch/multi_gpu/**"
+  #     - "test/pytorch/multi_node/**"
+  #     - "test/pytorch/single_gpu/**"
+  #     - "test/pytorch/unit/**"
   #     - "test/sanity/**"
+  #     - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
   #     - "test/telemetry/**"
   #     - "!docs/**"
 
@@ -52,10 +57,11 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/pytorch/*-ec2-cuda.yml"
-              - "docker/pytorch/*/Dockerfile.cuda"
+              - ".github/config/image/pytorch/2.11-*-cuda.yml"
+              - "docker/pytorch/2.11/Dockerfile.cuda"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"
+              - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
             efa-test-change:
               - "test/efa/**"
             multi-gpu-test-change:
@@ -67,15 +73,32 @@ jobs:
             single-gpu-test-change:
               - "test/pytorch/single_gpu/**"
             telemetry-test-change:
+              - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
             unit-test-change:
               - "test/pytorch/unit/**"
 
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/pytorch/2.11-*-cuda.yml"
+
   pipeline:
-    needs: [check-changes]
+    needs: [check-changes, discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
     uses: ./.github/workflows/pytorch.pipeline.yml
     with:
-      config-file: .github/config/image/pytorch/2.11-ec2-cuda.yml
+      config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}

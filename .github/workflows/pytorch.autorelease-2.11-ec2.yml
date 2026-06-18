@@ -1,8 +1,8 @@
-name: "Auto Release - PyTorch SageMaker CUDA"
+name: "Auto Release - PyTorch 2.11 EC2"
 
 on:
   schedule:
-    - cron: '20 17 * * 1,3'
+    - cron: '00 17 * * 1,3'
   workflow_dispatch:
 
 concurrency:
@@ -22,7 +22,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/pytorch/*-sagemaker-cuda.yml"
+          pattern: ".github/config/image/pytorch/2.11-ec2-*.yml"
 
   pipeline:
     needs: [discover]

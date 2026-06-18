@@ -1,4 +1,4 @@
-name: "PR - XGBoost SageMaker"
+name: "PR - XGBoost 3.2"
 
 on:
   # TEMP: Enable after all frameworks are refactored
@@ -7,10 +7,12 @@ on:
   #   branches: [main]
   #   types: [opened, reopened, synchronize]
   #   paths:
-  #     - ".github/config/image/xgboost/*.yml"
+  #     - ".github/config/image/xgboost/sagemaker.yml"
   #     - ".github/workflows/xgboost.pipeline.yml"
-  #     - ".github/workflows/xgboost.pr-sagemaker.yml"
-  #     - "docker/xgboost/**"
+  #     - ".github/workflows/xgboost.pr-3.2.yml"
+  #     - "docker/xgboost/Dockerfile"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/xgboost/**"
   #     - "test/sanity/**"
   #     - "test/security/data/ecr_scan_allowlist/xgboost/**"
   #     - "test/telemetry/**"
@@ -47,8 +49,10 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/xgboost/*.yml"
-              - "docker/xgboost/**"
+              - ".github/config/image/xgboost/sagemaker.yml"
+              - "docker/xgboost/Dockerfile"
+              - "scripts/docker/common/**"
+              - "scripts/docker/xgboost/**"
               - "test/security/data/ecr_scan_allowlist/xgboost/**"
             integ-test-change:
               - "test/xgboost/**"
@@ -57,7 +61,7 @@ jobs:
             telemetry-test-change:
               - "test/telemetry/**"
             unit-test-change:
-              - "docker/xgboost/**"
+              - "docker/xgboost/Dockerfile"
 
   discover:
     needs: [check-changes]
@@ -69,7 +73,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/xgboost/*.yml"
+          pattern: ".github/config/image/xgboost/sagemaker.yml"
 
   pipeline:
     needs: [check-changes, discover]
