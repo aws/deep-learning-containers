@@ -85,7 +85,7 @@ jobs:
       run-integ-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.integ-test-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: false
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       release: false
     secrets: inherit

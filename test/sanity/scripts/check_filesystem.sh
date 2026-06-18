@@ -38,6 +38,8 @@ for F in /tmp/.* /tmp/*; do
     *System*)     continue ;;
     *dkms*)       continue ;;
     *hsperfdata*) continue ;;
+    plugins)      continue ;;  # MMS endpoint plugin jar (xgboost)
+    git-secrets)  continue ;;  # sagemaker-debugger build artifact
   esac
   echo "FAIL: Unexpected file in /tmp: $NAME"
   FAILED=1

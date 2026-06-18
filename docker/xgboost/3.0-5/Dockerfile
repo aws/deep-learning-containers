@@ -250,4 +250,10 @@ ENV SM_INPUT=/opt/ml/input \
   SAGEMAKER_SERVING_MODULE=sagemaker_xgboost_container.serving:main \
   TEMP=/home/model-server/tmp
 
+# Security refresh — bust cache to pull latest patches
+ARG CACHE_REFRESH
+RUN apt-get update && apt-get upgrade -y \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN python3 -m pip install --no-cache-dir --upgrade cryptography
+
 EXPOSE 8080
