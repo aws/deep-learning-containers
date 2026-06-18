@@ -37,12 +37,7 @@ git clone --depth 1 --branch "${XGBOOST_CONTAINER_BRANCH}" "${XGBOOST_CONTAINER_
 
 echo "Building wheel..."
 cd /tmp/xgboost-wheel
-uv venv /tmp/xgboost-venv
-source /tmp/xgboost-venv/bin/activate
-uv pip install setuptools wheel packaging
-python setup.py bdist_wheel
-deactivate
-
+uv build --wheel --out-dir dist
 echo "Placing wheel in build context (${DOCKER_DIR}/prebuilt.whl)..."
 cp /tmp/xgboost-wheel/dist/*.whl "${OLDPWD}/${DOCKER_DIR}/prebuilt.whl"
 cd "${OLDPWD}"
@@ -50,4 +45,4 @@ cd "${OLDPWD}"
 echo "XGBoost wheel ready: $(ls ${DOCKER_DIR}/prebuilt.whl)"
 
 echo "Cleaning up build artifacts..."
-rm -rf /tmp/xgboost-wheel /tmp/xgboost-venv
+rm -rf /tmp/xgboost-wheel
