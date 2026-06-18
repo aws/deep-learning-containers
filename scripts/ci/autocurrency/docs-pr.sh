@@ -7,7 +7,7 @@
 # can source the helper functions without triggering execution).
 #
 # Usage:
-#   bash scripts/autocurrency/docs-pr.sh <release-spec-yaml> [metadata-file]
+#   bash scripts/ci/autocurrency/docs-pr.sh <release-spec-yaml> [metadata-file]
 #
 # Arguments:
 #   release-spec-yaml — Path to the release specification YAML file

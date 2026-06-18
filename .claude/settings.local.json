@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//local/home/kwanggg/.aim/cc-plugins/**)",
+      "Read(//workplace/kwanggg/AsimovAgent/src/AsimovBuilderCoreContext/**)",
+      "Bash(mkdir -p /local/home/kwanggg/.aim/cc-plugins/local-AsimovBuilderCoreContext-all/skills/pytorch-currency)",
+      "Bash(cp /workplace/kwanggg/AsimovAgent/src/AsimovBuilderCoreContext/.claude/skills/pytorch-currency/SKILL.md /local/home/kwanggg/.aim/cc-plugins/local-AsimovBuilderCoreContext-all/skills/pytorch-currency/SKILL.md)",
+      "mcp__builder-mcp__InternalSearch",
+      "mcp__builder-mcp__ReadInternalWebsites",
+      "mcp__builder-mcp__InternalCodeSearch"
+    ]
+  }
+}
