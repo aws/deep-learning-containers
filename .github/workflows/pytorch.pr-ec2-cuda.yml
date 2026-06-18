@@ -33,18 +33,6 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/pr-permission-gate
 
-  discover:
-    needs: [gatekeeper]
-    runs-on: ubuntu-latest
-    outputs:
-      configs: ${{ steps.discover.outputs.configs }}
-    steps:
-      - uses: actions/checkout@v6
-      - id: discover
-        uses: ./.github/actions/discover-configs
-        with:
-          pattern: ".github/config/image/pytorch/*-ec2-cuda.yml"
-
   check-changes:
     needs: [gatekeeper]
     runs-on: ubuntu-latest
@@ -74,24 +62,20 @@ jobs:
               - "test/pytorch/multi_gpu/**"
             multi-node-test-change:
               - "test/pytorch/multi_node/**"
-            single-gpu-test-change:
-              - "test/pytorch/single_gpu/**"
             sanity-test-change:
               - "test/sanity/**"
+            single-gpu-test-change:
+              - "test/pytorch/single_gpu/**"
             telemetry-test-change:
               - "test/telemetry/**"
             unit-test-change:
               - "test/pytorch/unit/**"
 
   pipeline:
-    needs: [discover, check-changes]
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    needs: [check-changes]
     uses: ./.github/workflows/pytorch.pipeline.yml
     with:
-      config-file: ${{ matrix.config_file }}
+      config-file: .github/config/image/pytorch/2.11-ec2-cuda.yml
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}

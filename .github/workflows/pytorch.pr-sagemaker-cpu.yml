@@ -32,18 +32,6 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/pr-permission-gate
 
-  discover:
-    needs: [gatekeeper]
-    runs-on: ubuntu-latest
-    outputs:
-      configs: ${{ steps.discover.outputs.configs }}
-    steps:
-      - uses: actions/checkout@v6
-      - id: discover
-        uses: ./.github/actions/discover-configs
-        with:
-          pattern: ".github/config/image/pytorch/*-sagemaker-cpu.yml"
-
   check-changes:
     needs: [gatekeeper]
     runs-on: ubuntu-latest
@@ -71,14 +59,10 @@ jobs:
               - "test/pytorch/unit/**"
 
   pipeline:
-    needs: [discover, check-changes]
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    needs: [check-changes]
     uses: ./.github/workflows/pytorch.pipeline.yml
     with:
-      config-file: ${{ matrix.config_file }}
+      config-file: .github/config/image/pytorch/2.11-sagemaker-cpu.yml
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-efa-test: false
