@@ -2,7 +2,7 @@ name: "Auto Release - Base cu130"
 
 on:
   schedule:
-    - cron: '50 20 * * 1,3'
+    - cron: '30 22 * * 1,3'
   workflow_dispatch:
 
 concurrency:

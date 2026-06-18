@@ -2,7 +2,7 @@ name: "Auto Release - vLLM-Omni SageMaker"
 
 on:
   schedule:
-    - cron: '00 21 * * 2,4'
+    - cron: '00 22 * * 2,4'
   workflow_dispatch:
 
 concurrency:

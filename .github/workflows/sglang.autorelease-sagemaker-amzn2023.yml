@@ -2,7 +2,7 @@ name: "Auto Release - SGLang SageMaker AL2023"
 
 on:
   schedule:
-    - cron: '00 20 * * 2,4'
+    - cron: '00 18 * * 2,4'
   workflow_dispatch:
 
 concurrency:

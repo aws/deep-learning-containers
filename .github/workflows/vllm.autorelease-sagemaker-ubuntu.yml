@@ -2,7 +2,7 @@ name: "Auto Release - vLLM SageMaker Ubuntu"
 
 on:
   schedule:
-    - cron: '00 20 * * 1,3'
+    - cron: '30 21 * * 1,3'
   workflow_dispatch:
 
 concurrency:

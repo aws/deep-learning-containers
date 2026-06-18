@@ -2,7 +2,7 @@ name: "Auto Release - SGLang SageMaker Ubuntu"
 
 on:
   schedule:
-    - cron: '00 18 * * 2,4'
+    - cron: '30 21 * * 2,4'
   workflow_dispatch:
 
 concurrency:
