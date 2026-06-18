@@ -43,24 +43,26 @@ globs: .github/**/*,scripts/ci/**/*
 │       ├── sglang-model-tests.yml
 │       ├── vllm-model-tests.yml
 │       └── vllm-omni-model-tests.yml
+├── release_schedule.md              # Autorelease cron schedule reference
 ├── scripts/
 │   └── buildspec-cb-fleet.yml       # CodeBuild fleet runner setup (installs uv, yq, jq)
 ├── workflows/                       # GitHub Actions workflows
 │   ├── {framework}.pipeline.yml     # Reusable orchestrator per framework
-│   ├── {framework}.pr-{variant}.yml # PR caller per variant
+│   ├── {framework}.pr-{variant}.yml # PR caller per variant (uses discover-configs matrix)
 │   ├── {framework}.autorelease-{variant}.yml  # Scheduled release per variant
 │   ├── {framework}.tests-{suite}.yml          # Framework-specific reusable tests
-│   ├── _reusable.{name}.yml        # Cross-framework reusable tests (sanity, security, telemetry)
-│   ├── _prcheck.{name}.yml         # PR meta-checks (pre-commit, merge conditions)
+│   ├── {framework}.dispatch-{name}.yml        # Manual dispatch workflows (benchmarks, wheels, releases)
+│   ├── _reusable.{name}.yml        # Cross-framework reusable tests (sanity, security, telemetry, EFA, release)
+│   ├── _prcheck.{name}.yml         # PR meta-checks (pre-commit, merge conditions, currency-fix)
 │   ├── _scheduled.{name}.yml       # Cron jobs (stale issues, ECR allowlists, upstream checks)
 │   └── docs.{name}.yml             # Documentation builds
-└── archive/                         # Old workflows preserved for reference during refactor
-    └── done/                        # Successfully transferred workflows
+└── archive/
+    └── done/                        # Successfully transferred old workflows
 
 scripts/
 ├── ci/                              # CI orchestration (runs on the runner, never inside containers)
 │   ├── build/                       # Framework-specific build lifecycle hooks
-│   │   ├── vllm_server/            # Real files (canonical for vllm family)
+│   │   ├── vllm_server/            # Canonical hooks (wheel cache + sccache)
 │   │   │   ├── pre_build.sh
 │   │   │   ├── post_build.sh
 │   │   │   └── lib/
@@ -70,10 +72,11 @@ scripts/
 │   │   │       └── source_hash.sh
 │   │   ├── vllm/                   # Per-file symlinks → vllm_server/
 │   │   ├── vllm_omni/             # Per-file symlinks → vllm_server/
-│   │   └── pytorch/
-│   │       ├── pre_build.sh
-│   │       ├── post_build.sh
-│   │       └── lib/
+│   │   ├── pytorch_runtime/       # Wheel cache hooks
+│   │   │   ├── pre_build.sh
+│   │   │   ├── post_build.sh
+│   │   │   └── lib/
+│   │   └── xgboost/               # External wheel build hooks
 │   ├── autocurrency/               # Version detection, upstream checks, docs PR
 │   ├── wheels/                     # Standalone wheel compilation tool
 │   │   └── pytorch/
@@ -91,14 +94,16 @@ scripts/
 
 test/
 ├── test_utils/                      # Shared test infrastructure (imported by tests)
-├── sanity/                          # Sanity checks (labels, filesystem, credentials)
-├── security/                        # ECR vulnerability scan
+├── sanity/                          # Sanity checks (labels, filesystem, credentials, CUDA)
+├── security/                        # ECR vulnerability scan + allowlists
 ├── telemetry/                       # Telemetry environment + instance tests
-├── vllm/                            # vLLM framework tests (upstream, model, sagemaker)
-├── vllm-omni/                       # vLLM-Omni model tests (omni-modality)
-├── sglang/                          # SGLang framework tests
-├── pytorch/                         # PyTorch framework tests
-└── efa/                             # EFA integration tests
+├── efa/                             # EFA integration tests
+├── pytorch/                         # PyTorch tests (unit, single_gpu, multi_gpu, multi_node)
+├── vllm/                            # vLLM tests (upstream, model, sagemaker)
+├── vllm-omni/                       # vLLM-Omni tests (model, sagemaker)
+├── sglang/                          # SGLang tests (upstream, model, sagemaker)
+├── ray/                             # Ray tests (ffmpeg, serve, sagemaker)
+└── xgboost/                         # XGBoost tests (unit, integ)
 ```
 
 ## Design Axioms
@@ -199,7 +204,7 @@ The build-image action also hardcodes these build-args from metadata:
 - `scripts/ci/build/{framework}/lib/` — utility scripts called by hooks (never called directly by workflows)
 - If no hook exists for a framework (base, ray, sglang) — nothing runs, no error
 - Hook directory name matches `metadata.framework` (e.g., `vllm_server`, `vllm_omni`, `pytorch_runtime`)
-- Symlinks allow sharing hooks across related frameworks (e.g., `vllm/` → `vllm_server/`)
+- Per-file symlinks allow sharing hooks across related frameworks (e.g., `vllm/` → `vllm_server/`, `vllm_omni/` → `vllm_server/`)
 
 ### Config file organization
 - Configs grouped by family in subdirectories: `config/image/{family}/*.yml`
@@ -210,17 +215,18 @@ The build-image action also hardcodes these build-args from metadata:
 Dot-namespaced by framework, prefixed by `_` for cross-framework utilities:
 
 - `{framework}.pipeline.yml` — reusable orchestrator per framework
-- `{framework}.pr-{variant}.yml` — PR trigger per variant
-- `{framework}.autorelease-{variant}.yml` — scheduled/dispatch release per variant
+- `{framework}.pr-{variant}.yml` — PR trigger per variant (matrix over discovered configs)
+- `{framework}.autorelease-{variant}.yml` — scheduled release per variant
+- `{framework}.dispatch-{name}.yml` — manual dispatch (benchmarks, wheels, releases)
 - `{framework}.tests-{suite}.yml` — framework-specific reusable tests
-- `_reusable.{name}.yml` — cross-framework reusable tests (sanity, security, telemetry)
-- `_prcheck.{name}.yml` — PR meta-checks
-- `_scheduled.{name}.yml` — cron jobs
+- `_reusable.{name}.yml` — cross-framework reusable workflows (sanity, security, telemetry, EFA, release)
+- `_prcheck.{name}.yml` — PR meta-checks (pre-commit, merge conditions, currency-fix)
+- `_scheduled.{name}.yml` — cron jobs (stale issues, upstream checks, ECR allowlists)
 
 ### Workflow hierarchy
 ```
-sglang.pr-ec2.yml (trigger + gatekeeper + check-changes)
-  └── sglang.pipeline.yml (orchestrator)
+sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
+  └── sglang.pipeline.yml (orchestrator, called per config in matrix)
         ├── build-image action
         ├── _reusable.sanity-tests.yml
         ├── _reusable.security-tests.yml
@@ -228,19 +234,29 @@ sglang.pr-ec2.yml (trigger + gatekeeper + check-changes)
         ├── sglang.tests-upstream.yml
         ├── sglang.tests-model.yml
         ├── sglang.tests-sagemaker.yml (gated: sagemaker only)
-        └── release (gated: inputs.release)
+        ├── _reusable.efa-tests.yml (optional, per-framework)
+        └── release-gate → _reusable.release-image.yml (gated: inputs.release)
 ```
 
 ### Workflow patterns
-- **Callers are per-variant:** `sglang.pr-ec2.yml` and `sglang.pr-sagemaker.yml` are separate files with scoped path triggers. Shared path changes (Dockerfile) fire both; config-only changes fire one.
-- **Pipeline is per-framework:** one `sglang.pipeline.yml` handles all SGLang variants. A `ci-config` job parses the config to gate variant-specific tests (e.g., sagemaker test only runs for sagemaker configs).
+- **Callers use discover-configs matrix:** all PR and autorelease callers discover configs via glob pattern, then matrix-call the pipeline per config. This means adding a new image variant only requires adding a config file.
+- **Pipeline is per-framework:** one `sglang.pipeline.yml` handles all SGLang variants. A `ci-config` job parses the config to gate variant-specific tests (e.g., sagemaker test only runs for sagemaker configs, GPU tests only for GPU images).
 - **PR vs release:** identical pipeline call, different `release:` flag. Callers pass `release: false` (PR) or `release: true` (autorelease).
-- **Multi-config matrix:** callers use `discover-configs` action to glob a family, matrix over results calling the pipeline per entry (used by base images).
-- **Release gating:** `if: ${{ inputs.release && !failure() && !cancelled() }}` — skipped jobs don't block, failures do.
+- **Release gating:** pipelines use a `release-gate` job that checks `release.release` from config and generates the release spec. The actual release job calls `_reusable.release-image.yml`.
 - **Test-only runs:** when build is skipped (only test files changed), test jobs receive empty `image-uri` → `resolve-image-uri` action falls back to prod image from `metadata.prod_image`.
 - **Graceful skip:** `check-image-exists` action probes ECR; if image not found (first release scenario), tests skip cleanly.
+- **PR change detection:** `dorny/paths-filter` outputs per-test-suite flags. The pipeline receives `run-*-test` booleans. If `build-change` is true, all tests run.
 
 ### Concurrency
 - Pipeline jobs include `${{ inputs.config-file }}` in concurrency group keys to allow parallel runs of different configs.
 - Autorelease callers use `cancel-in-progress: false` (never cancel a release).
 - PR callers use `cancel-in-progress: true` for build/test jobs (supersede stale runs).
+
+### Runner fleets
+- `x86-build-runner` — CPU builds (PyTorch, Base, Ray, XGBoost, Lambda)
+- `x86-vllm-build-runner` — GPU compilation (vLLM, vLLM-Omni)
+- `x86-sglang-build-runner` — GPU compilation (SGLang)
+- `x86-g6xl-runner` — single-GPU tests (1x L4)
+- `x86-g6exl-runner` — multi-GPU tests (4x L4)
+- `x86-g6e12xl-runner` — large multi-GPU tests (4x L4, more memory)
+- `default-runner` — CPU-only jobs (sanity, telemetry, security, SageMaker endpoint tests)
