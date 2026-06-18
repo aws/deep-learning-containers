@@ -3,21 +3,21 @@ name: "PR - PyTorch SageMaker CUDA"
 on:
   # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/pytorch/*-sagemaker-cuda.yml"
-      - ".github/workflows/pytorch.pipeline.yml"
-      - ".github/workflows/pytorch.pr-sagemaker-cuda.yml"
-      - "docker/pytorch/*/Dockerfile.cuda"
-      - "scripts/docker/common/**"
-      - "scripts/docker/pytorch/**"
-      - "test/efa/**"
-      - "test/pytorch/**"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - "!docs/**"
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/pytorch/*-sagemaker-cuda.yml"
+  #     - ".github/workflows/pytorch.pipeline.yml"
+  #     - ".github/workflows/pytorch.pr-sagemaker-cuda.yml"
+  #     - "docker/pytorch/*/Dockerfile.cuda"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/pytorch/**"
+  #     - "test/efa/**"
+  #     - "test/pytorch/**"
+  #     - "test/sanity/**"
+  #     - "test/telemetry/**"
+  #     - "!docs/**"
 
 permissions:
   contents: read
