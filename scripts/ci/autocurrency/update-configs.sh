@@ -51,13 +51,13 @@ update_config_files() {
       return 1
     fi
 
-    # Update common.framework_version
-    yq eval -i ".common.framework_version = \"${new_version}\"" "${config_path}"
+    # Update metadata.framework_version
+    yq eval -i ".metadata.framework_version = \"${new_version}\"" "${config_path}"
 
     # Render prod_image from template and update
     local new_prod_image
     new_prod_image="$(render_prod_image "${template}" "${new_version}")"
-    yq eval -i ".common.prod_image = \"${new_prod_image}\"" "${config_path}"
+    yq eval -i ".metadata.prod_image = \"${new_prod_image}\"" "${config_path}"
 
     echo "${config_path}"
   done

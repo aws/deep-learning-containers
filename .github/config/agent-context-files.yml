@@ -8,7 +8,7 @@
 # Always included regardless of which job fails
 common:
   - "docker/{framework}/Dockerfile"
-  - ".github/config/image/{framework}-ec2.yml"
+  - ".github/config/image/{framework}/ec2-ubuntu.yml"
 
 # Job-specific files
 jobs:

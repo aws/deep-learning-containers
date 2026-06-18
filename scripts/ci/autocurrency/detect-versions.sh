@@ -54,7 +54,9 @@ resolve_base_image() {
 ###############################################################################
 # extract_cuda_version(image)
 #   Runs nvcc --version inside the container and extracts the CUDA version.
-#   Returns the version in config format: "cu129" for CUDA 12.9
+#   Returns the raw major.minor form: "12.9" for CUDA 12.9.
+#   (nvcc reports only major.minor; the config's build.cuda_version carries a
+#   patch segment, so update_configs compares on major.minor — see detect loop.)
 #   Returns empty string if nvcc is not available.
 ###############################################################################
 extract_cuda_version() {
@@ -69,14 +71,16 @@ extract_cuda_version() {
     return 0
   fi
 
-  # "12.9" → "cu129"
-  echo "cu$(echo "${cuda_raw}" | tr -d '.')"
+  # Raw major.minor form, e.g. "12.9"
+  echo "${cuda_raw}"
 }
 
 ###############################################################################
 # extract_python_version(image)
 #   Runs python3 inside the container and extracts the Python version.
-#   Returns the version in config format: "py312" for Python 3.12
+#   Returns the raw version in config format: "3.12" for Python 3.12
+#   (The refactored config schema stores build.python_version as raw "3.12",
+#   not the legacy "py312" short form.)
 ###############################################################################
 extract_python_version() {
   local image="${1:?Usage: extract_python_version IMAGE}"
@@ -90,8 +94,8 @@ extract_python_version() {
     return 0
   fi
 
-  # "3.12" → "py312"
-  echo "py$(echo "${python_raw}" | tr -d '.')"
+  # Raw form, e.g. "3.12"
+  echo "${python_raw}"
 }
 
 ###############################################################################
@@ -139,13 +143,17 @@ update_config_versions() {
       continue
     fi
 
-    # Update cuda_version if detected and different
+    # Update cuda_version if detected and different.
+    # build.cuda_version is the full toolkit version (e.g. "13.0.2"), but nvcc
+    # only reports major.minor (e.g. "13.0"). Compare on major.minor so we don't
+    # clobber the patch every run; only rewrite when major.minor actually drifts.
     if [[ -n "${detected_cuda}" ]]; then
-      local current_cuda
-      current_cuda=$(yq eval '.common.cuda_version' "${config_path}")
-      if [[ "${current_cuda}" != "${detected_cuda}" ]]; then
+      local current_cuda current_cuda_mm
+      current_cuda=$(yq eval '.build.cuda_version' "${config_path}")
+      current_cuda_mm=$(echo "${current_cuda}" | cut -d. -f1,2)
+      if [[ "${current_cuda_mm}" != "${detected_cuda}" ]]; then
         echo "  ${config_path}: cuda_version ${current_cuda} → ${detected_cuda}"
-        yq eval -i ".common.cuda_version = \"${detected_cuda}\"" "${config_path}"
+        yq eval -i ".build.cuda_version = \"${detected_cuda}\"" "${config_path}"
         changed=true
       fi
     fi
@@ -153,10 +161,10 @@ update_config_versions() {
     # Update python_version if detected and different
     if [[ -n "${detected_python}" ]]; then
       local current_python
-      current_python=$(yq eval '.common.python_version' "${config_path}")
+      current_python=$(yq eval '.build.python_version' "${config_path}")
       if [[ "${current_python}" != "${detected_python}" ]]; then
         echo "  ${config_path}: python_version ${current_python} → ${detected_python}"
-        yq eval -i ".common.python_version = \"${detected_python}\"" "${config_path}"
+        yq eval -i ".build.python_version = \"${detected_python}\"" "${config_path}"
         changed=true
       fi
     fi
@@ -164,10 +172,10 @@ update_config_versions() {
     # Update os_version if detected and different
     if [[ -n "${detected_os}" ]]; then
       local current_os
-      current_os=$(yq eval '.common.os_version' "${config_path}")
+      current_os=$(yq eval '.metadata.os_version' "${config_path}")
       if [[ "${current_os}" != "${detected_os}" ]]; then
         echo "  ${config_path}: os_version ${current_os} → ${detected_os}"
-        yq eval -i ".common.os_version = \"${detected_os}\"" "${config_path}"
+        yq eval -i ".metadata.os_version = \"${detected_os}\"" "${config_path}"
         changed=true
       fi
     fi
