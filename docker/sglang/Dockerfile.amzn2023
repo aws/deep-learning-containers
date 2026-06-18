@@ -272,6 +272,16 @@ RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 # Install DLC Python dependencies
 RUN uv pip install --system --no-cache botocore
 
+# runai-model-streamer for S3/GCS/Azure weight streaming. sglang[all] omits the
+# [s3] extra, so install explicitly.
+RUN uv pip install --system --no-cache \
+  "runai-model-streamer[s3,gcs,azure]>=0.15.7"
+
+# NIXL: KV connector for PD-disaggregation. The `nixl` stub hard-pins nixl-cu12, so
+# install --no-deps and pair with the matching CUDA binary.
+RUN CUDA_MAJOR=$(echo ${CUDA_REF} | cut -d. -f1) \
+  && uv pip install --system --no-cache --no-deps nixl "nixl-cu${CUDA_MAJOR}"
+
 # Patch CVEs
 RUN uv pip install --system --no-cache --prerelease=allow \
   "diffusers>=0.38.0" \

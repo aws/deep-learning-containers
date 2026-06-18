@@ -26,6 +26,10 @@ from efa.ec2_helpers import (
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 EFA_INSTANCE_TYPE = os.environ.get("EFA_INSTANCE_TYPE", "p4d.24xlarge")
 RUN_NIXL_TESTS = os.environ.get("RUN_NIXL_TESTS", "0") == "1"
+# Disagg PD orchestrator scripts are vLLM-specific (vllm serve, VLLM_NIXL_*).
+# Frameworks without those scripts (e.g. SGLang) set RUN_NIXL_DISAGG=0 to run the
+# framework-agnostic libfabric smoke test only.
+RUN_NIXL_DISAGG = os.environ.get("RUN_NIXL_DISAGG", "1") == "1"
 NIXL_MODEL = os.environ.get("NIXL_TEST_MODEL", "facebook/opt-125m")
 
 # Container launch options. Defaults work for PyTorch DLCs (use the image's
@@ -124,6 +128,9 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             master_conn,
             "python3 /test/efa/scripts/nixl_libfabric_smoke.py",
         )
+
+        if not RUN_NIXL_DISAGG:
+            return
 
         # Disaggregated prefill/decode across both nodes with NIXL+LIBFABRIC.
         # The worker's private IP is already in the MPI hosts file written by
