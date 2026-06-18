@@ -37,8 +37,8 @@ git clone --depth 1 --branch "${XGBOOST_CONTAINER_BRANCH}" "${XGBOOST_CONTAINER_
 
 echo "Building wheel..."
 cd /tmp/xgboost-wheel
-pip install setuptools wheel -q
-python setup.py bdist_wheel --universal
+python3 -m pip install setuptools wheel -q
+python3 setup.py bdist_wheel --universal
 
 echo "Placing wheel in build context (${DOCKER_DIR}/prebuilt.whl)..."
 cp /tmp/xgboost-wheel/dist/*.whl "${OLDPWD}/${DOCKER_DIR}/prebuilt.whl"
