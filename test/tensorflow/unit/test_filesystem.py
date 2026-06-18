@@ -75,5 +75,5 @@ def test_oss_license_file_exists(license_file):
     assert os.path.isfile(license_file), f"{license_file} does not exist"
 
 
-def test_dockerd_entrypoint_executable():
-    assert os.access("/usr/local/bin/dockerd_entrypoint.sh", os.X_OK)
+def test_entrypoint_executable():
+    assert os.access("/usr/local/bin/entrypoint.sh", os.X_OK)

@@ -258,13 +258,13 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSC
 
 # start_cuda_compat.sh is a safe no-op on CPU, so the same entrypoint script
 # is used for both images.
-COPY scripts/tensorflow/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY scripts/tensorflow/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 
 RUN rm -rf /tmp/* /root/.cache
 
 EXPOSE 22
 WORKDIR /workspace
-ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
+ENTRYPOINT ["bash", "-m", "/usr/local/bin/entrypoint.sh"]
 CMD ["/bin/bash"]
