@@ -51,33 +51,6 @@
             "reason_to_ignore": "onnx.hub.load() is not used in DLC training workflows"
         }
     ],
-    "mesa": [
-        {
-            "description": "In Mesa before 25.3.6 and 26 before 26.0.1, out-of-bounds memory access can occur in WebGPU because the amount of to-be-allocated data depends on an untrusted party, and is then used for alloca.",
-            "vulnerability_id": "CVE-2026-40393",
-            "name": "CVE-2026-40393",
-            "package_name": "mesa",
-            "package_details": {
-                "file_path": null,
-                "name": "mesa",
-                "package_manager": "OS",
-                "version": "23.0.4",
-                "release": "0ubuntu1~22.04.1"
-            },
-            "remediation": {"recommendation": {"text": "None Provided"}},
-            "cvss_v3_score": 9.8,
-            "cvss_v30_score": 0.0,
-            "cvss_v31_score": 9.8,
-            "cvss_v2_score": 0.0,
-            "cvss_v3_severity": "CRITICAL",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2026/CVE-2026-40393.html",
-            "source": "UBUNTU_CVE",
-            "severity": "CRITICAL",
-            "status": "ACTIVE",
-            "title": "CVE-2026-40393 - mesa",
-            "reason_to_ignore": "DLC training containers do not expose a WebGPU/rendering surface to untrusted content; mesa is pulled in transitively via libgl1-mesa-glx for OpenCV/visualization deps."
-        }
-    ],
     "flash_attn": [
         {
             "description": "The flash-attention training framework thru commit e724e2588cbe754beb97cf7c011b5e7e34119e62 (2025-13-04) contains an insecure deserialization vulnerability (CWE-502) in its checkpoint loading mechanism. The load_checkpoint() function in checkpoint.py and the checkpoint loading code in eval.py use torch.load() without enabling the security-restrictive weights_only=True parameter. This allows the deserialization of arbitrary Python objects via the pickle module. An attacker can exploit this by providing a maliciously crafted checkpoint file. When a victim loads this checkpoint during model warmstarting or evaluation, arbitrary code is executed on the victim's system.",
