@@ -1,6 +1,8 @@
 ---
 description: CI/CD architecture, image config schema, build lifecycle, and workflow conventions
-globs: .github/**/*,scripts/ci/**/*
+paths:
+  - ".github/**/*"
+  - "scripts/ci/**/*"
 ---
 
 # CI/CD Architecture

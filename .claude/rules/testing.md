@@ -1,6 +1,7 @@
 ---
 description: Test strategy, conventions, and guidelines for DLC integration and unit tests
-globs: test/**/*
+paths:
+  - "test/**/*"
 ---
 
 # Test Strategy & Guidelines
