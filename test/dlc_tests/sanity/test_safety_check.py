@@ -691,6 +691,8 @@ IGNORE_SAFETY_IDS = {
                 "SFTY-20250331-30014",
                 # mlflow path traversal / arbitrary file read (CVE-2024-37058) - no upstream fix
                 "SFTY-20240604-95861",
+                # flash-attn insecure torch.load in checkpoint loader (CVE-2026-31253) - no upstream fix
+                "SFTY-20260511-67155",
             ],
         },
         "training-neuron": {
