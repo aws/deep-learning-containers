@@ -689,6 +689,8 @@ IGNORE_SAFETY_IDS = {
                 "76769",
                 # torch <=2.12.0 torch.jit.script memory corruption (CVE-2025-3000) - not exercised in DLC training paths, awaiting upstream patched torch
                 "SFTY-20250331-30014",
+                # flash-attn 2.8.3 CVE-2026-31253 - CVE is for a commit made after flash-attn 2.8.3 was released; affects repo training scripts, not the installed package
+                "SFTY-20260511-67155",
             ],
         },
         "training-neuron": {
