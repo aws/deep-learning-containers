@@ -1,4 +1,35 @@
 {
+  "mesa": [
+    {
+      "description": "In Mesa before 25.3.6 and 26 before 26.0.1, out-of-bounds memory access can occur in WebGPU because the amount of to-be-allocated data depends on an untrusted party, and is then used for alloca.",
+      "vulnerability_id": "CVE-2026-40393",
+      "name": "CVE-2026-40393",
+      "package_name": "mesa",
+      "package_details": {
+        "file_path": null,
+        "name": "mesa",
+        "package_manager": "OS",
+        "version": "23.0.4",
+        "release": "0ubuntu1~22.04.1"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2026/CVE-2026-40393.html",
+      "source": "UBUNTU_CVE",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2026-40393 - mesa",
+      "reason_to_ignore": "Out-of-bounds memory access in Mesa's WebGPU code path (alloca size derived from untrusted input). DLC training containers do not expose WebGPU/browser rendering surfaces; mesa is pulled in transitively via libgl1-mesa-glx and is not invoked by training workloads. Awaiting patched mesa in Ubuntu 22.04 (upstream fix in mesa 25.3.6 / 26.0.1)."
+    }
+  ],
   "black": [
     {
       "description": "Black is the uncompromising Python code formatter. Prior to 26.3.1, Black writes a cache file, the name of which is computed from various formatting options. The value of the --python-cell-magics option was placed in the filename without sanitization, which allowed an attacker who controls the value of this argument to write cache files to arbitrary file system locations. Fixed in Black 26.3.1.",
