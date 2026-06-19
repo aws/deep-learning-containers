@@ -37,12 +37,12 @@ deep_canary_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["base", "vllm", "sglang", "autogluon", "huggingface_vllm", "huggingface_vllm_omni", "huggingface_sglang", "huggingface_llamacpp", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
-build_frameworks = []
+build_frameworks = ["pytorch"]
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
@@ -78,7 +78,7 @@ ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 ### Set enable_ipv6 = true to run tests with IPv6-enabled resources
 ### Off by default (set to false)
 enable_ipv6 = false
@@ -96,7 +96,7 @@ enable_ipv6 = false
 ipv6_vpc_name = ""
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = false
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
