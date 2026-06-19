@@ -687,6 +687,10 @@ IGNORE_SAFETY_IDS = {
                 "78828",
                 # torch DoS via torch.nn.functional.ctc_loss (CVE-2025-3730, disputed) - cannot upgrade torch in 2.7.0 container
                 "76769",
+                # torch DoS via torch.jit.script (CVE-2025-3000) - no fix in 2.10.0 container
+                "SFTY-20250331-30014",
+                # mlflow path traversal / arbitrary file read (CVE-2024-37058) - no upstream fix
+                "SFTY-20240604-95861",
             ],
         },
         "training-neuron": {
