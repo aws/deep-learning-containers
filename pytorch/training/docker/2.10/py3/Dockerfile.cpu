@@ -195,7 +195,8 @@ RUN pip install --no-cache-dir \
     tornado>=6.5.1 \
     "filelock>=3.20.1" \
     pytz \
-    tzdata
+    tzdata \
+    "nest-asyncio==1.6.0"
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
