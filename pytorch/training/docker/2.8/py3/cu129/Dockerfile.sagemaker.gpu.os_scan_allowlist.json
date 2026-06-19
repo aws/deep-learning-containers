@@ -111,7 +111,7 @@
   ],
   "mesa": [
     {
-      "description": "An out of bounds write exists in mesa related to WebGPU code paths. The vulnerable code may be exploitable when WebGPU functionality is exercised by a workload.",
+      "description": "In Mesa before 25.3.6 and 26 before 26.0.1, out-of-bounds memory access can occur in WebGPU because the amount of to-be-allocated data depends on an untrusted party, and is then used for alloca.",
       "vulnerability_id": "CVE-2026-40393",
       "name": "CVE-2026-40393",
       "package_name": "mesa",
