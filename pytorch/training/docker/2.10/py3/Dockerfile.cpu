@@ -161,6 +161,11 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
 # Install common packages
+# boto3<1.43: aiobotocore (pulled in by s3fs>=2026.2.0 in the sagemaker stage)
+# pins botocore<1.43.1, but boto3>=1.43.34 imports DocumentModifiedShape from
+# botocore.docs.utils (only present in botocore>=1.43.34). Pinning boto3<1.43
+# keeps boto3/botocore on the 1.42.x line, where DocumentModifiedShape still
+# lives in boto3 itself.
 RUN pip install --no-cache-dir \
     cython \
     cryptography \
@@ -172,7 +177,7 @@ RUN pip install --no-cache-dir \
     typing \
     charset-normalizer \
     packaging \
-    boto3 \
+    "boto3<1.43" \
     PyYAML \
     numpy \
     scipy \
@@ -290,11 +295,15 @@ WORKDIR /
 # Install SM packages
 # Updated for SageMaker SDK v3 compatibility
 # Note: sagemaker-experiments removed as it's deprecated and merged into sagemaker>=3
+# Note: keep boto3<1.43 here too - pip -U on sagemaker/sagemaker-training will
+# otherwise re-upgrade boto3 past the aiobotocore botocore<1.43.1 ceiling,
+# producing the boto3/botocore DocumentModifiedShape ImportError.
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=3.0.0" \
     sagemaker-pytorch-training \
-    sagemaker-training
+    sagemaker-training \
+    "boto3<1.43"
 
 # Install extra packages
 # s3fs: pip resolves to ancient 0.4.2 without pin; smclarify needs modern s3fs (which pulls aiobotocore, aioitertools)
