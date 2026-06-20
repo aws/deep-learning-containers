@@ -20,7 +20,7 @@ release:
   # TODO: set to true whenever PR is validated by AWS team
   release: false
   force_release: false
-  public_registry: true
+  public_registry: false
   private_registry: true
   enable_soci: true
   environment: production
