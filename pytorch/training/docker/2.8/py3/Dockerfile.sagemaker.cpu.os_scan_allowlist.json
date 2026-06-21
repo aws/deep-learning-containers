@@ -81,5 +81,36 @@
       "title": "CVE-2026-32274 - black",
       "reason_to_ignore": "N/A"
     }
+  ],
+  "mesa": [
+    {
+      "description": "An out of bounds write exists in mesa related to WebGPU code paths. The vulnerable code may be exploitable when WebGPU functionality is exercised by a workload.",
+      "vulnerability_id": "CVE-2026-40393",
+      "name": "CVE-2026-40393",
+      "package_name": "mesa",
+      "package_details": {
+        "file_path": null,
+        "name": "mesa",
+        "package_manager": "OS",
+        "version": "23.0.4-0ubuntu1~22.04.1",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2026/CVE-2026-40393.html",
+      "source": "UBUNTU_CVE",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2026-40393 - mesa",
+      "reason_to_ignore": "mesa is pulled into the image transitively via libgl1-mesa-glx; the CVE is constrained to a WebGPU code path that DLC training workloads do not exercise. Ubuntu jammy has not published a fixed mesa package (recommendation: None Provided), so no upgrade is available."
+    }
   ]
 }
