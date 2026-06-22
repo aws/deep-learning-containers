@@ -14,7 +14,7 @@ dependencies = [
     "requests",
     "packaging",
     "urllib3>=2.7.0",
-    "python-multipart>=0.0.27",
+    "python-multipart>=0.0.31",
     "GitPython>=3.1.50",
     "Mako>=1.3.12",
 ]
