@@ -1,4 +1,4 @@
-name: "Dispatch - vLLM Benchmark"
+name: vLLM Benchmark Tests
 
 permissions:
   contents: read
@@ -10,6 +10,13 @@ on:
         description: "Image URI to benchmark (ECR URI)"
         required: true
         type: string
+      benchmark-config:
+        description: "Benchmark config file path"
+        required: true
+        type: choice
+        options:
+          - ".github/config/model-tests/vllm-text-benchmark-tests.yml"
+          - ".github/config/model-tests/vllm-multimodal-benchmark-tests.yml"
       aws-account-id:
         description: "AWS account ID for ECR auth (defaults to CI account)"
         required: false
@@ -39,11 +46,8 @@ jobs:
       - name: Parse benchmark config
         id: parse
         run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install pyyaml
           python3 scripts/ci/parse_model_config.py \
-            --config .github/config/model-tests/vllm-model-tests.yml \
+            --config "${{ inputs.benchmark-config }}" \
             --section benchmark
 
   benchmark-codebuild-fleet:
@@ -52,7 +56,6 @@ jobs:
     needs: [load-benchmarks]
     strategy:
       fail-fast: false
-      # we only have 1 g6e12xl 4 models need it action only schedules once for the same label
       max-parallel: 2
       matrix:
         include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
@@ -192,7 +195,6 @@ jobs:
 
       - name: Start container
         run: |
-          # Get GPU UUIDs visible to this pod (k8s assigns a subset of host GPUs)
           POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
           echo "Pod GPU UUIDs: ${POD_GPUS}"
           docker pull ${{ env.IMAGE_URI }}
@@ -260,9 +262,6 @@ jobs:
           path: benchmark_results/
           retention-days: 30
 
-      # Do NOT docker rmi on shared runner-scale-sets nodes — multiple pods
-      # share the same host Docker daemon, removing an image could break a
-      # parallel job's container. Image cleanup is handled by DaemonSet.
       - name: Cleanup
         if: always()
         run: |

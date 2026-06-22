@@ -49,6 +49,8 @@ runs:
         echo "os-version=$(yq '.metadata.os_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
         echo "python-version=$(yq '.build.python_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
         echo "cuda-version=$(yq '.build.cuda_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "contributor=$(yq '.metadata.contributor // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+        echo "transformers-version=$(yq '.build.transformers_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
         echo "dockerfile=$(yq '.build.dockerfile' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
         echo "target=$(yq '.build.target // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
@@ -152,6 +154,17 @@ runs:
           LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.job.${JOB_TYPE}=true")
           [[ -n "$LABEL_OS" ]] && LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.os.${LABEL_OS}=true")
           [[ -n "$LABEL_PYTHON" ]] && LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.python.${LABEL_PYTHON}=true")
+
+          CONTRIBUTOR="${{ steps.metadata.outputs.contributor }}"
+          if [[ -n "$CONTRIBUTOR" && "$CONTRIBUTOR" != "None" ]]; then
+            LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.contributor.${CONTRIBUTOR}=true")
+          fi
+
+          TRANSFORMERS_VER="${{ steps.metadata.outputs.transformers-version }}"
+          if [[ -n "$TRANSFORMERS_VER" ]]; then
+            LABEL_TRANSFORMERS=$(echo "${TRANSFORMERS_VER}" | tr '.' '-')
+            LABEL_ARGS+=("--label" "com.amazonaws.ml.engines.sagemaker.dlc.lib.transformers.${LABEL_TRANSFORMERS}=true")
+          fi
         fi
 
         # Target flag (optional)
