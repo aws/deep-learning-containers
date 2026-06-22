@@ -24,6 +24,8 @@ RUN uv pip install --system \
   "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
   "hf-xet==${HF_XET_VERSION}" \
   "grpcio>=1.79.3" \
+  "cryptography>=48.0.1" \
+  "starlette>=1.3.1" \
   && uv cache clean \
   && rm -rf /tmp/uv*
 
@@ -61,10 +63,11 @@ RUN apt-get purge -y ffmpeg libav* || true && apt-get autoremove -y
 
 ARG FFMPEG_TAG=n8.1
 
-# Patch openssl/libssl3 CVEs carried by the ubuntu22.04 base
-# (CVE-2026-45447 CRITICAL, CVE-2026-34180/45445/7383/9076 HIGH;
-# fixed in 3.0.2-0ubuntu1.25).
-RUN apt-get update && apt-get install -y --only-upgrade openssl libssl3 \
+# Patch OS CVEs carried by the ubuntu22.04 base (openssl, mesa, ...). Hold
+# cuda/nvidia/libnv packages first so the broad upgrade can't bump the toolkit
+# or driver (same pattern as docker/vllm).
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
+  && apt-get update && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
     pkg-config \
     nasm \
