@@ -132,8 +132,10 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     # thinc>=8.3.6 is the lowest version that ships cp313 wheels paired with
     # a blis range (>=1.3.0) that also has cp313 wheels; older thinc falls
     # back to sdist and the Cython compile of numpy_ops.pyx fails on py313.
+    # Upper-bound <9 because thinc 9.x ships no cp313 wheel (sdist only),
+    # so a bare lower bound still resolves to sdist on py313.
     spacy \
-    "thinc>=8.3.6" \
+    "thinc>=8.3.6,<9" \
     blis \
     # typer-slim: weasel 1.0.0 dropped it but spacy still needs it
     "typer-slim>=0.24.0" \
