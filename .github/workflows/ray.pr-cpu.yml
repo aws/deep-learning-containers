@@ -73,7 +73,7 @@ jobs:
               - "test/telemetry/**"
 
   discover:
-    needs: [check-changes]
+    needs: [gatekeeper]
     runs-on: ubuntu-latest
     outputs:
       configs: ${{ steps.discover.outputs.configs }}

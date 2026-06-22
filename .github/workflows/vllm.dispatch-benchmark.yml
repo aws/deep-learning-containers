@@ -1,4 +1,4 @@
-name: vLLM Benchmark Tests
+name: "Dispatch - vLLM Benchmark"
 
 permissions:
   contents: read
@@ -154,7 +154,7 @@ jobs:
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-${{ matrix.name }}-${{ matrix.fleet }}
           path: benchmark_results/
@@ -256,7 +256,7 @@ jobs:
 
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-${{ matrix.name }}-gpu-efa-runners
           path: benchmark_results/
@@ -279,7 +279,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Download all benchmark artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: benchmark-*
           path: results/

@@ -64,7 +64,7 @@ jobs:
               - "docker/xgboost/3.0-5/**"
 
   discover:
-    needs: [check-changes]
+    needs: [gatekeeper]
     runs-on: ubuntu-latest
     outputs:
       configs: ${{ steps.discover.outputs.configs }}

@@ -52,6 +52,9 @@ on:
 jobs:
   build:
     if: ${{ inputs.build }}
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
@@ -72,6 +75,9 @@ jobs:
   sanity-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/_reusable.sanity-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -80,6 +86,9 @@ jobs:
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     uses: ./.github/workflows/_reusable.security-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -88,6 +97,9 @@ jobs:
   telemetry-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
     uses: ./.github/workflows/_reusable.telemetry-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -97,6 +109,9 @@ jobs:
   validation-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-validation-test }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-validation-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner

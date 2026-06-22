@@ -89,7 +89,7 @@ jobs:
           pattern: ".github/config/image/vllm/*-ubuntu.yml"
 
   pipeline:
-    needs: [discover, check-changes]
+    needs: [check-changes, discover]
     strategy:
       fail-fast: false
       matrix:

@@ -155,7 +155,7 @@ jobs:
           fi
 
       - name: Upload metadata artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-metadata-${{ steps.setup.outputs.run-identifier }}
           path: ${{ env.METADATA_FILE }}
@@ -179,7 +179,7 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
 
       - name: Download metadata artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
           path: /tmp/
@@ -279,7 +279,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Download metadata artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
           path: /tmp/
