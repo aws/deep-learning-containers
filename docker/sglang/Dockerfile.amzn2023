@@ -7,7 +7,7 @@ FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 
 ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
-ARG SGLANG_REF=578d27e56acd6786eb7067b9e1583232fd1d998e
+ARG SGLANG_REF=66ab5c9c7a425ef746725b8a8d7210d434eadac2
 ARG SGLANG_KERNEL_VERSION=0.4.3
 ARG FLASHINFER_VERSION=0.6.11.post1
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
@@ -86,8 +86,8 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
     && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
 # Stamp the sglang package version for CVE scanner compatibility.
-# PEP 440 local version: 0.5.12+dlc1.amzn2023.578d27e5
-# This ensures: version >= 0.5.12 (not flagged) and < 0.5.13 (correct ordering).
+# PEP 440 local version: 0.5.13+dlc1.amzn2023.66ab5c9c
+# This ensures: version >= 0.5.13 (not flagged) and < 0.5.14 (correct ordering).
 ARG FRAMEWORK_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
 
@@ -151,11 +151,8 @@ RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platf
     && rm -rf /tmp/mooncake
 
 # sgl-model-gateway (Rust — patch source for crate API changes)
-# Pin maturin <1.14: 1.14.0 (PR #3182) rejects a project.readme that resolves
-# outside the crate's workspace root, and bindings/python/pyproject.toml points
-# at ../../README.md. Re-evaluate if upstream relocates the readme.
 RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-    && uv pip install --system --no-cache "maturin==1.13.3" \
+    && uv pip install --system --no-cache maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
     && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close()" \
     && cd bindings/python \
