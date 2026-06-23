@@ -31,7 +31,87 @@
     },
     {
         "vulnerability_id": "CVE-2026-42504",
-        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
         "review_by": "2026-07-10"
+    },
+    {
+        "vulnerability_id": "CVE-2022-3109",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm1 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2022-48434",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm2 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2023-49502",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm4 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2023-50010",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm4 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2023-51793",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm4 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2023-51794",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm4 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2023-51798",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm4 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2023-6603",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm10 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2023-6605",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm10 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2024-31578",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm4 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2024-32230",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm5 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2024-35366",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm9 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2024-35367",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm9 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2024-35368",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm9 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2025-2173",
+        "reason": "libzvbi0 0.2.35-19 in upstream vllm/vllm-openai base image; fix 0:0.2.35-19ubuntu0.1~esm1 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "CVE-2025-63757",
+        "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm11 available only via Ubuntu Pro ESM",
+        "review_by": "2026-09-21"
     }
 ]
