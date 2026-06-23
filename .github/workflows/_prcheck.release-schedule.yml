@@ -1,4 +1,4 @@
-name: "PR Check - Release Schedule"
+name: Release Schedule Validation
 
 on:
   pull_request:
