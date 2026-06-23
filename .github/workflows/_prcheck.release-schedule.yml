@@ -1,0 +1,25 @@
+name: "PR Check - Release Schedule"
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/release-schedule.yml"
+      - ".github/workflows/*.autorelease-*.yml"
+      - "scripts/ci/check_release_schedule.py"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-schedule:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install yq
+        run: pip install pyyaml
+
+      - name: Validate release schedule
+        run: python3 scripts/ci/check_release_schedule.py
