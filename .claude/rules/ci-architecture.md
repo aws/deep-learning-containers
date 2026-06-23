@@ -35,6 +35,7 @@ paths:
 ├── config/
 │   ├── image/                       # Image configs (one file = one released image)
 │   │   ├── base/
+│   │   ├── huggingface-vllm/
 │   │   ├── pytorch/
 │   │   ├── sglang/
 │   │   ├── vllm/
@@ -45,7 +46,7 @@ paths:
 │       ├── sglang-model-tests.yml
 │       ├── vllm-model-tests.yml
 │       └── vllm-omni-model-tests.yml
-├── release_schedule.md              # Autorelease cron schedule reference
+├── release-schedule.yml             # Autorelease cron schedule (housekeeping, validated by prcheck)
 ├── scripts/
 │   └── buildspec-cb-fleet.yml       # CodeBuild fleet runner setup (installs uv, yq, jq)
 └── workflows/                       # GitHub Actions workflows
@@ -87,6 +88,7 @@ scripts/
 └── docker/                          # Docker build artifacts (COPY'd into images, run inside containers)
     ├── common/                     # Shared install scripts (EFA, OSS compliance, Python)
     ├── telemetry/                  # DLC telemetry (deep_learning_container.py, bash_telemetry template)
+    ├── huggingface/vllm/           # HF vLLM entrypoints, optimizations
     ├── vllm/                       # vLLM entrypoints, sagemaker_serve, patches
     ├── sglang/                     # SGLang entrypoints
     ├── pytorch/                    # PyTorch entrypoints, SSH config, NCCL
@@ -242,7 +244,7 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - **Callers use discover-configs matrix:** all PR and autorelease callers discover configs via glob pattern, then matrix-call the pipeline per config. This means adding a new image variant only requires adding a config file.
 - **Pipeline is per-framework:** one `sglang.pipeline.yml` handles all SGLang variants. A `ci-config` job parses the config to gate variant-specific tests (e.g., sagemaker test only runs for sagemaker configs, GPU tests only for GPU images).
 - **PR vs release:** identical pipeline call, different `release:` flag. Callers pass `release: false` (PR) or `release: true` (autorelease).
-- **Release gating:** pipelines use a `release-gate` job that checks `release.release` from config and generates the release spec. The actual release job calls `_reusable.release-image.yml`.
+- **Release gating:** pipelines use a `release-gate` job gated on three conditions: `github.ref == 'refs/heads/main'`, caller filename contains `.autorelease` or `.dispatch-release` (via `github.workflow_ref`), and `inputs.release == true`. This prevents accidental releases from PR workflows or non-main branches. The gate then checks `release.release` from config and generates the release spec. The actual release job calls `_reusable.release-image.yml`.
 - **Test-only runs:** when build is skipped (only test files changed), test jobs receive empty `image-uri` → `resolve-image-uri` action falls back to prod image from `metadata.prod_image`.
 - **Graceful skip:** `check-image-exists` action probes ECR; if image not found (first release scenario), tests skip cleanly.
 - **PR change detection:** `dorny/paths-filter` outputs per-test-suite flags. The pipeline receives `run-*-test` booleans. If `build-change` is true, all tests run.
