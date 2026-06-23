@@ -1,4 +1,31 @@
 {
+    "mesa": [
+        {
+            "description": "In Mesa before 25.3.6 and 26 before 26.0.1, out-of-bounds memory access can occur in WebGPU because the amount of to-be-allocated data depends on an untrusted party, and is then used for alloca.",
+            "vulnerability_id": "CVE-2026-40393",
+            "name": "CVE-2026-40393",
+            "package_name": "mesa",
+            "package_details": {
+                "file_path": null,
+                "name": "mesa",
+                "package_manager": "OS",
+                "version": "23.0.4",
+                "release": "0ubuntu1~22.04.1"
+            },
+            "remediation": {"recommendation": {"text": "None Provided"}},
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2026/CVE-2026-40393.html",
+            "source": "UBUNTU_CVE",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-40393 - mesa",
+            "reason_to_ignore": "DLC training containers do not expose a WebGPU/rendering surface to untrusted content; mesa is pulled in transitively via libgl1-mesa-glx for OpenCV/visualization deps."
+        }
+    ],
     "onnx": [
         {
             "description": "### Summary\n\nA security control bypass exists in onnx.hub.load() due to improper logic in the repository trust verification mechanism. While the function is designed to warn users when loading models from non-official sources, the use of the silent=True parameter completely suppresses all security warnings and confirmation prompts. ### The Technical Flaw The vulnerability is located in onnx/hub.py. The security gate uses a short-circuit evaluation that prioritizes the \"silent\" preference over the trust requirement: ```Python if not _verify_repo_ref(repo) and not silent: # This block (Warning + User Input) is SKIPPED if silent=True print(\"The model repo... is not trusted\") if input().lower() != \"y\": return None ``` **Key Points of Failure**: Complete Suppression: If a developer or a third-party library sets silent=True, the application will download and execute models from any attacker-controlled GitHub repository without notifying the user. **Integrity Verification Bypass**: The SHA256 integrity check validat",

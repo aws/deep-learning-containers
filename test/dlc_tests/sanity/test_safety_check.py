@@ -687,9 +687,11 @@ IGNORE_SAFETY_IDS = {
                 "78828",
                 # torch DoS via torch.nn.functional.ctc_loss (CVE-2025-3730, disputed) - cannot upgrade torch in 2.7.0 container
                 "76769",
-                # torch <=2.12.0 torch.jit.script memory corruption (CVE-2025-3000) - not exercised in DLC training paths, awaiting upstream patched torch
+                # torch DoS via torch.jit.script (CVE-2025-3000) - no fix in 2.10.0 container
                 "SFTY-20250331-30014",
-                # flash-attn 2.8.3 CVE-2026-31253 - CVE is for a commit made after flash-attn 2.8.3 was released; affects repo training scripts, not the installed package
+                # mlflow path traversal / arbitrary file read (CVE-2024-37058) - no upstream fix
+                "SFTY-20240604-95861",
+                # flash-attn insecure torch.load in checkpoint loader (CVE-2026-31253) - no upstream fix
                 "SFTY-20260511-67155",
             ],
         },
