@@ -113,5 +113,10 @@
         "vulnerability_id": "CVE-2025-63757",
         "reason": "ffmpeg 7:4.4.2-0ubuntu0.22.04.1 in upstream vllm/vllm-openai base image; fix 7:4.4.2-0ubuntu0.22.04.1+esm11 available only via Ubuntu Pro ESM",
         "review_by": "2026-09-21"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0185",
+        "reason": "quinn-proto 0.11.14 vendored in /usr/local/bin/uv; latest uv (0.11.23) and main still pin 0.11.14, cannot patch independently of upstream uv release",
+        "review_by": "2026-09-21"
     }
 ]
