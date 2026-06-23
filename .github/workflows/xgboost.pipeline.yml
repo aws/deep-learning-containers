@@ -132,7 +132,13 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   release-gate:
-    if: ${{ always() && !failure() && !cancelled() && inputs.release && needs.build.result == 'success' }}
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release &&
+      !failure() && !cancelled() &&
+      needs.build.result == 'success'
     needs: [build, sanity-test, security-test, unit-test, integ-test]
     runs-on: ubuntu-latest
     outputs:

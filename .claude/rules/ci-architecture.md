@@ -48,18 +48,16 @@ paths:
 ├── release_schedule.md              # Autorelease cron schedule reference
 ├── scripts/
 │   └── buildspec-cb-fleet.yml       # CodeBuild fleet runner setup (installs uv, yq, jq)
-├── workflows/                       # GitHub Actions workflows
-│   ├── {framework}.pipeline.yml     # Reusable orchestrator per framework
-│   ├── {framework}.pr-{variant}.yml # PR caller per variant (uses discover-configs matrix)
-│   ├── {framework}.autorelease-{variant}.yml  # Scheduled release per variant
-│   ├── {framework}.tests-{suite}.yml          # Framework-specific reusable tests
-│   ├── {framework}.dispatch-{name}.yml        # Manual dispatch workflows (benchmarks, wheels, releases)
-│   ├── _reusable.{name}.yml        # Cross-framework reusable tests (sanity, security, telemetry, EFA, release)
-│   ├── _prcheck.{name}.yml         # PR meta-checks (pre-commit, merge conditions, currency-fix)
-│   ├── _scheduled.{name}.yml       # Cron jobs (stale issues, ECR allowlists, upstream checks)
-│   └── docs.{name}.yml             # Documentation builds
-└── archive/
-    └── done/                        # Successfully transferred old workflows
+└── workflows/                       # GitHub Actions workflows
+    ├── {framework}.pipeline.yml     # Reusable orchestrator per framework
+    ├── {framework}.pr-{variant}.yml # PR caller per variant (uses discover-configs matrix)
+    ├── {framework}.autorelease-{variant}.yml  # Scheduled release per variant
+    ├── {framework}.tests-{suite}.yml          # Framework-specific reusable tests
+    ├── {framework}.dispatch-{name}.yml        # Manual dispatch workflows (benchmarks, wheels, releases)
+    ├── _reusable.{name}.yml        # Cross-framework reusable tests (sanity, security, telemetry, EFA, release)
+    ├── _prcheck.{name}.yml         # PR meta-checks (pre-commit, merge conditions, currency-fix)
+    ├── _scheduled.{name}.yml       # Cron jobs (stale issues, ECR allowlists, upstream checks)
+    └── docs.{name}.yml             # Documentation builds
 
 scripts/
 ├── ci/                              # CI orchestration (runs on the runner, never inside containers)
@@ -86,13 +84,13 @@ scripts/
 │   │       └── test/
 │   └── parse_model_config.py       # Model test config → GHA matrix JSON
 │
-├── docker/                          # Docker build artifacts (COPY'd into images, run inside containers)
-│   ├── common/                     # Shared install scripts (EFA, OSS compliance, Python)
-│   ├── telemetry/                  # DLC telemetry (deep_learning_container.py, bash_telemetry template)
-│   ├── vllm/                       # vLLM entrypoints, sagemaker_serve, patches
-│   ├── sglang/                     # SGLang entrypoints
-│   ├── pytorch/                    # PyTorch entrypoints, SSH config, NCCL
-│   └── ray/                        # Ray entrypoints, sagemaker_serve
+└── docker/                          # Docker build artifacts (COPY'd into images, run inside containers)
+    ├── common/                     # Shared install scripts (EFA, OSS compliance, Python)
+    ├── telemetry/                  # DLC telemetry (deep_learning_container.py, bash_telemetry template)
+    ├── vllm/                       # vLLM entrypoints, sagemaker_serve, patches
+    ├── sglang/                     # SGLang entrypoints
+    ├── pytorch/                    # PyTorch entrypoints, SSH config, NCCL
+    └── ray/                        # Ray entrypoints, sagemaker_serve
 
 test/
 ├── test_utils/                      # Shared test infrastructure (imported by tests)
