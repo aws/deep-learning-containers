@@ -92,8 +92,8 @@
         "file_path": null,
         "name": "mesa",
         "package_manager": "OS",
-        "version": "23.0.4-0ubuntu1~22.04.1",
-        "release": null
+        "version": "23.0.4",
+        "release": "0ubuntu1~22.04.1"
       },
       "remediation": {
         "recommendation": {
