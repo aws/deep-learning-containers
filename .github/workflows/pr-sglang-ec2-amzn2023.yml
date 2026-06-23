@@ -237,3 +237,23 @@ jobs:
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit
+
+  # EFA test + NIXL libfabric smoke (disagg-PD is vLLM-specific, so disabled)
+  efa-test:
+    needs: [check-changes, build-image, sanity-test, security-test, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.build-image.result == 'success'
+    concurrency:
+      group: ${{ github.workflow }}-efa-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-efa-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      run-nixl-tests: true
+      run-nixl-disagg: false
+      # Override the launch_server entrypoint so the container stays up for docker exec
+      container-entrypoint: /bin/bash
+      container-cmd: -c 'sleep infinity'

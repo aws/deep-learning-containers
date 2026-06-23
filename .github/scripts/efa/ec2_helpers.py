@@ -362,6 +362,9 @@ def setup_worker_ssh(conn, master_pub_key):
         conn,
         f"eval `ssh-agent -s` && ssh-add $HOME/.ssh/{WORKER_SSH_KEY_NAME}",
     )
+    # AL2023 has no host keys (no first-boot systemd job); generate them so
+    # sshd starts. Idempotent — no-op on Ubuntu images that already ship them.
+    run_on_container(WORKER_CONTAINER_NAME, conn, "ssh-keygen -A")
     # Start sshd directly (AL2023 base image has no sysvinit).
     run_on_container(WORKER_CONTAINER_NAME, conn, "/usr/sbin/sshd")
     status = run_on_container(WORKER_CONTAINER_NAME, conn, "pgrep -x sshd", warn=True)

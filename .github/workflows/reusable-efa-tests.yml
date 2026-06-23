@@ -24,10 +24,15 @@ on:
         type: string
         default: 'p4d.24xlarge'
       run-nixl-tests:
-        description: 'Run NIXL libfabric smoke + disaggregated PD tests (vLLM only)'
+        description: 'Run NIXL libfabric smoke test (and disaggregated PD when run-nixl-disagg is true)'
         required: false
         type: boolean
         default: false
+      run-nixl-disagg:
+        description: 'Run the NIXL disaggregated PD test (vLLM only; needs the vllm-specific scripts)'
+        required: false
+        type: boolean
+        default: true
       container-entrypoint:
         description: |
           Override the test container's entrypoint (passed to `docker run --entrypoint`).
@@ -75,6 +80,7 @@ jobs:
           TEST_IMAGE_URI: ${{ inputs.image-uri }}
           EFA_INSTANCE_TYPE: ${{ inputs.efa-instance-type }}
           RUN_NIXL_TESTS: ${{ inputs.run-nixl-tests && '1' || '0' }}
+          RUN_NIXL_DISAGG: ${{ inputs.run-nixl-disagg && '1' || '0' }}
           # Quote-safe via env: container-cmd may contain spaces and quotes
           # (e.g., `-c 'sleep infinity'`), which would tokenize incorrectly
           # if assigned inline on the shell command line.

@@ -23,21 +23,37 @@ fi
 # nvidia-nccl-cu13 wheel headers OOMed nvcc on verifiable.cu — the wheel ships
 # headers from a different NCCL build with much heavier template expansion.
 #
-# Cheapest reliable workaround: install libnccl-dev from the cuda apt repo at
-# test time. Same NCCL version the image runs against, "thin" headers like
-# master's, ~50MB transient install, removed at end of test by container
-# teardown.
+# Cheapest reliable workaround: install the libnccl headers package at test
+# time. Same NCCL version the image runs against, "thin" headers like master's,
+# ~50MB transient install, removed at end of test by container teardown.
+#
+# Package manager differs by base image:
+# - Ubuntu (PyTorch DLC, vLLM): apt's libnccl-dev from the cuda apt repo.
+# - AL2023 (SGLang): dnf's libnccl-devel from the cuda-rhel9 repo. The image
+#   installs libnccl + libnccl-devel at build time then removes libnccl-devel,
+#   leaving the cuda-rhel9 repo configured so we can reinstall the headers here.
 NCCL_HOME=/usr
 if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
-    echo "Installing libnccl-dev from apt..."
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq
-    apt-get install -y --no-install-recommends libnccl-dev
+    if command -v apt-get >/dev/null 2>&1; then
+        echo "Installing libnccl-dev from apt..."
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -qq
+        apt-get install -y --no-install-recommends libnccl-dev
+    elif command -v dnf >/dev/null 2>&1; then
+        echo "Installing libnccl-devel from dnf..."
+        dnf install -y --setopt=install_weak_deps=False libnccl-devel
+    elif command -v yum >/dev/null 2>&1; then
+        echo "Installing libnccl-devel from yum..."
+        yum install -y libnccl-devel
+    else
+        echo "ERROR: no supported package manager (apt-get/dnf/yum) found" >&2
+        exit 1
+    fi
 fi
 
 if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
-    echo "ERROR: nccl.h still not present after apt install" >&2
-    apt list --installed 2>/dev/null | grep -i nccl >&2 || true
+    echo "ERROR: nccl.h still not present after package install" >&2
+    { apt list --installed 2>/dev/null || rpm -qa 2>/dev/null; } | grep -i nccl >&2 || true
     exit 1
 fi
 echo "Using NCCL_HOME=${NCCL_HOME}"
