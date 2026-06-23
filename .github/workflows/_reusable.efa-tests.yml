@@ -18,10 +18,15 @@ on:
         type: string
         default: "p4d.24xlarge"
       run-nixl-tests:
-        description: "Run NIXL libfabric smoke + disaggregated PD tests"
+        description: "Run NIXL libfabric smoke test"
         required: false
         type: boolean
         default: false
+      run-nixl-disagg:
+        description: "Run NIXL disaggregated PD test (vLLM only)"
+        required: false
+        type: boolean
+        default: true
       container-entrypoint:
         description: "Override container entrypoint (e.g., /bin/bash for vLLM)"
         required: false
@@ -79,6 +84,7 @@ jobs:
           TEST_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
           EFA_INSTANCE_TYPE: ${{ inputs.efa-instance-type }}
           RUN_NIXL_TESTS: ${{ inputs.run-nixl-tests && '1' || '0' }}
+          RUN_NIXL_DISAGG: ${{ inputs.run-nixl-disagg && '1' || '0' }}
           EFA_CONTAINER_ENTRYPOINT: ${{ inputs.container-entrypoint }}
           EFA_CONTAINER_CMD: ${{ inputs.container-cmd }}
         run: |

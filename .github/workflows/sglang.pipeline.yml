@@ -46,6 +46,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-efa-test:
+        description: "Run EFA integration tests"
+        required: false
+        type: boolean
+        default: false
       release:
         description: "Run release job after tests pass"
         required: false
@@ -159,6 +164,21 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  efa-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      run-nixl-tests: true
+      run-nixl-disagg: false
+      container-entrypoint: "/bin/bash"
+      container-cmd: "-c 'sleep infinity'"
+
   release-gate:
     if: >-
       github.ref == 'refs/heads/main' &&
@@ -167,7 +187,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, upstream-tests, model-tests, sagemaker-tests]
+    needs: [build, sanity-test, security-test, telemetry-test, upstream-tests, model-tests, sagemaker-tests, efa-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}

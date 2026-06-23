@@ -653,5 +653,10 @@
         "vulnerability_id": "CVE-2026-43500",
         "reason": "linux-libc-dev 5.4.0 — fix only in Ubuntu Pro / ESM-Infra (focal status: 'Ignored: end of standard support'); base 20.04 archive will not receive the patch.",
         "review_by": "2026-09-08"
+    },
+    {
+        "vulnerability_id": "CVE-2022-49267",
+        "reason": "linux-libc-dev — kernel headers only, not runtime. MMC sysfs sprintf() overflow not reachable; no MMC subsystem in container.",
+        "review_by": "2026-07-15"
     }
 ]

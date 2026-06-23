@@ -41,6 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
       model-test-change: ${{ steps.changes.outputs.model-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
@@ -70,6 +71,8 @@ jobs:
               - "test/telemetry/**"
             upstream-test-change:
               - "test/sglang/scripts/**"
+            efa-test-change:
+              - "test/efa/**"
 
   discover:
     needs: [gatekeeper]
@@ -100,5 +103,6 @@ jobs:
       run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
     secrets: inherit

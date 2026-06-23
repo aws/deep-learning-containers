@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "sglang_server"
-  framework_version: "0.5.12+dlc1"
+  framework_version: "0.5.13+dlc1"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -18,7 +18,7 @@ build:
   target: "sglang-sagemaker"
   python_version: "3.12"
   cuda_version: "13.0.3"
-  sglang_ref: "578d27e56acd6786eb7067b9e1583232fd1d998e"
+  sglang_ref: "66ab5c9c7a425ef746725b8a8d7210d434eadac2"
   sglang_kernel_version: "0.4.3"
   flashinfer_version: "0.6.11.post1"
   deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
@@ -31,7 +31,7 @@ build:
   gdrcopy_version: "2.5.1"
   torch_cuda_arch_list: "9.0;10.0;10.3"
   dlc_major_version: "1"
-  dlc_minor_version: "0"
+  dlc_minor_version: "1"
 
 release:
   release: true
