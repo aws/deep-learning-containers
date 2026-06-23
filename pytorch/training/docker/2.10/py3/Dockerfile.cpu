@@ -195,7 +195,8 @@ RUN pip install --no-cache-dir \
     tornado>=6.5.1 \
     "filelock>=3.20.1" \
     pytz \
-    tzdata
+    tzdata \
+    "nest-asyncio==1.6.0"
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
@@ -209,8 +210,8 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thinc, blis
-    spacy \
-    thinc \
+    spacy==3.8.14 \
+    thinc==8.3.13 \
     blis \
     # typer-slim: weasel 1.0.0 dropped it but spacy still needs it
     "typer-slim>=0.24.0" \
