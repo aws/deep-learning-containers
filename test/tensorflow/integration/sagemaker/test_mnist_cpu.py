@@ -22,27 +22,16 @@ import os
 from urllib.parse import urlparse
 
 import boto3
-from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
 from test_utils import random_suffix_name
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 SOURCE_DIR = os.path.join(RESOURCE_DIR, "scripts")
-MNIST_DATA_DIR = os.path.join(RESOURCE_DIR, "mnist", "data")
 INSTANCE_TYPE = "ml.c5.xlarge"
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 DEFAULT_REGION = "us-west-2"
-
-
-def _upload_mnist_data(key_prefix="scriptmode/mnist"):
-    """Upload the bundled .npy MNIST subset to S3 and return the resulting URI.
-
-    Session is constructed with an explicit region because CI runners don't
-    always have a default boto region configured.
-    """
-    sagemaker_session = Session(boto3.session.Session(region_name=DEFAULT_REGION))
-    return sagemaker_session.upload_data(path=MNIST_DATA_DIR, key_prefix=key_prefix)
+MNIST_S3_URI = "s3://dlc-cicd-models/tensorflow/sagemaker-test-data/MNIST/"
 
 
 def _run_sm_training(
@@ -95,10 +84,9 @@ def _assert_s3_file_exists(region, s3_url):
 def test_mnist_single_node_cpu():
     """Single-node CPU training with plain Keras.
 
-    The bundled .npy subset is uploaded to S3 and surfaced to the container
-    at SM_CHANNEL_TRAINING. After the job completes we assert the model
-    artifact was uploaded to S3 — a deployability smoke check."""
-    inputs_s3 = _upload_mnist_data()
+    SageMaker mounts the MNIST S3 prefix at SM_CHANNEL_TRAINING. After the
+    job completes we assert the model artifact was uploaded to S3 — a
+    deployability smoke check."""
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,
         entry_script="mnist.py",
@@ -106,7 +94,7 @@ def test_mnist_single_node_cpu():
         instance_type=INSTANCE_TYPE,
         instance_count=1,
         hyperparameters={"strategy": "none"},
-        input_data=[InputData(channel_name="training", data_source=inputs_s3)],
+        input_data=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
         job_name_prefix="tf-mnist-cpu",
     )
     _assert_s3_file_exists(
@@ -121,7 +109,6 @@ def test_mnist_multi_host_no_strategy_cpu():
     collective op or parameter coordination. Smoke-tests the multi-host
     SageMaker launcher path. Each host writes the same artifact, but only
     the chief saves to SM_MODEL_DIR (the script enforces the chief gate)."""
-    inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,
         entry_script="mnist.py",
@@ -129,7 +116,7 @@ def test_mnist_multi_host_no_strategy_cpu():
         instance_type=INSTANCE_TYPE,
         instance_count=2,
         hyperparameters={"strategy": "none"},
-        input_data=[InputData(channel_name="training", data_source=inputs_s3)],
+        input_data=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
         job_name_prefix="tf-mnist-2h-cpu",
     )
     _assert_s3_file_exists(
@@ -144,7 +131,6 @@ def test_mnist_distributed_mwms_cpu():
     inter-host gRPC. On TF 2.21 / Keras 3, model.fit() under MWMS hits a
     PerReplica distribution gap; the script uses a custom strategy.run
     training loop instead."""
-    inputs_s3 = _upload_mnist_data()
     _run_sm_training(
         image_uri=IMAGE_URI,
         entry_script="mnist.py",
@@ -152,6 +138,6 @@ def test_mnist_distributed_mwms_cpu():
         instance_type=INSTANCE_TYPE,
         instance_count=2,
         hyperparameters={"epochs": "2", "strategy": "mwms"},
-        input_data=[InputData(channel_name="training", data_source=inputs_s3)],
+        input_data=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
         job_name_prefix="tf-mnist-mwms-cpu",
     )

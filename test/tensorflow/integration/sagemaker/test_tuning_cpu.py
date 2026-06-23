@@ -8,8 +8,6 @@ not anything CUDA-specific."""
 
 import os
 
-import boto3
-from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.parameter import IntegerParameter
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
@@ -18,10 +16,9 @@ from test_utils import random_suffix_name
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 SOURCE_DIR = os.path.join(RESOURCE_DIR, "scripts")
-MNIST_DATA_DIR = os.path.join(RESOURCE_DIR, "mnist", "data")
 INSTANCE_TYPE = "ml.c5.xlarge"
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
-DEFAULT_REGION = "us-west-2"
+MNIST_S3_URI = "s3://dlc-cicd-models/tensorflow/sagemaker-test-data/MNIST/"
 
 
 def test_tuning_model_dir_cpu():
@@ -31,9 +28,6 @@ def test_tuning_model_dir_cpu():
     max_parallel_jobs=2. The objective metric is parsed from training logs
     via the `accuracy` regex; the standard `mnist.py` entry script already
     prints `accuracy: <val>` per epoch via Keras."""
-    sagemaker_session = Session(boto3.session.Session(region_name=DEFAULT_REGION))
-    inputs_s3 = sagemaker_session.upload_data(path=MNIST_DATA_DIR, key_prefix="scriptmode/mnist")
-
     source_code = SourceCode(source_dir=SOURCE_DIR, entry_script="mnist.py")
     compute = Compute(instance_type=INSTANCE_TYPE, instance_count=1)
 
@@ -58,7 +52,7 @@ def test_tuning_model_dir_cpu():
     )
 
     tuner.tune(
-        inputs=[InputData(channel_name="training", data_source=inputs_s3)],
+        inputs=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
         job_name=random_suffix_name("tf-tune", 32),
         wait=True,
     )

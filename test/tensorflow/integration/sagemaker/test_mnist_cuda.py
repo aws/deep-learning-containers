@@ -28,14 +28,12 @@ import os
 from urllib.parse import urlparse
 
 import boto3
-from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
 from test_utils import random_suffix_name
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 SOURCE_DIR = os.path.join(RESOURCE_DIR, "scripts")
-MNIST_DATA_DIR = os.path.join(RESOURCE_DIR, "mnist", "data")
 SINGLE_GPU_INSTANCE = "ml.g4dn.xlarge"
 # DLC test account has ml.g4dn.xlarge quota=1; multi-host needs 2 instances.
 # ml.g4dn.2xlarge has quota=8, same T4 GPU.
@@ -43,12 +41,7 @@ MULTI_HOST_GPU_INSTANCE = "ml.g4dn.2xlarge"
 MULTI_GPU_INSTANCE = "ml.g4dn.12xlarge"
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 DEFAULT_REGION = "us-west-2"
-
-
-def _upload_mnist_data(key_prefix="scriptmode/mnist"):
-    """Upload the bundled .npy MNIST subset to S3 and return the URI."""
-    sagemaker_session = Session(boto3.session.Session(region_name=DEFAULT_REGION))
-    return sagemaker_session.upload_data(path=MNIST_DATA_DIR, key_prefix=key_prefix)
+MNIST_S3_URI = "s3://dlc-cicd-models/tensorflow/sagemaker-test-data/MNIST/"
 
 
 def _run_sm_training(
@@ -106,7 +99,6 @@ def test_mnist_single_node_gpu():
 
     TF picks up the one visible GPU automatically without any explicit
     distribute scope."""
-    inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,
         entry_script="mnist.py",
@@ -114,7 +106,7 @@ def test_mnist_single_node_gpu():
         instance_type=SINGLE_GPU_INSTANCE,
         instance_count=1,
         hyperparameters={"strategy": "none"},
-        input_data=[InputData(channel_name="training", data_source=inputs_s3)],
+        input_data=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
         job_name_prefix="tf-mnist-gpu",
     )
     _assert_s3_file_exists(
@@ -127,7 +119,6 @@ def test_mnist_multi_host_no_strategy_gpu():
 
     Each host trains independently — no NCCL, no TF_CONFIG. Smoke-tests the
     GPU multi-host launcher path."""
-    inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,
         entry_script="mnist.py",
@@ -135,7 +126,7 @@ def test_mnist_multi_host_no_strategy_gpu():
         instance_type=MULTI_HOST_GPU_INSTANCE,
         instance_count=2,
         hyperparameters={"strategy": "none"},
-        input_data=[InputData(channel_name="training", data_source=inputs_s3)],
+        input_data=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
         job_name_prefix="tf-mnist-2h-gpu",
     )
     _assert_s3_file_exists(
@@ -150,7 +141,6 @@ def test_mnist_mirrored_strategy_gpu():
     doesn't need TF_CONFIG and uses NCCL all-reduce across the local GPUs
     only — keeps the test cheap (one instance) while exercising the GPU
     collective path."""
-    inputs_s3 = _upload_mnist_data()
     model_trainer = _run_sm_training(
         image_uri=IMAGE_URI,
         entry_script="mnist.py",
@@ -158,7 +148,7 @@ def test_mnist_mirrored_strategy_gpu():
         instance_type=MULTI_GPU_INSTANCE,
         instance_count=1,
         hyperparameters={"strategy": "mirrored"},
-        input_data=[InputData(channel_name="training", data_source=inputs_s3)],
+        input_data=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
         job_name_prefix="tf-mnist-mirrored-gpu",
     )
     _assert_s3_file_exists(
@@ -173,7 +163,6 @@ def test_mnist_distributed_mwms_gpu():
     (model.fit() hits a PerReplica distribution gap under MWMS). If NCCL
     fails to initialise or all_reduce hangs, the SageMaker job fails and
     pytest surfaces that here."""
-    inputs_s3 = _upload_mnist_data()
     _run_sm_training(
         image_uri=IMAGE_URI,
         entry_script="mnist.py",
@@ -182,6 +171,6 @@ def test_mnist_distributed_mwms_gpu():
         instance_count=2,
         hyperparameters={"epochs": "2", "strategy": "mwms"},
         environment={"FI_EFA_FORK_SAFE": "1"},
-        input_data=[InputData(channel_name="training", data_source=inputs_s3)],
+        input_data=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
         job_name_prefix="tf-mnist-mwms-gpu",
     )

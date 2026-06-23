@@ -27,10 +27,10 @@ from test_utils import random_suffix_name
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 SOURCE_DIR = os.path.join(RESOURCE_DIR, "scripts")
-MNIST_DATA_DIR = os.path.join(RESOURCE_DIR, "mnist", "data")
 INSTANCE_TYPE = "ml.c5.xlarge"
 IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 DEFAULT_REGION = "us-west-2"
+MNIST_S3_URI = "s3://dlc-cicd-models/tensorflow/sagemaker-test-data/MNIST/"
 
 
 def test_experiments_cpu():
@@ -49,8 +49,6 @@ def test_experiments_cpu():
     unique_id = random.randint(1, 6000)
     experiment_name = f"tf-dlc-integ-test-{unique_id}-{int(time.time())}"
     trial_name = f"tf-dlc-integ-trial-{unique_id}-{int(time.time())}"
-
-    inputs_s3 = sagemaker_session.upload_data(path=MNIST_DATA_DIR, key_prefix="scriptmode/mnist")
 
     experiment = Experiment.create(
         experiment_name=experiment_name,
@@ -77,7 +75,7 @@ def test_experiments_cpu():
             distributed=None,
         )
         model_trainer.train(
-            input_data_config=[InputData(channel_name="training", data_source=inputs_s3)],
+            input_data_config=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
             wait=True,
         )
 
