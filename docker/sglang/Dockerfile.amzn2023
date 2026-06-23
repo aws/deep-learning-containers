@@ -151,8 +151,11 @@ RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platf
     && rm -rf /tmp/mooncake
 
 # sgl-model-gateway (Rust — patch source for crate API changes)
+# Pin maturin <1.14: 1.14.0 (PR #3182) rejects a project.readme that resolves
+# outside the crate's workspace root, and bindings/python/pyproject.toml points
+# at ../../README.md. Re-evaluate if upstream relocates the readme.
 RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-    && uv pip install --system --no-cache maturin \
+    && uv pip install --system --no-cache "maturin==1.13.3" \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
     && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close()" \
     && cd bindings/python \
