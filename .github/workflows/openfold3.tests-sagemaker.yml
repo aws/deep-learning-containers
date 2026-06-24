@@ -17,15 +17,13 @@ permissions:
   contents: read
 
 jobs:
-  preflight:
+  sagemaker-test:
+    # Launches a remote SageMaker async endpoint — no GPU needed on the runner.
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
-    outputs:
-      image-uri: ${{ steps.image.outputs.image-uri }}
-      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
-      image-exists: ${{ steps.check.outputs.exists }}
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
 
@@ -45,32 +43,29 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-  endpoint-test:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
-    needs: [preflight]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - uses: actions/checkout@v6
-
       - name: ECR login
+        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.preflight.outputs.image-uri }}
+          image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: Install test dependencies
+      - name: Run SageMaker async endpoint tests
+        if: steps.check.outputs.exists == 'true'
+        env:
+          TEST_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+          SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
+          AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
           uv pip install -r test/openfold3/sagemaker/requirements.txt
-
-      - name: Run SageMaker endpoint tests
-        run: |
-          source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} openfold3/sagemaker
+          PYTHONPATH=$(pwd):$PYTHONPATH python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
+            openfold3/sagemaker/test_async_endpoint.py
+
+      - name: Skip notice
+        if: steps.check.outputs.exists != 'true'
+        run: echo "Image not found in ECR — skipping tests (first release scenario)"
