@@ -22,6 +22,7 @@ dependencies = [
     "scipy",
     "scikit-learn",
     "opencv-python",
+    "msgpack>=1.2.1",  # CVE GHSA-6v7p-g79w-8964 (transitive via deepspeed)
 ]
 
 [project.optional-dependencies]
