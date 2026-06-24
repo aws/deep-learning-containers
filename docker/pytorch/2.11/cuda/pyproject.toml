@@ -39,6 +39,8 @@ sagemaker = [
     "cloudpickle",
     "s3fs>=2026.2.0",
     "aiohttp>=3.14.0",
+    "tornado>=6.5.6",  # CVE GHSA-3x9g-8vmp-wqvf, GHSA-mgf9-4vpg-hj56 (transitive)
+    "cryptography>=48.0.1",  # CVE GHSA-537c-gmf6-5ccf (transitive)
 ]
 
 [tool.uv]
