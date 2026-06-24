@@ -42,7 +42,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: efa-test-global
+  # Key per config + caller ref so distinct images (e.g. ec2 vs sagemaker) run
+  # concurrently. A single static group serialized ALL EFA invocations into one
+  # slot, cancelling sibling legs of the same PR.
+  group: efa-test-${{ inputs.config-file }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
