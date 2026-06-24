@@ -32,6 +32,21 @@ benchmark:
       min_throughput: 1200
       min_rps: 5
 
+    # JetBrains Mellum2 reasoning MoE (12B total / 2.5B active, bf16 ~23GB).
+    # MellumForCausalLM support added upstream in vLLM 0.23.0 (PR #43992).
+    # Fits a single L40S (g6e.xl, 48GB) at tp=1; qwen3 reasoning parser emits <think> blocks.
+    # Provisional floors — tighten to ~50% of observed throughput after the first run.
+    - name: "mellum2-12b-a2.5b-thinking"
+      s3_model: "mellum2-12b-a2.5b-thinking.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --reasoning-parser qwen3"
+      input_len: 512
+      output_len: 128
+      num_prompts: 64
+      batch_size: 4
+      min_throughput: 100
+      min_rps: 1
+
     - name: "gemma-4-e4b-it"
       s3_model: "gemma-4-e4b-it.tar.gz"
       fleet: "x86-g6exl-runner"
@@ -272,3 +287,19 @@ benchmark:
       batch_size: 4
       min_throughput: 5966
       min_rps: 9.3
+
+    # DeepSeek V4 Flash — config mirrors sglang-model-tests.yml (tp=8, H100, 256 prompts, 512/256 len).
+    # SGLang flags translated to vLLM: --tp->--tensor-parallel-size, --context-length->--max-model-len,
+    # --mem-fraction-static->--gpu-memory-utilization; --moe-runner-backend dropped (vLLM auto-selects).
+    # V4 Pro (742GB bf16) is omitted: it exceeds the largest fleet, gpu-h100-8gpu-runners (8x H100 = 640GB),
+    # and no larger fleet exists in DLContainersInfraCDK. Needs an FP8 checkpoint or a bigger fleet first.
+    - name: "deepseek-v4-flash"
+      s3_model: "deepseek-v4-flash.tar.gz"
+      runner_label: "gpu-h100-8gpu-runners"
+      extra_args: "--tensor-parallel-size 8 --max-model-len 4096 --gpu-memory-utilization 0.88 --trust-remote-code"
+      input_len: 512
+      output_len: 256
+      num_prompts: 256
+      batch_size: 8
+      min_throughput: 500
+      min_rps: 1
