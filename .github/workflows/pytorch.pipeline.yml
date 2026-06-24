@@ -56,6 +56,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-sagemaker-test:
+        description: "Run SageMaker training tests (only for sagemaker images)"
+        required: false
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -184,14 +189,27 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # EFA tests — only for GPU images
+  # EFA tests — only for GPU EC2 images (sagemaker is the same Dockerfile.cuda
+  # build; running it there too just collides on the global EFA concurrency group)
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' }}
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
     needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  # SageMaker training tests — only for sagemaker images (launches remote SM jobs)
+  sagemaker-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
+    needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/pytorch.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
