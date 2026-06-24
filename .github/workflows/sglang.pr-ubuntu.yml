@@ -52,6 +52,7 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/workflows/sglang.pr-ubuntu.yml"
               - ".github/config/image/sglang/*-ubuntu.yml"
               - "docker/sglang/Dockerfile"
               - "scripts/docker/common/**"
@@ -92,8 +93,7 @@ jobs:
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
-      build: true
-      # build: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
