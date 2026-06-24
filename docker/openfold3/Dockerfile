@@ -17,16 +17,16 @@ ARG CHECKPOINT=of3-p2-155k.pt
 
 # Build dependencies
 RUN dnf install -y \
-    wget \
-    git \
-    gcc gcc-c++ make \
-    && dnf clean all
+  wget \
+  git \
+  gcc gcc-c++ make \
+  && dnf clean all
 
 # Miniforge (conda)
 RUN wget -q -P /tmp \
-    "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-Linux-x86_64.sh" \
-    && bash /tmp/Miniforge3-Linux-x86_64.sh -b -p /opt/conda \
-    && rm /tmp/Miniforge3-Linux-x86_64.sh
+  "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-Linux-x86_64.sh" \
+  && bash /tmp/Miniforge3-Linux-x86_64.sh -b -p /opt/conda \
+  && rm /tmp/Miniforge3-Linux-x86_64.sh
 ENV PATH=/opt/conda/bin:$PATH
 
 # Clone OpenFold3 at a pinned ref (not HEAD)
@@ -36,13 +36,13 @@ RUN git clone --depth 1 --branch "${OPENFOLD3_REF}" https://github.com/aqlaborat
 # Install conda environment from upstream lock file
 WORKDIR /opt/openfold-3
 RUN mamba install -n base -c conda-forge conda-lock --yes \
-    && conda-lock install --name openfold3 environments/production-linux-64.lock \
-    && mamba clean --all --yes \
-    && conda clean --all --yes
+  && conda-lock install --name openfold3 environments/production-linux-64.lock \
+  && mamba clean --all --yes \
+  && conda clean --all --yes
 
 ENV PATH=/opt/conda/envs/openfold3/bin:$PATH \
-    CONDA_PREFIX=/opt/conda/envs/openfold3 \
-    CONDA_DEFAULT_ENV=openfold3
+  CONDA_PREFIX=/opt/conda/envs/openfold3 \
+  CONDA_DEFAULT_ENV=openfold3
 
 # Third party dependencies (CUTLASS for the DeepSpeed Evoformer attention kernel)
 RUN /opt/openfold-3/scripts/install_third_party_dependencies.sh
@@ -53,8 +53,8 @@ RUN pip install --no-deps --editable .
 # Download model weights (public bucket, no auth)
 ENV OPENFOLD_CACHE=/root/.openfold3
 RUN mkdir -p /root/.openfold3 \
-    && pip install awscli \
-    && aws s3 cp "s3://openfold3-data/openfold3-parameters/${CHECKPOINT}" /root/.openfold3/ --no-sign-request
+  && pip install awscli \
+  && aws s3 cp "s3://openfold3-data/openfold3-parameters/${CHECKPOINT}" /root/.openfold3/ --no-sign-request
 
 # Serving dependencies
 RUN pip install flask gunicorn
@@ -79,10 +79,10 @@ COPY --from=builder /opt/openfold-3 /opt/openfold-3
 COPY --from=builder /root/.openfold3 /root/.openfold3
 
 ENV PATH=/opt/conda/envs/openfold3/bin:/opt/conda/bin:$PATH \
-    CONDA_PREFIX=/opt/conda/envs/openfold3 \
-    CONDA_DEFAULT_ENV=openfold3 \
-    OPENFOLD_CACHE=/root/.openfold3 \
-    CUTLASS_PATH=/opt/openfold-3/cutlass
+  CONDA_PREFIX=/opt/conda/envs/openfold3 \
+  CONDA_DEFAULT_ENV=openfold3 \
+  OPENFOLD_CACHE=/root/.openfold3 \
+  CUTLASS_PATH=/opt/openfold-3/cutlass
 
 # CUDA forward-compat shim (shared with other DLCs)
 COPY ./scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
