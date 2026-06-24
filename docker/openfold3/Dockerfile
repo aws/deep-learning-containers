@@ -18,6 +18,7 @@ ARG CHECKPOINT=of3-p2-155k.pt
 # Build dependencies
 RUN dnf install -y \
   wget \
+  curl \
   git \
   gcc gcc-c++ make \
   && dnf clean all
@@ -50,22 +51,21 @@ RUN /opt/openfold-3/scripts/install_third_party_dependencies.sh
 # Install openfold3
 RUN pip install --no-deps --editable .
 
-# Download model weights (public bucket, no auth). awscli is build-only and is
-# removed afterward so its dependency pins (e.g. urllib3<2.7) don't hold back
-# the CVE remediation below.
+# Download model weights from the public bucket over anonymous HTTPS (curl, like
+# the other DLCs) — avoids pulling in awscli/botocore, which would pin urllib3<2.7
+# and conflict with the CVE remediation below.
 ENV OPENFOLD_CACHE=/root/.openfold3
 RUN mkdir -p /root/.openfold3 \
-  && pip install awscli \
-  && aws s3 cp "s3://openfold3-data/openfold3-parameters/${CHECKPOINT}" /root/.openfold3/ --no-sign-request \
-  && pip uninstall -y awscli
+  && curl -fSL "https://openfold3-data.s3.amazonaws.com/openfold3-parameters/${CHECKPOINT}" \
+    -o "/root/.openfold3/${CHECKPOINT}"
 
 # Serving dependencies
 RUN pip install flask gunicorn
 
-# CVE remediation (run last so nothing downgrades the patched versions):
-# upgrade vulnerable pure-Python utility libs in BOTH the base and openfold3
-# envs, then purge the conda package cache — stale extracted tarballs under
-# /opt/conda/pkgs keep the old versions' METADATA that the ECR scanner flags.
+# CVE remediation (run last so nothing reinstalls/downgrades the patched
+# versions): upgrade vulnerable pure-Python utility libs in BOTH the base and
+# openfold3 envs, then purge the conda package cache — stale extracted tarballs
+# under /opt/conda/pkgs keep the old versions' METADATA that the ECR scanner flags.
 # openssl, curl, and torch are upstream-pinned in OpenFold3's conda lock and are
 # tracked via the ECR scan allowlist instead.
 RUN for PIP in /opt/conda/bin/pip /opt/conda/envs/openfold3/bin/pip; do \
