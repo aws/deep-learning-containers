@@ -1,5 +1,6 @@
 #!/bin/bash
 # configure_nccl.sh — Write NCCL configuration
+# TEMP: no-op edit to force PyTorch PR build+test (validate re-enable; revert before merge)
 set -ex
 
 cat > /etc/nccl.conf <<'EOF'
