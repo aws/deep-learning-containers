@@ -1,28 +1,27 @@
 name: "PR - PyTorch 2.11 CUDA"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/pytorch/2.11-*-cuda.yml"
-  #     - ".github/workflows/pytorch.pipeline.yml"
-  #     - ".github/workflows/pytorch.pr-2.11-cuda.yml"
-  #     - "docker/pytorch/2.11/Dockerfile.cuda"
-  #     - "scripts/docker/common/**"
-  #     - "scripts/docker/pytorch/**"
-  #     - "scripts/docker/telemetry/**"
-  #     - "test/efa/**"
-  #     - "test/pytorch/multi_gpu/**"
-  #     - "test/pytorch/multi_node/**"
-  #     - "test/pytorch/single_gpu/**"
-  #     - "test/pytorch/unit/**"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
-  #     - "test/telemetry/**"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/pytorch/2.11-*-cuda.yml"
+      - ".github/workflows/pytorch.pipeline.yml"
+      - ".github/workflows/pytorch.pr-2.11-cuda.yml"
+      - "docker/pytorch/2.11/Dockerfile.cuda"
+      - "scripts/docker/common/**"
+      - "scripts/docker/pytorch/**"
+      - "scripts/docker/telemetry/**"
+      - "test/efa/**"
+      - "test/pytorch/multi_gpu/**"
+      - "test/pytorch/multi_node/**"
+      - "test/pytorch/single_gpu/**"
+      - "test/pytorch/unit/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
+      - "test/telemetry/**"
+      - "!docs/**"
 
 permissions:
   contents: read
