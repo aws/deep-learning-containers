@@ -1,5 +1,4 @@
 name: "Pipeline - PyTorch"
-# TEMP: trigger PyTorch PR workflows to validate post-refactor re-enable (revert before merge)
 
 on:
   workflow_call:
