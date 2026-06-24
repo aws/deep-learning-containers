@@ -50,6 +50,14 @@ RUN /opt/openfold-3/scripts/install_third_party_dependencies.sh
 # Install openfold3
 RUN pip install --no-deps --editable .
 
+# CVE remediation: upgrade vulnerable pure-Python utility libs (not part of the
+# model dependency graph) in both the base and openfold3 conda envs. openssl,
+# curl, and torch are upstream-pinned in OpenFold3's conda lock and are tracked
+# via the ECR scan allowlist instead.
+RUN /opt/conda/bin/pip install --upgrade "urllib3>=2.7.0" "dulwich>=1.2.5" \
+  && pip install --upgrade \
+    "GitPython>=3.1.50" "urllib3>=2.7.0" "pillow>=12.2.0" "msgpack>=1.2.1"
+
 # Download model weights (public bucket, no auth)
 ENV OPENFOLD_CACHE=/root/.openfold3
 RUN mkdir -p /root/.openfold3 \
