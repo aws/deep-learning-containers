@@ -1,23 +1,22 @@
 name: "PR - XGBoost 3.2"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/xgboost/sagemaker.yml"
-  #     - ".github/workflows/xgboost.pipeline.yml"
-  #     - ".github/workflows/xgboost.pr-3.2.yml"
-  #     - "docker/xgboost/Dockerfile"
-  #     - "scripts/docker/common/**"
-  #     - "scripts/docker/xgboost/**"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/xgboost/**"
-  #     - "test/telemetry/**"
-  #     - "test/xgboost/**"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/xgboost/sagemaker.yml"
+      - ".github/workflows/xgboost.pipeline.yml"
+      - ".github/workflows/xgboost.pr-3.2.yml"
+      - "docker/xgboost/Dockerfile"
+      - "scripts/docker/common/**"
+      - "scripts/docker/xgboost/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/xgboost/**"
+      - "test/telemetry/**"
+      - "test/xgboost/**"
+      - "!docs/**"
 
 permissions:
   contents: read
