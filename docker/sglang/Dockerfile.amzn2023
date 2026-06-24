@@ -357,10 +357,10 @@ open(src, 'w').write(content.replace(target, insert + target))" \
 
 
 # Telemetry, common scripts, and OSS compliance
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
@@ -383,7 +383,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /root/.cache || true
 
 # Install EFA (cuda-rhel9 repo for libnccl system libs, cleanup after)
-COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
+COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
@@ -403,7 +403,7 @@ RUN dnf upgrade -y --security --releasever latest \
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python
 
-COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
+COPY ./scripts/docker/sglang/dockerd_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]
@@ -417,7 +417,7 @@ RUN dnf upgrade -y --security --releasever latest \
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python
 
-COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
+COPY ./scripts/docker/sglang/sagemaker_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]

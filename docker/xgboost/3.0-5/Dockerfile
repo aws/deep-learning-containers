@@ -174,9 +174,9 @@ ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
 
 # Telemetry
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
@@ -249,5 +249,11 @@ ENV SM_INPUT=/opt/ml/input \
   SAGEMAKER_TRAINING_MODULE=sagemaker_xgboost_container.training:main \
   SAGEMAKER_SERVING_MODULE=sagemaker_xgboost_container.serving:main \
   TEMP=/home/model-server/tmp
+
+# Security refresh — bust cache to pull latest patches
+ARG CACHE_REFRESH
+RUN apt-get update && apt-get upgrade -y \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN python3 -m pip install --no-cache-dir --upgrade cryptography
 
 EXPOSE 8080

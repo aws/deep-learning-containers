@@ -13,6 +13,20 @@ phases:
           uv self update
         fi
 
+      - echo "Installing yq ..."
+      - |
+        if ! command -v yq &> /dev/null; then
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          chmod +x /usr/local/bin/yq
+        fi
+
+      - echo "Installing jq ..."
+      - |
+        if ! command -v jq &> /dev/null; then
+          wget -qO /usr/local/bin/jq https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64
+          chmod +x /usr/local/bin/jq
+        fi
+
   pre_build:
     commands:
       - echo "Build started on $(date)"

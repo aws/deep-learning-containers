@@ -1,15 +1,16 @@
-# syntax=docker/dockerfile:1
-
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1
 
 FROM ${BASE_IMAGE} AS base
 
-LABEL maintainer="Hugging Face"
-LABEL hf_dlc_major_version="1"
+ARG FRAMEWORK=huggingface_vllm
+ARG FRAMEWORK_VERSION=0.22.1
+ARG CONTAINER_TYPE=general
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
 
-ARG FRAMEWORK
-ARG FRAMEWORK_VERSION
-ARG CONTAINER_TYPE
+LABEL maintainer="Hugging Face"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 
 ARG TRANSFORMERS_VERSION=5.10.2
 ARG HUGGINGFACE_HUB_VERSION=1.17.0
@@ -31,22 +32,26 @@ RUN uv pip install --system \
 
 
 # Same as vllm Dockerfile to make telemetry work
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+
+ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE}
 
 # HF auto-optimization layer. Sourced by the entrypoint to set performance
 # defaults at run time: expandable_segments allocator and LMCache CPU
 # KV-offload. The bundled accelerators it enables (LMCache / NIXL /
 # runai-streamer) already ship in the AWS base. See inference/vllm/README.md
 # for the toggles.
-COPY --chmod=755 ./scripts/huggingface/vllm/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
+COPY --chmod=755 ./scripts/docker/huggingface/vllm/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
 
 
 FROM base AS huggingface-vllm-sagemaker
@@ -55,8 +60,8 @@ ARG CACHE_REFRESH=0
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:inference:hf-vllm"
 
-COPY --chmod=755 ./scripts/huggingface/vllm/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-COPY --chmod=755 ./scripts/huggingface/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY --chmod=755 ./scripts/docker/huggingface/vllm/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY --chmod=755 ./scripts/docker/huggingface/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 
 # Fix ffmpeg related vulnerabilities CVE-2024-35366 / CVE-2024-35367 / CVE-2024-35368
 RUN apt-get purge -y ffmpeg libav* || true && apt-get autoremove -y

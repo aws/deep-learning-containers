@@ -1,0 +1,32 @@
+image:
+  name: "vllm-sagemaker-ubuntu"
+  description: "vLLM for SageMaker (Ubuntu, upstream base image)"
+
+metadata:
+  framework: "vllm"
+  framework_version: "0.23.0"
+  os_version: "ubuntu22.04"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  prod_image: "vllm:0.23-gpu-py312"
+
+build:
+  dockerfile: "docker/vllm/Dockerfile"
+  target: "vllm-sagemaker"
+  base_image: "vllm/vllm-openai:v0.23.0"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  efa_version: "1.47.0"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"
