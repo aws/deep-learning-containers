@@ -1,0 +1,31 @@
+image:
+  name: "openfold3-sagemaker"
+  description: "OpenFold3 protein structure prediction for SageMaker async inference"
+
+metadata:
+  framework: "openfold3"
+  framework_version: "0.4.1"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "inference"
+  prod_image: "openfold3:0.4-cu130-amzn2023"
+
+build:
+  dockerfile: "docker/openfold3/Dockerfile"
+  target: "openfold3-sagemaker"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  openfold3_ref: "0.4.1"
+  checkpoint: "of3-p2-155k.pt"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: true
+  environment: "production"

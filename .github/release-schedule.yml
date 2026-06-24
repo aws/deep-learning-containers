@@ -73,3 +73,7 @@ schedules:
   - cron: "00 22 * * 2,4"
     workflow: vllm-omni.autorelease-sagemaker.yml
     gpu: medium
+
+  - cron: "30 22 * * 2"
+    workflow: openfold3.autorelease-sagemaker-amzn2023.yml
+    gpu: heavy
