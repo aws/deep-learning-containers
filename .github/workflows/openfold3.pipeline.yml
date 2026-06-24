@@ -26,6 +26,11 @@ on:
         required: false
         type: boolean
         default: false
+      run-sagemaker-test:
+        description: "Run SageMaker endpoint tests"
+        required: false
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -37,6 +42,16 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
   build:
     if: ${{ inputs.build }}
     concurrency:
@@ -81,6 +96,17 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  sagemaker-tests:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
+    needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/openfold3.tests-sagemaker.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   release-gate:
     if: >-
       github.ref == 'refs/heads/main' &&
@@ -89,7 +115,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test]
+    needs: [build, sanity-test, security-test, sagemaker-tests]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}

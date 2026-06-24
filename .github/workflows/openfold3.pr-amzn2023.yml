@@ -9,10 +9,12 @@ on:
       - ".github/config/image/openfold3/*.yml"
       - ".github/workflows/openfold3.pipeline.yml"
       - ".github/workflows/openfold3.pr-amzn2023.yml"
+      - ".github/workflows/openfold3.tests-sagemaker.yml"
       - "docker/openfold3/Dockerfile"
       - "scripts/docker/common/**"
       - "scripts/docker/openfold3/**"
       - "test/sanity/**"
+      - "test/openfold3/sagemaker/**"
       - "!docs/**"
 
 permissions:
@@ -35,6 +37,7 @@ jobs:
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -48,6 +51,8 @@ jobs:
               - "scripts/docker/openfold3/**"
             sanity-test-change:
               - "test/sanity/**"
+            sagemaker-test-change:
+              - "test/openfold3/sagemaker/**"
 
   discover:
     needs: [gatekeeper]
@@ -74,5 +79,6 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false
     secrets: inherit
