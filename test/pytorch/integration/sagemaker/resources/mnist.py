@@ -14,11 +14,11 @@
 from __future__ import absolute_import, print_function
 
 import argparse
-import json
 import logging
 import os
 import sys
 
+import sagemaker_training.environment
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -290,20 +290,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("--inductor", type=int, default=0, help="pytorch with inductor")
 
-    # Container environment — read SageMaker's injected SM_* env vars directly
-    # (the SDK v3 ModelTrainer + torchrun launch path does not bootstrap the
-    # sagemaker_training toolkit, so we don't import it).
-    parser.add_argument("--hosts", type=list, default=json.loads(os.environ.get("SM_HOSTS", "[]")))
-    parser.add_argument("--current-host", type=str, default=os.environ.get("SM_CURRENT_HOST", ""))
-    parser.add_argument(
-        "--model-dir", type=str, default=os.environ.get("SM_MODEL_DIR", "/opt/ml/model")
-    )
-    parser.add_argument(
-        "--data-dir",
-        type=str,
-        default=os.environ.get("SM_CHANNEL_TRAINING", "/opt/ml/input/data/training"),
-    )
-    parser.add_argument("--num-gpus", type=int, default=int(os.environ.get("SM_NUM_GPUS", 0)))
+    # Container environment
+    env = sagemaker_training.environment.Environment()
+    parser.add_argument("--hosts", type=list, default=env.hosts)
+    parser.add_argument("--current-host", type=str, default=env.current_host)
+    parser.add_argument("--model-dir", type=str, default=env.model_dir)
+    parser.add_argument("--data-dir", type=str, default=env.channel_input_dirs["training"])
+    parser.add_argument("--num-gpus", type=int, default=env.num_gpus)
 
     args = parser.parse_args()
 
