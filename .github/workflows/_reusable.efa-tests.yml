@@ -42,9 +42,7 @@ permissions:
   contents: read
 
 concurrency:
-  # Global serialization: only one EFA test runs repo-wide at a time. EFA tests
-  # launch 2x p4d.24xlarge each, and CI p4d capacity (and EIP quota) is limited,
-  # so we intentionally queue rather than run them in parallel.
+  # Serialize EFA repo-wide — one 2x p4d.24xlarge job at a time (limited capacity).
   group: efa-test-global
   cancel-in-progress: false
 
