@@ -10,6 +10,7 @@ on:
       - ".github/workflows/pytorch.pipeline.yml"
       - ".github/workflows/pytorch.pr-2.11-cpu.yml"
       - "docker/pytorch/2.11/Dockerfile.cpu"
+      - "docker/pytorch/2.11/cpu/**"
       - "scripts/docker/common/**"
       - "scripts/docker/pytorch/**"
       - "scripts/docker/telemetry/**"
@@ -50,6 +51,7 @@ jobs:
             build-change:
               - ".github/config/image/pytorch/2.11-*-cpu.yml"
               - "docker/pytorch/2.11/Dockerfile.cpu"
+              - "docker/pytorch/2.11/cpu/**"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"
               - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
