@@ -189,9 +189,13 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # EFA tests — for all GPU images (ec2 and sagemaker)
+  # EFA tests — GPU EC2 images only. The sagemaker image is the same build as ec2
+  # (same Dockerfile, sagemaker just adds extra args/packages on top), so EFA
+  # behavior is identical — no need to run it twice. EFA uses a single global
+  # concurrency group (one p4d EFA job at a time), so running both legs would only
+  # make them queue and cancel each other.
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' }}
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
     needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}

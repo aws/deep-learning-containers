@@ -42,10 +42,10 @@ permissions:
   contents: read
 
 concurrency:
-  # Key per config + caller ref so distinct images (e.g. ec2 vs sagemaker) run
-  # concurrently. A single static group serialized ALL EFA invocations into one
-  # slot, cancelling sibling legs of the same PR.
-  group: efa-test-${{ inputs.config-file }}-${{ github.ref }}
+  # Global serialization: only one EFA test runs repo-wide at a time. EFA tests
+  # launch 2x p4d.24xlarge each, and CI p4d capacity (and EIP quota) is limited,
+  # so we intentionally queue rather than run them in parallel.
+  group: efa-test-global
   cancel-in-progress: false
 
 jobs:
