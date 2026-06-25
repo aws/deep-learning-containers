@@ -1,19 +1,13 @@
 """Documentation generation functions."""
 
 import logging
-from pathlib import Path
 
 import sorter as sorter_module
 from constants import (
     AVAILABLE_IMAGES_TABLE_HEADER,
-    DOCS_DIR,
     GLOBAL_CONFIG,
     PUBLIC_GALLERY_URL,
-    README_PATH,
     REFERENCE_DIR,
-    RELEASE_NOTES_DIR,
-    RELEASE_NOTES_TABLE_HEADER,
-    SITE_URL,
     TEMPLATES_DIR,
 )
 from image_config import (
@@ -41,152 +35,6 @@ DEFAULT_TIEBREAKERS = [sorter_module.platform_sorter, sorter_module.accelerator_
 
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _generate_individual_release_note(
-    img: ImageConfig, template: Template, output_dir: Path, dry_run: bool = False
-) -> str:
-    """Generate a single release note page for an image."""
-    content = template.render(
-        title=f"{img.display_repository} {img.version} on {img.display_platform}",
-        framework=img.get("framework"),
-        version=img.get("version"),
-        platform_display=img.display_platform,
-        announcements=img.get("announcements", []),
-        packages=img.get("packages", {}),
-        image_uris=img.get_image_uris(),
-        optional=img.get("optional", {}),
-        **GLOBAL_CONFIG,
-    )
-
-    if not dry_run:
-        output_path = output_dir / img.release_note_filename
-        write_output(output_path, content)
-        LOGGER.debug(f"Wrote {output_path}")
-
-    return content
-
-
-def _generate_framework_index(
-    framework_group: str,
-    images: list[ImageConfig],
-    template: Template,
-    table_config: dict,
-    output_dir: Path,
-    dry_run: bool = False,
-) -> str:
-    """Generate the index page for a framework group's release notes."""
-    framework_display = GLOBAL_CONFIG["display_names"]["repositories"].get(
-        framework_group, framework_group
-    )
-    columns = table_config["columns"]
-    headers = [col["header"] for col in columns]
-
-    # Split images by OS: AL2023 images first, then legacy (Ubuntu etc.)
-    amzn2023_images = [img for img in images if img.get("os", "") == "amzn2023"]
-    legacy_images = [img for img in images if img.get("os", "") != "amzn2023"]
-
-    # Group images by major.minor version within each OS group
-    def _group_by_version(img_list):
-        by_version: dict[str, list[ImageConfig]] = {}
-        for img in img_list:
-            ver = parse_version(img.version)
-            major_minor = f"{ver.major}.{ver.minor}"
-            by_version.setdefault(major_minor, []).append(img)
-        return by_version
-
-    # Build ordered version list: AL2023 versions first (descending), then legacy (descending)
-    amzn2023_by_version = _group_by_version(amzn2023_images)
-    legacy_by_version = _group_by_version(legacy_images)
-    sorted_versions = sorted(amzn2023_by_version.keys(), key=parse_version, reverse=True) + sorted(
-        legacy_by_version.keys(), key=parse_version, reverse=True
-    )
-    images_by_version = {**amzn2023_by_version, **legacy_by_version}
-
-    # Build version-separated content for supported and deprecated
-    supported_sections, deprecated_sections = [], []
-    for version in sorted_versions:
-        sorted_images = sort_by_version(
-            images_by_version[version],
-            tiebreakers=[
-                sorter_module.repository_sorter,
-                sorter_module.platform_sorter,
-                sorter_module.accelerator_sorter,
-            ],
-        )
-
-        supported = [img for img in sorted_images if img.is_supported]
-        deprecated = [img for img in sorted_images if not img.is_supported]
-
-        # Add OS label to header if images have mixed OS types in this framework
-        os_label = ""
-        version_display = version
-        if amzn2023_images and legacy_images:
-            sample_os = sorted_images[0].get("os", "")
-            if sample_os == "amzn2023":
-                os_label = " (Amazon Linux 2023)"
-                version_display = f"v{version.split('.')[0]}"
-            else:
-                os_label = " (Ubuntu)"
-
-        if supported:
-            table = render_table(headers, [build_image_row(img, columns) for img in supported])
-            supported_sections.append(
-                f"{RELEASE_NOTES_TABLE_HEADER} {framework_display} {version_display}{os_label}\n\n{table}"
-            )
-
-        if deprecated:
-            table = render_table(headers, [build_image_row(img, columns) for img in deprecated])
-            deprecated_sections.append(
-                f"{RELEASE_NOTES_TABLE_HEADER} {framework_display} {version_display}{os_label}\n\n{table}"
-            )
-
-    content = template.render(
-        framework_display=framework_display,
-        supported_content="\n\n".join(supported_sections),
-        deprecated_content="\n\n".join(deprecated_sections),
-        **GLOBAL_CONFIG,
-    )
-
-    if not dry_run:
-        write_output(output_dir / "index.md", content)
-        LOGGER.debug(f"Wrote {output_dir / 'index.md'}")
-
-    return content
-
-
-def generate_release_notes(dry_run: bool = False) -> None:
-    """Generate release notes from image configs with release notes fields."""
-    LOGGER.debug("Generating release notes")
-
-    release_template = Template(
-        load_jinja2(TEMPLATES_DIR / "releasenotes" / "release_note.template.md")
-    )
-    index_template = Template(load_jinja2(TEMPLATES_DIR / "releasenotes" / "index.template.md"))
-    table_config = load_table_config("extra/release_notes")
-
-    images_by_group = load_images_by_framework_group(lambda img: img.has_release_notes)
-    if not images_by_group:
-        LOGGER.info("No release notes to generate")
-        return
-
-    for framework_group in get_framework_order():
-        group_images = images_by_group.get(framework_group, [])
-        if not group_images:
-            continue
-
-        group_dir = RELEASE_NOTES_DIR / framework_group
-        if not dry_run:
-            group_dir.mkdir(parents=True, exist_ok=True)
-
-        for img in group_images:
-            _generate_individual_release_note(img, release_template, group_dir, dry_run)
-
-        _generate_framework_index(
-            framework_group, group_images, index_template, table_config, group_dir, dry_run
-        )
-
-    LOGGER.info("Generated release notes")
 
 
 def _consolidate_framework_version(
@@ -430,44 +278,11 @@ def generate_available_images(dry_run: bool = False) -> str:
     return content
 
 
-def generate_index(dry_run: bool = False) -> str:
-    """Generate docs/index.md from README.md content."""
-    output_path = DOCS_DIR / "index.md"
-    template_path = TEMPLATES_DIR / "index.template.md"
-    LOGGER.debug(f"Generating {output_path}")
-
-    readme_content = README_PATH.read_text()
-    readme_content = readme_content.replace(SITE_URL, "")
-    # Fix empty links left after stripping SITE_URL (e.g. [text](SITE_URL) -> [text]())
-    readme_content = readme_content.replace("]()", "](./)")
-    readme_content = readme_content.replace('href=""', 'href="./"')
-
-    # Expand single logo into MkDocs theme-aware light/dark logos
-    readme_logo = '<img src="assets/logos/AWS_logo_RGB.svg" alt="AWS Logo" width="30%">'
-    mkdocs_logos = (
-        '<img src="assets/logos/AWS_logo_RGB.svg#only-light" alt="AWS Logo" width="30%">\n'
-        '<img src="assets/logos/AWS_logo_RGB_REV.svg#only-dark" alt="AWS Logo" width="30%">'
-    )
-    readme_content = readme_content.replace(readme_logo, mkdocs_logos)
-
-    template = Template(load_jinja2(template_path))
-    content = template.render(readme_content=readme_content)
-
-    if not dry_run:
-        write_output(output_path, content)
-        LOGGER.debug(f"Wrote {output_path}")
-
-    LOGGER.info("Generated index.md")
-    return content
-
-
 def generate_all(dry_run: bool = False) -> None:
     """Generate all documentation files."""
     LOGGER.info("Loaded global config")
 
-    generate_index(dry_run)
     generate_support_policy(dry_run)
     generate_available_images(dry_run)
-    generate_release_notes(dry_run)
 
     LOGGER.info("Documentation generation complete")

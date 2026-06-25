@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Generate XGBoost 3.0.5-compatible inference models and upload to S3.
+"""Generate XGBoost-compatible inference models and upload to S3.
 
 Uses inference input data to create models with matching feature dimensions.
 This is valid for container tests — we're testing the container's ability to
 load models and serve predictions, not model accuracy.
 
-Run on CI host with: pip install xgboost==3.0.5 boto3 numpy
+Set XGBOOST_VERSION env var to control pickle vs native format:
+  - < 3.2.0: uses pickle for *-pkl-model files (legacy format)
+  - >= 3.2.0: uses xgboost native save_model for all files
 """
 
 import os
@@ -21,6 +23,9 @@ S3_PREFIX = "xgboost/container_test_resources/inference/models"
 S3_INPUT_PREFIX = "xgboost/container_test_resources/inference/input"
 S3_TRAINING_PREFIX = "xgboost/container_test_resources/training/data"
 
+_xgb_ver = tuple(int(x) for x in os.environ.get("XGBOOST_VERSION", "3.2.0").split("."))
+USE_PICKLE = _xgb_ver < (3, 2, 0)
+
 
 def download_s3_dir(s3, bucket, prefix, local_dir):
     paginator = s3.get_paginator("list_objects_v2")
@@ -35,6 +40,15 @@ def download_s3_dir(s3, bucket, prefix, local_dir):
             s3.download_file(bucket, key, dest)
 
 
+def _save_pkl_model(bst, path):
+    """Save model in pickle format (legacy) or native format depending on version."""
+    if USE_PICKLE:
+        with open(path, "wb") as f:
+            pickle.dump(bst, f)
+    else:
+        bst.save_model(path)
+
+
 def main():
     out_dir = tempfile.mkdtemp(prefix="xgb-models-")
     input_dir = tempfile.mkdtemp(prefix="xgb-input-")
@@ -42,6 +56,9 @@ def main():
     s3 = boto3.client("s3")
 
     print(f"XGBoost version: {xgb.__version__}")
+    print(
+        f"USE_PICKLE: {USE_PICKLE} (XGBOOST_VERSION env={os.environ.get('XGBOOST_VERSION', 'not set')})"
+    )
     print("Downloading inference input data...")
     download_s3_dir(s3, S3_BUCKET, S3_INPUT_PREFIX, input_dir)
     print("Downloading training data...")
@@ -63,7 +80,7 @@ def main():
     dtrain = xgb.DMatrix(features, label=labels)
     bst = xgb.train({"objective": "multi:softmax", "num_class": 10, "max_depth": 6}, dtrain, 10)
     bst.save_model(os.path.join(out_dir, "mnist-xgb-model"))
-    pickle.dump(bst, open(os.path.join(out_dir, "mnist-pkl-model"), "wb"))
+    _save_pkl_model(bst, os.path.join(out_dir, "mnist-pkl-model"))
     print(f"  {features.shape[0]} rows x {features.shape[1]} features")
 
     # --- diabetes-binary-xgb-model ---
@@ -81,7 +98,7 @@ def main():
     dtrain_ins = xgb.DMatrix(csv_train[:, 1:], label=csv_train[:, 0])
     bst_ins = xgb.train({"objective": "reg:squarederror", "max_depth": 6}, dtrain_ins, 10)
     bst_ins.save_model(os.path.join(out_dir, "insurance-xgb-model"))
-    pickle.dump(bst_ins, open(os.path.join(out_dir, "insurance-pkl-model"), "wb"))
+    _save_pkl_model(bst_ins, os.path.join(out_dir, "insurance-pkl-model"))
     print(f"  {csv_train.shape[0]} rows x {csv_train.shape[1] - 1} cols")
 
     # --- salary-pkl-model (single feature, from salary-30.csv dims) ---
@@ -91,7 +108,7 @@ def main():
     y_sal = X_sal[:, 0] * 50000 + np.random.randn(100) * 5000
     dtrain_sal = xgb.DMatrix(X_sal, label=y_sal)
     bst_sal = xgb.train({"objective": "reg:squarederror", "max_depth": 3}, dtrain_sal, 10)
-    pickle.dump(bst_sal, open(os.path.join(out_dir, "salary-pkl-model"), "wb"))
+    _save_pkl_model(bst_sal, os.path.join(out_dir, "salary-pkl-model"))
     print("  100 rows x 1 feature")
 
     # --- Upload to S3 ---

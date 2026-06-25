@@ -6,15 +6,10 @@ __pycache__
 .ruff_cache
 .pytest_cache
 .vscode
-.kiro/*
-!.kiro/steering/
-.kiro/steering/*
-!.kiro/steering/test.md
-!.kiro/steering/docs.md
+.kiro
 .gem-config
 
 # Generated docs
-docs/index.md
 docs/tutorials
 docs/releasenotes/*/
 docs/reference/available_images.md
@@ -22,3 +17,8 @@ docs/reference/support_policy.md
 site/
 tutorials/
 .sisyphus/
+docker/xgboost/prebuilt.whl
+
+# tmp
+.github/archive
+HANDOVER.md

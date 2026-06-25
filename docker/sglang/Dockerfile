@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.10
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.13
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -36,7 +36,9 @@ RUN pip install \
 
 # patch CVEs
 RUN pip install \
+  "aiohttp>=3.14.0" \
   "black>=26.3.1" \
+  "diffusers>=0.38.0" \
   "lxml>=6.1.0" \
   "pillow>=12.1.1" \
   "pyasn1>=0.6.3" \
@@ -45,10 +47,10 @@ RUN pip install \
 
 # Copy artifacts
 # ===============
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/install_efa.sh install_efa.sh
-COPY ./scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/install_efa.sh install_efa.sh
+COPY ./scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
@@ -92,6 +94,10 @@ RUN rm -rf \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
+# Remove oh-my-zsh to avoid false positive in credentials scan
+# (plugins/dotenv/README.md contains example private key headers)
+RUN rm -rf /root/.oh-my-zsh
+
 # Run OSS compliance script
 # ==========================
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc \
@@ -124,7 +130,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
 
 RUN rm -rf /tmp/*
 
-COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
+COPY ./scripts/docker/sglang/sagemaker_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]
@@ -143,7 +149,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
 
 RUN rm -rf /tmp/*
 
-COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
+COPY ./scripts/docker/sglang/dockerd_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]

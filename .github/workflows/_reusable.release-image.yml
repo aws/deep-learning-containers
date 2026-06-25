@@ -1,0 +1,298 @@
+name: Reusable Release Image Workflow
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      source-image-uri:
+        description: 'Source image URI to release'
+        required: true
+        type: string
+      release-spec:
+        description: 'Release specification YAML content'
+        required: true
+        type: string
+      environment:
+        description: 'Deployment environment (gamma or production)'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region'
+        required: false
+        type: string
+        default: 'us-west-2'
+      runner-fleet:
+        description: 'CodeBuild runner fleet'
+        required: false
+        type: string
+        default: 'default-runner'
+      publish-only:
+        description: 'If true, only publish images (skip release info, notifications, docs PR)'
+        required: false
+        type: boolean
+        default: false
+      skip-docs-pr:
+        description: 'If true, skip the docs PR step (step 4) while keeping steps 1-3'
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      run-identifier:
+        description: 'Unique identifier for this release run'
+        value: ${{ jobs.step1-publish-images.outputs.run-identifier }}
+
+jobs:
+  validate-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release context
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+
+          if [[ "${ENVIRONMENT}" != "gamma" && "${ENVIRONMENT}" != "production" && "${ENVIRONMENT}" != "preprod" ]]; then
+            echo "ERROR: Invalid environment '${ENVIRONMENT}'"
+            echo "Valid environments: gamma, preprod, production"
+            exit 1
+          fi
+
+          echo "Release context validation passed"
+          echo "Ref: ${{ github.ref }}"
+          echo "Environment: ${ENVIRONMENT}"
+
+  step1-publish-images:
+    needs: [validate-release]
+    environment: ${{ inputs.environment }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
+    timeout-minutes: 1440
+    outputs:
+      run-identifier: ${{ steps.setup.outputs.run-identifier }}
+      metadata-file-name: ${{ steps.setup.outputs.metadata-file-name }}
+      images-published: ${{ steps.publish.outputs.images-published }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup release package
+        uses: ./.github/actions/setup-release-package
+        with:
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Install SOCI and nerdctl
+        run: |
+          ARCH_SUFFIX="amd64"
+
+          if command -v soci &> /dev/null; then
+            echo "SOCI already installed: $(soci --version)"
+          else
+            SOCI_VERSION="0.11.1"
+            wget -q https://github.com/awslabs/soci-snapshotter/releases/download/v${SOCI_VERSION}/soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            sudo tar -C /usr/local/bin -xvf soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz soci soci-snapshotter-grpc
+            rm soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            soci --version
+          fi
+
+          if command -v nerdctl &> /dev/null; then
+            echo "nerdctl already installed: $(nerdctl --version)"
+          else
+            export CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock
+            NERDCTL_VERSION="2.1.5"
+            wget -q https://github.com/containerd/nerdctl/releases/download/v${NERDCTL_VERSION}/nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            sudo tar -C /usr/local/bin -xzf nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            sudo chmod +x /usr/local/bin/nerdctl
+            rm nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            nerdctl --version
+          fi
+
+          echo "CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock" >> ${GITHUB_ENV}
+
+      - name: Setup release environment
+        id: setup
+        run: |
+          IMAGE_TAG=$(echo "${{ inputs.source-image-uri }}" | rev | cut -d':' -f1 | rev)
+          SANITIZED_TAG=$(echo "${IMAGE_TAG}" | tr '/:.' '-')
+
+          RUN_IDENTIFIER="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SANITIZED_TAG}"
+          METADATA_FILE="/tmp/release_metadata_${RUN_IDENTIFIER}.dict"
+
+          echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
+          echo "METADATA_FILE=${METADATA_FILE}" >> ${GITHUB_ENV}
+          echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ vars.SOURCE_STAGE }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ vars.TARGET_STAGE }}" >> ${GITHUB_ENV}
+
+          echo "run-identifier=${RUN_IDENTIFIER}" >> ${GITHUB_OUTPUT}
+          echo "metadata-file-name=release_metadata_${RUN_IDENTIFIER}.dict" >> ${GITHUB_OUTPUT}
+
+      - name: Publish DLC Images
+        id: publish
+        run: |
+          cat > release_spec.yml <<'EOF'
+          ${{ inputs.release-spec }}
+          EOF
+
+          echo "Release specification:"
+          cat release_spec.yml
+
+          publish_dlc_images \
+            --release-spec release_spec.yml \
+            --source-image-uri "${{ inputs.source-image-uri }}" \
+            --metadata-file "${METADATA_FILE}"
+
+          if [ -f "${METADATA_FILE}" ]; then
+            IMAGES_PUBLISHED=$(python3 -c "import json; print(json.load(open('${METADATA_FILE}'))['release_successful'])")
+            echo "images-published=${IMAGES_PUBLISHED}" >> ${GITHUB_OUTPUT}
+            echo "Release metadata:"
+            cat ${METADATA_FILE}
+          else
+            echo "Release skipped: No metadata file generated (blocked day or outside business hours)"
+            echo "images-published=0" >> ${GITHUB_OUTPUT}
+            echo '{"release_successful": "0", "skip_reason": "blocked_day_or_outside_business_hours"}' > "${METADATA_FILE}"
+          fi
+
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-metadata-${{ steps.setup.outputs.run-identifier }}
+          path: ${{ env.METADATA_FILE }}
+          retention-days: 7
+
+  step2-generate-info:
+    needs: [step1-publish-images]
+    environment: ${{ inputs.environment }}
+    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup release package
+        uses: ./.github/actions/setup-release-package
+        with:
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download metadata artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
+          path: /tmp/
+
+      - name: Install inspector-sbomgen
+        run: |
+          if command -v inspector-sbomgen &> /dev/null; then
+            echo "inspector-sbomgen already installed: $(inspector-sbomgen --version)"
+          else
+            curl -Lo /tmp/inspector-sbomgen.zip https://amazon-inspector-sbomgen.s3.amazonaws.com/latest/linux/amd64/inspector-sbomgen.zip
+            unzip -o /tmp/inspector-sbomgen.zip -d /tmp/sbomgen
+            sudo install "$(find /tmp/sbomgen -name inspector-sbomgen -type f)" /usr/local/bin/inspector-sbomgen
+            rm -rf /tmp/inspector-sbomgen.zip /tmp/sbomgen
+            inspector-sbomgen --version
+          fi
+
+      - name: Setup environment
+        run: |
+          RUN_IDENTIFIER="${{ needs.step1-publish-images.outputs.run-identifier }}"
+          METADATA_FILE="/tmp/${{ needs.step1-publish-images.outputs.metadata-file-name }}"
+
+          echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
+          echo "METADATA_FILE=${METADATA_FILE}" >> ${GITHUB_ENV}
+          echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ vars.SOURCE_STAGE }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ vars.TARGET_STAGE }}" >> ${GITHUB_ENV}
+
+      - name: Generate Release Information
+        run: |
+          if [ ! -f "${METADATA_FILE}" ]; then
+            echo "Error: Metadata file not found at ${METADATA_FILE}"
+            exit 1
+          fi
+
+          echo "Release metadata from Step 1:"
+          cat ${METADATA_FILE}
+
+          generate_dlc_image_release_information \
+            --metadata-file "${METADATA_FILE}" \
+            --run-id "${RUN_IDENTIFIER}"
+
+  step3-publish-notifications:
+    needs: [step1-publish-images, step2-generate-info]
+    environment: ${{ inputs.environment }}
+    if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup release package
+        uses: ./.github/actions/setup-release-package
+        with:
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Setup environment
+        run: |
+          RUN_IDENTIFIER="${{ needs.step1-publish-images.outputs.run-identifier }}"
+          echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
+          echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ vars.SOURCE_STAGE }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ vars.TARGET_STAGE }}" >> ${GITHUB_ENV}
+
+      - name: Publish Release Information
+        run: |
+          publish_release_information --run-id "${RUN_IDENTIFIER}"
+
+  step4-docs-pr:
+    needs: [step1-publish-images, step3-publish-notifications]
+    if: needs.step1-publish-images.outputs.images-published == '1' && inputs.environment == 'production' && !inputs.publish-only && !inputs.skip-docs-pr
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
+    steps:
+      - name: Decode the GitHub App Private Key
+        id: decode
+        run: |
+          private_key=$(echo "${{ secrets.ASIMOVBOT_APP_PRIVATE_KEY }}" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
+          echo "::add-mask::$private_key"
+          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
+
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.ASIMOVBOT_APP_ID }}
+          private-key: ${{ steps.decode.outputs.private-key }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Download metadata artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
+          path: /tmp/
+
+      - name: Create docs PR
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_RELEASE_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+        run: |
+          cat > /tmp/release-spec.yml <<'EOF'
+          ${{ inputs.release-spec }}
+          EOF
+
+          METADATA_FILE="/tmp/${{ needs.step1-publish-images.outputs.metadata-file-name }}"
+          bash scripts/ci/autocurrency/docs-pr.sh /tmp/release-spec.yml "$METADATA_FILE"

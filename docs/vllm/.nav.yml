@@ -1,0 +1,9 @@
+nav:
+  - Overview: index.md
+  - Supported Models: models/index.md
+  - Deployment:
+    - EC2: deployment/ec2.md
+    - EKS: deployment/eks.md
+    - Amazon SageMaker AI: deployment/sagemaker.md
+  - Configuration: configuration.md
+  - Changelog: changelog/index.md

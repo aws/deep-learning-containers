@@ -69,7 +69,8 @@ display_names:
     base: "Base"
     ray: "Ray"
     sagemaker-xgboost: "XGBoost"
-    sglang: "SGLang"
+    sglang: "SGLang (Ubuntu)"
+    sglang-server: "SGLang"
     vllm: "vLLM (Ubuntu)"
     vllm-server: "vLLM"
     vllm-arm64: "vLLM ARM64"
@@ -86,8 +87,11 @@ display_names:
     tensorflow-inference-neuronx: "TensorFlow Inference NeuronX"
     huggingface-pytorch-training: "HuggingFace PyTorch Training"
     huggingface-pytorch-inference: "HuggingFace PyTorch Inference"
+    huggingface-llamacpp: "HuggingFace Llama.cpp"
     huggingface-vllm: "HuggingFace vLLM Inference"
+    huggingface-vllm-omni: "HuggingFace vLLM-Omni Inference"
     huggingface-sglang: "HuggingFace SGLang Inference"
+    huggingface-tei: "HuggingFace Text Embeddings Inference"
     huggingface-vllm-inference-neuronx: "HuggingFace vLLM Inference NeuronX"
     huggingface-pytorch-training-neuronx: "HuggingFace PyTorch Training NeuronX"
     huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
@@ -153,6 +157,8 @@ display_names:
 # =============================================================================
 framework_groups:
   pytorch:
+    pytorch:
+      - pytorch
     pytorch-training:
       - pytorch-training
       - pytorch-training-arm64
@@ -179,10 +185,12 @@ table_order:
   - base
   - ray
   - sglang
+  - sglang-server
   - vllm
   - vllm-server
   - vllm-arm64
   - vllm-omni
+  - pytorch
   - pytorch-training
   - pytorch-inference
   - pytorch-training-arm64
@@ -195,8 +203,11 @@ table_order:
   - tensorflow-inference-neuronx
   - huggingface-pytorch-training
   - huggingface-pytorch-inference
+  - huggingface-llamacpp
   - huggingface-vllm
+  - huggingface-vllm-omni
   - huggingface-sglang
+  - huggingface-tei
   - huggingface-vllm-inference-neuronx
   - huggingface-pytorch-training-neuronx
   - huggingface-pytorch-inference-neuronx

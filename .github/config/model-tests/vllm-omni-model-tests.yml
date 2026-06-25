@@ -5,6 +5,23 @@
 # and the route for the SageMaker routing middleware.
 #
 # Models use s3_model (pre-cached in S3) downloaded by the download-model action.
+# codebuild-fleet runners:
+#   x86-g6xl-runner   = g6.xlarge   (1x L4 24GB)
+#   x86-g6exl-runner  = g6e.xlarge  (1x L40S 48GB)
+#   x86-g6e12xl-runner = g6e.12xlarge (4x L40S 192GB)
+#   x86-g612xl-runner = g6.12xlarge (4x L4 96GB)
+#   x86-g512xl-runner = g5.12xlarge (4x A10G 96GB)
+# runner-scale-sets (k8s-backed; used when a CodeBuild fleet of the matching
+# size is ICE in the deploy region):
+#   gpu-l4-1gpu-runners    = ~ g6.xlarge   (1x L4 24GB)
+#   gpu-l4-2gpu-runners    = ~ g6.2xlarge  (2x L4 48GB)
+#   gpu-l4-4gpu-runners    = ~ g6.12xlarge (4x L4 96GB)
+#   gpu-l40s-1gpu-runners  = ~ g6e.xlarge  (1x L40S 48GB)
+#   gpu-l40s-2gpu-runners  = ~ g6e.2xlarge (2x L40S 96GB)
+#   gpu-l40s-4gpu-runners  = ~ g6e.12xlarge (4x L40S 192GB)
+#   gpu-p4d-runners        = p4d.24xlarge (8x A100 40GB)
+#   gpu-efa-runners        = p4d.24xlarge (8x A100 40GB) — networking variant
+#   gpu-standard-runners   = catch-all CPU/single-GPU pool
 
 s3_prefix: "s3://dlc-cicd-models/omni-models"
 
@@ -19,6 +36,33 @@ smoke-test:
       test_request: '{"input": "Hello, how are you?", "voice": "vivian", "language": "English"}'
       validate: "binary_size_gt:1000"
 
+    # Voice-clone TTS: ref_audio_s3 is fetched by the workflow, base64-encoded,
+    # and injected as ref_audio before invoking the smoke-test script.
+    # ref_text MUST be the exact transcript of the reference audio — mismatched
+    # transcripts can cause Code2Wav malformed output (upstream issue #3124).
+    - name: "qwen3-tts-12hz-1.7b-base"
+      s3_model: "qwen3-tts-12hz-1.7b-base.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      route: "/v1/audio/speech"
+      test_request: '{"input": "Hello, this is a voice cloning smoke test.", "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "ref_text": "The quick brown fox jumps over the lazy dog near the riverbank at sunset.", "language": "English"}'
+      validate: "binary_size_gt:1000"
+
+    # CosyVoice3 is zero-shot voice-clone only (no preset voices). The upstream
+    # vendored fixture ships at tests/assets/cosyvoice3/zero_shot_prompt.wav;
+    # we mirror it under test-fixtures/audio/ for CI isolation.
+    # Fleet bumped from x86-g6xl-runner (16 GB RAM) to x86-g6exl-runner
+    # (32 GB RAM) on 2026-05-11: cosyvoice with --trust-remote-code on 16 GB
+    # was causing host SIGKILL during model load on vllm-omni 0.20.0 final.
+    # Last green run was 2026-05-07 on rc1; regression in final.
+    - name: "cosyvoice3-0.5b"
+      s3_model: "cosyvoice3-0.5b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--trust-remote-code --enforce-eager"
+      route: "/v1/audio/speech"
+      test_request: '{"input": "Hello, this is a voice cloning smoke test.", "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/cosyvoice3_ref.wav", "ref_text": "希望你以后能够做的比我还好呦。", "response_format": "wav", "stream": false}'
+      validate: "binary_size_gt:1000"
+
     # --- Image generation models (route: /v1/images/generations) ---
     - name: "flux2-klein-4b"
       s3_model: "flux2-klein-4b.tar.gz"
@@ -28,7 +72,18 @@ smoke-test:
       test_request: '{"prompt": "a red apple on a white table", "size": "512x512", "n": 1}'
       validate: "json_field:data[0].b64_json"
 
-    # --- Video generation models (route: /v1/videos) ---
+    # ERNIE-Image-Turbo: 8-step distilled DiT image gen, added in vllm-omni
+    # #2861. ErnieImagePipeline only landed in v0.20.0 final (post-rc1).
+    - name: "ernie-image-turbo"
+      s3_model: "ernie-image-turbo.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: ""
+      route: "/v1/images/generations"
+      test_request: '{"prompt": "a red apple on a white table", "size": "512x512", "n": 1}'
+      validate: "json_field:data[0].b64_json"
+
+    # --- Video generation models ---
+    # Async route (POST /v1/videos): returns job ID, requires polling.
     - name: "wan2.1-t2v-1.3b"
       s3_model: "wan2.1-t2v-1.3b.tar.gz"
       fleet: "x86-g6exl-runner"
@@ -37,6 +92,54 @@ smoke-test:
       content_type: "multipart/form-data"
       test_request: 'prompt=a dog running on a beach&num_frames=17&num_inference_steps=4&size=480x320&seed=42'
       validate: "json_field:id"
+
+    # Sync route (POST /v1/videos/sync): blocks until complete, returns raw
+    # video/mp4 bytes. New in v0.20.0 — compatible with SageMaker endpoints.
+    - name: "wan2.1-t2v-1.3b-sync"
+      s3_model: "wan2.1-t2v-1.3b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: ""
+      route: "/v1/videos/sync"
+      content_type: "multipart/form-data"
+      test_request: 'prompt=a dog running on a beach&num_frames=17&num_inference_steps=4&size=480x320&seed=42'
+      validate: "binary_size_gt:1000"
+
+    # Wan2.1-VACE: unified video creation/editing pipeline (WanVACEPipeline,
+    # added in vllm-omni #1885). Distinct from WanPipeline T2V — accepts
+    # text + optional video/mask/reference image. 1.3B variant fits L40S.
+    # Validated 2026-05-08 on g6e.2xlarge: 46 KB MP4 in 2.37s, peak GPU 19.3 GB.
+    - name: "wan2.1-vace-1.3b"
+      s3_model: "wan2.1-vace-1.3b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: ""
+      route: "/v1/videos/sync"
+      content_type: "multipart/form-data"
+      test_request: 'prompt=a dog running on a beach&num_frames=17&num_inference_steps=4&size=480x320&seed=42'
+      validate: "binary_size_gt:1000"
+
+    # Wan2.2-I2V-A14B: 27B-total / 14B-active MoE, image-to-video. Tarball
+    # is 107 GB and needs g6e.12xlarge. Pre-staged at
+    # s3://dlc-cicd-models/omni-models/wan2.2-i2v-a14b.tar.gz but not enabled
+    # because (a) g6e.12xl is currently ICE in us-west-2, (b) /v1/videos/sync
+    # for I2V needs an `image` form field that the current smoke-test harness
+    # doesn't fetch (analogous to the ref_audio_s3 pattern, but for images).
+    # - name: "wan2.2-i2v-a14b"
+    #   s3_model: "wan2.2-i2v-a14b.tar.gz"
+    #   fleet: "x86-g6e12xl-runner"
+    #   extra_args: ""
+    #   route: "/v1/videos/sync"
+    #   content_type: "multipart/form-data"
+    #   test_request: 'prompt=a dog running on a beach&image_s3=s3://dlc-cicd-models/test-fixtures/images/i2v_seed.png&num_frames=17&num_inference_steps=4&size=480x320&seed=42'
+    #   validate: "binary_size_gt:1000"
+
+    # --- Audio generation models (route: /v1/audio/generate, new in v0.20.0 per vllm-project/vllm-omni#1794) ---
+    - name: "stable-audio-open-1.0"
+      s3_model: "stable-audio-open-1.0.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--gpu-memory-utilization 0.9 --trust-remote-code --enforce-eager"
+      route: "/v1/audio/generate"
+      test_request: '{"input": "The sound of a dog barking", "audio_length": 5.0, "guidance_scale": 7.0, "num_inference_steps": 50, "seed": 42}'
+      validate: "binary_size_gt:10000"
 
     # --- Omni chat models (route: /v1/chat/completions, fallthrough) ---
     # model is big, won't run for now
@@ -56,3 +159,139 @@ smoke-test:
     #   route: "/v1/chat/completions"
     #   test_request: '{"messages": [{"role": "user", "content": "Say hello in one sentence."}], "max_tokens": 64}'
     #   validate: "json_field:choices[0].message.content"
+
+# --- Benchmark suite ---
+# Each entry starts a container (same way as smoke-test) and runs a modality-
+# specific async benchmark client from the host against the OpenAI-compatible
+# endpoint on port 8080.
+# Thresholds are derived from baseline runs on g6e.xlarge (L40S 46GB) and
+# include ~30% margin for CI noise. See
+# test/vllm-omni/scripts/benchmark/README.md for raw numbers.
+benchmark:
+  codebuild-fleet:
+    # --- TTS preset-voice ---
+    # Thresholds baselined on g6.xlarge (L4 24GB) with ~25% margin for CI noise.
+    - name: "qwen3-tts-1.7b-customvoice"
+      s3_model: "qwen3-tts-1.7b-customvoice.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      benchmark_type: "tts"
+      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "voice": "vivian", "language": "English", "min_rps": 1.0, "min_audio_rtf_mult": 3.5, "max_p95_e2e_ms": 5000}'
+
+    # --- TTS voice-cloning (Base) ---
+    # Requires a reference audio clip staged in S3.
+    # IMPORTANT: ref_text MUST be the exact transcript of the reference audio.
+    # Mismatched transcript causes Code2Wav malformed output (input_ids=1).
+    # See: https://github.com/vllm-project/vllm-omni/issues/3124
+    # Runs on L4 (x86-g6xl-runner);
+    #
+    # Thresholds restored to pre-regression baseline (0.4 / 1.6 / 11000) on
+    # vllm-omni 0.21.0rc1: vllm-omni#3485 fix for the #3203 Code2Wav un-batching
+    # regression is now picked up. Observed on rc1: rps=1.302, audio rtf
+    # mult=5.033, p95 e2e=3499ms — well above baseline.
+    - name: "qwen3-tts-12hz-1.7b-base"
+      s3_model: "qwen3-tts-12hz-1.7b-base.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      benchmark_type: "tts-base"
+      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/tts_ref_vivian.wav", "ref_text": "The quick brown fox jumps over the lazy dog near the riverbank at sunset.", "language": "English", "min_rps": 0.4, "min_audio_rtf_mult": 1.6, "max_p95_e2e_ms": 11000}'
+
+    # CosyVoice3 zero-shot voice-clone — same /v1/audio/speech route as Qwen3-TTS,
+    # uses the tts-base benchmark client with ref_audio_s3. Fleet matches the
+    # smoke-test entry (x86-g6exl-runner, 32GB host RAM) because --trust-remote-code
+    # load SIGKILLs on 16GB hosts under vllm-omni 0.20.0 final.
+    # Thresholds baselined 2026-05-12 on x86-g6exl-runner with vllm-omni 0.20.0
+    # (rps 0.348, audio rtf mult 2.119, p95 e2e 15639ms); ~25% CI margin applied.
+    - name: "cosyvoice3-0.5b"
+      s3_model: "cosyvoice3-0.5b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--trust-remote-code --enforce-eager"
+      benchmark_type: "tts-base"
+      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/cosyvoice3_ref.wav", "ref_text": "希望你以后能够做的比我还好呦。", "language": "Chinese", "min_rps": 0.26, "min_audio_rtf_mult": 1.6, "max_p95_e2e_ms": 20000}'
+
+    # # --- Image generation ---
+    # # Thresholds baselined on g6.xlarge (L4 24GB) with ~25% margin for CI noise.
+    - name: "flux2-klein-4b"
+      s3_model: "flux2-klein-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: ""
+      benchmark_type: "image"
+      benchmark_config: '{"concurrency": 1, "num_prompts": 8, "size": "512x512", "min_images_per_s": 0.07, "max_p95_e2e_ms": 13000}'
+
+    # # --- Audio generation (route: /v1/audio/generate, new in v0.20.0 per vllm-project/vllm-omni#1794) ---
+    # Stable-Audio-Open-1.0: text-to-audio diffusion model. Uses a dedicated
+    # audio_generate_benchmark_client.py (separate from tts because the
+    # request shape — audio_length / guidance_scale / num_inference_steps —
+    # has nothing in common with /v1/audio/speech). Returns one binary WAV
+    # blob per request; the same metric set as tts (TTFB / E2E / RTF / RPS /
+    # audio_throughput_s_per_s) is computed.
+    # Fleet matches the smoke-test entry (x86-g6xl-runner; ~3 GB peak VRAM).
+    # Thresholds baselined 2026-05-12 on x86-g6xl-runner with vllm-omni 0.20.0
+    # (rps 0.141, audio rtf mult 0.706, p95 e2e 7167ms); ~25% CI margin applied.
+    - name: "stable-audio-open-1.0"
+      s3_model: "stable-audio-open-1.0.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--gpu-memory-utilization 0.9 --trust-remote-code --enforce-eager"
+      benchmark_type: "audio-generate"
+      benchmark_config: '{"concurrency": 1, "num_prompts": 8, "audio_length": 5.0, "num_inference_steps": 50, "guidance_scale": 7.0, "seed": 42, "min_rps": 0.10, "min_audio_rtf_mult": 0.5, "max_p95_e2e_ms": 9500}'
+
+    # ERNIE-Image-Turbo: 8-step distilled DiT image gen (vllm-omni #2861, v0.20.0).
+    # Same /v1/images/generations route as flux2; reuses the image benchmark client.
+    # Fleet matches the smoke-test entry (x86-g6exl-runner).
+    # Thresholds baselined 2026-05-12 on x86-g6exl-runner with vllm-omni 0.20.0
+    # (images/s 0.067, p95 e2e 17573ms); ~25% CI margin applied.
+    - name: "ernie-image-turbo"
+      s3_model: "ernie-image-turbo.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: ""
+      benchmark_type: "image"
+      benchmark_config: '{"concurrency": 1, "num_prompts": 8, "size": "512x512", "min_images_per_s": 0.05, "max_p95_e2e_ms": 22000}'
+
+    # # --- Video generation ---
+    - name: "wan2.1-t2v-1.3b"
+      s3_model: "wan2.1-t2v-1.3b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: ""
+      benchmark_type: "video"
+      benchmark_config: '{"concurrency": 1, "num_prompts": 6, "num_frames": 17, "num_inference_steps": 4, "size": "480x320", "min_videos_per_s": 0.45, "max_p95_e2e_ms": 2000}'
+
+    # Wan2.1-VACE: WanVACEPipeline (vllm-omni #1885) — text + optional video/mask/ref-image.
+    # Benchmarked on the async /v1/videos route (same client as wan2.1-t2v) with a
+    # text-only prompt to match the existing harness; the sync route exercised in
+    # smoke-test is covered by binary_size_gt there. Fleet matches the smoke-test entry.
+    # Thresholds baselined 2026-05-12 on x86-g6exl-runner with vllm-omni 0.20.0
+    # (videos/s 0.332, p95 e2e 3010ms); ~25% CI margin applied.
+    - name: "wan2.1-vace-1.3b"
+      s3_model: "wan2.1-vace-1.3b.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: ""
+      benchmark_type: "video"
+      benchmark_config: '{"concurrency": 1, "num_prompts": 6, "num_frames": 17, "num_inference_steps": 4, "size": "480x320", "min_videos_per_s": 0.25, "max_p95_e2e_ms": 4000}'
+
+    # # --- Omni chat (text + multimodal in, text/audio out) ---
+    # # Qwen2.5-Omni-3B uses a 3-stage pipeline (thinker / talker / code2wav)
+    # # that requires multi-GPU. Use the existing 4-GPU CodeBuild fleet label;
+    # # g5.12xlarge (4x A10G 24GB) would also work but needs a new fleet label.
+    # # See test/vllm-omni/scripts/benchmark/chat_omni_benchmark_client.py for
+    # # the streaming SSE client that reports TTFT / TPOT / E2E / tokens-per-sec.
+    #
+    # `min_output_tps` left unset until we have a baseline on the new
+    # token-counting path. The benchmark client now reads
+    # `metrics.num_tokens_out` (vllm-omni engine counter, version-stable)
+    # instead of falling back to chunk count, matching upstream
+    # `vllm_omni/benchmarks/patch/patch.py`. Re-introduce the threshold
+    # after a baseline run on the target image, with the usual ~25% CI
+    # margin. The remaining thresholds cover the user-facing SLO.
+    # qwen2.5-omni-3b moved to runner-scale-sets below — x86-g6e12xl-runner
+    # CodeBuild fleet has been ICE in us-west-2 since 2026-05-12.
+
+  # runner-scale-sets entries use a k8s pod label as `runs-on` (no `fleet:`
+  # selector). Moved here from codebuild-fleet when CodeBuild capacity is
+  # unavailable for the matching instance type.
+  runner-scale-sets:
+    - name: "qwen2.5-omni-3b"
+      s3_model: "qwen2.5-omni-3b.tar.gz"
+      runner_label: "gpu-l40s-4gpu-runners"
+      extra_args: ""
+      benchmark_type: "chat"
+      benchmark_config: '{"concurrency": 2, "num_prompts": 16, "max_tokens": 128, "ignore_eos": true, "model": "/models/qwen2.5-omni-3b", "min_rps": 0.02, "max_p95_ttft_ms": 1500, "max_p95_e2e_ms": 120000}'

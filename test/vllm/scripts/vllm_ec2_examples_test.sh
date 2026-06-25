@@ -20,7 +20,6 @@ if [ -f "features/automatic_prefix_caching/prefix_caching_offline.py" ]; then
 else
   python3 offline_inference/prefix_caching.py
 fi
-python3 offline_inference/llm_engine_example.py
 # vLLM v0.20.1rc0 moved multimodal examples to generate/multimodal/
 if [ -d "generate/multimodal" ]; then
   MM_DIR="generate/multimodal"
@@ -32,7 +31,13 @@ else
   python3 offline_inference/vision_language.py --seed 0
   python3 offline_inference/vision_language_multi_image.py --seed 0
 fi
-python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+# vLLM post-v0.20.2 moved tensorize example to features/
+if [ -f "features/tensorize_vllm_model.py" ]; then
+  TENSORIZE="features/tensorize_vllm_model.py"
+else
+  TENSORIZE="others/tensorize_vllm_model.py"
+fi
+python3 ${TENSORIZE} --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 ${TENSORIZE} --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
 if [ -d "generate/multimodal" ]; then
   python3 generate/multimodal/encoder_decoder_multimodal_offline.py --model-type whisper --seed 0
 else

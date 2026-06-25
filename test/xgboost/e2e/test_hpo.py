@@ -111,8 +111,8 @@ class TestHPO:
             "hpo-aucpr",
         )
 
-    def test_gpu_tuning_rmse(self, image_uri, role):
-        hp = {**BASE_HP, "tree_method": "gpu_hist"}
+    def test_gpu_tuning_rmse(self, image_uri, role, gpu_tree_method):
+        hp = {**BASE_HP, "tree_method": gpu_tree_method}
         _run_hpo(
             image_uri,
             role,
@@ -127,8 +127,8 @@ class TestHPO:
             instance_type="ml.g4dn.2xlarge",
         )
 
-    def test_gpu_tuning_aucpr(self, image_uri, role):
-        hp = {**BASE_HP, "objective": "binary:hinge", "tree_method": "gpu_hist"}
+    def test_gpu_tuning_aucpr(self, image_uri, role, gpu_tree_method):
+        hp = {**BASE_HP, "objective": "binary:hinge", "tree_method": gpu_tree_method}
         _run_hpo(
             image_uri,
             role,

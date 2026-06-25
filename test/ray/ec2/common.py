@@ -21,6 +21,7 @@ responses using the same validators from ray.utils.
 
 import logging
 import os
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -247,6 +248,7 @@ def make_container_fixture(device, docker_run_flags=None):
         yield {"container_id": container_id, "model_dir": model_dir, "port": serve_port}
 
         stop_container(container_id)
+        shutil.rmtree(model_dir, ignore_errors=True)
 
     return container
 

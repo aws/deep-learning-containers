@@ -1,0 +1,10 @@
+framework: Ray
+version: "2.55"
+accelerator: cpu
+python: py313
+os: amzn2023
+platform: default
+public_registry: true
+
+tags:
+  - "serve-ml-cpu-v1"

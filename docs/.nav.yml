@@ -1,32 +1,28 @@
 nav:
   - Home: index.md
-  - Getting Started:
-    - get_started/index.md
-    - Using Deep Learning Containers: get_started/using_dlcs.md
-    - Release Notifications: get_started/release_notifications.md
-    - Ray: ray/index.md
-    - vLLM: vllm/index.md
-    - vLLM-Omni: vllm-omni/index.md
-  - Release Notes:
-    - releasenotes/index.md
-    - Base: releasenotes/base/index.md
-    - Ray: releasenotes/ray/index.md
-    - SGLang: releasenotes/sglang/index.md
-    - vLLM: releasenotes/vllm-server/index.md
-    - vLLM (Ubuntu): releasenotes/vllm/index.md
-    - vLLM-Omni: releasenotes/vllm-omni/index.md
-    - PyTorch: releasenotes/pytorch/index.md
-    - Tensorflow: releasenotes/tensorflow/index.md
-  - Tutorials: tutorials
-  - Reference:
-    - reference/index.md
-    - Available Images: reference/available_images.md
-    - Support Policy: reference/support_policy.md
-  - Security:
-    - security/index.md
-    - Data Protection: security/data-protection.md
-    - Identity and Access Management: security/identity-and-access-management.md
-    - Monitoring and Usage Tracking: security/logging-and-monitoring.md
-    - Compliance Validation: security/compliance.md
-    - Resilience: security/resilience.md
-    - Infrastructure Security: security/infrastructure-security.md
+  - User Guide:
+    - user_guide/index.md
+    - vLLM: vllm
+    - vLLM-Omni: vllm-omni
+    - SGLang: sglang
+    - TEI: tei
+    - Ray: ray
+    - PyTorch: pytorch
+    - Base: base
+  - Blog Posts: tutorials
+  - Resources:
+    - resources/index.md
+    - Reference:
+      - Image Access: get_started/index.md
+      - Available Images: reference/available_images.md
+      - Region Availability: reference/region_availability.md
+      - Support Policy: reference/support_policy.md
+      - Release Notifications: get_started/release_notifications.md
+    - Security:
+      - security/index.md
+      - Data Protection: security/data-protection.md
+      - Identity and Access Management: security/identity-and-access-management.md
+      - Monitoring and Usage Tracking: security/logging-and-monitoring.md
+      - Compliance Validation: security/compliance.md
+      - Resilience: security/resilience.md
+      - Infrastructure Security: security/infrastructure-security.md
