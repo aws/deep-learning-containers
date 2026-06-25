@@ -1,23 +1,10 @@
-"""OpenFold3 SageMaker async-inference integration tests.
+"""OpenFold3 SageMaker async-inference integration tests (SDK v3, no local GPU).
 
-Uses SageMaker Python SDK v3. Launches a real async endpoint — no GPU needed on
-the runner. Configured via env vars (set by the workflow):
-  TEST_IMAGE_URI  image to deploy
-  SM_ROLE_ARN     SageMaker execution role ARN
-  AWS_REGION      region (default us-west-2)
-
-One 4-GPU endpoint (ml.g6.12xlarge) serves all cases. The handler's GPU pool
-leases one GPU per concurrent request, so "1 GPU" == 1 in-flight request and
-"4 GPU" == 4 concurrent requests.
-
-Async I/O bucket: the SageMaker execution role (AmazonSageMakerFullAccess) can
-only write to buckets whose name contains "sagemaker", so both the async input
-and output objects go to the account's default sagemaker-<region>-<account>
-bucket. The committed query JSONs are staged there at test time.
-
-Smoke validation only: a successful prediction returns at least one non-empty
-CIF structure. OpenFold3 diffusion is stochastic, so exact-output matching is
-not meaningful.
+Env vars (set by the workflow): TEST_IMAGE_URI, SM_ROLE_ARN, AWS_REGION.
+One 4-GPU endpoint serves all cases; a concurrent request leases one GPU each.
+Query inputs and async output use the account's sagemaker-<region>-<account>
+bucket (the only S3 the SageMaker role can read/write). Smoke validation only:
+a successful prediction returns a non-empty CIF (diffusion is non-deterministic).
 """
 
 import json
@@ -46,74 +33,61 @@ IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 ROLE_ARN = os.environ["SM_ROLE_ARN"]
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 
-# Single 4-GPU instance hosts every case (1-GPU cases just send 1 request).
+# One 4-GPU instance hosts every case; 1-GPU cases just send 1 request.
 INSTANCE_TYPE = "ml.g6.12xlarge"
-# Allow up to 4 concurrent invocations so the handler's GPU pool can fan out
-# across all 4 GPUs (the POC default of 1 would serialize requests).
 MAX_CONCURRENT_INVOCATIONS = 4
-# Warmup compiles CUDA kernels (~6 min) before /ping returns 200; give the
-# container startup health check generous headroom.
+# Generous: warmup compiles CUDA kernels (~6 min) before /ping returns 200.
 STARTUP_HEALTH_CHECK_TIMEOUT = 1200
 
-# Source of the committed query inputs (read-only is enough; the SageMaker role
-# can GetObject here). They are re-staged into the sagemaker I/O bucket below.
-QUERY_SRC_BUCKET = os.environ.get("QUERY_SRC_BUCKET", "dlc-cicd-models")
-QUERY_SRC_PREFIX = os.environ.get("QUERY_SRC_PREFIX", "openfold3/queries")
-# Async input/output bucket — must be writable by the SageMaker role, i.e. the
-# account's default "sagemaker-<region>-<account>" bucket.
+# Bucket must be writable by the SageMaker role -> account default sagemaker bucket.
 _account = boto3.client("sts", region_name=REGION).get_caller_identity()["Account"]
-IO_BUCKET = f"sagemaker-{REGION}-{_account}"
-IO_INPUT_PREFIX = "openfold3/async-input"
-IO_OUTPUT_PREFIX = "openfold3/async-output"
+BUCKET = os.environ.get("SM_IO_BUCKET", f"sagemaker-{REGION}-{_account}")
+QUERY_PREFIX = "openfold3/queries"
+OUTPUT_PREFIX = "openfold3/async-output"
 
 SMALL_QUERY = "small.json"  # ubiquitin, 76 residues
 LARGE_QUERY = "large.json"  # synthetic, 622 residues
 
-# Per-request poll: an output should appear in a few minutes for warm requests.
-# 900s is generous but bounded so a dropped request fails fast (not a 1h hang).
+# Bounded so a stuck request fails fast instead of hanging.
 POLL_TIMEOUT = 900
 POLL_INTERVAL = 5
-# SageMaker async can drop the very first request submitted immediately after
-# InService (the async queue poller may not be fully registered yet). Retry.
-FIRST_REQUEST_RETRIES = 2
-# Let the endpoint settle after InService before the first invocation.
+# Defensive only; not a documented SageMaker requirement.
 SETTLE_SECONDS = 30
 
-# concurrency-4 should run in roughly the same wall-time as concurrency-1
-# because the 4 requests fan out across the 4 GPUs. Allow generous headroom
-# for scheduling/IO jitter; serialized execution would be ~4x.
+# 4-concurrent should be ~1x the single-request time, not ~4x.
 CONCURRENCY_SPEEDUP_TOLERANCE = 2.0
 
 _s3 = boto3.client("s3", region_name=REGION)
 _smr = boto3.client("sagemaker-runtime", region_name=REGION)
 
 
-def _ensure_io_bucket():
-    """Ensure the sagemaker I/O bucket exists (it normally does in any SM account)."""
+def _preflight_s3():
+    """Fail before the ~10-min deploy if queries are missing or the bucket is unwritable."""
+    for q in (SMALL_QUERY, LARGE_QUERY):
+        try:
+            _s3.head_object(Bucket=BUCKET, Key=f"{QUERY_PREFIX}/{q}")
+        except _s3.exceptions.ClientError as e:
+            raise AssertionError(
+                f"Query input s3://{BUCKET}/{QUERY_PREFIX}/{q} not found ({e}). "
+                f"Upload the query JSONs to the sagemaker bucket first."
+            ) from e
+    probe = f"{OUTPUT_PREFIX}/.preflight-{uuid.uuid4()}"
     try:
-        _s3.head_bucket(Bucket=IO_BUCKET)
-    except _s3.exceptions.ClientError:
-        kwargs = {"Bucket": IO_BUCKET}
-        if REGION != "us-east-1":
-            kwargs["CreateBucketConfiguration"] = {"LocationConstraint": REGION}
-        _s3.create_bucket(**kwargs)
+        _s3.put_object(Bucket=BUCKET, Key=probe, Body=b"ok")
+        _s3.delete_object(Bucket=BUCKET, Key=probe)
+    except _s3.exceptions.ClientError as e:
+        raise AssertionError(
+            f"Cannot write to s3://{BUCKET}/{OUTPUT_PREFIX}/ ({e}). The async "
+            f"endpoint output will not be writable — pick a bucket the SageMaker "
+            f"execution role can write (name must contain 'sagemaker')."
+        ) from e
 
 
-def _stage_query(query_file: str) -> str:
-    """Copy a committed query into the I/O bucket as a unique input object. Returns its key."""
-    body = _s3.get_object(Bucket=QUERY_SRC_BUCKET, Key=f"{QUERY_SRC_PREFIX}/{query_file}")[
-        "Body"
-    ].read()
-    key = f"{IO_INPUT_PREFIX}/{uuid.uuid4()}-{query_file}"
-    _s3.put_object(Bucket=IO_BUCKET, Key=key, Body=body, ContentType="application/json")
-    return key
-
-
-def _submit(endpoint_name: str, input_key: str) -> tuple[str, str]:
-    """Invoke the async endpoint for an already-staged input. Returns (output_uri, failure_uri)."""
+def _submit(endpoint_name: str, query_file: str) -> tuple[str, str]:
+    """Invoke the async endpoint for a query already in the bucket. Returns (output_uri, failure_uri)."""
     resp = _smr.invoke_endpoint_async(
         EndpointName=endpoint_name,
-        InputLocation=f"s3://{IO_BUCKET}/{input_key}",
+        InputLocation=f"s3://{BUCKET}/{QUERY_PREFIX}/{query_file}",
         ContentType="application/json",
     )
     return resp["OutputLocation"], resp.get("FailureLocation", "")
@@ -147,37 +121,17 @@ def _poll_one(output_uri: str, failure_uri: str, start: float) -> tuple[float, d
     raise TimeoutError(f"No async output at {output_uri} within {POLL_TIMEOUT}s")
 
 
-def _invoke(
-    endpoint_name: str, query_files: list[str], retries: int = 0
-) -> list[tuple[float, dict]]:
-    """Submit N requests concurrently (one GPU each) and wait for all.
-
-    If `retries` > 0, a TimeoutError on the batch (a silently-dropped request,
-    common for the first invocation right after InService) triggers a resubmit.
-    Returns a list of (elapsed_seconds, parsed_result).
-    """
-    attempt = 0
-    while True:
-        start = time.time()
-        staged = [_stage_query(q) for q in query_files]
-        submitted = [_submit(endpoint_name, key) for key in staged]
-        try:
-            return [_poll_one(out, fail, start) for out, fail in submitted]
-        except TimeoutError:
-            if attempt >= retries:
-                raise
-            attempt += 1
-            LOGGER.warning(f"Invocation timed out; retrying ({attempt}/{retries})")
+def _invoke(endpoint_name: str, query_files: list[str]) -> list[tuple[float, dict]]:
+    """Submit N requests concurrently, wait for all; returns [(elapsed_s, result)]."""
+    start = time.time()
+    submitted = [_submit(endpoint_name, q) for q in query_files]
+    return [_poll_one(out, fail, start) for out, fail in submitted]
 
 
 @pytest.fixture(scope="module")
 def endpoint_name():
-    """Deploy one 4-GPU async endpoint for the module; clean up after.
-
-    Cleanup-first: sweep any stale openfold3-async-* resources before creating,
-    so a previously-canceled run never blocks or strands this one.
-    """
-    _ensure_io_bucket()
+    """Deploy one 4-GPU async endpoint for the module; sweep stale first, clean up after."""
+    _preflight_s3()
     _sweep_stale()
 
     name = random_suffix_name("openfold3-async", 50)
@@ -208,7 +162,7 @@ def endpoint_name():
             ],
             async_inference_config=AsyncInferenceConfig(
                 output_config=AsyncInferenceOutputConfig(
-                    s3_output_path=f"s3://{IO_BUCKET}/{IO_OUTPUT_PREFIX}/",
+                    s3_output_path=f"s3://{BUCKET}/{OUTPUT_PREFIX}/",
                 ),
                 client_config=AsyncInferenceClientConfig(
                     max_concurrent_invocations_per_instance=MAX_CONCURRENT_INVOCATIONS,
@@ -269,7 +223,7 @@ def _assert_success(result: dict):
 
 def test_small_single(endpoint_name):
     """Smoke: small protein, single request on one GPU returns a valid structure."""
-    ((elapsed, result),) = _invoke(endpoint_name, [SMALL_QUERY], retries=FIRST_REQUEST_RETRIES)
+    ((elapsed, result),) = _invoke(endpoint_name, [SMALL_QUERY])
     _assert_success(result)
     LOGGER.info(f"small x1 completed in {elapsed:.0f}s")
 
@@ -282,8 +236,7 @@ def test_large_single(endpoint_name):
 
 
 def test_large_concurrent_uses_gpu_pool(endpoint_name):
-    """Large protein, 1 request then 4 concurrent: the GPU pool should keep the
-    4-concurrent wall-time under ~2x the single-request time (not ~4x)."""
+    """Large protein: 4-concurrent wall-time stays under ~2x the single-request time."""
     ((t1, result1),) = _invoke(endpoint_name, [LARGE_QUERY])
     _assert_success(result1)
 
