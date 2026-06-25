@@ -1,26 +1,26 @@
 name: "PR - TensorFlow 2.21 CPU"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
-  workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/tensorflow/2.21-*-cpu.yml"
-  #     - ".github/workflows/tensorflow.pipeline.yml"
-  #     - ".github/workflows/tensorflow.pr-2.21-cpu.yml"
-  #     - "docker/tensorflow/2.21/Dockerfile.cpu"
-  #     - "docker/tensorflow/2.21/cpu/**"
-  #     - "scripts/docker/common/**"
-  #     - "scripts/docker/tensorflow/**"
-  #     - "scripts/docker/telemetry/**"
-  #     - "test/tensorflow/integration/sagemaker/**"
-  #     - "test/tensorflow/unit/**"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/tensorflow/**"
-  #     - "test/telemetry/**"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/tensorflow/2.21-*-cpu.yml"
+      - ".github/workflows/tensorflow.pipeline.yml"
+      - ".github/workflows/tensorflow.pr-2.21-cpu.yml"
+      - ".github/workflows/tensorflow.tests-sagemaker.yml"
+      - ".github/workflows/tensorflow.tests-unit.yml"
+      - "docker/tensorflow/2.21/Dockerfile.cpu"
+      - "docker/tensorflow/2.21/cpu/**"
+      - "scripts/docker/common/**"
+      - "scripts/docker/tensorflow/**"
+      - "scripts/docker/telemetry/**"
+      - "test/tensorflow/integration/sagemaker/**"
+      - "test/tensorflow/unit/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/tensorflow/**"
+      - "test/telemetry/**"
+      - "!docs/**"
 
 permissions:
   contents: read
