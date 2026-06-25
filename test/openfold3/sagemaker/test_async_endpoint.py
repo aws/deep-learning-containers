@@ -1,10 +1,28 @@
-"""OpenFold3 SageMaker async-inference integration tests (SDK v3, no local GPU).
+"""OpenFold3 SageMaker async-inference integration tests.
 
-Env vars (set by the workflow): TEST_IMAGE_URI, SM_ROLE_ARN, AWS_REGION.
-One 4-GPU endpoint serves all cases; a concurrent request leases one GPU each.
-Query inputs and async output use the account's sagemaker-<region>-<account>
-bucket (the only S3 the SageMaker role can read/write). Smoke validation only:
-a successful prediction returns a non-empty CIF (diffusion is non-deterministic).
+Uses the SageMaker Python SDK v3. Launches a real async inference endpoint and
+drives it remotely, so the test runner needs no GPU. Configured via env vars
+set by the workflow:
+  TEST_IMAGE_URI  the image to deploy
+  SM_ROLE_ARN     the SageMaker execution role ARN
+  AWS_REGION      region (default us-west-2)
+
+One 4-GPU endpoint (ml.g6.12xlarge) serves every case. The handler's GPU pool
+leases one GPU per concurrent request, so "1 GPU" means a single in-flight
+request and "4 GPU" means four concurrent requests fanned across the four GPUs.
+
+S3 buckets: async inference requires the request payload in S3 and writes the
+response back to S3. Both the query inputs and the async output live in the
+account's default sagemaker-<region>-<account> bucket, because the SageMaker
+execution role (AmazonSageMakerFullAccess) can only read/write buckets whose
+name contains "sagemaker" — writing output to any other bucket fails silently
+and the invocation never completes. The query JSONs are pre-uploaded to
+BUCKET/queries/ by Scripts/upload_openfold3_test_queries.sh and submitted
+directly as the async input (no cross-bucket copy).
+
+Validation is smoke-level: a successful prediction returns at least one
+non-empty CIF structure. OpenFold3's diffusion sampling is non-deterministic,
+so exact-output matching is not meaningful.
 """
 
 import json
