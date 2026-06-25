@@ -14,7 +14,7 @@ on:
   #     - "scripts/docker/huggingface/vllm/**"
   #     - "scripts/docker/telemetry/**"
   #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/huggingface_vllm/**"
+  #     - "test/security/data/ecr_scan_allowlist/huggingface-vllm/**"
   #     - "test/telemetry/**"
   #     - "test/vllm/sagemaker/**"
   #     - "!docs/**"
@@ -51,7 +51,7 @@ jobs:
               - ".github/config/image/huggingface-vllm/*.yml"
               - "docker/huggingface/vllm/**"
               - "scripts/docker/huggingface/vllm/**"
-              - "test/security/data/ecr_scan_allowlist/huggingface_vllm/**"
+              - "test/security/data/ecr_scan_allowlist/huggingface-vllm/**"
             sanity-test-change:
               - "test/sanity/**"
             sagemaker-test-change:

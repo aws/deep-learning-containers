@@ -3,7 +3,7 @@ image:
   description: "Hugging Face vLLM for SageMaker (layered on the AWS vLLM DLC)"
 
 metadata:
-  framework: "huggingface_vllm"
+  framework: "huggingface-vllm"
   framework_version: "0.22.1"
   os_version: "ubuntu22.04"
   customer_type: "sagemaker"
@@ -33,4 +33,4 @@ release:
   public_registry: false
   private_registry: true
   enable_soci: true
-  environment: "production"
+  environment: "gamma"

@@ -59,6 +59,8 @@ else
   CUDA_VERSION=""
 fi
 
+TRANSFORMERS_VERSION=$(yq '.build.transformers_version // ""' "$CONFIG_FILE")
+
 # Release flags
 FORCE_RELEASE=$(yq '.release.force_release // ""' "$CONFIG_FILE")
 PUBLIC_REGISTRY=$(yq '.release.public_registry // ""' "$CONFIG_FILE")
@@ -80,6 +82,7 @@ SPEC+="version: \"${VERSION}\""$'\n'
 [[ -n "$OS_VERSION" ]]      && SPEC+="os_version: \"${OS_VERSION}\""$'\n'
 [[ -n "$CUSTOMER_TYPE" ]]   && SPEC+="customer_type: \"${CUSTOMER_TYPE}\""$'\n'
 [[ -n "$CUDA_VERSION" ]]    && SPEC+="cuda_version: \"${CUDA_VERSION}\""$'\n'
+[[ -n "$TRANSFORMERS_VERSION" ]] && SPEC+="transformers_version: \"${TRANSFORMERS_VERSION}\""$'\n'
 [[ -n "$PLATFORM" ]]        && SPEC+="platform: \"${PLATFORM}\""$'\n'
 [[ -n "$FORCE_RELEASE" ]]   && SPEC+="force_release: ${FORCE_RELEASE}"$'\n'
 [[ -n "$PUBLIC_REGISTRY" ]] && SPEC+="public_registry: ${PUBLIC_REGISTRY}"$'\n'

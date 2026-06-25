@@ -2,7 +2,7 @@ ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu1
 
 FROM ${BASE_IMAGE} AS base
 
-ARG FRAMEWORK=huggingface_vllm
+ARG FRAMEWORK=huggingface-vllm
 ARG FRAMEWORK_VERSION=0.22.1
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
