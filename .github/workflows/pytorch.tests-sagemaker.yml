@@ -17,13 +17,15 @@ permissions:
   contents: read
 
 jobs:
-  sagemaker-test:
-    # Launches remote SageMaker training jobs — no GPU needed on the runner.
+  preflight:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
-    timeout-minutes: 60
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
     steps:
       - uses: actions/checkout@v6
 
@@ -43,16 +45,26 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+  sagemaker-test:
+    # Launches remote SageMaker training jobs — no GPU needed on the runner.
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+
       - name: ECR login
-        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ steps.image.outputs.image-uri }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Select test file by device type
-        if: steps.check.outputs.exists == 'true'
         id: select
         run: |
           DEVICE=$(yq '.metadata.device_type' '${{ inputs.config-file }}')
@@ -63,9 +75,8 @@ jobs:
           fi
 
       - name: Run SageMaker training tests
-        if: steps.check.outputs.exists == 'true'
         env:
-          TEST_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+          TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
         run: |
           uv venv --python 3.12

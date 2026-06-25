@@ -17,11 +17,15 @@ permissions:
   contents: read
 
 jobs:
-  single-gpu-test:
+  preflight:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:default-runner
         buildspec-override:true
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
     steps:
       - uses: actions/checkout@v6
 
@@ -41,21 +45,29 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+  single-gpu-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
       - name: ECR login
-        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ steps.image.outputs.image-uri }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Run single-GPU tests
-        if: steps.check.outputs.exists == 'true'
         run: |
           CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
             --entrypoint /bin/bash \
             -v $(pwd):/workdir --workdir /workdir \
-            ${{ steps.image.outputs.image-uri }} -c 'sleep infinity')
+            ${{ needs.preflight.outputs.image-uri }} -c 'sleep infinity')
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
           docker exec ${CONTAINER_ID} pip install -r /workdir/test/requirements.txt -q
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
