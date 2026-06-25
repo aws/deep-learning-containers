@@ -68,7 +68,3 @@ jobs:
             torchrun --nproc_per_node=2 --master_port=29502 \
             /workdir/test/pytorch/multi_gpu/test_deepspeed.py
           docker kill ${CONTAINER_ID}
-
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"

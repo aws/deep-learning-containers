@@ -75,7 +75,3 @@ jobs:
           cd test/
           PYTHONPATH=$(pwd):$PYTHONPATH python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             ${{ steps.select.outputs.test-file }}
-
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"

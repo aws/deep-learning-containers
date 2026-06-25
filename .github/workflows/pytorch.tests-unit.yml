@@ -60,7 +60,3 @@ jobs:
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
             pytest /workdir/test/pytorch/unit/ -v
           docker kill ${CONTAINER_ID}
-
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"
