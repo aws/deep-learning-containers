@@ -49,6 +49,7 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/workflows/vllm-omni.pr.yml"
               - ".github/config/image/vllm-omni/*.yml"
               - "docker/vllm_omni/Dockerfile.amzn2023"
               - "scripts/docker/common/**"
