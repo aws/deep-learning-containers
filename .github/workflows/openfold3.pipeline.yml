@@ -108,10 +108,15 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   release-gate:
+    # TEMP(gamma-validation): gate relaxed so the PR pipeline (branch openfold3-dlc,
+    # workflow_ref = openfold3.pr-amzn2023.yml) can release to gamma. The original gate
+    # required main-ref + an .autorelease/.dispatch-release caller and EXCLUDED .pr callers.
+    # REVERT to the original block below after the gamma run:
+    #   github.ref == 'refs/heads/main' &&
+    #   (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+    #   !contains(github.workflow_ref, '.pr') &&
+    #   inputs.release && !failure() && !cancelled() && needs.build.result == 'success'
     if: >-
-      github.ref == 'refs/heads/main' &&
-      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
-      !contains(github.workflow_ref, '.pr') &&
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'

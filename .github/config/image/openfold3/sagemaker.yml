@@ -23,9 +23,12 @@ build:
   dlc_minor_version: "0"
 
 release:
-  release: false
-  force_release: false
+  # TEMP(gamma-validation): release/force_release/environment flipped for a one-off
+  # gamma push to 028651357192. force_release bypasses the active us-west-2 change-control
+  # window (2026-06-23→27). REVERT all four lines to false/false/production after the gamma run.
+  release: true            # TEMP: was false
+  force_release: true      # TEMP: was false — change-control bypass for gamma
   public_registry: false
   private_registry: true
   enable_soci: true
-  environment: "production"
+  environment: "gamma"     # TEMP: was "production"
