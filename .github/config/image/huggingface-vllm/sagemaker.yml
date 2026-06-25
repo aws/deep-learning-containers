@@ -17,7 +17,7 @@ metadata:
 build:
   dockerfile: "docker/huggingface/vllm/Dockerfile"
   target: "huggingface-vllm-sagemaker"
-  base_image: "public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1"
+  base_image: "public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0"
   python_version: "3.12"
   cuda_version: "13.0.2"
   transformers_version: "5.10.2"
