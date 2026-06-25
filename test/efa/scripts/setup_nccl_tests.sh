@@ -41,7 +41,17 @@ if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
         apt-get install -y --no-install-recommends libnccl-dev
     elif command -v dnf >/dev/null 2>&1; then
         echo "Installing libnccl-devel from dnf..."
-        dnf install -y --setopt=install_weak_deps=False libnccl-devel
+        # The image symlinks /usr/bin/python3 to the venv, so dnf's shebang
+        # interpreter lacks the dnf module. Run dnf with the system python.
+        SYS_PY=""
+        for p in /usr/bin/python3.9 /usr/libexec/platform-python /usr/bin/python3.12 /usr/bin/python3.11; do
+            if [ -x "$p" ] && "$p" -c 'import dnf' >/dev/null 2>&1; then SYS_PY="$p"; break; fi
+        done
+        if [ -n "$SYS_PY" ]; then
+            "$SYS_PY" /usr/bin/dnf install -y --setopt=install_weak_deps=False libnccl-devel
+        else
+            dnf install -y --setopt=install_weak_deps=False libnccl-devel
+        fi
     elif command -v yum >/dev/null 2>&1; then
         echo "Installing libnccl-devel from yum..."
         yum install -y libnccl-devel
