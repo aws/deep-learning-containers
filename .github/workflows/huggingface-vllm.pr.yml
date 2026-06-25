@@ -1,23 +1,21 @@
 name: "PR - Hugging Face vLLM"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
-  workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/huggingface-vllm/*.yml"
-  #     - ".github/workflows/huggingface-vllm.pipeline.yml"
-  #     - ".github/workflows/huggingface-vllm.pr.yml"
-  #     - "docker/huggingface/vllm/**"
-  #     - "scripts/docker/huggingface/vllm/**"
-  #     - "scripts/docker/telemetry/**"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/huggingface-vllm/**"
-  #     - "test/telemetry/**"
-  #     - "test/vllm/sagemaker/**"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/huggingface-vllm/*.yml"
+      - ".github/workflows/huggingface-vllm.pipeline.yml"
+      - ".github/workflows/huggingface-vllm.pr.yml"
+      - "docker/huggingface/vllm/**"
+      - "scripts/docker/huggingface/vllm/**"
+      - "scripts/docker/telemetry/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/huggingface-vllm/**"
+      - "test/telemetry/**"
+      - "test/vllm/sagemaker/**"
+      - "!docs/**"
 
 permissions:
   contents: read
