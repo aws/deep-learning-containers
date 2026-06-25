@@ -43,6 +43,7 @@ RUN pip install \
   "pillow>=12.1.1" \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
+  "starlette>=1.3.1" \
   "xgrammar>=0.1.32"
 
 # Copy artifacts
@@ -92,6 +93,7 @@ RUN rm -rf \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/python/Cargo.lock \
   /sgl-workspace/sglang/sgl-model-gateway/Cargo.lock \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
+  /sgl-workspace/sglang/rust/sglang-grpc/Cargo.lock \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Remove oh-my-zsh to avoid false positive in credentials scan

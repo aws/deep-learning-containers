@@ -1,27 +1,25 @@
 name: "PR - SGLang Ubuntu"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
-  workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/sglang/*-ubuntu.yml"
-  #     - ".github/config/model-tests/sglang-model-tests.yml"
-  #     - ".github/workflows/sglang.pipeline.yml"
-  #     - ".github/workflows/sglang.pr-ubuntu.yml"
-  #     - "docker/sglang/Dockerfile"
-  #     - "scripts/docker/common/**"
-  #     - "scripts/docker/sglang/**"
-  #     - "scripts/docker/telemetry/**"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/sglang/**"
-  #     - "test/sglang/sagemaker/**"
-  #     - "test/sglang/scripts/**"
-  #     - "test/telemetry/**"
-  #     - "!docker/sglang/Dockerfile.amzn2023"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/sglang/*-ubuntu.yml"
+      - ".github/config/model-tests/sglang-model-tests.yml"
+      - ".github/workflows/sglang.pipeline.yml"
+      - ".github/workflows/sglang.pr-ubuntu.yml"
+      - "docker/sglang/Dockerfile"
+      - "scripts/docker/common/**"
+      - "scripts/docker/sglang/**"
+      - "scripts/docker/telemetry/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/sglang/**"
+      - "test/sglang/sagemaker/**"
+      - "test/sglang/scripts/**"
+      - "test/telemetry/**"
+      - "!docker/sglang/Dockerfile.amzn2023"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -54,6 +52,7 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/workflows/sglang.pr-ubuntu.yml"
               - ".github/config/image/sglang/*-ubuntu.yml"
               - "docker/sglang/Dockerfile"
               - "scripts/docker/common/**"
