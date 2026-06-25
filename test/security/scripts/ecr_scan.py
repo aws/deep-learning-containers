@@ -53,9 +53,7 @@ def get_scan_status(ecr_client, image: ImageURI) -> str:
             imageId={"imageTag": image.image_tag},
         )
     except ecr_client.exceptions.ScanNotFoundException:
-        LOGGER.info(
-            f"Scan not yet registered for {image.repository}:{image.image_tag}; will retry"
-        )
+        LOGGER.info(f"Scan not yet registered for {image.repository}:{image.image_tag}; will retry")
         return SCAN_PENDING
     return resp["imageScanStatus"]["status"]
 

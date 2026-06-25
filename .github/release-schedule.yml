@@ -50,6 +50,10 @@ schedules:
     workflow: ray.autorelease-ec2.yml
     gpu: light
 
+  - cron: "30 17 * * 2,4"
+    workflow: tensorflow.autorelease-2.21-sagemaker.yml
+    gpu: light
+
   - cron: "00 18 * * 2,4"
     workflow: sglang.autorelease-sagemaker-amzn2023.yml
     gpu: heavy
