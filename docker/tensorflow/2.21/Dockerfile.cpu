@@ -1,7 +1,8 @@
 # ============================================================================
 # TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CPU)
 # Multi-stage: builder-base → builder-oss → runtime-base → sagemaker
-# Build args sourced from docker/tensorflow/2.21/versions-cpu.env.
+# Build args are passed by the build-image action from the image config's
+# build: block (.github/config/image/tensorflow/2.21-sagemaker-cpu.yml).
 # ============================================================================
 
 ARG DLC_MAJOR_VERSION=1
@@ -37,7 +38,7 @@ FROM amazonlinux:2023 AS builder-oss
 ARG PYTHON_VERSION
 RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
-COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
@@ -167,8 +168,8 @@ RUN CURL_DIR="$(python -c 'import tensorflow as tf, os; print(os.path.join(tf.sy
     python -c "import tensorflow as tf; tf.sysconfig.get_include()"
 
 # Telemetry
-COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK="tensorflow_runtime"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -200,8 +201,8 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSC
 
 # Same entrypoint as GPU image. start_cuda_compat.sh is a safe no-op on CPU
 # (the compat .so file does not exist), shipped for uniformity with GPU.
-COPY scripts/tensorflow/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY scripts/docker/tensorflow/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 
 RUN rm -rf /tmp/* /root/.cache

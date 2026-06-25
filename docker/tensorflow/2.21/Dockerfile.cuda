@@ -1,7 +1,8 @@
 # ============================================================================
 # TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CUDA 12.9.1)
 # Multi-stage: builder-base → builder-oss → runtime-base → sagemaker
-# Build args sourced from docker/tensorflow/2.21/versions-cuda.env.
+# Build args are passed by the build-image action from the image config's
+# build: block (.github/config/image/tensorflow/2.21-sagemaker-cuda.yml).
 # ============================================================================
 
 ARG DLC_MAJOR_VERSION=1
@@ -41,7 +42,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
 ARG PYTHON_VERSION
 RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
-COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
@@ -123,7 +124,7 @@ ENV PATH="/opt/venv/bin:${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:/usr/local/cuda/bin
 # (NCCL dlopens libnccl-net-ofi.so from this path).
 ENV LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/opt/amazon/ofi-nccl/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
-COPY scripts/common/install_efa_amzn2023.sh /tmp/install_efa.sh
+COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 # WORKAROUND: EFA 1.48.0's NGC-mode post-install check hardcodes
 # /opt/amazon/efa/lib, but AL2023 RPMs install to /opt/amazon/efa/lib64. NGC
 # mode auto-activates because the nvidia/cuda:*-amzn2023 base ships
@@ -224,8 +225,8 @@ RUN CURL_DIR="$(python -c 'import tensorflow as tf, os; print(os.path.join(tf.sy
     python -c "import tensorflow as tf; tf.sysconfig.get_include()"
 
 # Telemetry
-COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK="tensorflow_runtime"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -258,8 +259,8 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSC
 
 # start_cuda_compat.sh is a safe no-op on CPU, so the same entrypoint script
 # is used for both images.
-COPY scripts/tensorflow/entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY scripts/docker/tensorflow/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start_cuda_compat.sh
 
 RUN rm -rf /tmp/* /root/.cache
