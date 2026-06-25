@@ -17,13 +17,15 @@ permissions:
   contents: read
 
 jobs:
-  sagemaker-test:
-    # Launches a remote SageMaker async endpoint — no GPU needed on the runner.
+  preflight:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
-    timeout-minutes: 120
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
     steps:
       - uses: actions/checkout@v6
 
@@ -43,18 +45,27 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+  endpoint-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+
       - name: ECR login
-        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ steps.image.outputs.image-uri }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Run SageMaker async endpoint tests
-        if: steps.check.outputs.exists == 'true'
         env:
-          TEST_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+          TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
           AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
@@ -65,7 +76,3 @@ jobs:
           cd test/
           PYTHONPATH=$(pwd):$PYTHONPATH python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             openfold3/sagemaker/test_async_endpoint.py
-
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"
