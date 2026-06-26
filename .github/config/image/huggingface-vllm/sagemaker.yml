@@ -28,8 +28,8 @@ build:
   dlc_minor_version: "0"
 
 release:
-  release: false
-  force_release: false
+  release: true
+  force_release: true
   public_registry: false
   private_registry: true
   enable_soci: true
