@@ -1,4 +1,4 @@
-name: Reusable PyTorch Unit Tests
+name: Reusable PyTorch SageMaker Tests
 
 on:
   workflow_call:
@@ -45,13 +45,15 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-  unit-test:
+  sagemaker-test:
+    # Launches remote SageMaker training jobs — no GPU needed on the runner.
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v6
 
@@ -62,13 +64,25 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           image-uri: ${{ needs.preflight.outputs.image-uri }}
 
-      - name: Run unit tests
+      - name: Select test file by device type
+        id: select
         run: |
-          CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
-            -v $(pwd):/workdir --workdir /workdir \
-            ${{ needs.preflight.outputs.image-uri }} -c 'sleep infinity')
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-          docker exec ${CONTAINER_ID} pip install -r /workdir/test/requirements.txt -q
-          docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
-            pytest /workdir/test/pytorch/unit/ -v
-          docker kill ${CONTAINER_ID}
+          DEVICE=$(yq '.metadata.device_type' '${{ inputs.config-file }}')
+          if [ "${DEVICE}" = "gpu" ]; then
+            echo "test-file=pytorch/integration/sagemaker/test_sm_training_cuda.py" >> $GITHUB_OUTPUT
+          else
+            echo "test-file=pytorch/integration/sagemaker/test_sm_training_cpu.py" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run SageMaker training tests
+        env:
+          TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
+          SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/pytorch/integration/sagemaker/requirements.txt
+          cd test/
+          PYTHONPATH=$(pwd):$PYTHONPATH python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
+            ${{ steps.select.outputs.test-file }}

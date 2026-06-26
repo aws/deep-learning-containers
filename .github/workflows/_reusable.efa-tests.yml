@@ -42,6 +42,7 @@ permissions:
   contents: read
 
 concurrency:
+  # Serialize EFA repo-wide — one 2x p4d.24xlarge job at a time (limited capacity).
   group: efa-test-global
   cancel-in-progress: false
 

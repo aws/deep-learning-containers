@@ -15,7 +15,7 @@ metadata:
 
 build:
   dockerfile: "docker/pytorch/2.11/Dockerfile.cuda"
-  target: "runtime"
+  target: "sagemaker"
   python_version: "3.12"
   cuda_version: "13.0.2"
   torch_version: "2.11.0"
