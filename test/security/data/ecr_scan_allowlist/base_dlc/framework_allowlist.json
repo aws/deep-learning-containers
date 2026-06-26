@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "vulnerability_id": "RUSTSEC-2026-0185",
+        "reason": "quinn-proto bundled inside the uv binary (/usr/local/bin/uv). uv is shipped for customer use (e.g. venv management); cannot be patched independently of an upstream uv release.",
+        "review_by": "2026-09-30"
+    }
+]
