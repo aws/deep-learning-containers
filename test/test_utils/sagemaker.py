@@ -71,6 +71,8 @@ def assign_sagemaker_remote_job_instance_type(image):
     ):
         return "ml.g5.8xlarge"
     elif "gpu" in image:
+        if "pytorch" in image and "training" in image and "huggingface" not in image:
+            return "ml.g6.12xlarge"
         return "ml.g5.12xlarge"
     elif "tensorflow" in image:
         return "ml.c5.4xlarge"
