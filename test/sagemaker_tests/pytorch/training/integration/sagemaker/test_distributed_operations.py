@@ -39,7 +39,7 @@ from ...integration.sagemaker.timeout import timeout
 from .... import invoke_pytorch_helper_function
 from . import invoke_pytorch_estimator
 
-MULTI_GPU_INSTANCE = "ml.g6.12xlarge"
+MULTI_GPU_INSTANCE = "ml.g5.12xlarge"
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 
@@ -399,7 +399,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(
     """
     Tests pt mnist command via script mode
     """
-    instance_type = "ml.g6.12xlarge"
+    instance_type = "ml.g5.12xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -458,7 +458,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
     """
     Tests pt mnist command via script mode
     """
-    instance_type = "ml.g6.12xlarge"
+    instance_type = "ml.g5.12xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
     instance_count = 2
     training_group = InstanceGroup("train_group", instance_type, instance_count)
