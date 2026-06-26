@@ -1,10 +1,9 @@
 image:
   name: "sglang-sagemaker-ubuntu"
   description: "SGLang for SageMaker (Ubuntu, upstream base image)"
-
 metadata:
   framework: "sglang"
-  framework_version: "0.5.13"
+  framework_version: "0.5.14"
   os_version: "ubuntu24.04"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -12,7 +11,6 @@ metadata:
   device_type: "gpu"
   job_type: "general"
   prod_image: "sglang:0.5-gpu-py312"
-
 build:
   dockerfile: "docker/sglang/Dockerfile"
   target: "sglang-sagemaker"
@@ -22,7 +20,6 @@ build:
   efa_version: "1.48.0"
   dlc_major_version: "1"
   dlc_minor_version: "0"
-
 release:
   release: true
   force_release: false
