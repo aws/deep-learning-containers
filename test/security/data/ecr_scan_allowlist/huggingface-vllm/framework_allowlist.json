@@ -1,0 +1,92 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-32281",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33186",
+        "reason": "google.golang.org/grpc v1.59.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25679",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32283",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32280",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68121",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-61726",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common (12.9.79 \u2192 0:13.0.48-1) cuda is a key dependency that cannot be upgraded",
+        "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common (12.9.79 \u2192 0:13.0.48-1) cuda is a key dependency that cannot be upgraded",
+        "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33811",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39820",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33814",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39836",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42499",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39821",
+        "reason": "golang.org/x/net v0.38.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42504",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0185",
+        "reason": "quinn-proto 0.11.14 statically linked inside the uv binary (/usr/local/bin/uv); no uv release through 0.11.24 has bumped quinn-proto to the fixed 0.11.15, so it cannot be patched independently. DoS only and uv is a build-time installer, not network-facing at runtime",
+        "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53923",
+        "reason": "vllm 0.22.1 GGUF dequantize kernel integer truncation; fixed only in 0.23.1rc0 (release candidate), no stable fixed version available to pin to; vllm version cannot be changed",
+        "review_by": "2026-09-25"
+    }
+]

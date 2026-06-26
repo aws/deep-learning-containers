@@ -42,10 +42,11 @@ GLOBAL_ALLOWLIST_FILE = "global_allowlist.json"
 FRAMEWORK_ALLOWLIST_FILE = "framework_allowlist.json"
 
 
-def get_scan_status(ecr_client, repository: str, image_tag: str) -> str:
+def get_scan_status(ecr_client, image: ImageURI) -> str:
     resp = ecr_client.describe_image_scan_findings(
-        repositoryName=repository,
-        imageId={"imageTag": image_tag},
+        registryId=image.account_id,
+        repositoryName=image.repository,
+        imageId={"imageTag": image.image_tag},
     )
     return resp["imageScanStatus"]["status"]
 
@@ -54,6 +55,7 @@ def get_scan_findings(ecr_client, image: ImageURI) -> list:
     """Retrieve all paginated enhanced scan findings."""
     image_id = {"imageTag": image.image_tag}
     resp = ecr_client.describe_image_scan_findings(
+        registryId=image.account_id,
         repositoryName=image.repository,
         imageId=image_id,
         maxResults=100,
@@ -61,6 +63,7 @@ def get_scan_findings(ecr_client, image: ImageURI) -> list:
     findings = resp.get("imageScanFindings", {}).get("enhancedFindings", [])
     while resp.get("nextToken"):
         resp = ecr_client.describe_image_scan_findings(
+            registryId=image.account_id,
             repositoryName=image.repository,
             imageId=image_id,
             maxResults=100,
@@ -189,6 +192,7 @@ def main():
     image = parse_image_uri(args.image_uri)
     ecr_client = AWSSessionManager(region=image.region).ecr
     img_resp = ecr_client.describe_images(
+        registryId=image.account_id,
         repositoryName=image.repository,
         imageIds=[{"imageTag": image.image_tag}],
     )
@@ -201,8 +205,7 @@ def main():
         SCAN_WAIT_LENGTH,
         get_scan_status,
         ecr_client,
-        image.repository,
-        image.image_tag,
+        image,
     )
 
     LOGGER.info(f"Waiting {SCAN_POST_COMPLETE_WAIT}s for findings to stabilize...")

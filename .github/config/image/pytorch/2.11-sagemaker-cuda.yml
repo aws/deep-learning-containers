@@ -1,0 +1,40 @@
+image:
+  name: "pytorch-2.11-sagemaker-cuda"
+  description: "PyTorch 2.11 CUDA training for SageMaker"
+
+metadata:
+  framework: "pytorch_runtime"
+  framework_version: "2.11.0"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "training"
+  prod_image: "pytorch:2.11-cu130-amzn2023-sagemaker"
+
+build:
+  dockerfile: "docker/pytorch/2.11/Dockerfile.cuda"
+  target: "sagemaker"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  torch_version: "2.11.0"
+  torchvision_version: "0.26.0"
+  torchaudio_version: "2.11.0"
+  flash_attn_version: "2.8.3"
+  deepspeed_version: "0.18.8"
+  transformer_engine_version: "2.12.0"
+  nccl_version: "2.26.2"
+  efa_version: "1.47.0"
+  gdrcopy_version: "2.4.4"
+  max_jobs: "8"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"

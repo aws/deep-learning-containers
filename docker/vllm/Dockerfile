@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.22.1
+ARG BASE_IMAGE=vllm/vllm-openai:v0.23.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -41,9 +41,9 @@ RUN uv pip install --system \
   "pyasn1>=0.6.3" \
   && uv cache clean
 
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
@@ -65,7 +65,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /root/.cache | true
 
-COPY ./scripts/common/install_efa.sh install_efa.sh
+COPY ./scripts/docker/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
   && mkdir -p /tmp/nvjpeg \
@@ -90,7 +90,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get clean \
   && rm -rf /tmp/*
 
-COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY ./scripts/docker/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
@@ -105,7 +105,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get clean \
   && rm -rf /tmp/*
 
-COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/docker/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

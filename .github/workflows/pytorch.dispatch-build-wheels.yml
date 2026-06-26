@@ -1,0 +1,75 @@
+name: "Dispatch - PyTorch Build Wheels"
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  FORCE_COLOR: "1"
+  ARCH_TYPE: "arm64"
+  PROCESSOR_TYPE: "cu132"
+  PYTORCH_VERSION: "2.12.0"
+  PYTHON_VERSION: "3.13"
+  TORCHVISION_VERSION: "0.27.0"
+  # torchaudio is in maintenance mode and no longer tracks torch's version —
+  # latest release is 2.11.0 (no 2.12.0 tag). It builds fine against torch 2.12
+  # (its setup.py pins no torch version).
+  TORCHAUDIO_VERSION: "2.11.0"
+  TORCHTEXT_VERSION: "0.18.0"
+  TORCHDATA_VERSION: "0.11.0"
+
+jobs:
+  build-wheels:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:arm64-build-runner
+        buildspec-override:true
+    timeout-minutes: 1440
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build PyTorch wheels
+        working-directory: scripts/ci/wheels/pytorch/build
+        run: |
+          bash entrypoint.sh \
+            --arch_type "${ARCH_TYPE}" \
+            --processor_type "${PROCESSOR_TYPE}" \
+            --pytorch_version "${PYTORCH_VERSION}" \
+            --python_version "${PYTHON_VERSION}" \
+            --torchvision_version "${TORCHVISION_VERSION}" \
+            --torchaudio_version "${TORCHAUDIO_VERSION}" \
+            --torchtext_version "${TORCHTEXT_VERSION}" \
+            --torchdata_version "${TORCHDATA_VERSION}" \
+            --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"
+
+      - name: List built wheels
+        run: |
+          aws s3 ls "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}/" --recursive
+
+  test-wheels:
+    needs: [build-wheels]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:arm64-g5g16xl-runner
+        buildspec-override:true
+    timeout-minutes: 120
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run wheel tests
+        working-directory: scripts/ci/wheels/pytorch/test
+        run: |
+          bash entrypoint.sh \
+            --arch_type "${ARCH_TYPE}" \
+            --processor_type "${PROCESSOR_TYPE}" \
+            --pytorch_version "${PYTORCH_VERSION}" \
+            --python_version "${PYTHON_VERSION}" \
+            --s3_binary_store "s3://${{ vars.WHEELS_BUCKET }}/pytorch/v${PYTORCH_VERSION}/${ARCH_TYPE}/${PROCESSOR_TYPE}"

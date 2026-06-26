@@ -1,0 +1,105 @@
+name: "PR - Ray GPU"
+
+on:
+  # TEMP: Enable after all frameworks are refactored
+  workflow_dispatch:
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/ray/*-gpu.yml"
+  #     - ".github/workflows/ray.pipeline.yml"
+  #     - ".github/workflows/ray.pr-gpu.yml"
+  #     - "docker/ray/Dockerfile.gpu"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/ray/**"
+  #     - "scripts/docker/telemetry/**"
+  #     - "test/ray/ec2/**"
+  #     - "test/ray/sagemaker/**"
+  #     - "test/ray/test_ffmpeg_codecs.sh"
+  #     - "test/ray/test_ffmpeg_gpu.sh"
+  #     - "test/sanity/**"
+  #     - "test/security/data/ecr_scan_allowlist/ray/**"
+  #     - "test/telemetry/**"
+  #     - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  check-changes:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      ffmpeg-test-change: ${{ steps.changes.outputs.ffmpeg-test-change }}
+      serve-test-change: ${{ steps.changes.outputs.serve-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: changes
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/ray/*-gpu.yml"
+              - "docker/ray/Dockerfile.gpu"
+              - "scripts/docker/common/**"
+              - "scripts/docker/ray/**"
+              - "test/security/data/ecr_scan_allowlist/ray/**"
+            ffmpeg-test-change:
+              - "test/ray/test_ffmpeg_codecs.sh"
+              - "test/ray/test_ffmpeg_gpu.sh"
+            serve-test-change:
+              - "test/ray/ec2/**"
+            sagemaker-test-change:
+              - "test/ray/sagemaker/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            telemetry-test-change:
+              - "scripts/docker/telemetry/**"
+              - "test/telemetry/**"
+
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/ray/*-gpu.yml"
+
+  pipeline:
+    needs: [check-changes, discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/ray.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      build: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-ffmpeg-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ffmpeg-test-change == 'true' }}
+      run-serve-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.serve-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      release: false
+    secrets: inherit

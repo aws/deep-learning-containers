@@ -1,0 +1,72 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-33186",
+        "reason": "google.golang.org/grpc is a go package statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2025-68121",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32283",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32281",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-32280",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25679",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39820",
+        "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33811",
+        "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33814",
+        "reason": "go/stdlib 1.25.9 and golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42499",
+        "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39836",
+        "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39821",
+        "reason": "golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-42504",
+        "reason": "go/stdlib 1.24.12 embedded in mooncake libetcd_wrapper.so, MIME header parsing CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0185",
+        "reason": "quinn-proto in uv binary, upstream uv has not released a fix yet. QUIC reassembly DoS requires malicious server, low risk for pip installer.",
+        "review_by": "2026-09-10"
+    }
+]

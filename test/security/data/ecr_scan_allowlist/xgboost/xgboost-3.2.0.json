@@ -1,0 +1,12 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-0994",
+        "reason": "protobuf pinned to 3.20.x — required by smdebug. Cannot upgrade to 6.x.",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25087",
+        "reason": "pyarrow 22.0.0 — use-after-free in Arrow C++ IPC reader. Pinned by upstream sagemaker-xgboost-container test assertion. IPC file reading not in serving/training path.",
+        "review_by": "2026-08-30"
+    }
+]

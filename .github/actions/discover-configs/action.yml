@@ -1,0 +1,23 @@
+name: 'Discover Configs'
+description: 'Discover image config files matching a glob pattern and output as JSON matrix'
+
+inputs:
+  pattern:
+    description: 'Glob pattern for config files (e.g., .github/config/image/base/*.yml)'
+    required: true
+
+outputs:
+  configs:
+    description: 'JSON array of discovered configs: [{"config_file": "...", "name": "..."}]'
+    value: ${{ steps.discover.outputs.configs }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Discover configs
+      id: discover
+      shell: bash
+      run: |
+        CONFIGS=$(bash "${{ github.action_path }}/discover_configs.sh" --pattern "${{ inputs.pattern }}")
+        echo "configs=${CONFIGS}" >> $GITHUB_OUTPUT
+        echo "Discovered: ${CONFIGS}"
