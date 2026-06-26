@@ -163,6 +163,8 @@ def endpoint_name():
                 environment={"OPENFOLD_CACHE": "/root/.openfold3"},
             ),
             execution_role_arn=ROLE_ARN,
+            # Validate the production no-outbound-network posture (MSA off by default).
+            enable_network_isolation=True,
         )
 
         LOGGER.info(f"Creating async endpoint config: {name}")
