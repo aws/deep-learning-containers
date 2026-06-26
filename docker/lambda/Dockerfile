@@ -1,3 +1,14 @@
+ARG CUDA_VERSION=12.9.1
+ARG PYTHON_VERSION=3.13
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+ARG FFMPEG_VERSION=8.0.1
+ARG NV_CODEC_HEADERS_VERSION=12.2.72.0
+ARG AWSLAMBDARIC_VERSION=3.1.1
+ARG FRAMEWORK=lambda
+ARG FRAMEWORK_VERSION=12.9.1
+ARG CONTAINER_TYPE=general
+
 # ============================================================
 # Lambda Python sources
 # We take only the Python binary, stdlib, and lib-dynload.
@@ -5,12 +16,12 @@
 # (including awslambdaric) are installed via uv so we own the
 # full dependency tree with no Lambda-bundled extras.
 # ============================================================
-FROM public.ecr.aws/lambda/python:3.13 as lambda-python
+FROM public.ecr.aws/lambda/python:${PYTHON_VERSION} as lambda-python
 
 # ============================================================
 # Lambda RIE (downloaded once, copied into runtime stages)
 # ============================================================
-FROM public.ecr.aws/lambda/python:3.12 as rie-downloader
+FROM public.ecr.aws/lambda/python:${PYTHON_VERSION} as rie-downloader
 RUN curl -Lo /usr/local/bin/aws-lambda-rie \
   https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie \
   && chmod +x /usr/local/bin/aws-lambda-rie
@@ -18,7 +29,7 @@ RUN curl -Lo /usr/local/bin/aws-lambda-rie \
 # ============================================================
 # Shared builder base (CUDA runtime + uv)
 # ============================================================
-FROM nvidia/cuda:12.9.1-runtime-amzn2023 as builder-base
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as builder-base
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip findutils \
   && dnf clean all && rm -rf /var/cache/dnf
@@ -26,7 +37,7 @@ RUN dnf install -y --setopt=install_weak_deps=False tar gzip findutils \
 # ============================================================
 # Shared builder base — devel (CUDA devel + uv + git)
 # ============================================================
-FROM nvidia/cuda:12.9.1-devel-amzn2023 as builder-base-devel
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 as builder-base-devel
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
   && dnf clean all && rm -rf /var/cache/dnf
@@ -34,15 +45,17 @@ RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
 # ============================================================
 # FFmpeg builder (compiled from source with NVENC/NVDEC GPU acceleration)
 # ============================================================
-FROM nvidia/cuda:12.9.1-devel-amzn2023 as ffmpeg-builder
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 as ffmpeg-builder
+ARG FFMPEG_VERSION
+ARG NV_CODEC_HEADERS_VERSION
 ENV PATH="/usr/local/cuda/bin:${PATH}"
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar xz gcc gcc-c++ make pkgconfig nasm yasm git diffutils \
   && dnf clean all && rm -rf /var/cache/dnf \
-  && git clone --branch n12.2.72.0 --depth 1 https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
+  && git clone --branch n${NV_CODEC_HEADERS_VERSION} --depth 1 https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
   && cd /tmp/nv-codec-headers && make install && cd /tmp && rm -rf nv-codec-headers \
-  && curl -fsSL https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz | tar xz -C /tmp \
-  && mv /tmp/FFmpeg-n8.0.1 /tmp/ffmpeg \
+  && curl -fsSL https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n${FFMPEG_VERSION}.tar.gz | tar xz -C /tmp \
+  && mv /tmp/FFmpeg-n${FFMPEG_VERSION} /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
   && PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" ./configure \
     --prefix=/usr/local \
@@ -69,10 +82,11 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 # Base builder (Python 3.13 — awslambdaric, requests, pip-licenses)
 # ============================================================
 FROM builder-base as builder-base-py3
+ARG PYTHON_VERSION
 COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
-RUN rm -rf /var/lang/lib/python3.13/site-packages
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages
 ENV PATH="/var/lang/bin:$PATH" \
   UV_PROJECT_ENVIRONMENT="/var/lang"
 RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
@@ -88,10 +102,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # CuPy builder (Python 3.13 — awslambdaric, CuPy, NumPy, SciPy, etc.)
 # ============================================================
 FROM builder-base as builder-cupy-py3
+ARG PYTHON_VERSION
 COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
-RUN rm -rf /var/lang/lib/python3.13/site-packages
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages
 ENV PATH="/var/lang/bin:$PATH" \
   UV_PROJECT_ENVIRONMENT="/var/lang"
 RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
@@ -107,10 +122,11 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # PyTorch builder (Python 3.13 — awslambdaric, PyTorch, SAM2, transformers)
 # ============================================================
 FROM builder-base-devel as builder-pytorch-py3
+ARG PYTHON_VERSION
 COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
-RUN rm -rf /var/lang/lib/python3.13/site-packages
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages
 ENV PATH="/var/lang/bin:$PATH" \
   UV_PROJECT_ENVIRONMENT="/var/lang"
 RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
@@ -126,41 +142,46 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ============================================================
 # OSS compliance builders (isolated — prevents dependency closure modification)
 # ============================================================
-FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-base-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-base-py3
 COPY --from=builder-base-py3 /var/lang /var/lang
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
-FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-cupy-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-cupy-py3
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
-FROM nvidia/cuda:12.9.1-runtime-amzn2023 as oss-pytorch-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-pytorch-py3
+ARG FFMPEG_VERSION
 COPY --from=builder-pytorch-py3 /var/lang /var/lang
 COPY --from=lambda-python /lib64/libssl.so.3 /lib64/libcrypto.so.3 /lib64/
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
-  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS
+  && printf '\n** FFmpeg; version n%s -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg n%s https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version n%s -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe n%s https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 # ============================================================
 # Runtime: Base Python 3.13 (CUDA + Python + RIC + RIE)
 # ============================================================
-FROM nvidia/cuda:12.9.1-runtime-amzn2023 as base-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as base-py3
+ARG PYTHON_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
-LABEL dlc_minor_version="0"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
 COPY ./scripts/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
-RUN ln -sf /var/lang/bin/python3.13 /var/lang/bin/python3 \
+RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:$PATH" \
   LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
@@ -173,11 +194,12 @@ ENV PATH="/var/lang/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-ARG FRAMEWORK="lambda"
-ARG CONTAINER_TYPE="general"
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-    -e "/{{FRAMEWORK_VERSION}}/d" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
@@ -185,7 +207,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+  && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-base-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-base-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
 COPY --from=oss-base-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
@@ -198,16 +220,20 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: CuPy Python 3.13 (base + CuPy, NumPy, SciPy)
 # ============================================================
-FROM nvidia/cuda:12.9.1-runtime-amzn2023 as cupy-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as cupy-py3
+ARG PYTHON_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
-LABEL dlc_minor_version="0"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
 COPY ./scripts/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
-RUN ln -sf /var/lang/bin/python3.13 /var/lang/bin/python3 \
+RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:$PATH" \
   LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
@@ -220,11 +246,13 @@ ENV PATH="/var/lang/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-ARG FRAMEWORK="lambda"
-ARG CONTAINER_TYPE="general"
+ARG FRAMEWORK
+
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-    -e "/{{FRAMEWORK_VERSION}}/d" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
@@ -232,7 +260,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+  && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-cupy-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-cupy-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
 COPY --from=oss-cupy-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
@@ -245,10 +273,14 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: PyTorch Python 3.13 (base + PyTorch, FFmpeg, SAM2)
 # ============================================================
-FROM nvidia/cuda:12.9.1-runtime-amzn2023 as pytorch-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as pytorch-py3
+ARG PYTHON_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
-LABEL dlc_minor_version="0"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+ARG CACHE_REFRESH=0
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest \
   && dnf install -y --setopt=install_weak_deps=False \
@@ -260,7 +292,7 @@ COPY --from=ffmpeg-builder /usr/local/bin/ffmpeg /usr/local/bin/ffprobe /usr/loc
 COPY --from=ffmpeg-builder /usr/local/lib/libav*.so* /usr/local/lib/libsw*.so* /usr/local/lib/libpostproc.so* /usr/local/lib/
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
 COPY ./scripts/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
-RUN ln -sf /var/lang/bin/python3.13 /var/lang/bin/python3 \
+RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
   LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/usr/local/lib:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
@@ -274,11 +306,12 @@ ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
   TZ=:/etc/localtime
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-ARG FRAMEWORK="lambda"
-ARG CONTAINER_TYPE="general"
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-    -e "/{{FRAMEWORK_VERSION}}/d" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
@@ -286,7 +319,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
-  && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
+  && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-pytorch-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-pytorch-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
 COPY --from=oss-pytorch-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
@@ -300,42 +333,47 @@ CMD ["handler.handler"]
 # RIC preview builder (compile thread-mode RIC with C extensions)
 # ============================================================
 FROM builder-base as builder-ric-preview
+ARG PYTHON_VERSION
+ARG AWSLAMBDARIC_VERSION
 RUN dnf install -y --setopt=install_weak_deps=False \
   gcc gcc-c++ cmake make autoconf automake libtool \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=lambda-python /var/lang/bin /var/lang/bin
 COPY --from=lambda-python /var/lang/include /var/lang/include
 COPY --from=lambda-python /var/lang/lib /var/lang/lib
-RUN rm -rf /var/lang/lib/python3.13/site-packages
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages
 ENV PATH="/var/lang/bin:$PATH"
 RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
-COPY ./docker/lambda/artifacts/awslambdaric-3.1.1.tar.gz /tmp/
-RUN uv pip install --python /var/lang/bin/python3.13 --no-deps /tmp/awslambdaric-3.1.1.tar.gz \
-  && rm /tmp/awslambdaric-3.1.1.tar.gz
+COPY ./docker/lambda/artifacts/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz /tmp/
+RUN uv pip install --python /var/lang/bin/python${PYTHON_VERSION} --no-deps /tmp/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz \
+  && rm /tmp/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz
 
 # ============================================================
 # Preview: Base Python 3.13 (+ thread-mode RIC)
 # ============================================================
 FROM base-py3 as base-preview-py3
-RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
-  && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/ /var/lang/lib/python3.13/site-packages/
+ARG PYTHON_VERSION
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
+  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
+COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
 ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
 
 # ============================================================
 # Preview: CuPy Python 3.13 (+ thread-mode RIC)
 # ============================================================
 FROM cupy-py3 as cupy-preview-py3
-RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
-  && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/ /var/lang/lib/python3.13/site-packages/
+ARG PYTHON_VERSION
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
+  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
+COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
 ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
 
 # ============================================================
 # Preview: PyTorch Python 3.13 (+ thread-mode RIC)
 # ============================================================
 FROM pytorch-py3 as pytorch-preview-py3
-RUN rm -rf /var/lang/lib/python3.13/site-packages/awslambdaric* \
-  && rm -f /var/lang/lib/python3.13/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python3.13/site-packages/ /var/lang/lib/python3.13/site-packages/
+ARG PYTHON_VERSION
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
+  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
+COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
 ENV AWS_LAMBDA_CONCURRENCY_MODE=thread

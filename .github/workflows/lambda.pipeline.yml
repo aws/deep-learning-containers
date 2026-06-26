@@ -143,13 +143,20 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: Parse validation tests
+      - name: Determine validation tests
         if: steps.check.outputs.exists == 'true'
         id: config
         run: |
-          CONFIG_FILE="${{ inputs.config-file }}"
-          # Read tests.validation as a space-separated list of paths
-          TESTS=$(yq -r '.tests.validation[]' "$CONFIG_FILE" | tr '\n' ' ')
+          TARGET=$(yq '.build.target' "${{ inputs.config-file }}")
+          COMMON="/test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py"
+          case "$TARGET" in
+            *pytorch*)
+              TESTS="$COMMON /test/unit/test_imports_pytorch.py /test/unit/test_environment_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py" ;;
+            *cupy*)
+              TESTS="$COMMON /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py" ;;
+            *base*)
+              TESTS="$COMMON /test/unit/test_imports_base.py" ;;
+          esac
           echo "tests=${TESTS}" >> $GITHUB_OUTPUT
 
       - name: Run GPU validation tests
