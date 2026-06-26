@@ -235,6 +235,9 @@ RUN mkdir -p /opt/ml/models && chmod +rwx /opt/ml/models
 RUN mkdir -p /etc/dask
 COPY docker/xgboost/resources/dask_configs.yaml /etc/dask/
 
+# Drop temp dirs left by pip/smdebug installs (sanity check requires clean /tmp)
+RUN rm -rf /tmp/tmp* /tmp/pip-*
+
 # Labels
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
