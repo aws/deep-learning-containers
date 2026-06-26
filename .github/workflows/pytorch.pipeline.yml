@@ -207,7 +207,7 @@ jobs:
     needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     uses: ./.github/workflows/pytorch.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}
