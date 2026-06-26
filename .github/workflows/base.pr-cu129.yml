@@ -11,7 +11,6 @@ on:
       - "docker/base/cu129/**"
       - "scripts/docker/common/**"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/base/**"
       - "test/security/data/ecr_scan_allowlist/base_dlc/**"
       - "!docs/**"
 
@@ -45,7 +44,6 @@ jobs:
               - ".github/config/image/base/cu129-*.yml"
               - "docker/base/cu129/**"
               - "scripts/docker/common/**"
-              - "test/security/data/ecr_scan_allowlist/base/**"
               - "test/security/data/ecr_scan_allowlist/base_dlc/**"
             sanity-test-change:
               - "test/sanity/**"
