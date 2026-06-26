@@ -1,7 +1,7 @@
 name: "PR - vLLM Ubuntu"
 
 on:
-  # Manual-only for now; PR auto-trigger validated on vLLM AL2023 first.
+  # TEMP: Enable after all frameworks are refactored
   workflow_dispatch:
   # pull_request:
   #   branches: [main]

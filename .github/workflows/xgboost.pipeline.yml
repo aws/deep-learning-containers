@@ -119,25 +119,12 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # Local integration tests — lightweight, runs on PRs (local Docker compose)
+  # Integration tests — local Docker compose + SageMaker e2e
   integ-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-integ-test }}
     needs: [build]
     concurrency:
       group: ${{ github.workflow }}-integ-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/xgboost.tests-integ-local.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
-  # Full integration suite — GPU container tests + SageMaker e2e + benchmarks.
-  # Heavy; only runs on the release pipeline, not on PRs.
-  integ-test-full:
-    if: ${{ always() && !failure() && !cancelled() && inputs.release }}
-    needs: [build]
-    concurrency:
-      group: ${{ github.workflow }}-integ-test-full-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     uses: ./.github/workflows/xgboost.tests-integ.yml
     with:
@@ -152,7 +139,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, unit-test, integ-test, integ-test-full]
+    needs: [build, sanity-test, security-test, unit-test, integ-test]
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.check.outputs.environment }}
