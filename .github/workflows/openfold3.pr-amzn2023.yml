@@ -80,5 +80,5 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
-      release: true   # TEMP(gamma-validation): was false — lets the PR pipeline release to gamma. REVERT after the gamma run.
+      release: false
     secrets: inherit
