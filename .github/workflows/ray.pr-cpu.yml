@@ -1,27 +1,25 @@
 name: "PR - Ray CPU"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
-  workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/ray/*-cpu.yml"
-  #     - ".github/workflows/ray.pipeline.yml"
-  #     - ".github/workflows/ray.pr-cpu.yml"
-  #     - "docker/ray/Dockerfile.cpu"
-  #     - "scripts/docker/common/**"
-  #     - "scripts/docker/ray/**"
-  #     - "scripts/docker/telemetry/**"
-  #     - "test/ray/ec2/**"
-  #     - "test/ray/sagemaker/**"
-  #     - "test/ray/test_ffmpeg_codecs.sh"
-  #     - "test/ray/test_ffmpeg_gpu.sh"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/ray/**"
-  #     - "test/telemetry/**"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/ray/*-cpu.yml"
+      - ".github/workflows/ray.pipeline.yml"
+      - ".github/workflows/ray.pr-cpu.yml"
+      - "docker/ray/Dockerfile.cpu"
+      - "scripts/docker/common/**"
+      - "scripts/docker/ray/**"
+      - "scripts/docker/telemetry/**"
+      - "test/ray/ec2/**"
+      - "test/ray/sagemaker/**"
+      - "test/ray/test_ffmpeg_codecs.sh"
+      - "test/ray/test_ffmpeg_gpu.sh"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/ray/**"
+      - "test/telemetry/**"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -54,6 +52,7 @@ jobs:
         with:
           filters: |
             build-change:
+              - ".github/workflows/ray.pr-cpu.yml"
               - ".github/config/image/ray/*-cpu.yml"
               - "docker/ray/Dockerfile.cpu"
               - "scripts/docker/common/**"
