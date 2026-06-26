@@ -1,4 +1,3 @@
-# TEMP: trigger base cu130 PR build to validate re-enable (revert before merge)
 ARG CUDA_VERSION=13.0.2
 # Short CUDA tag — also the docker/base/<dir> name (cu129, cu130, ...)
 ARG CUDA_VERSION_SHORT=cu130
