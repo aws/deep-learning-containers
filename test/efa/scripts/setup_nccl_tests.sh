@@ -97,12 +97,13 @@ SM=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -1 | tr -d 
 [ -z "${SM}" ] && SM=80  # safe default for p4d
 NVCC_GENCODE="-gencode=arch=compute_${SM},code=sm_${SM}"
 
+# Pin C++17: nccl-tests' CUDA>=13 auto-detect uses `which`, absent on AL2023, so it wrongly falls back to c++14 and fails on CUDA 13 libcu++ headers.
 cd /tmp
 rm -rf nccl-tests
 git clone --depth 1 https://github.com/NVIDIA/nccl-tests.git
 cd nccl-tests
 make -j1 MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" \
-    CUDA_HOME=/usr/local/cuda NVCC_GENCODE="${NVCC_GENCODE}"
+    CUDA_HOME=/usr/local/cuda NVCC_GENCODE="${NVCC_GENCODE}" CXXSTD="-std=c++17"
 cp build/all_reduce_perf /usr/local/bin/all_reduce_perf
 cd /tmp
 rm -rf nccl-tests
