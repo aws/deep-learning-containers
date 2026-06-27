@@ -65,12 +65,9 @@ OUTPUT_PREFIX = "openfold3/async-output"
 
 SMALL_QUERY = "small.json"  # ubiquitin, 76 residues
 LARGE_QUERY = "large.json"  # synthetic, 622 residues
-
-# Precomputed MSA fixture (a3m, query as first record), uploaded by
-# Scripts/upload_openfold3_precomputed_msa.sh. The test reads it, derives the
-# query sequence from its first record, and submits both inline.
-MSA_KEY = "openfold3/precomputed_msa/large_A/colabfold_main.a3m"
-INPUT_PREFIX = "openfold3/async-input"  # staged request payloads we generate
+# 622-res protein with an inline precomputed MSA (colabfold_main.a3m); exercises
+# the bring-your-own-MSA path. Uploaded by Scripts/upload_openfold3_test_queries.sh.
+MSA_QUERY = "large_msa.json"
 
 # Bounded so a stuck request fails fast instead of hanging.
 POLL_TIMEOUT = 900
@@ -87,7 +84,7 @@ _smr = boto3.client("sagemaker-runtime", region_name=REGION)
 
 def _preflight_s3():
     """Fail before the ~10-min deploy if queries are missing or the bucket is unwritable."""
-    for q in (SMALL_QUERY, LARGE_QUERY):
+    for q in (SMALL_QUERY, LARGE_QUERY, MSA_QUERY):
         try:
             _s3.head_object(Bucket=BUCKET, Key=f"{QUERY_PREFIX}/{q}")
         except _s3.exceptions.ClientError as e:
@@ -95,13 +92,6 @@ def _preflight_s3():
                 f"Query input s3://{BUCKET}/{QUERY_PREFIX}/{q} not found ({e}). "
                 f"Upload the query JSONs to the sagemaker bucket first."
             ) from e
-    try:
-        _s3.head_object(Bucket=BUCKET, Key=MSA_KEY)
-    except _s3.exceptions.ClientError as e:
-        raise AssertionError(
-            f"Precomputed MSA s3://{BUCKET}/{MSA_KEY} not found ({e}). "
-            f"Run Scripts/upload_openfold3_precomputed_msa.sh first."
-        ) from e
     probe = f"{OUTPUT_PREFIX}/.preflight-{uuid.uuid4()}"
     try:
         _s3.put_object(Bucket=BUCKET, Key=probe, Body=b"ok")
@@ -122,58 +112,6 @@ def _submit(endpoint_name: str, query_file: str) -> tuple[str, str]:
         ContentType="application/json",
     )
     return resp["OutputLocation"], resp.get("FailureLocation", "")
-
-
-def _submit_payload(endpoint_name: str, key: str) -> tuple[str, str]:
-    """Invoke for a request payload we staged in the bucket. Returns (output_uri, failure_uri)."""
-    resp = _smr.invoke_endpoint_async(
-        EndpointName=endpoint_name,
-        InputLocation=f"s3://{BUCKET}/{key}",
-        ContentType="application/json",
-    )
-    return resp["OutputLocation"], resp.get("FailureLocation", "")
-
-
-def _first_record_sequence(a3m_text: str) -> str:
-    """Return the query sequence (first record) of an a3m, stripping gaps/inserts."""
-    seq = []
-    seen_header = False
-    for line in a3m_text.splitlines():
-        if line.startswith("#"):
-            continue
-        if line.startswith(">"):
-            if seen_header:
-                break
-            seen_header = True
-            continue
-        if seen_header:
-            seq.append(line.strip())
-    # a3m: '-' = gap, lowercase = insertion; the query row has neither.
-    return "".join(seq).replace("-", "").upper()
-
-
-def _stage_msa_request() -> str:
-    """Read the MSA fixture, build a query with inline precomputed_msa, upload it. Returns the S3 key."""
-    a3m = _s3.get_object(Bucket=BUCKET, Key=MSA_KEY)["Body"].read().decode()
-    sequence = _first_record_sequence(a3m)
-    request = {
-        "queries": {
-            "msa_protein": {
-                "chains": [
-                    {
-                        "molecule_type": "protein",
-                        "chain_ids": ["A"],
-                        "sequence": sequence,
-                        "precomputed_msa": [{"name": "colabfold_main.a3m", "content": a3m}],
-                    }
-                ]
-            }
-        },
-        "options": {"use_msa_server": False, "use_templates": False},
-    }
-    key = f"{INPUT_PREFIX}/msa_request_{uuid.uuid4()}.json"
-    _s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(request).encode())
-    return key
 
 
 def _split(uri: str) -> tuple[str, str]:
@@ -322,10 +260,7 @@ def test_large_single(endpoint_name):
 
 def test_large_precomputed_msa(endpoint_name):
     """Customer-supplied precomputed MSA works under network isolation (no MSA server)."""
-    key = _stage_msa_request()
-    start = time.time()
-    out, fail = _submit_payload(endpoint_name, key)
-    elapsed, result = _poll_one(out, fail, start)
+    ((elapsed, result),) = _invoke(endpoint_name, [MSA_QUERY])
     _assert_success(result)
     LOGGER.info(f"large+precomputed-MSA completed in {elapsed:.0f}s")
 
