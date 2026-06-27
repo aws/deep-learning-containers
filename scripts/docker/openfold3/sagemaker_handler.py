@@ -14,6 +14,10 @@ Other behaviors:
   - CIF/JSON outputs are returned in full, never truncated.
   - MSA is OFF by default (SageMaker network isolation has no outbound
     internet). Callers opt in via options.use_msa_server=true.
+  - Precomputed MSA: a chain may carry an optional `precomputed_msa` list of
+    {name, content} a3m/sto alignments. The handler stages them to disk and
+    points OF3 at them via main_msa_file_paths, so customers never deal with
+    file paths and no network is needed (works under network isolation).
   - Per-GPU warmup at process startup compiles CUDA kernels before /ping
     returns 200, hiding the ~6-min one-time compile from the customer.
 
@@ -44,6 +48,73 @@ logger = logging.getLogger(__name__)
 
 _PREDICT_TIMEOUT_SEC = int(os.environ.get("OPENFOLD3_PREDICT_TIMEOUT_SEC", "3300"))
 _DEFAULT_ENGINE = os.environ.get("OPENFOLD3_ENGINE", "subprocess").lower()
+
+# Recognized precomputed-MSA names, from OF3 0.4.1 aln_order / max_seq_counts
+# (openfold3/projects/of3_all_atom/config/dataset_config_components.py). OF3 keys
+# MSAs by filename; an unrecognized name is silently ignored (→ single-sequence
+# prediction), so we validate and reject up front. Keep in sync on version bumps.
+_RECOGNIZED_MSA_NAMES = {
+    "uniref90_hits",
+    "bfd_uniclust_hits",
+    "bfd_uniref_hits",
+    "cfdb_uniref30",
+    "mgnify_hits",
+    "uniprot_hits",
+    "concat_cfdb_uniref100_filtered",
+    "mmseqs_colabfold",
+    "colabfold_main",
+    "colabfold_paired",
+    "rfam_hits",
+    "rnacentral_hits",
+    "nt_hits",
+    "dummy",
+}
+
+
+def _msa_stem_and_ext(name: str) -> tuple:
+    """Split a precomputed_msa name into (stem, extension), defaulting to .a3m."""
+    name = (name or "").strip()
+    if name.endswith(".sto"):
+        return name[:-4], ".sto"
+    if name.endswith(".a3m"):
+        return name[:-4], ".a3m"
+    return name, ".a3m"
+
+
+def _validate_precomputed_msa(openfold_data: Dict[str, Any]) -> None:
+    """Raise ValueError if any chain's precomputed_msa has an unknown name or empty content."""
+    for query in openfold_data.get("queries", {}).values():
+        for chain in query.get("chains", []):
+            for entry in chain.get("precomputed_msa") or []:
+                stem, _ = _msa_stem_and_ext(entry.get("name"))
+                if stem not in _RECOGNIZED_MSA_NAMES:
+                    raise ValueError(
+                        f"precomputed_msa name {entry.get('name')!r} not recognized; "
+                        f"allowed: {sorted(_RECOGNIZED_MSA_NAMES)}"
+                    )
+                if not entry.get("content"):
+                    raise ValueError(
+                        f"precomputed_msa entry {entry.get('name')!r} has empty content"
+                    )
+
+
+def _stage_precomputed_msa(openfold_data: Dict[str, Any], temp_dir: str) -> None:
+    """Write each chain's inline `precomputed_msa` to disk and set main_msa_file_paths.
+
+    Mutates openfold_data in place. Assumes names are already validated.
+    """
+    for query_id, query in openfold_data.get("queries", {}).items():
+        for idx, chain in enumerate(query.get("chains", [])):
+            msa_list = chain.pop("precomputed_msa", None)
+            if not msa_list:
+                continue
+            chain_dir = os.path.join(temp_dir, "msa", f"{query_id}_{idx}")
+            os.makedirs(chain_dir, exist_ok=True)
+            for entry in msa_list:
+                stem, ext = _msa_stem_and_ext(entry.get("name"))
+                with open(os.path.join(chain_dir, stem + ext), "w") as f:
+                    f.write(entry["content"])
+            chain["main_msa_file_paths"] = chain_dir
 
 
 def _detected_gpu_count() -> int:
@@ -123,6 +194,12 @@ class OpenFold3Predictor:
         else:
             return {"status": "error", "error": "Input must contain 'inputs' or 'queries'"}
 
+        # Validate precomputed_msa names before leasing a GPU (cheap fail-fast).
+        try:
+            _validate_precomputed_msa(openfold_data)
+        except ValueError as e:
+            return {"status": "error", "error": str(e)}
+
         engine = (options.get("engine") or _DEFAULT_ENGINE).lower()
         if engine == "in_memory":
             return self._predict_in_memory(openfold_data, options)
@@ -169,6 +246,10 @@ class OpenFold3Predictor:
             query_path = os.path.join(temp_dir, "query.json")
             output_dir = os.path.join(temp_dir, "output")
             os.makedirs(output_dir)
+
+            # Stage any inline precomputed MSA to disk and rewrite the query to
+            # point OF3 at the local files (no network needed).
+            _stage_precomputed_msa(openfold_data, temp_dir)
 
             with open(query_path, "w") as f:
                 json.dump(openfold_data, f)
