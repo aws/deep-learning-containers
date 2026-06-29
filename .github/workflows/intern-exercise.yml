@@ -22,6 +22,13 @@ jobs:
 
   parse-config:
     runs-on: ubuntu-latest
+    outputs:
+      image_name: ${{ steps.metadata.outputs.image_name }}
+      framework: ${{ steps.metadata.outputs.framework }}
+      framework_version: ${{ steps.metadata.outputs.framework_version }}
+      device_type: ${{ steps.metadata.outputs.device_type }}
+      customer_type: ${{ steps.metadata.outputs.customer_type }}
+      prod_image: ${{ steps.metadata.outputs.prod_image }}
     steps:
       - uses: actions/checkout@v6
       - name: Extract metadata
@@ -35,30 +42,36 @@ jobs:
           echo "device_type=$(yq '.metadata.device_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "customer_type=$(yq '.metadata.customer_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "prod_image=$(yq '.metadata.prod_image' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
-      - name: Print metadata
+
+
+  summarize:
+    needs: [parse-config]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
         env:
-          IMAGE_NAME: ${{ steps.metadata.outputs.image_name }}
-          FRAMEWORK: ${{ steps.metadata.outputs.framework }}
-          FRAMEWORK_VERSION: ${{ steps.metadata.outputs.framework_version }}
-          DEVICE_TYPE: ${{ steps.metadata.outputs.device_type }}
-          CUSTOMER_TYPE: ${{ steps.metadata.outputs.customer_type }}
-          PROD_IMAGE: ${{ steps.metadata.outputs.prod_image }}
+          IMAGE_NAME: ${{ needs.parse-config.outputs.image_name }}
+          FRAMEWORK: ${{ needs.parse-config.outputs.framework }}
+          FRAMEWORK_VERSION: ${{ needs.parse-config.outputs.framework_version }}
+          DEVICE_TYPE: ${{ needs.parse-config.outputs.device_type }}
+          CUSTOMER_TYPE: ${{ needs.parse-config.outputs.customer_type }}
+          PROD_IMAGE: ${{ needs.parse-config.outputs.prod_image }}
         run: |
           echo "Image: $IMAGE_NAME | framework=$FRAMEWORK | version=$FRAMEWORK_VERSION | device=$DEVICE_TYPE | customer=$CUSTOMER_TYPE"
       - name: GPU info
-        if: steps.metadata.outputs.device_type == 'gpu'
+        if: needs.parse-config.outputs.device_type == 'gpu'
         run: |
           echo "GPU build: CUDA acceleration enabled"
       - name: CPU info
-        if: steps.metadata.outputs.device_type == 'cpu'
+        if: needs.parse-config.outputs.device_type == 'cpu'
         run: |
           echo "CPU build: no accelerator"
       - name: SageMaker info
-        if: steps.metadata.outputs.customer_type == 'sagemaker'
+        if: needs.parse-config.outputs.customer_type == 'sagemaker'
         run: |
           echo "SageMaker image: adding SM labels"
       - name: EC2 info
-        if: steps.metadata.outputs.customer_type == 'ec2'
+        if: needs.parse-config.outputs.customer_type == 'ec2'
         run: |
           echo "EC2 image: no SM labels needed"
 
