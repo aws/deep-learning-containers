@@ -170,7 +170,7 @@ RUN CURL_DIR="$(python -c 'import tensorflow as tf, os; print(os.path.join(tf.sy
 # Telemetry
 COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-ARG FRAMEWORK="tensorflow_runtime"
+ARG FRAMEWORK="tensorflow"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \

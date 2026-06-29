@@ -13,4 +13,4 @@ fi
 # CUDA forward-compatibility (safe no-op on CPU)
 bash /usr/local/bin/start_cuda_compat.sh || true
 
-eval "$@"
+exec "$@"

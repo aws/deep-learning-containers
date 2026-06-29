@@ -12,11 +12,13 @@ control plane, not anything CUDA-specific.
 """
 
 import datetime
+import logging
 import os
 import random
 import time
 
 import boto3
+from botocore.exceptions import ClientError
 from sagemaker.core.experiments.experiment import Experiment
 from sagemaker.core.experiments.trial import _Trial
 from sagemaker.core.experiments.trial_component import _TrialComponent
@@ -24,6 +26,8 @@ from sagemaker.core.helper.session_helper import Session
 from sagemaker.core.training.configs import Compute, InputData, SourceCode
 from sagemaker.train import ModelTrainer
 from test_utils import random_suffix_name
+
+LOG = logging.getLogger(__name__)
 
 RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
 SOURCE_DIR = os.path.join(RESOURCE_DIR, "scripts")
@@ -107,13 +111,18 @@ def test_experiments_cpu():
         trial.remove_trial_component(trial_component_summary.trial_component_name)
         trial_component.delete(force_disassociate=True)
     finally:
-        # Best-effort cleanup — keep the test from leaking state on failure.
-        try:
-            trial.delete()
-        except Exception:  # noqa: BLE001
-            pass
+        # Best-effort cleanup — narrow to AWS SDK errors, log non-not-found
+        # failures so silent leaks don't accumulate in the CI account.
+        _safe_delete(trial.delete, f"trial {trial_name}")
         time.sleep(1.2)  # avoid Experiments control-plane throttling
-        try:
-            experiment.delete()
-        except Exception:  # noqa: BLE001
-            pass
+        _safe_delete(experiment.delete, f"experiment {experiment_name}")
+
+
+def _safe_delete(delete_fn, label: str) -> None:
+    try:
+        delete_fn()
+    except ClientError as e:
+        code = e.response.get("Error", {}).get("Code", "")
+        if code in ("ResourceNotFound", "ValidationException"):
+            return
+        LOG.warning("cleanup failed for %s: %s", label, e)
