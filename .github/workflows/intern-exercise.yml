@@ -19,6 +19,33 @@ jobs:
           echo "PR Number: $PR_NUMBER"
           echo "Branch Name: $BRANCH_NAME"
           echo "Head Commit SHA: $HEAD_SHA"
+  check-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Get changes
+        id: filter
+        uses: dorny/paths-filter@v4
+        with:
+          list-files: shell
+          filters: |
+            configs:
+              - ".github/config/image/**"
+      - name: No change
+        if: steps.filter.outputs.configs != 'true'
+        run: |
+            echo "No image config changes detected"
+      - name: Changed configs
+        if: steps.filter.outputs.configs == 'true'
+        env:
+          CHANGED_FILES: ${{ steps.filter.outputs.configs_files }}
+        run: |
+          echo "Changed config files: $CHANGED_FILES"
+          for CONFIG_FILE in $CHANGED_FILES; do
+            echo "Parsing $CONFIG_FILE"
+            echo "  name=$(yq '.image.name' "$CONFIG_FILE")"
+          done
+
 
   parse-config:
     runs-on: ubuntu-latest
