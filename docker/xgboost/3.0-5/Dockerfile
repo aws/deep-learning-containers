@@ -235,6 +235,9 @@ RUN mkdir -p /opt/ml/models && chmod +rwx /opt/ml/models
 RUN mkdir -p /etc/dask
 COPY docker/xgboost/resources/dask_configs.yaml /etc/dask/
 
+# Drop temp dirs left by pip/smdebug installs (sanity check requires clean /tmp)
+RUN rm -rf /tmp/tmp* /tmp/pip-*
+
 # Labels
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -254,6 +257,7 @@ ENV SM_INPUT=/opt/ml/input \
 ARG CACHE_REFRESH
 RUN apt-get update && apt-get upgrade -y \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN python3 -m pip install --no-cache-dir --upgrade cryptography
+# Pin to the requirements.txt version; the integ test asserts the exact pin.
+RUN python3 -m pip install --no-cache-dir cryptography==48.0.1
 
 EXPOSE 8080
