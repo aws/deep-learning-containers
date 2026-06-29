@@ -68,6 +68,8 @@ LARGE_QUERY = "large.json"  # synthetic, 622 residues
 # 622-res protein with an inline precomputed MSA (colabfold_main.a3m); exercises
 # the bring-your-own-MSA path. Uploaded by Scripts/upload_openfold3_test_queries.sh.
 MSA_QUERY = "large_msa.json"
+# Small protein with use_msa_server=true; the handler must reject it under isolation.
+MSA_SERVER_QUERY = "small_msa_server.json"
 
 # Bounded so a stuck request fails fast instead of hanging.
 POLL_TIMEOUT = 900
@@ -84,7 +86,7 @@ _smr = boto3.client("sagemaker-runtime", region_name=REGION)
 
 def _preflight_s3():
     """Fail before the ~10-min deploy if queries are missing or the bucket is unwritable."""
-    for q in (SMALL_QUERY, LARGE_QUERY, MSA_QUERY):
+    for q in (SMALL_QUERY, LARGE_QUERY, MSA_QUERY, MSA_SERVER_QUERY):
         try:
             _s3.head_object(Bucket=BUCKET, Key=f"{QUERY_PREFIX}/{q}")
         except _s3.exceptions.ClientError as e:
@@ -109,18 +111,6 @@ def _submit(endpoint_name: str, query_file: str) -> tuple[str, str]:
     resp = _smr.invoke_endpoint_async(
         EndpointName=endpoint_name,
         InputLocation=f"s3://{BUCKET}/{QUERY_PREFIX}/{query_file}",
-        ContentType="application/json",
-    )
-    return resp["OutputLocation"], resp.get("FailureLocation", "")
-
-
-def _submit_inline(endpoint_name: str, request: dict) -> tuple[str, str]:
-    """Stage a small request payload to S3 and invoke. Returns (output_uri, failure_uri)."""
-    key = f"{OUTPUT_PREFIX}/.inline-{uuid.uuid4()}.json"
-    _s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(request).encode())
-    resp = _smr.invoke_endpoint_async(
-        EndpointName=endpoint_name,
-        InputLocation=f"s3://{BUCKET}/{key}",
         ContentType="application/json",
     )
     return resp["OutputLocation"], resp.get("FailureLocation", "")
@@ -279,23 +269,7 @@ def test_large_precomputed_msa(endpoint_name):
 
 def test_msa_server_rejected_under_isolation(endpoint_name):
     """use_msa_server=true is rejected fast (no network under isolation, would otherwise hang)."""
-    request = {
-        "queries": {
-            "ubiquitin": {
-                "chains": [
-                    {
-                        "molecule_type": "protein",
-                        "chain_ids": ["A"],
-                        "sequence": "MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG",
-                    }
-                ]
-            }
-        },
-        "options": {"use_msa_server": True},
-    }
-    start = time.time()
-    out, fail = _submit_inline(endpoint_name, request)
-    elapsed, result = _poll_one(out, fail, start)
+    ((elapsed, result),) = _invoke(endpoint_name, [MSA_SERVER_QUERY])
     assert result.get("status") == "error", f"expected rejection, got {result}"
     assert "use_msa_server" in result.get("error", ""), f"unexpected error: {result.get('error')}"
     LOGGER.info(f"use_msa_server rejected in {elapsed:.0f}s")
