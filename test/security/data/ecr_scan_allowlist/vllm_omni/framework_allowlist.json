@@ -68,5 +68,30 @@
         "vulnerability_id": "CVE-2026-42504",
         "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
         "review_by": "2026-08-25"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0185",
+        "reason": "quinn-proto in uv binary, upstream uv has not released a fix yet",
+        "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53923",
+        "reason": "vllm GGUF integer truncation, fix requires vllm>=0.23.1rc0, image pinned to 0.21.0rc1+amzn2023",
+        "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-41523",
+        "reason": "vllm assert-based activation check bypass, fix requires vllm>=0.22.0, image pinned to 0.21.0rc1+amzn2023",
+        "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-48746",
+        "reason": "vllm ASGI/starlette auth bypass, fix requires vllm>=0.22.0, image pinned to 0.21.0rc1+amzn2023",
+        "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54232",
+        "reason": "vllm Dockerfile dependency confusion via flashinfer-jit-cache, fix requires vllm>=0.22.1, image pinned to 0.21.0rc1+amzn2023",
+        "review_by": "2026-09-25"
     }
 ]

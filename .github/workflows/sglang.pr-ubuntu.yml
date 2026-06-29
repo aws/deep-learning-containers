@@ -52,7 +52,6 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/workflows/sglang.pr-ubuntu.yml"
               - ".github/config/image/sglang/*-ubuntu.yml"
               - "docker/sglang/Dockerfile"
               - "scripts/docker/common/**"
