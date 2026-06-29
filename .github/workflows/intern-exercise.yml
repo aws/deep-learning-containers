@@ -1,0 +1,22 @@
+name: "Print Metadata for PR"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+jobs:
+  print-metadata:
+    runs-on: ubuntu-latest
+    env:
+      PR_NUMBER: ${{ github.event.pull_request.number || 'manual'}}
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name}}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps: 
+      - name: print-info
+        run: |
+          echo "PR Number: $PR_NUMBER"
+          echo "Branch Name: $BRANCH_NAME"
+          echo "Head Commit SHA: $HEAD_SHA"
+
