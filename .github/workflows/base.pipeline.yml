@@ -110,7 +110,7 @@ jobs:
           config-file: ${{ inputs.config-file }}
 
   release:
-    if: ${{ needs.release-gate.outputs.should-release == 'true' }}
+    if: ${{ !failure() && !cancelled() && needs.release-gate.outputs.should-release == 'true' }}
     needs: [build, release-gate]
     uses: ./.github/workflows/_reusable.release-image.yml
     with:
