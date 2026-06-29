@@ -13,7 +13,7 @@ jobs:
       PR_NUMBER: ${{ github.event.pull_request.number || 'manual'}}
       BRANCH_NAME: ${{ github.head_ref || github.ref_name}}
       HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-    steps: 
+    steps:
       - name: print-info
         run: |
           echo "PR Number: $PR_NUMBER"
@@ -47,16 +47,18 @@ jobs:
           echo "Image: $IMAGE_NAME | framework=$FRAMEWORK | version=$FRAMEWORK_VERSION | device=$DEVICE_TYPE | customer=$CUSTOMER_TYPE"
       - name: GPU info
         if: steps.metadata.outputs.device_type == 'gpu'
-        run: echo "GPU build: CUDA acceleration enabled"
+        run: |
+          echo "GPU build: CUDA acceleration enabled"
       - name: CPU info
         if: steps.metadata.outputs.device_type == 'cpu'
-        run: echo "CPU build: no accelerator"
+        run: |
+          echo "CPU build: no accelerator"
       - name: SageMaker info
         if: steps.metadata.outputs.customer_type == 'sagemaker'
-        run: echo "SageMaker image: adding SM labels"
+        run: |
+          echo "SageMaker image: adding SM labels"
       - name: EC2 info
         if: steps.metadata.outputs.customer_type == 'ec2'
-        run: echo "EC2 image: no SM labels needed"
-
-    
+        run: |
+          echo "EC2 image: no SM labels needed"
 
