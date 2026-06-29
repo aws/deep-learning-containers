@@ -114,6 +114,18 @@ def _submit(endpoint_name: str, query_file: str) -> tuple[str, str]:
     return resp["OutputLocation"], resp.get("FailureLocation", "")
 
 
+def _submit_inline(endpoint_name: str, request: dict) -> tuple[str, str]:
+    """Stage a small request payload to S3 and invoke. Returns (output_uri, failure_uri)."""
+    key = f"{OUTPUT_PREFIX}/.inline-{uuid.uuid4()}.json"
+    _s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(request).encode())
+    resp = _smr.invoke_endpoint_async(
+        EndpointName=endpoint_name,
+        InputLocation=f"s3://{BUCKET}/{key}",
+        ContentType="application/json",
+    )
+    return resp["OutputLocation"], resp.get("FailureLocation", "")
+
+
 def _split(uri: str) -> tuple[str, str]:
     return uri.split("/")[2], "/".join(uri.split("/")[3:])
 
@@ -263,6 +275,30 @@ def test_large_precomputed_msa(endpoint_name):
     ((elapsed, result),) = _invoke(endpoint_name, [MSA_QUERY])
     _assert_success(result)
     LOGGER.info(f"large+precomputed-MSA completed in {elapsed:.0f}s")
+
+
+def test_msa_server_rejected_under_isolation(endpoint_name):
+    """use_msa_server=true is rejected fast (no network under isolation, would otherwise hang)."""
+    request = {
+        "queries": {
+            "ubiquitin": {
+                "chains": [
+                    {
+                        "molecule_type": "protein",
+                        "chain_ids": ["A"],
+                        "sequence": "MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG",
+                    }
+                ]
+            }
+        },
+        "options": {"use_msa_server": True},
+    }
+    start = time.time()
+    out, fail = _submit_inline(endpoint_name, request)
+    elapsed, result = _poll_one(out, fail, start)
+    assert result.get("status") == "error", f"expected rejection, got {result}"
+    assert "use_msa_server" in result.get("error", ""), f"unexpected error: {result.get('error')}"
+    LOGGER.info(f"use_msa_server rejected in {elapsed:.0f}s")
 
 
 def test_large_concurrent_uses_gpu_pool(endpoint_name):

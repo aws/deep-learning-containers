@@ -12,8 +12,9 @@ Two predict paths:
 
 Other behaviors:
   - CIF/JSON outputs are returned in full, never truncated.
-  - MSA is OFF by default (SageMaker network isolation has no outbound
-    internet). Callers opt in via options.use_msa_server=true.
+  - MSA is OFF by default. The MSA server (use_msa_server) is rejected under
+    network isolation — it has no outbound internet and would hang; callers
+    supply a precomputed MSA instead (see precomputed_msa below).
   - Precomputed MSA: a chain may carry an optional `precomputed_msa` list of
     {name, content} a3m/sto alignments. The handler stages them to disk and
     points OF3 at them via main_msa_file_paths, so customers never deal with
@@ -27,6 +28,7 @@ Tunables (env vars):
   OPENFOLD3_WARMUP_SIZES          residue counts for warmup (default: "30")
   OPENFOLD3_SKIP_WARMUP           "1" to skip warmup entirely
   OPENFOLD3_PREDICT_TIMEOUT_SEC   subprocess timeout
+  OPENFOLD3_ALLOW_MSA_SERVER      "1" to allow use_msa_server (non-isolated deploy)
 """
 
 import json
@@ -48,6 +50,10 @@ logger = logging.getLogger(__name__)
 
 _PREDICT_TIMEOUT_SEC = int(os.environ.get("OPENFOLD3_PREDICT_TIMEOUT_SEC", "3300"))
 _DEFAULT_ENGINE = os.environ.get("OPENFOLD3_ENGINE", "subprocess").lower()
+# The endpoint runs under network isolation, so the MSA server (use_msa_server)
+# has no outbound internet and would hang until the predict timeout. Reject it
+# up front. Set to "1" only on a non-isolated deploy to re-enable.
+_ALLOW_MSA_SERVER = os.environ.get("OPENFOLD3_ALLOW_MSA_SERVER", "0") == "1"
 
 # Recognized precomputed-MSA names, from OF3 0.4.1 aln_order / max_seq_counts
 # (openfold3/projects/of3_all_atom/config/dataset_config_components.py). OF3 keys
@@ -79,6 +85,19 @@ def _msa_stem_and_ext(name: str) -> tuple:
     if name.endswith(".a3m"):
         return name[:-4], ".a3m"
     return name, ".a3m"
+
+
+def _check_msa_server_allowed(options: Dict[str, Any]) -> None:
+    """Reject use_msa_server under network isolation (it would hang with no internet)."""
+    if options.get("use_msa_server") and not _ALLOW_MSA_SERVER:
+        raise ValueError(
+            "use_msa_server=true is not supported: this endpoint runs under network "
+            "isolation and cannot reach the MSA server. Set use_msa_server=false and "
+            "pass a precomputed alignment per chain as "
+            'precomputed_msa: [{"name": <db>, "content": <a3m/sto text>}]. '
+            f"Supported names: {sorted(_RECOGNIZED_MSA_NAMES)} (e.g. colabfold_main "
+            "for a single ColabFold-merged MSA)."
+        )
 
 
 def _validate_precomputed_msa(openfold_data: Dict[str, Any]) -> None:
@@ -194,8 +213,10 @@ class OpenFold3Predictor:
         else:
             return {"status": "error", "error": "Input must contain 'inputs' or 'queries'"}
 
-        # Validate precomputed_msa names before leasing a GPU (cheap fail-fast).
+        # Reject network-dependent options + validate precomputed_msa names before
+        # leasing a GPU (cheap fail-fast; use_msa_server would otherwise hang).
         try:
+            _check_msa_server_allowed(options)
             _validate_precomputed_msa(openfold_data)
         except ValueError as e:
             return {"status": "error", "error": str(e)}
