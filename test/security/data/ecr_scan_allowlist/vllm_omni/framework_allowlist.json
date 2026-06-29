@@ -88,5 +88,10 @@
         "vulnerability_id": "CVE-2026-48746",
         "reason": "vllm ASGI/starlette auth bypass, fix requires vllm>=0.22.0, image pinned to 0.21.0rc1+amzn2023",
         "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54232",
+        "reason": "vllm Dockerfile dependency confusion via flashinfer-jit-cache, fix requires vllm>=0.22.1, image pinned to 0.21.0rc1+amzn2023",
+        "review_by": "2026-09-25"
     }
 ]
