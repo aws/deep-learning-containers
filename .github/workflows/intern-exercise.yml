@@ -20,3 +20,31 @@ jobs:
           echo "Branch Name: $BRANCH_NAME"
           echo "Head Commit SHA: $HEAD_SHA"
 
+  parse-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Extract metadata
+        id: metadata
+        shell: bash
+        run: |
+          CONFIG_FILE=".github/config/image/pytorch/2.11-ec2-cuda.yml"
+          echo "image_name=$(yq '.image.name' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "framework_version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "device_type=$(yq '.metadata.device_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "customer_type=$(yq '.metadata.customer_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "prod_image=$(yq '.metadata.prod_image' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+      - name: Print metadata
+        env:
+          IMAGE_NAME: ${{ steps.metadata.outputs.image_name }}
+          FRAMEWORK: ${{ steps.metadata.outputs.framework }}
+          FRAMEWORK_VERSION: ${{ steps.metadata.outputs.framework_version }}
+          DEVICE_TYPE: ${{ steps.metadata.outputs.device_type }}
+          CUSTOMER_TYPE: ${{ steps.metadata.outputs.customer_type }}
+          PROD_IMAGE: ${{ steps.metadata.outputs.prod_image }}
+        run: |
+          echo "Image: $IMAGE_NAME | framework=$FRAMEWORK | version=$FRAMEWORK_VERSION | device=$DEVICE_TYPE | customer=$CUSTOMER_TYPE"
+
+    
+
