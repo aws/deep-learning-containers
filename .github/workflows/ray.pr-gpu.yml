@@ -52,7 +52,6 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/workflows/ray.pr-gpu.yml"
               - ".github/config/image/ray/*-gpu.yml"
               - "docker/ray/Dockerfile.gpu"
               - "scripts/docker/common/**"

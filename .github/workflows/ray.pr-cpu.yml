@@ -52,7 +52,6 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/workflows/ray.pr-cpu.yml"
               - ".github/config/image/ray/*-cpu.yml"
               - "docker/ray/Dockerfile.cpu"
               - "scripts/docker/common/**"
