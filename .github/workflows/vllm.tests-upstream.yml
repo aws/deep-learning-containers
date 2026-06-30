@@ -170,8 +170,7 @@ jobs:
           docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_cuda_test.sh
 
   example-test:
-    # NOTE: Temporarily disable test for sagemaker due to it hanging in CI
-    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.customer-type != 'sagemaker' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -223,6 +222,8 @@ jobs:
           docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_test_setup.sh
 
       - name: Run vLLM example tests
+        # Hang guardrail: fail in ~90min instead of at the 6h workflow timeout.
+        timeout-minutes: 90
         run: |
           CUSTOMER_TYPE="${{ needs.preflight.outputs.customer-type }}"
           if [ "$CUSTOMER_TYPE" = "sagemaker" ]; then

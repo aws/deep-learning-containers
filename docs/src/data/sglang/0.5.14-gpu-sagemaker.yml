@@ -1,0 +1,14 @@
+framework: SGLang
+version: "0.5.14"
+accelerator: gpu
+python: py312
+cuda: cu130
+os: ubuntu24.04
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "0.5.14-gpu-py312-cu130-ubuntu24.04-sagemaker"
+  - "0.5-gpu-py312-cu130-ubuntu24.04-sagemaker-v1"
+  - "0.5.14-gpu-py312"
+  - "0.5-gpu-py312"

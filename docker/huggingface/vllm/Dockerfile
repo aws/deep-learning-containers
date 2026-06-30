@@ -6,11 +6,9 @@ ARG FRAMEWORK=huggingface-vllm
 ARG FRAMEWORK_VERSION=0.22.1
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=0
 
 LABEL maintainer="Hugging Face"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
-LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 
 ARG TRANSFORMERS_VERSION=5.10.2
 ARG HUGGINGFACE_HUB_VERSION=1.17.0
@@ -27,6 +25,7 @@ RUN uv pip install --system \
   "grpcio>=1.79.3" \
   "cryptography>=48.0.1" \
   "starlette>=1.3.1" \
+  "aiohttp>=3.14.1" \
   && uv cache clean \
   && rm -rf /tmp/uv*
 

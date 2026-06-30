@@ -1,4 +1,4 @@
-name: "Pipeline - SGLang"
+name: "Pipeline - OpenFold3"
 
 on:
   workflow_call:
@@ -26,31 +26,11 @@ on:
         required: false
         type: boolean
         default: false
-      run-telemetry-test:
-        description: "Run telemetry tests"
-        required: false
-        type: boolean
-        default: true
-      run-upstream-test:
-        description: "Run upstream tests"
-        required: false
-        type: boolean
-        default: true
-      run-model-test:
-        description: "Run model tests"
-        required: false
-        type: boolean
-        default: true
       run-sagemaker-test:
         description: "Run SageMaker endpoint tests"
         required: false
         type: boolean
         default: true
-      run-efa-test:
-        description: "Run EFA integration tests"
-        required: false
-        type: boolean
-        default: false
       release:
         description: "Run release job after tests pass"
         required: false
@@ -79,11 +59,9 @@ jobs:
       cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-sglang-build-runner
+        fleet:x86-build-runner
         buildspec-override:true
     timeout-minutes: 720
-    env:
-      WHEELS_BUCKET: ${{ vars.WHEELS_BUCKET }}
     outputs:
       image-uri: ${{ steps.build.outputs.image-uri }}
     steps:
@@ -118,66 +96,16 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
-    concurrency:
-      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: false
-    uses: ./.github/workflows/_reusable.telemetry-tests.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
-  upstream-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
-    needs: [build]
-    concurrency:
-      group: ${{ github.workflow }}-upstream-tests-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/sglang.tests-upstream.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-    secrets: inherit
-
-  model-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test }}
-    needs: [build]
-    concurrency:
-      group: ${{ github.workflow }}-model-tests-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/sglang.tests-model.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-    secrets: inherit
-
   sagemaker-tests:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
     needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
-    uses: ./.github/workflows/sglang.tests-sagemaker.yml
+    uses: ./.github/workflows/openfold3.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
-  efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
-    needs: [build]
-    concurrency:
-      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: false
-    uses: ./.github/workflows/_reusable.efa-tests.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      run-nixl-tests: true
-      run-nixl-disagg: false
-      container-entrypoint: "/bin/bash"
-      container-cmd: "-c 'sleep infinity'"
 
   release-gate:
     if: >-
@@ -187,7 +115,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, upstream-tests, model-tests, sagemaker-tests, efa-test]
+    needs: [build, sanity-test, security-test, sagemaker-tests]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
