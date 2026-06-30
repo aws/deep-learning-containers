@@ -15,8 +15,10 @@ metadata:
 build:
   dockerfile: "docker/openfold3/Dockerfile"
   target: "openfold3-sagemaker"
+  base_image: "public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
+  miniforge_version: "25.11.0-1"
   openfold3_ref: "0.4.1"
   checkpoint: "of3-p2-155k.pt"
   dlc_major_version: "1"
