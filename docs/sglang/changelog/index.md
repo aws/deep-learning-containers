@@ -16,12 +16,14 @@ Changelog for the Amazon Linux 2023-based SGLang images (`server-cuda`, `server-
 
 - Bumped SGLang to `0.5.13` (upstream commit `66ab5c9`)
 - Added **[NIXL](https://github.com/ai-dynamo/nixl)** KV connector (`nixl` + matching `nixl-cu13`) for prefill/decode disaggregation KV transfer
-- Added **[runai-model-streamer](https://github.com/run-ai/runai-model-streamer)** with the `[s3,gcs,azure]` extras for fast weight streaming from object storage (`sglang[all]` omits the `[s3]` extra)
+- Added **[runai-model-streamer](https://github.com/run-ai/runai-model-streamer)** with the `[s3,gcs,azure]` extras for fast weight streaming from
+  object storage (`sglang[all]` omits the `[s3]` extra)
 
 ### Security
 
 - Patched starlette CVE [GHSA-82w8-qh3p-5jfq](https://github.com/advisories/GHSA-82w8-qh3p-5jfq) — pinned `starlette>=1.3.1`
-- Removed the build-only `rust/` source tree from the runtime stage (only the compiled `sglang-router` binary ships); resolves a pyo3 CVE [GHSA-36hh-v3qg-5jq4](https://github.com/advisories/GHSA-36hh-v3qg-5jq4) flagged on the leftover `Cargo.lock`
+- Removed the build-only `rust/` source tree from the runtime stage (only the compiled `sglang-router` binary ships); resolves a pyo3 CVE
+  [GHSA-36hh-v3qg-5jq4](https://github.com/advisories/GHSA-36hh-v3qg-5jq4) flagged on the leftover `Cargo.lock`
 
 * * *
 
