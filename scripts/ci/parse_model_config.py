@@ -32,7 +32,8 @@ def transform_model(model: dict, s3_prefix: str, fixtures_prefix: str) -> dict:
     m = dict(model)
 
     if "s3_model" in m:
-        m["s3_path"] = f"{s3_prefix}/{m.pop('s3_model')}"
+        prefix = m.pop("s3_prefix", s3_prefix)
+        m["s3_path"] = f"{prefix}/{m.pop('s3_model')}"
         m["model_source"] = "s3"
     elif "hf_model" in m:
         m["model_source"] = "hf"

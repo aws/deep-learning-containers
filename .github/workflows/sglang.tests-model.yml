@@ -94,12 +94,10 @@ jobs:
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Copy scripts into container
+      - name: Copy test script into container
         run: |
-          docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
-          if [ -f "test/sglang/scripts/${{ matrix.test_script || '' }}" ]; then
-            docker cp "test/sglang/scripts/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
-          fi
+          TEST_SCRIPT="${{ matrix.test_script || 'sglang_model_smoke_test.sh' }}"
+          docker cp "test/sglang/scripts/${TEST_SCRIPT}" ${CONTAINER_ID}:/models/
 
       - name: Run model smoke test
         run: |
@@ -149,10 +147,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
           docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          docker cp test/sglang/scripts/sglang_model_smoke_test.sh ${CONTAINER_ID}:/models/
-          if [ -f "test/sglang/scripts/${{ matrix.test_script || '' }}" ]; then
-            docker cp "test/sglang/scripts/${{ matrix.test_script }}" ${CONTAINER_ID}:/models/
-          fi
+          TEST_SCRIPT="${{ matrix.test_script || 'sglang_model_smoke_test.sh' }}"
+          docker cp "test/sglang/scripts/${TEST_SCRIPT}" ${CONTAINER_ID}:/models/
 
       - name: Run model smoke test
         run: |

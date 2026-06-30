@@ -7,17 +7,17 @@ FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 
 ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
-ARG SGLANG_REF=66ab5c9c7a425ef746725b8a8d7210d434eadac2
-ARG SGLANG_KERNEL_VERSION=0.4.3
-ARG FLASHINFER_VERSION=0.6.11.post1
+ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
+ARG SGLANG_KERNEL_VERSION=0.4.4
+ARG FLASHINFER_VERSION=0.6.12
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
-ARG MOONCAKE_VERSION=0.3.9
-ARG GDRCOPY_VERSION=2.5.1
-ARG RUST_VERSION=1.90.0
+ARG MOONCAKE_VERSION=0.3.11.post1
+ARG GDRCOPY_VERSION=2.6
+ARG RUST_VERSION=1.96.1
 ARG TORCH_VERSION=2.11.0
 
 # CUDA / GPU
-ARG NCCL_VERSION=2.28.3
+ARG NCCL_VERSION=2.30.4
 ARG CUDNN_VERSION=9.16.0.29
 ARG TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3'
 
@@ -176,13 +176,13 @@ ARG CUDA_REF
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.11.0
-ARG SGLANG_KERNEL_VERSION=0.4.3
-ARG EFA_VERSION=1.48.0
-ARG NCCL_VERSION=2.28.3
+ARG SGLANG_KERNEL_VERSION=0.4.4
+ARG EFA_VERSION=1.49.0
+ARG NCCL_VERSION=2.30.4
 ARG CUDNN_VERSION=9.16.0.29
 
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=1
+ARG DLC_MINOR_VERSION=2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -382,10 +382,14 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/cache/dnf \
   && rm -rf /root/.cache || true
 
-# Install EFA (cuda-rhel9 repo for libnccl system libs, cleanup after)
+# Install EFA (cuda-rhel9 repo for libnccl system libs needed by aws-ofi-nccl build)
 COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
+ARG NCCL_VERSION
+ARG CUDA_MAJOR_MINOR=13.0
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
-  && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
+  && dnf install -y --setopt=install_weak_deps=False \
+    "libnccl-${NCCL_VERSION}-*cuda${CUDA_MAJOR_MINOR}*" \
+    "libnccl-devel-${NCCL_VERSION}-*cuda${CUDA_MAJOR_MINOR}*" \
   && ldconfig \
   && mkdir -p /opt/amazon/efa && ln -sf /opt/amazon/efa/lib64 /opt/amazon/efa/lib \
   && bash install_efa_amzn2023.sh ${EFA_VERSION} \
