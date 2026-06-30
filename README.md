@@ -28,6 +28,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/06/29]** [SGLang Server v1.1 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.1` · SageMaker: `server-sagemaker-cuda-v1.1` · SGLang `0.5.13`; adds NIXL KV connector for prefill/decode disaggregation and `runai-model-streamer[s3,gcs,azure]` for fast weight streaming from object storage; starlette CVE patch.
 - **[2026/06/14]** [vLLM v0.23.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.23.0-gpu-py312-ec2` · SageMaker: `0.23.0-gpu-py312` · Step-3.7-Flash, Cosmos3 Reasoner, Gemma 4 Unified (encoder-free), Granite Speech Plus, Cohere Mini Code; Anthropic Messages API structured output.
 - **[2026/06/13]** [SGLang v0.5.13](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.13-gpu-py312-ec2` · SageMaker: `0.5.13-gpu-py312` · DeepSeek V4 (BCG, HiSparse PD, PP+PD), Kimi-K2.5, MiMo-V2, Ideogram 4 (FP8/NVFP4); SM120 + FP4 indexer support.
 - **[2026/06/12]** [SGLang Server v1.0 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.0` · SageMaker: `server-sagemaker-cuda-v1.0` · First Amazon Linux 2023 SGLang Server images, built from upstream source; OpenAI-compatible API (port 30000 EC2/EKS, 8080 SageMaker); CUDA 13.0 for H100 + Blackwell; PyTorch 2.11.0; EFA, DeepEP, and Mooncake KV-cache bundled.
