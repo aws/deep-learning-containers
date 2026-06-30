@@ -294,6 +294,9 @@ RUN uv pip install --system --no-cache --prerelease=allow \
   # kernels<0.15: 0.15.x breaks transformers hub_kernels LayerRepository() init
   "kernels<0.15"
 
+# Model-specific deps (required by custom HuggingFace processors at runtime)
+RUN uv pip install --system --no-cache decord lmdb peft
+
 # Re-pin torch (cu129), sgl_kernel, NCCL/cuDNN/cuSparseLt after CVE patches.
 # The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
 # which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
