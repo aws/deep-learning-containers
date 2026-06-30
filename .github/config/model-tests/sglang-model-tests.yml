@@ -44,6 +44,8 @@ smoke-test:
       fleet: "x86-g6exl-runner"
       extra_args: "--tp 1 --context-length 16384 --dtype half --trust-remote-code --mem-fraction-static 0.8"
       test_script: "sglang_vision_grounding_smoke_test.sh"
+      required_image_pattern:
+        os_version: "amzn2023"
 
   runner-scale-sets: []
 

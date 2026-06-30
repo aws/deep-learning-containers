@@ -54,7 +54,7 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install pyyaml
-          python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/sglang-model-tests.yml
+          python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/sglang-model-tests.yml --image-config "${{ inputs.config-file }}"
 
   test-model-codebuild-fleet:
     name: test-model (${{ matrix.name }})

@@ -34,6 +34,18 @@ function install_efa {
     tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz
     cd aws-efa-installer
     ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify
+
+    # If the EFA installer didn't install the ofi-nccl plugin (e.g., it skipped
+    # it due to package detection heuristics), install the RPM directly.
+    if ! check_libnccl_net_so 2>/dev/null; then
+        echo "ofi-nccl not found after EFA install, attempting direct RPM install..."
+        OFI_RPM=$(find /tmp/efa/aws-efa-installer/RPMS/ALINUX2023 -name "libnccl-ofi-*.x86_64.rpm" ! -name "*ngc*" ! -name "*debug*" 2>/dev/null | head -1)
+        if [ -n "${OFI_RPM}" ]; then
+            rpm -ivh --nodeps "${OFI_RPM}"
+            ldconfig
+        fi
+    fi
+
     rm -rf /tmp/efa
 
     mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real
