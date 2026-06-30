@@ -28,15 +28,12 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/06/29]** [SGLang v0.5.14](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.14-gpu-py312-ec2` · SageMaker: `0.5.14-gpu-py312` · GLM 5.2, LiquidAI LFM2.5, Kimi-K2.7-Code, DeepSeek V4 on GB300.
 - **[2026/06/14]** [vLLM v0.23.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.23.0-gpu-py312-ec2` · SageMaker: `0.23.0-gpu-py312` · Step-3.7-Flash, Cosmos3 Reasoner, Gemma 4 Unified (encoder-free), Granite Speech Plus, Cohere Mini Code; Anthropic Messages API structured output.
 - **[2026/06/13]** [SGLang v0.5.13](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.13-gpu-py312-ec2` · SageMaker: `0.5.13-gpu-py312` · DeepSeek V4 (BCG, HiSparse PD, PP+PD), Kimi-K2.5, MiMo-V2, Ideogram 4 (FP8/NVFP4); SM120 + FP4 indexer support.
 - **[2026/06/12]** [SGLang Server v1.0 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.0` · SageMaker: `server-sagemaker-cuda-v1.0` · First Amazon Linux 2023 SGLang Server images, built from upstream source; OpenAI-compatible API (port 30000 EC2/EKS, 8080 SageMaker); CUDA 13.0 for H100 + Blackwell; PyTorch 2.11.0; EFA, DeepEP, and Mooncake KV-cache bundled.
 - **[2026/06/05]** [vLLM v0.22.1](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.22.1-gpu-py312-ec2` · SageMaker: `0.22.1-gpu-py312` · JetBrains Mellum v2; DeepSeek-V4, OlmoHybrid, HyperCLOVAX fixes; AMD Zen CPU zentorch kernels.
 - **[2026/05/30]** [vLLM v0.22.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.22.0-gpu-py312-ec2` · SageMaker: `0.22.0-gpu-py312` · MiniCPM-V 4.6, InternS2 Preview, OpenVLA, EXAONE-4.5; DeepSeek V4 maturity (NVFP4 fused MoE, MTP speculative decoding); Blackwell SM12x support.
-- **[2026/05/18]** [SGLang v0.5.12](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.12-gpu-py312-ec2` · SageMaker: `0.5.12-gpu-py312` · DeepSeek V4, Intern-S2-Preview, MiniCPM-V 4.6, Laguna-XS.2, Ring-2.6-1T, Gemma 4 MTP.
-- **[2026/05/16]** [vLLM v0.21.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.21.0-gpu-py312-ec2` · SageMaker: `0.21.0-gpu-py312` · MiMo-V2.5, Laguna XS.2, Moondream3, Cohere MoE/Eagle; DeepSeek V4 on AMD + pipeline parallelism.
-- **[2026/05/13]** [vLLM-Omni v0.20.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.1` · SageMaker: `omni-sagemaker-cuda-v1.1` · Adds `/v1/audio/generate` (stable-audio-open) and `/v1/videos/sync` (unblocks video on SageMaker); supports CosyVoice3, ERNIE-Image-Turbo, Wan2.1-VACE-1.3B; CUDA 13.0 + PyTorch 2.11.0.
-- **[2026/04/30]** [PyTorch v2.11.0](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.11.0-cu130-amzn2023` · SageMaker: `2.11.0-cu130-amzn2023-sagemaker` · Amazon Linux 2023 with EFA, flash-attn, and transformer-engine.
 
 ### 📢 Support Updates
 
