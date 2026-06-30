@@ -19,7 +19,8 @@ jobs:
           echo "PR Number: $PR_NUMBER"
           echo "Branch Name: $BRANCH_NAME"
           echo "Head Commit SHA: $HEAD_SHA"
-  check-changes:
+
+  discover-changes:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -46,6 +47,37 @@ jobs:
             echo "  name=$(yq '.image.name' "$CONFIG_FILE")"
           done
 
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/pytorch/*.yml"
+
+  pipeline:
+    needs: [discover]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Parse and summarize
+        env:
+          CONFIG_FILE: ${{ matrix.config_file }}
+        run: |
+          echo "Parsing $CONFIG_FILE"
+          IMAGE_NAME=$(yq '.image.name' "$CONFIG_FILE")
+          FRAMEWORK=$(yq '.metadata.framework' "$CONFIG_FILE")
+          FRAMEWORK_VERSION=$(yq '.metadata.framework_version' "$CONFIG_FILE")
+          DEVICE_TYPE=$(yq '.metadata.device_type' "$CONFIG_FILE")
+          CUSTOMER_TYPE=$(yq '.metadata.customer_type' "$CONFIG_FILE")
+          echo "Image: $IMAGE_NAME | framework=$FRAMEWORK | version=$FRAMEWORK_VERSION | device=$DEVICE_TYPE | customer=$CUSTOMER_TYPE"
 
   parse-config:
     runs-on: ubuntu-latest
@@ -69,7 +101,6 @@ jobs:
           echo "device_type=$(yq '.metadata.device_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "customer_type=$(yq '.metadata.customer_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "prod_image=$(yq '.metadata.prod_image' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
-
 
   summarize:
     needs: [parse-config]

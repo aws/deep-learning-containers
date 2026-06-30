@@ -37,4 +37,3 @@ release:
   private_registry: true
   enable_soci: true
   environment: "production"
-# touched to test intern-exercise change detection
