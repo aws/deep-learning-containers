@@ -20,6 +20,14 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
+    # JetBrains Mellum2 reasoning MoE (12B total / 2.5B active, bf16 ~23GB).
+    # MellumForCausalLM support added upstream in vLLM 0.23.0 (PR #43992).
+    # Fits a single L40S (g6e.xl, 48GB) at tp=1; qwen3 reasoning parser emits <think> blocks.
+    - name: "mellum2-12b-a2.5b-thinking"
+      s3_model: "mellum2-12b-a2.5b-thinking.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --reasoning-parser qwen3"
+
     - name: "qwen3-embedding-0.6b"
       s3_model: "qwen3-embedding-0.6b.tar.gz"
       fleet: "x86-g6xl-runner"
