@@ -1,0 +1,3 @@
+boto3
+pytest
+sagemaker>=3.0.0
