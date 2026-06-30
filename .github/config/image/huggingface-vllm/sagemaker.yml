@@ -29,8 +29,8 @@ build:
 
 release:
   release: true
-  force_release: true
+  force_release: false
   public_registry: false
   private_registry: true
-  enable_soci: true
+  enable_soci: false
   environment: "gamma"
