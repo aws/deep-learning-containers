@@ -25,6 +25,7 @@ RUN uv pip install --system \
   "grpcio>=1.79.3" \
   "cryptography>=48.0.1" \
   "starlette>=1.3.1" \
+  "aiohttp>=3.14.1" \
   && uv cache clean \
   && rm -rf /tmp/uv*
 
