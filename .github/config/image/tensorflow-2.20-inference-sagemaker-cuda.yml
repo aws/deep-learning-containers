@@ -1,0 +1,23 @@
+image:
+  name: "tensorflow-sagemaker-cuda"
+  description: "TensorFlow Serving 2.20 CUDA inference for SageMaker"
+common:
+  framework: "tensorflow"
+  framework_version: "2.20.0"
+  job_type: "inference"
+  python_version: "py312"
+  cuda_version: "cu129"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  prod_image: "tensorflow-inference:2.20-cu129-amzn2023-sagemaker"
+  device_type: "gpu"
+  contributor: "None"
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: production
