@@ -1,28 +1,26 @@
 name: "PR - vLLM Ubuntu"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
-  workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/vllm/*-ubuntu.yml"
-  #     - ".github/config/model-tests/vllm-model-tests.yml"
-  #     - ".github/workflows/vllm.pipeline.yml"
-  #     - ".github/workflows/vllm.pr-ubuntu.yml"
-  #     - "docker/vllm/Dockerfile"
-  #     - "scripts/docker/common/**"
-  #     - "scripts/docker/telemetry/**"
-  #     - "scripts/docker/vllm/**"
-  #     - "test/efa/**"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/vllm/**"
-  #     - "test/telemetry/**"
-  #     - "test/vllm/sagemaker/**"
-  #     - "test/vllm/scripts/**"
-  #     - "!docker/vllm/Dockerfile.amzn2023"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/vllm/*-ubuntu.yml"
+      - ".github/config/model-tests/vllm-model-tests.yml"
+      - ".github/workflows/vllm.pipeline.yml"
+      - ".github/workflows/vllm.pr-ubuntu.yml"
+      - "docker/vllm/Dockerfile"
+      - "scripts/docker/common/**"
+      - "scripts/docker/telemetry/**"
+      - "scripts/docker/vllm/**"
+      - "test/efa/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm/**"
+      - "test/telemetry/**"
+      - "test/vllm/sagemaker/**"
+      - "test/vllm/scripts/**"
+      - "!docker/vllm/Dockerfile.amzn2023"
+      - "!docs/**"
 
 permissions:
   contents: read
