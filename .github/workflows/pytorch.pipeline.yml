@@ -94,8 +94,6 @@ jobs:
         fleet:x86-build-runner
         buildspec-override:true
     timeout-minutes: 720
-    env:
-      WHEEL_CACHE_BUCKET: ${{ vars.WHEEL_CACHE_BUCKET }}
     outputs:
       image-uri: ${{ steps.build.outputs.image-uri }}
     steps:
