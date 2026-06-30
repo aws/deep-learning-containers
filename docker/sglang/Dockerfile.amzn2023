@@ -382,20 +382,17 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/cache/dnf \
   && rm -rf /root/.cache || true
 
-# Install EFA (cuda-rhel9 repo for libnccl system libs needed by aws-ofi-nccl build)
+# Install EFA — use NCCL libs/headers from the pip nvidia-nccl package (already
+# installed) instead of the NVIDIA cuda-rhel9 repo. This ensures aws-ofi-nccl
+# links against the exact NCCL version we pin (DLAMI approach).
 COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
-ARG NCCL_VERSION
-ARG CUDA_MAJOR_MINOR=13.0
-RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
-  && dnf install -y --setopt=install_weak_deps=False \
-    "libnccl-${NCCL_VERSION}-*cuda${CUDA_MAJOR_MINOR}*" \
-    "libnccl-devel-${NCCL_VERSION}-*cuda${CUDA_MAJOR_MINOR}*" \
+RUN NCCL_PKG_DIR=$(python${PYTHON_VERSION} -c "import nvidia.nccl; import os; print(os.path.dirname(nvidia.nccl.__file__))") \
+  && cp -a ${NCCL_PKG_DIR}/lib/* /usr/local/cuda/lib64/ \
+  && cp -a ${NCCL_PKG_DIR}/include/* /usr/local/cuda/include/ \
   && ldconfig \
   && mkdir -p /opt/amazon/efa && ln -sf /opt/amazon/efa/lib64 /opt/amazon/efa/lib \
   && bash install_efa_amzn2023.sh ${EFA_VERSION} \
   && rm install_efa_amzn2023.sh \
-  && dnf remove -y libnccl-devel \
-  && dnf clean all && rm -rf /var/cache/dnf \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # ====================== ec2 =========================================
