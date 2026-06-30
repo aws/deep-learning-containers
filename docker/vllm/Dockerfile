@@ -39,6 +39,13 @@ RUN uv pip install --system \
   "PyJWT>=2.12.0" \
   "model-hosting-container-standards>=0.1.16,<1.0.0" \
   "pyasn1>=0.6.3" \
+  # 8.0.1 fixes AttributeError on fastapi 0.138 _IncludedRouter that 500s /health (instrumentator #371)
+  "prometheus-fastapi-instrumentator>=8.0.1" \
+  && uv cache clean
+
+# Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
+RUN uv pip install --system \
+  av scipy soundfile "mistral_common[audio]" \
   && uv cache clean
 
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py

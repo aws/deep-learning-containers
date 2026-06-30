@@ -80,6 +80,11 @@
         "review_by": "2026-08-30"
     },
     {
+        "vulnerability_id": "CVE-2026-27145",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
         "vulnerability_id": "RUSTSEC-2026-0185",
         "reason": "quinn-proto Rust crate vendored inside the upstream vllm wheel; cannot be bumped to 0.11.15 independently of a vllm wheel rebuild. Tracking upstream vllm-project release.",
         "review_by": "2026-09-25"
