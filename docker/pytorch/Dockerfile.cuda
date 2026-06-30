@@ -11,8 +11,11 @@
 #
 #   wheel-export (CI-only — scratch image with built wheels for S3 cache upload)
 #
-# All version defaults match versions.env. Workflows pass --build-arg after
-# sourcing versions.env so there is a single source of truth.
+# Shared across all PyTorch minor versions. CI selects the version by passing
+# --build-arg FRAMEWORK_SHORT_VERSION (e.g. 2.12) — every version-specific COPY
+# resolves docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cuda/{pyproject.toml,uv.lock}
+# from that. The build: block in each image config is the source of truth for all
+# pins; the ARG defaults below only apply to bare local `docker build` invocations.
 # ============================================================================
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────

@@ -13,7 +13,7 @@ metadata:
   prod_image: "pytorch:2.12-cpu-amzn2023"
 
 build:
-  dockerfile: "docker/pytorch/2.12/Dockerfile.cpu"
+  dockerfile: "docker/pytorch/Dockerfile.cpu"
   target: "runtime"
   python_version: "3.12"
   torch_version: "2.12.1"

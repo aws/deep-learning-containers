@@ -14,7 +14,7 @@ metadata:
   prod_image: "pytorch:2.12-cu130-amzn2023-sagemaker"
 
 build:
-  dockerfile: "docker/pytorch/2.12/Dockerfile.cuda"
+  dockerfile: "docker/pytorch/Dockerfile.cuda"
   target: "sagemaker"
   python_version: "3.12"
   cuda_version: "13.0.2"

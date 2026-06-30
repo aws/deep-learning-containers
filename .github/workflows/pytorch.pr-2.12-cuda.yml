@@ -8,7 +8,7 @@ on:
       - ".github/config/image/pytorch/2.12-*-cuda.yml"
       - ".github/workflows/pytorch.pipeline.yml"
       - ".github/workflows/pytorch.pr-2.12-cuda.yml"
-      - "docker/pytorch/2.12/Dockerfile.cuda"
+      - "docker/pytorch/Dockerfile.cuda"
       - "docker/pytorch/2.12/cuda/**"
       - "scripts/docker/common/**"
       - "scripts/docker/pytorch/**"
@@ -58,7 +58,7 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/pytorch/2.12-*-cuda.yml"
-              - "docker/pytorch/2.12/Dockerfile.cuda"
+              - "docker/pytorch/Dockerfile.cuda"
               - "docker/pytorch/2.12/cuda/**"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"

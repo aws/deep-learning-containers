@@ -13,7 +13,7 @@ metadata:
   prod_image: "pytorch:2.12-cu130-amzn2023"
 
 build:
-  dockerfile: "docker/pytorch/2.12/Dockerfile.cuda"
+  dockerfile: "docker/pytorch/Dockerfile.cuda"
   target: "runtime"
   python_version: "3.12"
   cuda_version: "13.0.2"
