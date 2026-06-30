@@ -23,8 +23,8 @@ pytest ${SM_TEST_DIR}/test_sagemaker_stateful_sessions.py -v
 # Test sagemaker custom middleware
 pytest ${SM_TEST_DIR}/test_sagemaker_middleware_integration.py -v
 
-# Skipped: flaky e2e handler-override test; upstream vLLM PR #44194 replaces it with a unit test.
-# pytest ${SM_TEST_DIR}/test_sagemaker_handler_overrides.py -v
+# Test sagemaker endpoint overrides
+pytest ${SM_TEST_DIR}/test_sagemaker_handler_overrides.py -v
 
 # Test LoRA adapter loading/unloading via original OpenAI API server endpoints
 pytest tests/entrypoints/serve/lora/test_lora_adapters.py -v
