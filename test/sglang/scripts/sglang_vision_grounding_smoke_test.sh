@@ -53,15 +53,23 @@ if [ "${elapsed}" -ge "${HEALTH_TIMEOUT}" ]; then
   exit 1
 fi
 
-# Generate a minimal 8x8 red PNG as base64 for testing
+# Generate a 64x64 synthetic image with distinct colored blocks (gives the model
+# something to detect — solid single-color images produce no detections).
 TEST_IMAGE_B64=$(python3 -c "
 import base64, struct, zlib
-width, height = 8, 8
+width, height = 64, 64
 raw = b''
 for y in range(height):
-    raw += b'\x00'
+    raw += b'\x00'  # filter byte
     for x in range(width):
-        raw += b'\xff\x00\x00'
+        if x < 32 and y < 32:
+            raw += b'\xff\x00\x00'  # red top-left
+        elif x >= 32 and y < 32:
+            raw += b'\x00\xff\x00'  # green top-right
+        elif x < 32 and y >= 32:
+            raw += b'\x00\x00\xff'  # blue bottom-left
+        else:
+            raw += b'\xff\xff\x00'  # yellow bottom-right
 ihdr = struct.pack('>IIBBBBB', width, height, 8, 2, 0, 0, 0)
 def chunk(ctype, data):
     c = ctype + data
@@ -82,7 +90,7 @@ RESPONSE=$(curl -sf http://localhost:${SGLANG_PORT}/v1/chat/completions \
       \"role\": \"user\",
       \"content\": [
         {\"type\": \"image_url\", \"image_url\": {\"url\": \"data:image/png;base64,${TEST_IMAGE_B64}\"}},
-        {\"type\": \"text\", \"text\": \"Locate all the instances that matches the following description: object\"}
+        {\"type\": \"text\", \"text\": \"Locate all the instances that matches the following description: red square</c>green square</c>blue square</c>yellow square\"}
       ]
     }],
     \"max_tokens\": 2048
@@ -93,13 +101,15 @@ echo "Response: ${RESPONSE}"
 if echo "${RESPONSE}" | python3 -c "
 import sys, json
 data = json.load(sys.stdin)
-content = data['choices'][0]['message']['content']
-assert len(content) > 0, 'Empty response'
-assert '<ref>' in content or '<box>' in content or 'None' in content, f'No grounding tokens in: {content}'
+choices = data['choices']
+assert len(choices) > 0, 'No choices in response'
+content = choices[0]['message']['content']
+assert len(content) > 0, 'Empty response content'
+assert '<box>' in content, f'No bounding box in response: {content}'
 print(f'Grounding output: {content}')
 "; then
   echo "=== PASSED: ${MODEL_NAME} ==="
 else
-  echo "=== FAILED: ${MODEL_NAME} - invalid grounding response ==="
+  echo "=== FAILED: ${MODEL_NAME} - no bounding box in response ==="
   exit 1
 fi
