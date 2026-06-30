@@ -20,6 +20,17 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
+    # MiniCPM5-1B — dense 1B LlamaForCausalLM, bf16 (~2GB), no custom code.
+    # Standard architecture, loads with plain `vllm serve` (no --trust-remote-code).
+    # Hybrid reasoning emits <think> blocks; default smoke test only checks for a
+    # non-empty /v1/completions response, so no reasoning parser is required here.
+    # Fits a single L4 (g6.xl, 24GB) at tp=1. Validated offline on server-cuda-v2
+    # at --max-model-len 8192 (model's native max is 131072; capped for KV cache).
+    - name: "minicpm5-1b"
+      s3_model: "minicpm5-1b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 8192 --dtype bfloat16"
+
     # JetBrains Mellum2 reasoning MoE (12B total / 2.5B active, bf16 ~23GB).
     # MellumForCausalLM support added upstream in vLLM 0.23.0 (PR #43992).
     # Fits a single L40S (g6e.xl, 48GB) at tp=1; qwen3 reasoning parser emits <think> blocks.
@@ -79,6 +90,33 @@ smoke-test:
 # sends requests to the configured route, and validates the response.
 # Test script: test/vllm/sagemaker/test_sm_model_serving.py
 sagemaker:
+  # MiniCPM5-1B — dense 1B LlamaForCausalLM, bf16. Standard chat model served via
+  # the OpenAI /v1/chat/completions route. Validated offline on
+  # server-sagemaker-cuda-v2 with SM_VLLM_MAX_MODEL_LEN=8192. Hybrid reasoning
+  # emits a <think> block, so message.content is non-empty; json_field validation
+  # (non-empty check) mirrors the other entries' validate rule.
+  - name: "minicpm5-1b"
+    s3_model: "minicpm5-1b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern: "amzn2023"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "8192"
+      SM_VLLM_DTYPE: "bfloat16"
+    test_cases:
+      - name: "chat-completion"
+        route: "/v1/chat/completions"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            messages:
+              - role: "user"
+                content: "What is the capital of France?"
+            max_tokens: 256
+            temperature: 0
+        validate: "json_field:choices.0.message.content"
+
   - name: "voxtral-mini-4b"
     s3_model: "voxtral-mini-4b.tar.gz"
     instance_type: "ml.g6.xlarge"
