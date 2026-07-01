@@ -1,0 +1,106 @@
+# notify-release-failure.yml — Posts a compact Slack digest of auto-release failures.
+#
+# Auto-release workflows (discover -> pipeline) fail silently: a scheduled release
+# breaks, no PR is involved, and nobody is watching the Actions tab.
+#
+# This runs twice a day (16:00 and 20:00 UTC), sweeps the GitHub API for
+# auto-release runs that FAILED since the previous sweep, and posts ONE compact
+# Slack message listing them. If nothing failed, it stays silent (no noise). Each
+# failure is reported exactly once: the two sweeps use complementary lookback
+# windows that tile the day (20:00 sweep looks back 4h; 16:00 sweep looks back 20h).
+#
+# Runs are matched on FAILURE time (updated_at), not start time, because heavy GPU
+# releases can build for hours — a run started before a sweep may only fail after.
+#
+# Coverage is by naming convention: any workflow whose name starts with "Auto
+# Release" is included, so new autorelease variants are picked up automatically
+# with no list to maintain. Manual "Dispatch -" release runs are excluded (a human
+# is already watching those).
+#
+# Payload is a flat key/value body posted to a Slack Workflow Builder webhook
+# (same style as scripts/ci/autocurrency/utils.sh). Slack owns formatting/routing:
+#   count    — number of failed auto-release runs in the window
+#   failures — pre-formatted multi-line list ("• <name> → <url>" per line)
+# Webhook is the GitHub Actions secret SLACK_RELEASE_FAILURE_WEBHOOK_URL.
+
+name: Notify Release Failures
+
+on:
+  schedule:
+    - cron: "0 16 * * *"
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Collect failures and post digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_RELEASE_FAILURE_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
+            echo "Slack notifications: webhook URL not configured. Skipping."
+            exit 0
+          fi
+
+          # The two daily sweeps tile the day: the 20:00 sweep covers the 16:00-20:00
+          # gap (4h); the 16:00 sweep covers the prior 20:00 -> today 16:00 gap (20h).
+          if [[ "$(date -u +%H)" -lt 18 ]]; then
+            lookback=20
+          else
+            lookback=4
+          fi
+          echo "Looking back ${lookback}h for failed auto-release runs."
+
+          since_epoch=$(date -u -d "${lookback} hours ago" +%s)
+          # Cap pagination volume: only pull failure runs created in the last 3 days
+          # (long enough to cover any heavy build still running at window open).
+          created_since=$(date -u -d "3 days ago" +%Y-%m-%d)
+
+          # Filter on updated_at (~= failure time), not created_at, so long builds
+          # that started before this sweep but failed within the window are caught.
+          lines=$(gh api --paginate \
+            "/repos/${GITHUB_REPOSITORY}/actions/runs?status=failure&created=>=${created_since}&per_page=100" \
+            --jq '.workflow_runs[]
+              | select(.conclusion == "failure")
+              | select(.name | startswith("Auto Release"))
+              | [(.updated_at | fromdateiso8601 | tostring), .name, .html_url]
+              | @tsv' \
+            | awk -F'\t' -v s="${since_epoch}" '$1 >= s {print}')
+
+          count=$(printf '%s' "${lines}" | grep -c . || true)
+
+          if [[ "${count}" -eq 0 ]]; then
+            echo "No auto-release failures in the last ${lookback}h. Staying silent."
+            exit 0
+          fi
+
+          failures=$(printf '%s\n' "${lines}" | awk -F'\t' 'NF {print "• " $2 " → " $3}')
+          echo "Found ${count} failed auto-release run(s):"
+          echo "${failures}"
+
+          payload=$(jq -n \
+            --arg count "${count}" \
+            --arg failures "${failures}" \
+            '{
+              count: $count,
+              failures: $failures
+            }')
+
+          http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 10 \
+            -X POST "${SLACK_WEBHOOK_URL}" \
+            -H 'Content-Type: application/json' \
+            --data "${payload}")
+
+          echo "Slack webhook responded with HTTP ${http_code}"
+          if [[ "${http_code}" != "200" ]]; then
+            echo "::warning::Slack notification failed (HTTP ${http_code})"
+          fi
