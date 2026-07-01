@@ -114,7 +114,7 @@ jobs:
 
       - name: Run vLLM example tests
         run: |
-          docker exec ${CONTAINER_ID} bash /test/vllm/scripts/ubuntu/vllm_ec2_examples_test.sh
+          docker exec ${CONTAINER_ID} bash /test/vllm/scripts/vllm_ec2_examples_test.sh
 
       - name: Cleanup
         if: always()

@@ -19,12 +19,14 @@ on:
       - "test/telemetry/**"
       - "test/vllm/sagemaker/**"
       # Only the scripts the AL2023 pipeline actually runs: the amzn2023/ subdir
-      # plus the OS-agnostic shared scripts. Top-level ubuntu-only example scripts
-      # are excluded so ubuntu-scoped edits don't trigger the AL2023 pipeline.
+      # plus the OS-agnostic shared scripts (setup/regression/cuda + the shared
+      # EC2 example script the amzn2023 wrapper delegates to). The ubuntu/ SageMaker
+      # example script is excluded so ubuntu-scoped edits don't trigger AL2023.
       - "test/vllm/scripts/amzn2023/**"
       - "test/vllm/scripts/vllm_test_setup.sh"
       - "test/vllm/scripts/vllm_regression_test.sh"
       - "test/vllm/scripts/vllm_cuda_test.sh"
+      - "test/vllm/scripts/vllm_ec2_examples_test.sh"
       - "!docs/**"
 
 permissions:
@@ -81,6 +83,7 @@ jobs:
               - "test/vllm/scripts/vllm_test_setup.sh"
               - "test/vllm/scripts/vllm_regression_test.sh"
               - "test/vllm/scripts/vllm_cuda_test.sh"
+              - "test/vllm/scripts/vllm_ec2_examples_test.sh"
 
   discover:
     needs: [gatekeeper]
