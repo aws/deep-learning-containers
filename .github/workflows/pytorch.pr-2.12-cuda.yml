@@ -1,15 +1,15 @@
-name: "PR - PyTorch 2.11 CUDA"
+name: "PR - PyTorch 2.12 CUDA"
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/pytorch/2.11-*-cuda.yml"
+      - ".github/config/image/pytorch/2.12-*-cuda.yml"
       - ".github/workflows/pytorch.pipeline.yml"
-      - ".github/workflows/pytorch.pr-2.11-cuda.yml"
+      - ".github/workflows/pytorch.pr-2.12-cuda.yml"
       - "docker/pytorch/Dockerfile.cuda"
-      - "docker/pytorch/2.11/cuda/**"
+      - "docker/pytorch/2.12/cuda/**"
       - "scripts/docker/common/**"
       - "scripts/docker/pytorch/**"
       - "scripts/docker/telemetry/**"
@@ -57,9 +57,9 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/pytorch/2.11-*-cuda.yml"
+              - ".github/config/image/pytorch/2.12-*-cuda.yml"
               - "docker/pytorch/Dockerfile.cuda"
-              - "docker/pytorch/2.11/cuda/**"
+              - "docker/pytorch/2.12/cuda/**"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"
               - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
@@ -92,7 +92,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/pytorch/2.11-*-cuda.yml"
+          pattern: ".github/config/image/pytorch/2.12-*-cuda.yml"
 
   pipeline:
     needs: [check-changes, discover]
