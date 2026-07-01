@@ -110,9 +110,15 @@ smoke-test:
     # /v1/videos/sync handler, which only accepts form data. Exercises the
     # JSON content-type path so SageMaker callers can send JSON instead of
     # building a multipart body by hand.
+    #
+    # sagemaker-only: the JSON->multipart conversion lives in the SageMaker
+    # routing middleware, which is not loaded on the EC2 image (plain
+    # `vllm serve`). On EC2 this JSON body reaches the Form-only upstream
+    # handler and returns 400, so the test is gated to the sagemaker config.
     - name: "wan2.1-t2v-1.3b-sync-json"
       s3_model: "wan2.1-t2v-1.3b.tar.gz"
       fleet: "x86-g6exl-runner"
+      customer_type: "sagemaker"
       extra_args: ""
       route: "/v1/videos/sync"
       content_type: "application/json"
