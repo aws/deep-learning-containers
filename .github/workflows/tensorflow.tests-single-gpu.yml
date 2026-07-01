@@ -73,7 +73,3 @@ jobs:
             ${CONTAINER_ID} \
             pytest /workdir/test/tensorflow/single_gpu/ -v
           docker kill ${CONTAINER_ID}
-
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"
