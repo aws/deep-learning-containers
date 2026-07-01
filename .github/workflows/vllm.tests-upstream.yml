@@ -29,6 +29,7 @@ jobs:
       framework-version: ${{ steps.parse.outputs.framework-version }}
       vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
+      os-version: ${{ steps.parse.outputs.os-version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -56,6 +57,7 @@ jobs:
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "vllm-ref=$(yq '.build.vllm_ref // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "customer-type=$(yq '.metadata.customer_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "os-version=$(yq '.metadata.os_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
   regression-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
@@ -226,8 +228,16 @@ jobs:
         timeout-minutes: 90
         run: |
           CUSTOMER_TYPE="${{ needs.preflight.outputs.customer-type }}"
+          OS_VERSION="${{ needs.preflight.outputs.os-version }}"
           if [ "$CUSTOMER_TYPE" = "sagemaker" ]; then
-            docker exec ${CONTAINER_ID} test/vllm/scripts/amzn2023/vllm_sagemaker_examples_test.sh
+            # SageMaker example tests differ by OS (e.g. handler-override enabled
+            # on ubuntu, skipped on amzn2023): amzn2023/ vs ubuntu/.
+            case "$OS_VERSION" in
+              amzn2023*) SM_DIR="amzn2023" ;;
+              *)         SM_DIR="ubuntu" ;;
+            esac
+            docker exec ${CONTAINER_ID} test/vllm/scripts/${SM_DIR}/vllm_sagemaker_examples_test.sh
           else
-            docker exec ${CONTAINER_ID} test/vllm/scripts/amzn2023/vllm_ec2_examples_test.sh
+            # EC2 example tests are shared across OSes (amzn2023 wraps this script).
+            docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_ec2_examples_test.sh
           fi
