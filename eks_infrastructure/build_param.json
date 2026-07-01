@@ -1,12 +1,13 @@
 {
-    "operation": "create",
+    "operation": "upgrade_cluster",
     "contexts": [
+        "PR",
         "MAINLINE"
     ],
     "eks_clusters": [
         "dlc-pytorch",
         "dlc-tensorflow"
     ],
-    "eks_version": "1.35",
+    "eks_version": "1.36",
     "cluster_autoscalar_image_version": "v1.35.0"
 }

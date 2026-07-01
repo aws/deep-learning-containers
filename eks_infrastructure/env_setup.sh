@@ -5,7 +5,7 @@ set -ex
 
 # The below url/version is based on EKS v1.32.0. The same needs to be updated for EKS version upgrade.
 # https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html find the link
-KUBECTL_CLIENT="https://s3.us-west-2.amazonaws.com/amazon-eks/1.35.0/2026-01-29/bin/linux/amd64/kubectl"
+KUBECTL_CLIENT="https://s3.us-west-2.amazonaws.com/amazon-eks/1.35.3/2026-04-08/bin/linux/amd64/kubectl"
 EKSCTL_CLIENT="https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz"
 # https://github.com/kubernetes-sigs/aws-iam-authenticator/releases?page=1 to find the version support
 AWS_IAM_AUTHENTICATOR="https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.7.10/aws-iam-authenticator_0.7.10_linux_amd64"
