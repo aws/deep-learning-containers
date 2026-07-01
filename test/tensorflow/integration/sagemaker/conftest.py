@@ -15,7 +15,6 @@ from sagemaker.core.training.configs import Compute, SourceCode
 from sagemaker.train import ModelTrainer
 from test_utils import random_suffix_name
 
-
 # ── Path constants ─────────────────────────────────────────────────────────
 
 

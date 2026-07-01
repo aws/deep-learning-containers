@@ -55,9 +55,7 @@ def test_mnist_gpu(
         input_data=[InputData(channel_name="training", data_source=mnist_s3_uri)],
         job_name_prefix=f"tf-mnist-gpu-{strategy}",
     )
-    assert_s3_file_exists(
-        model_trainer._latest_training_job.model_artifacts.s3_model_artifacts
-    )
+    assert_s3_file_exists(model_trainer._latest_training_job.model_artifacts.s3_model_artifacts)
 
 
 def test_mnist_distributed_mwms_gpu(sm_trainer, mnist_s3_uri):
