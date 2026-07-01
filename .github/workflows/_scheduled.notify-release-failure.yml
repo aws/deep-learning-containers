@@ -20,8 +20,9 @@
 # Payload is a flat key/value body posted to a Slack Workflow Builder webhook
 # (same style as scripts/ci/autocurrency/utils.sh). Slack owns formatting/routing:
 #   count    — number of failed auto-release runs in the window
-#   failures — pre-formatted multi-line list, one Slack hyperlink per line
-#              ("• <run-url|short-name>", "Auto Release - " prefix stripped)
+#   failures — pre-formatted multi-line list, one failure per line
+#              ("• <short-name> → <run-url>", "Auto Release - " prefix stripped;
+#              Slack Workflow Builder auto-linkifies the bare URL)
 # Webhook is the GitHub Actions secret SLACK_RELEASE_FAILURE_WEBHOOK_URL.
 
 name: Notify Release Failures
@@ -83,12 +84,14 @@ jobs:
             exit 0
           fi
 
-          # One Slack-hyperlink bullet per failure: "• <url|label>". The redundant
-          # "Auto Release - " prefix is stripped from the label; the channel already
-          # implies these are auto-release failures.
+          # One bullet per failure: "• <label> → <url>". Slack Workflow Builder
+          # inserts variable values as plain text and does not render mrkdwn links
+          # (<url|label>) from a variable, but it does auto-linkify bare URLs. The
+          # redundant "Auto Release - " prefix is stripped from the label; the
+          # channel already implies these are auto-release failures.
           failures=$(printf '%s\n' "${lines}" | awk -F'\t' 'NF {
             label = $2; sub(/^Auto Release - /, "", label)
-            print "• <" $3 "|" label ">"
+            print "• " label " → " $3
           }')
           echo "Found ${count} failed auto-release run(s):"
           echo "${failures}"
