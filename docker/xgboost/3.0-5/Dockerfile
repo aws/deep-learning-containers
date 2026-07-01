@@ -206,7 +206,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Security patches — Python packages
-RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2" "idna>=3.7" "setuptools>=80.9.0,<81"
+RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2" "idna>=3.15" "setuptools>=80.9.0,<81"
 
 # Patch collections.Mapping deprecation in sagemaker-containers
 RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
