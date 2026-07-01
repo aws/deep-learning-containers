@@ -14,25 +14,21 @@ from sagemaker.train import ModelTrainer
 from sagemaker.train.tuner import HyperparameterTuner
 from test_utils import random_suffix_name
 
-RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
-SOURCE_DIR = os.path.join(RESOURCE_DIR, "scripts")
 INSTANCE_TYPE = "ml.c5.xlarge"
-IMAGE_URI = os.environ["TEST_IMAGE_URI"]
-MNIST_S3_URI = "s3://dlc-cicd-models/tensorflow/sagemaker-test-data/MNIST/"
 
 
-def test_tuning_model_dir_cpu():
+def test_tuning_model_dir_cpu(image_uri, source_dir, mnist_s3_uri):
     """Smoke-test SageMaker HPO with the TF DLC.
 
     Tunes the `epochs` hyperparameter over [1, 2] with max_jobs=2 and
     max_parallel_jobs=2. The objective metric is parsed from training logs
     via the `accuracy` regex; the standard `mnist.py` entry script already
     prints `accuracy: <val>` per epoch via Keras."""
-    source_code = SourceCode(source_dir=SOURCE_DIR, entry_script="mnist.py")
+    source_code = SourceCode(source_dir=source_dir, entry_script="mnist.py")
     compute = Compute(instance_type=INSTANCE_TYPE, instance_count=1)
 
     model_trainer = ModelTrainer(
-        training_image=IMAGE_URI,
+        training_image=image_uri,
         source_code=source_code,
         compute=compute,
         role=os.environ.get("SM_ROLE_ARN"),
@@ -52,7 +48,7 @@ def test_tuning_model_dir_cpu():
     )
 
     tuner.tune(
-        inputs=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
+        inputs=[InputData(channel_name="training", data_source=mnist_s3_uri)],
         job_name=random_suffix_name("tf-tune", 32),
         wait=True,
     )

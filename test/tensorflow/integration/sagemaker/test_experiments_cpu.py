@@ -11,10 +11,8 @@ CPU-only by design: the feature under test is the SageMaker Experiments
 control plane, not anything CUDA-specific.
 """
 
-import datetime
 import logging
 import os
-import random
 import time
 
 import boto3
@@ -29,15 +27,10 @@ from test_utils import random_suffix_name
 
 LOG = logging.getLogger(__name__)
 
-RESOURCE_DIR = os.path.join(os.path.dirname(__file__), "resources")
-SOURCE_DIR = os.path.join(RESOURCE_DIR, "scripts")
 INSTANCE_TYPE = "ml.c5.xlarge"
-IMAGE_URI = os.environ["TEST_IMAGE_URI"]
-DEFAULT_REGION = "us-west-2"
-MNIST_S3_URI = "s3://dlc-cicd-models/tensorflow/sagemaker-test-data/MNIST/"
 
 
-def test_experiments_cpu():
+def test_experiments_cpu(image_uri, source_dir, default_region, mnist_s3_uri):
     """Create an Experiment + Trial, run a training job, associate the
     auto-created TrialComponent, then clean everything up.
 
@@ -45,14 +38,11 @@ def test_experiments_cpu():
     `model_trainer._latest_training_job` (avoiding ListTrainingJobs
     eventual-consistency races) and list TrialComponents whose `source_arn`
     matches the job ARN to verify auto-creation."""
-    boto_session = boto3.session.Session(region_name=DEFAULT_REGION)
+    boto_session = boto3.session.Session(region_name=default_region)
     sagemaker_session = Session(boto_session)
 
-    # Random unique-id to keep concurrent CI runs from colliding.
-    random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
-    unique_id = random.randint(1, 6000)
-    experiment_name = f"tf-dlc-integ-test-{unique_id}-{int(time.time())}"
-    trial_name = f"tf-dlc-integ-trial-{unique_id}-{int(time.time())}"
+    experiment_name = random_suffix_name("tf-dlc-integ-test", 63)
+    trial_name = random_suffix_name("tf-dlc-integ-trial", 63)
 
     experiment = Experiment.create(
         experiment_name=experiment_name,
@@ -67,10 +57,10 @@ def test_experiments_cpu():
 
     job_name = random_suffix_name("tf-experiments-cpu", 32)
     try:
-        source_code = SourceCode(source_dir=SOURCE_DIR, entry_script="mnist.py")
+        source_code = SourceCode(source_dir=source_dir, entry_script="mnist.py")
         compute = Compute(instance_type=INSTANCE_TYPE, instance_count=1)
         model_trainer = ModelTrainer(
-            training_image=IMAGE_URI,
+            training_image=image_uri,
             source_code=source_code,
             compute=compute,
             role=os.environ.get("SM_ROLE_ARN"),
@@ -79,7 +69,7 @@ def test_experiments_cpu():
             distributed=None,
         )
         model_trainer.train(
-            input_data_config=[InputData(channel_name="training", data_source=MNIST_S3_URI)],
+            input_data_config=[InputData(channel_name="training", data_source=mnist_s3_uri)],
             wait=True,
         )
 
