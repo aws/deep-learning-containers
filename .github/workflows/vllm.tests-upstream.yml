@@ -29,6 +29,7 @@ jobs:
       framework-version: ${{ steps.parse.outputs.framework-version }}
       vllm-ref: ${{ steps.parse.outputs.vllm-ref }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
+      os-version: ${{ steps.parse.outputs.os-version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -56,6 +57,7 @@ jobs:
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "vllm-ref=$(yq '.build.vllm_ref // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "customer-type=$(yq '.metadata.customer_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "os-version=$(yq '.metadata.os_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
   regression-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
@@ -226,8 +228,15 @@ jobs:
         timeout-minutes: 90
         run: |
           CUSTOMER_TYPE="${{ needs.preflight.outputs.customer-type }}"
+          OS_VERSION="${{ needs.preflight.outputs.os-version }}"
+          # Example scripts are OS-scoped: amzn2023/ for Amazon Linux images,
+          # ubuntu/ for the upstream Ubuntu images.
+          case "$OS_VERSION" in
+            amzn2023*) SCRIPT_DIR="amzn2023" ;;
+            *)         SCRIPT_DIR="ubuntu" ;;
+          esac
           if [ "$CUSTOMER_TYPE" = "sagemaker" ]; then
-            docker exec ${CONTAINER_ID} test/vllm/scripts/amzn2023/vllm_sagemaker_examples_test.sh
+            docker exec ${CONTAINER_ID} test/vllm/scripts/${SCRIPT_DIR}/vllm_sagemaker_examples_test.sh
           else
-            docker exec ${CONTAINER_ID} test/vllm/scripts/amzn2023/vllm_ec2_examples_test.sh
+            docker exec ${CONTAINER_ID} test/vllm/scripts/${SCRIPT_DIR}/vllm_ec2_examples_test.sh
           fi
