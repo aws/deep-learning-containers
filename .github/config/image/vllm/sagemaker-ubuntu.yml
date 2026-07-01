@@ -14,7 +14,7 @@ metadata:
 build:
   dockerfile: "docker/vllm/Dockerfile"
   target: "vllm-sagemaker"
-  base_image: "vllm/vllm-openai:v0.23.0"
+  base_image: "vllm/vllm-openai:v0.24.0"
   python_version: "3.12"
   cuda_version: "13.0.2"
   efa_version: "1.47.0"
