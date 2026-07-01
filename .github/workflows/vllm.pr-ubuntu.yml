@@ -13,6 +13,8 @@ on:
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "scripts/docker/vllm/**"
+      # omni_* scripts belong to vllm_omni only
+      - "!scripts/docker/vllm/omni_*"
       - "test/efa/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/vllm/**"

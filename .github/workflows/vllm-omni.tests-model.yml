@@ -59,7 +59,7 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install pyyaml
-          python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/vllm-omni-model-tests.yml --runner-type codebuild-fleet
+          python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/vllm-omni-model-tests.yml --runner-type codebuild-fleet --customer-type "${{ steps.config.outputs.customer-type }}"
 
   smoke-test:
     name: smoke-test (${{ matrix.model.name }})

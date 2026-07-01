@@ -62,7 +62,24 @@ def load_yaml(path: str) -> dict:
     return json.loads(result.stdout)
 
 
-def parse_config(config_path: str, section: str, runner_type: str) -> dict[str, str]:
+def matches_customer_type(model: dict, customer_type: str) -> bool:
+    """A model runs on a config unless it pins a different customer_type.
+
+    Models without a ``customer_type`` field run everywhere (backward
+    compatible). A model that pins e.g. ``customer_type: sagemaker`` only runs
+    when the config's customer type matches — used to gate tests for features
+    that exist on only one container variant (e.g. the SageMaker routing
+    middleware, which adds the JSON->multipart video path absent on EC2).
+    """
+    pinned = model.get("customer_type")
+    if not pinned or not customer_type:
+        return True
+    return pinned == customer_type
+
+
+def parse_config(
+    config_path: str, section: str, runner_type: str, customer_type: str = ""
+) -> dict[str, str]:
     cfg = load_yaml(config_path)
 
     s3_prefix = cfg.get("s3_prefix", "")
@@ -73,6 +90,7 @@ def parse_config(config_path: str, section: str, runner_type: str) -> dict[str, 
 
     for rt in types:
         models = cfg.get(section, {}).get(rt, []) or []
+        models = [m for m in models if matches_customer_type(m, customer_type)]
         transformed = [transform_model(m, s3_prefix, fixtures_prefix) for m in models]
         key = rt if runner_type == "all" else "matrix"
         results[key] = json.dumps(transformed, separators=(",", ":"))
@@ -91,13 +109,19 @@ def main():
         default="all",
         help="Runner type: all, codebuild-fleet, or runner-scale-sets",
     )
+    parser.add_argument(
+        "--customer-type",
+        default="",
+        help="Config customer type (e.g. ec2, sagemaker). When set, drops models "
+        "that pin a different customer_type. Empty = include all models.",
+    )
     args = parser.parse_args()
 
     if not os.path.isfile(args.config):
         print(f"ERROR: Config file not found: {args.config}", file=sys.stderr)
         sys.exit(1)
 
-    results = parse_config(args.config, args.section, args.runner_type)
+    results = parse_config(args.config, args.section, args.runner_type, args.customer_type)
 
     output_file = os.environ.get("GITHUB_OUTPUT")
     if output_file:
