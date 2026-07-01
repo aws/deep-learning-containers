@@ -69,7 +69,8 @@ RESPONSE=$(curl -sf http://localhost:${SGLANG_PORT}/v1/chat/completions \
         {\"type\": \"text\", \"text\": \"Locate all the instances that matches the following description: car\"}
       ]
     }],
-    \"max_tokens\": 2048
+    \"max_tokens\": 2048,
+    \"skip_special_tokens\": false
   }")
 
 echo "Response: ${RESPONSE}"
