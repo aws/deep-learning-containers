@@ -1,0 +1,252 @@
+apiVersion: leaderworkerset.x-k8s.io/v1
+kind: LeaderWorkerSet
+metadata:
+  name: vllm-deepseek-32b-lws
+spec:
+  replicas: 1
+  leaderWorkerTemplate:
+    size: 2  # Total number of nodes (1 leader + 1 worker)
+    restartPolicy: RecreateGroupOnPodRestart
+    leaderTemplate:
+      metadata:
+        labels:
+          role: leader
+      spec:
+        containers:
+          - name: vllm-leader
+            image: 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.8.5-gpu-py312-ec2
+            securityContext:
+              privileged: true
+              capabilities:
+                add: ["IPC_LOCK"]
+            env:
+              # Ray configuration
+              - name: RAY_DISABLE_RUNTIME_ENV
+                value: "1"
+              - name: RAY_SCHEDULER_EVENTS
+                value: "0"
+              - name: RAY_WORKER_REGISTER_TIMEOUT_SECONDS
+                value: "300"
+              # NCCL configuration for distributed training
+              - name: NCCL_DEBUG
+                value: "INFO"
+              - name: NCCL_IB_DISABLE
+                value: "1"
+              - name: NCCL_P2P_DISABLE
+                value: "1"
+              - name: NCCL_NET_GDR_LEVEL
+                value: "0"
+              - name: NCCL_SHM_DISABLE
+                value: "1"
+              # EFA-specific environment variables
+              - name: FI_PROVIDER
+                value: "efa"
+              - name: FI_EFA_USE_DEVICE_RDMA
+                value: "1"
+              - name: FI_EFA_FORK_SAFE
+                value: "1"
+              # Hugging Face configuration
+              - name: TRANSFORMERS_CACHE
+                value: "/mnt/fsx/models"
+              - name: HF_HOME
+                value: "/mnt/fsx/models"
+              - name: HUGGING_FACE_HUB_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: huggingface-token
+                    key: token
+                    optional: true
+              # Add host IP for Ray
+              - name: VLLM_HOST_IP
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.podIP
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                set -x
+
+                # Start ray leader
+                ray start --head --port=6379 --num-cpus=48 --num-gpus=8
+                sleep 10
+                ray status
+                fi_info -p efa
+
+                # Start vllm server
+                python -m vllm.entrypoints.openai.api_server \
+                  --model deepseek-ai/DeepSeek-R1-Distill-Qwen-32B \
+                  --host 0.0.0.0 \
+                  --port 8000 \
+                  --tensor-parallel-size 8 \
+                  --pipeline-parallel-size 2 \
+                  --download-dir /mnt/fsx/models \
+                  --max-model-len 4096 \
+                  --gpu-memory-utilization 0.85
+            resources:
+              limits:
+                nvidia.com/gpu: "8"
+                cpu: "48"
+                memory: "256Gi"
+                vpc.amazonaws.com/efa: 4
+              requests:
+                nvidia.com/gpu: "8"
+                cpu: "48"
+                memory: "256Gi"
+                vpc.amazonaws.com/efa: 4
+            ports:
+              - containerPort: 8000
+            readinessProbe:
+              httpGet:
+                path: /health
+                port: 8000
+              initialDelaySeconds: 300
+              periodSeconds: 30
+              timeoutSeconds: 10
+              successThreshold: 1
+              failureThreshold: 10
+            volumeMounts:
+              - name: fsx-lustre-volume
+                mountPath: /mnt/fsx
+              # Mount the EFA devices
+              #- name: efa-devices
+              #  mountPath: /dev/infiniband
+              # Mount a larger shared memory volume
+              - name: dshm
+                mountPath: /dev/shm
+        volumes:
+        - name: fsx-lustre-volume
+          persistentVolumeClaim:
+            claimName: fsx-lustre-pvc
+        # Add volume for EFA devices
+        #- name: efa-devices
+        #  hostPath:
+        #    path: /dev/infiniband
+        # Add a larger shared memory volume
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: "30Gi"  # Increase shared memory size
+        nodeSelector:
+          role: large-model-worker
+        # Add tolerations for EFA
+        tolerations:
+        - key: "aws.amazon.com/efa"
+          operator: "Exists"
+          effect: "NoSchedule"
+    workerTemplate:
+      spec:
+        containers:
+          - name: vllm-worker
+            image: 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.8.5-gpu-py312-ec2
+            securityContext:
+              privileged: true
+              capabilities:
+                add: ["IPC_LOCK"]
+            env:
+              # Ray configuration
+              - name: RAY_DISABLE_RUNTIME_ENV
+                value: "1"
+              - name: RAY_SCHEDULER_EVENTS
+                value: "0"
+              - name: RAY_WORKER_REGISTER_TIMEOUT_SECONDS
+                value: "300"
+              # NCCL configuration for distributed training
+              - name: NCCL_DEBUG
+                value: "INFO"
+              - name: NCCL_IB_DISABLE
+                value: "1"
+              - name: NCCL_P2P_DISABLE
+                value: "1"
+              - name: NCCL_NET_GDR_LEVEL
+                value: "0"
+              - name: NCCL_SHM_DISABLE
+                value: "1"
+              # EFA-specific environment variables
+              - name: FI_PROVIDER
+                value: "efa"
+              - name: FI_EFA_USE_DEVICE_RDMA
+                value: "1"
+              - name: FI_EFA_FORK_SAFE
+                value: "1"
+              # Hugging Face configuration
+              - name: TRANSFORMERS_CACHE
+                value: "/mnt/fsx/models"
+              - name: HF_HOME
+                value: "/mnt/fsx/models"
+              - name: HUGGING_FACE_HUB_TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: huggingface-token
+                    key: token
+                    optional: true
+              # Add host IP for Ray
+              - name: VLLM_HOST_IP
+                valueFrom:
+                  fieldRef:
+                    fieldPath: status.podIP
+            command: ["/bin/bash"]
+            args:
+              - "-c"
+              - |
+                set -x
+                
+                # Start ray worker
+                ray start --address=$(LWS_LEADER_ADDRESS):6379 --num-cpus=48 --num-gpus=8 --block
+            resources:
+              limits:
+                nvidia.com/gpu: "8"
+                cpu: "48"
+                memory: "256Gi"
+                vpc.amazonaws.com/efa: 4
+              requests:
+                nvidia.com/gpu: "8"
+                cpu: "48"
+                memory: "256Gi"
+                vpc.amazonaws.com/efa: 4
+            volumeMounts:
+              - name: fsx-lustre-volume
+                mountPath: /mnt/fsx
+              # Mount the EFA devices
+              #- name: efa-devices
+              #  mountPath: /dev/infiniband
+              # Mount a larger shared memory volume
+              - name: dshm
+                mountPath: /dev/shm
+        volumes:
+        - name: fsx-lustre-volume
+          persistentVolumeClaim:
+            claimName: fsx-lustre-pvc
+        # Add volume for EFA devices
+        #- name: efa-devices
+        #  hostPath:
+        #    path: /dev/infiniband
+        # Add a larger shared memory volume
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: "30Gi"  # Increase shared memory size
+        nodeSelector:
+          role: large-model-worker
+        # Add tolerations for EFA
+        tolerations:
+        - key: "aws.amazon.com/efa"
+          operator: "Exists"
+          effect: "NoSchedule"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-deepseek-32b-lws-leader
+spec:
+  ports:
+    - name: port-8000
+      port: 8000
+      targetPort: 8000
+    - name: port-8265
+      port: 8265
+      targetPort: 8265
+  type: ClusterIP
+  selector:
+    leaderworkerset.sigs.k8s.io/name: vllm-deepseek-32b-lws
+    role: leader
