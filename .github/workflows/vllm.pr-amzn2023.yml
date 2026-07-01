@@ -18,7 +18,13 @@ on:
       - "test/security/data/ecr_scan_allowlist/vllm_server/**"
       - "test/telemetry/**"
       - "test/vllm/sagemaker/**"
-      - "test/vllm/scripts/**"
+      # Only the scripts the AL2023 pipeline actually runs: the amzn2023/ subdir
+      # plus the OS-agnostic shared scripts. Top-level ubuntu-only example scripts
+      # are excluded so ubuntu-scoped edits don't trigger the AL2023 pipeline.
+      - "test/vllm/scripts/amzn2023/**"
+      - "test/vllm/scripts/vllm_test_setup.sh"
+      - "test/vllm/scripts/vllm_regression_test.sh"
+      - "test/vllm/scripts/vllm_cuda_test.sh"
       - "!docs/**"
 
 permissions:
@@ -62,7 +68,7 @@ jobs:
               - "test/efa/**"
             model-test-change:
               - ".github/config/model-tests/vllm-model-tests.yml"
-              - "test/vllm/scripts/**"
+              - "test/vllm/scripts/amzn2023/**"
             sagemaker-test-change:
               - "test/vllm/sagemaker/**"
             sanity-test-change:
@@ -71,7 +77,10 @@ jobs:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
             upstream-test-change:
-              - "test/vllm/scripts/**"
+              - "test/vllm/scripts/amzn2023/**"
+              - "test/vllm/scripts/vllm_test_setup.sh"
+              - "test/vllm/scripts/vllm_regression_test.sh"
+              - "test/vllm/scripts/vllm_cuda_test.sh"
 
   discover:
     needs: [gatekeeper]
