@@ -587,17 +587,6 @@ wheels = [
 ]
 
 [[package]]
-name = "cython"
-version = "0.29.37"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/2a/97/8cc3fe7c6de4796921236a64d00ca8a95565772e57f0d3caae68d880b592/Cython-0.29.37.tar.gz", hash = "sha256:f813d4a6dd94adee5d4ff266191d1d95bf6d4164a4facc535422c021b2504cfb", size = 2099621, upload-time = "2023-12-19T09:22:39.397Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c9/aa/99a0eac01136c0c75feb3210d107c49f93d49d5cb97f19e99318b9ecefdd/Cython-0.29.37-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e8af5975ecfae254d8c0051204fca995dda8f93cf9f0bbf7571e3cda2b0cef4d", size = 1951525, upload-time = "2023-12-19T09:57:00.464Z" },
-    { url = "https://files.pythonhosted.org/packages/14/5f/f5efba4409474892d650ba7e57349afa5d4c41d06f5ba3356c32891c75a6/Cython-0.29.37-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:29415d8eb2fdc1ea518ca4810c50a2d062b387d4c9fbcfb3352346e93db22c6d", size = 1950936, upload-time = "2023-12-19T09:24:07.949Z" },
-    { url = "https://files.pythonhosted.org/packages/7e/26/9d8de10005fedb1eceabe713348d43bae1dbab1786042ca0751a2e2b0f8c/Cython-0.29.37-py2.py3-none-any.whl", hash = "sha256:95f1d6a83ef2729e67b3fa7318c829ce5b07ac64c084cd6af11c228e0364662c", size = 989503, upload-time = "2023-12-19T09:22:32.861Z" },
-]
-
-[[package]]
 name = "databricks-sdk"
 version = "0.108.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2007,12 +1996,12 @@ wheels = [
 
 [[package]]
 name = "numpy"
-version = "1.26.4"
+version = "2.4.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/65/6e/09db70a523a96d25e115e71cc56a6f9031e7b8cd166c1ac8438307c14058/numpy-1.26.4.tar.gz", hash = "sha256:2a02aba9ed12e4ac4eb3ea9421c420301a0c6460d9830d74a9df87efa4912010", size = 15786129, upload-time = "2024-02-06T00:26:44.495Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d0/ad/fed0499ce6a338d2a03ebae59cd15093910c8875328855781952abf6c2fe/numpy-2.4.6.tar.gz", hash = "sha256:f3a3570c4a2a16746ac2c31a7c7c7b0c186b95ce902e33db6f28094ed7387dda", size = 20735807, upload-time = "2026-05-18T23:37:14.07Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0f/50/de23fde84e45f5c4fda2488c759b69990fd4512387a8632860f3ac9cd225/numpy-1.26.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:675d61ffbfa78604709862923189bad94014bef562cc35cf61d3a07bba02a7ed", size = 17950613, upload-time = "2024-02-05T23:56:56.054Z" },
-    { url = "https://files.pythonhosted.org/packages/76/8c/2ba3902e1a0fc1c74962ea9bb33a534bb05984ad7ff9515bf8d07527cadd/numpy-1.26.4-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:1dda2e7b4ec9dd512f84935c5f126c8bd8b9f2fc001e9f54af255e8c5f16b0e0", size = 17786643, upload-time = "2024-02-05T23:57:56.585Z" },
+    { url = "https://files.pythonhosted.org/packages/99/60/14115e6364fa676c5397c2ad3004e527e9aa487abf5d0706ec81bbd08529/numpy-2.4.6-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:90f9849678c75fe7afa2d348ac842c168b0a4d3d61919687216dfc547976d853", size = 16645538, upload-time = "2026-05-18T23:34:09.265Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/fc/85b7c4eff9b4966ade25c2273cf7e7012e92366c032058653934b37de044/numpy-2.4.6-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:e5805d5a22fd19c8ccff10a9561f9df94436b0545619ea579db2d3c35294bce2", size = 18368541, upload-time = "2026-05-18T23:34:17.024Z" },
 ]
 
 [[package]]
@@ -2149,10 +2138,10 @@ wheels = [
 
 [[package]]
 name = "nvidia-nccl-cu12"
-version = "2.29.7"
+version = "2.30.7"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/31/1e/9e366f36efc550f07d6737f199e3f6bffafdf28795d007f10a77dd274f5c/nvidia_nccl_cu12-2.29.7-py3-none-manylinux_2_18_x86_64.whl", hash = "sha256:ecd0a012051abc20c1aa87328841efa8cade3ced65803046e38c2f03c0891fea", size = 293633942, upload-time = "2026-03-03T05:37:05.625Z" },
+    { url = "https://files.pythonhosted.org/packages/50/32/e7ffa9c324ae260e5dbb4af2cd557bf7a8d155c8ac7b79a785fe1796fb92/nvidia_nccl_cu12-2.30.7-py3-none-manylinux_2_18_x86_64.whl", hash = "sha256:8ce1b8213f61f2bfac132e6df890af6450b77cbd140c6ce4e98cb0c2d8e678c9", size = 303361239, upload-time = "2026-06-09T03:24:53.816Z" },
 ]
 
 [[package]]
@@ -3561,7 +3550,6 @@ dependencies = [
     { name = "boto3", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "botocore", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "cryptography", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "cython", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "h5py", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "mpi4py", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "numpy", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -3619,16 +3607,15 @@ requires-dist = [
     { name = "botocore" },
     { name = "cloudpickle", marker = "extra == 'sagemaker'" },
     { name = "cryptography", specifier = ">=48.0.1" },
-    { name = "cython", specifier = "<3" },
     { name = "h5py" },
     { name = "imageio", marker = "extra == 'sagemaker'" },
     { name = "mlflow", marker = "extra == 'sagemaker'", specifier = ">=3.9.0" },
     { name = "mpi4py" },
     { name = "numba", marker = "extra == 'sagemaker'" },
-    { name = "numpy", specifier = "==1.26.4" },
+    { name = "numpy", specifier = ">=2.1,<2.5" },
     { name = "nvidia-cudnn-cu12", specifier = "==9.5.1.17" },
-    { name = "nvidia-nccl-cu12", specifier = "==2.29.7" },
-    { name = "opencv-python", marker = "extra == 'sagemaker'", specifier = "==4.11.0.86" },
+    { name = "nvidia-nccl-cu12", specifier = "==2.30.7" },
+    { name = "opencv-python", marker = "extra == 'sagemaker'" },
     { name = "packaging" },
     { name = "pandas", marker = "extra == 'sagemaker'" },
     { name = "pillow" },
@@ -3648,7 +3635,7 @@ requires-dist = [
     { name = "scikit-learn", marker = "extra == 'sagemaker'" },
     { name = "scipy" },
     { name = "seaborn", marker = "extra == 'sagemaker'" },
-    { name = "shap", marker = "extra == 'sagemaker'", specifier = "<0.50" },
+    { name = "shap", marker = "extra == 'sagemaker'" },
     { name = "smclarify", marker = "extra == 'sagemaker'" },
     { name = "sparkmagic", marker = "extra == 'sagemaker'", specifier = "==0.22.0" },
     { name = "starlette", specifier = ">=1.3.1" },

@@ -24,8 +24,7 @@ dependencies = [
     "starlette>=1.3.1",
     "tornado>=6.5.6",
     # TF compat pins
-    "cython<3",
-    "numpy==1.26.4",
+    "numpy>=2.1,<2.5",
     "requests",
     "packaging",
     "pybind11",
@@ -53,15 +52,13 @@ sagemaker = [
     "torch",
     "tensorflow-io==0.37.*",
     "tensorflow-datasets",
-    # opencv-python is pinned to 4.11.0.86: 4.12.x requires numpy>=2, which
-    # conflicts with TF 2.21's numpy==1.26.4 pin.
-    "opencv-python==4.11.0.86",
+    "opencv-python",
     "numba",
     "bokeh",
     "imageio",
     "plotly",
     "seaborn",
-    "shap<0.50",
+    "shap",
     "pandas",
     "scikit-learn",
     "cloudpickle",

@@ -19,10 +19,8 @@ build:
   python_version: "3.12"
   cuda_version: "12.9.1"
   tf_version: "2.21.0"
-  nccl_version: "2.29.7-1"
-  nccl_ofi_version: "1.19.0"
   open_mpi_version: "4.1.8"
-  efa_version: "1.48.0"
+  efa_version: "1.49.0"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

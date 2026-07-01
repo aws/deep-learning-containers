@@ -11,9 +11,7 @@ ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 ARG TF_VERSION=2.21.0
 ARG OPEN_MPI_VERSION=4.1.8
-ARG NCCL_VERSION=2.29.7-1
-ARG NCCL_OFI_VERSION=1.19.0
-ARG EFA_VERSION=1.48.0
+ARG EFA_VERSION=1.49.0
 
 
 # ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────
@@ -53,7 +51,6 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG TF_VERSION
 ARG OPEN_MPI_VERSION
-ARG NCCL_VERSION
 ARG EFA_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
@@ -211,7 +208,7 @@ RUN curl -fsSLO "https://sourceforge.net/projects/boost/files/boost/1.82.0/boost
   && mv download boost_1_82_0.tar.gz \
   && tar xzf boost_1_82_0.tar.gz && cd boost_1_82_0 \
   && ./bootstrap.sh \
-  && ./b2 define=_GLIBCXX_USE_CXX11_ABI=1 threading=multi --prefix=/usr -j$(nproc) cxxflags=-fPIC cflags=-fPIC install || true \
+  && ./b2 define=_GLIBCXX_USE_CXX11_ABI=1 threading=multi --without-python --prefix=/usr -j$(nproc) cxxflags=-fPIC cflags=-fPIC install \
   && cd .. && rm -rf boost_1_82_0*
 
 # Remove the jupyter python kernel installed by sparkmagic (not used in training)
