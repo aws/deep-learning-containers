@@ -124,6 +124,12 @@ ENV LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/opt/amazon/ofi
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh "${EFA_VERSION}" && rm /tmp/install_efa.sh
 
+# Enable NVIDIA cuda-rhel9 repo so setup_nccl_tests.sh can install libnccl-devel
+# at EFA test time (nccl-tests is built on the test runner, not baked into the
+# image). Only the .repo file is left in the production image (~4 KB); no
+# packages installed at build time.
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo
+
 # Wipe EFA's bundled OpenMPI before building OMPI 4.1.8 from source. Both
 # target /opt/amazon/openmpi; without this cleanup wrapper mpirun gets
 # double-wrapped and MCA params get duplicated.
@@ -143,20 +149,6 @@ RUN mkdir /tmp/openmpi && cd /tmp/openmpi \
   && echo "rmaps_base_mapping_policy = slot" >>${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
   && echo "NCCL_DEBUG=INFO" >>/etc/nccl.conf \
   && rm -rf /tmp/openmpi
-
-# NCCL tests binary (all_reduce_perf) — used by CI EFA tests and available to
-# customers for verifying EFA/NCCL connectivity before training. Built against
-# the same nvidia-nccl-cu12 wheel the runtime uses, so headers and libs match.
-RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") \
-  && if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
-       ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
-     fi \
-  && cd /tmp \
-  && curl -fsSL https://github.com/NVIDIA/nccl-tests/archive/refs/tags/v2.19.4.tar.gz | tar xz \
-  && cd nccl-tests-2.19.4 \
-  && make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=${NCCL_HOME} CUDA_HOME=/usr/local/cuda \
-  && cp build/all_reduce_perf /usr/local/bin/all_reduce_perf \
-  && cd / && rm -rf /tmp/nccl-tests-2.19.4
 
 # SSH keys for multi-node SageMaker training.
 # Host keys (/etc/ssh/ssh_host_*_key) are required by sshd to listen; without
