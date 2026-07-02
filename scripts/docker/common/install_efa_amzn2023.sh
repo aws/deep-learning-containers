@@ -33,7 +33,18 @@ function install_efa {
     curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz
     tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz
     cd aws-efa-installer
-    ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify
+
+    # EFA 1.48+ auto-detects NGC containers via /opt/nvidia/nvidia_entrypoint.sh
+    # (present in nvidia/cuda:*-amzn2023 bases) and then skips the AL2023
+    # libnccl-ofi RPM. Force the standard install path so the OFI-NCCL plugin
+    # is installed and libnccl-net-ofi.so ends up at /opt/amazon/ofi-nccl/lib64/.
+    # --disable-ngc was added in EFA 1.48; guard so 1.47 callers still work.
+    EFA_EXTRA_ARGS=""
+    if [[ "$EFA_VERSION" > "1.47.99" ]]; then
+        EFA_EXTRA_ARGS="--disable-ngc"
+    fi
+
+    ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify ${EFA_EXTRA_ARGS}
     rm -rf /tmp/efa
 
     mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real

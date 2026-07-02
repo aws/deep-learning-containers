@@ -121,18 +121,8 @@ ENV PATH="/opt/venv/bin:${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:/usr/local/cuda/bin
 # (NCCL dlopens libnccl-net-ofi.so from this path).
 ENV LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/opt/amazon/ofi-nccl/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
-# Install EFA (mirrors SGLang: pre-install libnccl from cuda-rhel9 repo so the
-# system libnccl is present, symlink lib->lib64 so EFA 1.49's NGC-mode
-# post-install path check resolves, then clean up).
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
-RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
-  && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
-  && ldconfig \
-  && mkdir -p /opt/amazon/efa && ln -sf /opt/amazon/efa/lib64 /opt/amazon/efa/lib \
-  && bash /tmp/install_efa.sh "${EFA_VERSION}" \
-  && rm /tmp/install_efa.sh \
-  && dnf remove -y libnccl-devel \
-  && dnf clean all && rm -rf /var/cache/dnf
+RUN bash /tmp/install_efa.sh "${EFA_VERSION}" && rm /tmp/install_efa.sh
 
 # Wipe EFA's bundled OpenMPI before building OMPI 4.1.8 from source. Both
 # target /opt/amazon/openmpi; without this cleanup wrapper mpirun gets
