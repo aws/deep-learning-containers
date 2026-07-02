@@ -201,6 +201,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
 # Install serving extras
 # modelscope<1.38: 1.38+ removed the `revision` kwarg from LegacyHubApi.get_model_files(),
 # breaking vLLM's repo_utils.py. Unpin after upstream vLLM adapts to the new API.
+# unpin after https://github.com/vllm-project/vllm/pull/47325 is merged
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate "modelscope<1.38" \
   "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7"
 
