@@ -39,7 +39,6 @@ import shutil
 import subprocess
 import unittest
 
-
 DEVICE = os.environ.get("EXPECTED_DEVICE", "").lower()
 CUSTOMER = os.environ.get("EXPECTED_CUSTOMER", "").lower()
 
@@ -216,9 +215,7 @@ class TestEFAAndNCCL(unittest.TestCase):
 
     @gpu_only
     def test_efa_libfabric_provider(self):
-        out = subprocess.check_output(
-            ["fi_info", "--version"], text=True, stderr=subprocess.STDOUT
-        )
+        out = subprocess.check_output(["fi_info", "--version"], text=True, stderr=subprocess.STDOUT)
         self.assertIn("libfabric", out.lower())
 
 
