@@ -169,7 +169,7 @@ jobs:
     needs: [build]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     uses: ./.github/workflows/_reusable.efa-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
