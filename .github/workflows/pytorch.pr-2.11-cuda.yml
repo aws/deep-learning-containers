@@ -1,28 +1,27 @@
 name: "PR - PyTorch 2.11 CUDA"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
-  workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/pytorch/2.11-*-cuda.yml"
-  #     - ".github/workflows/pytorch.pipeline.yml"
-  #     - ".github/workflows/pytorch.pr-2.11-cuda.yml"
-  #     - "docker/pytorch/2.11/Dockerfile.cuda"
-  #     - "scripts/docker/common/**"
-  #     - "scripts/docker/pytorch/**"
-  #     - "scripts/docker/telemetry/**"
-  #     - "test/efa/**"
-  #     - "test/pytorch/multi_gpu/**"
-  #     - "test/pytorch/multi_node/**"
-  #     - "test/pytorch/single_gpu/**"
-  #     - "test/pytorch/unit/**"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
-  #     - "test/telemetry/**"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/pytorch/2.11-*-cuda.yml"
+      - ".github/workflows/pytorch.pipeline.yml"
+      - ".github/workflows/pytorch.pr-2.11-cuda.yml"
+      - "docker/pytorch/Dockerfile.cuda"
+      - "docker/pytorch/2.11/cuda/**"
+      - "scripts/docker/common/**"
+      - "scripts/docker/pytorch/**"
+      - "scripts/docker/telemetry/**"
+      - "test/efa/**"
+      - "test/pytorch/multi_gpu/**"
+      - "test/pytorch/multi_node/**"
+      - "test/pytorch/single_gpu/**"
+      - "test/pytorch/unit/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
+      - "test/telemetry/**"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -46,6 +45,7 @@ jobs:
       efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
       multi-gpu-test-change: ${{ steps.changes.outputs.multi-gpu-test-change }}
       multi-node-test-change: ${{ steps.changes.outputs.multi-node-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
@@ -58,7 +58,8 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/pytorch/2.11-*-cuda.yml"
-              - "docker/pytorch/2.11/Dockerfile.cuda"
+              - "docker/pytorch/Dockerfile.cuda"
+              - "docker/pytorch/2.11/cuda/**"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"
               - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
@@ -72,6 +73,9 @@ jobs:
               - "test/sanity/**"
             single-gpu-test-change:
               - "test/pytorch/single_gpu/**"
+            sagemaker-test-change:
+              - "test/pytorch/integration/sagemaker/**"
+              - ".github/workflows/pytorch.tests-sagemaker.yml"
             telemetry-test-change:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
@@ -107,6 +111,7 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       release: false

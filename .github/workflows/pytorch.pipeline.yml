@@ -56,6 +56,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-sagemaker-test:
+        description: "Run SageMaker training tests (only for sagemaker images)"
+        required: false
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -89,8 +94,6 @@ jobs:
         fleet:x86-build-runner
         buildspec-override:true
     timeout-minutes: 720
-    env:
-      WHEEL_CACHE_BUCKET: ${{ vars.WHEEL_CACHE_BUCKET }}
     outputs:
       image-uri: ${{ steps.build.outputs.image-uri }}
     steps:
@@ -184,14 +187,26 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # EFA tests — only for GPU images
+  # EFA on ec2 only — sagemaker is the same build (+extra args), so EFA is identical.
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' }}
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
     needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  # SageMaker training tests — only for sagemaker images (launches remote SM jobs)
+  sagemaker-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
+    needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/pytorch.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -225,7 +240,7 @@ jobs:
           config-file: ${{ inputs.config-file }}
 
   release:
-    if: ${{ needs.release-gate.outputs.should-release == 'true' }}
+    if: ${{ !failure() && !cancelled() && needs.release-gate.outputs.should-release == 'true' }}
     needs: [build, release-gate]
     uses: ./.github/workflows/_reusable.release-image.yml
     with:

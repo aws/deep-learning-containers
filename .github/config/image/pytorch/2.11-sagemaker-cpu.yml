@@ -14,8 +14,8 @@ metadata:
   prod_image: "pytorch:2.11-cpu-amzn2023-sagemaker"
 
 build:
-  dockerfile: "docker/pytorch/2.11/Dockerfile.cpu"
-  target: "runtime"
+  dockerfile: "docker/pytorch/Dockerfile.cpu"
+  target: "sagemaker"
   python_version: "3.12"
   torch_version: "2.11.0"
   torchvision_version: "0.26.0"

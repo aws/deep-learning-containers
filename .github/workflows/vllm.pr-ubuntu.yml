@@ -1,28 +1,37 @@
 name: "PR - vLLM Ubuntu"
 
 on:
-  # TEMP: Enable after all frameworks are refactored
-  workflow_dispatch:
-  # pull_request:
-  #   branches: [main]
-  #   types: [opened, reopened, synchronize]
-  #   paths:
-  #     - ".github/config/image/vllm/*-ubuntu.yml"
-  #     - ".github/config/model-tests/vllm-model-tests.yml"
-  #     - ".github/workflows/vllm.pipeline.yml"
-  #     - ".github/workflows/vllm.pr-ubuntu.yml"
-  #     - "docker/vllm/Dockerfile"
-  #     - "scripts/docker/common/**"
-  #     - "scripts/docker/telemetry/**"
-  #     - "scripts/docker/vllm/**"
-  #     - "test/efa/**"
-  #     - "test/sanity/**"
-  #     - "test/security/data/ecr_scan_allowlist/vllm/**"
-  #     - "test/telemetry/**"
-  #     - "test/vllm/sagemaker/**"
-  #     - "test/vllm/scripts/**"
-  #     - "!docker/vllm/Dockerfile.amzn2023"
-  #     - "!docs/**"
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/vllm/*-ubuntu.yml"
+      - ".github/config/model-tests/vllm-model-tests.yml"
+      - ".github/workflows/vllm.pipeline.yml"
+      - ".github/workflows/vllm.pr-ubuntu.yml"
+      - "docker/vllm/Dockerfile"
+      - "scripts/docker/common/**"
+      - "scripts/docker/telemetry/**"
+      - "scripts/docker/vllm/**"
+      # omni_* scripts belong to vllm_omni only
+      - "!scripts/docker/vllm/omni_*"
+      - "test/efa/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/vllm/**"
+      - "test/telemetry/**"
+      - "test/vllm/sagemaker/**"
+      # Scripts the Ubuntu pipeline runs: ubuntu/ SageMaker example script, the
+      # amzn2023/ smoke scripts (shared by model-tests for both OSes), and the
+      # OS-agnostic top-level shared scripts (setup/regression/cuda + the shared
+      # EC2 example script). Excludes amzn2023-only SageMaker example script.
+      - "test/vllm/scripts/ubuntu/**"
+      - "test/vllm/scripts/amzn2023/**"
+      - "test/vllm/scripts/vllm_test_setup.sh"
+      - "test/vllm/scripts/vllm_regression_test.sh"
+      - "test/vllm/scripts/vllm_cuda_test.sh"
+      - "test/vllm/scripts/vllm_ec2_examples_test.sh"
+      - "!docker/vllm/Dockerfile.amzn2023"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -65,7 +74,7 @@ jobs:
               - "test/efa/**"
             model-test-change:
               - ".github/config/model-tests/vllm-model-tests.yml"
-              - "test/vllm/scripts/**"
+              - "test/vllm/scripts/amzn2023/**"
             sagemaker-test-change:
               - "test/vllm/sagemaker/**"
             sanity-test-change:
@@ -74,7 +83,11 @@ jobs:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
             upstream-test-change:
-              - "test/vllm/scripts/**"
+              - "test/vllm/scripts/ubuntu/**"
+              - "test/vllm/scripts/vllm_test_setup.sh"
+              - "test/vllm/scripts/vllm_regression_test.sh"
+              - "test/vllm/scripts/vllm_cuda_test.sh"
+              - "test/vllm/scripts/vllm_ec2_examples_test.sh"
 
   discover:
     needs: [gatekeeper]

@@ -21,9 +21,6 @@ benchmark:
       benchmark_profiles: "baseline,high_concurrency,sustained_load,burst"
 
   runner-scale-sets:
-    # On a 48GB L40S (vs the 24GB A10G these previously ran on), the encoder
-    # cache no longer saturates under concurrency — fixes voxtral's empty-embedding
-    # engine crash (broadcast shape [0, 5120]).
     - name: "qwen3-vl-embedding-2b"
       s3_model: "qwen3-vl-embedding-2b.tar.gz"
       runner_label: "gpu-l40s-1gpu-runners"
@@ -31,11 +28,14 @@ benchmark:
       test_script: "vllm_embedding_benchmark_test.sh"
       min_rps: 3
 
+    # Realtime model — benchmark via /v1/audio/transcriptions; it does not
+    # support chat audio_url (empty MM embeddings crash the engine).
     - name: "voxtral-mini-4b"
       s3_model: "voxtral-mini-4b.tar.gz"
       runner_label: "gpu-l40s-1gpu-runners"
       extra_args: "--tokenizer-mode mistral --config-format mistral --load-format mistral --max-model-len 8192 --enforce-eager"
       test_script: "vllm_asr_benchmark_test.sh"
+      benchmark_route: "/v1/audio/transcriptions"
       test_fixtures:
         - "audio/asr_en.wav"
       benchmark_audio_fixture: "asr_en.wav"

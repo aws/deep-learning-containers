@@ -3,7 +3,7 @@ image:
   description: "Hugging Face vLLM for SageMaker (layered on the AWS vLLM DLC)"
 
 metadata:
-  framework: "huggingface_vllm"
+  framework: "huggingface-vllm"
   framework_version: "0.22.1"
   os_version: "ubuntu22.04"
   customer_type: "sagemaker"
@@ -17,7 +17,7 @@ metadata:
 build:
   dockerfile: "docker/huggingface/vllm/Dockerfile"
   target: "huggingface-vllm-sagemaker"
-  base_image: "public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1"
+  base_image: "public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0"
   python_version: "3.12"
   cuda_version: "13.0.2"
   transformers_version: "5.10.2"
@@ -28,9 +28,9 @@ build:
   dlc_minor_version: "0"
 
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: false
   private_registry: true
-  enable_soci: true
-  environment: "production"
+  enable_soci: false
+  environment: "gamma"

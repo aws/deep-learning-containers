@@ -17,11 +17,15 @@ permissions:
   contents: read
 
 jobs:
-  multi-node-test:
+  preflight:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6e12xl-runner
+        fleet:default-runner
         buildspec-override:true
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
     steps:
       - uses: actions/checkout@v6
 
@@ -41,22 +45,29 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+  multi-node-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6e12xl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
       - name: ECR login
-        if: steps.check.outputs.exists == 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ steps.image.outputs.image-uri }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Setup Docker network
-        if: steps.check.outputs.exists == 'true'
         run: docker network create testnet
 
       - name: Start node containers
-        if: steps.check.outputs.exists == 'true'
         run: |
-          IMAGE="${{ steps.image.outputs.image-uri }}"
+          IMAGE="${{ needs.preflight.outputs.image-uri }}"
           NODE0=$(docker run -d --rm --gpus '"device=0"' --shm-size=2g \
             --network=testnet --hostname=node0 --name=node0 \
             --entrypoint /bin/bash \
@@ -71,7 +82,6 @@ jobs:
           echo "NODE1=$NODE1" >> $GITHUB_ENV
 
       - name: Run DDP multi-node test
-        if: steps.check.outputs.exists == 'true'
         run: |
           docker exec node0 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=0 \
             --master_addr=node0 --master_port=29400 \
@@ -82,7 +92,6 @@ jobs:
           wait
 
       - name: Run NCCL all_reduce test
-        if: steps.check.outputs.exists == 'true'
         run: |
           docker exec node0 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=0 \
             --master_addr=node0 --master_port=29401 \
@@ -97,7 +106,3 @@ jobs:
         run: |
           docker kill node0 node1 2>/dev/null || true
           docker network rm testnet 2>/dev/null || true
-
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"

@@ -151,33 +151,22 @@ def _get_role_arn(region):
 
 
 def _flatten_jinja(template_str):
-    """Flatten newlines into ``{{ "\\n" }}`` and wrap in literal single quotes.
+    """Flatten newlines into ``{{ "\\n" }}`` so the template survives transport.
 
-    Two transports to survive:
+    The SM entrypoint reads env vars via ``IFS='=' read`` from a line-oriented
+    ``env`` listing, so multi-line values would break across lines. Replacing
+    physical newlines with ``{{ "\\n" }}`` keeps the value single-line; vLLM's
+    ``--chat-template`` falls back to inline Jinja when the value isn't a valid
+    file path and contains ``{``, ``}``, or newline, and each ``{{ "\\n" }}``
+    expression evaluates to a real newline at request time.
 
-    1. The SM entrypoint reads env vars via ``IFS='=' read`` from a line-oriented
-       ``env`` listing, so multi-line values would break across lines. Replacing
-       physical newlines with ``{{ "\\n" }}`` keeps the value single-line; vLLM's
-       ``--chat-template`` falls back to inline Jinja when the value isn't a
-       valid file path and contains ``{``, ``}``, or newline, and each
-       ``{{ "\\n" }}`` expression evaluates to a real newline at request time.
-
-    2. Inside the SM container, ``standard-supervisor`` joins argv with single
-       spaces into one string, then supervisord re-parses it with
-       ``shlex.split`` — which strips unprotected double quotes and breaks
-       tokens on whitespace. Wrapping the value in literal single quotes makes
-       supervisord's shlex.split treat the entire jinja string as one argv
-       element with the inner ``"`` chars intact. Double-quoted ``\\n`` (rather
-       than single-quoted) is used so the inner Jinja expressions don't clash
-       with the outer shell single-quote wrapping.
+    No literal-quote wrapping is applied. ``standard-supervisor`` (>=0.1.15,
+    pinned in docker/vllm/Dockerfile.amzn2023) ``shlex.quote()``s each argv
+    element before the supervisord ``shlex.split`` round-trip, so the inner
+    double quotes survive intact. Adding outer single quotes here would pass
+    them through verbatim into the rendered template.
     """
-    flat = template_str.replace("\n", '{{ "\\n" }}')
-    if "'" in flat:
-        raise ValueError(
-            "chat template contains a single quote; outer shell-quote wrapping "
-            "would clash. Use only double quotes inside Jinja expressions."
-        )
-    return f"'{flat}'"
+    return template_str.replace("\n", '{{ "\\n" }}')
 
 
 def _deploy_endpoint(image_uri, model_cfg, region):
