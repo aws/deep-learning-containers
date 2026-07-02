@@ -3,8 +3,12 @@ description: 'Upload per-image security scan allowlists to S3 based on image con
 
 inputs:
   aws-account-id:
-    description: 'AWS account ID for ECR'
+    description: 'AWS account ID for ECR (default framework images)'
     required: true
+  aws-account-id-sagemaker:
+    description: 'AWS account ID for SageMaker built-in algorithm images (xgboost, sklearn, etc.). Falls back to aws-account-id if empty.'
+    required: false
+    default: ''
   aws-region:
     description: 'AWS region'
     required: true
@@ -40,5 +44,6 @@ runs:
         python3 "${{ github.action_path }}/upload_ecr_allowlists.py" ${ARGS}
       env:
         ECR_ACCOUNT_ID: ${{ inputs.aws-account-id }}
+        ECR_ACCOUNT_ID_SAGEMAKER: ${{ inputs.aws-account-id-sagemaker }}
         AWS_REGION: ${{ inputs.aws-region }}
         SCANNER_ALLOWLIST_S3_BUCKET: ${{ inputs.s3-bucket }}
