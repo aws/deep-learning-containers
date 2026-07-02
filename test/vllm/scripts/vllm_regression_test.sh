@@ -9,5 +9,6 @@ fi
 
 # Regression Test # 7min
 cd vllm_source/tests
-uv pip install $UV_FLAGS modelscope
+# modelscope 1.38.0 dropped get_model_files(revision=), breaks vllm 0.24.0
+uv pip install $UV_FLAGS 'modelscope<1.38'
 pytest -v -s test_regression.py
