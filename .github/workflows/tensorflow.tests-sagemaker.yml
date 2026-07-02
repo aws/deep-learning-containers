@@ -70,7 +70,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install -r test/tensorflow/integration/sagemaker/requirements.txt
+          pip install -r test/requirements.txt -r test/tensorflow/integration/sagemaker/requirements.txt
 
       - name: Run SageMaker training tests
         env:
