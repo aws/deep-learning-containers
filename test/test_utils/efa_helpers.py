@@ -29,7 +29,7 @@ EFA_TEST_TAG_KEY = "dlc-efa-test"
 # EIP allocation time (ISO-8601); describe_addresses returns no allocation timestamp.
 EFA_EIP_ALLOCATED_AT_TAG_KEY = "dlc-efa-test-allocated-at"
 # Resources older than this are leaks (well past the 60 min job timeout), safe to reap.
-EFA_STALE_AGE_MINUTES = 90
+EFA_STALE_AGE_MINUTES = 180
 
 
 def get_efa_devices(conn):
@@ -55,21 +55,104 @@ def get_num_efa_interfaces(aws_session, instance_type):
     return num
 
 
-def generate_efa_network_interfaces(aws_session, instance_type, subnet_id, sg_id):
+def generate_efa_network_interfaces(aws_session, instance_type, subnet_id, sg_ids):
     """Generate NetworkInterfaces config for EFA-enabled launch."""
     num_interfaces = get_num_efa_interfaces(aws_session, instance_type)
+    if isinstance(sg_ids, str):
+        sg_ids = [sg_ids]
     interfaces = []
     for idx in range(num_interfaces):
         iface = {
             "DeviceIndex": 0 if idx == 0 else 1,
             "NetworkCardIndex": idx,
             "SubnetId": subnet_id,
-            "Groups": [sg_id],
+            "Groups": sg_ids,
             "InterfaceType": "efa",
             "DeleteOnTermination": True,
         }
         interfaces.append(iface)
     return interfaces
+
+
+def create_runner_ssh_sg(aws_session, runner_ip, vpc_id, run_id=""):
+    """Create a per-test SG that allows SSH from the runner's IP.
+
+    Each EFA test gets its own SG to avoid race conditions when concurrent
+    tests add/remove rules on a shared SG.
+    """
+    from datetime import datetime, timezone
+
+    sg_name = f"efa-test-runner-{run_id}" if run_id else f"efa-test-runner-{os.getpid()}"
+    resp = aws_session.ec2.create_security_group(
+        GroupName=sg_name,
+        Description=f"Ephemeral SSH access for EFA test runner {runner_ip}",
+        VpcId=vpc_id,
+        TagSpecifications=[
+            {
+                "ResourceType": "security-group",
+                "Tags": [
+                    {"Key": EFA_TEST_TAG_KEY, "Value": "true"},
+                    {"Key": "Name", "Value": sg_name},
+                    {
+                        "Key": EFA_EIP_ALLOCATED_AT_TAG_KEY,
+                        "Value": datetime.now(timezone.utc).isoformat(),
+                    },
+                ],
+            }
+        ],
+    )
+    sg_id = resp["GroupId"]
+    aws_session.ec2.authorize_security_group_ingress(
+        GroupId=sg_id,
+        IpPermissions=[
+            {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "IpRanges": [{"CidrIp": f"{runner_ip}/32", "Description": "EFA test runner SSH"}],
+            }
+        ],
+    )
+    LOGGER.info(f"Created runner SSH SG {sg_id} ({sg_name}) for {runner_ip}/32")
+    return sg_id
+
+
+def delete_runner_ssh_sg(aws_session, sg_id):
+    """Delete a per-test runner SSH security group."""
+    try:
+        aws_session.ec2.delete_security_group(GroupId=sg_id)
+        LOGGER.info(f"Deleted runner SSH SG {sg_id}")
+    except Exception as e:
+        LOGGER.warning(f"Failed to delete runner SSH SG {sg_id}: {e}")
+
+
+def cleanup_stale_runner_sgs(aws_session, min_age_minutes=EFA_STALE_AGE_MINUTES):
+    """Delete leaked per-test runner SSH SGs older than min_age_minutes."""
+    from datetime import datetime, timedelta, timezone
+
+    resp = aws_session.ec2.describe_security_groups(
+        Filters=[
+            {"Name": f"tag:{EFA_TEST_TAG_KEY}", "Values": ["true"]},
+            {"Name": "group-name", "Values": ["efa-test-runner-*"]},
+        ]
+    )
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=min_age_minutes)
+    stale = []
+    for sg in resp.get("SecurityGroups", []):
+        for tag in sg.get("Tags", []):
+            if tag["Key"] == EFA_EIP_ALLOCATED_AT_TAG_KEY:
+                try:
+                    created = datetime.fromisoformat(tag["Value"])
+                    if created < cutoff:
+                        stale.append(sg["GroupId"])
+                except (ValueError, TypeError):
+                    stale.append(sg["GroupId"])
+    if not stale:
+        LOGGER.info("No stale runner SSH SGs to clean up")
+        return
+    LOGGER.info(f"Cleaning up {len(stale)} stale runner SSH SG(s)")
+    for sg_id in stale:
+        delete_runner_ssh_sg(aws_session, sg_id)
 
 
 def get_default_subnet(aws_session, az=None):
@@ -237,47 +320,82 @@ def _build_efa_run_params(ami_id, instance_type, key_name, network_interfaces, a
     }
 
 
-def launch_efa_instances(aws_session, ami_id, instance_type, key_name, sg_id, count=2, name=""):
+def launch_efa_instances(
+    aws_session,
+    ami_id,
+    instance_type,
+    key_name,
+    sg_ids,
+    count=2,
+    name="",
+    max_retries=5,
+    retry_interval=60,
+):
     """Launch EFA instances using capacity reservations.
 
-    Tries each reservation with sufficient capacity. Does not fall back to on-demand
-    (p4d on-demand availability is near zero).
+    Tries each reservation with sufficient capacity. Retries with exponential
+    backoff when capacity is temporarily exhausted by concurrent tests (TOCTOU
+    race between describe_capacity_reservations and run_instances).
+    Does not fall back to on-demand (p4d on-demand availability is near zero).
+    sg_ids can be a single SG ID string or a list of SG IDs.
     Returns list of instance IDs.
     """
+    import time
+
     from botocore.exceptions import ClientError
 
-    reservations = get_available_reservations(aws_session, instance_type, min_count=count)
-    if not reservations:
-        raise RuntimeError(
-            f"No capacity reservations with >= {count} available {instance_type} instances. "
-            f"Check reservation status and retry when capacity is available."
-        )
-
-    for reservation in reservations:
-        az = reservation["AvailabilityZone"]
-        cr_id = reservation["CapacityReservationId"]
-        subnet_id = get_default_subnet(aws_session, az)
-        network_interfaces = generate_efa_network_interfaces(
-            aws_session, instance_type, subnet_id, sg_id
-        )
-        params = _build_efa_run_params(
-            ami_id, instance_type, key_name, network_interfaces, az, name
-        )
-        params["MinCount"] = count
-        params["MaxCount"] = count
-        params["CapacityReservationSpecification"] = {
-            "CapacityReservationTarget": {"CapacityReservationId": cr_id},
-        }
-        try:
-            response = aws_session.ec2.run_instances(**params)
-            instance_ids = [inst["InstanceId"] for inst in response["Instances"]]
-            LOGGER.info(
-                f"Launched {count}x {instance_type} in {az} via reservation {cr_id}: {instance_ids}"
+    for attempt in range(max_retries):
+        reservations = get_available_reservations(aws_session, instance_type, min_count=count)
+        if not reservations:
+            if attempt < max_retries - 1:
+                wait = retry_interval * (attempt + 1)
+                LOGGER.info(
+                    f"No reservations with >= {count} available {instance_type} (attempt "
+                    f"{attempt + 1}/{max_retries}). Retrying in {wait}s..."
+                )
+                time.sleep(wait)
+                continue
+            raise RuntimeError(
+                f"No capacity reservations with >= {count} available {instance_type} instances "
+                f"after {max_retries} attempts. Check reservation status and retry when "
+                f"capacity is available."
             )
-            return instance_ids
-        except ClientError as e:
-            LOGGER.warning(f"Failed to launch via reservation {cr_id} in {az}: {e}")
-            continue
+
+        for reservation in reservations:
+            az = reservation["AvailabilityZone"]
+            cr_id = reservation["CapacityReservationId"]
+            subnet_id = get_default_subnet(aws_session, az)
+            network_interfaces = generate_efa_network_interfaces(
+                aws_session, instance_type, subnet_id, sg_ids
+            )
+            params = _build_efa_run_params(
+                ami_id, instance_type, key_name, network_interfaces, az, name
+            )
+            params["MinCount"] = count
+            params["MaxCount"] = count
+            params["CapacityReservationSpecification"] = {
+                "CapacityReservationTarget": {"CapacityReservationId": cr_id},
+            }
+            try:
+                response = aws_session.ec2.run_instances(**params)
+                instance_ids = [inst["InstanceId"] for inst in response["Instances"]]
+                LOGGER.info(
+                    f"Launched {count}x {instance_type} in {az} via reservation {cr_id}: "
+                    f"{instance_ids}"
+                )
+                return instance_ids
+            except ClientError as e:
+                LOGGER.warning(f"Failed to launch via reservation {cr_id} in {az}: {e}")
+                continue
+
+        # All reservations tried, none worked — retry after backoff
+        if attempt < max_retries - 1:
+            wait = retry_interval * (attempt + 1)
+            LOGGER.info(
+                f"All reservations exhausted (attempt {attempt + 1}/{max_retries}). "
+                f"Retrying in {wait}s..."
+            )
+            time.sleep(wait)
 
     raise RuntimeError(
         f"Failed to launch {instance_type} from any capacity reservation. "
@@ -554,11 +672,11 @@ def efa_instances(
     """
     aws_session = AWSSessionManager(region=region)
     ami_id = aws_session.get_latest_ami()
-    sg_id = get_efa_security_group_id(aws_session)
+    efa_sg_id = get_efa_security_group_id(aws_session)
 
     key_name = None
     key_path = None
-    runner_ip = None
+    runner_sg_id = None
     master_id = None
     worker_id = None
     master_eip_alloc = None
@@ -567,20 +685,27 @@ def efa_instances(
     try:
         key_name, key_path = aws_session.create_key_pair()
 
-        # Reap resources leaked by prior hard-killed runs. Order: instances first (frees
-        # their EIPs), then any unassociated EIPs, then SSH rules.
+        # Reap resources leaked by prior hard-killed runs.
         cleanup_stale_instances(aws_session)
         cleanup_stale_eips(aws_session)
-        cleanup_stale_runner_ssh_rules(aws_session, sg_id)
+        cleanup_stale_runner_sgs(aws_session)
 
-        # Authorize SSH from this runner's public IP on the permanent SG.
-        # Permanent SG allows corp prefix list only; CodeBuild runner IPs aren't in it.
+        # Create a per-test SG for SSH access from this runner. Each test gets
+        # its own SG to avoid race conditions with concurrent EFA tests.
         runner_ip = aws_session.get_codebuild_runner_public_ip()
-        ssh_rule_description = f"efa-test-runner-{key_name}"
-        authorize_runner_ssh(aws_session, sg_id, runner_ip, ssh_rule_description)
+        vpc_id = aws_session.ec2.describe_vpcs(
+            Filters=[{"Name": "is-default", "Values": ["true"]}]
+        )["Vpcs"][0]["VpcId"]
+        runner_sg_id = create_runner_ssh_sg(aws_session, runner_ip, vpc_id, run_id=key_name)
 
         instance_ids = launch_efa_instances(
-            aws_session, ami_id, instance_type, key_name, sg_id, count=2, name="efa-test"
+            aws_session,
+            ami_id,
+            instance_type,
+            key_name,
+            [efa_sg_id, runner_sg_id],
+            count=2,
+            name="efa-test",
         )
         master_id = instance_ids[0]
         worker_id = instance_ids[1]
@@ -666,7 +791,7 @@ def efa_instances(
             release_eip(aws_session, master_eip_alloc)
         if worker_eip_alloc:
             release_eip(aws_session, worker_eip_alloc)
-        if runner_ip:
-            revoke_runner_ssh(aws_session, sg_id, runner_ip)
+        if runner_sg_id:
+            delete_runner_ssh_sg(aws_session, runner_sg_id)
         if key_name:
             aws_session.delete_key_pair(key_name, key_path)
