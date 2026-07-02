@@ -1,22 +1,18 @@
-"""Smoke tests: TF imports and runs a real op; CUDA libraries are loadable.
+"""TF-specific smoke tests: TF imports and runs a real op; TF was built with CUDA.
 
 Unit tests run on no-GPU CodeBuild runners, so we cannot assert
 `list_physical_devices("GPU")` returns a non-empty list — the host has no GPU
 even though the image was built for CUDA. Instead, validate that TF was
-BUILT with CUDA support and that CUDA libraries are PRESENT and LOADABLE.
-Real GPU compute is verified later by `sagemaker-test` on actual GPU
-instances.
+BUILT with CUDA support. Real GPU compute is verified later by
+`sagemaker-test` on actual GPU instances.
 """
 
-import ctypes
 import os
-import shutil
 
 import pytest
 
 IS_CUDA = os.path.isdir("/usr/local/cuda")
 cuda_only = pytest.mark.skipif(not IS_CUDA, reason="CUDA-only test")
-cpu_only = pytest.mark.skipif(IS_CUDA, reason="CPU-only test")
 
 
 def test_tensorflow_matmul_runs():
@@ -45,33 +41,3 @@ def test_tensorflow_built_with_cuda():
     import tensorflow as tf
 
     assert tf.test.is_built_with_cuda(), "TF wheel was not compiled with CUDA support"
-
-
-@cuda_only
-def test_cudart_loadable():
-    """CUDA runtime library must be present and loadable.
-    Catches missing or broken libcudart linkage."""
-    ctypes.CDLL("libcudart.so")  # raises OSError if missing
-
-
-@cuda_only
-def test_cudnn_loadable():
-    """cuDNN runtime library must be present and loadable.
-    Catches missing or wrong-SOVERSION libcudnn linkage."""
-    ctypes.CDLL("libcudnn.so.9")  # raises OSError if missing
-
-
-@cuda_only
-def test_nvcc_on_path():
-    """nvcc binary should be on PATH on CUDA images
-    (we install cuda-nvcc-${MAJOR_MINOR} via dnf in runtime-base)."""
-    assert shutil.which("nvcc") is not None, "nvcc not found on PATH"
-
-
-@cpu_only
-def test_no_cuda_directory_on_cpu_image():
-    """The CPU image must not contain /usr/local/cuda — guards against
-    accidental CUDA leakage from the pytorch-cpu index workaround."""
-    assert not os.path.isdir("/usr/local/cuda"), (
-        "/usr/local/cuda exists on CPU image — base image leak?"
-    )
