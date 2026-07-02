@@ -122,14 +122,6 @@ ENV PATH="/opt/venv/bin:${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:/usr/local/cuda/bin
 ENV LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/opt/amazon/ofi-nccl/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
-# WORKAROUND: EFA 1.48.0's NGC-mode post-install check hardcodes
-# /opt/amazon/efa/lib, but AL2023 RPMs install to /opt/amazon/efa/lib64. NGC
-# mode auto-activates because the nvidia/cuda:*-amzn2023 base ships
-# /opt/nvidia/nvidia_entrypoint.sh. --disable-build-ngc does NOT bypass the
-# path check (verified empirically). Pre-creating the lib -> lib64 symlink
-# lets the broken check resolve through it and pass.
-RUN mkdir -p /opt/amazon/efa \
-  && ln -sf lib64 /opt/amazon/efa/lib
 RUN bash /tmp/install_efa.sh "${EFA_VERSION}" && rm /tmp/install_efa.sh
 
 # Wipe EFA's bundled OpenMPI before building OMPI 4.1.8 from source. Both
