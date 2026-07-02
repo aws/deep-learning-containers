@@ -76,16 +76,14 @@ def _flatten_image_config(image_cfg: dict) -> dict[str, str]:
 def _model_matches_image(model: dict, image_fields: dict[str, str]) -> bool:
     """Check if a model's required_image_pattern matches the image config fields.
 
-    Also handles legacy ``customer_type`` field on models — treated as a
-    shorthand for ``required_image_pattern: {customer_type: <value>}``.
+    required_image_pattern can be:
+    - A dict of {field: value} pairs that must all match in the image config.
+    - A plain string that must appear in at least one image config value.
+    - Absent/None → model runs on all images.
     """
     pattern = model.get("required_image_pattern")
     if not pattern:
-        pinned_ct = model.get("customer_type")
-        if pinned_ct:
-            pattern = {"customer_type": pinned_ct}
-        else:
-            return True
+        return True
     if isinstance(pattern, dict):
         return all(image_fields.get(k) == str(v) for k, v in pattern.items())
     return str(pattern) in image_fields.values()
