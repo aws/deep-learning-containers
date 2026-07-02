@@ -93,5 +93,10 @@
         "vulnerability_id": "CVE-2026-54232",
         "reason": "vllm Dockerfile dependency confusion via flashinfer-jit-cache, fix requires vllm>=0.22.1, image pinned to 0.21.0rc1+amzn2023",
         "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27145",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, unpatchable without mooncake rebuild with Go 1.26.4+",
+        "review_by": "2026-09-10"
     }
 ]

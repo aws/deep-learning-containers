@@ -48,5 +48,10 @@
         "vulnerability_id": "GHSA-36hh-v3qg-5jq4",
         "reason": "pyo3 0.23.5 in upstream sglang sglang-grpc Cargo.lock, cannot patch without upstream sglang rebuild",
         "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27145",
+        "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
+        "review_by": "2026-09-10"
     }
 ]
