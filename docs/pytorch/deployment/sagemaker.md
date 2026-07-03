@@ -10,7 +10,7 @@ Use the SageMaker variants for training jobs launched via the SageMaker Python S
 from sagemaker.pytorch import PyTorch
 
 estimator = PyTorch(
-    image_uri="public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023-sagemaker",
+    image_uri="public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023-sagemaker",
     role="arn:aws:iam::<account_id>:role/<role_name>",
     entry_point="train.py",
     source_dir="src",
@@ -43,7 +43,7 @@ job = TrainingJob.create(
     training_job_name="pytorch-train",
     role_arn="arn:aws:iam::<account_id>:role/<role_name>",
     algorithm_specification=AlgorithmSpecification(
-        training_image="public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023-sagemaker",
+        training_image="public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023-sagemaker",
         training_input_mode="File",
     ),
     resource_config=ResourceConfig(

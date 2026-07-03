@@ -10,10 +10,10 @@ collectives, flash-attn and Transformer Engine for fused attention/FP8 kernels, 
 
 | Platform | Variant | Image |
 | --- | --- | --- |
-| {{ ec2_short }} / {{ eks_short }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023` |
-| {{ ec2_short }} / {{ eks_short }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cpu-amzn2023` |
-| {{ sagemaker }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023-sagemaker` |
-| {{ sagemaker }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.11-cpu-amzn2023-sagemaker` |
+| {{ ec2_short }} / {{ eks_short }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023` |
+| {{ ec2_short }} / {{ eks_short }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.12-cpu-amzn2023` |
+| {{ sagemaker }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023-sagemaker` |
+| {{ sagemaker }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.12-cpu-amzn2023-sagemaker` |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/pytorch). For private ECR URIs, see
 [Image Access](../get_started/index.md).
@@ -22,7 +22,7 @@ All images are also available on the [ECR Public Gallery](https://gallery.ecr.aw
 
 The GPU images bundle the full distributed-training stack so you can launch multi-GPU and multi-node training without building a custom image:
 
-- **PyTorch 2.11.0** with `torchvision` 0.26.0 and `torchaudio` 2.11.0 (CUDA 13.0 wheels for the GPU variant, CPU wheels for the CPU variant)
+- **PyTorch 2.12.1** with `torchvision` 0.27.1 and `torchaudio` 2.11.0 (CUDA 13.0 wheels for the GPU variant, CPU wheels for the CPU variant)
 - **CUDA 13.0.2** with cuDNN and **NCCL 2.26.2** for multi-GPU collectives
 - **[EFA](https://aws.amazon.com/hpc/efa/) 1.47.0** with **OpenMPI** and the **AWS NCCL OFI plugin** for low-latency multi-node communication on
   EFA-capable instances
