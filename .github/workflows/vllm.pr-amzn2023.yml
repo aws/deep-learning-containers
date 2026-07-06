@@ -105,7 +105,7 @@ jobs:
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
-      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
     secrets: inherit
