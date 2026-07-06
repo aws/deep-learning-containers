@@ -104,6 +104,11 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
   && ./aws/install \
   && rm -rf aws awscliv2.zip
 
+# Configure pip to always use --break-system-packages for Python 3.12
+# Must precede oss_compliance install, which pip-installs piplicenses under system Python
+RUN mkdir -p /root/.config/pip \
+  && printf '[global]\nbreak-system-packages = true\n' >/root/.config/pip/pip.conf
+
 # Install core scientific packages with exact pinned versions
 RUN uv pip install --system --no-cache --break-system-packages \
   numpy==${NUMPY_VERSION} \
@@ -145,10 +150,6 @@ RUN uv pip install --system --break-system-packages --upgrade --force-reinstall 
 
 # Patch sagemaker-inference decoder.py (CWE-502 fix — disables pickle deserialization)
 COPY docker/sklearn/resources/patches/decoder.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/sagemaker_inference/decoder.py
-
-# Configure pip to always use --break-system-packages for Python 3.12
-RUN mkdir -p /root/.config/pip \
-  && printf '[global]\nbreak-system-packages = true\n' >/root/.config/pip/pip.conf
 
 # MMS setup
 RUN useradd -m model-server \
