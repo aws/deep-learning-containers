@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "vulnerability_id": "RUSTSEC-2026-0195",
+        "reason": "quick-xml 0.39.2 in uv binary, upstream uv has not released a fix yet. XML entity expansion DoS, low risk for pip installer use case.",
+        "review_by": "2026-09-10"
+    }
+]

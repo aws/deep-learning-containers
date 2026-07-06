@@ -22,3 +22,6 @@ docker/xgboost/prebuilt.whl
 # tmp
 .github/archive
 HANDOVER.md
+
+# local Claude Code settings (personal, not shared)
+.claude/settings.local.json

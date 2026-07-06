@@ -80,18 +80,13 @@
     "review_by": "2026-09-29"
   },
   {
-    "vulnerability_id": "CVE-2026-57516",
-    "reason": "ray[serve]==2.55.1 exact pin (autorelease-managed core contract); fix in ray 2.56.0 needs a Ray version bump",
-    "review_by": "2027-01-02"
-  },
-  {
     "vulnerability_id": "CVE-2026-54277",
     "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-10-04"
+    "review_by": "2026-09-29"
   },
   {
-    "vulnerability_id": "RUSTSEC-2026-0195",
-    "reason": "quick-xml 0.39.2 vendored in the uv binary; fix (0.41.0) not shipped in any stable uv release (latest 0.11.26 still ships 0.39.2)",
-    "review_by": "2026-10-04"
+    "vulnerability_id": "CVE-2026-57516",
+    "reason": "ray 2.55.1 WebDataset reader unsafe deserialization, fix requires ray>=2.56.0 which is not yet released for our pinned version",
+    "review_by": "2026-09-10"
   }
 ]

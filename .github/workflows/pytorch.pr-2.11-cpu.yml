@@ -8,7 +8,7 @@ on:
       - ".github/config/image/pytorch/2.11-*-cpu.yml"
       - ".github/workflows/pytorch.pipeline.yml"
       - ".github/workflows/pytorch.pr-2.11-cpu.yml"
-      - "docker/pytorch/2.11/Dockerfile.cpu"
+      - "docker/pytorch/Dockerfile.cpu"
       - "docker/pytorch/2.11/cpu/**"
       - "scripts/docker/common/**"
       - "scripts/docker/pytorch/**"
@@ -50,7 +50,7 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/pytorch/2.11-*-cpu.yml"
-              - "docker/pytorch/2.11/Dockerfile.cpu"
+              - "docker/pytorch/Dockerfile.cpu"
               - "docker/pytorch/2.11/cpu/**"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"
