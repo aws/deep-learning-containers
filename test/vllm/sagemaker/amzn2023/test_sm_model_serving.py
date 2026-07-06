@@ -237,10 +237,6 @@ def _generate_test_params():
 def deployed_model(request, image_uri):
     _, model_cfg = request.param
 
-    pattern = model_cfg.get("required_image_pattern")
-    if pattern and pattern not in image_uri:
-        pytest.skip(f"Model requires image matching '{pattern}', got: {image_uri}")
-
     region = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
 
     endpoint_name, model, endpoint_config, endpoint = _deploy_endpoint(image_uri, model_cfg, region)
