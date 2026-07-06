@@ -14,9 +14,9 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 ### Changes
 
-- **SageMaker `/v1/videos` and `/v1/videos/sync` now accept `application/json` again.** The routing middleware restores JSON→multipart
-  conversion for the form-data video routes, so clients can send a plain JSON body instead of hand-building multipart. The existing
-  `multipart/form-data` path is unchanged (byte-for-byte passthrough), so callers already sending multipart need no changes.
+- **SageMaker `/v1/videos` and `/v1/videos/sync` now accept `application/json` again.** The routing middleware restores JSON→multipart conversion for
+  the form-data video routes, so clients can send a plain JSON body instead of hand-building multipart. The existing `multipart/form-data` path is
+  unchanged (byte-for-byte passthrough), so callers already sending multipart need no changes.
 
 ### Notes
 
