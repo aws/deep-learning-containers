@@ -32,16 +32,6 @@ def source_dir(resource_dir):
 
 
 @pytest.fixture(scope="session")
-def image_uri():
-    return os.environ["TEST_IMAGE_URI"]
-
-
-@pytest.fixture(scope="session")
-def default_region():
-    return "us-west-2"
-
-
-@pytest.fixture(scope="session")
 def mnist_s3_uri():
     return "s3://dlc-cicd-models/tensorflow/sagemaker-test-data/MNIST/"
 
@@ -92,7 +82,7 @@ def sm_trainer(image_uri, source_dir):
 
 
 @pytest.fixture(scope="session")
-def assert_s3_file_exists(default_region):
+def assert_s3_file_exists(region):
     """Return a callable that asserts the given s3:// URL points to an existing object.
 
     head-object via boto3 raises if the key is missing, which surfaces as a
@@ -100,7 +90,7 @@ def assert_s3_file_exists(default_region):
 
     def _assert(s3_url):
         parsed_url = urlparse(s3_url)
-        s3 = boto3.resource("s3", region_name=default_region)
+        s3 = boto3.resource("s3", region_name=region)
         s3.Object(parsed_url.netloc, parsed_url.path.lstrip("/")).load()
 
     return _assert

@@ -75,15 +75,16 @@ jobs:
       - name: Run SageMaker training tests
         env:
           PYTHONPATH: ${{ github.workspace }}/test
-          TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ needs.preflight.outputs.aws-account-id }}:role/SageMakerRole
         run: |
           if [ "${{ needs.preflight.outputs.device-type }}" = "gpu" ]; then
-            pytest test/tensorflow/integration/sagemaker/test_mnist_cuda.py -v
+            pytest test/tensorflow/integration/sagemaker/test_mnist_cuda.py -v \
+              --image-uri "${{ needs.preflight.outputs.image-uri }}"
           else
             pytest \
               test/tensorflow/integration/sagemaker/test_mnist_cpu.py \
               test/tensorflow/integration/sagemaker/test_experiments_cpu.py \
               test/tensorflow/integration/sagemaker/test_tuning_cpu.py \
-              -v
+              -v \
+              --image-uri "${{ needs.preflight.outputs.image-uri }}"
           fi

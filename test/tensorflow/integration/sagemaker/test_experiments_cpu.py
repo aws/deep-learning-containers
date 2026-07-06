@@ -30,7 +30,7 @@ LOG = logging.getLogger(__name__)
 INSTANCE_TYPE = "ml.c5.xlarge"
 
 
-def test_experiments_cpu(image_uri, source_dir, default_region, mnist_s3_uri):
+def test_experiments_cpu(image_uri, source_dir, region, mnist_s3_uri):
     """Create an Experiment + Trial, run a training job, associate the
     auto-created TrialComponent, then clean everything up.
 
@@ -38,7 +38,7 @@ def test_experiments_cpu(image_uri, source_dir, default_region, mnist_s3_uri):
     `model_trainer._latest_training_job` (avoiding ListTrainingJobs
     eventual-consistency races) and list TrialComponents whose `source_arn`
     matches the job ARN to verify auto-creation."""
-    boto_session = boto3.session.Session(region_name=default_region)
+    boto_session = boto3.session.Session(region_name=region)
     sagemaker_session = Session(boto_session)
 
     experiment_name = random_suffix_name("tf-dlc-integ-test", 63)

@@ -36,11 +36,7 @@ function install_efa {
 
     # EFA 1.48+ auto-detects NGC containers via /opt/nvidia/nvidia_entrypoint.sh
     # (present in nvidia/cuda:*-amzn2023 bases) and then skips the AL2023
-    # libnccl-ofi RPM. Force the standard install path so the OFI-NCCL plugin
-    # is installed and libnccl-net-ofi.so ends up at /opt/amazon/ofi-nccl/lib64/.
-    # --disable-ngc was added in EFA 1.48; guard so 1.47 callers still work.
-    # sort -V (GNU coreutils) provides deterministic semver comparison —
-    # avoids bash string-order pitfalls like "1.9" > "1.10" being true.
+    # libnccl-ofi RPM. Force the standard install with --disable-ngc (EFA 1.48+).
     ver_ge() {
         [ "$1" = "$2" ] || [ "$2" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]
     }
