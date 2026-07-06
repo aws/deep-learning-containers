@@ -109,11 +109,14 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 RUN mkdir -p /root/.config/pip \
   && printf '[global]\nbreak-system-packages = true\n' >/root/.config/pip/pip.conf
 
-# Install core scientific packages with exact pinned versions
+# Install core scientific packages with exact pinned versions.
+# `requests` is required by oss_compliance's process_licenses_json_file.py (miniconda
+# ships it by default; Ubuntu system python does not, so we install it explicitly).
 RUN uv pip install --system --no-cache --break-system-packages \
   numpy==${NUMPY_VERSION} \
   scikit-learn==${FRAMEWORK_VERSION} \
-  pyarrow==${PYARROW_VERSION}
+  pyarrow==${PYARROW_VERSION} \
+  requests
 
 # Telemetry
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
