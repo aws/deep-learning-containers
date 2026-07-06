@@ -162,8 +162,8 @@ RUN chmod +x /tmp/plugins/endpoints-1.0.jar
 # Model directory
 RUN mkdir -p /opt/ml/models && chmod +rwx /opt/ml/models
 
-# Drop temp dirs left by pip installs (sanity check requires clean /tmp)
-RUN rm -rf /tmp/tmp* /tmp/pip-*
+# Drop temp dirs/files left by pip and uv (sanity check requires clean /tmp)
+RUN rm -rf /tmp/tmp* /tmp/pip-* /tmp/uv*
 
 # Labels
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
