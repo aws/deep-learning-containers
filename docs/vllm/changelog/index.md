@@ -4,6 +4,34 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v2.1.0 — 2026-07-02
+
+**Tags:** `server-cuda-v2.1` · `server-sagemaker-cuda-v2.1`
+
+**vLLM source:** [7b3d595](https://github.com/vllm-project/vllm/commit/7b3d595eb197d714052ce296cc8b124f0dc8af31) (`0.24.0+amzn2023.7b3d595e`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.12 · DeepEP [73b6ea4](https://github.com/deepseek-ai/DeepEP/commit/73b6ea4)
+
+### Highlights
+
+- **vLLM 0.24.0** — minor version bump from 0.22.1rc0 (v2.0)
+- **FlashInfer 0.6.12** — upgraded from 0.6.11.post2
+- **transformers `<5.10` pin removed** — vLLM 0.24.0 requires transformers ≥ 5.5.3, so the previous pin is dropped
+- **`mistral_common` now an optional import** — audio dependencies (`mistral_common[audio]`, av, scipy, soundfile) are installed explicitly for
+  Voxtral / ASR serving
+
+### New Model Support
+
+- Mellum2-12B-A2.5B-Thinking (`MellumForCausalLM`)
+
+### Notes
+
+- GPU device selection refactor upstream: vLLM no longer sets `CUDA_VISIBLE_DEVICES` internally and adds a `--device-ids` flag. Single-server
+  tensor-parallel serving is unaffected.
+- Models removed upstream (ERNIE, Xverse, Dots1, Bamba, Mono-InternVL) are not part of the DLC test matrix.
+
+* * *
+
 ## v2.0.0 — 2026-06-05
 
 **Tags:** `server-cuda-v2.0` · `server-sagemaker-cuda-v2.0`

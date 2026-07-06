@@ -1,0 +1,12 @@
+framework: vLLM
+version: "0.24.0+amzn2023.7b3d595e"
+ecr_repository: vllm
+accelerator: gpu
+python: py312
+cuda: cu130
+os: amzn2023
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "server-sagemaker-cuda-v2.1"
