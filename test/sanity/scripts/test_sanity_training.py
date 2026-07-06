@@ -47,11 +47,19 @@ gpu_only = unittest.skipIf(DEVICE != "gpu", "GPU-only test")
 cpu_only = unittest.skipIf(DEVICE != "cpu", "CPU-only test")
 sagemaker_only = unittest.skipIf(CUSTOMER != "sagemaker", "SageMaker-only test")
 tensorflow_only = unittest.skipIf(FRAMEWORK != "tensorflow", "TF-only test")
+# Tests gated with this decorator assume PT/TF-style training DLC
+# (SSH cluster, MPI, entrypoint script). xgboost is a SageMaker
+# algorithm container and does not honor this contract.
+training_cluster_only = unittest.skipUnless(
+    FRAMEWORK in {"tensorflow", "pytorch_runtime"},
+    "training-cluster-only test (requires SSH+MPI stack; xgboost is algorithm container)",
+)
 
 
 class TestContainerEnv(unittest.TestCase):
     """Container-level env vars set in Dockerfile (universal across training frameworks)."""
 
+    @training_cluster_only
     def test_dlc_container_type(self):
         self.assertEqual(os.environ.get("DLC_CONTAINER_TYPE"), "training")
 
@@ -86,6 +94,7 @@ class TestPath(unittest.TestCase):
         ld = os.environ.get("LD_LIBRARY_PATH", "")
         self.assertIn("/opt/amazon/openmpi/lib", ld)
 
+    @training_cluster_only
     def test_ld_library_path_userlocal(self):
         ld = os.environ.get("LD_LIBRARY_PATH", "")
         self.assertIn("/usr/local/lib", ld)
@@ -129,6 +138,7 @@ class TestBinaries(unittest.TestCase):
         self.assertIsNotNone(shutil.which("nvcc"), "nvcc not found on PATH")
 
 
+@training_cluster_only
 class TestSSHConfig(unittest.TestCase):
     """SSH configuration (universal across training frameworks)."""
 
@@ -160,6 +170,7 @@ class TestSSHConfig(unittest.TestCase):
                 )
 
 
+@training_cluster_only
 class TestSageMakerPaths(unittest.TestCase):
     """SageMaker mount points. Gated on EXPECTED_CUSTOMER == 'sagemaker'."""
 
@@ -180,6 +191,7 @@ class TestSageMakerPaths(unittest.TestCase):
         self.assertTrue(os.path.isdir("/opt/ml/code"))
 
 
+@training_cluster_only
 class TestOpenMPI(unittest.TestCase):
     """OpenMPI wrapper — training frameworks build OMPI from source."""
 
@@ -198,6 +210,7 @@ class TestOpenMPI(unittest.TestCase):
         self.assertEqual(out, "1", f"expected 1 mpirun.real reference in wrapper, got {out}")
 
 
+@training_cluster_only
 class TestEFAAndNCCL(unittest.TestCase):
     """EFA + NCCL setup — GPU images only."""
 
@@ -260,6 +273,7 @@ class TestCuDNN(unittest.TestCase):
 class TestCPUImageGuard(unittest.TestCase):
     """CPU-image-only guards."""
 
+    @training_cluster_only
     @cpu_only
     def test_no_cuda_directory_on_cpu_image(self):
         """The CPU image must not contain /usr/local/cuda — guards against
@@ -293,6 +307,7 @@ class TestVenv(unittest.TestCase):
         self.assertTrue(os.path.isdir("/opt/venv/bin"))
 
 
+@training_cluster_only
 class TestEntrypoint(unittest.TestCase):
     """Entrypoint script is executable (universal)."""
 
