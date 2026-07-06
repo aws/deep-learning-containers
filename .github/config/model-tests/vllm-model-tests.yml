@@ -39,6 +39,17 @@ smoke-test:
       fleet: "x86-g6exl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --reasoning-parser qwen3"
 
+    # NVIDIA Nemotron-Nano-12B-v2: Mamba2-Transformer hybrid (NemotronHForCausalLM),
+    # 12B params bf16 (~24GB weights). Requires vllm>=0.10.1 for hybrid support.
+    # Fits a single L40S (g6e.xl, 48GB) at tp=1 with ~42GB steady-state (23% headroom).
+    # --mamba_ssm_cache_dtype float32 is required by the model card — without it,
+    # SSM cache defaults to bf16 and accuracy degrades. --trust-remote-code is needed
+    # to load the custom configuration_nemotron_h.py from the HF repo.
+    - name: "nemotron-nano-12b-v2"
+      s3_model: "nemotron-nano-12b-v2.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --trust-remote-code --mamba_ssm_cache_dtype float32"
+
     - name: "qwen3-embedding-0.6b"
       s3_model: "qwen3-embedding-0.6b.tar.gz"
       fleet: "x86-g6xl-runner"
