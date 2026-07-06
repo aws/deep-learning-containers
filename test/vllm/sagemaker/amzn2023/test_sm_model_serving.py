@@ -1,7 +1,7 @@
 """Config-driven SageMaker endpoint test for vLLM DLC models.
 
 Supports text, audio, and video models. Reads model configuration from
-.github/config/model-tests/vllm-sagemaker-tests.yml (sagemaker section).
+.github/config/model-tests/vllm-sagemaker-endpoint-tests.yml (sagemaker section).
 
 Each entry deploys a model from S3 with configured env vars, sends
 requests to the specified route, and validates the response.
@@ -34,7 +34,9 @@ from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-CONFIG_PATH = Path(__file__).parents[4] / ".github/config/model-tests/vllm-sagemaker-tests.yml"
+CONFIG_PATH = (
+    Path(__file__).parents[4] / ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
+)
 
 
 def pytest_addoption(parser):

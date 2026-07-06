@@ -4,7 +4,7 @@
 # smoke-test has codebuild-fleet and runner-scale-sets sub-keys.
 # Workflow parsers construct s3_path from s3_prefix + s3_model.
 #
-# SageMaker endpoint tests live in the sibling vllm-sagemaker-tests.yml.
+# SageMaker endpoint tests live in the sibling vllm-sagemaker-endpoint-tests.yml.
 # Benchmark (throughput/latency) configs live in
 # vllm-text-benchmark-tests.yml and vllm-multimodal-benchmark-tests.yml.
 

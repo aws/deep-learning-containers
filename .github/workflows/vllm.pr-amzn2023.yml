@@ -7,7 +7,7 @@ on:
     paths:
       - ".github/config/image/vllm/*-amzn2023.yml"
       - ".github/config/model-tests/vllm-model-tests.yml"
-      - ".github/config/model-tests/vllm-sagemaker-tests.yml"
+      - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
       - ".github/workflows/vllm.pipeline.yml"
       - ".github/workflows/vllm.pr-amzn2023.yml"
       - "docker/vllm/Dockerfile.amzn2023"
@@ -75,7 +75,7 @@ jobs:
               - ".github/config/model-tests/vllm-model-tests.yml"
               - "test/vllm/scripts/amzn2023/**"
             sagemaker-test-change:
-              - ".github/config/model-tests/vllm-sagemaker-tests.yml"
+              - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
               - "test/vllm/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
