@@ -39,8 +39,13 @@ function install_efa {
     # libnccl-ofi RPM. Force the standard install path so the OFI-NCCL plugin
     # is installed and libnccl-net-ofi.so ends up at /opt/amazon/ofi-nccl/lib64/.
     # --disable-ngc was added in EFA 1.48; guard so 1.47 callers still work.
+    # sort -V (GNU coreutils) provides deterministic semver comparison —
+    # avoids bash string-order pitfalls like "1.9" > "1.10" being true.
+    ver_ge() {
+        [ "$1" = "$2" ] || [ "$2" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]
+    }
     EFA_EXTRA_ARGS=""
-    if [[ "$EFA_VERSION" > "1.47.99" ]]; then
+    if ver_ge "$EFA_VERSION" "1.48.0"; then
         EFA_EXTRA_ARGS="--disable-ngc"
     fi
 
