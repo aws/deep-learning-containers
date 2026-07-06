@@ -76,9 +76,12 @@ class TestContainerEnv(unittest.TestCase):
 class TestPath(unittest.TestCase):
     """PATH and LD_LIBRARY_PATH contents. GPU entries gated on EXPECTED_DEVICE == 'gpu'."""
 
+    # xgboost uses /miniconda3/, not /opt/venv/
+    @training_cluster_only
     def test_path_venv_bin(self):
         self.assertIn("/opt/venv/bin", os.environ["PATH"])
 
+    @training_cluster_only
     def test_path_openmpi(self):
         self.assertIn("/opt/amazon/openmpi/bin", os.environ["PATH"])
 
@@ -90,6 +93,7 @@ class TestPath(unittest.TestCase):
     def test_path_cuda(self):
         self.assertIn("/usr/local/cuda/bin", os.environ["PATH"])
 
+    @training_cluster_only
     def test_ld_library_path_openmpi(self):
         ld = os.environ.get("LD_LIBRARY_PATH", "")
         self.assertIn("/opt/amazon/openmpi/lib", ld)
@@ -121,9 +125,11 @@ class TestBinaries(unittest.TestCase):
     def test_python_on_path(self):
         self.assertIsNotNone(shutil.which("python"), "python not found on PATH")
 
+    @training_cluster_only
     def test_mpirun_on_path(self):
         self.assertIsNotNone(shutil.which("mpirun"), "mpirun not found on PATH")
 
+    @training_cluster_only
     def test_sshd_on_path(self):
         self.assertIsNotNone(shutil.which("sshd"), "sshd not found on PATH")
 
@@ -303,6 +309,8 @@ class TestOSSLicenseFiles(unittest.TestCase):
 class TestVenv(unittest.TestCase):
     """Python venv is at /opt/venv (universal)."""
 
+    # xgboost uses /miniconda3/, not /opt/venv/
+    @training_cluster_only
     def test_venv_bin_exists(self):
         self.assertTrue(os.path.isdir("/opt/venv/bin"))
 
