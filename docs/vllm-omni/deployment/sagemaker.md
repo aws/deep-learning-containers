@@ -67,9 +67,10 @@ response = predictor.predict(
 )
 ```
 
-The `/v1/videos` and `/v1/videos/sync` routes require `multipart/form-data`. As of `omni-sagemaker-cuda-v1.2`, the routing middleware no longer
-converts JSON to multipart — clients must build the multipart body locally and pass it through `InvokeEndpoint`'s `ContentType`. SageMaker forwards
-the body and `ContentType` to the model server unchanged.
+The `/v1/videos` and `/v1/videos/sync` routes accept either `application/json` or `multipart/form-data`. As of `omni-sagemaker-cuda-v1.4`, the
+routing middleware again converts a JSON body to multipart for these routes (this was disabled in `v1.2` and restored in `v1.4`), so sending JSON —
+as in the image and chat examples above — works. The `multipart/form-data` path below is still supported unchanged and remains useful when you want
+byte-for-byte control over the request body.
 
 ```python
 import uuid
