@@ -78,6 +78,10 @@ jobs:
           # Override the flask pin sagemaker-containers forces, as the image build does.
           uv pip install --overrides requirements.txt .[test]
           uv pip install --upgrade boto3 botocore
+          # pytest-rerunfailures: MMS startup on py312 with user_module install
+          # takes ~10-15s, upstream test's 5x3s health-check loop is tight.
+          # Retry gives the container time to warm up on flaky-startup failures.
+          uv pip install pytest-rerunfailures
           docker compose version || (curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose)
           sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
             .venv/lib/python*/site-packages/sagemaker_containers/_mapping.py
@@ -91,6 +95,7 @@ jobs:
           . /tmp/sklearn-integ/.venv/bin/activate
           cd /tmp/sklearn-integ
           pytest test/integration \
+            --reruns 3 --reruns-delay 15 \
             --docker-base-name "${CI_IMAGE_URI%:*}" \
             --tag "${CI_IMAGE_URI##*:}" \
             --py-version 3 \
