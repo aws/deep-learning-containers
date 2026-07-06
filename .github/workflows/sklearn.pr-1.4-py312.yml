@@ -65,7 +65,7 @@ jobs:
             telemetry-test-change:
               - "test/telemetry/**"
             unit-test-change:
-              - "docker/sklearn/1.4-2-py312/Dockerfile"
+              - "docker/sklearn/1.4-2-py312/**"
 
   discover:
     needs: [gatekeeper]
