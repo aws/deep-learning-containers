@@ -32,7 +32,8 @@ def transform_model(model: dict, s3_prefix: str, fixtures_prefix: str) -> dict:
     m = dict(model)
 
     if "s3_model" in m:
-        m["s3_path"] = f"{s3_prefix}/{m.pop('s3_model')}"
+        prefix = m.pop("s3_prefix", s3_prefix)
+        m["s3_path"] = f"{prefix}/{m.pop('s3_model')}"
         m["model_source"] = "s3"
     elif "hf_model" in m:
         m["model_source"] = "hf"
@@ -62,35 +63,51 @@ def load_yaml(path: str) -> dict:
     return json.loads(result.stdout)
 
 
-def matches_customer_type(model: dict, customer_type: str) -> bool:
-    """A model runs on a config unless it pins a different customer_type.
+def _flatten_image_config(image_cfg: dict) -> dict[str, str]:
+    """Flatten nested image config into a single-level dict of string values."""
+    flat = {}
+    for section in image_cfg.values():
+        if isinstance(section, dict):
+            for k, v in section.items():
+                flat[k] = str(v)
+    return flat
 
-    Models without a ``customer_type`` field run everywhere (backward
-    compatible). A model that pins e.g. ``customer_type: sagemaker`` only runs
-    when the config's customer type matches — used to gate tests for features
-    that exist on only one container variant (e.g. the SageMaker routing
-    middleware, which adds the JSON->multipart video path absent on EC2).
+
+def _model_matches_image(model: dict, image_fields: dict[str, str]) -> bool:
+    """Check if a model's required_image_pattern matches the image config fields.
+
+    required_image_pattern can be:
+    - A dict of {field: value} pairs that must all match in the image config.
+    - A plain string that must appear in at least one image config value.
+    - Absent/None → model runs on all images.
     """
-    pinned = model.get("customer_type")
-    if not pinned or not customer_type:
+    pattern = model.get("required_image_pattern")
+    if not pattern:
         return True
-    return pinned == customer_type
+    if isinstance(pattern, dict):
+        return all(image_fields.get(k) == str(v) for k, v in pattern.items())
+    return str(pattern) in image_fields.values()
 
 
 def parse_config(
-    config_path: str, section: str, runner_type: str, customer_type: str = ""
+    config_path: str, section: str, runner_type: str, image_config_path: str = ""
 ) -> dict[str, str]:
     cfg = load_yaml(config_path)
 
     s3_prefix = cfg.get("s3_prefix", "")
     fixtures_prefix = cfg.get("test_fixtures_prefix", "")
 
+    image_fields = {}
+    if image_config_path and os.path.isfile(image_config_path):
+        image_fields = _flatten_image_config(load_yaml(image_config_path))
+
     results = {}
     types = ["codebuild-fleet", "runner-scale-sets"] if runner_type == "all" else [runner_type]
 
     for rt in types:
         models = cfg.get(section, {}).get(rt, []) or []
-        models = [m for m in models if matches_customer_type(m, customer_type)]
+        if image_fields:
+            models = [m for m in models if _model_matches_image(m, image_fields)]
         transformed = [transform_model(m, s3_prefix, fixtures_prefix) for m in models]
         key = rt if runner_type == "all" else "matrix"
         results[key] = json.dumps(transformed, separators=(",", ":"))
@@ -110,10 +127,9 @@ def main():
         help="Runner type: all, codebuild-fleet, or runner-scale-sets",
     )
     parser.add_argument(
-        "--customer-type",
+        "--image-config",
         default="",
-        help="Config customer type (e.g. ec2, sagemaker). When set, drops models "
-        "that pin a different customer_type. Empty = include all models.",
+        help="Path to image config YAML; used to filter models by required_image_pattern",
     )
     args = parser.parse_args()
 
@@ -121,7 +137,7 @@ def main():
         print(f"ERROR: Config file not found: {args.config}", file=sys.stderr)
         sys.exit(1)
 
-    results = parse_config(args.config, args.section, args.runner_type, args.customer_type)
+    results = parse_config(args.config, args.section, args.runner_type, args.image_config or "")
 
     output_file = os.environ.get("GITHUB_OUTPUT")
     if output_file:

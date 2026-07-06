@@ -47,7 +47,7 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: Parse customer type
+      - name: Parse config
         id: config
         run: |
           echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
@@ -59,7 +59,7 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install pyyaml
-          python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/vllm-omni-model-tests.yml --runner-type codebuild-fleet --customer-type "${{ steps.config.outputs.customer-type }}"
+          python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/vllm-omni-model-tests.yml --runner-type codebuild-fleet --image-config "${{ inputs.config-file }}"
 
   smoke-test:
     name: smoke-test (${{ matrix.model.name }})

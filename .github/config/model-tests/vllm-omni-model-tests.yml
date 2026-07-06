@@ -118,7 +118,8 @@ smoke-test:
     - name: "wan2.1-t2v-1.3b-sync-json"
       s3_model: "wan2.1-t2v-1.3b.tar.gz"
       fleet: "x86-g6exl-runner"
-      customer_type: "sagemaker"
+      required_image_pattern:
+        customer_type: "sagemaker"
       extra_args: ""
       route: "/v1/videos/sync"
       content_type: "application/json"
