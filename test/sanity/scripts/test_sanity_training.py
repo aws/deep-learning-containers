@@ -41,10 +41,12 @@ import unittest
 
 DEVICE = os.environ.get("EXPECTED_DEVICE", "").lower()
 CUSTOMER = os.environ.get("EXPECTED_CUSTOMER", "").lower()
+FRAMEWORK = os.environ.get("EXPECTED_FRAMEWORK", "").lower()
 
 gpu_only = unittest.skipIf(DEVICE != "gpu", "GPU-only test")
 cpu_only = unittest.skipIf(DEVICE != "cpu", "CPU-only test")
 sagemaker_only = unittest.skipIf(CUSTOMER != "sagemaker", "SageMaker-only test")
+tensorflow_only = unittest.skipIf(FRAMEWORK != "tensorflow", "TF-only test")
 
 
 class TestContainerEnv(unittest.TestCase):
@@ -245,9 +247,10 @@ class TestCuDNN(unittest.TestCase):
         Catches missing or wrong-SOVERSION libcudnn linkage."""
         ctypes.CDLL("libcudnn.so.9")  # raises OSError if missing
 
+    @tensorflow_only
     @gpu_only
     def test_cudnn_in_cuda_lib64(self):
-        # cuDNN libs are copied from nvidia-cudnn-cu12 pip pkg into /usr/local/cuda/lib64
+        # TF-specific: cp libcudnn* into /usr/local/cuda/lib64 in the runtime stage
         self.assertTrue(
             glob.glob("/usr/local/cuda/lib64/libcudnn*.so*"),
             "no libcudnn*.so* in /usr/local/cuda/lib64",
