@@ -1,0 +1,38 @@
+image:
+  name: "sagemaker-scikit-learn"
+  description: "SageMaker Scikit-learn 1.4-2 py312"
+
+metadata:
+  framework: "sklearn"
+  framework_version: "1.4.2"
+  os_version: "ubuntu24.04"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "cpu"
+  job_type: "general"
+  prod_image: "sagemaker-scikit-learn:1.4-2-py312-cpu-py3"
+
+build:
+  dockerfile: "docker/sklearn/1.4-2-py312/Dockerfile"
+  target: "sklearn-sagemaker"
+  base_image: "ubuntu:24.04"
+  ubuntu_image_digest: "b359f1067efa76f37863778f7b6d0e8d911e3ee8efa807ad01fbf5dc1ef9006b"
+  python_version: "3.12"
+  pyarrow_version: "17.0.0"
+  numpy_version: "2.1.0"
+  # Pinned to upstream master (currently 1.4-2-py312 HEAD).
+  # When upstream master moves past 1.4-2, swap to a release branch/tag
+  # that preserves 1.4-2 behavior — same pattern xgboost 3.0.5 uses
+  # (xgboost_container_branch: "release-3.0.5").
+  sklearn_container_branch: "master"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "production"
