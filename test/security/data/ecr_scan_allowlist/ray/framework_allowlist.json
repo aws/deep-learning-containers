@@ -83,5 +83,15 @@
         "vulnerability_id": "CVE-2026-54275",
         "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
         "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54277",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-57516",
+        "reason": "ray 2.55.1 WebDataset reader unsafe deserialization, fix requires ray>=2.56.0 which is not yet released for our pinned version",
+        "review_by": "2026-09-10"
     }
 ]
