@@ -26,8 +26,6 @@ build:
   # that preserves 1.4-2 behavior — same pattern xgboost 3.0.5 uses
   # (xgboost_container_branch: "release-3.0.5").
   sklearn_container_branch: "master"
-  dlc_major_version: "1"
-  dlc_minor_version: "0"
 
 release:
   release: false
