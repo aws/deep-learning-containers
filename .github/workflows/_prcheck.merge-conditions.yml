@@ -25,7 +25,12 @@ jobs:
             const sha = context.payload.pull_request.head.sha;
             const self = 'enforce-all-checks';
             const ignoredChecks = new Set([self]);
+            // ECR CVE scans are informational — non-blocking for merges.
+            // Framework teams still track findings via test/security/data/ecr_scan_allowlist/*
+            // per-CVE with review-by dates. This exclusion removes the merge-gate teeth
+            // only; the underlying scan continues to run and report findings.
             const ignoredPatterns = [
+                /\/ ecr-vulnerability-scan$/,
             ];
             const intervalMs = 30_000;
             const timeoutMs = 7_200_000;
