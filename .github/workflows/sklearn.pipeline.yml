@@ -131,6 +131,19 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  # Full integration suite — SageMaker training/endpoint E2E.
+  # Heavy; only runs on the release pipeline, not on PRs.
+  integ-test-full:
+    if: ${{ always() && !failure() && !cancelled() && inputs.release }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-integ-test-full-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/sklearn.tests-integ.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   release-gate:
     if: >-
       github.ref == 'refs/heads/main' &&
@@ -139,7 +152,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, unit-test, integ-test]
+    needs: [build, sanity-test, security-test, unit-test, integ-test, integ-test-full]
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.check.outputs.environment }}
