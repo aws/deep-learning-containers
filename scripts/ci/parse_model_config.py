@@ -102,10 +102,22 @@ def parse_config(
         image_fields = _flatten_image_config(load_yaml(image_config_path))
 
     results = {}
+    section_data = cfg.get(section, [])
+
+    # Flat-list sections (e.g. sagemaker) have no runner-type buckets; emit a
+    # single "matrix" output regardless of --runner-type.
+    if isinstance(section_data, list):
+        models = section_data or []
+        if image_fields:
+            models = [m for m in models if _model_matches_image(m, image_fields)]
+        transformed = [transform_model(m, s3_prefix, fixtures_prefix) for m in models]
+        results["matrix"] = json.dumps(transformed, separators=(",", ":"))
+        return results
+
     types = ["codebuild-fleet", "runner-scale-sets"] if runner_type == "all" else [runner_type]
 
     for rt in types:
-        models = cfg.get(section, {}).get(rt, []) or []
+        models = section_data.get(rt, []) or []
         if image_fields:
             models = [m for m in models if _model_matches_image(m, image_fields)]
         transformed = [transform_model(m, s3_prefix, fixtures_prefix) for m in models]

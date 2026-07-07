@@ -39,6 +39,7 @@ DEVICE_TYPE=$(yq '.metadata.device_type // ""' "$CONFIG_FILE")
 OS_VERSION=$(yq '.metadata.os_version // ""' "$CONFIG_FILE")
 CUSTOMER_TYPE=$(yq '.metadata.customer_type // ""' "$CONFIG_FILE")
 PLATFORM=$(yq '.metadata.platform // ""' "$CONFIG_FILE")
+CONTAINER_TYPE=$(yq '.metadata.container_type // ""' "$CONFIG_FILE")
 
 # Derived fields
 PYTHON_RAW=$(yq '.build.python_version // ""' "$CONFIG_FILE")
@@ -84,6 +85,7 @@ SPEC+="version: \"${VERSION}\""$'\n'
 [[ -n "$CUDA_VERSION" ]]    && SPEC+="cuda_version: \"${CUDA_VERSION}\""$'\n'
 [[ -n "$TRANSFORMERS_VERSION" ]] && SPEC+="transformers_version: \"${TRANSFORMERS_VERSION}\""$'\n'
 [[ -n "$PLATFORM" ]]        && SPEC+="platform: \"${PLATFORM}\""$'\n'
+[[ -n "$CONTAINER_TYPE" ]]  && SPEC+="container_type: \"${CONTAINER_TYPE}\""$'\n'
 [[ -n "$FORCE_RELEASE" ]]   && SPEC+="force_release: ${FORCE_RELEASE}"$'\n'
 [[ -n "$PUBLIC_REGISTRY" ]] && SPEC+="public_registry: ${PUBLIC_REGISTRY}"$'\n'
 [[ -n "$PRIVATE_REGISTRY" ]] && SPEC+="private_registry: ${PRIVATE_REGISTRY}"$'\n'

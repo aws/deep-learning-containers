@@ -8,12 +8,12 @@
 <a href="https://aws.github.io/deep-learning-containers/reference/available_images/"><strong>Available Images</strong></a> · <a href="https://aws.github.io/deep-learning-containers/tutorials/"><strong>Tutorials</strong></a></p>
 
 <p align="center">
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-ec2.yml/badge.svg" alt="Auto Release - vLLM EC2"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-sagemaker.yml/badge.svg" alt="Auto Release - vLLM SageMaker"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-omni.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-omni.yml/badge.svg" alt="Auto Release - vLLM-Omni"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-ray.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-ray.yml/badge.svg" alt="Auto Release - Ray"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-sglang-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-sglang-ec2.yml/badge.svg" alt="Auto Release - SGLang EC2"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-sglang-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-sglang-sagemaker.yml/badge.svg" alt="Auto Release - SGLang SageMaker"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.12-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.12-ec2.yml/badge.svg" alt="Auto Release - PyTorch 2.12"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - vLLM"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm-omni.autorelease-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm-omni.autorelease-ec2.yml/badge.svg" alt="Auto Release - vLLM-Omni"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - SGLang"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/ray.autorelease-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/ray.autorelease-ec2.yml/badge.svg" alt="Auto Release - Ray"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/base.autorelease-cu130.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/base.autorelease-cu130.yml/badge.svg" alt="Auto Release - Base cu130"></a>
 </p>
 
 ______________________________________________________________________
