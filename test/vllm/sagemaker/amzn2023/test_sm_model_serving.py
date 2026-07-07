@@ -6,9 +6,17 @@ Supports text, audio, and video models. Reads model configuration from
 Each entry deploys a model from S3 with configured env vars, sends
 requests to the specified route, and validates the response.
 
+Entries may declare a ``required_image_pattern`` (dict of image-config
+fields → expected values, or a plain string that must appear in the
+image config). When ``--image-config`` is passed, the fixture parameter
+list is filtered so entries whose pattern does not match the image are
+dropped at collection time — same semantics as
+``scripts/ci/parse_model_config.py``'s ``_model_matches_image``.
+
 Usage:
     pytest test_sm_model_serving.py --image-uri <ecr_uri> --model-name voxtral-mini-4b
     pytest test_sm_model_serving.py --image-uri <ecr_uri>  # runs all sagemaker models
+    pytest test_sm_model_serving.py --image-uri <ecr_uri> --image-config <yaml>
 """
 
 import io
@@ -41,6 +49,11 @@ CONFIG_PATH = (
 
 def pytest_addoption(parser):
     parser.addoption("--model-name", default=None, help="Run only this model (default: all)")
+    parser.addoption(
+        "--image-config",
+        default=None,
+        help="Path to image config YAML; used to filter models by required_image_pattern",
+    )
 
 
 def _load_sagemaker_config(config_path, model_name=None):
@@ -53,6 +66,37 @@ def _load_sagemaker_config(config_path, model_name=None):
     for m in models:
         m["s3_path"] = f"{s3_prefix}/{m['s3_model']}"
     return models
+
+
+def _flatten_image_config(image_cfg):
+    """Flatten nested image config into a single-level dict of string values.
+
+    Mirrors scripts/ci/parse_model_config.py:_flatten_image_config so the
+    matching rules are consistent between the smoke-test matrix parser and
+    this loader.
+    """
+    flat = {}
+    for section in image_cfg.values():
+        if isinstance(section, dict):
+            for k, v in section.items():
+                flat[k] = str(v)
+    return flat
+
+
+def _model_matches_image(model, image_fields):
+    """True if the model's required_image_pattern matches the image config.
+
+    Accepts the same shapes as parse_model_config.py:
+    - dict → every {field: value} pair must match in image_fields
+    - string → must appear as some value in image_fields
+    - absent → model runs on every image
+    """
+    pattern = model.get("required_image_pattern")
+    if not pattern:
+        return True
+    if isinstance(pattern, dict):
+        return all(image_fields.get(k) == str(v) for k, v in pattern.items())
+    return str(pattern) in image_fields.values()
 
 
 def _download_s3(s3_client, s3_uri):
@@ -227,16 +271,28 @@ def _deploy_endpoint(image_uri, model_cfg, region):
     return endpoint_name, model, endpoint_config, endpoint
 
 
-def _generate_test_params():
-    model_name_filter = os.environ.get("SM_MODEL_NAME")
+def pytest_generate_tests(metafunc):
+    if "model_cfg" not in metafunc.fixturenames:
+        return
+    model_name_filter = metafunc.config.getoption("--model-name") or os.environ.get("SM_MODEL_NAME")
     models = _load_sagemaker_config(CONFIG_PATH, model_name_filter)
-    return [(m["name"], m) for m in models]
+
+    image_config_path = metafunc.config.getoption("--image-config")
+    if image_config_path and Path(image_config_path).is_file():
+        with open(image_config_path) as f:
+            image_fields = _flatten_image_config(yaml.safe_load(f))
+        models = [m for m in models if _model_matches_image(m, image_fields)]
+
+    metafunc.parametrize("model_cfg", models, ids=[m["name"] for m in models], indirect=True)
 
 
-@pytest.fixture(scope="module", params=_generate_test_params(), ids=lambda x: x[0])
-def deployed_model(request, image_uri):
-    _, model_cfg = request.param
+@pytest.fixture(scope="module")
+def model_cfg(request):
+    return request.param
 
+
+@pytest.fixture(scope="module")
+def deployed_model(model_cfg, image_uri):
     region = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
 
     endpoint_name, model, endpoint_config, endpoint = _deploy_endpoint(image_uri, model_cfg, region)

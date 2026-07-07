@@ -73,4 +73,7 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} vllm/sagemaker
+          python3 -m pytest -vs -rA \
+            --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            --image-config ../${{ inputs.config-file }} \
+            vllm/sagemaker
