@@ -5,7 +5,6 @@ without needing external network access.
 
 from .conftest import data_uri, run_training_job
 
-
 CODE_TARBALL_KEY = "code/pandas-parquet-file-1.4-2.tar.gz"
 CODE_TARBALL_LOCAL = "/opt/ml/input/data/code/pandas-parquet-file-1.4-2.tar.gz"
 

@@ -14,7 +14,6 @@ from .conftest import (
     s3_uri,
 )
 
-
 # us-west-2 SageMaker 1P algo ECR account for linear-learner
 LINEAR_LEARNER_IMAGE = "174872318107.dkr.ecr.us-west-2.amazonaws.com/linear-learner:latest"
 
@@ -25,9 +24,7 @@ LINEAR_LEARNER_MODEL = s3_uri(E2E_TEST_BUCKET, "input/linearlearner/a9a/model.ta
 
 def _linear_learner_payload():
     """JSON payload matching linear-learner's expected 123-feature input dim."""
-    return json.dumps(
-        {"instances": [{"data": {"features": {"values": list(range(123))}}}]}
-    )
+    return json.dumps({"instances": [{"data": {"features": {"values": list(range(123))}}}]})
 
 
 @pytest.fixture(scope="module")

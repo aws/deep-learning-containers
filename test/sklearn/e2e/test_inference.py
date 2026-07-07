@@ -8,15 +8,12 @@ import pytest
 
 from .conftest import data_uri, delete_endpoint, deploy_endpoint
 
-
 ECHO_MODEL_KEY = "model/empty.tar.gz"
 ECHO_CODE_KEY = "code/echo-2.4.10.tar.gz"
 
 
 def _payload(feature_dim=100):
-    return json.dumps(
-        {"instances": [{"data": {"features": {"values": list(range(feature_dim))}}}]}
-    )
+    return json.dumps({"instances": [{"data": {"features": {"values": list(range(feature_dim))}}}]})
 
 
 @pytest.fixture(scope="module")

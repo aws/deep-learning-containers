@@ -198,9 +198,7 @@ def deploy_multi_model_endpoint(
     return predictor, endpoint_name, mm_model
 
 
-def deploy_inference_pipeline(
-    models, role, test_name="pipe", instance_type="ml.m5.xlarge"
-):
+def deploy_inference_pipeline(models, role, test_name="pipe", instance_type="ml.m5.xlarge"):
     """Deploy a multi-container inference pipeline endpoint.
 
     `models` is an ordered list of (image_uri, model_data, env) tuples.
@@ -210,8 +208,7 @@ def deploy_inference_pipeline(
 
     endpoint_name = random_suffix_name(f"skl-{test_name}", 32)
     pipeline_models = [
-        Model(image_uri=img, model_data=data, role=role, env=env)
-        for img, data, env in models
+        Model(image_uri=img, model_data=data, role=role, env=env) for img, data, env in models
     ]
     pipeline = PipelineModel(
         name=random_suffix_name(f"skl-{test_name}-model", 32),
@@ -263,5 +260,3 @@ def delete_endpoint(endpoint_name):
         pass
     if endpoint_name in _created_endpoints:
         _created_endpoints.remove(endpoint_name)
-
-

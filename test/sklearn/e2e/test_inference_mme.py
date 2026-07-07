@@ -12,7 +12,6 @@ from .conftest import (
     deploy_multi_model_endpoint,
 )
 
-
 # MME lazy-loads only the tarball named in `target_model`, so the sibling
 # `code/user_code.tar.gz` under this prefix is never invoked as a model.
 MME_MODEL_PREFIX = "mme_models/"

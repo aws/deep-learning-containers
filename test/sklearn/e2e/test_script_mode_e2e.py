@@ -5,7 +5,6 @@ alongside the training script.
 
 from .conftest import data_uri, run_training_job
 
-
 CODE_TARBALL_KEY = "code/requirements.tar.gz"
 
 
