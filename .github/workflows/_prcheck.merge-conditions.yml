@@ -28,6 +28,7 @@ jobs:
             const ignoredPatterns = [
                 /\/ ecr-vulnerability-scan$/,
                 /\/ model-tests \//,
+                /\/ efa-test \//,
             ];
             const intervalMs = 30_000;
             const timeoutMs = 7_200_000;
