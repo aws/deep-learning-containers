@@ -41,6 +41,42 @@ docker run --gpus all --ipc=host -p 30000:30000 \
 
 `--ipc=host` enables shared memory between GPU processes.
 
+## Vision Grounding (Multimodal)
+
+The images support multimodal vision-grounding models such as [NVIDIA LocateAnything-3B](https://huggingface.co/nvidia/LocateAnything-3B), which
+return bounding boxes for objects matching a text description. These models ship a custom Hugging Face processor, so pass `--trust-remote-code`:
+
+```bash
+docker run --gpus all -p 30000:30000 \
+  public.ecr.aws/deep-learning-containers/sglang:server-cuda \
+  --model-path nvidia/LocateAnything-3B \
+  --trust-remote-code \
+  --context-length 16384 \
+  --host 0.0.0.0 --port 30000
+```
+
+Send an image with a grounding prompt using the OpenAI chat format with an `image_url` content part:
+
+```bash
+curl http://localhost:30000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "nvidia/LocateAnything-3B",
+    "messages": [{
+      "role": "user",
+      "content": [
+        {"type": "image_url", "image_url": {"url": "https://example.com/car.jpg"}},
+        {"type": "text", "text": "Locate all the instances that matches the following description: car"}
+      ]
+    }],
+    "max_tokens": 2048,
+    "skip_special_tokens": false
+  }'
+```
+
+The response content contains `<box>x1, y1, x2, y2</box>` coordinates for each detected instance. Pass `"skip_special_tokens": false` so the box
+tokens are preserved in the output.
+
 ## Model-Specific Tuning
 
 For recommended serving flags, hardware configurations, and quantization options per model, see the

@@ -28,6 +28,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/07/06]** [SGLang Server v1.2 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.2` · SageMaker: `server-sagemaker-cuda-v1.2` · SGLang `0.5.14`; adds support for the NVIDIA LocateAnything-3B vision-grounding model and upgrades sgl-kernel 0.4.4, FlashInfer 0.6.12, Mooncake 0.3.11.post1, NCCL 2.30.4, and EFA 1.49.0.
 - **[2026/07/02]** [vLLM Server v2.1 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.1` · SageMaker: `server-sagemaker-cuda-v2.1` · vLLM `0.24.0`; adds JetBrains Mellum2-12B-A2.5B-Thinking (`MellumForCausalLM`); FlashInfer 0.6.12; drops the `transformers<5.10` pin (now requires transformers ≥ 5.5.3).
 - **[2026/07/02]** [vLLM-Omni v1.4 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.4` · SageMaker: `omni-sagemaker-cuda-v1.4` · SageMaker `/v1/videos` and `/v1/videos/sync` accept `application/json` again (JSON→multipart conversion restored); no framework bump (vLLM-Omni 0.21.0rc1).
 - **[2026/07/02]** [PyTorch v2.12.1](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.12.1-cu130-amzn2023` · SageMaker: `2.12.1-cu130-amzn2023-sagemaker` · Amazon Linux 2023 with EFA, flash-attn, and Transformer Engine; PyTorch 2.12.1 bug-fix release (B200/Triton correctness fixes).
