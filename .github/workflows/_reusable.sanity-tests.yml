@@ -144,7 +144,7 @@ jobs:
             -e EXPECTED_PYTHON_VERSION=${{ needs.preflight.outputs.python-version }} \
             -e EXPECTED_CUDA_VERSION=${{ needs.preflight.outputs.cuda-version }} \
             ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
-            
+
       - name: Check model containers framework version currency
         if: |
           needs.preflight.outputs.framework == 'vllm_server' ||
