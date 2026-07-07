@@ -1,4 +1,4 @@
-name: "Pipeline - XGBoost"
+name: "Pipeline - Scikit-learn"
 
 on:
   workflow_call:
@@ -32,12 +32,12 @@ on:
         type: boolean
         default: true
       run-unit-test:
-        description: "Run unit tests (clones sagemaker-xgboost-container)"
+        description: "Run unit tests (clones sagemaker-scikit-learn-container)"
         required: false
         type: boolean
         default: true
       run-integ-test:
-        description: "Run integration tests (local Docker + SageMaker e2e)"
+        description: "Run integration tests (local Docker)"
         required: false
         type: boolean
         default: true
@@ -96,7 +96,7 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # TODO: Re-enable telemetry tests after xgboost telemetry setup is verified
+  # TODO: Re-enable telemetry tests after sklearn telemetry setup is verified
   # telemetry-test:
   #   if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
   #   needs: [build]
@@ -114,7 +114,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/xgboost.tests-unit.yml
+    uses: ./.github/workflows/sklearn.tests-unit.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -126,20 +126,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-integ-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/xgboost.tests-integ-local.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
-  # Full integration suite — GPU container tests + SageMaker e2e + benchmarks.
-  # Heavy; only runs on the release pipeline, not on PRs.
-  integ-test-full:
-    if: ${{ always() && !failure() && !cancelled() && inputs.release }}
-    needs: [build]
-    concurrency:
-      group: ${{ github.workflow }}-integ-test-full-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/xgboost.tests-integ.yml
+    uses: ./.github/workflows/sklearn.tests-integ-local.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -152,7 +139,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, unit-test, integ-test, integ-test-full]
+    needs: [build, sanity-test, security-test, unit-test, integ-test]
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.check.outputs.environment }}
@@ -182,23 +169,3 @@ jobs:
       environment: ${{ needs.release-gate.outputs.environment }}
       aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit
-
-  notify-failure:
-    # Notify Slack immediately when an auto-release/dispatch-release run fails.
-    # Guarded on release context so PR runs never notify.
-    if: >-
-      failure() &&
-      github.ref == 'refs/heads/main' &&
-      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
-      !contains(github.workflow_ref, '.pr') &&
-      inputs.release
-    needs: [build, sanity-test, security-test, unit-test, integ-test, integ-test-full, release-gate, release]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/notify-slack-failure
-        with:
-          webhook-url: ${{ secrets.SLACK_RELEASE_FAILURE_WEBHOOK_URL }}
-          workflow-name: ${{ github.workflow }}
-          config-file: ${{ inputs.config-file }}
-          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

@@ -1,0 +1,178 @@
+# vLLM SageMaker Endpoint Test Configuration
+#
+# Config-driven real SageMaker endpoint tests. Each entry deploys a model
+# from S3, sends requests to the configured route, and validates the response.
+#
+# Test script: test/vllm/sagemaker/amzn2023/test_sm_model_serving.py
+#
+# Smoke-test entries live in the sibling vllm-model-tests.yml.
+
+s3_prefix: "s3://dlc-cicd-models/llm-models"
+test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
+
+sagemaker:
+  # MiniCPM5-1B — dense 1B LlamaForCausalLM, bf16. Standard chat model served via
+  # the OpenAI /v1/chat/completions route. Validated offline on
+  # server-sagemaker-cuda-v2 with SM_VLLM_MAX_MODEL_LEN=8192. Hybrid reasoning
+  # emits a <think> block, so message.content is non-empty; json_field validation
+  # (non-empty check) mirrors the other entries' validate rule.
+  - name: "minicpm5-1b"
+    s3_model: "minicpm5-1b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "8192"
+      SM_VLLM_DTYPE: "bfloat16"
+    test_cases:
+      - name: "chat-completion"
+        route: "/v1/chat/completions"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            messages:
+              - role: "user"
+                content: "What is the capital of France?"
+            max_tokens: 256
+            temperature: 0
+        validate: "json_field:choices.0.message.content"
+
+  - name: "voxtral-mini-4b"
+    s3_model: "voxtral-mini-4b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_TOKENIZER_MODE: "mistral"
+      SM_VLLM_CONFIG_FORMAT: "mistral"
+      SM_VLLM_LOAD_FORMAT: "mistral"
+      SM_VLLM_ENFORCE_EAGER: "true"
+      SM_VLLM_MAX_MODEL_LEN: "8192"
+    test_cases:
+      - name: "transcription-en"
+        route: "/v1/audio/transcriptions"
+        content_type: "multipart/form-data"
+        request:
+          file_s3: "s3://dlc-cicd-models/test-fixtures/audio/asr_en.wav"
+          file_field: "file"
+          file_name: "test.wav"
+          file_content_type: "audio/wav"
+          fields:
+            model: "/opt/ml/model"
+        validate: "json_field:text"
+
+  - name: "granite-speech-4-1-2b"
+    s3_model: "granite-speech-4.1-2b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "2048"
+    test_cases:
+      - name: "transcription-en"
+        route: "/v1/audio/transcriptions"
+        content_type: "multipart/form-data"
+        request:
+          file_s3: "s3://dlc-cicd-models/test-fixtures/audio/asr_en.wav"
+          file_field: "file"
+          file_name: "test.wav"
+          file_content_type: "audio/wav"
+          fields:
+            model: "/opt/ml/model"
+        validate: "json_field:text"
+
+  - name: "voxtral-mini-4b-network-isolated"
+    s3_model: "voxtral-mini-4b-isolated.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+    network_isolation: true
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_TOKENIZER_MODE: "mistral"
+      SM_VLLM_CONFIG_FORMAT: "mistral"
+      SM_VLLM_LOAD_FORMAT: "mistral"
+      SM_VLLM_ENFORCE_EAGER: "true"
+      SM_VLLM_MAX_MODEL_LEN: "8192"
+      STANDARD_PIP_ARGS: "--no-index --find-links /opt/ml/model/requirements -r /opt/ml/model/requirements.txt"
+    test_cases:
+      - name: "transcription-en-isolated"
+        route: "/v1/audio/transcriptions"
+        content_type: "multipart/form-data"
+        request:
+          file_s3: "s3://dlc-cicd-models/test-fixtures/audio/asr_en.wav"
+          file_field: "file"
+          file_name: "test.wav"
+          file_content_type: "audio/wav"
+          fields:
+            model: "/opt/ml/model"
+        validate: "json_field:text"
+
+  - name: "granite-speech-4-1-2b-network-isolated"
+    s3_model: "granite-speech-4.1-2b-isolated.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+    network_isolation: true
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "2048"
+      STANDARD_PIP_ARGS: "--no-index --find-links /opt/ml/model/requirements -r /opt/ml/model/requirements.txt"
+    test_cases:
+      - name: "transcription-en-isolated"
+        route: "/v1/audio/transcriptions"
+        content_type: "multipart/form-data"
+        request:
+          file_s3: "s3://dlc-cicd-models/test-fixtures/audio/asr_en.wav"
+          file_field: "file"
+          file_name: "test.wav"
+          file_content_type: "audio/wav"
+          fields:
+            model: "/opt/ml/model"
+        validate: "json_field:text"
+
+  # Qwen3-Reranker-4B — Path C: load as Qwen3ForSequenceClassification so the
+  # Cohere-compatible /v1/rerank endpoint registers. SM_VLLM_HF_OVERRIDES is
+  # passed verbatim to vLLM as --hf-overrides. The chat template is read from
+  # test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja (shared with
+  # the EC2 reranker scripts), flattened to single-line with {{ '\n' }} escapes
+  # at test runtime, and injected as SM_VLLM_CHAT_TEMPLATE. vLLM's
+  # --chat-template falls back to inline jinja for non-path values containing
+  # '{', '}', or newline; the {{ '\n' }} expressions render to real newlines
+  # at request time, reproducing the original template byte-for-byte.
+  - name: "qwen3-reranker-4b"
+    s3_model: "qwen3-reranker-4b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+    chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_RUNNER: "pooling"
+      # Plain JSON, no literal-single-quote wrapping. standard-supervisor (>=0.1.15,
+      # pinned in docker/vllm/Dockerfile.amzn2023) shlex.quote()s each argv element
+      # before the supervisord round-trip, so the inner double quotes survive intact
+      # and json.loads succeeds. Wrapping in single quotes here would pass them
+      # through verbatim and break json.loads on the leading quote.
+      SM_VLLM_HF_OVERRIDES: '{"architectures":["Qwen3ForSequenceClassification"],"classifier_from_token":["no","yes"],"is_original_qwen3_reranker":true}'
+      SM_VLLM_DTYPE: "bfloat16"
+      SM_VLLM_MAX_MODEL_LEN: "10000"
+      SM_VLLM_GPU_MEMORY_UTILIZATION: "0.85"
+    test_cases:
+      - name: "rerank-basic"
+        route: "/v1/rerank"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            query: "What is the capital of France?"
+            documents:
+              - "Paris is the capital of France."
+              - "Berlin is the capital of Germany."
+              - "The Eiffel Tower is in Paris."
+              - "Tokyo is the capital of Japan."
+        validate: "json_field:results.0.relevance_score"

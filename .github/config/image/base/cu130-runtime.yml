@@ -10,6 +10,7 @@ metadata:
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
+  container_type: "runtime"
   prod_image: "base:runtime-cu130-amzn2023"
 
 build:
