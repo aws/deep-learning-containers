@@ -86,8 +86,6 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
     && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
 # Stamp the sglang package version for CVE scanner compatibility.
-# PEP 440 local version: 0.5.13+dlc1.amzn2023.66ab5c9c
-# This ensures: version >= 0.5.13 (not flagged) and < 0.5.14 (correct ordering).
 ARG FRAMEWORK_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
 

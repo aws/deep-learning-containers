@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "sglang_server"
-  framework_version: "0.5.13+dlc1"
+  framework_version: "0.5.14+dlc1"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
