@@ -145,6 +145,17 @@ jobs:
             -e EXPECTED_CUDA_VERSION=${{ needs.preflight.outputs.cuda-version }} \
             ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
 
+      - name: Check model containers framework version currency
+        if: |
+          needs.preflight.outputs.framework == 'vllm_server' ||
+          needs.preflight.outputs.framework == 'sglang_server'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          source .venv/bin/activate
+          python3 test/sanity/scripts/check_framework_version_currency.py \
+            --config-file "${{ inputs.config-file }}"
+
       - name: Run OSS compliance check
         run: |
           docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
