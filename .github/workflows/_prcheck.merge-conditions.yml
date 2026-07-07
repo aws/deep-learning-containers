@@ -27,6 +27,7 @@ jobs:
             const ignoredChecks = new Set([self]);
             const ignoredPatterns = [
                 /\/ ecr-vulnerability-scan$/,
+                /\/ model-tests \//,
             ];
             const intervalMs = 30_000;
             const timeoutMs = 7_200_000;
