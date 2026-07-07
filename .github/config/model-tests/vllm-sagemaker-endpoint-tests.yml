@@ -39,6 +39,37 @@ sagemaker:
             temperature: 0
         validate: "json_field:choices.0.message.content"
 
+  # NVIDIA Nemotron-Nano-12B-v2 — Mamba2-Transformer hybrid (NemotronHForCausalLM),
+  # 12B params bf16 (~24GB weights, ~42GB steady-state including Mamba SSM float32
+  # cache + KV pool). Requires ml.g6e.xlarge (L40S 48GB); ml.g6.xlarge (L4 24GB)
+  # cannot fit the model. --trust-remote-code loads the custom
+  # configuration_nemotron_h.py; --mamba-ssm-cache-dtype=float32 is required by
+  # the model card to preserve accuracy (skipping it silently degrades quality).
+  - name: "nemotron-nano-12b-v2"
+    s3_model: "nemotron-nano-12b-v2.tar.gz"
+    instance_type: "ml.g6e.xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "4096"
+      SM_VLLM_DTYPE: "bfloat16"
+      SM_VLLM_TRUST_REMOTE_CODE: "true"
+      SM_VLLM_MAMBA_SSM_CACHE_DTYPE: "float32"
+    test_cases:
+      - name: "chat-completion"
+        route: "/v1/chat/completions"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            messages:
+              - role: "user"
+                content: "What is the capital of France?"
+            max_tokens: 256
+            temperature: 0
+        validate: "json_field:choices.0.message.content"
+
   - name: "voxtral-mini-4b"
     s3_model: "voxtral-mini-4b.tar.gz"
     instance_type: "ml.g6.xlarge"
