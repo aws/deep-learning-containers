@@ -26,6 +26,7 @@ jobs:
       image-uri: ${{ steps.image.outputs.image-uri }}
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
+      sagemaker-matrix: ${{ steps.parse.outputs.matrix }}
     steps:
       - uses: actions/checkout@v6
 
@@ -45,8 +46,20 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+      - name: Parse sagemaker config
+        if: steps.check.outputs.exists == 'true'
+        id: parse
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install pyyaml
+          python3 scripts/ci/parse_model_config.py \
+            --config .github/config/model-tests/vllm-sagemaker-endpoint-tests.yml \
+            --section sagemaker \
+            --image-config "${{ inputs.config-file }}"
+
   endpoint-test:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.sagemaker-matrix)[0] != null }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -73,7 +86,4 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA \
-            --image-uri ${{ needs.preflight.outputs.image-uri }} \
-            --image-config ../${{ inputs.config-file }} \
-            vllm/sagemaker
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} vllm/sagemaker
