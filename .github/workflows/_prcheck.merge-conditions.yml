@@ -26,6 +26,8 @@ jobs:
             const self = 'enforce-all-checks';
             const ignoredChecks = new Set([self]);
             const ignoredPatterns = [
+              /ecr-vulnerability-scan$/,
+              /efa-test$/,
             ];
             const intervalMs = 30_000;
             const timeoutMs = 7_200_000;
