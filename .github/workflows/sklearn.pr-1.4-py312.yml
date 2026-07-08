@@ -95,7 +95,7 @@ jobs:
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
-      build: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-integ-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.integ-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
