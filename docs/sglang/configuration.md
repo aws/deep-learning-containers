@@ -27,6 +27,9 @@ docker run --gpus all -p 30000:30000 \
 
 For gated models (Llama, Gemma, etc.), pass `-e HF_TOKEN=<your_hf_token>`.
 
+For multimodal vision-grounding models (e.g. LocateAnything-3B), pass `--trust-remote-code` and send image inputs via the OpenAI chat `image_url`
+content type — see the [EC2 vision-grounding example](deployment/ec2.md#vision-grounding-multimodal).
+
 ## Amazon SageMaker AI (`server-sagemaker-cuda`)
 
 The SageMaker image serves on **port 8080** and accepts SGLang flags via `SM_SGLANG_*` environment variables. Each variable is converted to the

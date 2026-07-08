@@ -18,6 +18,11 @@ release. A *Smoke + Benchmark* tag means both apply.
 |  | [Qwen/Qwen3-Coder-Next-FP8](https://huggingface.co/Qwen/Qwen3-Coder-Next-FP8) | Benchmark |
 | **GPT-OSS** | [openai/gpt-oss-20b](https://huggingface.co/openai/gpt-oss-20b) | Benchmark |
 | **DeepSeek** | [deepseek-ai/DeepSeek-V4-Flash](https://huggingface.co/deepseek-ai) | Benchmark |
+| **LocateAnything** | [nvidia/LocateAnything-3B](https://huggingface.co/nvidia/LocateAnything-3B) | Smoke |
+
+**LocateAnything-3B** is a multimodal vision-grounding model: given an image and a text description, it returns bounding boxes (`<box>…</box>`) for
+the matching objects. Serve it with `--trust-remote-code` and send image inputs via the OpenAI chat `image_url` content type — see the
+[EC2 vision-grounding example](../deployment/ec2.md#vision-grounding-multimodal).
 
 ## Custom Models
 

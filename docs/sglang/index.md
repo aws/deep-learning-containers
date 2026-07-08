@@ -29,6 +29,10 @@ In addition to SGLang and its core stack (PyTorch 2.11, CUDA 13.0, NCCL, Python 
 
 The images are built from SGLang source against the H100 (sm_90) and Blackwell (sm_100, sm_103) CUDA architectures.
 
+The runtime also bundles `decord`, `lmdb`, and `peft` to support multimodal vision-grounding models such as
+[NVIDIA LocateAnything-3B](https://huggingface.co/nvidia/LocateAnything-3B), which return bounding boxes for objects matching a text prompt. See
+[Supported Models](models/index.md) for the tested set.
+
 ## API Endpoints
 
 The container runs SGLang's [OpenAI-compatible API server](https://docs.sglang.ai/basic_usage/openai_api.html). Common endpoints:
