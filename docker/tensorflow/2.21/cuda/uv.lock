@@ -323,14 +323,14 @@ wheels = [
 
 [[package]]
 name = "bleach"
-version = "6.3.0"
+version = "6.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "webencodings", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/07/18/3c8523962314be6bf4c8989c79ad9531c825210dd13a8669f6b84336e8bd/bleach-6.3.0.tar.gz", hash = "sha256:6f3b91b1c0a02bb9a78b5a454c92506aa0fdf197e1d5e114d2e00c6f64306d22", size = 203533, upload-time = "2025-10-27T17:57:39.211Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/48/3c/e12ac860709702bd5ebeb9b56a4fe334f1001246ee1b8f2b7ee28912df7d/bleach-6.4.0.tar.gz", hash = "sha256:4202482733d85cedd04e59fcb2f89f4e4c7c385a78d3c3c23c30446843a37452", size = 204857, upload-time = "2026-06-05T13:01:13.734Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cd/3a/577b549de0cc09d95f11087ee63c739bba856cd3952697eec4c4bb91350a/bleach-6.3.0-py3-none-any.whl", hash = "sha256:fe10ec77c93ddf3d13a73b035abaac7a9f5e436513864ccdad516693213c65d6", size = 164437, upload-time = "2025-10-27T17:57:37.538Z" },
+    { url = "https://files.pythonhosted.org/packages/58/9d/40b6267367182187139a4000b82a3b287d84d745bccd808e75d916920e9d/bleach-6.4.0-py3-none-any.whl", hash = "sha256:4b6b6a54fff2e69a3dde9d21cc6301220bee3c3cb792187d11403fd795031081", size = 165109, upload-time = "2026-06-05T13:01:12.504Z" },
 ]
 
 [package.optional-dependencies]
@@ -543,9 +543,6 @@ wheels = [
 ]
 
 [package.optional-dependencies]
-cublas = [
-    { name = "nvidia-cublas", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-]
 cudart = [
     { name = "nvidia-cuda-runtime", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
@@ -1474,7 +1471,7 @@ wheels = [
 
 [[package]]
 name = "jupyter-server"
-version = "2.18.2"
+version = "2.20.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -1495,9 +1492,9 @@ dependencies = [
     { name = "traitlets", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "websocket-client", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ca/15/1eacb0fcb79ef86e8a0a79a708e6ad7435f6f223097dd29a4ce861fabc44/jupyter_server-2.18.2.tar.gz", hash = "sha256:06b4f40d8a7a00bb39d5216859c81374a0e7cfefe6d8a5a7facc5a5c37c679a7", size = 753177, upload-time = "2026-05-06T07:04:36.274Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6b/dc/db3a582633170186f8c8b31298d7eb26ad0eb031a1f53476c258b64eed05/jupyter_server-2.20.0.tar.gz", hash = "sha256:b5778ba337d8015a3dc2b80803ecdd5ac18d3797fddf61a50ea5fb472b4ebe14", size = 756523, upload-time = "2026-06-17T12:09:09.435Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e2/50/ecf4f70d65bdb7519b28a33d1b2fee8a4b4ba1ae1a92f15d97e877c5de21/jupyter_server-2.18.2-py3-none-any.whl", hash = "sha256:fa5e46539ded65791838035a2b6001f13e54d5f64b8b3752eb1e91fdd641a5b8", size = 391907, upload-time = "2026-05-06T07:04:34.014Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/71/8c002223e873a870f5c41dc69b0a7c922301123e4a31d5d01ecb700aef77/jupyter_server-2.20.0-py3-none-any.whl", hash = "sha256:c3b67c93c471e947c18b5026f04f21614218adb706df8f48227d3ee8e0a7cdcc", size = 393143, upload-time = "2026-06-17T12:09:07.234Z" },
 ]
 
 [[package]]
@@ -1514,7 +1511,7 @@ wheels = [
 
 [[package]]
 name = "jupyterlab"
-version = "4.5.7"
+version = "4.5.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "async-lru", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -1531,9 +1528,9 @@ dependencies = [
     { name = "tornado", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "traitlets", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2b/22/8440ec827762146e7cdecf04335bd348795899d29dc6ae82238707353a2c/jupyterlab-4.5.7.tar.gz", hash = "sha256:55a9822c4754da305f41e113452c68383e214dcf96de760146af89ce5d5117b0", size = 23992763, upload-time = "2026-04-29T16:43:51.328Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/52/a8d4895bef501ffeb6af448e8bf7079541c7772978211963aa653518c2d9/jupyterlab-4.5.9.tar.gz", hash = "sha256:dd79a073fecae7a39066ea99e4627ed6c76269ac926e95a810e1e1df6358d865", size = 23994445, upload-time = "2026-06-17T15:42:16.406Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/aa/537b8f7d80e799af19af35fb3ddfc970b951088a13c57dd9387dcfbb7f61/jupyterlab-4.5.7-py3-none-any.whl", hash = "sha256:fba4cb0e2c44a52859669d8c98b45de029d5e515f8407bf8534d2a8fc5f0964d", size = 12450123, upload-time = "2026-04-29T16:43:46.639Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/bb/2f9b425062416fba58f580c9b89c3b07277ccdf0a292501fedbca8ea00ea/jupyterlab-4.5.9-py3-none-any.whl", hash = "sha256:5ff0f908e8ac0afbed32b106fdef360f101c0a6654d1bf4a81e98a293ae1b336", size = 12449803, upload-time = "2026-06-17T15:42:12.18Z" },
 ]
 
 [[package]]
@@ -2068,13 +2065,13 @@ wheels = [
 
 [[package]]
 name = "nvidia-cudnn-cu13"
-version = "9.19.0.56"
+version = "9.20.0.48"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "nvidia-cublas", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a3/22/0b4b932655d17a6da1b92fa92ab12844b053bb2ac2475e179ba6f043da1e/nvidia_cudnn_cu13-9.19.0.56-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:d20e1734305e9d68889a96e3f35094d733ff1f83932ebe462753973e53a572bf", size = 366066321, upload-time = "2026-02-03T20:44:52.837Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/5e/edb9c0ae051602c3ccaffe424256463636d639e27d7f302dde9975ef9e7a/nvidia_cudnn_cu13-9.20.0.48-py3-none-manylinux_2_27_x86_64.whl", hash = "sha256:0c45dd8eeb50b603f07995b1b300c62ffe6a1980482b82b3bcf94a4ca9d49304", size = 366173588, upload-time = "2026-03-09T19:29:34.474Z" },
 ]
 
 [[package]]
@@ -2130,10 +2127,10 @@ wheels = [
 
 [[package]]
 name = "nvidia-cusparselt-cu13"
-version = "0.8.0"
+version = "0.8.1"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fd/53/43b0d71f4e702fa9733f8b4571fdca50a8813f1e450b656c239beff12315/nvidia_cusparselt_cu13-0.8.0-py3-none-manylinux2014_x86_64.whl", hash = "sha256:25e30a8a7323935d4ad0340b95a0b69926eee755767e8e0b1cf8dd85b197d3fd", size = 169884119, upload-time = "2025-08-13T19:23:41.967Z" },
+    { url = "https://files.pythonhosted.org/packages/34/7d/2661f2fb3ac4302f3a246f5fc030213ac60c1fe0bce84f9783dbd831dbb7/nvidia_cusparselt_cu13-0.8.1-py3-none-manylinux2014_x86_64.whl", hash = "sha256:786ce87568c303fadb5afcc7102d454cd3040d75f6f8626f5db460d1871f4dd0", size = 170148586, upload-time = "2025-09-05T18:50:50.248Z" },
 ]
 
 [[package]]
@@ -2146,10 +2143,10 @@ wheels = [
 
 [[package]]
 name = "nvidia-nccl-cu13"
-version = "2.28.9"
+version = "2.29.7"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b0/b4/878fefaad5b2bcc6fcf8d474a25e3e3774bc5133e4b58adff4d0bca238bc/nvidia_nccl_cu13-2.28.9-py3-none-manylinux_2_18_x86_64.whl", hash = "sha256:e4553a30f34195f3fa1da02a6da3d6337d28f2003943aa0a3d247bbc25fefc42", size = 196493177, upload-time = "2025-11-18T05:49:17.677Z" },
+    { url = "https://files.pythonhosted.org/packages/67/f4/58e4e91b6919367c7aafb8e36fce9aad1a3047e536bf7e2fd560927d3a4c/nvidia_nccl_cu13-2.29.7-py3-none-manylinux_2_18_x86_64.whl", hash = "sha256:edd81538446786ec3b73972543e53bb43bcaf0bfc8ef76cb679fcc390ffe136d", size = 205976000, upload-time = "2026-03-03T05:36:24.472Z" },
 ]
 
 [[package]]
@@ -2191,7 +2188,7 @@ wheels = [
 
 [[package]]
 name = "onnx"
-version = "1.21.0"
+version = "1.22.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ml-dtypes", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -2199,9 +2196,10 @@ dependencies = [
     { name = "protobuf", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "typing-extensions", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c5/93/942d2a0f6a70538eea042ce0445c8aefd46559ad153469986f29a743c01c/onnx-1.21.0.tar.gz", hash = "sha256:4d8b67d0aaec5864c87633188b91cc520877477ec0254eda122bef8be43cd764", size = 12074608, upload-time = "2026-03-27T21:33:36.118Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/04/19/8ea73a64b368b75fe339771a20a02bc61ea1f551484c9e3d9d0bfbd0450f/onnx-1.22.0.tar.gz", hash = "sha256:ef40c0aaf0b643857ea9306fc7eddce17eaf9fb0407e4801f1fc5758443a38e0", size = 12024721, upload-time = "2026-06-15T12:50:05.354Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a7/00/4823f06357892d1e60d6f34e7299d2ba4ed2108c487cc394f7ce85a3ff14/onnx-1.21.0-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:a9261bd580fb8548c9c37b3c6750387eb8f21ea43c63880d37b2c622e1684285", size = 17613697, upload-time = "2026-03-27T21:32:54.222Z" },
+    { url = "https://files.pythonhosted.org/packages/09/a6/bd32357e6cc1ecb473afd78193d7231724f284435d2db25696ecfaaa1503/onnx-1.22.0-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:955e02e1f6d385b53d52f9cd7b9cdf5caf417c300bcfe3c64c6d542be763845b", size = 19106514, upload-time = "2026-06-15T12:49:37.424Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/9d/3af461ac6c714b8b369cb71499659932f4f12cfb066250b62f7567c3d530/onnx-1.22.0-cp312-abi3-pyemscripten_2025_0_wasm32.whl", hash = "sha256:82e9f27fc1223cb06d68a56bed6f9d3caf3d0dad1b61bce45006d529b15bd94c", size = 16966387, upload-time = "2026-06-15T12:49:40.918Z" },
 ]
 
 [[package]]
@@ -2817,7 +2815,7 @@ wheels = [
 
 [[package]]
 name = "requests"
-version = "2.34.0"
+version = "2.34.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -2825,9 +2823,9 @@ dependencies = [
     { name = "idna", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "urllib3", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/43/b8/7a707d60fea4c49094e40262cc0e2ca6c768cca21587e34d3f705afec47e/requests-2.34.0.tar.gz", hash = "sha256:7d62fe92f50eb82c529b0916bb445afa1531a566fc8f35ffdc64446e771b856a", size = 142436, upload-time = "2026-05-11T19:29:51.717Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ac/c3/e2a2b89f2d3e2179abd6d00ebd70bff6273f37fb3e0cc209f48b39d00cbf/requests-2.34.2.tar.gz", hash = "sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed", size = 142856, upload-time = "2026-05-14T19:25:27.735Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/e6/e300fce5fe83c30520607a015dabd985df3251e188d234bfe9492e17a389/requests-2.34.0-py3-none-any.whl", hash = "sha256:917520a21b767485ce7c588f4ebb917c436b24a31231b44228715eaeb5a52c60", size = 73021, upload-time = "2026-05-11T19:29:49.923Z" },
+    { url = "https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl", hash = "sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0", size = 73075, upload-time = "2026-05-14T19:25:26.443Z" },
 ]
 
 [[package]]
@@ -2949,7 +2947,7 @@ wheels = [
 
 [[package]]
 name = "sagemaker"
-version = "3.11.0"
+version = "3.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "sagemaker-core", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -2957,14 +2955,14 @@ dependencies = [
     { name = "sagemaker-serve", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "sagemaker-train", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3d/18/d58263e69fb505a35458f260ab85a578547132b88719592191c993571551/sagemaker-3.11.0.tar.gz", hash = "sha256:93f20ba7751063e179f25cd1a38b8f88bff086f0cd273fff5b72a3a78d4610c5", size = 12188, upload-time = "2026-05-13T00:14:02.031Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/73/1a5f14c714c7e41a61d7f70021d14776831298ebaa79541ce7b6a2695d07/sagemaker-3.15.0.tar.gz", hash = "sha256:dc86342be7b9d8e53ea316bb2f410a0186738e4b5a74b41379292955a7ed32ce", size = 12143, upload-time = "2026-06-27T05:30:11.114Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/52/94/9e23f19646478d6f055825be8b7fac4f62fc1895f1d068a560439edfe097/sagemaker-3.11.0-py3-none-any.whl", hash = "sha256:e4d5ec9f34915d234057b88c2bbecd0279d9b78b191a13a49c64cc88df19c9dd", size = 11260, upload-time = "2026-05-13T00:13:59.605Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/ab/57718e05c76a61d41b3f84a59f8551fcb6618d0e1de7cbd5a70acda030ca/sagemaker-3.15.0-py3-none-any.whl", hash = "sha256:6f874341a8aa1842e0070f45020570e7b0feef1af925a07cc981ffdb14cf66e4", size = 11252, upload-time = "2026-06-27T05:30:09.781Z" },
 ]
 
 [[package]]
 name = "sagemaker-core"
-version = "2.11.0"
+version = "2.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -2992,9 +2990,9 @@ dependencies = [
     { name = "tblib", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "typing-extensions", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4e/b3/940a54d188bc0eef06647f9dd6bb2bbe7a5d95ced2883305a3e1edab79ac/sagemaker_core-2.11.0.tar.gz", hash = "sha256:3874e9d2acd2c15b80dd2b5b8043901b12de1cf42cd9084ea997fe11d59925f3", size = 1063421, upload-time = "2026-05-12T23:02:18.224Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/64/e0/873aea5950f9bf8c8e98c1474bd7918e66893b03d6ffb53710670e971bab/sagemaker_core-2.15.0.tar.gz", hash = "sha256:da6c1800ee5842c07acf897dba34bbafa883b9ceb121021657a464d168cd63aa", size = 1089037, upload-time = "2026-06-27T02:40:45.786Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cb/0b/7ecd021981c9ee42e40aa22ac913ec90ab1f07b6ae12b7afc5bf07f43dec/sagemaker_core-2.11.0-py3-none-any.whl", hash = "sha256:f4853c1eea0b4b37d555d35976323d6540c67c47b46ce1308a723c6478e0af42", size = 1300786, upload-time = "2026-05-12T23:02:16.526Z" },
+    { url = "https://files.pythonhosted.org/packages/ec/08/00e844e6950171f9b2fe8b7e1c1d2c41b81e26708eec80aaafaf33d2d851/sagemaker_core-2.15.0-py3-none-any.whl", hash = "sha256:2f1299395044378fb0f6a6017547fab040c743b65875d98b700679d6533d3d87", size = 1331158, upload-time = "2026-06-27T02:40:43.803Z" },
 ]
 
 [[package]]
@@ -3044,11 +3042,12 @@ wheels = [
 
 [[package]]
 name = "sagemaker-mlops"
-version = "1.11.0"
+version = "1.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boto3", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "botocore", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "cryptography", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "pyarrow", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "pyiceberg", extra = ["glue"], marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "s3fs", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -3056,9 +3055,9 @@ dependencies = [
     { name = "sagemaker-serve", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "sagemaker-train", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/23/a5/a70c1e9c3258cb67c62330f02e5e4f3a95c7383c911920b17584e3881180/sagemaker_mlops-1.11.0.tar.gz", hash = "sha256:8ee022c2881c3f1db688f7d502a7918bf7e28807e02b28106e6f5a592e38178f", size = 162072, upload-time = "2026-05-12T23:19:04.163Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/2e/a5c595c825d99eceaa104f732f072ceda9658052a204f4f6a0892c0ebe02/sagemaker_mlops-1.15.0.tar.gz", hash = "sha256:8b73ee194f793eb2d68424529c559b5aee139edd8564f6fb9f84e4e5b4222f58", size = 163813, upload-time = "2026-06-27T05:22:55.954Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6f/3b/19ade10d55e20b23e7e5d524efe397387208ddd97b9d2fd464fc39cc6646/sagemaker_mlops-1.11.0-py3-none-any.whl", hash = "sha256:c39ee9cfbb636ae0c323a829271245c95eb6adc6281b8834545c57cf09f6fc06", size = 217785, upload-time = "2026-05-12T23:19:02.666Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/4d/606bec706ccdcd3f7859308898f9efcbee94f4cc149d9567ff5e389a7615/sagemaker_mlops-1.15.0-py3-none-any.whl", hash = "sha256:ffede0ad2eb98d6c2e614536e6bbaa156df416c1e333858df6370272af878df4", size = 220530, upload-time = "2026-06-27T05:22:54.518Z" },
 ]
 
 [[package]]
@@ -3074,7 +3073,7 @@ wheels = [
 
 [[package]]
 name = "sagemaker-serve"
-version = "1.11.0"
+version = "1.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "boto3", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -3092,9 +3091,9 @@ dependencies = [
     { name = "tqdm", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "tritonclient", extra = ["http"], marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cc/0c/fe7072f53894c6c15a41468930a98b0aef6139ae562f5fb7bebe1adc82f0/sagemaker_serve-1.11.0.tar.gz", hash = "sha256:ab836daaaa85d77b723cf138cea6f00aaa7ade5e6b1c29f9f5e3e738d50483a5", size = 171962, upload-time = "2026-05-12T23:14:16.695Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/75/fa/e49ec43685e4da7477aff8780a406acb6f31ad0b67a9aa1e151d7ed0fb85/sagemaker_serve-1.15.0.tar.gz", hash = "sha256:7ab813a54c373bb02ff616209ced0a0d4fc0fae21af51b44824e588c0ee72675", size = 181215, upload-time = "2026-06-27T04:43:46.998Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/db/ff/d246f5ec13830843ecddfafca268c89a4101c9df4b82084b86d958524e40/sagemaker_serve-1.11.0-py3-none-any.whl", hash = "sha256:016cab964376a3101dd1443ece288c1b8b334546736f2b2cb4d76773cb1b994c", size = 220351, upload-time = "2026-05-12T23:14:15.38Z" },
+    { url = "https://files.pythonhosted.org/packages/03/dc/4fa2ef8291449d489e1fbf8acd6332748d54446ab9b63dfb081f07a5df0f/sagemaker_serve-1.15.0-py3-none-any.whl", hash = "sha256:4370c6664074c3b484608c5feb6c1645578c2208ba00563c24b7ff5eb80ba0f6", size = 230350, upload-time = "2026-06-27T04:43:45.658Z" },
 ]
 
 [[package]]
@@ -3137,7 +3136,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/23/75/1dcac37fe6c757ed0
 
 [[package]]
 name = "sagemaker-train"
-version = "1.11.0"
+version = "1.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "graphene", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -3145,15 +3144,17 @@ dependencies = [
     { name = "mlflow", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "nest-asyncio", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "paramiko", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "pydantic", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "pyyaml", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "requests", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "sagemaker-core", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "sagemaker-mlflow", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "tblib", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "typing-extensions", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e4/92/b6ecbb902230a0c36f91146ef02d4d845ee1dffe15c5d8ab71779dd70c06/sagemaker_train-1.11.0.tar.gz", hash = "sha256:9c64531f8656eccd84ed5adc6c3f0f788f393ff46a63d1479b22ad15694ef2c5", size = 201726, upload-time = "2026-05-12T23:09:57.25Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/29/3676c3f99496d76b7414fb33844c24a228af0efda1aaad0dba6aeeb21502/sagemaker_train-1.15.0.tar.gz", hash = "sha256:04373b6ce9371cbc93184d7d30541f277ba06b1f8be65088e93fbc62ab2df2a6", size = 332833, upload-time = "2026-06-27T04:00:36.74Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/85/0ba2bc09d8d1c2f60416d8032b1bf7e3a4efda16e7173af6a08da8499b49/sagemaker_train-1.11.0-py3-none-any.whl", hash = "sha256:5e9c8ccd4c67f8b465836dd65e97084c304112e41dae1f34a4c01b026cff34cf", size = 262969, upload-time = "2026-05-12T23:09:55.973Z" },
+    { url = "https://files.pythonhosted.org/packages/dd/ce/e1964f1fbb70f4a0c7dbf7f33d1db901fbcf6f525c6dfc344d2f141998bc/sagemaker_train-1.15.0-py3-none-any.whl", hash = "sha256:d3585407d0222bad3f0afc612150e60d4893fd7ef2572b2855fa40eab9b8bd08", size = 409355, upload-time = "2026-06-27T04:00:35.292Z" },
 ]
 
 [[package]]
@@ -3188,17 +3189,18 @@ wheels = [
 
 [[package]]
 name = "scikit-learn"
-version = "1.8.0"
+version = "1.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "joblib", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "narwhals", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "numpy", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "scipy", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "threadpoolctl", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0e/d4/40988bf3b8e34feec1d0e6a051446b1f66225f8529b9309becaeef62b6c4/scikit_learn-1.8.0.tar.gz", hash = "sha256:9bccbb3b40e3de10351f8f5068e105d0f4083b1a65fa07b6634fbc401a6287fd", size = 7335585, upload-time = "2025-12-10T07:08:53.618Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fa/6f/37092bdb25f712817231799fc5674d8e704066a8a70c1d2d40517e18b4ab/scikit_learn-1.9.0.tar.gz", hash = "sha256:8833266989d3a5110178a9fae30783675460724d0e1efb13b14901d2c660c557", size = 7750767, upload-time = "2026-06-02T11:54:32.706Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/74/b7a304feb2b49df9fafa9382d4d09061a96ee9a9449a7cbea7988dda0828/scikit_learn-1.8.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:a0bcfe4d0d14aec44921545fd2af2338c7471de9cb701f1da4c9d85906ab847a", size = 8931904, upload-time = "2025-12-10T07:07:57.666Z" },
+    { url = "https://files.pythonhosted.org/packages/6c/c2/63fdda36c56437eeb44aaf9493c8bcd62ce230ab1598924fc626ffbfa943/scikit_learn-1.9.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:056c92bb67ad4c28463c2f2653d9701449201e7e7a9e94e321be0f71c4fef2b8", size = 9132097, upload-time = "2026-06-02T11:53:33.456Z" },
 ]
 
 [[package]]
@@ -3626,7 +3628,7 @@ requires-dist = [
     { name = "python-dateutil" },
     { name = "requests" },
     { name = "s3fs", marker = "extra == 'sagemaker'", specifier = ">=2026.2.0" },
-    { name = "sagemaker", marker = "extra == 'sagemaker'", specifier = ">=3.4.0" },
+    { name = "sagemaker", marker = "extra == 'sagemaker'", specifier = ">=3.15.0" },
     { name = "sagemaker-experiments", marker = "extra == 'sagemaker'", specifier = "==0.1.45" },
     { name = "sagemaker-studio-analytics-extension", marker = "extra == 'sagemaker'" },
     { name = "sagemaker-studio-sparkmagic-lib", marker = "extra == 'sagemaker'" },
@@ -3735,15 +3737,16 @@ wheels = [
 
 [[package]]
 name = "torch"
-version = "2.11.0"
+version = "2.12.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cuda-bindings", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
-    { name = "cuda-toolkit", extra = ["cublas", "cudart", "cufft", "cufile", "cupti", "curand", "cusolver", "cusparse", "nvjitlink", "nvrtc", "nvtx"], marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "cuda-toolkit", extra = ["cudart", "cufft", "cufile", "cupti", "curand", "cusolver", "cusparse", "nvjitlink", "nvrtc", "nvtx"], marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "filelock", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "fsspec", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "jinja2", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "networkx", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
+    { name = "nvidia-cublas", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "nvidia-cudnn-cu13", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "nvidia-cusparselt-cu13", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
     { name = "nvidia-nccl-cu13", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
@@ -3754,7 +3757,7 @@ dependencies = [
     { name = "typing-extensions", marker = "platform_machine == 'x86_64' and sys_platform == 'linux'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1a/c9/82638ef24d7877510f83baf821f5619a61b45568ce21c0a87a91576510aa/torch-2.11.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:0f68f4ac6d95d12e896c3b7a912b5871619542ec54d3649cf48cc1edd4dd2756", size = 530712279, upload-time = "2026-03-23T18:10:31.481Z" },
+    { url = "https://files.pythonhosted.org/packages/76/1f/bc9f5a5aa569307076365f25afcebacb22e9c754b1bcfbaaa146627c7fda/torch-2.12.1-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:649e4ced014ba646f76f8cb9c9726735a6323eb321b7919f942790a923f90921", size = 532261322, upload-time = "2026-06-17T21:06:06.673Z" },
 ]
 
 [[package]]
@@ -3787,10 +3790,10 @@ wheels = [
 
 [[package]]
 name = "triton"
-version = "3.6.0"
+version = "3.7.1"
 source = { registry = "https://pypi.org/simple" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ab/a8/cdf8b3e4c98132f965f88c2313a4b493266832ad47fb52f23d14d4f86bb5/triton-3.6.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:74caf5e34b66d9f3a429af689c1c7128daba1d8208df60e81106b115c00d6fca", size = 188266850, upload-time = "2026-01-20T16:00:43.041Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/6f/fb96d15db6f36d6eae4cafb998c2e0353bf59d7c4ea1662d7497f269134a/triton-3.7.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7e40869937a68206ec70d7f25bb7ec6433cb083f9135e1f36dbd318dc449a728", size = 197719725, upload-time = "2026-06-17T19:53:20.419Z" },
 ]
 
 [[package]]
