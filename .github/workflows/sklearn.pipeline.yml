@@ -151,7 +151,7 @@ jobs:
   release-gate:
     if: >-
       github.ref == 'refs/heads/main' &&
-      contains(github.workflow_ref, '.autorelease') &&
+      contains(github.workflow_ref, '.dispatch-release') &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release &&
       !failure() && !cancelled() &&
