@@ -649,7 +649,7 @@ wheels = [
 
 [[package]]
 name = "deepspeed"
-version = "0.18.8"
+version = "0.19.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "einops" },
@@ -664,7 +664,7 @@ dependencies = [
     { name = "torch" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/19/11/46b9eb3806ca7a5e9bdddb7e873855a2d59a9f87f0675ae8231678d98434/deepspeed-0.18.8.tar.gz", hash = "sha256:e4e051a144b0c74270c46e4970139f9a86a61ff26959c5e463000c4a93b99304", size = 1647226, upload-time = "2026-03-13T18:49:48.568Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/62/cc/1bd9a0f1545fa57a45f98597a78ef6b39ae1fac1afb3e14c70cb8b02455e/deepspeed-0.19.2.tar.gz", hash = "sha256:7e854b6ebe3d2bfa239f82958372927631c74e5324c7f08f17ce7ff5f6b06969", size = 1756950, upload-time = "2026-06-16T20:53:22.919Z" }
 
 [[package]]
 name = "dill"
@@ -2499,7 +2499,7 @@ requires-dist = [
     { name = "botocore" },
     { name = "cloudpickle", marker = "extra == 'sagemaker'" },
     { name = "cryptography", marker = "extra == 'sagemaker'", specifier = ">=48.0.1" },
-    { name = "deepspeed", specifier = "==0.18.8" },
+    { name = "deepspeed", specifier = "==0.19.2" },
     { name = "fastai" },
     { name = "gitpython", specifier = ">=3.1.50" },
     { name = "imageio", marker = "extra == 'sagemaker'" },
