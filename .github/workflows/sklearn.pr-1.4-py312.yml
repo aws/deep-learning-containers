@@ -11,6 +11,7 @@ on:
       - ".github/workflows/sklearn.pr-1.4-py312.yml"
       - ".github/workflows/sklearn.tests-unit.yml"
       - ".github/workflows/sklearn.tests-integ-local.yml"
+      - ".github/workflows/sklearn.tests-sagemaker.yml"
       - "docker/sklearn/1.4-2-py312/**"
       - "docker/sklearn/resources/**"
       - "scripts/ci/build/sklearn/**"
@@ -18,6 +19,7 @@ on:
       - "scripts/docker/telemetry/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/sklearn/**"
+      - "test/sklearn/**"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -41,6 +43,7 @@ jobs:
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       integ-test-change: ${{ steps.changes.outputs.integ-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
@@ -60,6 +63,9 @@ jobs:
               - "test/security/data/ecr_scan_allowlist/sklearn/**"
             integ-test-change:
               - "test/sklearn/**"
+            sagemaker-test-change:
+              - "test/sklearn/sagemaker/**"
+              - ".github/workflows/sklearn.tests-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -91,6 +97,7 @@ jobs:
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-integ-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.integ-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: false
