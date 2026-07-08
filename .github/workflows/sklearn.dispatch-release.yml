@@ -1,4 +1,4 @@
-name: "Auto Release - Scikit-learn SageMaker"
+name: "Dispatch - Scikit-learn Release"
 
 on:
   workflow_dispatch:
