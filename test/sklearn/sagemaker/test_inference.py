@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from .conftest import data_uri, delete_endpoint, deploy_endpoint
+from .conftest import data_uri, delete_endpoint, deploy_endpoint, predict_and_log
 
 ECHO_MODEL_KEY = "model/empty.tar.gz"
 ECHO_CODE_KEY = "code/echo-2.4.10.tar.gz"
@@ -37,7 +37,7 @@ class TestInference:
             )
             predictor.content_type = "application/json"
             predictor.accept = "application/json"
-            response = predictor.predict(_payload())
+            response = predict_and_log(predictor, _payload())
             assert response is not None
         finally:
             if endpoint_name:

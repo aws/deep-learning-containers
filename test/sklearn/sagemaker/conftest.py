@@ -33,20 +33,26 @@ def data_uri(key):
 def cleanup_resources():
     """Delete all SageMaker resources created during the test session."""
     sm = boto3.client("sagemaker")
+    LOGGER.info(
+        f"Session cleanup: {len(_created_endpoints)} endpoints, {len(_created_models)} models"
+    )
     for ep in _created_endpoints:
         try:
             sm.delete_endpoint(EndpointName=ep)
-        except Exception:
-            pass
+            LOGGER.info(f"Deleted endpoint {ep}")
+        except Exception as e:
+            LOGGER.warning(f"Failed to delete endpoint {ep}: {e}")
         try:
             sm.delete_endpoint_config(EndpointConfigName=ep)
-        except Exception:
-            pass
+            LOGGER.info(f"Deleted endpoint-config {ep}")
+        except Exception as e:
+            LOGGER.warning(f"Failed to delete endpoint-config {ep}: {e}")
     for model_name in _created_models:
         try:
             sm.delete_model(ModelName=model_name)
-        except Exception:
-            pass
+            LOGGER.info(f"Deleted model {model_name}")
+        except Exception as e:
+            LOGGER.warning(f"Failed to delete model {model_name}: {e}")
     _created_endpoints.clear()
     _created_models.clear()
 
@@ -142,6 +148,8 @@ def deploy_endpoint(
         role=role,
         env=env,
     )
+    LOGGER.info(f"Deploying endpoint {endpoint_name} on {instance_type} (model_data={model_data})")
+    start = time.time()
     try:
         model.deploy(
             initial_instance_count=1,
@@ -152,6 +160,7 @@ def deploy_endpoint(
         if model.name:
             _created_models.append(model.name)
         raise
+    LOGGER.info(f"Endpoint {endpoint_name} InService in {time.time() - start:.0f}s")
     _created_models.append(model.name)
     _created_endpoints.append(endpoint_name)
     predictor = Predictor(endpoint_name=endpoint_name)
@@ -182,6 +191,8 @@ def deploy_multi_model_endpoint(
         role=role,
         env=env,
     )
+    LOGGER.info(f"Deploying MME {endpoint_name} on {instance_type} (prefix={model_data_prefix})")
+    start = time.time()
     try:
         mm_model.deploy(
             initial_instance_count=1,
@@ -192,6 +203,7 @@ def deploy_multi_model_endpoint(
         if mm_model.name:
             _created_models.append(mm_model.name)
         raise
+    LOGGER.info(f"MME {endpoint_name} InService in {time.time() - start:.0f}s")
     _created_models.append(mm_model.name)
     _created_endpoints.append(endpoint_name)
     predictor = Predictor(endpoint_name=endpoint_name)
@@ -215,6 +227,11 @@ def deploy_inference_pipeline(models, role, test_name="pipe", instance_type="ml.
         role=role,
         models=pipeline_models,
     )
+    LOGGER.info(
+        f"Deploying pipeline endpoint {endpoint_name} on {instance_type} "
+        f"({len(pipeline_models)} containers)"
+    )
+    start = time.time()
     try:
         pipeline.deploy(
             initial_instance_count=1,
@@ -226,12 +243,26 @@ def deploy_inference_pipeline(models, role, test_name="pipe", instance_type="ml.
             if m.name:
                 _created_models.append(m.name)
         raise
+    LOGGER.info(f"Pipeline endpoint {endpoint_name} InService in {time.time() - start:.0f}s")
     for m in pipeline_models:
         if m.name:
             _created_models.append(m.name)
     _created_endpoints.append(endpoint_name)
     predictor = Predictor(endpoint_name=endpoint_name)
     return predictor, endpoint_name
+
+
+def predict_and_log(predictor, payload, **kwargs):
+    """Invoke an endpoint and log latency + first 200 chars of the response."""
+    payload_len = len(payload) if isinstance(payload, (str, bytes)) else len(str(payload))
+    LOGGER.info(f"POST {predictor.endpoint_name} payload_len={payload_len}")
+    start = time.time()
+    response = predictor.predict(payload, **kwargs)
+    LOGGER.info(
+        f"{predictor.endpoint_name} responded in {(time.time() - start) * 1000:.0f}ms: "
+        f"{str(response)[:200]}"
+    )
+    return response
 
 
 def delete_endpoint(endpoint_name):
@@ -244,19 +275,22 @@ def delete_endpoint(endpoint_name):
             if model_name:
                 try:
                     sm.delete_model(ModelName=model_name)
-                except Exception:
-                    pass
+                    LOGGER.info(f"Deleted model {model_name}")
+                except Exception as e:
+                    LOGGER.warning(f"Failed to delete model {model_name}: {e}")
                 if model_name in _created_models:
                     _created_models.remove(model_name)
-    except Exception:
-        pass
+    except Exception as e:
+        LOGGER.warning(f"Failed to describe endpoint-config {endpoint_name}: {e}")
     try:
         sm.delete_endpoint(EndpointName=endpoint_name)
-    except Exception:
-        pass
+        LOGGER.info(f"Deleted endpoint {endpoint_name}")
+    except Exception as e:
+        LOGGER.warning(f"Failed to delete endpoint {endpoint_name}: {e}")
     try:
         sm.delete_endpoint_config(EndpointConfigName=endpoint_name)
-    except Exception:
-        pass
+        LOGGER.info(f"Deleted endpoint-config {endpoint_name}")
+    except Exception as e:
+        LOGGER.warning(f"Failed to delete endpoint-config {endpoint_name}: {e}")
     if endpoint_name in _created_endpoints:
         _created_endpoints.remove(endpoint_name)

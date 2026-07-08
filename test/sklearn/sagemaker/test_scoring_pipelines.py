@@ -11,6 +11,7 @@ from .conftest import (
     data_uri,
     delete_endpoint,
     deploy_inference_pipeline,
+    predict_and_log,
     s3_uri,
 )
 
@@ -55,7 +56,7 @@ class TestScoringPipelines:
             )
             predictor.content_type = "application/json"
             predictor.accept = "application/json"
-            response = predictor.predict(_linear_learner_payload())
+            response = predict_and_log(predictor, _linear_learner_payload())
             assert response is not None
         finally:
             if endpoint_name:
@@ -71,7 +72,7 @@ class TestScoringPipelines:
             )
             predictor.content_type = "application/json"
             predictor.accept = "application/json"
-            response = predictor.predict(_linear_learner_payload())
+            response = predict_and_log(predictor, _linear_learner_payload())
             assert response is not None
         finally:
             if endpoint_name:

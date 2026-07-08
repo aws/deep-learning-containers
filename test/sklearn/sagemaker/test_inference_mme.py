@@ -10,6 +10,7 @@ from .conftest import (
     delete_endpoint,
     deploy_endpoint,
     deploy_multi_model_endpoint,
+    predict_and_log,
 )
 
 # MME lazy-loads only the tarball named in `target_model`, so the sibling
@@ -48,7 +49,7 @@ class TestInferenceMME:
             )
             predictor.content_type = "text/csv"
             predictor.accept = "text/csv"
-            response = predictor.predict(SAMPLE_PAYLOAD)
+            response = predict_and_log(predictor, SAMPLE_PAYLOAD)
             assert response is not None
         finally:
             if endpoint_name:
@@ -67,7 +68,7 @@ class TestInferenceMME:
             predictor.content_type = "text/csv"
             predictor.accept = "text/csv"
             for target_model in MME_TARGET_MODELS:
-                response = predictor.predict(SAMPLE_PAYLOAD, target_model=target_model)
+                response = predict_and_log(predictor, SAMPLE_PAYLOAD, target_model=target_model)
                 assert response is not None
         finally:
             if endpoint_name:
