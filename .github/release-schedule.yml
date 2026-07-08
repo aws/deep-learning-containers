@@ -70,6 +70,10 @@ schedules:
     workflow: vllm-omni.autorelease-ec2.yml
     gpu: medium
 
+  - cron: "30 19 * * 2,4"
+    workflow: pytorch.autorelease-2.13-ec2.yml
+    gpu: light
+
   - cron: "00 20 * * 2,4"
     workflow: sglang.autorelease-ec2-ubuntu.yml
     gpu: heavy
@@ -89,3 +93,7 @@ schedules:
   - cron: "30 22 * * 2"
     workflow: openfold3.autorelease-sagemaker-amzn2023.yml
     gpu: heavy
+
+  - cron: "00 23 * * 2,4"
+    workflow: pytorch.autorelease-2.13-sagemaker.yml
+    gpu: light
