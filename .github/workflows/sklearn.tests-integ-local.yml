@@ -61,6 +61,25 @@ jobs:
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "sklearn-branch=$(yq '.build.sklearn_container_branch // "master"' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "python-version=$(yq '.build.python_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(yq '.build.dockerfile' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+
+      - name: Verify pinned package versions match declared requirements.txt
+        if: steps.check.outputs.exists == 'true'
+        env:
+          IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+          DOCKERFILE: ${{ steps.config.outputs.dockerfile }}
+        run: |
+          REQS_FILE="$(dirname "$DOCKERFILE")/requirements.txt"
+          if [[ ! -f "$REQS_FILE" ]]; then
+            echo "No requirements.txt at $REQS_FILE — skipping version check"
+            exit 0
+          fi
+          docker run --rm \
+            -v "$PWD/$REQS_FILE:/tmp/requirements.txt:ro" \
+            -v "$PWD/test/sklearn/scripts/check_versions.py:/tmp/check_versions.py:ro" \
+            --entrypoint python3 \
+            "$IMAGE_URI" \
+            /tmp/check_versions.py /tmp/requirements.txt
 
       - name: Clone sagemaker-scikit-learn-container (tests + source)
         if: steps.check.outputs.exists == 'true'

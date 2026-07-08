@@ -1,15 +1,16 @@
-name: "Dispatch - Scikit-learn Release"
+name: "Auto Release - Scikit-learn SageMaker"
 
 on:
   workflow_dispatch:
     inputs:
       config-file:
-        description: "Path to image config YAML (e.g., .github/config/image/sklearn/sagemaker-py312.yml)"
+        description: "Path to image config YAML"
         required: true
         type: string
+        default: ".github/config/image/sklearn/sagemaker-py312.yml"
 
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ inputs.config-file }}
   cancel-in-progress: false
 
 permissions:

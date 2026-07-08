@@ -1,4 +1,4 @@
-"""Shared fixtures and helpers for Scikit-learn SageMaker E2E tests."""
+"""Shared fixtures and helpers for Scikit-learn SageMaker tests."""
 
 import logging
 import time

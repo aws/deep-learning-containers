@@ -8,7 +8,7 @@ from .conftest import data_uri, run_training_job
 CODE_TARBALL_KEY = "code/requirements.tar.gz"
 
 
-class TestScriptModeE2E:
+class TestScriptMode:
     def test_requirements_install(self, image_uri, role):
         hp = {
             "sagemaker_program": "train.py",

@@ -1,4 +1,4 @@
-name: Reusable Scikit-learn Integration Tests
+name: Reusable Scikit-learn SageMaker Tests
 
 on:
   workflow_call:
@@ -52,8 +52,8 @@ jobs:
           CONFIG_FILE="${{ inputs.config-file }}"
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
-  # SageMaker E2E tests — real training jobs + endpoints
-  e2e-test:
+  # SageMaker tests — real training jobs + endpoints
+  sagemaker-test:
     if: ${{ needs.preflight.outputs.exists == 'true' }}
     needs: [preflight]
     timeout-minutes: 120
@@ -65,7 +65,7 @@ jobs:
           - test_inference_mme
           - test_network_isolation
           - test_scoring_pipelines
-          - test_script_mode_e2e
+          - test_script_mode
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -87,4 +87,4 @@ jobs:
           python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
             --sklearn-version ${{ needs.preflight.outputs.framework-version }} \
-            sklearn/e2e/${{ matrix.test-module }}.py
+            sklearn/sagemaker/${{ matrix.test-module }}.py
