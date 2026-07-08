@@ -5,7 +5,7 @@ the caller), parses each entry as a PEP 508 requirement, and asserts the
 installed version satisfies the declared specifier (==, >=, <, ~=, etc.).
 
 Bare entries with no specifier (e.g. `certifi`) can't be verified — logged and
-skipped. Unparseable lines are logged and skipped.
+skipped. Unparsable lines are logged and skipped.
 
 Usage: python3 check_versions.py <requirements.txt path>
 
@@ -21,7 +21,7 @@ from packaging.version import Version
 
 def parse_reqs(path):
     reqs = []
-    unparseable = []
+    unparsable = []
     with open(path) as f:
         for raw in f:
             line = raw.split("#", 1)[0].strip()
@@ -30,8 +30,8 @@ def parse_reqs(path):
             try:
                 reqs.append((Requirement(line), line))
             except InvalidRequirement:
-                unparseable.append(line)
-    return reqs, unparseable
+                unparsable.append(line)
+    return reqs, unparsable
 
 
 def installed_version(name):
@@ -44,7 +44,7 @@ def installed_version(name):
 
 
 def main(path):
-    reqs, unparseable = parse_reqs(path)
+    reqs, unparsable = parse_reqs(path)
     if not reqs:
         print(f"No requirements found in {path}", file=sys.stderr)
         sys.exit(1)
@@ -71,9 +71,9 @@ def main(path):
         print(f"Skipped {len(unconstrained)} unconstrained entries (no version specifier):")
         for line in unconstrained:
             print(f"  {line}")
-    if unparseable:
-        print(f"Skipped {len(unparseable)} unparseable lines:", file=sys.stderr)
-        for line in unparseable:
+    if unparsable:
+        print(f"Skipped {len(unparsable)} unparsable lines:", file=sys.stderr)
+        for line in unparsable:
             print(f"  {line}", file=sys.stderr)
 
     if not drift and not missing:
