@@ -1,0 +1,54 @@
+"""SageMaker hyperparameter-tuning integration test for the TF DLC.
+
+A `HyperparameterTuner` is constructed around a `ModelTrainer` and
+`.tune(...)` is invoked. SDK v3 API.
+
+CPU-only: the feature under test is the SageMaker HPO control plane,
+not anything CUDA-specific."""
+
+import os
+
+from sagemaker.core.parameter import IntegerParameter
+from sagemaker.core.training.configs import Compute, InputData, SourceCode
+from sagemaker.train import ModelTrainer
+from sagemaker.train.tuner import HyperparameterTuner
+from test_utils import random_suffix_name
+
+INSTANCE_TYPE = "ml.c5.xlarge"
+
+
+def test_tuning_model_dir_cpu(image_uri, source_dir, mnist_s3_uri):
+    """Smoke-test SageMaker HPO with the TF DLC.
+
+    Tunes the `epochs` hyperparameter over [1, 2] with max_jobs=2 and
+    max_parallel_jobs=2. The objective metric is parsed from training logs
+    via the `accuracy` regex; the standard `mnist.py` entry script already
+    prints `accuracy: <val>` per epoch via Keras."""
+    source_code = SourceCode(source_dir=source_dir, entry_script="mnist.py")
+    compute = Compute(instance_type=INSTANCE_TYPE, instance_count=1)
+
+    model_trainer = ModelTrainer(
+        training_image=image_uri,
+        source_code=source_code,
+        compute=compute,
+        role=os.environ.get("SM_ROLE_ARN"),
+        base_job_name=random_suffix_name("tf-tuning-cpu", 32),
+        hyperparameters={"strategy": "none"},
+        distributed=None,
+    )
+
+    objective_metric_name = "accuracy"
+    tuner = HyperparameterTuner(
+        model_trainer=model_trainer,
+        objective_metric_name=objective_metric_name,
+        hyperparameter_ranges={"epochs": IntegerParameter(1, 2)},
+        metric_definitions=[{"Name": objective_metric_name, "Regex": "accuracy: ([0-9\\.]+)"}],
+        max_jobs=2,
+        max_parallel_jobs=2,
+    )
+
+    tuner.tune(
+        inputs=[InputData(channel_name="training", data_source=mnist_s3_uri)],
+        job_name=random_suffix_name("tf-tune", 32),
+        wait=True,
+    )

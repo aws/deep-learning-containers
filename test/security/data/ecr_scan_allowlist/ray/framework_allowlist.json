@@ -1,92 +1,97 @@
 [
-  {
-    "vulnerability_id": "CVE-2025-23339",
-    "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
-    "review_by": "2026-10-18"
-  },
-  {
-    "vulnerability_id": "CVE-2025-23308",
-    "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
-    "review_by": "2026-10-18"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34478",
-    "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
-    "review_by": "2026-08-24"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34480",
-    "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
-    "review_by": "2026-08-24"
-  },
-  {
-    "vulnerability_id": "CVE-2026-47265",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-08-24"
-  },
-  {
-    "vulnerability_id": "CVE-2026-34993",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-08-24"
-  },
-  {
-    "vulnerability_id": "RUSTSEC-2026-0185",
-    "reason": "quinn-proto in uv binary, upstream uv has not released a fix yet",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54513",
-    "reason": "jackson-databind 2.18.6 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54512",
-    "reason": "jackson-databind 2.18.6 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-50269",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54273",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54274",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54278",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54279",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54280",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54275",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-54277",
-    "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
-    "review_by": "2026-09-29"
-  },
-  {
-    "vulnerability_id": "CVE-2026-57516",
-    "reason": "ray 2.55.1 WebDataset reader unsafe deserialization, fix requires ray>=2.56.0 which is not yet released for our pinned version",
-    "review_by": "2026-09-10"
-  }
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
+        "review_by": "2026-10-18"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
+        "review_by": "2026-10-18"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34478",
+        "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-08-24"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34480",
+        "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-08-24"
+    },
+    {
+        "vulnerability_id": "CVE-2026-47265",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-08-24"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34993",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-08-24"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0195",
+        "reason": "quick-xml 0.39.2 is bundled inside the uv binary at /usr/local/bin/uv (uv is statically compiled Rust). Advisory is a denial-of-service in NsReader's namespace resolution during Start/Empty XML event handling; the vulnerable code path is only reachable when uv parses attacker-controlled XML (e.g. a hostile PyPI mirror index). uv is retained in the image for customer-side venv management; the standard PyPI flow uses JSON/HTML endpoints and never exercises the XML path. No uv release containing the patched quick-xml>=0.41.0 has been published upstream yet; will swap to a pinned fixed version and drop this entry when upstream ships.",
+        "review_by": "2026-10-25"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0185",
+        "reason": "quinn-proto in uv binary, upstream uv has not released a fix yet",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54513",
+        "reason": "jackson-databind 2.18.6 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54512",
+        "reason": "jackson-databind 2.18.6 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-50269",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54273",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54274",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54278",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54279",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54280",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54275",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54277",
+        "reason": "aiohttp 3.13.5 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, cannot patch without upstream ray release",
+        "review_by": "2026-09-29"
+    },
+    {
+        "vulnerability_id": "CVE-2026-57516",
+        "reason": "ray 2.55.1 WebDataset reader unsafe deserialization, fix requires ray>=2.56.0 which is not yet released for our pinned version",
+        "review_by": "2026-09-10"
+    }
 ]

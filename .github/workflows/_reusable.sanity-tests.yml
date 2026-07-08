@@ -156,6 +156,18 @@ jobs:
           python3 test/sanity/scripts/check_framework_version_currency.py \
             --config-file "${{ inputs.config-file }}"
 
+      - name: Run training image sanity checks
+        if: |
+          needs.preflight.outputs.framework == 'pytorch_runtime' ||
+          needs.preflight.outputs.framework == 'tensorflow' ||
+          needs.preflight.outputs.framework == 'xgboost'
+        run: |
+          docker exec \
+            -e EXPECTED_FRAMEWORK=${{ needs.preflight.outputs.framework }} \
+            -e EXPECTED_DEVICE=${{ needs.preflight.outputs.device-type }} \
+            -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
+            ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_training.py
+
       - name: Run OSS compliance check
         run: |
           docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
