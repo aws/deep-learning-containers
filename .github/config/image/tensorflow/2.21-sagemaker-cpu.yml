@@ -7,11 +7,10 @@ metadata:
   framework_version: "2.21.0"
   os_version: "amzn2023"
   customer_type: "sagemaker"
-  platform: "sagemaker"
   arch_type: "x86"
   device_type: "cpu"
   job_type: "training"
-  prod_image: "tensorflow:2.21-cpu-amzn2023-sagemaker"
+  prod_image: "tensorflow-training:2.21-cpu-py312-amzn2023-sagemaker-v1"
 
 build:
   dockerfile: "docker/tensorflow/2.21/Dockerfile.cpu"
