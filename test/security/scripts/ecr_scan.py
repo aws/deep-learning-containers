@@ -35,6 +35,7 @@ SEVERITY_THRESHOLD = {"CRITICAL", "HIGH"}
 SCAN_WAIT_PERIOD = 40
 SCAN_WAIT_LENGTH = 30
 SCAN_COMPLETE = "COMPLETE"
+SCAN_PENDING = "PENDING"  # sentinel for "scan record not yet registered"
 SCAN_POST_COMPLETE_WAIT = (
     120  # additional wait seconds after scan completes before reading findings
 )
@@ -43,11 +44,17 @@ FRAMEWORK_ALLOWLIST_FILE = "framework_allowlist.json"
 
 
 def get_scan_status(ecr_client, image: ImageURI) -> str:
-    resp = ecr_client.describe_image_scan_findings(
-        registryId=image.account_id,
-        repositoryName=image.repository,
-        imageId={"imageTag": image.image_tag},
-    )
+    # ECR/Inspector v2 may take 30-90s after push to register a scan record.
+    # Treat that window as "still pending" so wait_for_status keeps polling.
+    try:
+        resp = ecr_client.describe_image_scan_findings(
+            registryId=image.account_id,
+            repositoryName=image.repository,
+            imageId={"imageTag": image.image_tag},
+        )
+    except ecr_client.exceptions.ScanNotFoundException:
+        LOGGER.info(f"Scan not yet registered for {image.repository}:{image.image_tag}; will retry")
+        return SCAN_PENDING
     return resp["imageScanStatus"]["status"]
 
 

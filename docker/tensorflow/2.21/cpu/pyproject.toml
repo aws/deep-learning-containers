@@ -1,0 +1,86 @@
+[project]
+name = "tensorflow-dlc-cpu"
+version = "2.21.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # PyPI ships CPU and GPU as distinct package names: `tensorflow` is the GPU
+    # build, `tensorflow_cpu` is the CPU build.
+    "tensorflow_cpu==2.21.0",
+    "mpi4py",
+    "boto3",
+    "botocore",
+    # Security pin: aiohttp >=3.14.1 patches CVE-2026-34993 (CookieJar.load RCE),
+    # CVE-2026-47265 (cookie leak on cross-origin redirect), and the 3.14.1 batch:
+    # CVE-2026-54273 / 54274 / 54275 / 54278 / 54279 / 54280 (HIGH). Pulled
+    # transitively; direct pin forces the patched line.
+    "aiohttp>=3.14.1",
+    # Security pins (direct pin forces the patched line for transitive deps):
+    # PyJWT>=2.13.0    — CVE-2026-48526 (HIGH)
+    # cryptography>=48.0.1 — GHSA-537c-gmf6-5ccf (HIGH)
+    # starlette>=1.3.1 — GHSA-82w8-qh3p-5jfq + GHSA-wqp7-x3pw-xc5r (HIGH)
+    # tornado>=6.5.6   — GHSA-3x9g-8vmp-wqvf + GHSA-mgf9-4vpg-hj56 (HIGH)
+    "PyJWT>=2.13.0",
+    "cryptography>=48.0.1",
+    "starlette>=1.3.1",
+    "tornado>=6.5.6",
+    # TF compat pins
+    "numpy>=2.1,<2.5",
+    "requests",
+    "packaging",
+    "pybind11",
+    "scipy",
+    "Pillow",
+    "python-dateutil",
+    "awscli<2",
+    "h5py",
+    "absl-py",
+    "werkzeug",
+    "urllib3",
+    "protobuf",
+    "psutil",
+]
+
+[project.optional-dependencies]
+sagemaker = [
+    "sagemaker-tensorflow-training",
+    "sagemaker-training",
+    "smclarify",
+    "sagemaker>=3.4.0",
+    "mlflow>=3.9.0",
+    # torch is transitive via sagemaker>=3; declared direct so [tool.uv.sources]
+    # below can redirect it to the CPU-only index.
+    "torch",
+    "tensorflow-io==0.37.*",
+    "tensorflow-datasets",
+    "opencv-python",
+    "numba",
+    "bokeh",
+    "imageio",
+    "plotly",
+    "seaborn",
+    "shap",
+    "pandas",
+    "scikit-learn",
+    "cloudpickle",
+    "sagemaker-experiments==0.1.45",
+    "y-py",
+    "sagemaker-studio-analytics-extension",
+    "sparkmagic==0.22.0",
+    "sagemaker-studio-sparkmagic-lib",
+    "s3fs>=2026.2.0",
+]
+
+[tool.uv]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+
+# Redirect torch to the CPU-only index. The default PyPI `torch` wheel pulls
+# ~500 MB of NVIDIA CUDA pip packages (nvidia-cublas-cu12, etc.) we don't need
+# in a CPU image. [tool.uv.sources] only redirects *direct* dependencies, hence
+# the explicit `torch` entry in the sagemaker extra above.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]

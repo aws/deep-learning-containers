@@ -4,6 +4,30 @@ Changelog for the Amazon Linux 2023-based SGLang images (`server-cuda`, `server-
 
 * * *
 
+## v1.2.0 — 2026-07-06
+
+**Tags:** `server-cuda-v1.2` · `server-sagemaker-cuda-v1.2`
+
+**SGLang source:** [bc8b3ab](https://github.com/sgl-project/sglang/commit/bc8b3ab1f55c60951b586d84d4aec773a6f654df) (`0.5.14+amzn2023.bc8b3ab`)
+
+**Bundled versions:** CUDA 13.0.3 · Python 3.12 · PyTorch 2.11.0 · sgl-kernel 0.4.4 · FlashInfer 0.6.12 · Mooncake 0.3.11.post1 · NCCL 2.30.4
+
+### Highlights
+
+- Bumped SGLang to `0.5.14` (upstream commit `bc8b3ab`)
+- Added support for **[NVIDIA LocateAnything-3B](https://huggingface.co/nvidia/LocateAnything-3B)** — a multimodal vision-grounding model that returns
+  bounding boxes (`<box>…</box>`) for objects matching a text description. Bundled the `decord`, `lmdb`, and `peft` runtime dependencies required by
+  the model's custom Hugging Face processors
+- Upgraded EFA to `1.49.0`
+- Upgraded stack: sgl-kernel `0.4.4`, FlashInfer `0.6.12`, Mooncake `0.3.11.post1`, NCCL `2.30.4`, gdrcopy `2.6`, Rust `1.96.1`
+
+### Security
+
+- Allowlisted CVE-2026-27145 (Go stdlib `x509` `VerifyHostname` CPU exhaustion) — embedded in Mooncake's `libetcd_wrapper.so`; cannot be patched
+  without an upstream Mooncake rebuild with Go 1.26.4+
+
+* * *
+
 ## v1.1.0 — 2026-06-29
 
 **Tags:** `server-cuda-v1.1` · `server-sagemaker-cuda-v1.1`
