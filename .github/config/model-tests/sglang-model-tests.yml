@@ -41,7 +41,7 @@ smoke-test:
     # FLUX.2-small-decoder is a distilled VAE decoder (AutoencoderKLFlux2), a
     # FLUX.2 pipeline component rather than a servable model — validated via a
     # decode test (see test_script) instead of the default LLM serving smoke
-    # test. Full-pipeline serving is covered by the SageMaker endpoint test.
+    # test.
     - name: "flux2-small-decoder"
       s3_model: "flux2-small-decoder.tar.gz"
       fleet: "x86-g6xl-runner"

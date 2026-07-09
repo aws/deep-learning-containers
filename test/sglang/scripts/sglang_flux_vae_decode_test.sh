@@ -6,8 +6,7 @@ set -euo pipefail
 # FLUX.2-small-decoder is a distilled VAE decoder (class AutoencoderKLFlux2), a
 # drop-in decoder for the FLUX.2 diffusion pipeline. It is a pipeline COMPONENT,
 # not a servable text-to-image model, so this validates it the way it is used:
-# load the decoder and decode a latent into an image tensor. End-to-end serving
-# of a full FLUX.2 pipeline is covered by the SageMaker endpoint test.
+# load the decoder and decode a latent into an image tensor.
 #
 # Usage: sglang_flux_vae_decode_test.sh <model_dir> <model_name> [extra_args...]
 
