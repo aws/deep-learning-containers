@@ -6,9 +6,9 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/sklearn/sagemaker-py312.yml"
+      - ".github/config/image/sklearn/sagemaker-1.4-2-py312.yml"
       - ".github/workflows/sklearn.pipeline.yml"
-      - ".github/workflows/sklearn.pr-1.4-py312.yml"
+      - ".github/workflows/sklearn.pr-1.4-2-py312.yml"
       - ".github/workflows/sklearn.tests-unit.yml"
       - ".github/workflows/sklearn.tests-integ-local.yml"
       - ".github/workflows/sklearn.tests-sagemaker.yml"
@@ -18,7 +18,7 @@ on:
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/sklearn/**"
+      - "test/security/data/ecr_scan_allowlist/sklearn_1_4_2_py312/**"
       - "test/sklearn/**"
       - "test/telemetry/**"
       - "!docs/**"
@@ -54,13 +54,13 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/sklearn/sagemaker-py312.yml"
+              - ".github/config/image/sklearn/sagemaker-1.4-2-py312.yml"
               - "docker/sklearn/1.4-2-py312/**"
               - "docker/sklearn/resources/**"
               - "scripts/ci/build/sklearn/**"
               - "scripts/docker/common/**"
               - "scripts/docker/telemetry/**"
-              - "test/security/data/ecr_scan_allowlist/sklearn/**"
+              - "test/security/data/ecr_scan_allowlist/sklearn_1_4_2_py312/**"
             integ-test-change:
               - "test/sklearn/**"
             sagemaker-test-change:
@@ -83,7 +83,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/sklearn/sagemaker-py312.yml"
+          pattern: ".github/config/image/sklearn/sagemaker-1.4-2-py312.yml"
 
   pipeline:
     needs: [check-changes, discover]
