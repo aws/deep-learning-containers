@@ -23,6 +23,7 @@ dependencies = [
     "scikit-learn",
     "opencv-python",
     "msgpack>=1.2.1",  # CVE GHSA-6v7p-g79w-8964 (transitive via deepspeed)
+    "soupsieve>=2.8.4",  # CVE GHSA-2wc2-fm75-p42x, GHSA-836r-79rf-4m37 (transitive via beautifulsoup4 -> python-fasthtml -> fastai)
 ]
 
 [project.optional-dependencies]
