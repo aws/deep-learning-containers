@@ -86,13 +86,12 @@ jobs:
 
   build:
     if: ${{ inputs.build }}
-    needs: [ci-config]
     concurrency:
       group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ needs.ci-config.outputs.device-type == 'gpu' && 'x86-vllm-build-runner' || 'x86-build-runner' }}
+        fleet:x86-pytorch-build-runner
         buildspec-override:true
     timeout-minutes: 720
     outputs:
