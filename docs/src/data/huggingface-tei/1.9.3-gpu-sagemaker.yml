@@ -1,0 +1,12 @@
+framework: TEI
+version: "1.9.3"
+accelerator: gpu
+cuda: cu129
+os: ubuntu24.04
+platform: sagemaker
+ecr_repository: tei
+example_ecr_account: "683313688378"
+example_region: "us-east-1"
+
+tags:
+  - "2.0.1-tei1.9.3-gpu-py310-cu129-ubuntu24.04"
