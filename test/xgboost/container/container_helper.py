@@ -313,6 +313,37 @@ class ServingContainer:
     def execution_parameters(self):
         return requests.get(self._url("/execution-parameters"), timeout=5)
 
+    # -- resource sampling ---------------------------------------------------
+
+    def stats(self):
+        """Return a single resource sample: {mem_bytes, mem_mb, cpu_percent}.
+
+        Reads one non-streaming ``docker stats`` snapshot for the container and
+        computes CPU% the same way the docker CLI does (delta of container CPU
+        usage over delta of system CPU usage, scaled by online CPUs).
+        """
+        raw = self._container.stats(stream=False)
+
+        mem_bytes = raw.get("memory_stats", {}).get("usage", 0)
+
+        cpu_percent = 0.0
+        try:
+            cpu = raw["cpu_stats"]
+            precpu = raw["precpu_stats"]
+            cpu_delta = cpu["cpu_usage"]["total_usage"] - precpu["cpu_usage"]["total_usage"]
+            system_delta = cpu["system_cpu_usage"] - precpu["system_cpu_usage"]
+            online_cpus = cpu.get("online_cpus") or len(cpu["cpu_usage"].get("percpu_usage", []))
+            if system_delta > 0 and cpu_delta > 0:
+                cpu_percent = (cpu_delta / system_delta) * online_cpus * 100.0
+        except (KeyError, TypeError, ZeroDivisionError):
+            cpu_percent = 0.0
+
+        return {
+            "mem_bytes": mem_bytes,
+            "mem_mb": mem_bytes / (1024 * 1024),
+            "cpu_percent": cpu_percent,
+        }
+
     def get_logs(self):
         if self._container:
             return self._container.logs().decode("utf-8", errors="replace")
