@@ -21,12 +21,11 @@ build:
   open_mpi_version: "4.1.8"
   efa_version: "1.49.0"
   dlc_major_version: "1"
-  dlc_minor_version: "0"
 
 release:
   release: true
   force_release: false
   public_registry: false
   private_registry: true
-  enable_soci: false
+  enable_soci: true
   environment: "gamma"
