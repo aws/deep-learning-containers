@@ -19,7 +19,7 @@ build:
   python_version: "3.13.12"
   cuda_version: "13.0.2"
   framework_version: "2.56.0"
-  torch_version: "2.11.0"
+  torch_version: "2.13.0"
   efa_version: "1.47.0"
   gdrcopy_version: "2.4.4"
   dlc_major_version: "1"

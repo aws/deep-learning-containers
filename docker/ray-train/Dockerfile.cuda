@@ -24,7 +24,7 @@ ARG PYTHON_VERSION=3.13
 # PYTHON_VERSION; this is derived and only needs bumping on a minor-version move).
 ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK_VERSION=2.56.0
-ARG TORCH_VERSION=2.11.0
+ARG TORCH_VERSION=2.13.0
 ARG EFA_VERSION=1.47.0
 ARG GDRCOPY_VERSION=2.4.4
 # Base CUDA DLC (we own it). devel for builder stages, runtime for output.
@@ -34,7 +34,6 @@ ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn20
 
 # ── Stage: builder-base (resolve venv from the committed lockfile) ───────────
 FROM ${BUILDER_BASE_IMAGE} AS builder-base
-ARG FRAMEWORK_SHORT_VERSION=2.56
 
 # uv + python ship in the base DLC. Install the pinned deps into a standalone
 # venv we can copy wholesale into the runtime stages.
@@ -42,7 +41,7 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-COPY docker/ray-train/${FRAMEWORK_SHORT_VERSION}/cuda/pyproject.toml docker/ray-train/${FRAMEWORK_SHORT_VERSION}/cuda/uv.lock /tmp/build/
+COPY docker/ray-train/pyproject.toml docker/ray-train/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 

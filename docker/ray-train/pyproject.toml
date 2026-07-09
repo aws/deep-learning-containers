@@ -4,9 +4,8 @@ version = "2.56.0"
 requires-python = "==3.13.*"
 dependencies = [
     "ray[train,tune,data]==2.56.0",
-    "torch==2.11.0",
-    "torchvision==0.26.0",
-    "torchaudio==2.11.0",
+    "torch==2.13.0",
+    "torchvision==0.28.0",
     "pytorch-lightning>=2.5.0",
     "transformers>=4.46.0",
     "datasets>=3.0.0",
@@ -22,6 +21,8 @@ dependencies = [
     "pip>=25.0",
     # TODO(ray-train): evaluate adding peft/trl for LoRA / RLHF fine-tuning use
     # cases (larger image + CVE surface — deferred from v1).
+    # NOTE: torchaudio is intentionally omitted — no cu130 wheel past 2.11.0, and
+    # audio is not part of the core distributed-training use case.
 ]
 
 [tool.uv]
@@ -34,4 +35,3 @@ explicit = true
 [tool.uv.sources]
 torch = [{ index = "pytorch-cu130" }]
 torchvision = [{ index = "pytorch-cu130" }]
-torchaudio = [{ index = "pytorch-cu130" }]
