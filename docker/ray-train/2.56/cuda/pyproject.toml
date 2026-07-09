@@ -1,0 +1,37 @@
+[project]
+name = "dlc-ray-train"
+version = "2.56.0"
+requires-python = "==3.13.*"
+dependencies = [
+    "ray[train,tune,data]==2.56.0",
+    "torch==2.11.0",
+    "torchvision==0.26.0",
+    "torchaudio==2.11.0",
+    "pytorch-lightning>=2.5.0",
+    "transformers>=4.46.0",
+    "datasets>=3.0.0",
+    "accelerate>=1.0.0",
+    "evaluate>=0.4.0",
+    "torchmetrics>=1.5.0",
+    "scikit-learn>=1.5.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "pyyaml>=6.0.2",
+    "boto3>=1.35.0",
+    "awscli>=1.35.0",
+    "pip>=25.0",
+    # TODO(ray-train): evaluate adding peft/trl for LoRA / RLHF fine-tuning use
+    # cases (larger image + CVE surface — deferred from v1).
+]
+
+[tool.uv]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu130" }]
+torchvision = [{ index = "pytorch-cu130" }]
+torchaudio = [{ index = "pytorch-cu130" }]

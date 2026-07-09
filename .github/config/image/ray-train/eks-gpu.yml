@@ -1,0 +1,35 @@
+image:
+  name: "ray-train-eks-gpu"
+  description: "Ray Train (distributed training) for EKS / HyperPod-EKS via KubeRay (GPU, multi-node)"
+
+metadata:
+  framework: "ray"
+  framework_version: "2.56.0"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "training"
+  container_type: "train-ml"
+  platform: "eks"
+  prod_image: "ray:train-ml-eks-cuda"
+
+build:
+  dockerfile: "docker/ray-train/Dockerfile.cuda"
+  target: "eks"
+  python_version: "3.13.12"
+  cuda_version: "13.0.2"
+  framework_version: "2.56.0"
+  torch_version: "2.11.0"
+  efa_version: "1.47.0"
+  gdrcopy_version: "2.4.4"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"
