@@ -8,6 +8,7 @@
 #
 # ============================================================================
 
+# TEMP: force CI build to validate longevity-test job — revert before merge
 # ── Global ARGs ─────────────────────────────────────────────────────────────
 ARG PYTHON_VERSION=3.12
 
