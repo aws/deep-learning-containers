@@ -6,7 +6,6 @@
 # ============================================================================
 
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=0
 ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 ARG TF_VERSION=2.21.0
@@ -53,11 +52,9 @@ ARG TF_VERSION
 ARG OPEN_MPI_VERSION
 ARG EFA_VERSION
 ARG DLC_MAJOR_VERSION
-ARG DLC_MINOR_VERSION
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
-LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 LABEL framework="tensorflow"
 LABEL framework_version="${TF_VERSION}"
 

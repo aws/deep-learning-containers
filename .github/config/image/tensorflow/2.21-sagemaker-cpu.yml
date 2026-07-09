@@ -19,7 +19,6 @@ build:
   tf_version: "2.21.0"
   open_mpi_version: "4.1.8"
   dlc_major_version: "1"
-  dlc_minor_version: "0"
 
 release:
   release: true
