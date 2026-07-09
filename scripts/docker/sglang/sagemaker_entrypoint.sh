@@ -12,9 +12,19 @@ echo "Starting server"
 PREFIX="SM_SGLANG_"
 ARG_PREFIX="--"
 
+# Engine selector (default: llm). Set SM_SGLANG_ENGINE=diffusion to serve a
+# FLUX.2 / diffusion pipeline via sglang.multimodal_gen instead of the LLM
+# engine. This var controls the launch module and is NOT forwarded as a flag.
+ENGINE=$(echo "${SM_SGLANG_ENGINE:-llm}" | tr '[:upper:]' '[:lower:]')
+
 ARGS=()
 
 while IFS='=' read -r key value; do
+    # SM_SGLANG_ENGINE selects the launch module; it is not a server flag.
+    if [ "$key" = "${PREFIX}ENGINE" ]; then
+        continue
+    fi
+
     arg_name=$(echo "${key#"${PREFIX}"}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
 
     # Handle boolean flags: true -> flag only, false -> skip entirely
@@ -46,5 +56,11 @@ if ! [[ " ${ARGS[@]} " =~ " --model-path " ]]; then
     ARGS+=(--model-path "${SM_SGLANG_MODEL_PATH:-/opt/ml/model}")
 fi
 
-echo "Running command: exec python3 -m sglang.launch_server ${ARGS[@]}"
-exec python3 -m sglang.launch_server "${ARGS[@]}"
+if [ "$ENGINE" = "diffusion" ]; then
+    LAUNCH_MODULE="sglang.multimodal_gen.runtime.launch_server"
+else
+    LAUNCH_MODULE="sglang.launch_server"
+fi
+
+echo "Running command: exec python3 -m ${LAUNCH_MODULE} ${ARGS[@]}"
+exec python3 -m "${LAUNCH_MODULE}" "${ARGS[@]}"
