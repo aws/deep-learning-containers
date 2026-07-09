@@ -1,5 +1,5 @@
 image:
-  name: "sagemaker-scikit-learn-1.4-2-py312"
+  name: "sagemaker-scikit-learn"
   description: "SageMaker Scikit-learn 1.4-2 py312"
 
 metadata:
