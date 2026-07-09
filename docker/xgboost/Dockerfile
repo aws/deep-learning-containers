@@ -68,9 +68,9 @@ COPY --from=builder-base /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
 # Telemetry
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
@@ -87,7 +87,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 RUN pip install --no-cache-dir git+https://github.com/awslabs/sagemaker-debugger.git@v1.0.32
 
 # Remove build-time packages to reduce CVE surface
-RUN dnf remove -y kernel-headers gcc gcc-c++ make cpp || true && dnf clean all
+RUN dnf remove -y kernel-headers gcc gcc-c++ make cpp || true \
+  && dnf upgrade -y --security --releasever latest \
+  && dnf clean all
 
 # Patch sagemaker-inference decoder.py (CWE-502 fix)
 COPY docker/xgboost/resources/patches/decoder.py /opt/venv/lib64/python${PYTHON_VERSION}/site-packages/sagemaker_inference/decoder.py
@@ -117,6 +119,9 @@ RUN mkdir -p /opt/ml/models && chmod +rwx /opt/ml/models
 # Dask config
 RUN mkdir -p /etc/dask
 COPY docker/xgboost/resources/dask_configs.yaml /etc/dask/
+
+# Drop temp dirs left by pip/smdebug installs (sanity check requires clean /tmp)
+RUN rm -rf /tmp/tmp* /tmp/pip-*
 
 # Labels
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true

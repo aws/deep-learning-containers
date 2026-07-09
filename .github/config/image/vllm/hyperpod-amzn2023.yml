@@ -1,0 +1,34 @@
+image:
+  name: "vllm-hyperpod-amzn2023"
+  description: "vLLM for HyperPod (AL2023, built from source)"
+
+metadata:
+  framework: "vllm_server"
+  framework_version: "0.20.0.dev361"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  platform: "hyperpod"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  prod_image: "vllm:server-hyperpod-cuda"
+
+build:
+  dockerfile: "docker/vllm/Dockerfile.amzn2023"
+  target: "vllm-hyperpod-amzn2023"
+  python_version: "3.12"
+  cuda_version: "12.9.1"
+  vllm_ref: "3f5bd482f5c1a5dbdffbbf68d624e20bb7032013"
+  flashinfer_version: "0.6.11.post2"
+  deepep_commit_hash: "73b6ea4"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+  use_sccache: "true"
+
+release:
+  release: false
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"

@@ -1,0 +1,49 @@
+name: 'Upload ECR Allowlists'
+description: 'Upload per-image security scan allowlists to S3 based on image configs'
+
+inputs:
+  aws-account-id:
+    description: 'AWS account ID for ECR (default framework images)'
+    required: true
+  aws-account-id-sagemaker:
+    description: 'AWS account ID for SageMaker built-in algorithm images (xgboost, sklearn, etc.). Falls back to aws-account-id if empty.'
+    required: false
+    default: ''
+  aws-region:
+    description: 'AWS region'
+    required: true
+  s3-bucket:
+    description: 'S3 bucket for scanner allowlists'
+    required: true
+  dry-run:
+    description: 'Print what would be uploaded without writing to S3'
+    required: false
+    default: 'false'
+  image:
+    description: 'Target a single image (repo:tag), e.g. vllm:omni-cuda-v1'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload ECR allowlists
+      shell: bash
+      run: |
+        uv venv --python 3.12
+        source .venv/bin/activate
+        uv pip install boto3 pyyaml
+
+        ARGS=""
+        if [[ "${{ inputs.dry-run }}" == "true" ]]; then
+          ARGS="--dry-run"
+        fi
+        if [[ -n "${{ inputs.image }}" ]]; then
+          ARGS="${ARGS} --image ${{ inputs.image }}"
+        fi
+        python3 "${{ github.action_path }}/upload_ecr_allowlists.py" ${ARGS}
+      env:
+        ECR_ACCOUNT_ID: ${{ inputs.aws-account-id }}
+        ECR_ACCOUNT_ID_SAGEMAKER: ${{ inputs.aws-account-id-sagemaker }}
+        AWS_REGION: ${{ inputs.aws-region }}
+        SCANNER_ALLOWLIST_S3_BUCKET: ${{ inputs.s3-bucket }}

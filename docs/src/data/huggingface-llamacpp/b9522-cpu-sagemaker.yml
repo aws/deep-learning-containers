@@ -1,0 +1,9 @@
+framework: Llama.cpp
+version: "b9522"
+accelerator: cpu
+os: ubuntu24.04
+platform: sagemaker
+tags:
+  - "b9522-cpu-ubuntu24.04"
+  - "b9522-cpu-ubuntu24.04-v1"
+  - "b9522-cpu-ubuntu24.04-v1.0"

@@ -23,21 +23,47 @@ fi
 # nvidia-nccl-cu13 wheel headers OOMed nvcc on verifiable.cu — the wheel ships
 # headers from a different NCCL build with much heavier template expansion.
 #
-# Cheapest reliable workaround: install libnccl-dev from the cuda apt repo at
-# test time. Same NCCL version the image runs against, "thin" headers like
-# master's, ~50MB transient install, removed at end of test by container
-# teardown.
+# Cheapest reliable workaround: install the libnccl headers package at test
+# time. Same NCCL version the image runs against, "thin" headers like master's,
+# ~50MB transient install, removed at end of test by container teardown.
+#
+# Package manager differs by base image:
+# - Ubuntu (PyTorch DLC, vLLM): apt's libnccl-dev from the cuda apt repo.
+# - AL2023 (SGLang): dnf's libnccl-devel from the cuda-rhel9 repo. The image
+#   installs libnccl + libnccl-devel at build time then removes libnccl-devel,
+#   leaving the cuda-rhel9 repo configured so we can reinstall the headers here.
 NCCL_HOME=/usr
 if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
-    echo "Installing libnccl-dev from apt..."
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq
-    apt-get install -y --no-install-recommends libnccl-dev
+    if command -v apt-get >/dev/null 2>&1; then
+        echo "Installing libnccl-dev from apt..."
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -qq
+        apt-get install -y --no-install-recommends libnccl-dev
+    elif command -v dnf >/dev/null 2>&1; then
+        echo "Installing libnccl-devel from dnf..."
+        # The image symlinks /usr/bin/python3 to the venv, so dnf's shebang
+        # interpreter lacks the dnf module. Run dnf with the system python.
+        SYS_PY=""
+        for p in /usr/bin/python3.9 /usr/libexec/platform-python /usr/bin/python3.12 /usr/bin/python3.11; do
+            if [ -x "$p" ] && "$p" -c 'import dnf' >/dev/null 2>&1; then SYS_PY="$p"; break; fi
+        done
+        if [ -n "$SYS_PY" ]; then
+            "$SYS_PY" /usr/bin/dnf install -y --setopt=install_weak_deps=False libnccl-devel
+        else
+            dnf install -y --setopt=install_weak_deps=False libnccl-devel
+        fi
+    elif command -v yum >/dev/null 2>&1; then
+        echo "Installing libnccl-devel from yum..."
+        yum install -y libnccl-devel
+    else
+        echo "ERROR: no supported package manager (apt-get/dnf/yum) found" >&2
+        exit 1
+    fi
 fi
 
 if [ ! -f "${NCCL_HOME}/include/nccl.h" ]; then
-    echo "ERROR: nccl.h still not present after apt install" >&2
-    apt list --installed 2>/dev/null | grep -i nccl >&2 || true
+    echo "ERROR: nccl.h still not present after package install" >&2
+    { apt list --installed 2>/dev/null || rpm -qa 2>/dev/null; } | grep -i nccl >&2 || true
     exit 1
 fi
 echo "Using NCCL_HOME=${NCCL_HOME}"
@@ -71,12 +97,13 @@ SM=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader | head -1 | tr -d 
 [ -z "${SM}" ] && SM=80  # safe default for p4d
 NVCC_GENCODE="-gencode=arch=compute_${SM},code=sm_${SM}"
 
+# Pin C++17: nccl-tests' CUDA>=13 auto-detect uses `which`, absent on AL2023, so it wrongly falls back to c++14 and fails on CUDA 13 libcu++ headers.
 cd /tmp
 rm -rf nccl-tests
 git clone --depth 1 https://github.com/NVIDIA/nccl-tests.git
 cd nccl-tests
 make -j1 MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" \
-    CUDA_HOME=/usr/local/cuda NVCC_GENCODE="${NVCC_GENCODE}"
+    CUDA_HOME=/usr/local/cuda NVCC_GENCODE="${NVCC_GENCODE}" CXXSTD="-std=c++17"
 cp build/all_reduce_perf /usr/local/bin/all_reduce_perf
 cd /tmp
 rm -rf nccl-tests

@@ -11,7 +11,7 @@ runs:
   using: composite
   steps:
     - name: Check PR sender permission
-      uses: actions/github-script@v7
+      uses: actions/github-script@v9
       with:
         script: |
           const username = context.payload.sender.login;

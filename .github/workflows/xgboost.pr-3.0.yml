@@ -1,0 +1,94 @@
+name: "PR - XGBoost 3.0"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/xgboost/sagemaker-3.0.yml"
+      - ".github/workflows/xgboost.pipeline.yml"
+      - ".github/workflows/xgboost.pr-3.0.yml"
+      - "docker/xgboost/3.0-5/**"
+      - "scripts/docker/common/**"
+      - "scripts/docker/xgboost/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/xgboost/**"
+      - "test/telemetry/**"
+      - "test/xgboost/**"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  check-changes:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      integ-test-change: ${{ steps.changes.outputs.integ-test-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: changes
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/xgboost/sagemaker-3.0.yml"
+              - "docker/xgboost/3.0-5/**"
+              - "scripts/docker/common/**"
+              - "scripts/docker/xgboost/**"
+              - "test/security/data/ecr_scan_allowlist/xgboost/**"
+            integ-test-change:
+              - "test/xgboost/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            telemetry-test-change:
+              - "test/telemetry/**"
+            unit-test-change:
+              - "docker/xgboost/3.0-5/**"
+
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/xgboost/sagemaker-3.0.yml"
+
+  pipeline:
+    needs: [check-changes, discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/xgboost.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      build: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-integ-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.integ-test-change == 'true' }}
+      run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-telemetry-test: false
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
+      release: false
+    secrets: inherit

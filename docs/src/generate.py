@@ -5,7 +5,6 @@ import logging
 import sorter as sorter_module
 from constants import (
     AVAILABLE_IMAGES_TABLE_HEADER,
-    DOCS_DIR,
     GLOBAL_CONFIG,
     PUBLIC_GALLERY_URL,
     REFERENCE_DIR,
@@ -279,27 +278,10 @@ def generate_available_images(dry_run: bool = False) -> str:
     return content
 
 
-def generate_index(dry_run: bool = False) -> str:
-    """Generate docs/index.md from the index template."""
-    output_path = DOCS_DIR / "index.md"
-    template_path = TEMPLATES_DIR / "index.template.md"
-    LOGGER.debug(f"Generating {output_path}")
-
-    content = load_jinja2(template_path)
-
-    if not dry_run:
-        write_output(output_path, content)
-        LOGGER.debug(f"Wrote {output_path}")
-
-    LOGGER.info("Generated index.md")
-    return content
-
-
 def generate_all(dry_run: bool = False) -> None:
     """Generate all documentation files."""
     LOGGER.info("Loaded global config")
 
-    generate_index(dry_run)
     generate_support_policy(dry_run)
     generate_available_images(dry_run)
 

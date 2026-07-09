@@ -1,0 +1,40 @@
+# Lambda release workflow — manual dispatch only.
+# Lambda Dockerfile and configs live on the `lambda` branch (pre-GA).
+# Discovers all Lambda config files and runs the pipeline for each variant.
+
+name: "Dispatch - Lambda Release"
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/lambda/*.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/lambda.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit

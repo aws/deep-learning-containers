@@ -1,0 +1,54 @@
+name: 'Notify Slack Failure'
+description: 'Post a failed auto-release run to a Slack Workflow Builder webhook.'
+
+inputs:
+  webhook-url:
+    description: 'Slack Workflow Builder webhook URL (secret).'
+    required: true
+  workflow-name:
+    description: 'Workflow display name (github.workflow). "Auto Release - " prefix is stripped.'
+    required: true
+  config-file:
+    description: 'Path to the image config YAML; its basename identifies which config failed.'
+    required: true
+  run-url:
+    description: 'URL of the failed workflow run.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Send Slack notification
+      shell: bash
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.webhook-url }}
+        WORKFLOW_NAME: ${{ inputs.workflow-name }}
+        CONFIG_FILE: ${{ inputs.config-file }}
+        RUN_URL: ${{ inputs.run-url }}
+      run: |
+        if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
+          echo "::error::webhook-url is empty — set the SLACK_RELEASE_FAILURE_WEBHOOK_URL secret."
+          exit 1
+        fi
+
+        # Include the config basename: one workflow releases several configs via matrix.
+        workflow="${WORKFLOW_NAME#Auto Release - } ($(basename "${CONFIG_FILE}"))"
+
+        payload=$(jq -n \
+          --arg workflow "${workflow}" \
+          --arg url "${RUN_URL}" \
+          '{
+            workflow: $workflow,
+            url: $url
+          }')
+
+        http_code=$(curl -s -o /dev/null -w "%{http_code}" \
+          --max-time 10 \
+          -X POST "${SLACK_WEBHOOK_URL}" \
+          -H 'Content-Type: application/json' \
+          --data "${payload}")
+
+        echo "Slack webhook responded with HTTP ${http_code}"
+        if [[ "${http_code}" != "200" ]]; then
+          echo "::warning::Slack notification failed (HTTP ${http_code})"
+        fi

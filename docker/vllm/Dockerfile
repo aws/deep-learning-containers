@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.22.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.24.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -37,13 +37,18 @@ RUN uv pip install --system \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
-  "model-hosting-container-standards>=0.1.15,<1.0.0" \
+  "model-hosting-container-standards>=0.1.16,<1.0.0" \
   "pyasn1>=0.6.3" \
   && uv cache clean
 
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+# Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
+RUN uv pip install --system \
+  av scipy soundfile "mistral_common[audio]" \
+  && uv cache clean
+
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
@@ -65,7 +70,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /root/.cache | true
 
-COPY ./scripts/common/install_efa.sh install_efa.sh
+COPY ./scripts/docker/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
   && mkdir -p /tmp/nvjpeg \
@@ -90,7 +95,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get clean \
   && rm -rf /tmp/*
 
-COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY ./scripts/docker/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
@@ -105,7 +110,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get clean \
   && rm -rf /tmp/*
 
-COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/docker/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

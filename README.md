@@ -8,12 +8,12 @@
 <a href="https://aws.github.io/deep-learning-containers/reference/available_images/"><strong>Available Images</strong></a> · <a href="https://aws.github.io/deep-learning-containers/tutorials/"><strong>Tutorials</strong></a></p>
 
 <p align="center">
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-ec2.yml/badge.svg" alt="Auto Release - vLLM EC2"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-sagemaker.yml/badge.svg" alt="Auto Release - vLLM SageMaker"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-omni.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-vllm-omni.yml/badge.svg" alt="Auto Release - vLLM-Omni"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-ray.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-ray.yml/badge.svg" alt="Auto Release - Ray"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-sglang-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-sglang-ec2.yml/badge.svg" alt="Auto Release - SGLang EC2"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-sglang-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/autorelease-sglang-sagemaker.yml/badge.svg" alt="Auto Release - SGLang SageMaker"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.12-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.12-ec2.yml/badge.svg" alt="Auto Release - PyTorch 2.12"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - vLLM"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm-omni.autorelease-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm-omni.autorelease-ec2.yml/badge.svg" alt="Auto Release - vLLM-Omni"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - SGLang"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/ray.autorelease-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/ray.autorelease-ec2.yml/badge.svg" alt="Auto Release - Ray"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/base.autorelease-cu130.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/base.autorelease-cu130.yml/badge.svg" alt="Auto Release - Base cu130"></a>
 </p>
 
 ______________________________________________________________________
@@ -28,14 +28,14 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
-- **[2026/05/30]** [vLLM v0.22.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.22.0-gpu-py312-ec2` · SageMaker: `0.22.0-gpu-py312` · MiniCPM-V 4.6, InternS2 Preview, OpenVLA, EXAONE-4.5; DeepSeek V4 maturity (NVFP4 fused MoE, MTP speculative decoding); Blackwell SM12x support.
-- **[2026/05/18]** [SGLang v0.5.12](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.12-gpu-py312-ec2` · SageMaker: `0.5.12-gpu-py312` · DeepSeek V4, Intern-S2-Preview, MiniCPM-V 4.6, Laguna-XS.2, Ring-2.6-1T, Gemma 4 MTP.
-- **[2026/05/16]** [vLLM v0.21.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.21.0-gpu-py312-ec2` · SageMaker: `0.21.0-gpu-py312` · MiMo-V2.5, Laguna XS.2, Moondream3, Cohere MoE/Eagle; DeepSeek V4 on AMD + pipeline parallelism.
-- **[2026/05/13]** [vLLM-Omni v0.20.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.1` · SageMaker: `omni-sagemaker-cuda-v1.1` · Adds `/v1/audio/generate` (stable-audio-open) and `/v1/videos/sync` (unblocks video on SageMaker); supports CosyVoice3, ERNIE-Image-Turbo, Wan2.1-VACE-1.3B; CUDA 13.0 + PyTorch 2.11.0.
-- **[2026/05/11]** [vLLM v0.20.2](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.20.2-gpu-py312-ec2` · SageMaker: `0.20.2-gpu-py312` · Bug fixes for DeepSeek V4.
-- **[2026/05/06]** [SGLang v0.5.11](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.11-gpu-py312-ec2` · SageMaker: `0.5.11-gpu-py312` · Model support for Gemma 4, GLM-5.1, Qwen 3.4, and more
-- **[2026/05/05]** [vLLM v0.20.1](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.20.1-gpu-py312-ec2` · SageMaker: `0.20.1-gpu-py312` · Bug fixes for DeepSeek V4.
-- **[2026/04/30]** [PyTorch v2.11.0](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.11.0-cu130-amzn2023` · SageMaker: `2.11.0-cu130-amzn2023-sagemaker` · Amazon Linux 2023 with EFA, flash-attn, and transformer-engine.
+- **[2026/07/06]** [SGLang Server v1.2 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.2` · SageMaker: `server-sagemaker-cuda-v1.2` · SGLang `0.5.14`; adds support for the NVIDIA LocateAnything-3B vision-grounding model and upgrades sgl-kernel 0.4.4, FlashInfer 0.6.12, Mooncake 0.3.11.post1, NCCL 2.30.4, and EFA 1.49.0.
+- **[2026/07/02]** [vLLM Server v2.1 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.1` · SageMaker: `server-sagemaker-cuda-v2.1` · vLLM `0.24.0`; adds JetBrains Mellum2-12B-A2.5B-Thinking (`MellumForCausalLM`); FlashInfer 0.6.12; drops the `transformers<5.10` pin (now requires transformers ≥ 5.5.3).
+- **[2026/07/02]** [vLLM-Omni v1.4 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.4` · SageMaker: `omni-sagemaker-cuda-v1.4` · SageMaker `/v1/videos` and `/v1/videos/sync` accept `application/json` again (JSON→multipart conversion restored); no framework bump (vLLM-Omni 0.21.0rc1).
+- **[2026/07/02]** [PyTorch v2.12.1](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.12.1-cu130-amzn2023` · SageMaker: `2.12.1-cu130-amzn2023-sagemaker` · Amazon Linux 2023 with EFA, flash-attn, and Transformer Engine; PyTorch 2.12.1 bug-fix release (B200/Triton correctness fixes).
+- **[2026/07/01]** [vLLM v0.24.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.24.0-gpu-py312-ec2` · SageMaker: `0.24.0-gpu-py312` · MiniMax-M3, DiffusionGemma (+CPU), Hierarchical Reasoning Model, OpenMOSS; streaming parser engine (Qwen3, MiniMax-M2, GLM-4.7/5.1/5.2, Nemotron V3); DeepSeek-V4 fixes.
+- **[2026/06/29]** [SGLang Server v1.1 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.1` · SageMaker: `server-sagemaker-cuda-v1.1` · SGLang `0.5.13`; adds NIXL KV connector for prefill/decode disaggregation and `runai-model-streamer[s3,gcs,azure]` for fast weight streaming from object storage; starlette CVE patch.
+- **[2026/06/29]** [SGLang v0.5.14](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.14-gpu-py312-ec2` · SageMaker: `0.5.14-gpu-py312` · GLM 5.2, LiquidAI LFM2.5, Kimi-K2.7-Code, DeepSeek V4 on GB300.
+- **[2026/06/14]** [vLLM v0.23.0](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.23.0-gpu-py312-ec2` · SageMaker: `0.23.0-gpu-py312` · Step-3.7-Flash, Cosmos3 Reasoner, Gemma 4 Unified (encoder-free), Granite Speech Plus, Cohere Mini Code; Anthropic Messages API structured output.
 
 ### 📢 Support Updates
 

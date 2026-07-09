@@ -1,0 +1,28 @@
+image:
+  name: "sglang-ec2-ubuntu"
+  description: "SGLang for EC2 instances (Ubuntu, upstream base image)"
+metadata:
+  framework: "sglang"
+  framework_version: "0.5.14"
+  os_version: "ubuntu24.04"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  prod_image: "sglang:0.5-gpu-py312-ec2"
+build:
+  dockerfile: "docker/sglang/Dockerfile"
+  target: "sglang-ec2"
+  base_image: "lmsysorg/sglang:v0.5.14"
+  python_version: "3.12"
+  cuda_version: "13.0.3"
+  efa_version: "1.48.0"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"

@@ -8,28 +8,28 @@
 # Always included regardless of which job fails
 common:
   - "docker/{framework}/Dockerfile"
-  - ".github/config/image/{framework}-ec2.yml"
+  - ".github/config/image/{framework}/ec2-ubuntu.yml"
 
 # Job-specific files
 jobs:
   build-image:
-    - "scripts/common/install_efa.sh"
+    - "scripts/docker/common/install_efa.sh"
 
   sanity-test:
-    - "scripts/{framework}/dockerd_entrypoint.sh"
+    - "scripts/docker/{framework}/dockerd_entrypoint.sh"
     - "test/sanity/scripts/test_sanity_vllm_sglang.py"
 
   security-test:
     - "test/security/data/ecr_scan_allowlist/{framework}/framework_allowlist.json"
 
   telemetry-test:
-    - "scripts/telemetry/deep_learning_container.py"
-    - "scripts/telemetry/bash_telemetry.sh.template"
+    - "scripts/docker/telemetry/deep_learning_container.py"
+    - "scripts/docker/telemetry/bash_telemetry.sh.template"
 
   upstream-tests:
     - "test/{framework}/scripts/{framework}_test_setup.sh"
     - "test/{framework}/scripts/{framework}_ec2_examples_test.sh"
 
   sagemaker-test:
-    - "scripts/{framework}/sagemaker_entrypoint.sh"
+    - "scripts/docker/{framework}/sagemaker_entrypoint.sh"
     - "test/{framework}/scripts/{framework}_sagemaker_examples_test.sh"

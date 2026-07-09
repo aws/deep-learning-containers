@@ -1,0 +1,258 @@
+name: Reusable Sanity Tests
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      job-type: ${{ steps.parse.outputs.job-type }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      transformers-version: ${{ steps.parse.outputs.transformers-version }}
+      target: ${{ steps.parse.outputs.target }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+
+      - name: Parse config
+        if: steps.check.outputs.exists == 'true'
+        id: parse
+        run: |
+          CONFIG_FILE="${{ inputs.config-file }}"
+          echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "os-version=$(yq '.metadata.os_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "customer-type=$(yq '.metadata.customer_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "arch-type=$(yq '.metadata.arch_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "device-type=$(yq '.metadata.device_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "job-type=$(yq '.metadata.job_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "python-version=$(yq '.build.python_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(yq '.build.cuda_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "contributor=$(yq '.metadata.contributor // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "transformers-version=$(yq '.build.transformers_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "target=$(yq '.build.target // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+
+  sanity-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Setup test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ needs.preflight.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Check filesystem
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_filesystem.sh
+
+      - name: Check for embedded credentials and secrets
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_credentials.sh
+
+      - name: Check no conda packages from repo.anaconda.com
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_anaconda.sh
+
+      - name: Check container labels
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/inspect_docker.py \
+            ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Run base image checks
+        if: needs.preflight.outputs.framework == 'base_dlc'
+        run: |
+          PYTHON_SHORT=$(echo '${{ needs.preflight.outputs.python-version }}' | cut -d. -f1,2)
+          CUDA_SHORT=$(echo '${{ needs.preflight.outputs.cuda-version }}' | cut -d. -f1,2)
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh \
+            "${PYTHON_SHORT}" "${CUDA_SHORT}"
+
+      - name: Run inference engine checks
+        if: |
+          needs.preflight.outputs.framework == 'vllm' ||
+          needs.preflight.outputs.framework == 'vllm_server' ||
+          needs.preflight.outputs.framework == 'sglang' ||
+          needs.preflight.outputs.framework == 'sglang_server'
+        run: |
+          docker exec \
+            -e EXPECTED_FRAMEWORK_VERSION=${{ needs.preflight.outputs.framework-version }} \
+            -e EXPECTED_PYTHON_VERSION=${{ needs.preflight.outputs.python-version }} \
+            -e EXPECTED_CUDA_VERSION=${{ needs.preflight.outputs.cuda-version }} \
+            ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
+
+      - name: Check model containers framework version currency
+        if: |
+          needs.preflight.outputs.framework == 'vllm_server' ||
+          needs.preflight.outputs.framework == 'sglang_server'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          source .venv/bin/activate
+          python3 test/sanity/scripts/check_framework_version_currency.py \
+            --config-file "${{ inputs.config-file }}"
+
+      - name: Run training image sanity checks
+        if: |
+          needs.preflight.outputs.framework == 'pytorch_runtime' ||
+          needs.preflight.outputs.framework == 'tensorflow' ||
+          needs.preflight.outputs.framework == 'xgboost'
+        run: |
+          docker exec \
+            -e EXPECTED_FRAMEWORK=${{ needs.preflight.outputs.framework }} \
+            -e EXPECTED_DEVICE=${{ needs.preflight.outputs.device-type }} \
+            -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
+            ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_training.py
+
+      - name: Run OSS compliance check
+        run: |
+          docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
+
+      - name: Copy OSS compliance artifacts
+        run: |
+          docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS
+
+      - name: Upload third-party source code to S3
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
+
+  sanity-sagemaker:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.customer-type == 'sagemaker' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Setup test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
+      - name: Check standard SageMaker labels
+        run: |
+          source .venv/bin/activate
+          PYTHON_SHORT="py$(echo '${{ needs.preflight.outputs.python-version }}' | cut -d. -f1,2 | tr -d '.')"
+          CUDA_SHORT=""
+          if [ -n "${{ needs.preflight.outputs.cuda-version }}" ]; then
+            CUDA_SHORT="cu$(echo '${{ needs.preflight.outputs.cuda-version }}' | tr -d '.' | cut -c1-3)"
+          fi
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/check_labels.py \
+            ${{ needs.preflight.outputs.image-uri }} \
+            --framework "${{ needs.preflight.outputs.framework }}" \
+            --framework-version "${{ needs.preflight.outputs.framework-version }}" \
+            --device-type "${{ needs.preflight.outputs.device-type }}" \
+            --cuda-version "${CUDA_SHORT}" \
+            --arch-type "${{ needs.preflight.outputs.arch-type }}" \
+            --python-version "${PYTHON_SHORT}" \
+            --os-version "${{ needs.preflight.outputs.os-version }}" \
+            --container-type "${{ needs.preflight.outputs.job-type }}" \
+            --contributor "${{ needs.preflight.outputs.contributor }}" \
+            --transformers-version "${{ needs.preflight.outputs.transformers-version }}"
+
+  # TODO: Change to device_type == 'gpu' when other GPU frameworks need this job.
+  # Move the base_dlc condition to the CUDA test step specifically.
+  sanity-gpu:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.framework == 'base_dlc' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ needs.preflight.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run CUDA tests
+        run: |
+          CUDA_SHORT=$(echo '${{ needs.preflight.outputs.cuda-version }}' | cut -d. -f1,2)
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/cuda_${{ needs.preflight.outputs.target }}_test.sh \
+            "${CUDA_SHORT}"

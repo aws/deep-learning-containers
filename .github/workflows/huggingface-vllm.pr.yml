@@ -1,0 +1,89 @@
+name: "PR - Hugging Face vLLM"
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/huggingface-vllm/*.yml"
+      - ".github/workflows/huggingface-vllm.pipeline.yml"
+      - ".github/workflows/huggingface-vllm.pr.yml"
+      - "docker/huggingface/vllm/**"
+      - "scripts/docker/huggingface/vllm/**"
+      - "scripts/docker/telemetry/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/huggingface-vllm/**"
+      - "test/telemetry/**"
+      - "test/vllm/sagemaker/**"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  check-changes:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: changes
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/huggingface-vllm/*.yml"
+              - "docker/huggingface/vllm/**"
+              - "scripts/docker/huggingface/vllm/**"
+              - "test/security/data/ecr_scan_allowlist/huggingface-vllm/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            sagemaker-test-change:
+              - "test/vllm/sagemaker/**"
+            telemetry-test-change:
+              - "scripts/docker/telemetry/**"
+              - "test/telemetry/**"
+
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/huggingface-vllm/*.yml"
+
+  pipeline:
+    needs: [check-changes, discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/huggingface-vllm.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      build: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      release: false
+    secrets: inherit

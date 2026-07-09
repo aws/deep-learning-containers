@@ -7,7 +7,7 @@ The PyTorch DLC is a training image — it does not serve a model out of the box
 ```bash
 docker run --rm -it --gpus all --shm-size=16g --ipc=host \
   -v $(pwd):/workspace \
-  public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023 \
+  public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023 \
   python train.py
 ```
 
@@ -20,7 +20,7 @@ Use `torchrun` to spawn one process per GPU:
 ```bash
 docker run --rm -it --gpus all --shm-size=16g --ipc=host \
   -v $(pwd):/workspace \
-  public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023 \
+  public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023 \
   torchrun --standalone --nproc_per_node=8 train.py
 ```
 
@@ -38,7 +38,7 @@ Run the container with `--privileged` (or grant the EFA capabilities via `--devi
 docker run --rm -it --gpus all --privileged --network host \
   --shm-size=16g --ipc=host \
   -v $(pwd):/workspace \
-  public.ecr.aws/deep-learning-containers/pytorch:2.11-cu130-amzn2023 \
+  public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023 \
   torchrun --nnodes=2 --nproc_per_node=8 \
     --rdzv_id=demo --rdzv_backend=c10d --rdzv_endpoint=<head_node>:29500 \
     train.py
