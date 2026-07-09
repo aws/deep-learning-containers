@@ -9,15 +9,17 @@ source "${SCRIPT_DIR}/utils.sh"
 
 ###############################################################################
 # update_config_files(framework_key, new_version, config_entries_json)
-#   Iterates over config file entries, updates common.framework_version and
-#   common.prod_image using yq. Echoes the list of updated file paths
-#   (one per line).
+#   Iterates over config file entries, updates metadata.framework_version and
+#   metadata.prod_image using yq. When an entry has an optional
+#   "base_image_template", also updates build.base_image (upstream-base images).
+#   Echoes the list of updated file paths (one per line).
 #
 #   Arguments:
 #     framework_key       — Framework identifier (e.g., "vllm")
 #     new_version         — New upstream version string (e.g., "0.17.0")
-#     config_entries_json — JSON array of objects with "path" and
-#                           "prod_image_template" fields
+#     config_entries_json — JSON array of objects with "path",
+#                           "prod_image_template", and optional
+#                           "base_image_template" fields
 #
 #   Usage:
 #     updated=$(update_config_files "vllm" "0.17.0" '[
@@ -58,6 +60,13 @@ update_config_files() {
     local new_prod_image
     new_prod_image="$(render_prod_image "${template}" "${new_version}")"
     yq eval -i ".metadata.prod_image = \"${new_prod_image}\"" "${config_path}"
+
+    # Update build.base_image when the entry provides a template (upstream-base images)
+    local base_image_template
+    base_image_template="$(echo "${config_entries_json}" | jq -r ".[$i].base_image_template // empty")"
+    if [[ -n "${base_image_template}" ]]; then
+      yq eval -i ".build.base_image = \"${base_image_template//\{version\}/${new_version}}\"" "${config_path}"
+    fi
 
     echo "${config_path}"
   done

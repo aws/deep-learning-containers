@@ -16,8 +16,10 @@ frameworks:
     config_files:
       - path: ".github/config/image/vllm/ec2-ubuntu.yml"
         prod_image_template: "vllm:{major}.{minor}-gpu-py312-ec2"
+        base_image_template: "vllm/vllm-openai:v{version}"
       - path: ".github/config/image/vllm/sagemaker-ubuntu.yml"
         prod_image_template: "vllm:{major}.{minor}-gpu-py312"
+        base_image_template: "vllm/vllm-openai:v{version}"
     dockerfiles:
       - path: "docker/vllm/Dockerfile"
         base_image_template: "vllm/vllm-openai:v{version}"
@@ -29,8 +31,10 @@ frameworks:
     config_files:
       - path: ".github/config/image/sglang/ec2-ubuntu.yml"
         prod_image_template: "sglang:{major}.{minor}-gpu-py312-ec2"
+        base_image_template: "lmsysorg/sglang:v{version}"
       - path: ".github/config/image/sglang/sagemaker-ubuntu.yml"
         prod_image_template: "sglang:{major}.{minor}-gpu-py312"
+        base_image_template: "lmsysorg/sglang:v{version}"
     dockerfiles:
       - path: "docker/sglang/Dockerfile"
         base_image_template: "lmsysorg/sglang:v{version}"

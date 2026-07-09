@@ -131,6 +131,19 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  # Longevity test — sustained-load resource-impact check on the serving
+  # container. Lightweight; runs on PRs alongside the local integ tests.
+  longevity-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-integ-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-longevity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/xgboost.tests-longevity.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   # Full integration suite — GPU container tests + SageMaker e2e + benchmarks.
   # Heavy; only runs on the release pipeline, not on PRs.
   integ-test-full:
@@ -152,7 +165,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, unit-test, integ-test, integ-test-full]
+    needs: [build, sanity-test, security-test, unit-test, integ-test, longevity-test, integ-test-full]
     runs-on: ubuntu-latest
     outputs:
       environment: ${{ steps.check.outputs.environment }}
@@ -182,3 +195,23 @@ jobs:
       environment: ${{ needs.release-gate.outputs.environment }}
       aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit
+
+  notify-failure:
+    # Notify Slack immediately when an auto-release/dispatch-release run fails.
+    # Guarded on release context so PR runs never notify.
+    if: >-
+      failure() &&
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release
+    needs: [build, sanity-test, security-test, unit-test, integ-test, integ-test-full, release-gate, release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/notify-slack-failure
+        with:
+          webhook-url: ${{ secrets.SLACK_RELEASE_FAILURE_WEBHOOK_URL }}
+          workflow-name: ${{ github.workflow }}
+          config-file: ${{ inputs.config-file }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

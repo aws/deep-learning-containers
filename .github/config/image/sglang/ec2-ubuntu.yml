@@ -13,7 +13,7 @@ metadata:
 build:
   dockerfile: "docker/sglang/Dockerfile"
   target: "sglang-ec2"
-  base_image: "lmsysorg/sglang:v0.5.13"
+  base_image: "lmsysorg/sglang:v0.5.14"
   python_version: "3.12"
   cuda_version: "13.0.3"
   efa_version: "1.48.0"

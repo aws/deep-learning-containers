@@ -327,7 +327,9 @@ RUN uv pip install --no-cache-dir \
   "cbor2>=5.9.0" \
   "starlette>=1.3.1" \
   "cryptography>=48.0.1" \
-  "model-hosting-container-standards>=0.1.16,<1.0.0"
+  "model-hosting-container-standards>=0.1.16,<1.0.0" \
+  # 8.0.1 fixes AttributeError on fastapi 0.138 _IncludedRouter that 500s /health (instrumentator #371)
+  "prometheus-fastapi-instrumentator>=8.0.1"
 
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template

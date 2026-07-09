@@ -28,8 +28,21 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 CONFIG_DIR = REPO_ROOT / ".github" / "config" / "image"
 ALLOWLIST_DIR = REPO_ROOT / "test" / "security" / "data" / "ecr_scan_allowlist"
 ECR_ACCOUNT = os.environ.get("ECR_ACCOUNT_ID", "")
+# SageMaker built-in algorithm images (xgboost) live in a separate ECR account
+# from the standard DLC framework account. Empty string falls back to ECR_ACCOUNT.
+ECR_ACCOUNT_SAGEMAKER = os.environ.get("ECR_ACCOUNT_ID_SAGEMAKER", "") or ECR_ACCOUNT
 ECR_REGION = os.environ.get("AWS_REGION", "us-west-2")
 S3_BUCKET = os.environ.get("SCANNER_ALLOWLIST_S3_BUCKET", "")
+
+# Frameworks whose ECR repositories live in the SageMaker built-in algorithm account.
+SAGEMAKER_BUILTIN_FRAMEWORKS = {"xgboost"}
+
+
+def ecr_account_for_framework(framework):
+    """Return the ECR account ID that hosts images for the given framework."""
+    if framework in SAGEMAKER_BUILTIN_FRAMEWORKS:
+        return ECR_ACCOUNT_SAGEMAKER
+    return ECR_ACCOUNT
 
 
 def load_image_configs():
@@ -60,11 +73,11 @@ def load_image_configs():
     return configs
 
 
-def get_image_sha(ecr_client, repo, tag):
+def get_image_sha(ecr_client, ecr_account, repo, tag):
     """Look up image digest from ECR. Returns sha string or None."""
     try:
         resp = ecr_client.describe_images(
-            registryId=ECR_ACCOUNT,
+            registryId=ecr_account,
             repositoryName=repo,
             imageIds=[{"imageTag": tag}],
         )
@@ -198,9 +211,12 @@ def main():
             continue
         seen.add(image_key)
 
-        LOG.info(f"{image_key} (framework={framework}, config={source_file})")
+        ecr_account = ecr_account_for_framework(framework)
+        LOG.info(
+            f"{image_key} (framework={framework}, ecr_account={ecr_account}, config={source_file})"
+        )
 
-        sha = get_image_sha(ecr_client, repo, tag)
+        sha = get_image_sha(ecr_client, ecr_account, repo, tag)
         if not sha:
             LOG.warning("  skip: image not found in ECR")
             skipped += 1

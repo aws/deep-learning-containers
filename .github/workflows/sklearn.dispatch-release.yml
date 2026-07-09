@@ -1,0 +1,26 @@
+name: "Dispatch - Scikit-learn Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+        default: ".github/config/image/sklearn/sagemaker-py312.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.config-file }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/sklearn.pipeline.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit

@@ -80,6 +80,11 @@
         "review_by": "2026-08-30"
     },
     {
+        "vulnerability_id": "CVE-2026-27145",
+        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
         "vulnerability_id": "RUSTSEC-2026-0185",
         "reason": "quinn-proto Rust crate vendored inside the upstream vllm wheel; cannot be bumped to 0.11.15 independently of a vllm wheel rebuild. Tracking upstream vllm-project release.",
         "review_by": "2026-09-25"
@@ -93,5 +98,10 @@
         "vulnerability_id": "CVE-2026-54232",
         "reason": "Scanner flags vllm 0.22.1rc0 as < the 0.22.1 fix tag (rc precedes the final). CVE concerns dependency confusion in the upstream vLLM project Dockerfile's flashinfer-jit-cache install; this image builds from docker/vllm/Dockerfile.amzn2023, which installs flashinfer-jit-cache pinned from the flashinfer.ai index. Real version fix lands with the in-progress vLLM 0.23.0 image bump.",
         "review_by": "2026-07-31"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27145",
+        "reason": "go/stdlib 1.24.11 embedded in mooncake libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
+        "review_by": "2026-09-10"
     }
 ]
