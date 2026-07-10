@@ -16,9 +16,11 @@ metadata:
 build:
   dockerfile: "docker/ray-train/Dockerfile.cuda"
   target: "ec2"
+  builder_base_image: "public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023"
+  base_image: "public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023"
   python_version: "3.13.12"
+  python_short_version: "3.13"
   cuda_version: "13.0.2"
-  framework_version: "2.56.0"
   torch_version: "2.13.0"
   efa_version: "1.47.0"
   gdrcopy_version: "2.4.4"
