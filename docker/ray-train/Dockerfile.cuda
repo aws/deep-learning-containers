@@ -25,6 +25,7 @@ ARG PYTHON_VERSION=3.13
 ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK_VERSION=2.56.0
 ARG TORCH_VERSION=2.13.0
+ARG CUDA_VERSION=13.0.2
 ARG EFA_VERSION=1.47.0
 ARG GDRCOPY_VERSION=2.4.4
 # Base CUDA DLC (we own it). devel for builder stages, runtime for output.
@@ -69,6 +70,7 @@ ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 ARG TORCH_VERSION
 ARG FRAMEWORK_VERSION
+ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 ARG EFA_VERSION
@@ -93,9 +95,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   NCCL_SOCKET_IFNAME=eth0 \
   NCCL_DEBUG=INFO
 
-# Build tools needed by the interconnect installers + nccl-tests.
-RUN dnf install -y --allowerasing \
-  shadow-utils tar gzip curl which findutils util-linux gcc gcc-c++ make \
+# Build tools needed by the interconnect installers + nccl-tests. The base
+# runtime image has no CUDA compiler, so add cuda-nvcc + cudart-devel (nccl-tests
+# needs nvcc). Package suffix derives from CUDA version: 13.0.2 -> 13-0.
+RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
+  && dnf install -y --allowerasing \
+    shadow-utils tar gzip curl which findutils util-linux gcc gcc-c++ make \
+    cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} \
   && dnf clean all
 
 # Python venv (base + torch/ray/HF deps from builder-base)

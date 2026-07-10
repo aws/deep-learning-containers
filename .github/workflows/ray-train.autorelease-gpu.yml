@@ -2,7 +2,7 @@ name: "Auto Release - Ray Train GPU"
 
 on:
   schedule:
-    - cron: '00 19 * * 2,4'
+    - cron: '00 23 * * 2,4'
   workflow_dispatch:
 
 concurrency:

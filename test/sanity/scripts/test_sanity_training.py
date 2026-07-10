@@ -47,12 +47,20 @@ gpu_only = unittest.skipIf(DEVICE != "gpu", "GPU-only test")
 cpu_only = unittest.skipIf(DEVICE != "cpu", "CPU-only test")
 sagemaker_only = unittest.skipIf(CUSTOMER != "sagemaker", "SageMaker-only test")
 tensorflow_only = unittest.skipIf(FRAMEWORK != "tensorflow", "TF-only test")
-# Tests gated with this decorator assume PT/TF-style training DLC
-# (SSH cluster, MPI, entrypoint script). xgboost is a SageMaker
-# algorithm container and does not honor this contract.
+# Tests gated with this decorator assume a training DLC with the SSH+MPI cluster
+# stack and /opt/venv. Covers PyTorch, TensorFlow, and RayTrain (all reuse the
+# PyTorch EFA/NCCL/SSH install scripts). xgboost is a SageMaker algorithm
+# container and does not honor this contract.
 training_cluster_only = unittest.skipUnless(
-    FRAMEWORK in {"tensorflow", "pytorch_runtime"},
+    FRAMEWORK in {"tensorflow", "pytorch_runtime", "ray"},
     "training-cluster-only test (requires SSH+MPI stack; xgboost is algorithm container)",
+)
+# RayTrain reuses EFA's bundled OpenMPI and a passive/KubeRay entrypoint — it does
+# NOT rebuild OpenMPI from source and has no /usr/local/bin/entrypoint.sh, so the
+# double-wrap and entrypoint-script checks below do not apply to it.
+pt_tf_only = unittest.skipUnless(
+    FRAMEWORK in {"tensorflow", "pytorch_runtime"},
+    "PyTorch/TensorFlow-only test (source-built OpenMPI + entrypoint.sh contract)",
 )
 
 
@@ -204,11 +212,13 @@ class TestOpenMPI(unittest.TestCase):
     def test_openmpi_binary_exists(self):
         self.assertTrue(os.access("/opt/amazon/openmpi/bin/mpirun", os.X_OK))
 
+    @pt_tf_only
     def test_openmpi_double_wrap(self):
         """`mpirun` is a wrapper that exec's `mpirun.real --allow-run-as-root`. Verify the
         wrapper-vs-real split is in place — single grep -c match means it's NOT
         double-wrapped (which would happen if EFA's bundled OMPI wasn't wiped before
-        the from-source build)."""
+        the from-source build). RayTrain uses EFA's bundled OpenMPI as-is, so this
+        source-build-specific check does not apply."""
         self.assertTrue(os.access("/opt/amazon/openmpi/bin/mpirun.real", os.X_OK))
         out = subprocess.check_output(
             ["grep", "-c", "mpirun.real", "/opt/amazon/openmpi/bin/mpirun"], text=True
@@ -315,12 +325,52 @@ class TestVenv(unittest.TestCase):
         self.assertTrue(os.path.isdir("/opt/venv/bin"))
 
 
-@training_cluster_only
+@pt_tf_only
 class TestEntrypoint(unittest.TestCase):
-    """Entrypoint script is executable (universal)."""
+    """Entrypoint script is executable. PyTorch/TensorFlow ship
+    /usr/local/bin/entrypoint.sh; RayTrain uses a passive/KubeRay entrypoint and
+    does not, so this is gated to PT/TF only."""
 
     def test_entrypoint_executable(self):
         self.assertTrue(os.access("/usr/local/bin/entrypoint.sh", os.X_OK))
+
+
+ray_only = unittest.skipUnless(FRAMEWORK == "ray", "RayTrain-only test")
+
+
+@ray_only
+class TestRayTrain(unittest.TestCase):
+    """RayTrain-specific contract: Ray training stack present, training-scoped
+    (no Ray Serve extra). Gated on EXPECTED_FRAMEWORK == 'ray'."""
+
+    def test_ray_train_stack_imports(self):
+        import accelerate  # noqa: F401
+        import datasets  # noqa: F401
+        import pytorch_lightning  # noqa: F401
+        import ray.data  # noqa: F401
+        import ray.train  # noqa: F401
+        import ray.tune  # noqa: F401
+        import transformers  # noqa: F401
+
+    def test_ray_version_matches_expected(self):
+        expected = os.environ.get("EXPECTED_FRAMEWORK_VERSION", "")
+        if not expected:
+            self.skipTest("EXPECTED_FRAMEWORK_VERSION not set")
+        import ray
+
+        self.assertEqual(ray.__version__, expected)
+
+    def test_torch_is_cuda_build(self):
+        import torch
+
+        self.assertIn("cu", torch.__version__)
+
+    def test_ray_serve_extra_absent(self):
+        """RayTrain is training-scoped. The `ray.serve` module always ships in the
+        ray package, but without the `serve` extra its deps (e.g. starlette) are
+        missing and the import fails — a successful import means serve leaked in."""
+        with self.assertRaises(ImportError):
+            import ray.serve  # noqa: F401
 
 
 if __name__ == "__main__":

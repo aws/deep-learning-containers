@@ -2,10 +2,14 @@
 
 Current coverage (basic):
 
-- **Sanity** — `test/sanity/scripts/test_sanity_ray_train.py`, wired into
-  `_reusable.sanity-tests.yml` (guarded on `framework == ray && job_type == training`).
-  Import/version-level: verifies Ray 2.56.0, a CUDA torch build, the HF/Lightning
-  training stack, and that the Ray Serve extra is absent. Runs on a CPU sanity runner.
+- **Sanity** — reuses the shared training sanity test
+  `test/sanity/scripts/test_sanity_training.py` (RayTrain is added to
+  `training_cluster_only`, like the other training frameworks — no per-framework
+  file, matching repo convention). It verifies the shared training contract
+  (env, PATH, EFA/NCCL, CUDA, cuDNN, SSH, venv, OSS) plus a RayTrain-only
+  `TestRayTrain` class (Ray version, `ray[train,tune,data]` importable, CUDA torch
+  build, Ray Serve extra absent). Wired in `_reusable.sanity-tests.yml` on
+  `framework == ray && job_type == training`. Runs on a CPU sanity runner.
 - **Security** — shared Ray ECR scan allowlist at
   `test/security/data/ecr_scan_allowlist/ray/` (RayTrain uses `framework: ray`, so it
   shares the allowlist with the Ray Serve DLC).

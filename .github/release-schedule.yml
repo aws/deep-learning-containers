@@ -89,3 +89,7 @@ schedules:
   - cron: "30 22 * * 2"
     workflow: openfold3.autorelease-sagemaker-amzn2023.yml
     gpu: heavy
+
+  - cron: "00 23 * * 2,4"
+    workflow: ray-train.autorelease-gpu.yml
+    gpu: heavy
