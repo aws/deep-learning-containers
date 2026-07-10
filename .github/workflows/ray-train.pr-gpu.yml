@@ -17,6 +17,7 @@ on:
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/ray/**"
       - "test/telemetry/**"
+      - "test/efa/**"
       - "!docs/**"
 
 permissions:
@@ -40,6 +41,7 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -58,6 +60,8 @@ jobs:
             telemetry-test-change:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
+            efa-test-change:
+              - "test/efa/**"
 
   discover:
     needs: [gatekeeper]
@@ -85,5 +89,6 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
     secrets: inherit
