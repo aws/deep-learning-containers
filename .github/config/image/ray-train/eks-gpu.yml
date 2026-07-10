@@ -31,7 +31,9 @@ build:
 release:
   release: true
   force_release: false
-  public_registry: true
+  # TEMP(gamma-in-pr): gamma verification — private ECR only, no public gallery.
+  # REVERT BEFORE MERGE → public_registry: true, environment: "production"
+  public_registry: false
   private_registry: true
   enable_soci: true
-  environment: "production"
+  environment: "gamma"
