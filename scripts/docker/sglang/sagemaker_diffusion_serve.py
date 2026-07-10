@@ -21,7 +21,6 @@ srt/entrypoints/http_server.py) and the DLC image is bumped to that version.
 import sys
 
 from fastapi import Request, Response
-
 from sglang.multimodal_gen.runtime import launch_server as _launch
 from sglang.multimodal_gen.runtime.entrypoints.http_server import create_app as _create_app
 from sglang.multimodal_gen.runtime.entrypoints.openai.image_api import generations
