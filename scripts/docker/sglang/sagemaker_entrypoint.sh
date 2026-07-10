@@ -56,12 +56,12 @@ if ! [[ " ${ARGS[@]} " =~ " --model-path " ]]; then
     ARGS+=(--model-path "${SM_SGLANG_MODEL_PATH:-/opt/ml/model}")
 fi
 
+# diffusion routes through the wrapper that adds SageMaker's /ping + /invocations routes.
 if [ "$ENGINE" = "diffusion" ]; then
-    # multimodal_gen's server lacks the SageMaker /ping + /invocations routes,
-    # so launch it through the wrapper that adds them.
-    echo "Running command: exec python3 /usr/local/bin/sagemaker_diffusion_serve.py ${ARGS[@]}"
-    exec python3 /usr/local/bin/sagemaker_diffusion_serve.py "${ARGS[@]}"
+    LAUNCH_TARGET=(/usr/local/bin/sagemaker_diffusion_serve.py)
 else
-    echo "Running command: exec python3 -m sglang.launch_server ${ARGS[@]}"
-    exec python3 -m sglang.launch_server "${ARGS[@]}"
+    LAUNCH_TARGET=(-m sglang.launch_server)
 fi
+
+echo "Running command: exec python3 ${LAUNCH_TARGET[@]} ${ARGS[@]}"
+exec python3 "${LAUNCH_TARGET[@]}" "${ARGS[@]}"
