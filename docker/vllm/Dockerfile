@@ -46,6 +46,11 @@ RUN uv pip install --system \
   av scipy soundfile "mistral_common[audio]" \
   && uv cache clean
 
+# Install serving extras
+RUN uv pip install --system \
+  "cohere_melody>=0.9.0" \
+  && uv cache clean
+
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh

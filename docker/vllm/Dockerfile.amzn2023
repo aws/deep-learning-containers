@@ -200,7 +200,8 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
 
 # Install serving extras
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate modelscope \
-  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7"
+  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7" \
+  "cohere_melody>=0.9.0"
 
 # Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
@@ -233,6 +234,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         ); \
         if [ "$CUDA_MAJOR" -ge 13 ]; then \
             uv pip install --force-reinstall --no-deps nixl-cu13; \
+            uv pip uninstall cupy-cuda12x 2>/dev/null || true; \
         fi; \
     fi
 
