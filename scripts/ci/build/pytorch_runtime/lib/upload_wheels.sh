@@ -36,21 +36,7 @@ CUDA_SHORT="cu${CUDA_MAJOR}${CUDA_MINOR}"
 
 EXPORT_DIR=$(mktemp -d)
 
-# Forward the same --build-args the primary build passed, so BuildKit's
-# cache key matches and the wheel-export stage hits cached layers instead
-# of recompiling flash-attn + TE (which OOMs the runner — exit 137).
-# EXTRA_BUILD_ARGS is the space-separated list of arg names written by
-# .github/actions/build-image/resolve_build_args.py.
-BUILD_ARG_FLAGS=()
-if [[ -n "${EXTRA_BUILD_ARGS:-}" ]]; then
-  for arg_name in $EXTRA_BUILD_ARGS; do
-    if [[ -n "${!arg_name:-}" ]]; then
-      BUILD_ARG_FLAGS+=(--build-arg "${arg_name}=${!arg_name}")
-    fi
-  done
-fi
-
-docker buildx build "${BUILD_ARG_FLAGS[@]}" --progress=plain --target wheel-export --output "type=local,dest=${EXPORT_DIR}" \
+docker buildx build --progress=plain --target wheel-export --output "type=local,dest=${EXPORT_DIR}" \
   -f "${DOCKERFILE}" . 2>/dev/null || {
   echo "wheel-export stage not available — extracting from runtime image"
   CID=$(docker create "${IMAGE}" /bin/true)
