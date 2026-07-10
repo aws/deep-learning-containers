@@ -35,7 +35,7 @@ ECR_REGION = os.environ.get("AWS_REGION", "us-west-2")
 S3_BUCKET = os.environ.get("SCANNER_ALLOWLIST_S3_BUCKET", "")
 
 # Frameworks whose ECR repositories live in the SageMaker built-in algorithm account.
-SAGEMAKER_BUILTIN_FRAMEWORKS = {"xgboost", "sklearn_1_4_2_py312"}
+SAGEMAKER_BUILTIN_FRAMEWORKS = {"xgboost"}
 
 
 def ecr_account_for_framework(framework):
