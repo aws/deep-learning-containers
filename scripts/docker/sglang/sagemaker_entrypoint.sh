@@ -57,10 +57,11 @@ if ! [[ " ${ARGS[@]} " =~ " --model-path " ]]; then
 fi
 
 if [ "$ENGINE" = "diffusion" ]; then
-    LAUNCH_MODULE="sglang.multimodal_gen.runtime.launch_server"
+    # multimodal_gen's server lacks the SageMaker /ping + /invocations routes,
+    # so launch it through the wrapper that adds them.
+    echo "Running command: exec python3 /usr/local/bin/sagemaker_diffusion_serve.py ${ARGS[@]}"
+    exec python3 /usr/local/bin/sagemaker_diffusion_serve.py "${ARGS[@]}"
 else
-    LAUNCH_MODULE="sglang.launch_server"
+    echo "Running command: exec python3 -m sglang.launch_server ${ARGS[@]}"
+    exec python3 -m sglang.launch_server "${ARGS[@]}"
 fi
-
-echo "Running command: exec python3 -m ${LAUNCH_MODULE} ${ARGS[@]}"
-exec python3 -m "${LAUNCH_MODULE}" "${ARGS[@]}"
