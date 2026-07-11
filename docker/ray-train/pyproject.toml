@@ -3,7 +3,11 @@ name = "dlc-ray-train"
 version = "2.56.0"
 requires-python = "==3.13.*"
 dependencies = [
-    "ray[train,tune,data]==2.56.0",
+    # ray[default] ships the dashboard + job-submission server that KubeRay's
+    # health probes (/api/gcs_healthz, /api/local_raylet_healthz) and `ray job
+    # submit` depend on — without it the head runs in "minimal mode" and job
+    # submission fails. It does NOT pull in ray[serve], so this stays training-scoped.
+    "ray[default,train,tune,data]==2.56.0",
     "torch==2.13.0",
     "torchvision==0.28.0",
     "pytorch-lightning>=2.5.0",

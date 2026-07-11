@@ -211,6 +211,14 @@ class TestRayTrainStack(unittest.TestCase):
 
         self.assertIn("cu", torch.__version__)
 
+    def test_ray_default_extra_present(self):
+        """ray[default] ships the dashboard + job-submission server that KubeRay's
+        health probes and `ray job submit` depend on. Without it the head runs in
+        'minimal mode' and job submission fails. aiohttp_cors is a default-only
+        dependency, and JobSubmissionClient is the API `ray job submit` uses."""
+        import aiohttp_cors  # noqa: F401  (present only with ray[default])
+        from ray.job_submission import JobSubmissionClient  # noqa: F401
+
     def test_ray_serve_extra_absent(self):
         """RayTrain is training-scoped. The `ray.serve` module always ships in the
         ray package, but without the `serve` extra its deps (e.g. starlette) are
