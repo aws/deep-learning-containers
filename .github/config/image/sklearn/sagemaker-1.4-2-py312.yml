@@ -25,7 +25,7 @@ build:
   # When upstream master moves past 1.4-2, swap to a release branch/tag
   # that preserves 1.4-2 behavior — same pattern xgboost 3.0.5 uses
   # (xgboost_container_branch: "release-3.0.5").
-  sklearn_container_branch: "master"
+  sklearn_container_branch: "release-1.4-2-py312"
 
 release:
   release: true
