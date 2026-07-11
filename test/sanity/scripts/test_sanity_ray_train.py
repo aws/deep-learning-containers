@@ -98,6 +98,17 @@ class TestBinaries(unittest.TestCase):
     def test_ray_on_path(self):
         self.assertIsNotNone(shutil.which("ray"), "ray CLI not found on PATH")
 
+    def test_kuberay_probe_binaries_on_path(self):
+        """KubeRay's default liveness/readiness probes shell out to `wget ... | grep`
+        against the raylet/gcs healthz endpoints. Both must be present or the Ray
+        head/worker pods CrashLoopBackOff on an unmodified KubeRay deployment."""
+        self.assertIsNotNone(
+            shutil.which("wget"), "wget not found — KubeRay health probe would fail"
+        )
+        self.assertIsNotNone(
+            shutil.which("grep"), "grep not found — KubeRay health probe would fail"
+        )
+
     @gpu_only
     def test_fi_info_on_path(self):
         self.assertIsNotNone(shutil.which("fi_info"), "fi_info not found on PATH")

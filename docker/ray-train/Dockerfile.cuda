@@ -98,9 +98,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Build tools needed by the interconnect installers + nccl-tests. The base
 # runtime image has no CUDA compiler, so add cuda-nvcc + cudart-devel (nccl-tests
 # needs nvcc). Package suffix derives from CUDA version: 13.0.2 -> 13-0.
+# wget is required by KubeRay's default liveness/readiness probes, which run
+# `wget ... /api/local_raylet_healthz` + `/api/gcs_healthz` in this container —
+# without it the Ray head/worker pods CrashLoopBackOff on an unmodified KubeRay
+# deployment. It must be wget specifically (the probe command is hardcoded); the
+# curl we already ship would not satisfy it.
 RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
-    shadow-utils tar gzip curl which findutils util-linux gcc gcc-c++ make \
+    shadow-utils tar gzip curl wget which findutils util-linux gcc gcc-c++ make \
     cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} \
   && dnf clean all
 
