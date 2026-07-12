@@ -1,5 +1,10 @@
 [
     {
+        "vulnerability_id": "CVE-2026-39822",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-09-25"
+    },
+    {
         "vulnerability_id": "CVE-2026-33811",
         "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
         "review_by": "2026-09-25"
