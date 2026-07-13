@@ -20,7 +20,7 @@ def train():
         metrics=["accuracy"],
     )
 
-    callbacks = [tf.keras.callbacks.TensorBoard(log_dir="logs", profile_batch=1)]
+    callbacks = [tf.keras.callbacks.TensorBoard(log_dir="/test/logs", profile_batch=1)]
     X_train = np.random.rand(1, 28, 28)
     Y_train = np.random.rand(
         1,
