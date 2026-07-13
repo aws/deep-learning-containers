@@ -60,7 +60,7 @@ model.compile(
     metrics=["accuracy"],
 )
 
-callbacks = [tf.keras.callbacks.TensorBoard(log_dir="logs", profile_batch=1)]
+callbacks = [tf.keras.callbacks.TensorBoard(log_dir="/test/logs", profile_batch=1)]
 
 model.fit(
     x_train,
