@@ -11,13 +11,13 @@ metadata:
   arch_type: "x86"
   device_type: "gpu"
   job_type: "training"
-  prod_image: "pytorch:2.13-cu130-amzn2023-sagemaker"
+  prod_image: "pytorch:2.13-cu133-amzn2023-sagemaker"
 
 build:
   dockerfile: "docker/pytorch/Dockerfile.cuda"
   target: "sagemaker"
   python_version: "3.12"
-  cuda_version: "13.0.2"
+  cuda_version: "13.3.0"
   torch_version: "2.13.0"
   torchvision_version: "0.28.0"
   torchaudio_version: "2.11.0"
