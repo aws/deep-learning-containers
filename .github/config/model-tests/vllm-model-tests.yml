@@ -13,52 +13,52 @@ test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 smoke-test:
   codebuild-fleet:
-    # - name: "qwen3.5-0.8b"
-    #   s3_model: "qwen3.5-0.8b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+    - name: "qwen3.5-0.8b"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
 
-    # # MiniCPM5-1B — dense 1B LlamaForCausalLM, bf16 (~2GB), no custom code.
-    # # Standard architecture, loads with plain `vllm serve` (no --trust-remote-code).
-    # # Hybrid reasoning emits <think> blocks; default smoke test only checks for a
-    # # non-empty /v1/completions response, so no reasoning parser is required here.
-    # # Fits a single L4 (g6.xl, 24GB) at tp=1. Validated offline on server-cuda-v2
-    # # at --max-model-len 8192 (model's native max is 131072; capped for KV cache).
-    # - name: "minicpm5-1b"
-    #   s3_model: "minicpm5-1b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: "--tensor-parallel-size 1 --max-model-len 8192 --dtype bfloat16"
+    # MiniCPM5-1B — dense 1B LlamaForCausalLM, bf16 (~2GB), no custom code.
+    # Standard architecture, loads with plain `vllm serve` (no --trust-remote-code).
+    # Hybrid reasoning emits <think> blocks; default smoke test only checks for a
+    # non-empty /v1/completions response, so no reasoning parser is required here.
+    # Fits a single L4 (g6.xl, 24GB) at tp=1. Validated offline on server-cuda-v2
+    # at --max-model-len 8192 (model's native max is 131072; capped for KV cache).
+    - name: "minicpm5-1b"
+      s3_model: "minicpm5-1b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 8192 --dtype bfloat16"
 
-    # # JetBrains Mellum2 reasoning MoE (12B total / 2.5B active, bf16 ~23GB).
-    # # MellumForCausalLM support added upstream in vLLM 0.23.0 (PR #43992).
-    # # Fits a single L40S (g6e.xl, 48GB) at tp=1; qwen3 reasoning parser emits <think> blocks.
-    # - name: "mellum2-12b-a2.5b-thinking"
-    #   s3_model: "mellum2-12b-a2.5b-thinking.tar.gz"
-    #   fleet: "x86-g6exl-runner"
-    #   extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --reasoning-parser qwen3"
+    # JetBrains Mellum2 reasoning MoE (12B total / 2.5B active, bf16 ~23GB).
+    # MellumForCausalLM support added upstream in vLLM 0.23.0 (PR #43992).
+    # Fits a single L40S (g6e.xl, 48GB) at tp=1; qwen3 reasoning parser emits <think> blocks.
+    - name: "mellum2-12b-a2.5b-thinking"
+      s3_model: "mellum2-12b-a2.5b-thinking.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --reasoning-parser qwen3"
 
-    # # NVIDIA Nemotron-Nano-12B-v2: Mamba2-Transformer hybrid (NemotronHForCausalLM),
-    # # 12B params bf16 (~24GB weights). Requires vllm>=0.10.1 for hybrid support.
-    # # Fits a single L40S (g6e.xl, 48GB) at tp=1 with ~42GB steady-state (23% headroom).
-    # # --mamba_ssm_cache_dtype float32 is required by the model card — without it,
-    # # SSM cache defaults to bf16 and accuracy degrades. --trust-remote-code is needed
-    # # to load the custom configuration_nemotron_h.py from the HF repo.
-    # - name: "nemotron-nano-12b-v2"
-    #   s3_model: "nemotron-nano-12b-v2.tar.gz"
-    #   fleet: "x86-g6exl-runner"
-    #   extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --trust-remote-code --mamba_ssm_cache_dtype float32"
+    # NVIDIA Nemotron-Nano-12B-v2: Mamba2-Transformer hybrid (NemotronHForCausalLM),
+    # 12B params bf16 (~24GB weights). Requires vllm>=0.10.1 for hybrid support.
+    # Fits a single L40S (g6e.xl, 48GB) at tp=1 with ~42GB steady-state (23% headroom).
+    # --mamba_ssm_cache_dtype float32 is required by the model card — without it,
+    # SSM cache defaults to bf16 and accuracy degrades. --trust-remote-code is needed
+    # to load the custom configuration_nemotron_h.py from the HF repo.
+    - name: "nemotron-nano-12b-v2"
+      s3_model: "nemotron-nano-12b-v2.tar.gz"
+      fleet: "x86-g6exl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --trust-remote-code --mamba_ssm_cache_dtype float32"
 
-    # - name: "qwen3-embedding-0.6b"
-    #   s3_model: "qwen3-embedding-0.6b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: "--dtype bfloat16 --max-model-len 8192"
-    #   test_script: "vllm_embedding_smoke_test.sh"
+    - name: "qwen3-embedding-0.6b"
+      s3_model: "qwen3-embedding-0.6b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--dtype bfloat16 --max-model-len 8192"
+      test_script: "vllm_embedding_smoke_test.sh"
 
-    # - name: "qwen3-vl-embedding-2b"
-    #   s3_model: "qwen3-vl-embedding-2b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: "--runner pooling --dtype bfloat16 --max-model-len 2048 --trust-remote-code"
-    #   test_script: "vllm_embedding_smoke_test.sh"
+    - name: "qwen3-vl-embedding-2b"
+      s3_model: "qwen3-vl-embedding-2b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 2048 --trust-remote-code"
+      test_script: "vllm_embedding_smoke_test.sh"
 
     # Redis langcache-embed-v3-small: 22.6M-param BERT (MiniLM-L6) encoder, bf16,
     # 384-dim embeddings, 128 max seq len. Sentence-transformer; needs --runner pooling.
@@ -68,36 +68,36 @@ smoke-test:
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 128"
       test_script: "vllm_embedding_smoke_test.sh"
 
-    # - name: "qwen3-reranker-4b"
-    #   s3_model: "qwen3-reranker-4b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
-    #   test_script: "vllm_reranker_smoke_test.sh"
+    - name: "qwen3-reranker-4b"
+      s3_model: "qwen3-reranker-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
+      test_script: "vllm_reranker_smoke_test.sh"
 
-    # - name: "voxtral-mini-4b"
-    #   s3_model: "voxtral-mini-4b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: "--tokenizer-mode mistral --config-format mistral --load-format mistral --max-model-len 8192 --enforce-eager"
-    #   test_script: "vllm_asr_smoke_test.sh"
-    #   test_fixtures:
-    #     - "audio/asr_en.wav"
-    #   test_cases:
-    #     - name: "transcription-en"
-    #       route: "/v1/audio/transcriptions"
-    #       audio_fixture: "asr_en.wav"
-    #       validate: "json_field:text"
+    - name: "voxtral-mini-4b"
+      s3_model: "voxtral-mini-4b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tokenizer-mode mistral --config-format mistral --load-format mistral --max-model-len 8192 --enforce-eager"
+      test_script: "vllm_asr_smoke_test.sh"
+      test_fixtures:
+        - "audio/asr_en.wav"
+      test_cases:
+        - name: "transcription-en"
+          route: "/v1/audio/transcriptions"
+          audio_fixture: "asr_en.wav"
+          validate: "json_field:text"
 
-    # - name: "granite-speech-4-1-2b"
-    #   s3_model: "granite-speech-4.1-2b.tar.gz"
-    #   fleet: "x86-g6xl-runner"
-    #   extra_args: "--max-model-len 2048"
-    #   test_script: "vllm_asr_smoke_test.sh"
-    #   test_fixtures:
-    #     - "audio/asr_en.wav"
-    #   test_cases:
-    #     - name: "transcription-en"
-    #       route: "/v1/audio/transcriptions"
-    #       audio_fixture: "asr_en.wav"
-    #       validate: "json_field:text"
+    - name: "granite-speech-4-1-2b"
+      s3_model: "granite-speech-4.1-2b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--max-model-len 2048"
+      test_script: "vllm_asr_smoke_test.sh"
+      test_fixtures:
+        - "audio/asr_en.wav"
+      test_cases:
+        - name: "transcription-en"
+          route: "/v1/audio/transcriptions"
+          audio_fixture: "asr_en.wav"
+          validate: "json_field:text"
 
   runner-scale-sets: []
