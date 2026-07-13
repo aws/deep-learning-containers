@@ -15,8 +15,11 @@ LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 ARG TRANSFORMERS_VERSION=5.10.2
 ARG HUGGINGFACE_HUB_VERSION=1.17.0
 ARG HF_XET_VERSION=1.5.0
-ARG TRL_VERSION=1.7.0
-ARG VLLM_VERSION=0.23.0
+ARG TRL_VERSION=1.8.0
+# vllm >= 0.24 required: earlier versions ship CVE-affected deps (mooncake
+# etc.). trl's [vllm] extra caps vllm at 0.23, so trl is installed without it —
+# vllm itself provides the extra's remaining deps (fastapi, pydantic, uvicorn).
+ARG VLLM_VERSION=0.25.0
 ARG VENV_PYTHON=/opt/venv/bin/python
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -33,7 +36,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   hf-xet==${HF_XET_VERSION} \
   hf-transfer \
   datasets accelerate peft evaluate \
-  "trl[vllm]==${TRL_VERSION}" \
+  "trl==${TRL_VERSION}" \
   "vllm==${VLLM_VERSION}" \
   math-verify \
   sentencepiece protobuf einops scipy scikit-learn tensorboard \

@@ -23,8 +23,8 @@ build:
   transformers_version: "5.10.2"
   huggingface_hub_version: "1.17.0"
   hf_xet_version: "1.5.0"
-  trl_version: "1.7.0"
-  vllm_version: "0.23.0"
+  trl_version: "1.8.0"
+  vllm_version: "0.25.0"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
