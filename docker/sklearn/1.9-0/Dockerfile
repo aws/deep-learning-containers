@@ -56,8 +56,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # System dependencies
 RUN dnf update -y && dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel \
-  gcc gcc-c++ make git curl wget tar gzip unzip jq \
-  java-11-amazon-corretto-headless \
+  gcc gcc-c++ make git curl wget tar gzip unzip jq which \
+  java-1.8.0-amazon-corretto-headless \
   nginx expat libxml2 glib2 libffi zlib zstd \
   openssl-devel libcurl-devel \
   shadow-utils \

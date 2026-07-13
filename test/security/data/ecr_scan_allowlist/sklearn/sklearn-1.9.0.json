@@ -1,6 +1,6 @@
 [
     {
         "vulnerability_id": "CVE-2026-0994",
-        "reason": "protobuf pinned to 3.20.x — required by sagemaker-containers record_pb2 (generated with protoc <3.19; incompatible with protobuf >=3.21 runtime). CVE is DoS on ParseDict which is not on the serving path. Matches xgboost 3.2 handling."
+        "reason": "protobuf pinned to 3.20.x — required by sagemaker-containers record_pb2 (generated with protoc <3.19; incompatible with protobuf >=3.21 runtime). CVE is DoS on ParseDict which is not on the serving path."
     }
 ]
