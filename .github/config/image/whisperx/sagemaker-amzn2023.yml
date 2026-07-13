@@ -26,7 +26,7 @@ build:
   pyannote_audio_version: "4.0.7"
   fastapi_version: "0.121.0"
   uvicorn_version: "0.40.0"
-  python_multipart_version: "0.0.22"
+  python_multipart_version: "0.0.30"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
