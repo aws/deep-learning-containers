@@ -18,6 +18,7 @@ site/
 tutorials/
 .sisyphus/
 docker/xgboost/prebuilt.whl
+docker/whisperx/pyannote-diarization.tar.gz
 
 # tmp
 .github/archive

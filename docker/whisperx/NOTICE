@@ -1,0 +1,34 @@
+This container image includes the pyannote.audio speaker diarization pipeline
+"speaker-diarization-community-1" and its constituent speaker embedding model
+"wespeaker-voxceleb-resnet34-LM", redistributed under the terms of the
+Creative Commons Attribution 4.0 International License (CC BY 4.0).
+
+--------------------------------------------------------------------------
+Work:    pyannote/speaker-diarization-community-1
+Authors: Hervé Bredin, Alexis Plaquet, and the pyannote.audio contributors
+Source:  https://huggingface.co/pyannote/speaker-diarization-community-1
+License: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
+Cites:   Plaquet & Bredin, "Powerset multi-class cross entropy loss for
+         neural speaker diarization", INTERSPEECH 2023;
+         Wang et al., "WeSpeaker: A research and production oriented speaker
+         embedding learning toolkit", ICASSP 2023;
+         Landini et al., "Bayesian HMM clustering of x-vector sequences
+         (VBx) in speaker diarization", Computer Speech & Language, 2022.
+Changes: Model weights are redistributed unmodified; packaged into a
+         container image at build time. No modification to weights or
+         configuration files has been made.
+
+Work:    pyannote/wespeaker-voxceleb-resnet34-LM
+Authors: Hongji Wang, Chengdong Liang, Shuai Wang, Zhengyang Chen,
+         Binbin Zhang, Xu Xiang, Yanlei Deng, Yanmin Qian (WeSpeaker),
+         packaged for pyannote.audio by Hervé Bredin
+Source:  https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM
+License: CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
+Changes: Redistributed unmodified.
+--------------------------------------------------------------------------
+
+DISCLAIMER OF WARRANTIES: The licensed material is provided "as-is" and
+"as-available" by the Licensor. To the extent possible, the Licensor
+offers no representations or warranties of any kind, express or implied,
+statutory or otherwise. See CC BY 4.0 §5 for the full disclaimer:
+https://creativecommons.org/licenses/by/4.0/legalcode.txt
