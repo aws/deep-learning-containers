@@ -111,13 +111,18 @@ RUN find /opt/venv -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null; \
       -exec strip --strip-unneeded {} + 2>/dev/null; \
     true
 
-# ---- Bake fixed models ----
-# Silero VAD: <10 MB, no auth, fetched via torch.hub. Cache under /opt/models
-# so the runtime stage can COPY it directly.
+# ---- Model cache dirs ----
+# HF_HOME / TORCH_HOME are where Whisper + per-language wav2vec2 aligners cache
+# lazily at runtime (design Dim 2: too many languages to bake). TORCH_HOME is
+# also where whisperx's default (pyannote) VAD resolves torch.hub._get_torch_home().
+# The default pyannote VAD segmentation model ships inside the whisperx wheel
+# (whisperx/assets/pytorch_model.bin, loaded from a local file — no network), so
+# no VAD model is baked here. Silero VAD is not used: whisperx 3.8.6 defaults to
+# vad_method="pyannote" and server.py never selects silero, so we avoid its
+# torch.hub GitHub download (rate-limit-prone at build and runtime).
 ENV HF_HOME=/opt/models/hf
 ENV TORCH_HOME=/opt/models/torch
-RUN mkdir -p ${HF_HOME} ${TORCH_HOME} \
-  && python -c "import torch; torch.hub.load('snakers4/silero-vad', 'silero_vad', trust_repo=True)"
+RUN mkdir -p ${HF_HOME} ${TORCH_HOME}
 
 # pyannote diarization weights: pre-downloaded from S3 by scripts/build.sh into
 # the build context, extracted here into a fixed path. No HF token, no network

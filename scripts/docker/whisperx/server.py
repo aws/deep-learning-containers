@@ -121,7 +121,9 @@ def _resolve_model(requested: str | None) -> str:
 async def lifespan(_: FastAPI):
     """Load fixed models before uvicorn binds so /ping stays shallow but honest.
 
-    Design §6 decision 8: `/ping` reachable ⇒ pyannote + Silero are resident.
+    Design §6 decision 8: `/ping` reachable ⇒ the diarization pipeline and the
+    default Whisper model are resident. VAD uses whisperx's default (pyannote),
+    whose segmentation model ships inside the whisperx wheel.
     """
     global _DIARIZE_PIPELINE
     # Warm the default Whisper model so the first request isn't a cold ~30 s
