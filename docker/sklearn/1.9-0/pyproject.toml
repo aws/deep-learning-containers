@@ -16,6 +16,7 @@ dependencies = [
     "sagemaker-inference==1.5.5",
     "sagemaker-training==4.8.0",
     "PyYAML==6.0.3",
+    "requests==2.33.0",
 ]
 
 [tool.uv]
