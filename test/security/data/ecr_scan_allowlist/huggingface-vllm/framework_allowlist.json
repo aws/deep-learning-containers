@@ -103,5 +103,10 @@
         "vulnerability_id": "CVE-2026-55574",
         "reason": "vllm 0.22.1; fixed only in 0.24.0, which would require changing the base vLLM DLC version — cannot be bumped independently of the base image",
         "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "false positive: torch 2.9.1 is referenced only in a stray text file (dist-packages/benchmarks/requirements.txt) shipped by the upstream vllm-openai base, not an installed package; the image's installed torch is 2.11.0, which already contains the 2.10.0 weights_only unpickler fix",
+        "review_by": "2026-09-25"
     }
 ]
