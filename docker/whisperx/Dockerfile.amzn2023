@@ -39,8 +39,8 @@ ARG PYTHON_VERSION
 RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
   && dnf install -y spal-release \
   && dnf install -y --setopt=install_weak_deps=False \
-      python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-      tar gzip git ca-certificates \
+    python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+    tar gzip git ca-certificates \
   && dnf clean all && rm -rf /var/cache/dnf
 
 RUN python${PYTHON_VERSION} -m venv /opt/venv
@@ -56,11 +56,10 @@ ENV UV_LINK_MODE=copy
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 ARG TORCH_VERSION
 ARG TORCHAUDIO_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install \
-    "torch==${TORCH_VERSION}" \
-    "torchaudio==${TORCHAUDIO_VERSION}" \
-    --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
+  "torch==${TORCH_VERSION}" \
+  "torchaudio==${TORCHAUDIO_VERSION}" \
+  --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')
 
 # ASR + diarization stack. Order matters: install ctranslate2 explicitly first
 # so faster-whisper's dep resolver doesn't pull a mismatched version.
@@ -68,29 +67,26 @@ ARG WHISPERX_VERSION
 ARG FASTER_WHISPER_VERSION
 ARG CTRANSLATE2_VERSION
 ARG PYANNOTE_AUDIO_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install \
-    "ctranslate2==${CTRANSLATE2_VERSION}" \
-    "faster-whisper==${FASTER_WHISPER_VERSION}" \
-    "whisperx==${WHISPERX_VERSION}" \
-    "pyannote.audio==${PYANNOTE_AUDIO_VERSION}"
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
+  "ctranslate2==${CTRANSLATE2_VERSION}" \
+  "faster-whisper==${FASTER_WHISPER_VERSION}" \
+  "whisperx==${WHISPERX_VERSION}" \
+  "pyannote.audio==${PYANNOTE_AUDIO_VERSION}"
 
 # HTTP layer.
 ARG FASTAPI_VERSION
 ARG UVICORN_VERSION
 ARG PYTHON_MULTIPART_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install \
-    "fastapi==${FASTAPI_VERSION}" \
-    "uvicorn[standard]==${UVICORN_VERSION}" \
-    "python-multipart==${PYTHON_MULTIPART_VERSION}"
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
+  "fastapi==${FASTAPI_VERSION}" \
+  "uvicorn[standard]==${UVICORN_VERSION}" \
+  "python-multipart==${PYTHON_MULTIPART_VERSION}"
 
 # ---- DLC telemetry runtime deps ----
 # The DLC telemetry script (deep_learning_container.py, run at container start via
 # bashrc) imports botocore + requests. Install into the venv so the DLC telemetry
 # CI check passes. Small deps; they do not affect the ASR stack.
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install "boto3" "requests"
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "boto3" "requests"
 
 # ---- Prune ----
 # torch cu12x wheels statically reference libnccl, libcusparseLt, and a
@@ -130,7 +126,7 @@ RUN mkdir -p ${HF_HOME} ${TORCH_HOME} \
 COPY docker/whisperx/pyannote-diarization.tar.gz /tmp/pyannote-diarization.tar.gz
 RUN mkdir -p /opt/models/pyannote/speaker-diarization-community-1 \
   && tar xzf /tmp/pyannote-diarization.tar.gz \
-       -C /opt/models/pyannote/speaker-diarization-community-1 \
+    -C /opt/models/pyannote/speaker-diarization-community-1 \
   && rm /tmp/pyannote-diarization.tar.gz
 
 # =============================================================================
@@ -161,9 +157,9 @@ ARG PYTHON_VERSION
 RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
   && dnf install -y spal-release \
   && dnf install -y --setopt=install_weak_deps=False \
-      python${PYTHON_VERSION} \
-      ffmpeg-free espeak-ng jack-audio-connection-kit \
-      ca-certificates \
+    python${PYTHON_VERSION} \
+    ffmpeg-free espeak-ng jack-audio-connection-kit \
+    ca-certificates \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Bring across the venv (pruned, stripped) and baked models.
@@ -227,11 +223,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /root/oss_compliance* /tmp/tmp*
 
 ENV LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONIOENCODING=UTF-8 \
-    PYTHONPATH=/opt/whisperx
+  LC_ALL=C.UTF-8 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  PYTHONPATH=/opt/whisperx
 
 WORKDIR /opt/whisperx
 

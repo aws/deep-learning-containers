@@ -244,6 +244,7 @@ def parse_args():
             "vllm_omni",
             "huggingface-vllm",
             "huggingface-pytorch-training",
+            "whisperx",
         ],
         help="framework of container image.",
         required=True,
