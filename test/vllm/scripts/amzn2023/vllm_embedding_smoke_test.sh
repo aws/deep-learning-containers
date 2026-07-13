@@ -94,8 +94,8 @@ assert len(embeddings) == 2, f"Expected 2 embeddings, got {len(embeddings)}"
 dim = len(embeddings[0])
 print(f"  Embedding dimension: {dim}")
 assert dim > 0, "Embedding dimension is 0"
-# Qwen3-Embedding-0.6B: 1024, Qwen3-VL-Embedding-2B: 2048
-assert dim in (1024, 2048, 768, 512, 256), f"Unexpected dimension: {dim}"
+# Qwen3-Embedding-0.6B: 1024, Qwen3-VL-Embedding-2B: 2048, langcache-embed-v3-small: 384
+assert dim in (1024, 2048, 768, 512, 384, 256), f"Unexpected dimension: {dim}"
 print(f"  PASS: Generated {len(embeddings)} embeddings of dim {dim}")
 
 # --- Test 2: Cosine similarity ordering ---

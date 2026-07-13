@@ -60,6 +60,14 @@ smoke-test:
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 2048 --trust-remote-code"
       test_script: "vllm_embedding_smoke_test.sh"
 
+    # Redis langcache-embed-v3-small: 22.6M-param BERT (MiniLM-L6) encoder, bf16,
+    # 384-dim embeddings, 128 max seq len. Sentence-transformer; needs --runner pooling.
+    - name: "langcache-embed-v3-small"
+      s3_model: "langcache-embed-v3-small.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 512"
+      test_script: "vllm_embedding_smoke_test.sh"
+
     - name: "qwen3-reranker-4b"
       s3_model: "qwen3-reranker-4b.tar.gz"
       fleet: "x86-g6xl-runner"
