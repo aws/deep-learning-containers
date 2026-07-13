@@ -7,7 +7,7 @@ on:
         description: "Path to image config YAML"
         required: true
         type: string
-        default: ".github/config/image/sklearn/sagemaker-py312.yml"
+        default: ".github/config/image/sklearn/sagemaker-1.4-2-py312.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ inputs.config-file }}

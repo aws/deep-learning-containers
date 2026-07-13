@@ -83,9 +83,11 @@ FROM nvidia/cuda:12.9.1-runtime-amzn2023 AS base
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=2
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
-LABEL dlc_minor_version="2"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 
 ARG PYTHON_VERSION=3.13.12
 ARG PYTHON_SHORT_VERSION=3.13
