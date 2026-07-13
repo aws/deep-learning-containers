@@ -65,7 +65,7 @@ smoke-test:
     - name: "langcache-embed-v3-small"
       s3_model: "langcache-embed-v3-small.tar.gz"
       fleet: "x86-g6xl-runner"
-      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 512"
+      extra_args: "--runner pooling --dtype bfloat16 --max-model-len 128"
       test_script: "vllm_embedding_smoke_test.sh"
 
     # - name: "qwen3-reranker-4b"
