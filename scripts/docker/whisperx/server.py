@@ -24,9 +24,9 @@ from typing import Any, Optional
 
 import torch
 import whisperx
-from whisperx.diarize import DiarizationPipeline
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import JSONResponse, PlainTextResponse
+from whisperx.diarize import DiarizationPipeline
 
 # ---------------------------------------------------------------------------
 # Model LRUs
