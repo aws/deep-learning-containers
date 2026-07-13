@@ -29,4 +29,4 @@ release:
   public_registry: false
   private_registry: true
   enable_soci: false
-  environment: "preprod"
+  environment: "production"
