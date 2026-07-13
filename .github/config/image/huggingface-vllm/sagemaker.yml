@@ -12,7 +12,7 @@ metadata:
   device_type: "gpu"
   job_type: "general"
   contributor: "huggingface"
-  prod_image: "huggingface-vllm:server-sagemaker-cuda-v1"
+  prod_image: "huggingface-vllm:0.22-gpu-py312-cu130-ubuntu22.04"
 
 build:
   dockerfile: "docker/huggingface/vllm/Dockerfile"
