@@ -17,12 +17,12 @@ dependencies = [
     "sagemaker-training==4.8.0",
     "PyYAML==6.0.3",
     "requests==2.33.0",
+    "setuptools>=80.9.0,<81",
 ]
 
 [tool.uv]
-# Force modern versions of transitive HTTP deps that sagemaker-containers
-# hard-pins to old, CVE-vulnerable versions.
 override-dependencies = [
     "flask==3.1.3",
     "werkzeug==3.1.8",
+    "protobuf>=6.33.5",
 ]
