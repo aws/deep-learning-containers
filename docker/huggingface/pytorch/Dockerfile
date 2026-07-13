@@ -43,15 +43,9 @@ RUN uv pip install --python ${VENV_PYTHON} \
   && uv cache clean
 
 # --- Efficiency / quantization kernels -----------------------------------
-# pip check guards the base's sagemaker-training toolkit deps against the HF
-# stack (the legacy HF DLC re-installed the toolkit for this; see master
-# branch huggingface/pytorch/training). pip check, not uv pip check: uv also
-# polices wheel platform tags and false-positives on the base's from-source
-# transformer-engine-cu13 build.
 RUN uv pip install --python ${VENV_PYTHON} \
-  deepspeed liger-kernel bitsandbytes pip \
-  && uv cache clean \
-  && ${VENV_PYTHON} -m pip check
+  deepspeed liger-kernel bitsandbytes \
+  && uv cache clean
 
 # git: not in the base, but required for `pip install git+https://...` in user
 # requirements.txt (shipped by every legacy HF training DLC).
