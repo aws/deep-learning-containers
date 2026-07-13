@@ -1,1 +1,42 @@
-[]
+[
+    {
+        "vulnerability_id": "CVE-2026-4372",
+        "reason": "transformers is a transitive dependency pulled by whisperx 3.8.6, which constrains transformers<5; the fix requires transformers>=5.3.0 (a major bump) and cannot be taken without breaking the whisperx contract. Not on the container's inference path (the Trainer class is unused). Tracked for a whisperx version that supports transformers 5.x.",
+        "review_by": "2026-10-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-1839",
+        "reason": "transformers is a transitive dependency pulled by whisperx 3.8.6, which constrains transformers<5; the fix requires transformers>=5.0.0 (a major bump) and cannot be taken without breaking the whisperx contract. The vulnerable Trainer._load_rng_state path is not exercised by inference serving. Tracked for a whisperx version that supports transformers 5.x.",
+        "review_by": "2026-10-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "torch is pinned to 2.8.0 by whisperx 3.8.6 (torch~=2.8.0, via torchvision~=0.23.0); the fix requires torch>=2.10.0 and cannot be taken without breaking the whisperx contract. torch.load defaults to weights_only=True on 2.8, and model checkpoints are baked or resolved from HuggingFace by default; an operator-supplied model directory is a deployment trust boundary. Tracked for a whisperx version that raises its torch cap.",
+        "review_by": "2026-10-13"
+    },
+    {
+        "vulnerability_id": "CVE-2025-55552",
+        "reason": "torch is pinned to 2.8.0 by whisperx 3.8.6 (torch~=2.8.0); the fix requires torch>=2.9.0 and cannot be taken without breaking the whisperx contract. The reported torch.rot90/torch.randn_like interaction is not on the ASR inference path. Tracked for a whisperx version that raises its torch cap.",
+        "review_by": "2026-10-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54283",
+        "reason": "starlette is a transitive dependency of fastapi 0.121.0, which pins starlette<0.50.0; the fix requires starlette>=1.3.1 and cannot be taken without a major fastapi bump that breaks the serving stack. Tracked for a fastapi release that allows starlette 1.x.",
+        "review_by": "2026-10-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-48818",
+        "reason": "starlette is a transitive dependency of fastapi 0.121.0, which pins starlette<0.50.0; the fix requires starlette>=1.1.0 (major bump). The vulnerability is a Windows-only StaticFiles SSRF and is not reachable on this Linux container, which serves no StaticFiles. Tracked for a fastapi release that allows starlette 1.x.",
+        "review_by": "2026-10-13"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common comes from the nvidia/cuda:12.8.2-*-amzn2023 base image; the fix requires the CUDA 13 toolkit (>=13.0.48), which conflicts with the image's CUDA 12.8 contract (torch cu128 wheels). The vulnerable cuobjdump tool is a developer utility not invoked at inference time. Tracked against a future CUDA 13 base migration.",
+        "review_by": "2026-10-13"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common comes from the nvidia/cuda:12.8.2-*-amzn2023 base image; the fix requires the CUDA 13 toolkit (>=13.0.48), which conflicts with the image's CUDA 12.8 contract (torch cu128 wheels). The vulnerable nvdisasm tool is a developer utility not invoked at inference time. Tracked against a future CUDA 13 base migration.",
+        "review_by": "2026-10-13"
+    }
+]
