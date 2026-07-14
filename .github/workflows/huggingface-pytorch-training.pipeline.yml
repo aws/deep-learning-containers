@@ -1,4 +1,4 @@
-name: "Pipeline - Hugging Face PyTorch"
+name: "Pipeline - Hugging Face PyTorch Training"
 
 on:
   workflow_call:

@@ -1,10 +1,10 @@
-name: "Dispatch - Hugging Face PyTorch Release"
+name: "Dispatch - Hugging Face PyTorch Training Release"
 
 on:
   workflow_dispatch:
     inputs:
       config-file:
-        description: "Path to image config YAML (e.g., .github/config/image/huggingface-pytorch/training-sagemaker.yml)"
+        description: "Path to image config YAML (e.g., .github/config/image/huggingface-pytorch-training/2.11-sagemaker.yml)"
         required: true
         type: string
 
@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   pipeline:
-    uses: ./.github/workflows/huggingface-pytorch.pipeline.yml
+    uses: ./.github/workflows/huggingface-pytorch-training.pipeline.yml
     with:
       config-file: ${{ inputs.config-file }}
       tag-suffix: ${{ github.run_id }}

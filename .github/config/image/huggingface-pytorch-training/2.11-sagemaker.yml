@@ -1,5 +1,5 @@
 image:
-  name: "huggingface-pytorch-training-sagemaker"
+  name: "huggingface-pytorch-training-2.11-sagemaker"
   description: "Hugging Face PyTorch training for SageMaker (layered on the AWS PyTorch training DLC)"
 
 metadata:
@@ -12,7 +12,7 @@ metadata:
   device_type: "gpu"
   job_type: "training"
   contributor: "huggingface"
-  prod_image: "huggingface-pytorch-training:2.11.0-transformers5.10.2-gpu-py312-cu130-amzn2023-sagemaker"
+  prod_image: "huggingface-pytorch-training:2.11.0-transformers5.10.2-gpu-py312-cu130-amzn2023"
 
 build:
   dockerfile: "docker/huggingface/pytorch/Dockerfile"
