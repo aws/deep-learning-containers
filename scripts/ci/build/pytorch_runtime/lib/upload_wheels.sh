@@ -68,8 +68,12 @@ for spec in "${SPECS[@]}"; do
   S3_KEY="wheels/${PKG_UNDER}/${CUDA_SHORT}/${TORCH_SHORT}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
-    echo "Already cached: ${S3_KEY}"
-    continue
+    if [[ "${FORCE_WHEEL_CACHE_UPLOAD:-}" == "true" ]]; then
+      echo "FORCE_WHEEL_CACHE_UPLOAD=true — overwriting existing ${S3_KEY}"
+    else
+      echo "Already cached: ${S3_KEY}"
+      continue
+    fi
   fi
 
   echo "Uploading ${FNAME} -> s3://${BUCKET}/${S3_KEY}"
