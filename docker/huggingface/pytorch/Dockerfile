@@ -37,8 +37,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # --- HuggingFace training stack ------------------------------------------
-# soupsieve floor is a CVE backport (GHSA-2wc2-fm75-p42x, GHSA-836r-79rf-4m37:
-# ReDoS in the CSS selector parser), flagged by the ECR scan on this base.
+# Security floors for ECR findings: soupsieve fixes GHSA-2wc2-fm75-p42x and
+# GHSA-836r-79rf-4m37; Pillow 12.3.0 fixes CVE-2026-55379.
 RUN uv pip install --python ${VENV_PYTHON} \
   transformers==${TRANSFORMERS_VERSION} \
   huggingface-hub==${HUGGINGFACE_HUB_VERSION} \
@@ -53,6 +53,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "vllm==${VLLM_VERSION}" \
   "math-verify==${MATH_VERIFY_VERSION}" \
   sentencepiece protobuf einops scipy scikit-learn tensorboard \
+  "pillow>=12.3.0" \
   "soupsieve>=2.8.4" \
   && uv cache clean
 
