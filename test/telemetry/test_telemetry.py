@@ -56,7 +56,7 @@ def set_imds_hop_limit(aws_session, instance_id, hop_limit, timeout=120):
         instance = aws_session.ec2.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
             "Instances"
         ][0]
-        options = instance["InstanceMetadataOptions"]
+        options = instance["MetadataOptions"]
         if options["State"] == "applied" and options["HttpPutResponseHopLimit"] == hop_limit:
             return
         time.sleep(5)
