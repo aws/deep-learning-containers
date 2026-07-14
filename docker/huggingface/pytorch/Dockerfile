@@ -12,10 +12,17 @@ ARG DLC_MAJOR_VERSION=1
 LABEL maintainer="Hugging Face"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 
-ARG TRANSFORMERS_VERSION=5.10.2
-ARG HUGGINGFACE_HUB_VERSION=1.17.0
-ARG HF_XET_VERSION=1.5.0
+ARG TRANSFORMERS_VERSION=5.13.1
+ARG HUGGINGFACE_HUB_VERSION=1.23.0
+ARG HF_XET_VERSION=1.5.1
 ARG TRL_VERSION=1.8.0
+ARG DIFFUSERS_VERSION=0.39.0
+ARG HF_TRANSFER_VERSION=0.1.9
+ARG DATASETS_VERSION=5.0.0
+ARG ACCELERATE_VERSION=1.14.0
+ARG PEFT_VERSION=0.19.1
+ARG EVALUATE_VERSION=0.4.6
+ARG MATH_VERIFY_VERSION=0.9.0
 # vllm >= 0.24 required: earlier versions ship CVE-affected deps (mooncake
 # etc.). trl's [vllm] extra caps vllm at 0.23, so trl is installed without it —
 # vllm itself provides the extra's remaining deps (fastapi, pydantic, uvicorn).
@@ -36,11 +43,15 @@ RUN uv pip install --python ${VENV_PYTHON} \
   transformers==${TRANSFORMERS_VERSION} \
   huggingface-hub==${HUGGINGFACE_HUB_VERSION} \
   hf-xet==${HF_XET_VERSION} \
-  hf-transfer \
-  datasets accelerate peft evaluate \
+  "hf-transfer==${HF_TRANSFER_VERSION}" \
+  "datasets==${DATASETS_VERSION}" \
+  "accelerate==${ACCELERATE_VERSION}" \
+  "peft==${PEFT_VERSION}" \
+  "evaluate==${EVALUATE_VERSION}" \
+  "diffusers==${DIFFUSERS_VERSION}" \
   "trl==${TRL_VERSION}" \
   "vllm==${VLLM_VERSION}" \
-  math-verify \
+  "math-verify==${MATH_VERIFY_VERSION}" \
   sentencepiece protobuf einops scipy scikit-learn tensorboard \
   "soupsieve>=2.8.4" \
   && uv cache clean
