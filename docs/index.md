@@ -76,6 +76,14 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     [PyTorch Guide](pytorch/index.md)
 
+-   **Train Models with TensorFlow**
+
+    ---
+
+    Run TensorFlow training on Amazon SageMaker AI with EFA-capable multi-node support on Amazon Linux 2023.
+
+    [TensorFlow Guide](tensorflow/index.md)
+
 -   **Build Your Own Image**
 
     ---
