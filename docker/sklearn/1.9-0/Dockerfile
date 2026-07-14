@@ -57,6 +57,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN dnf update -y && dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel \
   gcc gcc-c++ make git curl wget tar gzip unzip jq which \
+  awscli-2 \
   java-1.8.0-amazon-corretto \
   nginx expat libxml2 glib2 libffi zlib zstd \
   openssl-devel libcurl-devel \
@@ -120,7 +121,8 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # SageMaker environment
-ENV SM_INPUT=/opt/ml/input \
+ENV SAGEMAKER_SKLEARN_VERSION=1.9-0 \
+  SM_INPUT=/opt/ml/input \
   SM_INPUT_TRAINING_CONFIG_FILE=/opt/ml/input/config/hyperparameters.json \
   SM_INPUT_DATA_CONFIG_FILE=/opt/ml/input/config/inputdataconfig.json \
   SM_CHECKPOINT_CONFIG_FILE=/opt/ml/input/config/checkpointconfig.json \
