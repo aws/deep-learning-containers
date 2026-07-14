@@ -3,7 +3,7 @@
 Changelog for the Amazon Linux 2023-based TensorFlow SageMaker training images (`2.21-gpu-py312-cu129-amzn2023-sagemaker` and
 `2.21-cpu-py312-amzn2023-sagemaker`).
 
----
+* * *
 
 ## TensorFlow 2.21 — 2026-07-10
 

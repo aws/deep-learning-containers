@@ -1,8 +1,7 @@
 # Amazon SageMaker AI Deployment
 
 Use the TensorFlow DLC for training jobs launched via the SageMaker Python SDK or `boto3`. The images bundle the `sagemaker-tensorflow-training`
-toolkit, OpenMPI for multi-node coordination, and SageMaker-specific Python libraries (`mlflow`, `smclarify`, `pandas`, `seaborn`, `s3fs`,
-etc.).
+toolkit, OpenMPI for multi-node coordination, and SageMaker-specific Python libraries (`mlflow`, `smclarify`, `pandas`, `seaborn`, `s3fs`, etc.).
 
 The TensorFlow 2.21 DLC is a **SageMaker-only** release — there is no EC2 or EKS variant of this image. Point your estimators, processors, and
 training jobs at the SageMaker image URIs shown below.
@@ -108,23 +107,22 @@ processor = FrameworkProcessor(
 SageMaker provisions EFA on the instance types that support it (e.g., `ml.p5.48xlarge`, `ml.p4d.24xlarge`). The GPU image ships with EFA 1.49.0 and
 OpenMPI 4.1.8 pre-installed — no extra plumbing in your training script.
 
-Multi-node peer discovery is handled by the `sagemaker_tensorflow_container` training toolkit, which parses
-`/opt/ml/input/config/resourceconfig.json` at container start to enumerate hosts, current host rank, and network interface. Peers are addressed
-by the SageMaker-assigned hostnames (e.g., `algo-1`, `algo-2`) that resolve inside the training cluster — your script does not need to know about
-this.
+Multi-node peer discovery is handled by the `sagemaker_tensorflow_container` training toolkit, which parses `/opt/ml/input/config/resourceconfig.json`
+at container start to enumerate hosts, current host rank, and network interface. Peers are addressed by the SageMaker-assigned hostnames (e.g.,
+`algo-1`, `algo-2`) that resolve inside the training cluster — your script does not need to know about this.
 
 ## Container Layout
 
-| Path                                 | Purpose                                                                                        |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------- |
-| `/opt/ml/input/data/<channel_name>/` | Training data SageMaker mounts from S3 (one subdir per channel)                                |
-| `/opt/ml/model/`                     | Write your final model artifacts here — SageMaker uploads to `OutputDataConfig.s3_output_path` |
-| `/opt/ml/output/`                    | Auxiliary outputs (logs, checkpoints)                                                          |
-| `/opt/ml/code/`                      | Your training source dir (populated from the SDK's `source_dir`)                               |
-| `/opt/venv/`                         | Python venv with TensorFlow + DLC libraries                                                    |
+| Path | Purpose |
+| --- | --- |
+| `/opt/ml/input/data/<channel_name>/` | Training data SageMaker mounts from S3 (one subdir per channel) |
+| `/opt/ml/model/` | Write your final model artifacts here — SageMaker uploads to `OutputDataConfig.s3_output_path` |
+| `/opt/ml/output/` | Auxiliary outputs (logs, checkpoints) |
+| `/opt/ml/code/` | Your training source dir (populated from the SDK's `source_dir`) |
+| `/opt/venv/` | Python venv with TensorFlow + DLC libraries |
 
 ## Notes
 
-- The image sets `SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main` — this is the entry-point the SageMaker
-  training toolkit invokes at container start, which in turn launches your `entry_point` script.
+- The image sets `SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main` — this is the entry-point the SageMaker training toolkit
+  invokes at container start, which in turn launches your `entry_point` script.
 - For a baseline driver/AMI compatible with these CUDA 12.9 images, request the latest SageMaker training AMI when launching jobs.
