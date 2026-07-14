@@ -74,7 +74,7 @@ RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])
   else \
     echo "No cached TE torch wheel — building from source" && \
     pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}" && \
-    cp /root/.cache/pip/wheels/*/transformer_engine_torch*.whl /tmp/built_wheels/ 2>/dev/null; \
+    cp /root/.cache/pip/wheels/*/transformer_engine_torch*.whl /tmp/built_wheels/ 2>/dev/null || true; \
   fi
 
 
