@@ -64,7 +64,7 @@ jobs:
 
       - name: Run single-GPU tests
         run: |
-          CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
+          CONTAINER_ID=$(docker run -d --rm --gpus all -e NVIDIA_DISABLE_REQUIRE=true --shm-size=2g \
             --entrypoint /bin/bash \
             -v $(pwd):/workdir --workdir /workdir \
             ${{ needs.preflight.outputs.image-uri }} -c 'sleep infinity')
