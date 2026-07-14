@@ -61,7 +61,7 @@ COPY docker/pytorch/${FRAMEWORK_SHORT_VERSION}/wheel[s]/ /tmp/wheels/
 RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
   NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
   cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ && \
-  cp ${NCCL_HOME}/include/*.h /usr/local/cuda/include/ && \
+  cp -a ${NCCL_HOME}/include/. /usr/local/cuda/include/ && \
   cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ && \
   ldconfig && \
   export CUDNN_HOME CUDNN_PATH="$CUDNN_HOME" && \
@@ -74,7 +74,7 @@ RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])
   else \
     echo "No cached TE torch wheel — building from source" && \
     pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}" && \
-    cp /root/.cache/pip/wheels/*/transformer_engine_torch*.whl /tmp/built_wheels/ 2>/dev/null || true; \
+    cp /root/.cache/pip/wheels/*/transformer_engine_torch*.whl /tmp/built_wheels/ 2>/dev/null; \
   fi
 
 
