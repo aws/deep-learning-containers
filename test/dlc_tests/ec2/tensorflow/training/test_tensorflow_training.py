@@ -385,6 +385,21 @@ def test_tensorflow_keras_horovod_fp32(
 
 
 # Testing Tensorboard with profiling
+#
+# Skipped: TensorFlow 2.21 removed the `tensorboard` package from its
+# Requires list as a documented upstream breaking change (see the TF 2.21
+# release notes). DLC TF 2.21+ images therefore ship without tensorboard,
+# and `tf.keras.callbacks.TensorBoard` raises TBNotInstalledError at the
+# first `tf.summary.scalar` call. Re-enable once tensorboard is available
+# in the image (either via an explicit dep in the pyproject or via user
+# `pip install tensorboard` in the training script).
+@pytest.mark.skip(
+    reason=(
+        "TensorBoard package no longer bundled with TensorFlow 2.21+ per "
+        "upstream breaking change. See "
+        "https://github.com/tensorflow/tensorflow/blob/r2.21/RELEASE.md"
+    )
+)
 @pytest.mark.integration("tensorboard, keras")
 @pytest.mark.model("sequential")
 @pytest.mark.team("frameworks")
@@ -400,6 +415,16 @@ def test_tensorflow_tensorboard_gpu(
 
 
 # Testing Tensorboard with profiling
+#
+# Skipped: see rationale on test_tensorflow_tensorboard_gpu above — TF 2.21
+# upstream dropped tensorboard from Requires.
+@pytest.mark.skip(
+    reason=(
+        "TensorBoard package no longer bundled with TensorFlow 2.21+ per "
+        "upstream breaking change. See "
+        "https://github.com/tensorflow/tensorflow/blob/r2.21/RELEASE.md"
+    )
+)
 @pytest.mark.integration("tensorboard, keras")
 @pytest.mark.model("sequential")
 @pytest.mark.team("frameworks")

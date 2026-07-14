@@ -60,8 +60,13 @@ model.compile(
     metrics=["accuracy"],
 )
 
-callbacks = [tf.keras.callbacks.TensorBoard(log_dir="/test/logs", profile_batch=1)]
-
+# NOTE: TensorFlow 2.21 removed `tensorboard` from its Requires list as a
+# documented breaking change (see the TF 2.21 release notes). Downstream
+# images that depend on TF 2.21+ therefore ship without the tensorboard
+# package by default, and `tf.keras.callbacks.TensorBoard` raises
+# TBNotInstalledError at the first `tf.summary.scalar` call. This smoke
+# test intentionally does not attach a TensorBoard callback: MNIST
+# training completion is the smoke signal.
 model.fit(
     x_train,
     y_train,
@@ -69,7 +74,6 @@ model.fit(
     epochs=epochs,
     verbose=1,
     validation_data=(x_test, y_test),
-    callbacks=callbacks,
 )
 
 score = model.evaluate(x_test, y_test, verbose=0)
