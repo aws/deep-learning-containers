@@ -128,5 +128,3 @@ this.
 - The image sets `SAGEMAKER_TRAINING_MODULE=sagemaker_tensorflow_container.training:main` — this is the entry-point the SageMaker
   training toolkit invokes at container start, which in turn launches your `entry_point` script.
 - For a baseline driver/AMI compatible with these CUDA 12.9 images, request the latest SageMaker training AMI when launching jobs.
-- For inference workloads, use the [vLLM](../../vllm/index.md), [vLLM-Omni](../../vllm-omni/index.md), or [Ray](../../ray/index.md) DLCs — this image
-  is not configured for serving.
