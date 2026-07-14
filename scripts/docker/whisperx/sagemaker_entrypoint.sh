@@ -4,6 +4,12 @@
 # outside SageMaker, in which case we behave identically to the EC2 target.
 set -euo pipefail
 
+# DLC telemetry: fire-and-forget IMDS ping at container start. Runs here (not
+# only via bashrc) because the entrypoint exec's uvicorn directly, with no
+# interactive/login shell to trigger the bashrc hook. Errors suppressed so
+# telemetry never blocks or fails startup.
+bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
+
 # If the customer mounted a model tarball, point HF_HOME at it so any pre-baked
 # Whisper / wav2vec2 caches inside the tarball are picked up. If /opt/ml/model
 # is empty (SageMaker still mounts an empty dir) fall back to the image's cache.
