@@ -54,7 +54,7 @@ smoke-test:
     - name: "lighton-ocr-2-1b"
       s3_model: "lightonocr-2-1b.tar.gz"
       fleet: "x86-g6xl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --limit-mm-per-prompt '{\"image\": 1}' --no-enable-prefix-caching"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --no-enable-prefix-caching"
 
     - name: "qwen3-embedding-0.6b"
       s3_model: "qwen3-embedding-0.6b.tar.gz"
