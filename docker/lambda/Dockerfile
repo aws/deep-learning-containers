@@ -144,13 +144,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ============================================================
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-base-py3
 COPY --from=builder-base-py3 /var/lang /var/lang
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-cupy-py3
 COPY --from=builder-cupy-py3 /var/lang /var/lang
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
@@ -158,7 +158,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-pytorch-py3
 ARG FFMPEG_VERSION
 COPY --from=builder-pytorch-py3 /var/lang /var/lang
 COPY --from=lambda-python /lib64/libssl.so.3 /lib64/libcrypto.so.3 /lib64/
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && printf '\n** FFmpeg; version n%s -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFmpeg n%s https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
@@ -192,8 +192,8 @@ ENV PATH="/var/lang/bin:$PATH" \
   LAMBDA_RUNTIME_DIR=/var/runtime \
   LANG=en_US.UTF-8 \
   TZ=:/etc/localtime
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
@@ -244,8 +244,8 @@ ENV PATH="/var/lang/bin:$PATH" \
   LAMBDA_RUNTIME_DIR=/var/runtime \
   LANG=en_US.UTF-8 \
   TZ=:/etc/localtime
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK
 
 ARG FRAMEWORK_VERSION
@@ -304,8 +304,8 @@ ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
   LAMBDA_RUNTIME_DIR=/var/runtime \
   LANG=en_US.UTF-8 \
   TZ=:/etc/localtime
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
