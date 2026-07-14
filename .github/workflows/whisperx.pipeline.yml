@@ -31,6 +31,16 @@ on:
         required: false
         type: boolean
         default: true
+      run-ec2-test:
+        description: "Run EC2 functional tests (gated to ec2 configs)"
+        required: false
+        type: boolean
+        default: true
+      run-sagemaker-test:
+        description: "Run SageMaker endpoint tests (gated to sagemaker configs)"
+        required: false
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -42,6 +52,16 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
   build:
     if: ${{ inputs.build }}
     concurrency:
@@ -97,6 +117,28 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  ec2-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-ec2-test && needs.ci-config.outputs.customer-type == 'ec2' }}
+    needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-ec2-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/whisperx.tests-ec2.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  sagemaker-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
+    needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/whisperx.tests-sagemaker.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   release-gate:
     if: >-
       github.ref == 'refs/heads/main' &&
@@ -105,7 +147,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test]
+    needs: [build, sanity-test, security-test, telemetry-test, ec2-test, sagemaker-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -143,7 +185,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [build, sanity-test, security-test, telemetry-test, release-gate, release]
+    needs: [build, sanity-test, security-test, telemetry-test, ec2-test, sagemaker-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

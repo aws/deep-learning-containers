@@ -9,6 +9,8 @@ on:
       - ".github/config/image/whisperx/*.yml"
       - ".github/workflows/whisperx.pipeline.yml"
       - ".github/workflows/whisperx.pr-amzn2023.yml"
+      - ".github/workflows/whisperx.tests-ec2.yml"
+      - ".github/workflows/whisperx.tests-sagemaker.yml"
       - "docker/whisperx/**"
       - "scripts/docker/whisperx/**"
       - "scripts/docker/common/**"
@@ -16,6 +18,7 @@ on:
       - "scripts/ci/build/whisperx/**"
       - "test/sanity/**"
       - "test/telemetry/**"
+      - "test/whisperx/**"
       - "test/security/data/ecr_scan_allowlist/whisperx/**"
       - "!docs/**"
 
@@ -40,6 +43,8 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      ec2-test-change: ${{ steps.changes.outputs.ec2-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -58,6 +63,12 @@ jobs:
               - "test/sanity/**"
             telemetry-test-change:
               - "test/telemetry/**"
+            ec2-test-change:
+              - "test/whisperx/ec2/**"
+              - ".github/workflows/whisperx.tests-ec2.yml"
+            sagemaker-test-change:
+              - "test/whisperx/sagemaker/**"
+              - ".github/workflows/whisperx.tests-sagemaker.yml"
 
   discover:
     needs: [gatekeeper]
@@ -85,5 +96,7 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-ec2-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ec2-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false
     secrets: inherit
