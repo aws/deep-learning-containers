@@ -11,7 +11,7 @@ matching the layout the SageMaker sklearn container expects.
 
 Usage:
     uv venv --python 3.12 && source .venv/bin/activate
-    uv pip install scikit-learn==<version> joblib numpy
+    uv pip install scikit-learn==<version> numpy
     python regen_mme_fixtures.py --sklearn-version <version> --out-dir .
 
 Prints the model's prediction on the CSV test payload from test_inference_mme.py
@@ -19,11 +19,11 @@ so the caller knows what the endpoint should return end-to-end.
 """
 
 import argparse
+import pickle
 import tarfile
 import tempfile
 from pathlib import Path
 
-import joblib
 import numpy as np
 import sklearn
 from sklearn.ensemble import RandomForestRegressor
@@ -73,7 +73,8 @@ def main():
         model = RandomForestRegressor(random_state=i).fit(X, y)
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp) / "sklearn-model"
-            joblib.dump(model, tmp_path)
+            with open(tmp_path, "wb") as f:
+                pickle.dump(model, f)
             out_tar = args.out_dir / f"mme_model_{i}.tar.gz"
             with tarfile.open(out_tar, "w:gz") as tar:
                 tar.add(tmp_path, arcname="sklearn-model")
