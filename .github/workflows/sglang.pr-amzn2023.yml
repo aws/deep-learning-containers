@@ -52,7 +52,6 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/workflows/sglang.pr-amzn2023.yml"
               - ".github/config/image/sglang/*-amzn2023.yml"
               - "docker/sglang/Dockerfile.amzn2023"
               - "scripts/docker/common/**"

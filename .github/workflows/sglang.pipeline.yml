@@ -169,7 +169,7 @@ jobs:
     needs: [build]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     uses: ./.github/workflows/_reusable.efa-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
@@ -208,7 +208,7 @@ jobs:
           config-file: ${{ inputs.config-file }}
 
   release:
-    if: ${{ needs.release-gate.outputs.should-release == 'true' }}
+    if: ${{ !failure() && !cancelled() && needs.release-gate.outputs.should-release == 'true' }}
     needs: [build, release-gate]
     uses: ./.github/workflows/_reusable.release-image.yml
     with:
@@ -217,3 +217,23 @@ jobs:
       environment: ${{ needs.release-gate.outputs.environment }}
       aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit
+
+  notify-failure:
+    # Notify Slack immediately when an auto-release/dispatch-release run fails.
+    # Guarded on release context so PR runs never notify.
+    if: >-
+      failure() &&
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release
+    needs: [ci-config, build, sanity-test, security-test, telemetry-test, upstream-tests, model-tests, sagemaker-tests, efa-test, release-gate, release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/notify-slack-failure
+        with:
+          webhook-url: ${{ secrets.SLACK_RELEASE_FAILURE_WEBHOOK_URL }}
+          workflow-name: ${{ github.workflow }}
+          config-file: ${{ inputs.config-file }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

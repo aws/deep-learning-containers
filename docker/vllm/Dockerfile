@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.23.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.25.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -37,8 +37,13 @@ RUN uv pip install --system \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
-  "model-hosting-container-standards>=0.1.15,<1.0.0" \
+  "model-hosting-container-standards>=0.1.16,<1.0.0" \
   "pyasn1>=0.6.3" \
+  && uv cache clean
+
+# Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
+RUN uv pip install --system \
+  av scipy soundfile "mistral_common[audio]" \
   && uv cache clean
 
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py

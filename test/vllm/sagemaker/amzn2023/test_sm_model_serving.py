@@ -1,10 +1,15 @@
 """Config-driven SageMaker endpoint test for vLLM DLC models.
 
 Supports text, audio, and video models. Reads model configuration from
-.github/config/model-tests/vllm-model-tests.yml (sagemaker section).
+.github/config/model-tests/vllm-sagemaker-endpoint-tests.yml (sagemaker section).
 
 Each entry deploys a model from S3 with configured env vars, sends
 requests to the specified route, and validates the response.
+
+Filtering by image (e.g. ``required_image_pattern: {os_version: amzn2023}``)
+happens in the workflow preflight step via ``scripts/ci/parse_model_config.py``;
+the workflow gates the whole endpoint-test job on the resulting matrix being
+non-empty. This test always runs every entry present in the config file.
 
 Usage:
     pytest test_sm_model_serving.py --image-uri <ecr_uri> --model-name voxtral-mini-4b
@@ -34,7 +39,9 @@ from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-CONFIG_PATH = Path(__file__).parents[4] / ".github/config/model-tests/vllm-model-tests.yml"
+CONFIG_PATH = (
+    Path(__file__).parents[4] / ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
+)
 
 
 def pytest_addoption(parser):
@@ -151,33 +158,22 @@ def _get_role_arn(region):
 
 
 def _flatten_jinja(template_str):
-    """Flatten newlines into ``{{ "\\n" }}`` and wrap in literal single quotes.
+    """Flatten newlines into ``{{ "\\n" }}`` so the template survives transport.
 
-    Two transports to survive:
+    The SM entrypoint reads env vars via ``IFS='=' read`` from a line-oriented
+    ``env`` listing, so multi-line values would break across lines. Replacing
+    physical newlines with ``{{ "\\n" }}`` keeps the value single-line; vLLM's
+    ``--chat-template`` falls back to inline Jinja when the value isn't a valid
+    file path and contains ``{``, ``}``, or newline, and each ``{{ "\\n" }}``
+    expression evaluates to a real newline at request time.
 
-    1. The SM entrypoint reads env vars via ``IFS='=' read`` from a line-oriented
-       ``env`` listing, so multi-line values would break across lines. Replacing
-       physical newlines with ``{{ "\\n" }}`` keeps the value single-line; vLLM's
-       ``--chat-template`` falls back to inline Jinja when the value isn't a
-       valid file path and contains ``{``, ``}``, or newline, and each
-       ``{{ "\\n" }}`` expression evaluates to a real newline at request time.
-
-    2. Inside the SM container, ``standard-supervisor`` joins argv with single
-       spaces into one string, then supervisord re-parses it with
-       ``shlex.split`` — which strips unprotected double quotes and breaks
-       tokens on whitespace. Wrapping the value in literal single quotes makes
-       supervisord's shlex.split treat the entire jinja string as one argv
-       element with the inner ``"`` chars intact. Double-quoted ``\\n`` (rather
-       than single-quoted) is used so the inner Jinja expressions don't clash
-       with the outer shell single-quote wrapping.
+    No literal-quote wrapping is applied. ``standard-supervisor`` (>=0.1.15,
+    pinned in docker/vllm/Dockerfile.amzn2023) ``shlex.quote()``s each argv
+    element before the supervisord ``shlex.split`` round-trip, so the inner
+    double quotes survive intact. Adding outer single quotes here would pass
+    them through verbatim into the rendered template.
     """
-    flat = template_str.replace("\n", '{{ "\\n" }}')
-    if "'" in flat:
-        raise ValueError(
-            "chat template contains a single quote; outer shell-quote wrapping "
-            "would clash. Use only double quotes inside Jinja expressions."
-        )
-    return f"'{flat}'"
+    return template_str.replace("\n", '{{ "\\n" }}')
 
 
 def _deploy_endpoint(image_uri, model_cfg, region):
@@ -245,10 +241,6 @@ def _generate_test_params():
 @pytest.fixture(scope="module", params=_generate_test_params(), ids=lambda x: x[0])
 def deployed_model(request, image_uri):
     _, model_cfg = request.param
-
-    pattern = model_cfg.get("required_image_pattern")
-    if pattern and pattern not in image_uri:
-        pytest.skip(f"Model requires image matching '{pattern}', got: {image_uri}")
 
     region = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
 

@@ -278,6 +278,16 @@ jobs:
           ref: main
           token: ${{ steps.app-token.outputs.token }}
 
+      - name: Install GitHub CLI
+        run: |
+          if ! command -v gh &> /dev/null; then
+            GH_VERSION="2.74.0"
+            curl -sL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" | tar xz
+            sudo mv "gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
+            rm -rf "gh_${GH_VERSION}_linux_amd64"
+          fi
+          gh --version
+
       - name: Download metadata artifact
         uses: actions/download-artifact@v8
         with:

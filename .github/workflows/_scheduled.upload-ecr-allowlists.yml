@@ -41,6 +41,7 @@ jobs:
         uses: ./.github/actions/upload-ecr-allowlists
         with:
           aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-account-id-sagemaker: ${{ vars.PROD_AWS_ACCOUNT_ID_SAGEMAKER }}
           aws-region: ${{ vars.AWS_REGION }}
           s3-bucket: ${{ vars.SCANNER_ALLOWLIST_S3_BUCKET }}
           dry-run: ${{ inputs.dry-run || 'false' }}

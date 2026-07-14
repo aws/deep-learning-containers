@@ -63,6 +63,8 @@ done
 [ "${elapsed}" -ge "${HEALTH_TIMEOUT}" ] && echo "ERROR: timeout" && exit 1
 
 export MODEL_DIR RESULTS_DIR ARTIFACT_PREFIX VLLM_PORT
+export BENCHMARK_ROUTE="${BENCHMARK_ROUTE:-/v1/chat/completions}"
+export BENCHMARK_AUDIO_FIXTURE="${BENCHMARK_AUDIO_FIXTURE:-asr_en.wav}"
 
 # Default single-run env vars (used when BENCHMARK_PROFILES is not set)
 export MIN_THROUGHPUT="${MIN_THROUGHPUT_TOKENS_PER_SEC:-50}"
@@ -81,10 +83,21 @@ MODEL_DIR = os.environ["MODEL_DIR"]
 RESULTS_DIR = os.environ["RESULTS_DIR"]
 ARTIFACT_PREFIX = os.environ["ARTIFACT_PREFIX"]
 
+# Realtime models (voxtral) only support /v1/audio/transcriptions, not chat audio_url.
+ROUTE = os.environ.get("BENCHMARK_ROUTE", "/v1/chat/completions")
+FIXTURE_DIR = "/models/test-fixtures"
+AUDIO_FIXTURE = os.environ.get("BENCHMARK_AUDIO_FIXTURE") or "asr_en.wav"
+
 AUDIO_URLS = [
     "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3-ASR-Repo/asr_en.wav",
     "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen3-ASR-Repo/asr_zh.wav",
 ]
+
+# Transcriptions route uploads a local fixture file (multipart); preload its bytes.
+AUDIO_FILE_BYTES = None
+if ROUTE == "/v1/audio/transcriptions":
+    with open(os.path.join(FIXTURE_DIR, AUDIO_FIXTURE), "rb") as _f:
+        AUDIO_FILE_BYTES = _f.read()
 
 # Profile definitions: (num_requests, concurrency, min_throughput, min_rps, max_p99)
 PROFILES = {
@@ -103,25 +116,39 @@ def make_payload(audio_url):
         }],
     }
 
+async def send_chat(session, audio_url):
+    async with session.post(
+        f"http://localhost:{PORT}{ROUTE}",
+        json=make_payload(audio_url),
+        timeout=aiohttp.ClientTimeout(total=120),
+    ) as resp:
+        result = await resp.json()
+        content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+        tokens = result.get("usage", {}).get("completion_tokens", 0)
+        return resp.status, content, tokens
+
+async def send_transcription(session, _audio_url):
+    form = aiohttp.FormData()
+    form.add_field("file", AUDIO_FILE_BYTES, filename="test.wav", content_type="audio/wav")
+    form.add_field("model", MODEL_DIR)
+    async with session.post(
+        f"http://localhost:{PORT}{ROUTE}",
+        data=form,
+        timeout=aiohttp.ClientTimeout(total=120),
+    ) as resp:
+        result = await resp.json()
+        text = result.get("text", "")
+        # transcriptions has no usage; approximate tokens from word count for throughput
+        return resp.status, text, len(text.split())
+
 async def send_request(session, audio_url):
-    payload = make_payload(audio_url)
     start = time.perf_counter()
     try:
-        async with session.post(
-            f"http://localhost:{PORT}/v1/chat/completions",
-            json=payload,
-            timeout=aiohttp.ClientTimeout(total=120),
-        ) as resp:
-            result = await resp.json()
-            latency = time.perf_counter() - start
-        content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
-        usage = result.get("usage", {})
-        return {
-            "latency": latency,
-            "text": content,
-            "status": resp.status,
-            "completion_tokens": usage.get("completion_tokens", 0),
-        }
+        if ROUTE == "/v1/audio/transcriptions":
+            status, text, tokens = await send_transcription(session, audio_url)
+        else:
+            status, text, tokens = await send_chat(session, audio_url)
+        return {"latency": time.perf_counter() - start, "text": text, "status": status, "completion_tokens": tokens}
     except Exception as e:
         return {"latency": time.perf_counter() - start, "text": "", "status": 0, "completion_tokens": 0, "error": str(e)}
 

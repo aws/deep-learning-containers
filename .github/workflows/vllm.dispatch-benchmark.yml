@@ -133,6 +133,7 @@ jobs:
             -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
             -e BENCHMARK_BATCH_SIZE=${{ matrix.batch_size || 4 }} \
             -e BENCHMARK_AUDIO_FIXTURE=${{ matrix.benchmark_audio_fixture || '' }} \
+            -e BENCHMARK_ROUTE=${{ matrix.benchmark_route || '/v1/chat/completions' }} \
             -e MODEL_DIR="/models/${{ matrix.name }}" \
             -e RESULTS_DIR=/tmp/benchmark_results \
             -e ARTIFACT_PREFIX="${{ matrix.name }}_${{ matrix.fleet }}" \
@@ -235,6 +236,7 @@ jobs:
             -e BENCHMARK_OUTPUT_LEN=${{ matrix.output_len || 128 }} \
             -e BENCHMARK_BATCH_SIZE=${{ matrix.batch_size || 4 }} \
             -e BENCHMARK_AUDIO_FIXTURE=${{ matrix.benchmark_audio_fixture || '' }} \
+            -e BENCHMARK_ROUTE=${{ matrix.benchmark_route || '/v1/chat/completions' }} \
             -e MODEL_DIR="/models/${{ matrix.name }}" \
             -e RESULTS_DIR=/tmp/benchmark_results \
             -e ARTIFACT_PREFIX="${{ matrix.name }}_gpu-efa-runners" \

@@ -28,9 +28,9 @@ build:
   dlc_minor_version: "0"
 
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: false
   private_registry: true
-  enable_soci: true
-  environment: "gamma"
+  enable_soci: false
+  environment: "production"

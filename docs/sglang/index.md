@@ -20,11 +20,18 @@ In addition to SGLang and its core stack (PyTorch 2.11, CUDA 13.0, NCCL, Python 
 - **[FlashInfer](https://github.com/flashinfer-ai/flashinfer)** — fused attention kernels with precompiled cubins for fast cold start
 - **[DeepEP](https://github.com/deepseek-ai/DeepEP)** — expert-parallel kernels for large MoE models (DeepSeek, Qwen MoE)
 - **[Mooncake](https://github.com/kvcache-ai/Mooncake)** — KV-cache transfer engine for disaggregated prefill/decode
+- **[NIXL](https://github.com/ai-dynamo/nixl)** — KV connector for prefill/decode (PD) disaggregation KV transfer
+- **[runai-model-streamer](https://github.com/run-ai/runai-model-streamer)** — fast weight streaming from object storage, with the `s3`, `gcs`, and
+  `azure` extras enabled
 - **[sgl-kernel](https://github.com/sgl-project/sglang/tree/main/sgl-kernel)** — SGLang's custom CUDA kernels, built from source for the bundled CUDA
   arch list
 - **[EFA](https://aws.amazon.com/hpc/efa/) and [OpenMPI](https://www.open-mpi.org/)** — high-throughput multi-node networking on supported instances
 
 The images are built from SGLang source against the H100 (sm_90) and Blackwell (sm_100, sm_103) CUDA architectures.
+
+The runtime also bundles `decord`, `lmdb`, and `peft` to support multimodal vision-grounding models such as
+[NVIDIA LocateAnything-3B](https://huggingface.co/nvidia/LocateAnything-3B), which return bounding boxes for objects matching a text prompt. See
+[Supported Models](models/index.md) for the tested set.
 
 ## API Endpoints
 
