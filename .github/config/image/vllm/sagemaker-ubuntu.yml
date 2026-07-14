@@ -3,7 +3,7 @@ image:
   description: "vLLM for SageMaker (Ubuntu, upstream base image)"
 metadata:
   framework: "vllm"
-  framework_version: "0.25.0"
+  framework_version: "0.25.1"
   os_version: "ubuntu22.04"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -14,7 +14,7 @@ metadata:
 build:
   dockerfile: "docker/vllm/Dockerfile"
   target: "vllm-sagemaker"
-  base_image: "vllm/vllm-openai:v0.25.0"
+  base_image: "vllm/vllm-openai:v0.25.1"
   python_version: "3.12"
   cuda_version: "13.0.2"
   efa_version: "1.47.0"
