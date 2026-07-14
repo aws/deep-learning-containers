@@ -1,6 +1,6 @@
 image:
   name: "lambda-base-preview"
-  description: "Lambda base GPU image with thread-mode RIC preview"
+  description: "Lambda base GPU image with multi-mode concurrency RIC"
 
 metadata:
   framework: "lambda"
@@ -19,6 +19,8 @@ build:
   cuda_version: "12.9.1"
   dlc_major_version: "1"
   dlc_minor_version: "0"
+  awslambdaric_version: "3.1.1"
+  awslambdaric_release: "2.0.0.0"
 
 release:
   release: true

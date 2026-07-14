@@ -3,9 +3,25 @@
 import importlib
 import os
 
+import pytest
+
 
 def test_awslambdaric_importable():
     importlib.import_module("awslambdaric")
+
+
+def test_concurrency_mode_valid_when_set():
+    """If the concurrency-mode knob is set, it must be a supported value."""
+    mode = os.environ.get("AWS_LAMBDA_CONCURRENCY_MODE")
+    if mode is not None:
+        assert mode in {"thread", "process", "hybrid"}, f"unexpected concurrency mode: {mode}"
+
+
+def test_multimode_ric_provides_concurrency_hooks():
+    """The multi-mode RIC ships the concurrency-hooks module (source of the
+    pre-fork hook decorator); the older single-mode client does not."""
+    if os.environ.get("AWS_LAMBDA_CONCURRENCY_MODE") is not None:
+        importlib.import_module("awslambdaric.lambda_concurrency_hooks")
 
 
 def test_rie_binary_exists():
@@ -18,3 +34,52 @@ def test_entrypoint_exists():
     script = "/lambda_entrypoint.sh"
     assert os.path.isfile(script), "lambda_entrypoint.sh not found"
     assert os.access(script, os.X_OK), "lambda_entrypoint.sh not executable"
+
+
+def _multimode_config_provider():
+    """Return the multi-mode RIC's config provider, or skip if the running image
+    ships the older single-mode client (which has no concurrency-mode support)."""
+    lambda_config = pytest.importorskip("awslambdaric.lambda_config")
+    provider = getattr(lambda_config, "LambdaConfigProvider", None)
+    if provider is None or not hasattr(provider, "concurrency_mode"):
+        pytest.skip("multi-mode RIC not present in this image")
+    return provider
+
+
+@pytest.mark.parametrize("mode", ["process", "thread", "hybrid"])
+def test_concurrency_mode_runtime_override(monkeypatch, mode):
+    """A runtime env-var override — as set by `docker run -e ...` or by a Lambda
+    function's environment configuration — must win over the image's baked default
+    and be honored by the RIC's config resolution, for every supported mode."""
+    provider = _multimode_config_provider()
+    # RUNTIME_API is required for the provider to construct; value is unused here.
+    monkeypatch.setenv("AWS_LAMBDA_RUNTIME_API", "127.0.0.1:9001")
+    monkeypatch.setenv("AWS_LAMBDA_CONCURRENCY_MODE", mode)
+    # environ defaults to the live os.environ, so this reads the overridden value.
+    cfg = provider(["python", "handler.handler"])
+    assert cfg.concurrency_mode == mode
+
+
+def test_concurrency_mode_invalid_override_rejected(monkeypatch):
+    """An unsupported override value must be rejected loudly, not silently ignored."""
+    provider = _multimode_config_provider()
+    monkeypatch.setenv("AWS_LAMBDA_RUNTIME_API", "127.0.0.1:9001")
+    monkeypatch.setenv("AWS_LAMBDA_CONCURRENCY_MODE", "bogus")
+    with pytest.raises(ValueError):
+        provider(["python", "handler.handler"])
+
+
+def test_ric_resolves_container_env():
+    """End-to-end: read the container's ACTUAL environment and assert the RIC
+    resolves exactly that mode. This does not set the env itself — it trusts
+    whatever the container was started with (the image's baked default, or a
+    `docker run -e AWS_LAMBDA_CONCURRENCY_MODE=...` / Lambda function-config
+    override). CI runs this with the baked default and again under an `-e`
+    override for every supported mode, so both the Docker env-propagation and
+    the RIC's resolution are exercised against a real container environment."""
+    provider = _multimode_config_provider()
+    expected = os.environ.get("AWS_LAMBDA_CONCURRENCY_MODE", "process")
+    # RUNTIME_API is required for the provider to construct; value is unused here.
+    env = {**os.environ, "AWS_LAMBDA_RUNTIME_API": "127.0.0.1:9001"}
+    cfg = provider(["python", "handler.handler"], environ=env)
+    assert cfg.concurrency_mode == expected

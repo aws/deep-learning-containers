@@ -158,6 +158,12 @@ jobs:
               TESTS="$COMMON /test/unit/test_imports_base.py" ;;
           esac
           echo "tests=${TESTS}" >> $GITHUB_OUTPUT
+          # Multi-mode RIC targets carry a runtime concurrency-mode knob.
+          if [[ "$TARGET" == *preview* ]]; then
+            echo "multimode=true" >> $GITHUB_OUTPUT
+          else
+            echo "multimode=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Run GPU validation tests
         if: steps.check.outputs.exists == 'true'
@@ -167,9 +173,18 @@ jobs:
             ${{ steps.image.outputs.image-uri }} \
             -m pytest ${{ steps.config.outputs.tests }} -v
 
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"
+      - name: Verify runtime concurrency-mode override
+        if: steps.check.outputs.exists == 'true' && steps.config.outputs.multimode == 'true'
+        run: |
+          for mode in process thread hybrid; do
+            echo "::group::override AWS_LAMBDA_CONCURRENCY_MODE=${mode}"
+            docker run --rm --gpus all --entrypoint python \
+              -e AWS_LAMBDA_CONCURRENCY_MODE=${mode} \
+              -v $(pwd)/test/lambda:/test \
+              ${{ steps.image.outputs.image-uri }} \
+              -m pytest /test/unit/test_lambda_runtime.py::test_ric_resolves_container_env -v
+            echo "::endgroup::"
+          done
 
   release-gate:
     if: >-
