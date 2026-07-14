@@ -20,9 +20,6 @@ The `2.21.0-*` fully-qualified tags (e.g. `2.21.0-gpu-py312-cu129-amzn2023-sagem
 
 ## What's Included
 
-The TensorFlow DLC is a focused SageMaker training image. It ships TensorFlow with the CUDA runtime and the SageMaker toolkits, without the extended
-kernel stack (flash-attn, Transformer Engine, DeepSpeed, GDRCopy) that ships with the PyTorch DLC — TensorFlow does not consume those libraries.
-
 The GPU image includes:
 
 - **TensorFlow 2.21.0** (`tensorflow==2.21.0`)
