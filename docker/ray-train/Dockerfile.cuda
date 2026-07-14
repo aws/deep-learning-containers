@@ -178,8 +178,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
-# Ray ports: gcs (6379), dashboard (8265), client (10001), serve (8000).
-EXPOSE 6379 8265 10001 8000
+# Ray ports: gcs (6379), dashboard (8265), client (10001).
+# No serve port (8000): this is a training image; ray[serve] is intentionally excluded.
+EXPOSE 6379 8265 10001
 
 WORKDIR /workspace
 CMD ["/bin/bash"]
@@ -207,7 +208,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 COPY scripts/docker/ray-train/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
-EXPOSE 6379 8265 10001 8000
+# Ray ports: gcs (6379), dashboard (8265), client (10001).
+# No serve port (8000): this is a training image; ray[serve] is intentionally excluded.
+EXPOSE 6379 8265 10001
 
 WORKDIR /workspace
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
