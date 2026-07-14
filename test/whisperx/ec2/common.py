@@ -26,6 +26,7 @@ import logging
 import os
 import subprocess
 import time
+from contextlib import contextmanager
 
 import pytest
 import requests
@@ -61,7 +62,7 @@ AUDIO_DIARIZE_2SPK = "asr_diarize_2spk.wav"  # 2 distinct speakers ~21s
 # ---------------------------------------------------------------------------
 
 
-def start_container(image_uri, device, docker_run_flags=None):
+def start_container(image_uri, device, docker_run_flags=None, env=None):
     """Start a Docker container running the WhisperX FastAPI server.
 
     No model mount and no serve command: the image bakes/downloads its models
@@ -71,6 +72,9 @@ def start_container(image_uri, device, docker_run_flags=None):
         image_uri: Full ECR image URI.
         device: "gpu" or "cpu" (informational; GPU access comes from flags).
         docker_run_flags: Extra flags for docker run (e.g. ["--gpus", "all"]).
+        env: Optional dict of environment variables, emitted as `-e K=V` flags
+            (e.g. {"WHISPERX_DEFAULT_MODEL": "tiny"}). Lets a test pin the served
+            model, alias, or override behavior at launch.
 
     Returns:
         (container_id, port)
@@ -83,6 +87,8 @@ def start_container(image_uri, device, docker_run_flags=None):
         "-p",
         f"{WHISPERX_PORT}:{WHISPERX_PORT}",
     ]
+    for key, value in (env or {}).items():
+        cmd.extend(["-e", f"{key}={value}"])
     if docker_run_flags:
         cmd.extend(docker_run_flags)
     cmd.append(image_uri)
@@ -159,6 +165,35 @@ def make_container_fixture(device, docker_run_flags=None):
         stop_container(container_id)
 
     return container
+
+
+@contextmanager
+def run_container_with_env(image_uri, env, device="gpu", flags=("--gpus", "all")):
+    """Start a WhisperX container with custom env vars; yield {container_id, port}.
+
+    A context-manager sibling of make_container_fixture for tests that need a
+    per-test container launched with specific env (e.g. WHISPERX_DEFAULT_MODEL=tiny
+    to pin a fast-warming served model). It mirrors the fixture's start ->
+    health-check -> (log dump on timeout) -> yield -> teardown flow, but wraps the
+    yield in try/finally so `docker rm -f` always runs — a health timeout or a
+    failing test body must never leak the container (a leak blocks the runner).
+
+    Usage:
+        with run_container_with_env(image_uri, {"WHISPERX_DEFAULT_MODEL": "tiny"}) as c:
+            ... requests to c["port"] ...
+    """
+    container_id, port = start_container(image_uri, device, docker_run_flags=list(flags), env=env)
+    try:
+        try:
+            wait_for_health(port=port)
+        except TimeoutError:
+            logs = get_container_logs(container_id)
+            LOGGER.error(f"Container logs:\n{logs}")
+            pytest.fail("WhisperX server health check timed out")
+
+        yield {"container_id": container_id, "port": port}
+    finally:
+        stop_container(container_id)
 
 
 # ---------------------------------------------------------------------------

@@ -182,3 +182,79 @@ def test_errors(container, tmp_path):
     empty.write_bytes(b"")
     resp = post_transcription(port, str(empty), response_format="json")
     assert resp.status_code == 400, resp.text
+
+
+def test_verbose_json_fields(container, aws_session, tmp_path):
+    """verbose_json carries the full envelope: task, language, duration, text, segments."""
+    audio = download_fixture(aws_session, AUDIO_EN, str(tmp_path / AUDIO_EN))
+
+    resp = post_transcription(container["port"], audio, response_format="verbose_json")
+    assert resp.status_code == 200, resp.text
+
+    body = resp.json()
+    assert body.get("task") == "transcribe", f"expected task 'transcribe', got {body.get('task')!r}"
+    assert isinstance(body.get("language"), str) and body["language"], "expected a language code"
+    assert isinstance(body.get("duration"), (int, float)), "expected numeric duration"
+    assert body.get("text", "").strip(), "expected non-empty text"
+    assert isinstance(body.get("segments"), list), f"expected segments list, got {body.keys()}"
+
+
+def test_json_minimal(container, aws_session, tmp_path):
+    """Default json is the minimal OpenAI shape: only `text`, no verbose extras."""
+    audio = download_fixture(aws_session, AUDIO_EN, str(tmp_path / AUDIO_EN))
+
+    resp = post_transcription(container["port"], audio, response_format="json")
+    assert resp.status_code == 200, resp.text
+
+    body = resp.json()
+    assert body.get("text", "").strip(), "expected non-empty text"
+    # json omits the verbose_json envelope entirely (OpenAI-compatible minimal body).
+    for extra in ("segments", "words", "speakers"):
+        assert extra not in body, f"json response should not carry {extra!r}: {body.keys()}"
+
+
+def test_diarize_false_no_speakers(container, aws_session, tmp_path):
+    """diarize omitted (default false) -> no `speakers` key and no per-segment speaker.
+
+    DESIGN Dim 5 / OpenAI byte-compat: without diarization the verbose_json body
+    must be indistinguishable from OpenAI's — no top-level speakers list and no
+    `speaker` field leaking onto any segment.
+    """
+    audio = download_fixture(aws_session, AUDIO_EN, str(tmp_path / AUDIO_EN))
+
+    resp = post_transcription(container["port"], audio, response_format="verbose_json")
+    assert resp.status_code == 200, resp.text
+
+    body = resp.json()
+    assert "speakers" not in body, f"non-diarized verbose_json must omit 'speakers': {body.keys()}"
+    for seg in body.get("segments", []):
+        assert "speaker" not in seg, f"non-diarized segment must omit 'speaker': {seg}"
+
+
+def test_max_speakers_one(container, aws_session, tmp_path):
+    """diarize=true with max_speakers=1 caps the diarization at a single speaker.
+
+    max_speakers is a hard upper bound on pyannote's clustering, so on a
+    2-speaker clip it should collapse to one label. The `speakers >= 1` floor is
+    guaranteed for any diarized clip; the `<= 1` bound is the assertion that the
+    cap was actually honored and is the most backend-sensitive check in the
+    suite — if a future pyannote pipeline treats max_speakers as advisory this is
+    the line that would need revisiting.
+    """
+    audio = download_fixture(aws_session, AUDIO_DIARIZE_2SPK, str(tmp_path / AUDIO_DIARIZE_2SPK))
+
+    resp = post_transcription(
+        container["port"],
+        audio,
+        diarize=True,
+        max_speakers=1,
+        response_format="verbose_json",
+    )
+    assert resp.status_code == 200, resp.text
+
+    body = resp.json()
+    speakers = body.get("speakers")
+    assert isinstance(speakers, list) and speakers, (
+        f"expected a non-empty speakers list: {body.keys()}"
+    )
+    assert len(set(speakers)) <= 1, f"max_speakers=1 should cap to a single speaker, got {speakers}"

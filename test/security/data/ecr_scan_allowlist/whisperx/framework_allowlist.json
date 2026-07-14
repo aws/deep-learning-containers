@@ -10,6 +10,11 @@
         "review_by": "2026-10-13"
     },
     {
+        "vulnerability_id": "CVE-2026-5241",
+        "reason": "transformers is a transitive dependency pulled by whisperx 3.8.6, which constrains transformers<5; the fix requires transformers>=5.5.0 (a major bump) and cannot be taken without breaking the whisperx contract. The vulnerable code path is not exercised by the ASR inference server. Tracked for a whisperx version that supports transformers 5.x.",
+        "review_by": "2026-10-13"
+    },
+    {
         "vulnerability_id": "CVE-2026-24747",
         "reason": "torch is pinned to 2.8.0 by whisperx 3.8.6 (torch~=2.8.0, via torchvision~=0.23.0); the fix requires torch>=2.10.0 and cannot be taken without breaking the whisperx contract. torch.load defaults to weights_only=True on 2.8, and model checkpoints are baked or resolved from HuggingFace by default; an operator-supplied model directory is a deployment trust boundary. Tracked for a whisperx version that raises its torch cap.",
         "review_by": "2026-10-13"
