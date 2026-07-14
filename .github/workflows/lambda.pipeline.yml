@@ -180,6 +180,7 @@ jobs:
             echo "::group::override AWS_LAMBDA_CONCURRENCY_MODE=${mode}"
             docker run --rm --gpus all --entrypoint python \
               -e AWS_LAMBDA_CONCURRENCY_MODE=${mode} \
+              -e EXPECTED_CONCURRENCY_MODE=${mode} \
               -v $(pwd)/test/lambda:/test \
               ${{ steps.image.outputs.image-uri }} \
               -m pytest /test/unit/test_lambda_runtime.py::test_ric_resolves_container_env -v

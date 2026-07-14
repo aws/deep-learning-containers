@@ -70,16 +70,21 @@ def test_concurrency_mode_invalid_override_rejected(monkeypatch):
 
 
 def test_ric_resolves_container_env():
-    """End-to-end: read the container's ACTUAL environment and assert the RIC
-    resolves exactly that mode. This does not set the env itself — it trusts
-    whatever the container was started with (the image's baked default, or a
-    `docker run -e AWS_LAMBDA_CONCURRENCY_MODE=...` / Lambda function-config
-    override). CI runs this with the baked default and again under an `-e`
-    override for every supported mode, so both the Docker env-propagation and
-    the RIC's resolution are exercised against a real container environment."""
+    """End-to-end: assert the RIC resolves the concurrency mode actually injected
+    into the container. The expected value comes from a SEPARATE var
+    (EXPECTED_CONCURRENCY_MODE), not the var under test, so a failure of
+    AWS_LAMBDA_CONCURRENCY_MODE to propagate cannot silently pass. CI runs this
+    with the image's baked default (no override) and again under an `-e` override
+    for every supported mode."""
     provider = _multimode_config_provider()
-    expected = os.environ.get("AWS_LAMBDA_CONCURRENCY_MODE", "process")
     # RUNTIME_API is required for the provider to construct; value is unused here.
     env = {**os.environ, "AWS_LAMBDA_RUNTIME_API": "127.0.0.1:9001"}
-    cfg = provider(["python", "handler.handler"], environ=env)
-    assert cfg.concurrency_mode == expected
+    resolved = provider(["python", "handler.handler"], environ=env).concurrency_mode
+    expected = os.environ.get("EXPECTED_CONCURRENCY_MODE")
+    if expected is None:
+        # No injected expectation → the image's baked default must resolve.
+        assert resolved == "process"
+    else:
+        # Prove the override propagated into the container AND the RIC honored it.
+        assert os.environ.get("AWS_LAMBDA_CONCURRENCY_MODE") == expected
+        assert resolved == expected
