@@ -28,8 +28,8 @@ benchmark:
       test_script: "vllm_embedding_benchmark_test.sh"
       min_rps: 3
 
-    - name: "lightonocr-2-1b"
-      s3_model: "lightonocr-2-1b.tar.gz"
+    - name: "lighton-ocr-2-1b"
+      s3_model: "lighton-ocr-2-1b.tar.gz"
       runner_label: "gpu-l40s-1gpu-runners"
       extra_args: "--dtype bfloat16 --max-model-len 16384"
       min_throughput: 30
