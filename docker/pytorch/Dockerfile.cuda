@@ -95,39 +95,18 @@ COPY docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cuda/pyproject.toml docker/pytorc
 # Do NOT remove until ~30 days when poisoned cache layers GC out of
 # ECR + fleet host BuildKit local caches.
 RUN --mount=type=cache,target=/root/.cache/uv \
-  : "cache-invalidation-nudge-2026-07-14-flash-attn-torch-2.13-abi-force-source-build" && \
+  : "cache-invalidation-nudge-2026-07-14-flash-attn-torch-2.13-abi" && \
   mkdir -p /tmp/built_wheels && \
-  echo "===DIAG=== builder-flash-attn stage start" && \
-  echo "===DIAG=== Python: $(python -V 2>&1)" && \
-  echo "===DIAG=== torch version installed:" && \
-  python -c "import torch; print('torch.__version__:', torch.__version__); print('torch.__file__:', torch.__file__); print('torch.version.cuda:', torch.version.cuda)" && \
-  echo "===DIAG=== nvcc version:" && \
-  (nvcc --version 2>&1 || echo "no nvcc") && \
-  echo "===DIAG=== CUDA_HOME=${CUDA_HOME:-unset}  CUDNN_HOME=${CUDNN_HOME:-unset}" && \
-  echo "===DIAG=== contents of /tmp/wheels:" && \
-  ls -la /tmp/wheels/ 2>&1 && \
-  echo "===DIAG=== FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION}  MAX_JOBS=${MAX_JOBS}" && \
-  echo "===DIAG=== FORCE source-build (temporarily bypasses cached-wheel branch to fix S3 cache poisoning)" && \
-  MAX_JOBS=${MAX_JOBS} pip wheel --no-deps --no-build-isolation \
-    --wheel-dir /tmp/built_wheels flash-attn==${FLASH_ATTN_VERSION} && \
-  echo "===DIAG=== source build complete; wheel produced:" && \
-  ls -la /tmp/built_wheels/ && \
-  echo "===DIAG=== undefined torch symbols in new wheel (should NOT contain materialize_cow_storage):" && \
-  (python -c "
-import subprocess, glob, os
-whl = glob.glob('/tmp/built_wheels/flash_attn*.whl')[0]
-os.makedirs('/tmp/whlx', exist_ok=True)
-subprocess.check_call(['unzip', '-qo', whl, '-d', '/tmp/whlx'])
-so_files = glob.glob('/tmp/whlx/**/*.so', recursive=True)
-for so in so_files:
-    out = subprocess.check_output(['nm', '--undefined-only', '--demangle', so]).decode()
-    hits = [line for line in out.split('\n') if 'materialize' in line or 'cow::' in line]
-    print(f'{so}:')
-    for h in hits[:20]: print('  ', h)
-" 2>&1 || echo "  diagnostic script failed") && \
-  echo "===DIAG=== installing built wheel" && \
-  uv pip install /tmp/built_wheels/flash_attn*.whl && \
-  echo "===DIAG=== builder-flash-attn stage end"
+  WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \
+  if [ -n "${WHL}" ]; then \
+    echo "Installing cached flash-attn wheel: ${WHL}" && \
+    uv pip install "${WHL}"; \
+  else \
+    echo "No cached wheel — building flash-attn from source" && \
+    MAX_JOBS=${MAX_JOBS} pip wheel --no-deps --no-build-isolation \
+      --wheel-dir /tmp/built_wheels flash-attn==${FLASH_ATTN_VERSION} && \
+    uv pip install /tmp/built_wheels/flash_attn*.whl; \
+  fi
 
 
 # ── Stage: builder-gdrcopy (parallel — independent of Python) ───────────────

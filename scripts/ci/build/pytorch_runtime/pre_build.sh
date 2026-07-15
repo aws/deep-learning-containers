@@ -47,13 +47,6 @@ PACKAGES=()
 [[ -n "$TRANSFORMER_ENGINE_VERSION" ]] && PACKAGES+=("transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}")
 
 PACKAGES_STR=$(IFS=','; echo "${PACKAGES[*]}")
-echo "===DIAG-PRE-BUILD=== config-file: $CONFIG_FILE"
-echo "===DIAG-PRE-BUILD=== FRAMEWORK_VERSION=$FRAMEWORK_VERSION"
-echo "===DIAG-PRE-BUILD=== CUDA_VERSION=$CUDA_VERSION"
-echo "===DIAG-PRE-BUILD=== FLASH_ATTN_VERSION=$FLASH_ATTN_VERSION"
-echo "===DIAG-PRE-BUILD=== TRANSFORMER_ENGINE_VERSION=$TRANSFORMER_ENGINE_VERSION"
-echo "===DIAG-PRE-BUILD=== target DEST: $DEST"
-echo "===DIAG-PRE-BUILD=== packages string: $PACKAGES_STR"
 echo "Fetching cached wheels: ${PACKAGES_STR:-none}"
 if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --dest-dir "$DEST" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
     --cuda-version "$CUDA_VERSION" --torch-version "$FRAMEWORK_VERSION" --packages "$PACKAGES_STR"; then
