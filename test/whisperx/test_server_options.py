@@ -320,7 +320,6 @@ def test_transcribe_forwards_task_and_no_decoding_kwargs(monkeypatch):
 
     result = reloaded._transcribe(
         audio_path="/tmp/does-not-exist.wav",
-        model_name="large-v2",
         language=None,
         want_words=False,
         diarize=False,

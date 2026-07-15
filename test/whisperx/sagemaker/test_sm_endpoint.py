@@ -23,7 +23,6 @@ import time
 import uuid
 
 import pytest
-from botocore.exceptions import ClientError
 from sagemaker.core.resources import Endpoint, EndpointConfig, Model
 from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import random_suffix_name
@@ -45,11 +44,6 @@ AUDIO_BUCKET = "dlc-cicd-models"
 AUDIO_PREFIX = "test-fixtures/audio"
 AUDIO_EN = "asr_en.wav"  # English ~15s
 AUDIO_DIARIZE = "asr_diarize_2spk.wav"  # 2 speakers ~21s
-
-# The model this (no-env) endpoint pins and serves: the server's DEFAULT_MODEL,
-# since WHISPERX_DEFAULT_MODEL is not overridden here. The override-denied 404
-# names this id.
-SERVED_MODEL_ID = "large-v2"
 
 
 def _cleanup(resources):
@@ -227,47 +221,3 @@ def test_invocations_diarization(model_endpoint, audio_cache):
     assert speakers, f"verbose_json missing non-empty 'speakers': {body!r}"
     assert len(speakers) >= 2, f"Expected >=2 speakers, got {speakers!r}"
     LOGGER.info(f"Diarization detected {len(speakers)} speakers: {speakers}")
-
-
-def test_invocations_unknown_model_404(model_endpoint, audio_cache):
-    """An unknown `model` is rejected — the model pin holds through SageMaker invoke.
-
-    Model override is off by default, so the server validates the request `model`
-    field against the pinned served id and 404s any other value (server contract:
-    ``_resolve_model``). This proves that contract survives the SageMaker
-    /invocations hop rather than only over a local HTTP call.
-
-    Error path: sagemaker-core ``Endpoint.invoke`` calls sagemaker-runtime
-    ``invoke_endpoint`` with no try/except, so a container 4xx surfaces as a
-    ``ModelError`` — a ``botocore.exceptions.ClientError`` subclass raised as HTTP
-    424 that wraps the container's status and body. We therefore assert on the
-    raised ClientError (and, defensively, on a returned body should a runtime path
-    hand one back instead of raising). Validation short-circuits before the audio
-    is read, so no model load happens and no retry/cold-start handling is needed.
-    """
-    endpoint = model_endpoint
-    audio = audio_cache(AUDIO_EN)
-
-    # A `file` part is required by the route signature (FastAPI 422s without it),
-    # but `_resolve_model` rejects the unknown id before the upload is ever read.
-    body, content_type = _build_multipart(audio, {"model": "does-not-exist", "language": "en"})
-
-    try:
-        result = endpoint.invoke(body=body, content_type=content_type)
-    except ClientError as e:
-        err = f"{e}\n{json.dumps(e.response, default=str)}"
-        lowered = err.lower()
-        assert "does not exist" in lowered or SERVED_MODEL_ID in lowered, (
-            f"ModelError did not surface the 404 detail / served model id: {err!r}"
-        )
-        LOGGER.info(f"Unknown model correctly rejected via ClientError/ModelError: {e}")
-        return
-
-    # Fallback: some runtime paths may return the container body rather than raise.
-    raw = result.body.read()
-    text = raw.decode(errors="replace") if isinstance(raw, (bytes, bytearray)) else str(raw)
-    lowered = text.lower()
-    assert "does not exist" in lowered or SERVED_MODEL_ID in lowered, (
-        f"Expected a 404 naming the served model `{SERVED_MODEL_ID}`, got: {text!r}"
-    )
-    LOGGER.info(f"Unknown model rejected in returned body: {text[:200]!r}")

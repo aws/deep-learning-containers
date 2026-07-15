@@ -161,19 +161,16 @@ def test_response_formats(container, aws_session, tmp_path):
 
 
 def test_errors(container, tmp_path):
-    """Contract errors: unknown model -> 404, empty upload -> 400, bad format -> 400.
+    """Contract errors: bad response_format -> 400, empty upload -> 400.
 
-    The server validates the model, then the response_format, then reads the
-    file, so the model/format cases need only a present (unread) file part.
+    The server validates response_format before reading the file, so the format
+    case needs only a present (unread) file part.
     """
     port = container["port"]
 
     # A present-but-never-read file part (validation short-circuits before read).
     dummy = tmp_path / "dummy.wav"
     dummy.write_bytes(b"RIFF0000WAVE")
-
-    resp = post_transcription(port, str(dummy), model="does-not-exist-xyz")
-    assert resp.status_code == 404, resp.text
 
     resp = post_transcription(port, str(dummy), response_format="xml")
     assert resp.status_code == 400, resp.text

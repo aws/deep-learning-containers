@@ -308,7 +308,6 @@ def _run_handle(server, *, response_format, timestamp_granularities=None, **knob
     resp = asyncio.run(
         server._handle_transcription(
             file=_FakeUpload(),
-            model=None,
             language=None,
             response_format=response_format,
             timestamp_granularities=timestamp_granularities,

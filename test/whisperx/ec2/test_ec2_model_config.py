@@ -13,19 +13,23 @@
 """EC2 model-launch-config tests for the WhisperX ASR DLC (GPU).
 
 Group A: these tests validate how the server's launch-time env vars shape the
-model-resolution contract — WHISPERX_DEFAULT_MODEL (the pinned/served model),
-WHISPERX_SERVED_MODEL_NAME (a client-facing alias), and
-WHISPERX_ALLOW_MODEL_OVERRIDE (per-request on-demand loading). Each case needs a
-container launched with different env, so unlike test_ec2_gpu.py they do NOT use
-the shared default `container` fixture; instead each spins up (and tears down) a
-custom-env container via common.run_container_with_env.
+served-model contract — WHISPERX_DEFAULT_MODEL (the one model per container) and
+WHISPERX_SERVED_MODEL_NAME (a client-facing alias advertised by /v1/models).
+Each case needs a container launched with different env, so unlike test_ec2_gpu.py
+they do NOT use the shared default `container` fixture; instead each spins up (and
+tears down) a custom-env container via common.run_container_with_env.
 
-WHISPERX_DEFAULT_MODEL=tiny is used throughout so the startup warm-load (and any
-on-demand override load) finishes in seconds — tiny is a valid faster-whisper
-model that downloads far faster than the large-v2 default.
+The Whisper model is one-per-container: the request `model` field is accepted but
+ignored (an OpenAI-compat no-op), so every transcription runs the launched model
+regardless of the `model` value sent.
 
-Assertions target the resolution contract only (served model id, 200 vs 404, and
-the 404 error-body shape) — never exact transcript text, which is nondeterministic.
+WHISPERX_DEFAULT_MODEL=tiny is used throughout so the startup warm-load finishes
+in seconds — tiny is a valid faster-whisper model that downloads far faster than
+the large-v2 default.
+
+Assertions target the served contract only (advertised model id, and that any
+`model` value transcribes 200) — never exact transcript text, which is
+nondeterministic.
 """
 
 import requests
@@ -38,17 +42,18 @@ from whisperx.ec2.common import (
 
 DEVICE = "gpu"
 DOCKER_RUN_FLAGS = ["--gpus", "all"]
-# Small, fast-downloading Whisper model so warm-load and on-demand override load
-# take seconds, not the minutes large-v2 needs. tiny is a valid faster-whisper id.
+# Small, fast-downloading Whisper model so the startup warm-load takes seconds,
+# not the minutes large-v2 needs. tiny is a valid faster-whisper id.
 FAST_MODEL = "tiny"
 
 
 def test_custom_default_model(image_uri, aws_session, tmp_path):
-    """WHISPERX_DEFAULT_MODEL pins the served id; only that id (or none) resolves.
+    """WHISPERX_DEFAULT_MODEL sets the one served model; the `model` field is ignored.
 
     Launches with WHISPERX_DEFAULT_MODEL=tiny and asserts /v1/models advertises
     `tiny`, that omitting `model` and naming `tiny` both transcribe (200), and
-    that a different real model (`large-v2`) is rejected 404 (override off).
+    that naming a *different* id (`large-v2`) also transcribes 200 — the field is
+    an ignored no-op, so the launched model runs regardless.
     """
     audio = download_fixture(aws_session, AUDIO_EN, str(tmp_path / AUDIO_EN))
     with run_container_with_env(
@@ -61,27 +66,29 @@ def test_custom_default_model(image_uri, aws_session, tmp_path):
         data = resp.json()["data"]
         assert data[0]["id"] == FAST_MODEL, f"expected served id {FAST_MODEL!r}, got {data}"
 
-        # Omitted model -> resolves to the pinned default -> 200 with real text.
+        # Omitted model -> serves the launched model -> 200 with real text.
         resp = post_transcription(port, audio, response_format="json")
         assert resp.status_code == 200, resp.text
         assert resp.json().get("text", "").strip(), "expected non-empty text with default model"
 
-        # Naming the pinned model explicitly -> 200.
+        # Naming the launched model explicitly -> 200.
         resp = post_transcription(port, audio, model=FAST_MODEL, response_format="json")
         assert resp.status_code == 200, resp.text
 
-        # A different real model with override off -> 404.
+        # A different id -> still 200: the `model` field is ignored, so the
+        # launched model serves the request instead of being rejected.
         resp = post_transcription(port, audio, model="large-v2", response_format="json")
-        assert resp.status_code == 404, resp.text
+        assert resp.status_code == 200, resp.text
+        assert resp.json().get("text", "").strip(), "expected launched model to serve any model id"
 
 
 def test_served_model_alias(image_uri, aws_session, tmp_path):
-    """WHISPERX_SERVED_MODEL_NAME exposes an alias; the 404 detail names that alias.
+    """WHISPERX_SERVED_MODEL_NAME sets the id /v1/models advertises for OpenAI clients.
 
     Launches tiny behind the alias `whisper-1` and asserts /v1/models reports
-    `whisper-1`, that both the alias and the real backing id `tiny` transcribe
-    (200), and that an unknown id is rejected 404 with a detail that names the
-    served alias (not the internal `tiny`).
+    `whisper-1`, and that the alias, the real backing id `tiny`, and an unrelated
+    id all transcribe (200) — the `model` field is an ignored no-op, so every
+    request runs the launched model.
     """
     audio = download_fixture(aws_session, AUDIO_EN, str(tmp_path / AUDIO_EN))
     env = {"WHISPERX_DEFAULT_MODEL": FAST_MODEL, "WHISPERX_SERVED_MODEL_NAME": "whisper-1"}
@@ -93,52 +100,14 @@ def test_served_model_alias(image_uri, aws_session, tmp_path):
         data = resp.json()["data"]
         assert data[0]["id"] == "whisper-1", f"expected alias id 'whisper-1', got {data}"
 
-        # The alias resolves to the pinned model -> 200.
+        # The advertised alias transcribes -> 200.
         resp = post_transcription(port, audio, model="whisper-1", response_format="json")
         assert resp.status_code == 200, resp.text
 
-        # The real backing model id still resolves too -> 200.
+        # The real backing model id transcribes too -> 200.
         resp = post_transcription(port, audio, model=FAST_MODEL, response_format="json")
         assert resp.status_code == 200, resp.text
 
-        # An unknown id -> 404 whose detail advertises the served alias.
+        # An unrelated id -> still 200: the `model` field is ignored.
         resp = post_transcription(port, audio, model="whisper-large", response_format="json")
-        assert resp.status_code == 404, resp.text
-        detail = resp.json().get("detail", "")
-        assert "whisper-1" in detail, f"404 detail should name the served alias: {detail!r}"
-
-
-def test_model_override_allowed(image_uri, aws_session, tmp_path):
-    """WHISPERX_ALLOW_MODEL_OVERRIDE=true loads an unlisted model on demand.
-
-    Launches tiny with override enabled and asserts that naming a *different*
-    valid model (`base`) transcribes 200 — loaded on demand — rather than 404.
-    Kept to `base` (small, fast) so the on-demand load stays quick.
-    """
-    audio = download_fixture(aws_session, AUDIO_EN, str(tmp_path / AUDIO_EN))
-    env = {"WHISPERX_DEFAULT_MODEL": FAST_MODEL, "WHISPERX_ALLOW_MODEL_OVERRIDE": "true"}
-    with run_container_with_env(image_uri, env, device=DEVICE, flags=DOCKER_RUN_FLAGS) as c:
-        # `base` is not the pinned model, but override loads it on demand -> 200.
-        resp = post_transcription(c["port"], audio, model="base", response_format="json")
         assert resp.status_code == 200, resp.text
-        assert resp.json().get("text", "").strip(), "expected non-empty text from override model"
-
-
-def test_model_override_denied_response(image_uri, tmp_path):
-    """Override off: an unknown model yields a 404 whose body names the served id.
-
-    Asserts the error *shape* (FastAPI's {"detail": ...}), not just the status:
-    the detail must say the model "does not exist" and name the served id
-    (`tiny`). The model is resolved before the upload is read, so a present but
-    unread dummy file part is enough — no S3 audio needed.
-    """
-    dummy = tmp_path / "dummy.wav"
-    dummy.write_bytes(b"RIFF0000WAVE")
-    with run_container_with_env(
-        image_uri, {"WHISPERX_DEFAULT_MODEL": FAST_MODEL}, device=DEVICE, flags=DOCKER_RUN_FLAGS
-    ) as c:
-        resp = post_transcription(c["port"], str(dummy), model="nonexistent-model")
-        assert resp.status_code == 404, resp.text
-        detail = resp.json().get("detail", "")
-        assert "does not exist" in detail, f"expected 'does not exist' in 404 detail: {detail!r}"
-        assert FAST_MODEL in detail, f"expected served id {FAST_MODEL!r} in 404 detail: {detail!r}"

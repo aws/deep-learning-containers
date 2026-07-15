@@ -7,19 +7,21 @@ the running container and change which Whisper model it pins and serves.
 
 We prove the pin took effect purely through the SageMaker ``/invocations`` route
 (the only inference surface SageMaker exposes — there is no GET /v1/models over the
-invoke API) via accept/reject behavior:
-  * a request with no `model` resolves to the pinned default -> 200 non-empty text,
-    which is only possible if `tiny` was warm-loaded and is being served; and
-  * a request naming `large-v2` (the server's normal default) is REJECTED with a
-    404 that names `tiny` — impossible unless the env override replaced the pin.
+invoke API). Per-request model selection was removed, so the request `model` field
+is an ignored no-op; the container always serves the one launched model. We prove
+the env override reached the container via two positive invocations:
+  * a request with no `model` returns 200 non-empty text, which is only possible if
+    `tiny` was warm-loaded and is being served; and
+  * a request naming `large-v2` (the server's built-in default) is IGNORED and ALSO
+    returns 200 non-empty text — the launched `tiny` model serves regardless.
 
 Kept separate from ``test_sm_endpoint.py`` so the custom-env deploy never touches
 the default endpoint. ``tiny`` also warm-loads fast, keeping deploy + health check
 quick. AMI pin (DESIGN decision 9): CUDA 12.8 image -> INFERENCE_AMI_VERSION_CU12
 (AL2, driver 550); the default CU13 AMI causes a zero-log CannotStartContainerError.
 
-Validation is deterministic: assert served/rejected model behavior and non-empty
-text, never an exact transcript (WhisperX output is not byte-stable).
+Validation is deterministic: assert served-model behavior and non-empty text, never
+an exact transcript (WhisperX output is not byte-stable).
 """
 
 import json
@@ -29,7 +31,6 @@ import time
 import uuid
 
 import pytest
-from botocore.exceptions import ClientError
 from sagemaker.core.resources import Endpoint, EndpointConfig, Model
 from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import random_suffix_name
@@ -52,8 +53,8 @@ AUDIO_EN = "asr_en.wav"  # English ~15s
 
 # Env override under test: pin the container to the smallest Whisper model.
 CUSTOM_MODEL = "tiny"
-# The server's normal default when WHISPERX_DEFAULT_MODEL is unset. Naming it must
-# be REJECTED here — proving the env override, not the built-in default, is the pin.
+# The server's built-in default when WHISPERX_DEFAULT_MODEL is unset. A different id;
+# naming it must be IGNORED (model selection was removed) and still served by `tiny`.
 NORMAL_DEFAULT_MODEL = "large-v2"
 
 
@@ -189,19 +190,19 @@ def custom_model_endpoint(aws_session, image_uri):
 def test_custom_default_model_served(custom_model_endpoint, audio_en):
     """WHISPERX_DEFAULT_MODEL=tiny propagates through SageMaker to the container.
 
-    Two halves prove the env override reached the running container and became the
-    served pin, using only the SageMaker /invocations route:
+    Per-request model selection was removed, so the served model can't be probed via
+    a rejected id anymore. Two positive invocations over the SageMaker /invocations
+    route prove the env override reached the running container:
 
-    1. A request with no `model` resolves to the pinned default and returns 200 with
-       non-empty text — only possible if `tiny` warm-loaded and is being served.
-    2. A request naming `large-v2` (the server's normal default) is REJECTED with a
-       404 whose detail names `tiny`. Since override is off, the server 404s any
-       `model` != the served id; that the *served id is tiny* (not large-v2) can
-       only be true if ContainerDefinition.environment reached the container.
+    1. A request with no `model` returns 200 with non-empty text — only possible if
+       `tiny` warm-loaded and is being served.
+    2. A request naming `large-v2` (the server's built-in default) is IGNORED and
+       ALSO returns 200 with non-empty text — the launched `tiny` model serves
+       regardless, demonstrating the request `model` field is a no-op.
     """
     endpoint = custom_model_endpoint
 
-    # (1) Served-model check: no `model` field -> resolves to the pinned default.
+    # (1) Served-model check: no `model` field -> the launched (tiny) model serves.
     body = _invoke_transcription(endpoint, audio_en, language="en")
     text = body.get("text", "")
     assert isinstance(text, str) and text.strip(), (
@@ -209,33 +210,14 @@ def test_custom_default_model_served(custom_model_endpoint, audio_en):
     )
     LOGGER.info(f"tiny model served; transcription text (len={len(text)}): {text[:120]!r}")
 
-    # (2) Pin check: the normal default `large-v2` must now be rejected, naming tiny.
-    # sagemaker-core Endpoint.invoke -> sagemaker-runtime invoke_endpoint with no
-    # try/except, so a container 404 surfaces as ModelError (a ClientError subclass,
-    # HTTP 424) wrapping the container status + body. Assert on that raised error;
-    # defensively also handle a returned body if a runtime path hands one back.
-    reject_body, content_type = _build_multipart(
-        audio_en, {"model": NORMAL_DEFAULT_MODEL, "language": "en"}
+    # (2) Ignored-field check: naming `large-v2` is a no-op — the launched `tiny`
+    # model still serves and returns 200 non-empty text. With model selection
+    # removed the served id can't be probed via a rejected id, so InService plus
+    # this non-empty transcription is the proof the env var propagated.
+    body = _invoke_transcription(endpoint, audio_en, model=NORMAL_DEFAULT_MODEL, language="en")
+    text = body.get("text", "")
+    assert isinstance(text, str) and text.strip(), (
+        f"Ignored `{NORMAL_DEFAULT_MODEL}` request returned empty text; "
+        f"is the launched tiny model serving regardless? {body!r}"
     )
-    try:
-        result = endpoint.invoke(body=reject_body, content_type=content_type)
-    except ClientError as e:
-        err = f"{e}\n{json.dumps(e.response, default=str)}"
-        lowered = err.lower()
-        # `large-v2` being rejected at all already proves the pin moved off the
-        # built-in default; the served id (`tiny`) named in the detail proves the
-        # env value specifically reached the container.
-        assert "does not exist" in lowered or CUSTOM_MODEL in lowered, (
-            f"Expected `{NORMAL_DEFAULT_MODEL}` rejected with a 404 naming pinned "
-            f"`{CUSTOM_MODEL}`, got: {err!r}"
-        )
-        LOGGER.info(f"`{NORMAL_DEFAULT_MODEL}` correctly rejected; pin is `{CUSTOM_MODEL}`: {e}")
-        return
-
-    raw = result.body.read()
-    text = raw.decode(errors="replace") if isinstance(raw, (bytes, bytearray)) else str(raw)
-    lowered = text.lower()
-    assert "does not exist" in lowered or CUSTOM_MODEL in lowered, (
-        f"Expected `{NORMAL_DEFAULT_MODEL}` to be rejected naming `{CUSTOM_MODEL}`, got: {text!r}"
-    )
-    LOGGER.info(f"`{NORMAL_DEFAULT_MODEL}` rejected in returned body: {text[:200]!r}")
+    LOGGER.info(f"`{NORMAL_DEFAULT_MODEL}` ignored; tiny still served (len={len(text)})")

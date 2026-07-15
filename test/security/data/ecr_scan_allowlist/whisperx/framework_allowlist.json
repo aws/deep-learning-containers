@@ -25,6 +25,11 @@
         "review_by": "2026-10-13"
     },
     {
+        "vulnerability_id": "CVE-2025-55551",
+        "reason": "torch is pinned to 2.8.0 by whisperx 3.8.6 (torch~=2.8.0); the fix requires torch>=2.9.0 and cannot be taken without breaking the whisperx contract. The reported torch.linalg.lu slice denial-of-service is not on the ASR inference path (transcription/alignment/diarization do not call torch.linalg.lu). Tracked for a whisperx version that raises its torch cap.",
+        "review_by": "2026-10-13"
+    },
+    {
         "vulnerability_id": "CVE-2026-54283",
         "reason": "starlette is a transitive dependency of fastapi 0.121.0, which pins starlette<0.50.0; the fix requires starlette>=1.3.1 and cannot be taken without a major fastapi bump that breaks the serving stack. Tracked for a fastapi release that allows starlette 1.x.",
         "review_by": "2026-10-13"
