@@ -89,12 +89,6 @@ ARG MAX_JOBS
 # docker/pytorch/${FRAMEWORK_SHORT_VERSION}/wheels/ is created by CI (fetch_cached_wheels.sh); may not exist locally.
 COPY docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cuda/pyproject.toml docker/pytorch/${FRAMEWORK_SHORT_VERSION}/wheel[s]/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
-  # Cache invalidation nudge 2026-07-14: prior BuildKit stage cache on this \
-  # branch contained a flash-attn wheel compiled against torch 2.12 ABI \
-  # (undefined symbol c10::impl::cow::materialize_cow_storage on torch 2.13). \
-  # This comment changes the RUN text hash so BuildKit re-executes the stage \
-  # against the current torch 2.13 pin. Do NOT remove until poisoned cache \
-  # layers are GC'd out of ECR + fleet host BuildKit local caches (~30 days). \
   mkdir -p /tmp/built_wheels && \
   WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \
   if [ -n "${WHL}" ]; then \
