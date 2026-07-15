@@ -39,14 +39,6 @@ FLASH_ATTN_VERSION=$(yq '.build.flash_attn_version // ""' "$CONFIG_FILE")
 TRANSFORMER_ENGINE_VERSION=$(yq '.build.transformer_engine_version // ""' "$CONFIG_FILE")
 DOCKERFILE=$(yq '.build.dockerfile' "$CONFIG_FILE")
 
-# Export metadata that action.yml passes as --build-arg during the primary build.
-# These are shell-locals in the "Build and push image" step (not written to $GITHUB_ENV),
-# so upload_wheels.sh — which mirrors the primary build's --build-arg set — cannot see
-# them via inherited env. Read them from the config and export so the child sees them.
-export FRAMEWORK="$(yq '.metadata.framework' "$CONFIG_FILE")"
-export FRAMEWORK_VERSION
-export JOB_TYPE="$(yq '.metadata.job_type' "$CONFIG_FILE")"
-
 PACKAGES=()
 [[ -n "$FLASH_ATTN_VERSION" ]] && PACKAGES+=("flash-attn:${FLASH_ATTN_VERSION}")
 [[ -n "$TRANSFORMER_ENGINE_VERSION" ]] && PACKAGES+=("transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}")
