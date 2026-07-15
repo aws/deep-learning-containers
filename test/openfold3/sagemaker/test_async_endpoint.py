@@ -7,8 +7,8 @@ set by the workflow:
   SM_ROLE_ARN     the SageMaker execution role ARN
   AWS_REGION      region (default us-west-2)
 
-One 4-GPU endpoint (ml.g6.12xlarge, falling back to ml.g5.12xlarge on
-capacity errors) serves every case. The handler's GPU pool
+One 4-GPU endpoint (ml.g6.12xlarge) serves every case; the suite is skipped
+if SageMaker has no capacity (ICE). The handler's GPU pool
 leases one GPU per concurrent request, so "1 GPU" means a single in-flight
 request and "4 GPU" means four concurrent requests fanned across the four GPUs.
 
@@ -52,11 +52,11 @@ IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 ROLE_ARN = os.environ["SM_ROLE_ARN"]
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 
-# Candidate 4-GPU instances tried in order — g6.12xlarge (4x L4) capacity (ICE)
-# is intermittent, so we fall back to g5.12xlarge (4x A10G, also 4 GPUs / 24 GB)
-# and skip the suite only if none can be provisioned. Both have endpoint quota in
-# the CI account; g6e has 0 quota so it is intentionally not listed.
-INSTANCE_TYPES = ["ml.g6.12xlarge", "ml.g5.12xlarge"]
+# 4-GPU instance(s) tried in order; if all hit capacity errors (ICE) we skip the
+# suite rather than fail the release. Only g6.12xlarge (4x L4) is currently viable:
+# g6e.12xlarge has 0 endpoint quota, and g5.12xlarge (A10G) is not supported by the
+# CUDA-13 inference AMI this cu130 image needs. Add more here if that changes.
+INSTANCE_TYPES = ["ml.g6.12xlarge"]
 MAX_CONCURRENT_INVOCATIONS = 4
 # Generous: warmup compiles CUDA kernels (~6 min) before /ping returns 200.
 STARTUP_HEALTH_CHECK_TIMEOUT = 1200
