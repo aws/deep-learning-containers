@@ -47,23 +47,12 @@ PACKAGES=()
 [[ -n "$TRANSFORMER_ENGINE_VERSION" ]] && PACKAGES+=("transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}")
 
 PACKAGES_STR=$(IFS=','; echo "${PACKAGES[*]}")
-# SKIP_WHEEL_CACHE bypass — set via build.skip_wheel_cache in the image config.
-# When true: skip S3 fetch (force source build) AND signal upload_wheels.sh to
-# force-overwrite any existing S3 wheel at the target key. Use to replace
-# poisoned wheel-cache entries with freshly source-built wheels.
-SKIP_WHEEL_CACHE=$(yq '.build.skip_wheel_cache // ""' "$CONFIG_FILE")
-if [[ "${SKIP_WHEEL_CACHE}" == "true" ]]; then
-  echo "skip_wheel_cache=true — forcing source build and overwrite of cache"
-  echo "WHEEL_CACHE_HIT=false" >> "${GITHUB_ENV:-/dev/null}"
-  echo "FORCE_WHEEL_CACHE_UPLOAD=true" >> "${GITHUB_ENV:-/dev/null}"
+echo "Fetching cached wheels: ${PACKAGES_STR:-none}"
+if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --dest-dir "$DEST" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
+    --cuda-version "$CUDA_VERSION" --torch-version "$FRAMEWORK_VERSION" --packages "$PACKAGES_STR"; then
+  echo "WHEEL_CACHE_HIT=true" >> "${GITHUB_ENV:-/dev/null}"
+  echo "Wheel cache hit"
 else
-  echo "Fetching cached wheels: ${PACKAGES_STR:-none}"
-  if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --dest-dir "$DEST" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
-      --cuda-version "$CUDA_VERSION" --torch-version "$FRAMEWORK_VERSION" --packages "$PACKAGES_STR"; then
-    echo "WHEEL_CACHE_HIT=true" >> "${GITHUB_ENV:-/dev/null}"
-    echo "Wheel cache hit"
-  else
-    echo "WHEEL_CACHE_HIT=false" >> "${GITHUB_ENV:-/dev/null}"
-    echo "Wheel cache miss — will build from source"
-  fi
+  echo "WHEEL_CACHE_HIT=false" >> "${GITHUB_ENV:-/dev/null}"
+  echo "Wheel cache miss — will build from source"
 fi
