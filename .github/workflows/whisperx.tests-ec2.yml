@@ -82,4 +82,4 @@ jobs:
           cd test/
           python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
-            whisperx/ec2/test_ec2_gpu.py
+            whisperx/ec2
