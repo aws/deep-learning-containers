@@ -28,16 +28,6 @@ benchmark:
       test_script: "vllm_embedding_benchmark_test.sh"
       min_rps: 3
 
-    # LightOnOCR-2-1B: 1B VLM for document OCR (LightOnOcrForConditionalGeneration).
-    # bf16 ~2GB, fits L40S easily. Thresholds are provisional — calibrate after first run.
-    - name: "lighton-ocr-2-1b"
-      s3_model: "lightonocr-2-1b.tar.gz"
-      runner_label: "gpu-l40s-1gpu-runners"
-      extra_args: "--dtype bfloat16 --max-model-len 4096"
-      min_throughput: 30
-      min_rps: 1
-      benchmark_profiles: "baseline,high_concurrency"
-
     # Realtime model — benchmark via /v1/audio/transcriptions; it does not
     # support chat audio_url (empty MM embeddings crash the engine).
     - name: "voxtral-mini-4b"
