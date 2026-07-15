@@ -55,6 +55,20 @@ for var in ${EXTRA_BUILD_ARGS:-}; do
   fi
 done
 
+# Match the extra build-args the primary build passes (see .github/actions/build-image/action.yml).
+# These are hardcoded in action.yml, not in EXTRA_BUILD_ARGS, so they must be replicated here
+# to keep the wheel-export invocation's stage-cache key aligned with the primary build.
+[[ -n "${FRAMEWORK:-}" ]]              && BUILD_ARGS+=("--build-arg" "FRAMEWORK=${FRAMEWORK}")
+[[ -n "${FRAMEWORK_VERSION:-}" ]]      && BUILD_ARGS+=("--build-arg" "FRAMEWORK_VERSION=${FRAMEWORK_VERSION}")
+[[ -n "${JOB_TYPE:-}" ]]               && BUILD_ARGS+=("--build-arg" "CONTAINER_TYPE=${JOB_TYPE}")
+[[ -n "${FRAMEWORK_SHORT_VERSION:-}" ]] && BUILD_ARGS+=("--build-arg" "FRAMEWORK_SHORT_VERSION=${FRAMEWORK_SHORT_VERSION}")
+[[ -n "${USE_PREBUILT_WHEEL:-}" ]]     && BUILD_ARGS+=("--build-arg" "USE_PREBUILT_WHEEL=${USE_PREBUILT_WHEEL}")
+if [[ -n "${PYTHON_VERSION:-}" ]]; then
+  PYTHON_SHORT_VERSION=$(echo "${PYTHON_VERSION}" | cut -d. -f1,2)
+  BUILD_ARGS+=("--build-arg" "PYTHON_SHORT_VERSION=${PYTHON_SHORT_VERSION}")
+fi
+BUILD_ARGS+=("--build-arg" "CACHE_REFRESH=$(date +%Y-%m-%d)")
+
 docker buildx build --progress=plain --target wheel-export --output "type=local,dest=${EXPORT_DIR}" \
   "${BUILD_ARGS[@]}" \
   -f "${DOCKERFILE}" . 2>/dev/null || {
