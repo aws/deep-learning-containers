@@ -206,9 +206,21 @@ def test_notimplementederror_also_degrades():
 # FIX A — offload blocking work off the event loop
 # ---------------------------------------------------------------------------
 class _FakeUpload:
+    """One-shot upload: yields the payload once, then b"" to end the chunk loop.
+
+    _handle_transcription now streams the body via ``await file.read(n)`` in a
+    loop, so the fake accepts the chunk-size arg and signals EOF on the 2nd call.
+    """
+
     filename = "audio.wav"
 
-    async def read(self):
+    def __init__(self):
+        self._sent = False
+
+    async def read(self, size=-1):
+        if self._sent:
+            return b""
+        self._sent = True
         return b"RIFFfake-audio-bytes"
 
 
@@ -395,21 +407,30 @@ def test_inference_serialized_to_capacity_one():
 # FINDING #4 — admission control: shed a full queue (503) and cap upload (413)
 # ---------------------------------------------------------------------------
 def test_full_queue_returns_503_before_reading_body():
-    """tasks_waiting >= MAX_QUEUE => 503 raised BEFORE the upload is read."""
+    """No free admission token => 503 raised BEFORE the upload is read.
+
+    Admission is now a hard BoundedSemaphore (_ADMISSION), not the old
+    observational tasks_waiting check. A fake whose non-blocking acquire always
+    fails stands in for a full queue; the handler must shed with 503 and must
+    not touch file.read at all.
+    """
     server = _load_server()
 
-    class _FakeLimiter:
-        def statistics(self):
-            return types.SimpleNamespace(tasks_waiting=99)
+    class _FullAdmission:
+        def acquire(self, blocking=False):
+            return False
 
-    server._INFERENCE_LIMITER = _FakeLimiter()
+        def release(self):
+            pass
+
+    server._ADMISSION = _FullAdmission()
 
     read_called = {"v": False}
 
     class _WatchedUpload:
         filename = "audio.wav"
 
-        async def read(self):
+        async def read(self, size=-1):
             read_called["v"] = True
             return b"RIFFfake-audio-bytes"
 
@@ -420,7 +441,11 @@ def test_full_queue_returns_503_before_reading_body():
 
 
 def test_oversized_upload_returns_413(monkeypatch):
-    """A body larger than WHISPERX_MAX_UPLOAD_BYTES is rejected 413."""
+    """A chunked upload exceeding WHISPERX_MAX_UPLOAD_BYTES is rejected 413.
+
+    The body is streamed via ``await file.read(n)``; the first chunk already
+    exceeds the (tiny) cap, so 413 fires mid-stream without buffering it whole.
+    """
     monkeypatch.setenv("WHISPERX_MAX_UPLOAD_BYTES", "8")
     server = _load_server()
     assert server.MAX_UPLOAD_BYTES == 8
@@ -428,12 +453,98 @@ def test_oversized_upload_returns_413(monkeypatch):
     class _BigUpload:
         filename = "audio.wav"
 
-        async def read(self):
-            return b"x" * 64  # exceeds the 8-byte cap
+        def __init__(self):
+            self._sent = False
+
+        async def read(self, size=-1):
+            if self._sent:
+                return b""
+            self._sent = True
+            return b"x" * 64  # first chunk already exceeds the 8-byte cap
 
     with pytest.raises(server.HTTPException) as exc_info:
         _handle(server, upload=_BigUpload())
     assert exc_info.value.status_code == 413
+
+
+class _ChunkedUpload:
+    """Upload that requires the chunk-size arg and yields the body in size-byte slices.
+
+    ``read`` records every ``size`` it is called with and returns exactly ``size``
+    bytes per call (the final partial chunk is shorter), so a revert to a single
+    full-buffer ``await file.read()`` (no size arg) would show up as a single
+    ``read_sizes == [-1]`` call and fail ``test_upload_read_in_chunks``.
+    """
+
+    def __init__(self, total_bytes, filename="a.wav"):
+        self._buf = b"x" * total_bytes
+        self._pos = 0
+        self.filename = filename
+        self.read_sizes = []
+
+    async def read(self, size=-1):
+        self.read_sizes.append(size)
+        if self._pos >= len(self._buf):
+            return b""
+        chunk = self._buf[self._pos : self._pos + (size if size and size > 0 else len(self._buf))]
+        self._pos += len(chunk)
+        return chunk
+
+
+def test_upload_read_in_chunks():
+    """The body is streamed via ``await file.read(_UPLOAD_CHUNK_BYTES)`` in a loop.
+
+    A revert to a single full-buffer ``await file.read()`` (no size arg) would slurp
+    the whole body in one call, so ``read_sizes`` would be ``[-1]`` — failing both
+    the "looped >= 4 times" and the "every size == _UPLOAD_CHUNK_BYTES" assertions.
+    Total is 3*_UPLOAD_CHUNK_BYTES + 1 (~3 MiB, under the default 100 MiB cap), so
+    the loop takes >= 4 reads and the request still succeeds (200), not a 413.
+    """
+    server = _load_server()
+
+    def _recorder(**kwargs):
+        return {"text": "hi", "segments": [{"text": "hi", "start": 0.0, "end": 1.0}]}
+
+    server._transcribe = _recorder
+
+    fake = _ChunkedUpload(total_bytes=3 * server._UPLOAD_CHUNK_BYTES + 1)
+    resp = _handle(server, upload=fake)
+
+    assert resp.status_code == 200  # under the cap: succeeded, not shed as 413
+    assert resp.content == {"text": "hi"}
+    assert len(fake.read_sizes) >= 4  # looped: did NOT slurp the body in one read
+    assert all(n == server._UPLOAD_CHUNK_BYTES for n in fake.read_sizes)
+
+
+def test_max_queue_zero_admits_when_idle(monkeypatch):
+    """WHISPERX_MAX_QUEUE=0 must still admit one idle request (was: rejected all).
+
+    The old tasks_waiting >= MAX_QUEUE check shed every request when MAX_QUEUE=0,
+    even an idle server. With the semaphore sized to MAX_CONCURRENT + MAX_QUEUE
+    (== 1 here), a single request gets the lone token and succeeds.
+    """
+    monkeypatch.setenv("WHISPERX_MAX_QUEUE", "0")
+    server = _load_server()
+    assert server._ADMISSION_CAPACITY == 1
+
+    reached = {"v": False}
+
+    def _recorder(**kwargs):
+        reached["v"] = True
+        return {"text": "hi", "segments": [{"text": "hi", "start": 0.0, "end": 1.0}]}
+
+    server._transcribe = _recorder
+    resp = _handle(server)  # does not raise 503
+    assert reached["v"] is True
+    assert resp.content == {"text": "hi"}
+
+
+def test_max_concurrent_clamped_to_one(monkeypatch):
+    """WHISPERX_MAX_CONCURRENT_REQUESTS>1 is ignored; concurrency is fixed at 1."""
+    monkeypatch.setenv("WHISPERX_MAX_CONCURRENT_REQUESTS", "4")
+    server = _load_server()
+    assert server.MAX_CONCURRENT_REQUESTS == 1
+    assert server._INFERENCE_LIMITER.total_tokens == 1
 
 
 # ---------------------------------------------------------------------------
@@ -530,6 +641,34 @@ def test_valid_params_reach_transcribe():
     server._transcribe = _recorder
     _handle(server, min_speakers=1, max_speakers=2, max_line_width=40, max_line_count=2)
     assert reached["v"] is True
+
+
+def test_align_evicts_before_loading():
+    """A cold miss on a full LRU evicts BEFORE loading, so peak stays <= MAX.
+
+    The old order loaded the new aligner and then evicted, transiently holding
+    _ALIGN_LRU_MAX + 1 GPU-resident models (an OOM risk). We record the cache
+    size seen at each load_align_model call: with MAX=2, filling "a","b" then
+    loading "c" must observe [0, 1, 1] — the 3rd load sees size 1, proving an
+    eviction happened first. The cache never exceeds MAX afterward.
+    """
+    server = _load_server()
+    server._ALIGN_LRU_MAX = 2
+    sizes_at_load: list[int] = []
+
+    def _recording_load(*args, **kwargs):
+        sizes_at_load.append(len(server._ALIGN_LRU))
+        return (object(), {})
+
+    server.whisperx.load_align_model = _recording_load
+
+    server._get_align("a")
+    server._get_align("b")  # cache now full (size 2)
+    server._get_align("c")  # miss: must evict down to 1 BEFORE this load
+
+    assert sizes_at_load == [0, 1, 1]
+    assert all(n <= server._ALIGN_LRU_MAX - 1 for n in sizes_at_load)
+    assert len(server._ALIGN_LRU) == 2  # bounded by MAX after eviction
 
 
 def test_get_align_dedupes_concurrent_loads():
