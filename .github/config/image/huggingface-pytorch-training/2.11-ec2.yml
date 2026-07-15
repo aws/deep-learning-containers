@@ -1,23 +1,22 @@
 image:
-  name: "huggingface-pytorch-training-2.11-sagemaker"
-  description: "Hugging Face PyTorch training for SageMaker (layered on the AWS PyTorch training DLC)"
+  name: "huggingface-pytorch-training-2.11-ec2"
+  description: "Hugging Face PyTorch training for EC2 and EKS (layered on the AWS PyTorch training DLC)"
 
 metadata:
   framework: "huggingface-pytorch"
   framework_version: "2.11.0"
   os_version: "amzn2023"
-  customer_type: "sagemaker"
-  platform: "sagemaker"
+  customer_type: "ec2"
   arch_type: "x86"
   device_type: "gpu"
   job_type: "training"
   contributor: "huggingface"
-  prod_image: "huggingface-pytorch-training:2.11.0-transformers5.13.1-gpu-py312-cu130-amzn2023-sagemaker"
+  prod_image: "huggingface-pytorch-training:2.11.0-transformers5.13.1-gpu-py312-cu130-amzn2023"
 
 build:
   dockerfile: "docker/huggingface/pytorch/Dockerfile"
-  target: "sagemaker"
-  base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023-sagemaker"
+  target: "ec2"
+  base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
   transformers_version: "5.13.1"
