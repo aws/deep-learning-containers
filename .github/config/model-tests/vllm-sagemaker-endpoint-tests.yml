@@ -82,8 +82,6 @@ sagemaker:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_MAX_MODEL_LEN: "4096"
       SM_VLLM_DTYPE: "bfloat16"
-      SM_VLLM_LIMIT_MM_PER_PROMPT: '{"image": 1}'
-      SM_VLLM_NO_ENABLE_PREFIX_CACHING: "true"
     test_cases:
       - name: "chat-completion"
         route: "/v1/chat/completions"
