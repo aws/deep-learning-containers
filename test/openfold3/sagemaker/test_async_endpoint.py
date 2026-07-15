@@ -52,11 +52,11 @@ IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 ROLE_ARN = os.environ["SM_ROLE_ARN"]
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 
-# 4-GPU instance(s) tried in order; if all hit capacity errors (ICE) we skip the
-# suite rather than fail the release. Only g6.12xlarge (4x L4) is currently viable:
-# g6e.12xlarge has 0 endpoint quota, and g5.12xlarge (A10G) is not supported by the
-# CUDA-13 inference AMI this cu130 image needs. Add more here if that changes.
+# Only g6.12xlarge (4x L4) is viable: g6e has 0 endpoint quota, g5 is rejected by the cu13 AMI.
 INSTANCE_TYPES = ["ml.g6.12xlarge"]
+# Retry deploy on capacity errors (ICE) before giving up; skip the suite only if all attempts fail.
+DEPLOY_ATTEMPTS = 3
+DEPLOY_RETRY_WAIT = 300
 MAX_CONCURRENT_INVOCATIONS = 4
 # Generous: warmup compiles CUDA kernels (~6 min) before /ping returns 200.
 STARTUP_HEALTH_CHECK_TIMEOUT = 1200
@@ -69,8 +69,7 @@ OUTPUT_PREFIX = "openfold3/async-output"
 
 SMALL_QUERY = "small.json"  # ubiquitin, 76 residues
 LARGE_QUERY = "large.json"  # synthetic, 622 residues
-# 622-res protein with an inline precomputed MSA (colabfold_main.a3m); exercises
-# the bring-your-own-MSA path. Uploaded by Scripts/upload_openfold3_test_queries.sh.
+# 622-res protein with an inline precomputed MSA; exercises the bring-your-own-MSA path.
 MSA_QUERY = "large_msa.json"
 # Small protein with use_msa_server=true; the handler must reject it under isolation.
 MSA_SERVER_QUERY = "small_msa_server.json"
@@ -216,27 +215,33 @@ def _cleanup(model, endpoint_config, endpoint):
 
 @pytest.fixture(scope="module")
 def endpoint_name():
-    """Deploy one 4-GPU async endpoint, falling back across instance types on capacity errors.
+    """Deploy one 4-GPU async endpoint, retrying instances on capacity errors (ICE).
 
-    If every candidate instance hits a capacity error (ICE), skip the suite rather
-    than fail the release — ICE is an AWS-side capacity issue, not an image defect.
+    ICE is an AWS-side capacity issue, not an image defect: retry each instance
+    a few times (waiting between tries), then skip the suite rather than fail.
     """
     _preflight_s3()
     _sweep_stale()
 
     last_error = None
-    for instance_type in INSTANCE_TYPES:
+    # Each instance gets DEPLOY_ATTEMPTS tries; capacity is intermittent so a wait often clears it.
+    attempts = [(it, n) for it in INSTANCE_TYPES for n in range(DEPLOY_ATTEMPTS)]
+    for i, (instance_type, _) in enumerate(attempts):
         name = random_suffix_name("openfold3-async", 50)
         model = endpoint_config = endpoint = None
         try:
             model, endpoint_config, endpoint = _deploy(name, instance_type)
         except Exception as e:
             _cleanup(model, endpoint_config, endpoint)
-            if _is_capacity_error(e):
-                LOGGER.warning(f"[capacity] {instance_type} unavailable (ICE); trying next. {e}")
-                last_error = e
-                continue
-            raise  # a real deploy failure — surface it
+            if not _is_capacity_error(e):
+                raise  # a real deploy failure — surface it
+            last_error = e
+            if i + 1 < len(attempts):
+                LOGGER.warning(
+                    f"[capacity] {instance_type} ICE; retrying in {DEPLOY_RETRY_WAIT}s. {e}"
+                )
+                time.sleep(DEPLOY_RETRY_WAIT)
+            continue
 
         try:
             LOGGER.info(f"Endpoint InService on {instance_type}; settling {SETTLE_SECONDS}s")
@@ -247,8 +252,7 @@ def endpoint_name():
         return
 
     pytest.skip(
-        f"No SageMaker capacity for any of {INSTANCE_TYPES} (ICE); skipping endpoint tests. "
-        f"Last error: {last_error}"
+        f"No SageMaker capacity after {len(attempts)} attempts (ICE); skipping. Last: {last_error}"
     )
 
 
