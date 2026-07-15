@@ -30,12 +30,6 @@ build:
   max_jobs: "8"
   dlc_major_version: "1"
   dlc_minor_version: "0"
-  # TEMPORARY: forces source build for one CI cycle to replace poisoned
-  # S3 cache entry at wheels/flash_attn/cu133/torch213/. Combined with
-  # FORCE_WHEEL_CACHE_UPLOAD in pre_build.sh, this overwrites the
-  # existing wheel with a freshly source-built torch-2.13-ABI wheel.
-  # Remove in follow-up commit once CI is green and cache is repopulated.
-  skip_wheel_cache: "true"
 
 release:
   release: true
