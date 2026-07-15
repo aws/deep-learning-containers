@@ -47,16 +47,6 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
-  ci-config:
-    runs-on: ubuntu-latest
-    outputs:
-      platform: ${{ steps.parse.outputs.platform }}
-    steps:
-      - uses: actions/checkout@v6
-      - id: parse
-        run: |
-          echo "platform=$(yq '.metadata.platform // ""' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
-
   build:
     if: ${{ inputs.build }}
     concurrency:
@@ -112,12 +102,10 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # Multi-node EFA/NCCL test (2x EFA GPU instances). The interconnect layer is
-  # identical across the eks/ec2 stages, so run it once — on the ec2 config only —
-  # to avoid doubling the expensive 2x p4d cost.
+  # Multi-node EFA/NCCL test (2x EFA GPU instances) — the one ec2 GPU config.
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.platform == '' }}
-    needs: [build, ci-config]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
+    needs: [build]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false

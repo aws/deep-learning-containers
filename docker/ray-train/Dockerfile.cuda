@@ -9,8 +9,7 @@
 #   builder-gdrcopy ── (GDRCopy userspace lib, independent)
 #   builder-oss ── (OSS license generation, isolated)
 #
-#   runtime-base ──┬── eks   (KubeRay head/worker — HyperPod-EKS + plain EKS)
-#                  └── ec2   (manual Ray start on EC2)
+#   runtime-base ──── ec2  (single GPU image: EC2 + KubeRay head/worker on EKS/HyperPod)
 #
 # The build: block in each image config is the source of truth for all pins;
 # the ARG defaults below only apply to bare local `docker build` invocations.
@@ -156,37 +155,13 @@ ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/c
   LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
 
-# ── Stage: eks (KubeRay head/worker — HyperPod-EKS + plain EKS) ──────────────
-# The RayCluster CRD injects the actual `ray start` command per pod, so we do NOT
-# hard-code a head/worker entrypoint here — only make Ray + the GPU/EFA stack and
-# the standard Ray ports available. Same image serves head and worker.
-FROM runtime-base AS eks
-ARG FRAMEWORK_VERSION
-
-# Telemetry
-COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-ARG FRAMEWORK="ray"
-ARG CONTAINER_TYPE="training"
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
-  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
-    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
-    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
-  && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
-
-# Ray ports: gcs (6379), dashboard (8265), client (10001).
-# No serve port (8000): this is a training image; ray[serve] is intentionally excluded.
-EXPOSE 6379 8265 10001
-
-WORKDIR /workspace
-CMD ["/bin/bash"]
-
-
-# ── Stage: ec2 (manual Ray cluster on EC2) ──────────────────────────────────
+# ── Stage: ec2 (single GPU image — EC2 + KubeRay head/worker on EKS/HyperPod) ─
+# One image serves all targets: run directly on EC2, OR as the KubeRay head and
+# worker on EKS / HyperPod-EKS. Validated end-to-end on HyperPod-EKS (multi-node
+# DDP + FSDP + EFA + fault tolerance). No separate eks stage — KubeRay injects the
+# `ray start` command and the liveness/readiness probes itself, so the image needs
+# nothing eks-specific. No separate CPU head image — this GPU image runs the head
+# on a CPU node with num-gpus:0 + NVIDIA_VISIBLE_DEVICES=void (see reference manifest).
 FROM runtime-base AS ec2
 ARG FRAMEWORK_VERSION
 

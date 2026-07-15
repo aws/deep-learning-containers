@@ -16,9 +16,22 @@ Current coverage (basic):
   shares the allowlist with the Ray Serve DLC).
 - **Telemetry** — cross-framework `_reusable.telemetry-tests.yml` (no per-framework code).
 
-Deferred (tracked in `Design/raytrain-dlc-design.md`):
+Automated CI (in this PR):
 
-- **Multi-node EFA / NCCL** cross-node all-reduce (needs ≥2 EFA-capable GPU nodes).
-- **KubeRay on EKS** — stand up a `RayCluster` (head + GPU workers) on a plain EKS
-  managed node group, `ray job submit` a small FSDP/Lightning job, assert convergence.
-- **Single-node multi-GPU** Ray Train smoke (real intra-node NCCL + FSx mount).
+- **Multi-node EFA / NCCL** — `_reusable.efa-tests.yml` (2x EFA GPU instances,
+  `all_reduce_perf` across nodes).
+
+Validated manually on HyperPod-EKS (2026-07-11..14, see
+`Design/raytrain-dlc-requirements-from-hyperpod-guide.md`) — the single GPU image,
+run via KubeRay as both head and worker:
+
+- Multi-node DDP (ResNet-18/50) + multi-node FSDP (BERT/GLUE) across 2x g6.12xlarge,
+  world_size=8, real 2-level NCCL (intra-node SHM + inter-node EFA).
+- Checkpointing to FSx; fault tolerance (kill a worker → Ray recovers + resumes
+  from checkpoint); production CPU-head + GPU-worker topology.
+
+Deferred / still to automate:
+
+- **KubeRay-on-EKS functional test in CI** — stand up a `RayCluster`, `ray job submit` a small job, assert convergence. Needs the KubeRay operator on the shared
+  EKS cluster (not yet installed). The single image already covers head + worker.
+- `ray.tune` HP tuning; LoRA/PEFT (ties to peft/trl open question).
