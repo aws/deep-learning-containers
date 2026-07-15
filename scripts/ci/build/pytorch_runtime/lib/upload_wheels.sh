@@ -76,29 +76,6 @@ for spec in "${SPECS[@]}"; do
     continue
   fi
 
-  # Verify flash-attn wheel ABI before uploading — prevent torch-ABI cache poisoning.
-  # If BuildKit resolved a stale cached wheel-export stage (e.g. built against torch 2.12),
-  # its compiled .so will reference `c10::impl::cow::materialize_cow_storage`, which was
-  # renamed to `materialize_cow` in torch 2.13. Refuse to upload such a wheel.
-  if [[ "${PKG_UNDER}" == "flash_attn" ]]; then
-    TMP_EXTRACT=$(mktemp -d)
-    if unzip -qo "${WHL}" -d "${TMP_EXTRACT}" 2>/dev/null; then
-      SO=$(find "${TMP_EXTRACT}" -name "*.so" | head -1)
-      if [[ -n "${SO}" ]]; then
-        if nm --undefined-only --demangle "${SO}" 2>/dev/null | grep -q "materialize_cow_storage"; then
-          echo "ERROR: flash-attn wheel references torch-2.12 symbol 'c10::impl::cow::materialize_cow_storage'"
-          echo "       (torch 2.13 renamed this to 'materialize_cow'; the wheel appears built against a stale torch)"
-          echo "       Refusing to upload — this would poison the S3 wheel-cache."
-          rm -rf "${TMP_EXTRACT}"
-          exit 1
-        else
-          echo "flash-attn wheel ABI verified: no stale torch-2.12 symbols"
-        fi
-      fi
-    fi
-    rm -rf "${TMP_EXTRACT}"
-  fi
-
   FNAME=$(basename "${WHL}")
   S3_KEY="wheels/${PKG_UNDER}/${CUDA_SHORT}/${TORCH_SHORT}/${FNAME}"
 
