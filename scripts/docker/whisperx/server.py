@@ -5,8 +5,8 @@ Design ref: workspace/whisperx-docker/DESIGN.md §5.
 Four routes, all served in one process:
     POST /v1/audio/transcriptions   — primary, OpenAI-compatible
     POST /invocations               — alias for SageMaker
-    GET  /ping                      — shallow health check
-    GET  /v1/models                 — list Whisper sizes cached in HF_HOME
+    GET  /ping                      — readiness health check
+    GET  /v1/models                 — advertises the single served model id
 
 Extension fields on top of OpenAI's schema: `diarize`, `min_speakers`,
 `max_speakers`. When `diarize=false` (default) output is byte-identical to
@@ -25,6 +25,11 @@ initial prompt, VAD thresholds, task, ...) are fixed at container launch via
 WHISPERX_* env vars — see the "Launch-time WhisperX configuration" block below.
 The HTTP API is deliberately lean: `temperature` and `prompt` are launch-only
 knobs, not per-request fields.
+
+The Whisper model is one-per-container, chosen at launch via
+WHISPERX_DEFAULT_MODEL; the request `model` field is accepted but ignored (an
+OpenAI-compat no-op), so a single model stays resident rather than being loaded
+per request.
 """
 
 from __future__ import annotations
@@ -37,7 +42,7 @@ import threading
 from collections import OrderedDict
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import anyio
 import torch
@@ -65,7 +70,7 @@ from whisperx.utils import WriteSRT, WriteVTT
 #   vad_options — WHISPERX_CHUNK_SIZE, WHISPERX_VAD_ONSET, WHISPERX_VAD_OFFSET
 #   pipeline/model — WHISPERX_VAD_METHOD, WHISPERX_TASK, WHISPERX_ALIGN_MODEL,
 #     WHISPERX_DEFAULT_MODEL, WHISPERX_COMPUTE_TYPE, WHISPERX_BATCH_SIZE,
-#     WHISPERX_SERVED_MODEL_NAME, WHISPERX_ALLOW_MODEL_OVERRIDE, ...
+#     WHISPERX_SERVED_MODEL_NAME, ...
 def _env_bool(name: str, default: bool = False) -> bool:
     val = os.environ.get(name)
     if val is None or not val.strip():
@@ -118,38 +123,42 @@ def _build_vad_options() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Model LRUs
+# Model caches
 # ---------------------------------------------------------------------------
-# Whisper transcription models — keyed by name. Users pick these per-request
-# via the OpenAI-compatible `model` field.
-_WHISPER_LRU: "OrderedDict[str, Any]" = OrderedDict()
-_WHISPER_LRU_MAX = int(os.environ.get("WHISPERX_MODEL_LRU_SIZE", "2"))
+# One Whisper model per container, pinned at launch (DEFAULT_MODEL) and warmed
+# in the lifespan hook. The request `model` field is ignored (OpenAI-compat
+# no-op), so a single model stays resident rather than a per-name LRU.
+_WHISPER_MODEL: Any = None
 
-# wav2vec2 align models — keyed by language code.
+# wav2vec2 align models — keyed by language code. Orthogonal to the Whisper
+# model (a request's detected language selects the aligner), so this stays an
+# LRU even though only one Whisper model is served.
 _ALIGN_LRU: "OrderedDict[str, tuple[Any, dict[str, Any]]]" = OrderedDict()
 _ALIGN_LRU_MAX = int(os.environ.get("WHISPERX_ALIGN_LRU_SIZE", "3"))
 
-# _transcribe runs in an anyio worker thread (default pool 40), so _get_whisper
-# and _get_align can execute concurrently. These locks serialize cache
-# management on their respective LRUs; inference stays outside the lock (it runs
-# in _transcribe after the getters return).
+# _transcribe runs in an anyio worker thread. _WHISPER_LOCK serializes the
+# one-time model load (defense-in-depth if MAX_CONCURRENT_REQUESTS>1 ever races
+# concurrent cold misses, so only the first thread loads); _ALIGN_LOCK does the
+# same for the align LRU. Inference itself stays outside these locks (it runs in
+# _transcribe after the getters return).
 _WHISPER_LOCK = threading.Lock()
 _ALIGN_LOCK = threading.Lock()
 
 # Fixed models loaded at startup.
 _DIARIZE_PIPELINE: Any = None
 
+# Process readiness. Starts True; the inference path flips it False on a fatal
+# CUDA/device fault (see _is_fatal_cuda_error) so /ping can report 503.
+_HEALTHY = True
+
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 COMPUTE_TYPE = os.environ.get("WHISPERX_COMPUTE_TYPE", "float16" if DEVICE == "cuda" else "int8")
 # The Whisper model pinned at container launch and warmed in the lifespan hook.
 DEFAULT_MODEL = os.environ.get("WHISPERX_DEFAULT_MODEL", "large-v2")
 # Optional client-facing alias for the pinned model (e.g. "whisper-1" for an
-# OpenAI-SDK drop-in). Requests naming this alias resolve to DEFAULT_MODEL.
+# OpenAI-SDK drop-in). Used ONLY by /v1/models to advertise the served id; the
+# request `model` field is ignored, so no request-time resolution happens.
 SERVED_MODEL_NAME = os.environ.get("WHISPERX_SERVED_MODEL_NAME")
-# When truthy, requests may name any Whisper model and it is loaded on demand
-# via _WHISPER_LRU (the pre-pinning behavior). Otherwise the `model` field is
-# validated against the served id and mismatches are rejected.
-ALLOW_MODEL_OVERRIDE = _env_bool("WHISPERX_ALLOW_MODEL_OVERRIDE")
 DEFAULT_BATCH_SIZE = int(os.environ.get("WHISPERX_BATCH_SIZE", "16"))
 DIARIZE_MODEL_PATH = os.environ.get(
     "WHISPERX_DIARIZE_MODEL_PATH",
@@ -160,10 +169,25 @@ DIARIZE_MODEL_PATH = os.environ.get(
 VAD_METHOD = os.environ.get("WHISPERX_VAD_METHOD", "pyannote")
 TASK = os.environ.get("WHISPERX_TASK", "transcribe")
 ALIGN_MODEL = os.environ.get("WHISPERX_ALIGN_MODEL") or None
-# Decoding + VAD options are global launch config: read env once here so every
-# model loaded via _get_whisper shares one immutable configuration.
+# Decoding + VAD options are global launch config: read env once here so the
+# model loaded via _get_whisper uses one immutable configuration.
 ASR_OPTIONS = _build_asr_options()
 VAD_OPTIONS = _build_vad_options()
+
+# ---------------------------------------------------------------------------
+# Request admission + inference concurrency
+# ---------------------------------------------------------------------------
+# GPU inference is serialized to MAX_CONCURRENT_REQUESTS (default 1): WhisperX's
+# FasterWhisperPipeline mutates self.options/self.tokenizer mid-call and the
+# shared diarization pipeline is not documented thread-safe, so running two
+# transcriptions on one instance concurrently is unsafe. _INFERENCE_LIMITER caps
+# in-flight inference; MAX_QUEUE bounds how many requests may wait behind it
+# before new ones are shed with 503; MAX_UPLOAD_BYTES bounds per-request
+# memory/temp-file retention.
+MAX_CONCURRENT_REQUESTS = int(os.environ.get("WHISPERX_MAX_CONCURRENT_REQUESTS", "1"))
+_INFERENCE_LIMITER = anyio.CapacityLimiter(MAX_CONCURRENT_REQUESTS)
+MAX_QUEUE = int(os.environ.get("WHISPERX_MAX_QUEUE", "2"))
+MAX_UPLOAD_BYTES = int(os.environ.get("WHISPERX_MAX_UPLOAD_BYTES", str(1024 * 1024 * 1024)))
 
 
 def _lru_touch(cache: "OrderedDict[str, Any]", key: str, max_size: int) -> None:
@@ -173,16 +197,15 @@ def _lru_touch(cache: "OrderedDict[str, Any]", key: str, max_size: int) -> None:
 
 
 def _get_whisper(model_name: str) -> Any:
-    # Hold _WHISPER_LOCK across the whole check-load-store-touch so concurrent
-    # worker threads can't double-load the same key or race move_to_end against
-    # another thread's eviction. A cold miss keeps the lock for the ~30 s load,
-    # which is intentional: it dedupes concurrent misses to a single load. The
-    # steady state (one pinned model, warmed at startup) is a resident hit, so
-    # contention is nil. Decoding/VAD/task config is global launch config
-    # (ASR_OPTIONS/VAD_OPTIONS), so the LRU key stays the model name.
+    # One model per container: model_name is always DEFAULT_MODEL, so a single
+    # resident model is cached. _WHISPER_LOCK holds across the check-load-store
+    # so that if MAX_CONCURRENT_REQUESTS>1 ever races two cold misses, only the
+    # first loads (dedupes the ~30 s load); a warm hit takes the lock briefly.
+    # Decoding/VAD/task config is global launch config (ASR_OPTIONS/VAD_OPTIONS).
+    global _WHISPER_MODEL
     with _WHISPER_LOCK:
-        if model_name not in _WHISPER_LRU:
-            _WHISPER_LRU[model_name] = whisperx.load_model(
+        if _WHISPER_MODEL is None:
+            _WHISPER_MODEL = whisperx.load_model(
                 model_name,
                 device=DEVICE,
                 compute_type=COMPUTE_TYPE,
@@ -191,8 +214,7 @@ def _get_whisper(model_name: str) -> Any:
                 vad_options=VAD_OPTIONS,
                 task=TASK,
             )
-        _lru_touch(_WHISPER_LRU, model_name, _WHISPER_LRU_MAX)
-        return _WHISPER_LRU[model_name]
+        return _WHISPER_MODEL
 
 
 def _get_align(language: str) -> tuple[Any, dict[str, Any]]:
@@ -208,28 +230,6 @@ def _get_align(language: str) -> tuple[Any, dict[str, Any]]:
         return _ALIGN_LRU[language]
 
 
-def _resolve_model(requested: str | None) -> str:
-    """Map a request's `model` field to the concrete Whisper model to run.
-
-    The Whisper model is pinned at launch (DEFAULT_MODEL). A request may omit
-    `model`, name the pinned model, or name its SERVED_MODEL_NAME alias — all
-    resolve to DEFAULT_MODEL. Any other value is rejected unless
-    ALLOW_MODEL_OVERRIDE is set, which restores per-request model loading.
-    """
-    if not requested:
-        return DEFAULT_MODEL
-    if requested == DEFAULT_MODEL:
-        return DEFAULT_MODEL
-    if SERVED_MODEL_NAME and requested == SERVED_MODEL_NAME:
-        return DEFAULT_MODEL
-    if ALLOW_MODEL_OVERRIDE:
-        return requested
-    raise HTTPException(
-        status_code=404,
-        detail=f"The model `{requested}` does not exist. This endpoint serves `{SERVED_MODEL_NAME or DEFAULT_MODEL}`.",
-    )
-
-
 # ---------------------------------------------------------------------------
 # App + lifespan
 # ---------------------------------------------------------------------------
@@ -241,7 +241,7 @@ async def lifespan(_: FastAPI):
     default Whisper model are resident. VAD uses whisperx's default (pyannote),
     whose segmentation model ships inside the whisperx wheel.
     """
-    global _DIARIZE_PIPELINE
+    global _DIARIZE_PIPELINE, _HEALTHY
     # Warm the default Whisper model so the first request isn't a cold ~30 s
     # download-and-load.
     _get_whisper(DEFAULT_MODEL)
@@ -265,6 +265,9 @@ async def lifespan(_: FastAPI):
         print(f"WARN: diarization model dir {DIARIZE_MODEL_PATH} missing; diarization disabled")
         _DIARIZE_PIPELINE = None
 
+    # Warmup completed without a fatal load error; confirm readiness. (If
+    # _get_whisper raised above, we never reach here and uvicorn won't bind.)
+    _HEALTHY = True
     yield
 
 
@@ -352,9 +355,34 @@ def _flatten_words(segments: list[dict[str, Any]]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # Core pipeline
 # ---------------------------------------------------------------------------
+# Fatal CUDA/device error substrings — a RuntimeError whose message contains any
+# of these means the process's GPU context is corrupted and every subsequent
+# request will fail, so readiness flips. Transient faults (CUDA OOM) are
+# deliberately excluded: they don't poison the context.
+_FATAL_CUDA_MARKERS = (
+    "cuda error",
+    "device-side assert",
+    "illegal memory access",
+    "misaligned address",
+    "unspecified launch failure",
+)
+
+
+def _is_fatal_cuda_error(exc: Exception) -> bool:
+    """True for unrecoverable CUDA/device faults that corrupt the GPU context.
+
+    Only RuntimeErrors carrying a known-fatal marker qualify. A plain CUDA OOM
+    (torch.cuda.OutOfMemoryError / "out of memory") is transient — the context
+    survives and later requests can succeed — so it is NOT treated as fatal.
+    """
+    if not isinstance(exc, RuntimeError):
+        return False
+    msg = str(exc).lower()
+    return any(marker in msg for marker in _FATAL_CUDA_MARKERS)
+
+
 def _transcribe(
     audio_path: str,
-    model_name: str,
     language: str | None,
     want_words: bool,
     diarize: bool,
@@ -363,7 +391,7 @@ def _transcribe(
 ) -> dict[str, Any]:
     audio = whisperx.load_audio(audio_path)
 
-    model = _get_whisper(model_name)
+    model = _get_whisper(DEFAULT_MODEL)
     # Decoding params (temperature/prompt/beam/...) are baked into the model at
     # load time via ASR_OPTIONS. FasterWhisperPipeline.transcribe only accepts
     # pipeline-level args; passing decoding kwargs here raises TypeError. `task`
@@ -377,76 +405,88 @@ def _transcribe(
     if language:
         transcribe_kwargs["language"] = language
 
-    result = model.transcribe(audio, **transcribe_kwargs)
-    detected_language = result.get("language", language or "")
+    try:
+        result = model.transcribe(audio, **transcribe_kwargs)
+        detected_language = result.get("language", language or "")
 
-    # Alignment (word-level timestamps). Required if the caller asked for word
-    # granularity OR diarization (word-level speaker assignment needs word
-    # timing).
-    if want_words or diarize:
-        try:
-            align_model, align_metadata = _get_align(detected_language)
-            result = whisperx.align(
-                result["segments"],
-                align_model,
-                align_metadata,
-                audio,
-                DEVICE,
-                return_char_alignments=False,
-            )
-        except (ValueError, NotImplementedError, KeyError) as exc:
-            # These are the only exceptions whisperX raises when a language
-            # genuinely has no wav2vec2 aligner (no default align-model /
-            # unsupported model type / missing metadata key). Only these
-            # degrade gracefully; any other error (CUDA OOM RuntimeError,
-            # network failure fetching the aligner, ...) propagates so it
-            # surfaces as a real 500 instead of a silently-degraded 200.
-            print(f"WARN: alignment failed for language={detected_language}: {exc}")
-            degraded_from_diarize = diarize
-            want_words = False
-            diarize = False
-            result = {"segments": result["segments"]}
-            # Diarization needs word timing, so degradation makes the requested
-            # speakers impossible to produce. Rather than return 200 with no
-            # speakers, tell the caller explicitly. A best-effort want_words
-            # request keeps the silent (logged) fallback above.
-            if degraded_from_diarize:
+        # Alignment (word-level timestamps). Required if the caller asked for
+        # word granularity OR diarization (word-level speaker assignment needs
+        # word timing).
+        if want_words or diarize:
+            try:
+                align_model, align_metadata = _get_align(detected_language)
+                result = whisperx.align(
+                    result["segments"],
+                    align_model,
+                    align_metadata,
+                    audio,
+                    DEVICE,
+                    return_char_alignments=False,
+                )
+            except (ValueError, NotImplementedError, KeyError) as exc:
+                # These are the only exceptions whisperX raises when a language
+                # genuinely has no wav2vec2 aligner (no default align-model /
+                # unsupported model type / missing metadata key). Only these
+                # degrade gracefully; any other error (CUDA OOM RuntimeError,
+                # network failure fetching the aligner, ...) propagates so it
+                # surfaces as a real 500 instead of a silently-degraded 200.
+                print(f"WARN: alignment failed for language={detected_language}: {exc}")
+                degraded_from_diarize = diarize
+                want_words = False
+                diarize = False
+                result = {"segments": result["segments"]}
+                # Diarization needs word timing, so degradation makes the
+                # requested speakers impossible to produce. Rather than return
+                # 200 with no speakers, tell the caller explicitly. A best-effort
+                # want_words request keeps the silent (logged) fallback above.
+                if degraded_from_diarize:
+                    raise HTTPException(
+                        status_code=422,
+                        detail=(
+                            f"diarization was requested but alignment is unavailable for "
+                            f"language '{detected_language}' (no wav2vec2 aligner); retry "
+                            f"without diarize or with a supported language"
+                        ),
+                    ) from exc
+
+        speakers: list[str] = []
+        if diarize:
+            if _DIARIZE_PIPELINE is None:
                 raise HTTPException(
-                    status_code=422,
-                    detail=(
-                        f"diarization was requested but alignment is unavailable for "
-                        f"language '{detected_language}' (no wav2vec2 aligner); retry "
-                        f"without diarize or with a supported language"
-                    ),
-                ) from exc
-
-    speakers: list[str] = []
-    if diarize:
-        if _DIARIZE_PIPELINE is None:
-            raise HTTPException(
-                status_code=400,
-                detail="diarization requested but pyannote pipeline is not available",
-            )
-        diar_kwargs: dict[str, Any] = {}
-        if min_speakers is not None:
-            diar_kwargs["min_speakers"] = min_speakers
-        if max_speakers is not None:
-            diar_kwargs["max_speakers"] = max_speakers
-        diarize_segments = _DIARIZE_PIPELINE(audio, **diar_kwargs)
-        result = whisperx.assign_word_speakers(diarize_segments, result)
-        # Collect unique speaker labels in first-seen order.
-        seen: set[str] = set()
-        for seg in result.get("segments", []):
-            spk = seg.get("speaker")
-            if spk and spk not in seen:
-                seen.add(spk)
-                speakers.append(spk)
+                    status_code=400,
+                    detail="diarization requested but pyannote pipeline is not available",
+                )
+            diar_kwargs: dict[str, Any] = {}
+            if min_speakers is not None:
+                diar_kwargs["min_speakers"] = min_speakers
+            if max_speakers is not None:
+                diar_kwargs["max_speakers"] = max_speakers
+            diarize_segments = _DIARIZE_PIPELINE(audio, **diar_kwargs)
+            result = whisperx.assign_word_speakers(diarize_segments, result)
+            # Collect unique speaker labels in first-seen order.
+            seen: set[str] = set()
+            for seg in result.get("segments", []):
+                spk = seg.get("speaker")
+                if spk and spk not in seen:
+                    seen.add(spk)
+                    speakers.append(spk)
+    except Exception as exc:
+        # A fatal CUDA/device fault corrupts this process's GPU context, so every
+        # later request on this instance will fail too. Flip readiness (=> /ping
+        # 503) so orchestration can drain/replace the host, then re-raise so the
+        # current request still errors. Transient failures — CUDA OOM, the
+        # unsupported-language degrade above, and the 422/400 HTTPExceptions — are
+        # NOT fatal and simply propagate without flipping health.
+        global _HEALTHY
+        if _is_fatal_cuda_error(exc):
+            _HEALTHY = False
+        raise
 
     segments: list[dict[str, Any]] = result.get("segments", [])
     text = " ".join(seg.get("text", "").strip() for seg in segments).strip()
 
     return {
-        "task": "transcribe",
+        "task": TASK,
         "language": detected_language,
         "duration": float(len(audio)) / 16000.0 if hasattr(audio, "__len__") else 0.0,
         "text": text,
@@ -507,17 +547,24 @@ def _format_response(
 # Routes
 # ---------------------------------------------------------------------------
 @app.get("/ping")
-def ping() -> dict[str, str]:
-    return {"status": "ok"}
+def ping():
+    # Readiness reflects fatal CUDA/model state observed by the inference path.
+    # It is PASSIVE: a GPU that dies while the server is idle won't be caught
+    # here (no request has touched the device) — that's host-monitoring's job.
+    # Once the inference path hits a fatal CUDA fault, _HEALTHY flips and every
+    # /ping returns 503 so orchestration can drain/replace the instance.
+    if _HEALTHY:
+        return JSONResponse({"status": "ok"})
+    return JSONResponse({"status": "unavailable"}, status_code=503)
 
 
 @app.get("/v1/models")
 def list_models() -> dict[str, Any]:
-    """Report the single served model id the client should send.
+    """Advertise the single served model id for OpenAI-client compatibility.
 
-    The Whisper model is pinned at launch, so this reports exactly the id the
-    endpoint accepts in the request `model` field: the SERVED_MODEL_NAME alias
-    if configured, else the pinned DEFAULT_MODEL.
+    The Whisper model is one-per-container and the request `model` field is
+    ignored, so this simply reports the id a client should display/send: the
+    SERVED_MODEL_NAME alias if configured, else the pinned DEFAULT_MODEL.
     """
     return {
         "object": "list",
@@ -533,7 +580,6 @@ def list_models() -> dict[str, Any]:
 
 async def _handle_transcription(
     file: UploadFile,
-    model: str | None,
     language: str | None,
     response_format: str,
     timestamp_granularities: list[str] | None,
@@ -544,13 +590,22 @@ async def _handle_transcription(
     max_line_count: int | None = None,
     highlight_words: bool = False,
 ):
-    # Resolve the client-supplied `model` (or its absence) to the pinned model
-    # before any work runs; rejects unknown ids unless override is enabled.
-    model = _resolve_model(model)
-
     valid_formats = {"json", "text", "srt", "vtt", "verbose_json"}
     if response_format not in valid_formats:
         raise HTTPException(400, f"response_format must be one of {sorted(valid_formats)}")
+
+    # Validate the extension params at the boundary so a bad request fails fast
+    # with a 422 instead of surfacing deep in the diarization/subtitle path.
+    if min_speakers is not None and min_speakers < 1:
+        raise HTTPException(422, "min_speakers must be >= 1")
+    if max_speakers is not None and max_speakers < 1:
+        raise HTTPException(422, "max_speakers must be >= 1")
+    if min_speakers is not None and max_speakers is not None and min_speakers > max_speakers:
+        raise HTTPException(422, "min_speakers must be <= max_speakers")
+    if max_line_width is not None and max_line_width < 0:
+        raise HTTPException(422, "max_line_width must be >= 0")
+    if max_line_count is not None and max_line_count < 0:
+        raise HTTPException(422, "max_line_count must be >= 0")
 
     granularities = timestamp_granularities or ["segment"]
     want_words = "word" in granularities
@@ -564,9 +619,24 @@ async def _handle_transcription(
         max_line_width is not None or max_line_count is not None or highlight_words
     )
 
+    # Admission control: when the inference queue is already full, shed load with
+    # 503 before the full-size `await file.read()` below, so an overload doesn't
+    # materialize more large byte buffers or grow the worker queue. This is a soft
+    # bound, not a hard cap: Starlette's File(...) has already spooled the raw
+    # multipart body by the time this runs, and tasks_waiting only counts requests
+    # that have reached the limiter, so a tight concurrent burst can admit a few
+    # past this check. Excess admitted requests then wait on the event loop.
+    if _INFERENCE_LIMITER.statistics().tasks_waiting >= MAX_QUEUE:
+        raise HTTPException(503, "server busy: inference queue full")
+
     audio_bytes = await file.read()
     if not audio_bytes:
         raise HTTPException(400, "empty audio upload")
+    # Bound per-request memory + temp-file retention. Streaming the upload to
+    # disk with an incremental size check is a future improvement; this rejects
+    # outsized uploads after a single read.
+    if len(audio_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(413, f"upload exceeds {MAX_UPLOAD_BYTES} bytes")
 
     # WhisperX + faster-whisper read from a path (ffmpeg is invoked as a
     # subprocess). Spool the upload to a NamedTemporaryFile so the ffmpeg
@@ -580,17 +650,24 @@ async def _handle_transcription(
         # event loop for the whole transcription, starving every other
         # coroutine — including GET /ping — and risking SageMaker health-check
         # failures. Offload it to a worker thread so the loop stays responsive.
+        # The limiter serializes the whole _transcribe (transcription + align +
+        # diarization): WhisperX's FasterWhisperPipeline mutates
+        # self.options/self.tokenizer mid-call and the shared diarization
+        # pipeline is not documented thread-safe, so concurrent inference on one
+        # instance is unsafe. MAX_CONCURRENT_REQUESTS (default 1) caps it; excess
+        # requests wait on the event loop (not in the worker pool) so /ping stays
+        # responsive.
         result = await anyio.to_thread.run_sync(
             functools.partial(
                 _transcribe,
                 audio_path=tmp.name,
-                model_name=model,
                 language=language,
                 want_words=want_words or subtitle_formatting,
                 diarize=diarize,
                 min_speakers=min_speakers,
                 max_speakers=max_speakers,
-            )
+            ),
+            limiter=_INFERENCE_LIMITER,
         )
 
     return _format_response(
@@ -607,7 +684,6 @@ async def _handle_transcription(
 @app.post("/v1/audio/transcriptions")
 async def transcribe(
     file: UploadFile = File(...),
-    model: Optional[str] = Form(None),
     language: str | None = Form(None),
     response_format: str = Form("json"),
     timestamp_granularities: list[str] | None = Form(None, alias="timestamp_granularities[]"),
@@ -620,7 +696,6 @@ async def transcribe(
 ):
     return await _handle_transcription(
         file=file,
-        model=model,
         language=language,
         response_format=response_format,
         timestamp_granularities=timestamp_granularities,
@@ -636,7 +711,6 @@ async def transcribe(
 @app.post("/invocations")
 async def invocations(
     file: UploadFile = File(...),
-    model: Optional[str] = Form(None),
     language: str | None = Form(None),
     response_format: str = Form("json"),
     timestamp_granularities: list[str] | None = Form(None, alias="timestamp_granularities[]"),
@@ -649,7 +723,6 @@ async def invocations(
 ):
     return await _handle_transcription(
         file=file,
-        model=model,
         language=language,
         response_format=response_format,
         timestamp_granularities=timestamp_granularities,
