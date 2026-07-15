@@ -68,7 +68,8 @@ for spec in "${SPECS[@]}"; do
   S3_KEY="wheels/${PKG_UNDER}/${CUDA_SHORT}/${TORCH_SHORT}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
-    echo "Overwriting existing S3 object at: ${S3_KEY}"
+    echo "Already cached: ${S3_KEY}"
+    continue
   fi
 
   echo "Uploading ${FNAME} -> s3://${BUCKET}/${S3_KEY}"

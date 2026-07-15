@@ -84,21 +84,22 @@ ARG FRAMEWORK_SHORT_VERSION=2.12
 ARG FLASH_ATTN_VERSION
 ARG MAX_JOBS
 
-# Permanent force-build: never trust the S3-cached wheel — it has been observed
-# holding a wheel compiled against a stale torch ABI (e.g. torch-2.12 symbol
-# c10::impl::cow::materialize_cow_storage) which crashes at runtime on torch-2.13.
-# Always source-build flash-attn against the torch installed in builder-base;
-# the resulting wheel is uploaded to S3 by post_build.sh to overwrite the stale entry.
+# If a cached wheel exists in the build context, install it; otherwise build from source.
+# When building from source, the wheel is saved to /tmp/built_wheels/ for later S3 upload.
+# docker/pytorch/${FRAMEWORK_SHORT_VERSION}/wheels/ is created by CI (fetch_cached_wheels.sh); may not exist locally.
 COPY docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cuda/pyproject.toml docker/pytorch/${FRAMEWORK_SHORT_VERSION}/wheel[s]/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
-  : "force-build-2026-07-15-final" && \
   mkdir -p /tmp/built_wheels && \
-  echo "===FORCE=== source-building flash-attn against installed torch" && \
-  python -c "import torch; print('torch at build time:', torch.__version__)" && \
-  MAX_JOBS=${MAX_JOBS} pip wheel --no-deps --no-build-isolation \
-    --wheel-dir /tmp/built_wheels flash-attn==${FLASH_ATTN_VERSION} && \
-  uv pip install /tmp/built_wheels/flash_attn*.whl && \
-  echo "===FORCE=== flash-attn source build complete"
+  WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \
+  if [ -n "${WHL}" ]; then \
+    echo "Installing cached flash-attn wheel: ${WHL}" && \
+    uv pip install "${WHL}"; \
+  else \
+    echo "No cached wheel — building flash-attn from source" && \
+    MAX_JOBS=${MAX_JOBS} pip wheel --no-deps --no-build-isolation \
+      --wheel-dir /tmp/built_wheels flash-attn==${FLASH_ATTN_VERSION} && \
+    uv pip install /tmp/built_wheels/flash_attn*.whl; \
+  fi
 
 
 # ── Stage: builder-gdrcopy (parallel — independent of Python) ───────────────
