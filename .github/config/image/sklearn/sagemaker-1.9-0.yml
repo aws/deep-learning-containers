@@ -21,7 +21,7 @@ build:
   sklearn_container_branch: "master"
 
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: false
   private_registry: true
