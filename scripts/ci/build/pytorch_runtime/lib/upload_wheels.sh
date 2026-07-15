@@ -44,19 +44,7 @@ TORCH_SHORT="torch${TORCH_MAJOR}${TORCH_MINOR}"
 
 EXPORT_DIR=$(mktemp -d)
 
-# Forward EXTRA_BUILD_ARGS (populated by resolve_build_args.py + exported to GITHUB_ENV
-# by the build-image action) so BuildKit derives the same stage-cache key as the primary
-# build. Without this, wheel-export resolves to a stale cached stage (e.g. builder-flash-attn
-# built against a previous torch ABI) and poisons the uploaded wheel.
-BUILD_ARGS=()
-for var in ${EXTRA_BUILD_ARGS:-}; do
-  if [[ -n "${!var:-}" ]]; then
-    BUILD_ARGS+=("--build-arg" "${var}=${!var}")
-  fi
-done
-
 docker buildx build --progress=plain --target wheel-export --output "type=local,dest=${EXPORT_DIR}" \
-  "${BUILD_ARGS[@]}" \
   -f "${DOCKERFILE}" . 2>/dev/null || {
   echo "wheel-export stage not available — extracting from runtime image"
   CID=$(docker create "${IMAGE}" /bin/true)
