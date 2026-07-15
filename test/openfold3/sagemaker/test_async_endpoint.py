@@ -54,9 +54,11 @@ REGION = os.environ.get("AWS_REGION", "us-west-2")
 
 # Only g6.12xlarge (4x L4) is viable: g6e has 0 endpoint quota, g5 is rejected by the cu13 AMI.
 INSTANCE_TYPES = ["ml.g6.12xlarge"]
-# Retry deploy on capacity errors (ICE) before giving up; skip the suite only if all attempts fail.
+# Retry deploy on capacity errors (ICE) before giving up.
 DEPLOY_ATTEMPTS = 3
 DEPLOY_RETRY_WAIT = 300
+# On exhausted ICE retries: release runs skip (capacity shouldn't block release); PR runs fail.
+RELEASE_RUN = os.environ.get("RELEASE_RUN", "false").lower() == "true"
 MAX_CONCURRENT_INVOCATIONS = 4
 # Generous: warmup compiles CUDA kernels (~6 min) before /ping returns 200.
 STARTUP_HEALTH_CHECK_TIMEOUT = 1200
@@ -217,8 +219,9 @@ def _cleanup(model, endpoint_config, endpoint):
 def endpoint_name():
     """Deploy one 4-GPU async endpoint, retrying instances on capacity errors (ICE).
 
-    ICE is an AWS-side capacity issue, not an image defect: retry each instance
-    a few times (waiting between tries), then skip the suite rather than fail.
+    ICE is an AWS-side capacity issue, not an image defect: retry each instance a
+    few times (waiting between tries). If all attempts still hit ICE, a release run
+    skips (capacity shouldn't block the release) while a PR run fails (human re-triggers).
     """
     _preflight_s3()
     _sweep_stale()
@@ -251,9 +254,10 @@ def endpoint_name():
             _cleanup(model, endpoint_config, endpoint)
         return
 
-    pytest.skip(
-        f"No SageMaker capacity after {len(attempts)} attempts (ICE); skipping. Last: {last_error}"
-    )
+    msg = f"No SageMaker capacity after {len(attempts)} attempts (ICE). Last: {last_error}"
+    if RELEASE_RUN:
+        pytest.skip(msg)  # don't let AWS capacity block the weekly release
+    raise AssertionError(msg)  # PR runs surface ICE so a human can re-trigger
 
 
 def _sweep_stale():
