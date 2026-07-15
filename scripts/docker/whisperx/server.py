@@ -35,6 +35,7 @@ per request.
 from __future__ import annotations
 
 import functools
+import gc
 import io
 import os
 import tempfile
@@ -134,7 +135,7 @@ _WHISPER_MODEL: Any = None
 # model (a request's detected language selects the aligner), so this stays an
 # LRU even though only one Whisper model is served.
 _ALIGN_LRU: "OrderedDict[str, tuple[Any, dict[str, Any]]]" = OrderedDict()
-_ALIGN_LRU_MAX = int(os.environ.get("WHISPERX_ALIGN_LRU_SIZE", "3"))
+_ALIGN_LRU_MAX = max(1, int(os.environ.get("WHISPERX_ALIGN_LRU_SIZE", "3")))
 
 # _transcribe runs in an anyio worker thread. _WHISPER_LOCK serializes the
 # one-time model load (defense-in-depth if MAX_CONCURRENT_REQUESTS>1 ever races
@@ -177,23 +178,41 @@ VAD_OPTIONS = _build_vad_options()
 # ---------------------------------------------------------------------------
 # Request admission + inference concurrency
 # ---------------------------------------------------------------------------
-# GPU inference is serialized to MAX_CONCURRENT_REQUESTS (default 1): WhisperX's
+# Concurrency is fixed at 1: this container serves a single WhisperX model /
+# pipeline and running two transcriptions on it at once is unsafe (WhisperX's
 # FasterWhisperPipeline mutates self.options/self.tokenizer mid-call and the
-# shared diarization pipeline is not documented thread-safe, so running two
-# transcriptions on one instance concurrently is unsafe. _INFERENCE_LIMITER caps
-# in-flight inference; MAX_QUEUE bounds how many requests may wait behind it
-# before new ones are shed with 503; MAX_UPLOAD_BYTES bounds per-request
-# memory/temp-file retention.
-MAX_CONCURRENT_REQUESTS = int(os.environ.get("WHISPERX_MAX_CONCURRENT_REQUESTS", "1"))
+# shared diarization pipeline is not documented thread-safe), so
+# WHISPERX_MAX_CONCURRENT_REQUESTS is clamped to 1 (any other value is ignored
+# with a warning; scale out with more containers instead). _INFERENCE_LIMITER
+# serializes the in-flight transcription in the worker thread.
+#
+# Admission is a hard cap enforced by _ADMISSION, a BoundedSemaphore sized to
+# MAX_CONCURRENT_REQUESTS executing + MAX_QUEUE waiting. Each request takes a
+# non-blocking token before touching the body and releases it in finally; when
+# no token is free the request is shed with 503. This replaces the old
+# observational CapacityLimiter.statistics().tasks_waiting check, which was racy
+# and, with MAX_QUEUE=0, rejected every request even when idle. MAX_UPLOAD_BYTES
+# bounds per-request temp-file retention (upload is streamed to disk in chunks).
+_RAW_MAX_CONCURRENT = int(os.environ.get("WHISPERX_MAX_CONCURRENT_REQUESTS", "1"))
+if _RAW_MAX_CONCURRENT != 1:
+    print(
+        f"WARN: WHISPERX_MAX_CONCURRENT_REQUESTS={_RAW_MAX_CONCURRENT} ignored; this "
+        f"single-model/single-pipeline container serves inference strictly serially "
+        f"(concurrent inference on one WhisperX pipeline is unsafe). Scale out with "
+        f"multiple containers instead."
+    )
+MAX_CONCURRENT_REQUESTS = 1
 _INFERENCE_LIMITER = anyio.CapacityLimiter(MAX_CONCURRENT_REQUESTS)
-MAX_QUEUE = int(os.environ.get("WHISPERX_MAX_QUEUE", "2"))
-MAX_UPLOAD_BYTES = int(os.environ.get("WHISPERX_MAX_UPLOAD_BYTES", str(1024 * 1024 * 1024)))
+MAX_QUEUE = max(0, int(os.environ.get("WHISPERX_MAX_QUEUE", "2")))
+MAX_UPLOAD_BYTES = int(os.environ.get("WHISPERX_MAX_UPLOAD_BYTES", str(100 * 1024 * 1024)))
+_UPLOAD_CHUNK_BYTES = 1024 * 1024  # 1 MiB stream chunk
 
-
-def _lru_touch(cache: "OrderedDict[str, Any]", key: str, max_size: int) -> None:
-    cache.move_to_end(key)
-    while len(cache) > max_size:
-        cache.popitem(last=False)
+# Hard admission bound: MAX_CONCURRENT_REQUESTS executing + MAX_QUEUE waiting.
+# A non-blocking acquire before we touch the body gives a real cap (the old
+# CapacityLimiter.statistics().tasks_waiting check was observational/racy and,
+# with MAX_QUEUE=0, rejected every request even when idle). Released in finally.
+_ADMISSION_CAPACITY = MAX_CONCURRENT_REQUESTS + MAX_QUEUE
+_ADMISSION = threading.BoundedSemaphore(_ADMISSION_CAPACITY)
 
 
 def _get_whisper(model_name: str) -> Any:
@@ -218,15 +237,27 @@ def _get_whisper(model_name: str) -> Any:
 
 
 def _get_align(language: str) -> tuple[Any, dict[str, Any]]:
-    # Same single-critical-section rationale as _get_whisper: serialize the
-    # keyed-by-language check-load-store-touch so concurrent worker threads
-    # dedupe the load and never race move_to_end against an eviction.
+    # Serialized by _ALIGN_LOCK: dedupe concurrent cold misses and evict safely.
     with _ALIGN_LOCK:
-        if language not in _ALIGN_LRU:
-            _ALIGN_LRU[language] = whisperx.load_align_model(
-                language_code=language, device=DEVICE, model_name=ALIGN_MODEL
-            )
-        _lru_touch(_ALIGN_LRU, language, _ALIGN_LRU_MAX)
+        if language in _ALIGN_LRU:
+            _ALIGN_LRU.move_to_end(language)
+            return _ALIGN_LRU[language]
+        # MISS: evict BEFORE loading. whisperx.align models are GPU-resident;
+        # loading the new one first (the old order) made peak memory hold
+        # _ALIGN_LRU_MAX + 1 models and could OOM on a full cache. Evicting
+        # first, dropping the Python ref, and emptying the CUDA caching
+        # allocator keeps the resident set bounded by _ALIGN_LRU_MAX.
+        evicted = False
+        while len(_ALIGN_LRU) >= _ALIGN_LRU_MAX:
+            _, old = _ALIGN_LRU.popitem(last=False)
+            del old
+            evicted = True
+        if evicted and DEVICE == "cuda":
+            gc.collect()
+            torch.cuda.empty_cache()
+        _ALIGN_LRU[language] = whisperx.load_align_model(
+            language_code=language, device=DEVICE, model_name=ALIGN_MODEL
+        )
         return _ALIGN_LRU[language]
 
 
@@ -619,66 +650,57 @@ async def _handle_transcription(
         max_line_width is not None or max_line_count is not None or highlight_words
     )
 
-    # Admission control: when the inference queue is already full, shed load with
-    # 503 before the full-size `await file.read()` below, so an overload doesn't
-    # materialize more large byte buffers or grow the worker queue. This is a soft
-    # bound, not a hard cap: Starlette's File(...) has already spooled the raw
-    # multipart body by the time this runs, and tasks_waiting only counts requests
-    # that have reached the limiter, so a tight concurrent burst can admit a few
-    # past this check. Excess admitted requests then wait on the event loop.
-    if _INFERENCE_LIMITER.statistics().tasks_waiting >= MAX_QUEUE:
+    # Admission control: take a non-blocking token from the hard-capped
+    # _ADMISSION semaphore before we touch the body, so an overload is shed with
+    # 503 without reading or spooling the upload. Cheap validation above runs
+    # first, so a bad request never consumes a token. Released in finally.
+    if not _ADMISSION.acquire(blocking=False):
         raise HTTPException(503, "server busy: inference queue full")
-
-    audio_bytes = await file.read()
-    if not audio_bytes:
-        raise HTTPException(400, "empty audio upload")
-    # Bound per-request memory + temp-file retention. Streaming the upload to
-    # disk with an incremental size check is a future improvement; this rejects
-    # outsized uploads after a single read.
-    if len(audio_bytes) > MAX_UPLOAD_BYTES:
-        raise HTTPException(413, f"upload exceeds {MAX_UPLOAD_BYTES} bytes")
-
-    # WhisperX + faster-whisper read from a path (ffmpeg is invoked as a
-    # subprocess). Spool the upload to a NamedTemporaryFile so the ffmpeg
-    # child can read it.
-    suffix = Path(file.filename or "audio.wav").suffix or ".wav"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=True) as tmp:
-        tmp.write(audio_bytes)
-        tmp.flush()
-        # _transcribe is fully synchronous and long-running (GPU inference plus
-        # an ffmpeg subprocess). Running it inline would block uvicorn's single
-        # event loop for the whole transcription, starving every other
-        # coroutine — including GET /ping — and risking SageMaker health-check
-        # failures. Offload it to a worker thread so the loop stays responsive.
-        # The limiter serializes the whole _transcribe (transcription + align +
-        # diarization): WhisperX's FasterWhisperPipeline mutates
-        # self.options/self.tokenizer mid-call and the shared diarization
-        # pipeline is not documented thread-safe, so concurrent inference on one
-        # instance is unsafe. MAX_CONCURRENT_REQUESTS (default 1) caps it; excess
-        # requests wait on the event loop (not in the worker pool) so /ping stays
-        # responsive.
-        result = await anyio.to_thread.run_sync(
-            functools.partial(
-                _transcribe,
-                audio_path=tmp.name,
-                language=language,
-                want_words=want_words or subtitle_formatting,
-                diarize=diarize,
-                min_speakers=min_speakers,
-                max_speakers=max_speakers,
-            ),
-            limiter=_INFERENCE_LIMITER,
+    try:
+        suffix = Path(file.filename or "audio.wav").suffix or ".wav"
+        # Stream the upload to a temp file in chunks with an incremental size
+        # cap, so a large/hostile upload never materializes as one big bytes
+        # object in RAM and is rejected (413) mid-stream. WhisperX/faster-whisper
+        # read from a path (ffmpeg subprocess), so a spooled temp file is needed.
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=True) as tmp:
+            total = 0
+            while True:
+                chunk = await file.read(_UPLOAD_CHUNK_BYTES)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > MAX_UPLOAD_BYTES:
+                    raise HTTPException(413, f"upload exceeds {MAX_UPLOAD_BYTES} bytes")
+                tmp.write(chunk)
+            if total == 0:
+                raise HTTPException(400, "empty audio upload")
+            tmp.flush()
+            # _transcribe is synchronous + long-running (GPU + ffmpeg); offload to
+            # a worker thread (serialized by _INFERENCE_LIMITER, capacity 1) so the
+            # event loop / GET /ping stays responsive.
+            result = await anyio.to_thread.run_sync(
+                functools.partial(
+                    _transcribe,
+                    audio_path=tmp.name,
+                    language=language,
+                    want_words=want_words or subtitle_formatting,
+                    diarize=diarize,
+                    min_speakers=min_speakers,
+                    max_speakers=max_speakers,
+                ),
+                limiter=_INFERENCE_LIMITER,
+            )
+        return _format_response(
+            result,
+            response_format,
+            want_words,
+            diarize,
+            max_line_width,
+            max_line_count,
+            highlight_words,
         )
-
-    return _format_response(
-        result,
-        response_format,
-        want_words,
-        diarize,
-        max_line_width,
-        max_line_count,
-        highlight_words,
-    )
+    finally:
+        _ADMISSION.release()
 
 
 @app.post("/v1/audio/transcriptions")

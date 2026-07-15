@@ -290,9 +290,21 @@ def test_format_response_text_ignores_knobs():
 # _handle_transcription — subtitle knob forces alignment (want_words) on srt/vtt
 # ---------------------------------------------------------------------------
 class _FakeUpload:
+    """One-shot upload: yields the payload once, then b"" to end the chunk loop.
+
+    _handle_transcription streams the body via ``await file.read(n)``, so the
+    fake accepts the chunk-size arg and signals EOF on the second call.
+    """
+
     filename = "audio.wav"
 
-    async def read(self):
+    def __init__(self):
+        self._sent = False
+
+    async def read(self, size=-1):
+        if self._sent:
+            return b""
+        self._sent = True
         return b"RIFFfake-audio-bytes"
 
 
