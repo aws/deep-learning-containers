@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-unit-test:
+        description: "Run CPU-only unit tests"
+        required: false
+        type: boolean
+        default: true
       run-security-test:
         description: "Run security tests"
         required: false
@@ -95,6 +100,19 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  unit-test:
+    # CPU-only, image-independent tests — no `needs: [build]` so they run
+    # immediately in parallel with the image build and still report even if the
+    # build fails (they never consume the image; image-uri is unused).
+    if: ${{ inputs.run-unit-test }}
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/whisperx.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ''
+
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
     needs: [build]
@@ -147,7 +165,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, ec2-test, sagemaker-test]
+    needs: [build, sanity-test, unit-test, security-test, telemetry-test, ec2-test, sagemaker-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -185,7 +203,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [build, sanity-test, security-test, telemetry-test, ec2-test, sagemaker-test, release-gate, release]
+    needs: [build, sanity-test, unit-test, security-test, telemetry-test, ec2-test, sagemaker-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
