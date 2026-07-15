@@ -113,10 +113,18 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   echo "===DIAG=== source build complete; wheel produced:" && \
   ls -la /tmp/built_wheels/ && \
   echo "===DIAG=== undefined torch symbols in new wheel (should NOT contain materialize_cow_storage):" && \
-  mkdir -p /tmp/whlx && \
-  python -c "import zipfile,glob; [zipfile.ZipFile(w).extractall('/tmp/whlx') for w in glob.glob('/tmp/built_wheels/flash_attn*.whl')]" && \
-  find /tmp/whlx -name "*.so" -exec sh -c 'echo "  SO: $1"; nm --undefined-only --demangle "$1" 2>/dev/null | grep -iE "materialize|cow::" | head -10' _ {} \; && \
-  rm -rf /tmp/whlx && \
+  (python -c "
+import subprocess, glob, os
+whl = glob.glob('/tmp/built_wheels/flash_attn*.whl')[0]
+os.makedirs('/tmp/whlx', exist_ok=True)
+subprocess.check_call(['unzip', '-qo', whl, '-d', '/tmp/whlx'])
+so_files = glob.glob('/tmp/whlx/**/*.so', recursive=True)
+for so in so_files:
+    out = subprocess.check_output(['nm', '--undefined-only', '--demangle', so]).decode()
+    hits = [line for line in out.split('\n') if 'materialize' in line or 'cow::' in line]
+    print(f'{so}:')
+    for h in hits[:20]: print('  ', h)
+" 2>&1 || echo "  diagnostic script failed") && \
   echo "===DIAG=== installing built wheel" && \
   uv pip install /tmp/built_wheels/flash_attn*.whl && \
   echo "===DIAG=== builder-flash-attn stage end"
