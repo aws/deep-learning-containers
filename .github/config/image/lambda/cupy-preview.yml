@@ -9,6 +9,7 @@ metadata:
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
+  container_type: "cupy-cuda-preview"
   prod_image: "lambda:cupy-preview-gpu-py313-cu129"
 
 build:
