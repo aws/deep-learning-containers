@@ -27,7 +27,7 @@ build:
   efa_version: "1.47.0"
   gdrcopy_version: "2.4.4"
   nccl_tests_version: "2.19.6"
-  max_jobs: "2"
+  max_jobs: "8"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
