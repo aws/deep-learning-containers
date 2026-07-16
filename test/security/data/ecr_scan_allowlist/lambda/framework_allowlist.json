@@ -10,66 +10,76 @@
     {
         "vulnerability_id": "CVE-2025-23308",
         "reason": "NVIDIA CUDA toolkit CVE in cuda-toolkit-config-common. Fix requires CUDA 13.x base image which is not yet available. Not exploitable at Lambda runtime (requires user to run nvdisasm on malicious ELF).",
-        "review_by": "2026-07-15"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2025-23339",
         "reason": "NVIDIA CUDA toolkit CVE in cuda-toolkit-config-common. Fix requires CUDA 13.x base image which is not yet available. Not exploitable at Lambda runtime (requires user to run cuobjdump on malicious ELF).",
-        "review_by": "2026-07-15"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-25679",
         "reason": "Go stdlib CVE in aws-lambda-rie binary. Fixed in Go 1.26.x but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-27142",
         "reason": "Go stdlib CVE in aws-lambda-rie binary. Fixed in Go 1.26.x but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-32280",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.2. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-32281",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.2. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-32283",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.2. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-33811",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.3. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-33814",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.3. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-39820",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.3. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-39836",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.3. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-42499",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.3. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
     },
     {
         "vulnerability_id": "CVE-2026-42504",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.4. No new RIE release yet. Will auto-resolve on next RIE release.",
-        "review_by": "2026-07-01"
+        "review_by": "2026-10-01"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27145",
+        "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.4. No new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-10-01"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39822",
+        "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.5. No new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-10-01"
     }
 ]
