@@ -1,10 +1,4 @@
-"""Smoke test: Conv2D + model.fit() on GPU.
-
-Regression guard for the cuDNN autotuner DEVICE_TYPE_INVALID bug class.
-XLA emits a fused cudnn-conv-bias-activation HLO that older cuDNN versions
-cannot service, crashing model.fit() at the first training step. All other
-tests in this directory use Dense-only models and do not exercise this path.
-"""
+"""Smoke test: train a Conv2D model via model.fit() on GPU."""
 
 import numpy as np
 import pytest

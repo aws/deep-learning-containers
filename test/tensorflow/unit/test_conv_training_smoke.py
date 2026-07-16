@@ -1,9 +1,4 @@
-"""Smoke test: Conv2D + model.fit() on CPU.
-
-CPU counterpart to single_gpu/test_conv_training_smoke.py. Exercises the
-same Conv2D + model.fit() code path through oneDNN (CPU) rather than cuDNN.
-Runs on the unit-test CI job (no-GPU CodeBuild runner, inside the built image).
-"""
+"""Smoke test: train a Conv2D model via model.fit() on CPU."""
 
 import numpy as np
 import pytest
