@@ -31,6 +31,16 @@ on:
         required: false
         type: boolean
         default: true
+      run-unit-test:
+        description: "Run unit tests"
+        required: false
+        type: boolean
+        default: true
+      run-single-gpu-test:
+        description: "Run single-GPU tests"
+        required: false
+        type: boolean
+        default: true
       run-efa-test:
         description: "Run multi-node EFA/NCCL test (2x EFA GPU instances)"
         required: false
@@ -47,6 +57,16 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      device-type: ${{ steps.parse.outputs.device-type }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
   build:
     if: ${{ inputs.build }}
     concurrency:
@@ -102,6 +122,28 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  unit-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/ray-train.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  single-gpu-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-single-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
+    needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/ray-train.tests-single-gpu.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   # Multi-node EFA/NCCL test (2x EFA GPU instances) — the one ec2 GPU config.
   efa-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
@@ -122,7 +164,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, efa-test]
+    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, efa-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}

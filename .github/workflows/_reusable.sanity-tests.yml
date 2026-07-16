@@ -168,16 +168,6 @@ jobs:
             -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
             ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_training.py
 
-      - name: Run RayTrain image sanity checks
-        if: |
-          needs.preflight.outputs.framework == 'ray' &&
-          needs.preflight.outputs.job-type == 'training'
-        run: |
-          docker exec \
-            -e EXPECTED_FRAMEWORK_VERSION=${{ needs.preflight.outputs.framework-version }} \
-            -e EXPECTED_DEVICE=${{ needs.preflight.outputs.device-type }} \
-            ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_ray_train.py
-
       - name: Run OSS compliance check
         run: |
           docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root

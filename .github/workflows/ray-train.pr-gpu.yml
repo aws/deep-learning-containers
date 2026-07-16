@@ -13,6 +13,7 @@ on:
       - "scripts/docker/common/**"
       - "scripts/docker/ray-train/**"
       - "scripts/docker/telemetry/**"
+      - "test/ray-train/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/ray/**"
       - "test/telemetry/**"
@@ -40,6 +41,8 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
+      single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
       efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -59,6 +62,10 @@ jobs:
             telemetry-test-change:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
+            unit-test-change:
+              - "test/ray-train/unit/**"
+            single-gpu-test-change:
+              - "test/ray-train/single_gpu/**"
             efa-test-change:
               - "test/efa/**"
 
@@ -88,6 +95,8 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
+      run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
     secrets: inherit
