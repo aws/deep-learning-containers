@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-# Extract built wheels from Docker wheel-export stage and upload to S3.
-#
-# Usage:
-#   bash upload_wheels.sh --bucket <bucket> --cuda-version <ver> --image-uri <uri> \
-#     --dockerfile <path> --packages "flash-attn:2.8.3,transformer-engine-torch:2.12.0"
+# Extract RayTrain's wheel-export wheels and upload to S3 under the ray-train/ prefix.
 
 set -euo pipefail
 
@@ -57,7 +53,7 @@ for spec in "${SPECS[@]}"; do
   fi
 
   FNAME=$(basename "${WHL}")
-  S3_KEY="wheels/${PKG_UNDER}/${CUDA_SHORT}/${FNAME}"
+  S3_KEY="wheels/ray-train/${PKG_UNDER}/${CUDA_SHORT}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
     echo "Already cached: ${S3_KEY}"
