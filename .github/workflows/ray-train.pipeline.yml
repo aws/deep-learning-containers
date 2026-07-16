@@ -114,17 +114,12 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # TEMP(gamma-in-pr): allow a PR run to trigger the gamma release so the image
-  # can be verified on a real EKS/HyperPod cluster before merge. This DELIBERATELY
-  # bypasses the normal guards (main-branch, .autorelease/.dispatch-release-only,
-  # no-.pr). Safe because the configs target GAMMA (non-prod, private ECR only).
-  # REVERT BEFORE MERGE → restore the original guarded condition below:
-  #   github.ref == 'refs/heads/main' &&
-  #   (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
-  #   !contains(github.workflow_ref, '.pr') &&
-  #   inputs.release && ...
   release-gate:
     if: >-
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
     needs: [build, sanity-test, security-test, telemetry-test, efa-test]
