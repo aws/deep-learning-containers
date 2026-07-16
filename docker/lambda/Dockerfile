@@ -144,13 +144,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ============================================================
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-base-py3
 COPY --from=builder-base-py3 /var/lang /var/lang
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-cupy-py3
 COPY --from=builder-cupy-py3 /var/lang /var/lang
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
@@ -158,7 +158,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-pytorch-py3
 ARG FFMPEG_VERSION
 COPY --from=builder-pytorch-py3 /var/lang /var/lang
 COPY --from=lambda-python /lib64/libssl.so.3 /lib64/libcrypto.so.3 /lib64/
-COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && printf '\n** FFmpeg; version n%s -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFmpeg n%s https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
@@ -192,8 +192,8 @@ ENV PATH="/var/lang/bin:$PATH" \
   LAMBDA_RUNTIME_DIR=/var/runtime \
   LANG=en_US.UTF-8 \
   TZ=:/etc/localtime
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
@@ -244,8 +244,8 @@ ENV PATH="/var/lang/bin:$PATH" \
   LAMBDA_RUNTIME_DIR=/var/runtime \
   LANG=en_US.UTF-8 \
   TZ=:/etc/localtime
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK
 
 ARG FRAMEWORK_VERSION
@@ -304,8 +304,8 @@ ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
   LAMBDA_RUNTIME_DIR=/var/runtime \
   LANG=en_US.UTF-8 \
   TZ=:/etc/localtime
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
@@ -330,7 +330,7 @@ ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
 
 # ============================================================
-# RIC preview builder (compile thread-mode RIC with C extensions)
+# RIC builder (compile multi-mode concurrency RIC with C extensions)
 # ============================================================
 FROM builder-base as builder-ric-preview
 ARG PYTHON_VERSION
@@ -349,31 +349,46 @@ RUN uv pip install --python /var/lang/bin/python${PYTHON_VERSION} --no-deps /tmp
   && rm /tmp/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz
 
 # ============================================================
-# Preview: Base Python 3.13 (+ thread-mode RIC)
+# Base Python 3.13 (+ multi-mode concurrency RIC)
 # ============================================================
 FROM base-py3 as base-preview-py3
 ARG PYTHON_VERSION
 RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
   && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
 COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
+# Default: process mode (RIC-native). Customers override per function at runtime
+# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
+# vars take precedence over this image default. In process/hybrid, VRAM scales
+# with worker count (one model copy + CUDA context per process) — size function
+# concurrency to the model's VRAM footprint.
+ENV AWS_LAMBDA_CONCURRENCY_MODE=process
 
 # ============================================================
-# Preview: CuPy Python 3.13 (+ thread-mode RIC)
+# CuPy Python 3.13 (+ multi-mode concurrency RIC)
 # ============================================================
 FROM cupy-py3 as cupy-preview-py3
 ARG PYTHON_VERSION
 RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
   && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
 COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
+# Default: process mode (RIC-native). Customers override per function at runtime
+# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
+# vars take precedence over this image default. In process/hybrid, VRAM scales
+# with worker count (one model copy + CUDA context per process) — size function
+# concurrency to the model's VRAM footprint.
+ENV AWS_LAMBDA_CONCURRENCY_MODE=process
 
 # ============================================================
-# Preview: PyTorch Python 3.13 (+ thread-mode RIC)
+# PyTorch Python 3.13 (+ multi-mode concurrency RIC)
 # ============================================================
 FROM pytorch-py3 as pytorch-preview-py3
 ARG PYTHON_VERSION
 RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
   && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
 COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-ENV AWS_LAMBDA_CONCURRENCY_MODE=thread
+# Default: process mode (RIC-native). Customers override per function at runtime
+# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
+# vars take precedence over this image default. In process/hybrid, VRAM scales
+# with worker count (one model copy + CUDA context per process) — size function
+# concurrency to the model's VRAM footprint.
+ENV AWS_LAMBDA_CONCURRENCY_MODE=process

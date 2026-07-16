@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 # Pre-build hook for Lambda images.
-# Downloads the thread-mode RIC preview tarball from S3 for preview targets.
+# Downloads the multi-mode concurrency RIC tarball from S3 for targets that need it.
 #
 # Usage:
 #   bash scripts/ci/build/lambda/pre_build.sh --config-file <path>
 #
 # Side effects:
-#   Places awslambdaric tarball in docker/lambda/artifacts/ (preview targets only)
+#   Places the awslambdaric tarball in docker/lambda/artifacts/ (RIC targets only)
+#
+# Versioning: awslambdaric_version (e.g. 3.1.1) is the Python package version and
+# may repeat across RIC releases, so it alone cannot identify a build.
+# awslambdaric_release (e.g. 2.0.0.0) is the RIC release version and is the
+# provenance key: it selects the S3 path so each image traces to exactly one build
+# and rollback is a one-field change. It is required for RIC targets.
 
 set -euo pipefail
 
@@ -24,13 +30,15 @@ done
 
 TARGET=$(yq '.build.target' "$CONFIG_FILE")
 AWSLAMBDARIC_VERSION=$(yq '.build.awslambdaric_version // "3.1.1"' "$CONFIG_FILE")
+AWSLAMBDARIC_RELEASE=$(yq '.build.awslambdaric_release // ""' "$CONFIG_FILE")
 
 if [[ "$TARGET" == *preview* ]]; then
-  echo "Preview target detected — downloading RIC tarball..."
+  [[ -n "$AWSLAMBDARIC_RELEASE" ]] || { echo "ERROR: awslambdaric_release is required for RIC targets" >&2; exit 1; }
+  echo "RIC target detected — downloading RIC tarball (release ${AWSLAMBDARIC_RELEASE}, version ${AWSLAMBDARIC_VERSION})..."
   mkdir -p docker/lambda/artifacts
-  aws s3 cp "s3://dlc-cicd-wheels/lambda-ric/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz" \
+  aws s3 cp "s3://dlc-cicd-wheels/lambda-ric/${AWSLAMBDARIC_RELEASE}/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz" \
     "docker/lambda/artifacts/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz" --region us-west-2
   echo "RIC tarball downloaded."
 else
-  echo "Non-preview target — skipping RIC tarball download."
+  echo "Non-RIC target — skipping RIC tarball download."
 fi
