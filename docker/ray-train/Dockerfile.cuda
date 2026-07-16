@@ -166,17 +166,18 @@ RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
 COPY scripts/docker/ray-train/configure_nccl.sh /tmp/configure_nccl.sh
 RUN bash /tmp/configure_nccl.sh && rm /tmp/configure_nccl.sh
 
-# NCCL tests binary (all_reduce_perf) — EFA/NCCL connectivity validation.
+# NCCL tests binary (all_reduce_perf) — pinned for reproducible builds.
+ARG NCCL_TESTS_VERSION=2.19.6
 RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
     if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
       ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
     fi && \
     cd /tmp && \
-    curl -fsSL https://github.com/NVIDIA/nccl-tests/archive/refs/heads/master.tar.gz | tar xz && \
-    cd nccl-tests-master && \
+    curl -fsSL https://github.com/NVIDIA/nccl-tests/archive/refs/tags/v${NCCL_TESTS_VERSION}.tar.gz | tar xz && \
+    cd nccl-tests-${NCCL_TESTS_VERSION} && \
     make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=${NCCL_HOME} CUDA_HOME=/usr/local/cuda && \
     cp build/all_reduce_perf /usr/local/bin/all_reduce_perf && \
-    cd / && rm -rf /tmp/nccl-tests-master
+    cd / && rm -rf /tmp/nccl-tests-${NCCL_TESTS_VERSION}
 
 # Security patch — after all installers so every OS package is covered.
 RUN dnf upgrade -y --security --releasever latest \
