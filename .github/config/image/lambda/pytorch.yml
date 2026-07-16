@@ -6,7 +6,6 @@ metadata:
   framework: "lambda"
   framework_version: "12.9.1"
   os_version: "amzn2023"
-  customer_type: "lambda"
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
@@ -26,4 +25,4 @@ release:
   public_registry: false
   private_registry: true
   enable_soci: false
-  environment: "production"
+  environment: "gamma"
