@@ -76,6 +76,64 @@
       "status": "ACTIVE",
       "title": "CVE-2026-4538 - torch",
       "reason_to_ignore": "CVE is for PyTorch 2.10.0; does not affect 2.8.0"
+    },
+    {
+      "description": "PyTorch is a Python package that provides tensor computation. Prior to version 2.10.0, a vulnerability in PyTorch's `weights_only` unpickler allows an attacker to craft a malicious checkpoint file (`.pth`) that, when loaded with `torch.load(..., weights_only=True)`, can corrupt memory and potentially lead to arbitrary code execution. Version 2.10.0 fixes the issue.",
+      "vulnerability_id": "CVE-2026-24747",
+      "name": "CVE-2026-24747",
+      "package_name": "torch",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/torch-2.8.0+cu129.dist-info/METADATA",
+        "name": "torch",
+        "package_manager": "PYTHON",
+        "version": "2.8.0+cu129",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-24747",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2026-24747 - torch",
+      "reason_to_ignore": "CVE affects torch 2.8.0/2.9.0 via the weights_only unpickler and is fixed upstream only in torch 2.10.0; it cannot be remediated within the 2.8/2.9 release line. Allowlisted pending the 2.10 currency bump."
+    },
+    {
+      "description": "An issue in the component torch.linalg.lu of pytorch v2.8.0 allows attackers to cause a Denial of Service (DoS) when performing a slice operation.",
+      "vulnerability_id": "CVE-2025-55551",
+      "name": "CVE-2025-55551",
+      "package_name": "torch",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/torch-2.8.0+cu129.dist-info/METADATA",
+        "name": "torch",
+        "package_manager": "PYTHON",
+        "version": "2.8.0+cu129",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-55551",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-55551 - torch",
+      "reason_to_ignore": "DoS in torch.linalg.lu affecting torch 2.8.0; no fixed torch release available for the 2.8 line, so it cannot be remediated in-line. Allowlisted pending an upstream fix / currency bump."
     }
   ],
   "black": [
@@ -107,6 +165,35 @@
       "status": "ACTIVE",
       "title": "CVE-2026-32274 - black",
       "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Black is the uncompromising Python code formatter. Black provides a GitHub action for formatting code. This action supports an option, use_pyproject: true, for reading the version of Black to use from the repository pyproject.toml. A malicious pull request could edit pyproject.toml to use a direct URL reference to a malicious repository. This could lead to arbitrary code execution in the context of the GitHub Action. Attackers could then gain access to secrets or permissions available in the context of the action. Version 26.3.0 fixes this vulnerability.",
+      "vulnerability_id": "CVE-2026-31900",
+      "name": "CVE-2026-31900",
+      "package_name": "black",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/spacy/tests/package/requirements.txt",
+        "name": "black",
+        "package_manager": "PYTHON",
+        "version": "22.3.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-31900",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2026-31900 - black",
+      "reason_to_ignore": "Flagged only at /usr/local/lib/python3.12/site-packages/spacy/tests/package/requirements.txt, a spaCy test-fixture requirements file pinning black==22.3.0. The image installs black>=26.3.1; the flagged 22.3.0 exists only as a pin inside that non-executed test fixture, so this is a scanner false-positive, not an exploitable dependency."
     }
   ],
   "mesa": [
