@@ -62,12 +62,12 @@ use_new_test_structure = false
 
 ### On by default
 sanity_tests = true
-security_tests = false
+security_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
 
@@ -96,7 +96,7 @@ enable_ipv6 = false
 ipv6_vpc_name = ""
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = false
+sagemaker_remote_tests = true
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
