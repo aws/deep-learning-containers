@@ -1,10 +1,7 @@
 # ============================================================================
 # RayTrain DLC — Amazon Linux 2023 (CUDA 13.0), multi-node distributed training
 #
-# Ray Train/Tune/Data on the PyTorch multi-node training stack (EFA/NCCL/GDRCopy/
-# OpenMPI + Flash Attention + Transformer Engine + DeepSpeed). Built on our own
-# base CUDA DLC (Python + uv + OSS compliance + patched CUDA), then layered with
-# the interconnect + accelerated-training stack reused from the PyTorch DLC.
+# Ray Train/Tune/Data on the PyTorch training stack (EFA/NCCL/GDRCopy/OpenMPI/FlashAttn/TE/DeepSpeed).
 #
 #   builder-base ──── builder-flash-attn   (torch + TE, then flash-attn)
 #   builder-gdrcopy ── (GDRCopy userspace lib, independent)
@@ -14,16 +11,14 @@
 #
 #   wheel-export (CI-only — scratch image with built wheels for S3 cache upload)
 #
-# The build: block in each image config is the source of truth for all pins;
-# the ARG defaults below only apply to bare local `docker build` invocations.
+# Config build: block is the source of truth for pins; ARG defaults are local-build fallbacks.
 # ============================================================================
 
 # ── Global ARGs ─────────────────────────────────────────────────────────────
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG PYTHON_VERSION=3.13
-# Short X.Y form for venv site-packages paths (config passes full X.Y.Z as
-# PYTHON_VERSION; this is derived and only needs bumping on a minor-version move).
+# Short X.Y form for venv site-packages paths.
 ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK_VERSION=2.56.0
 ARG TORCH_VERSION=2.13.0
@@ -53,10 +48,7 @@ COPY docker/ray-train/pyproject.toml docker/ray-train/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
-# Transformer Engine (FP8). Requires torch + cudnn.h at build time; point it at
-# the cudnn headers shipped inside the nvidia-cudnn pip package. If CI staged a
-# cached TE wheel into docker/ray-train/wheels/, install it; else build from
-# source and save the wheel to /tmp/built_wheels/ for later S3 upload.
+# Transformer Engine (FP8): install cached wheel if staged, else build from source.
 ARG TRANSFORMER_ENGINE_VERSION
 COPY docker/ray-train/wheel[s]/ /tmp/wheels/
 RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
@@ -84,8 +76,7 @@ FROM builder-base AS builder-flash-attn
 ARG FLASH_ATTN_VERSION
 ARG MAX_JOBS
 
-# Install a cached flash-attn wheel if CI staged one into docker/ray-train/wheels/;
-# otherwise build from source and save the wheel to /tmp/built_wheels/ for S3 upload.
+# Flash Attention: install cached wheel if staged, else build from source.
 COPY docker/ray-train/wheel[s]/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
   mkdir -p /tmp/built_wheels && \
@@ -113,8 +104,7 @@ FROM ${BASE_IMAGE} AS builder-oss
 COPY --from=builder-base /opt/venv /opt/venv
 COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
-# Use the venv's python3 (the base image ships python3); avoids depending on a
-# versioned python binary name.
+# Use the venv's python3 (avoids a versioned binary name).
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
@@ -143,29 +133,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   LC_ALL=C.UTF-8 \
   DLC_CONTAINER_TYPE=training \
   CUDA_HOME=/usr/local/cuda \
-  # EFA/NCCL runtime defaults (from the HyperPod EKS Ray Train guide). NCCL falls
-  # back to TCP over eth0 when EFA is unavailable, so these are safe everywhere.
+  # EFA/NCCL runtime defaults (NCCL falls back to TCP when EFA is absent).
   FI_PROVIDER=efa \
   FI_LOG_LEVEL=warn \
   NCCL_SOCKET_IFNAME=eth0 \
   NCCL_DEBUG=INFO
 
-# Build tools needed by the interconnect installers + nccl-tests. The base
-# runtime image has no CUDA compiler, so add cuda-nvcc + cudart-devel (nccl-tests
-# needs nvcc). Package suffix derives from CUDA version: 13.0.2 -> 13-0.
-# wget is required by KubeRay's default liveness/readiness probes, which run
-# `wget ... /api/local_raylet_healthz` + `/api/gcs_healthz` in this container —
-# without it the Ray head/worker pods CrashLoopBackOff on an unmodified KubeRay
-# deployment. It must be wget specifically (the probe command is hardcoded); the
-# curl we already ship would not satisfy it.
+# cuda-nvcc/cudart-devel for nccl-tests; wget for KubeRay's default health probes.
 RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
     shadow-utils tar gzip curl wget which findutils util-linux gcc gcc-c++ make \
     cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} \
   && dnf clean all
 
-# Python venv: base + torch/ray/HF/deepspeed/TE from builder-base, then overlay
-# the compiled flash-attn (+ TE) libs from builder-flash-attn.
+# Python venv: builder-base, then overlay compiled flash-attn/TE from builder-flash-attn.
 COPY --from=builder-base /opt/venv /opt/venv
 COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 
@@ -214,12 +195,6 @@ ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/c
 
 
 # ── Stage: ec2 (single GPU image — EC2 + KubeRay head/worker on EKS/HyperPod) ─
-# One image serves all targets: run directly on EC2, OR as the KubeRay head and
-# worker on EKS / HyperPod-EKS. Validated end-to-end on HyperPod-EKS (multi-node
-# DDP + FSDP + EFA + fault tolerance). No separate eks stage — KubeRay injects the
-# `ray start` command and the liveness/readiness probes itself, so the image needs
-# nothing eks-specific. No separate CPU head image — this GPU image runs the head
-# on a CPU node with num-gpus:0 + NVIDIA_VISIBLE_DEVICES=void (see reference manifest).
 FROM runtime-base AS ec2
 ARG FRAMEWORK_VERSION
 
@@ -238,15 +213,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
-# CUDA forward-compat shim — lets CUDA 13 run on hosts with an older NVIDIA
-# driver by conditionally adding /usr/local/cuda/compat to LD_LIBRARY_PATH.
-# Sourced by the entrypoint at container start.
+# CUDA forward-compat shim (sourced by the entrypoint) for older-driver hosts.
 COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY scripts/docker/ray-train/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh /usr/local/bin/dockerd_entrypoint.sh
 
-# Ray ports: gcs (6379), dashboard (8265), client (10001).
-# No serve port (8000): this is a training image; ray[serve] is intentionally excluded.
+# Ray ports: gcs 6379, dashboard 8265, client 10001 (no serve 8000 — training image).
 EXPOSE 6379 8265 10001
 
 WORKDIR /workspace

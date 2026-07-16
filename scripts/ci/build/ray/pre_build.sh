@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
-# Pre-build hook for the ray family.
-#
-# NOTE: the build-hook dir is keyed on metadata.framework, which is "ray" for BOTH
-# the Ray Serve DLC (docker/ray) and the RayTrain DLC (docker/ray-train). Serve does
-# not compile any wheels, so this hook NO-OPS unless the config declares
-# build.flash_attn_version (i.e. only RayTrain, which builds flash-attn + TE).
-#
-# For RayTrain: fetch cached flash-attn / transformer-engine wheels from S3 into
-# docker/ray-train/wheels/ so the builder stages install them instead of compiling.
-#
-# Outputs (env → $GITHUB_ENV):
-#   WHEEL_CACHE_HIT - "true" if all wheels found, "false" otherwise (RayTrain only)
+# ray pre-build: fetch cached flash-attn/TE wheels; no-op for Ray Serve (shares framework=ray).
 
 set -euo pipefail
 

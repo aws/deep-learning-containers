@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-# Post-build hook for the ray family.
-#
-# NO-OPS for Ray Serve (no build.flash_attn_version). For RayTrain: if the wheels
-# were built from source this run (cache miss), extract them from the wheel-export
-# stage and upload to the S3 wheel cache for future builds.
+# ray post-build: upload source-built flash-attn/TE wheels to S3; no-op for Ray Serve.
 
 set -euo pipefail
 
