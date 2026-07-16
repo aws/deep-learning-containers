@@ -13,7 +13,6 @@ on:
       - "scripts/docker/common/**"
       - "scripts/docker/ray-train/**"
       - "scripts/docker/telemetry/**"
-      - "test/ray-train/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/ray/**"
       - "test/telemetry/**"
