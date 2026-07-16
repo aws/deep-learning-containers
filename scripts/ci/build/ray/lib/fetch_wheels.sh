@@ -47,9 +47,8 @@ for spec in "${SPECS[@]}"; do
   PKG_UNDER="${PKG//-/_}"
   PREFIX="wheels/${PKG_UNDER}/${CUDA_SHORT}/"
 
-  # Filter on version AND python tag so we never pull another framework's cp312 wheel.
   echo "Looking for ${PKG}==${VER} (${CUDA_SHORT}, ${PYTHON_TAG}) in s3://${BUCKET}/${PREFIX} ..."
-  aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive --exclude "*/*" --include "${PKG_UNDER}-${VER}-${PYTHON_TAG}-*.whl" 2>/dev/null || true
+  aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" --recursive --exclude "*" --include "${PKG_UNDER}-${VER}-${PYTHON_TAG}-*.whl" 2>/dev/null || true
   if ls "${DEST_DIR}"/${PKG_UNDER}*.whl >/dev/null 2>&1; then
     echo "Cache hit: ${PKG}==${VER}"
   else
