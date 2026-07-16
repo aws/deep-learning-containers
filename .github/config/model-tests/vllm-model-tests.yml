@@ -48,6 +48,14 @@ smoke-test:
       fleet: "x86-g6exl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --trust-remote-code --mamba_ssm_cache_dtype float32"
 
+    # LightOnOCR-2-1B: efficient 1B VLM for document OCR (LightOnOcrForConditionalGeneration).
+    # Mistral3-based, bf16 (~2GB). Requires multimodal flags for image input.
+    # Fits a single L4 (g6.xl, 24GB) easily at tp=1.
+    - name: "lighton-ocr-2-1b"
+      s3_model: "lightonocr-2-1b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --no-enable-prefix-caching"
+
     - name: "qwen3-embedding-0.6b"
       s3_model: "qwen3-embedding-0.6b.tar.gz"
       fleet: "x86-g6xl-runner"

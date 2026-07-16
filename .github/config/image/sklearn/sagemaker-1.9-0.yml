@@ -1,0 +1,29 @@
+image:
+  name: "sagemaker-scikit-learn"
+  description: "SageMaker Scikit-learn 1.9.0"
+
+metadata:
+  framework: "sklearn"
+  framework_version: "1.9.0"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "cpu"
+  job_type: "general"
+  prod_image: "sagemaker-scikit-learn:1.9-0-cpu-py3"
+
+build:
+  dockerfile: "docker/sklearn/1.9-0/Dockerfile"
+  target: "sklearn-sagemaker"
+  base_image: "amazonlinux:2023"
+  python_version: "3.12"
+  sklearn_container_branch: "master"
+
+release:
+  release: true
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "production"

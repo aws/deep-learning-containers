@@ -1,25 +1,25 @@
-name: "PR - Ray CPU"
+name: "PR - Scikit-learn 1.9.0"
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/ray/*-cpu.yml"
-      - ".github/workflows/ray.pipeline.yml"
-      - ".github/workflows/ray.pr-cpu.yml"
-      - "docker/ray/Dockerfile.cpu"
-      - "docker/ray/pyproject.toml"
-      - "docker/ray/uv.lock"
+      - ".github/config/image/sklearn/sagemaker-1.9-0.yml"
+      - ".github/workflows/sklearn.pipeline.yml"
+      - ".github/workflows/sklearn.pr-1.9-0.yml"
+      - ".github/workflows/sklearn.tests-unit.yml"
+      - ".github/workflows/sklearn.tests-integ-local.yml"
+      - ".github/workflows/sklearn.tests-sagemaker.yml"
+      - "docker/sklearn/1.9-0/**"
+      - "docker/sklearn/resources/**"
+      - "scripts/ci/build/sklearn/**"
       - "scripts/docker/common/**"
-      - "scripts/docker/ray/**"
       - "scripts/docker/telemetry/**"
-      - "test/ray/ec2/**"
-      - "test/ray/sagemaker/**"
-      - "test/ray/test_ffmpeg_codecs.sh"
-      - "test/ray/test_ffmpeg_gpu.sh"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/ray/**"
+      - "test/security/data/ecr_scan_allowlist/sklearn/**"
+      - "test/sklearn/**"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -42,11 +42,11 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
-      ffmpeg-test-change: ${{ steps.changes.outputs.ffmpeg-test-change }}
-      serve-test-change: ${{ steps.changes.outputs.serve-test-change }}
+      integ-test-change: ${{ steps.changes.outputs.integ-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -54,25 +54,24 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/ray/*-cpu.yml"
-              - "docker/ray/Dockerfile.cpu"
-              - "docker/ray/pyproject.toml"
-              - "docker/ray/uv.lock"
+              - ".github/config/image/sklearn/sagemaker-1.9-0.yml"
+              - "docker/sklearn/1.9-0/**"
+              - "docker/sklearn/resources/**"
+              - "scripts/ci/build/sklearn/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/ray/**"
-              - "test/security/data/ecr_scan_allowlist/ray/**"
-            ffmpeg-test-change:
-              - "test/ray/test_ffmpeg_codecs.sh"
-              - "test/ray/test_ffmpeg_gpu.sh"
-            serve-test-change:
-              - "test/ray/ec2/**"
+              - "scripts/docker/telemetry/**"
+              - "test/security/data/ecr_scan_allowlist/sklearn/**"
+            integ-test-change:
+              - "test/sklearn/**"
             sagemaker-test-change:
-              - "test/ray/sagemaker/**"
+              - "test/sklearn/sagemaker/**"
+              - ".github/workflows/sklearn.tests-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
-              - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
+            unit-test-change:
+              - "docker/sklearn/1.9-0/**"
 
   discover:
     needs: [gatekeeper]
@@ -84,7 +83,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/ray/*-cpu.yml"
+          pattern: ".github/config/image/sklearn/sagemaker-1.9-0.yml"
 
   pipeline:
     needs: [check-changes, discover]
@@ -92,16 +91,16 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.discover.outputs.configs) }}
-    uses: ./.github/workflows/ray.pipeline.yml
+    uses: ./.github/workflows/sklearn.pipeline.yml
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-integ-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.integ-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
-      run-ffmpeg-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ffmpeg-test-change == 'true' }}
-      run-serve-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.serve-test-change == 'true' }}
-      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      run-telemetry-test: false
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       release: false
     secrets: inherit

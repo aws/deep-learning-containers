@@ -10,6 +10,8 @@ on:
       - ".github/workflows/xgboost.pipeline.yml"
       - ".github/workflows/xgboost.pr-3.2.yml"
       - "docker/xgboost/Dockerfile"
+      - "docker/xgboost/pyproject.toml"
+      - "docker/xgboost/uv.lock"
       - "scripts/docker/common/**"
       - "scripts/docker/xgboost/**"
       - "test/sanity/**"
@@ -50,6 +52,8 @@ jobs:
             build-change:
               - ".github/config/image/xgboost/sagemaker.yml"
               - "docker/xgboost/Dockerfile"
+              - "docker/xgboost/pyproject.toml"
+              - "docker/xgboost/uv.lock"
               - "scripts/docker/common/**"
               - "scripts/docker/xgboost/**"
               - "test/security/data/ecr_scan_allowlist/xgboost/**"

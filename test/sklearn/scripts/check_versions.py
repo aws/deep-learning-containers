@@ -1,27 +1,51 @@
-"""Verify installed package versions match declared specifiers in requirements.txt.
+"""Verify installed package versions match declared specifiers.
 
-Runs inside the built sklearn container. Reads a requirements.txt (copied in by
-the caller), parses each entry as a PEP 508 requirement, and asserts the
-installed version satisfies the declared specifier (==, >=, <, ~=, etc.).
+Runs inside the built sklearn container. Accepts either a requirements.txt or a
+pyproject.toml (uv-managed images). For each PEP 508 requirement (`==`, `>=`,
+`<`, `~=`, etc.), asserts the installed version satisfies the declared specifier.
+For pyproject.toml, also enforces `[project].requires-python` against the
+running interpreter.
 
 Bare entries with no specifier (e.g. `certifi`) can't be verified — logged and
 skipped. Unparsable lines are logged and skipped.
 
-Usage: python3 check_versions.py <requirements.txt path>
+Usage: python3 check_versions.py <requirements.txt | pyproject.toml path>
 
 Exits non-zero on any drift, with a summary of what changed.
 """
 
 import importlib.metadata
 import sys
+import tomllib
+from pathlib import Path
 
 from packaging.requirements import InvalidRequirement, Requirement
+from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 
 def parse_reqs(path):
-    reqs = []
-    unparsable = []
+    path = Path(path)
+    if path.suffix == ".toml":
+        return _parse_pyproject(path)
+    return _parse_requirements_txt(path)
+
+
+def _parse_pyproject(path):
+    reqs, unparsable = [], []
+    data = tomllib.loads(path.read_text())
+    lines = list(data.get("project", {}).get("dependencies", []))
+    lines += list(data.get("tool", {}).get("uv", {}).get("override-dependencies", []))
+    for line in lines:
+        try:
+            reqs.append((Requirement(line), line))
+        except InvalidRequirement:
+            unparsable.append(line)
+    return reqs, unparsable
+
+
+def _parse_requirements_txt(path):
+    reqs, unparsable = [], []
     with open(path) as f:
         for raw in f:
             line = raw.split("#", 1)[0].strip()
@@ -34,6 +58,29 @@ def parse_reqs(path):
     return reqs, unparsable
 
 
+def check_python_version(path):
+    """Enforce [project].requires-python from pyproject.toml against the
+    running interpreter. Returns True if satisfied (or not declared), False
+    if the running interpreter fails the declared spec.
+    """
+    path = Path(path)
+    if path.suffix != ".toml":
+        return True
+    data = tomllib.loads(path.read_text())
+    spec = data.get("project", {}).get("requires-python")
+    if not spec:
+        return True
+    running = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    if Version(running) not in SpecifierSet(spec):
+        print(
+            f"DRIFT: Python {running} does not satisfy requires-python={spec}",
+            file=sys.stderr,
+        )
+        return False
+    print(f"Python {running} satisfies requires-python={spec}.")
+    return True
+
+
 def installed_version(name):
     for candidate in (name, name.replace("-", "_"), name.replace("_", "-")):
         try:
@@ -44,6 +91,7 @@ def installed_version(name):
 
 
 def main(path):
+    py_ok = check_python_version(path)
     reqs, unparsable = parse_reqs(path)
     if not reqs:
         print(f"No requirements found in {path}", file=sys.stderr)
@@ -76,7 +124,7 @@ def main(path):
         for line in unparsable:
             print(f"  {line}", file=sys.stderr)
 
-    if not drift and not missing:
+    if not drift and not missing and py_ok:
         print(f"All {checked} constrained packages satisfy declared specifiers.")
         return
 
@@ -89,6 +137,9 @@ def main(path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("usage: check_versions.py <requirements.txt path>", file=sys.stderr)
+        print(
+            "usage: check_versions.py <requirements.txt | pyproject.toml path>",
+            file=sys.stderr,
+        )
         sys.exit(2)
     main(sys.argv[1])

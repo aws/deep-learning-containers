@@ -9,6 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.12-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.12-ec2.yml/badge.svg" alt="Auto Release - PyTorch 2.12"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow.autorelease-2.21-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow.autorelease-2.21-sagemaker.yml/badge.svg" alt="Auto Release - TensorFlow 2.21"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - vLLM"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm-omni.autorelease-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm-omni.autorelease-ec2.yml/badge.svg" alt="Auto Release - vLLM-Omni"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - SGLang"></a>
@@ -28,6 +29,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/07/15]** [vLLM v0.25.1 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.25.1-gpu-py312-ec2` · SageMaker: `0.25.1-gpu-py312` · Patch release: defer TorchCodec FFmpeg import error to runtime (unblocks startup without system FFmpeg); guard mixed-dtype allreduce RMSNorm quant fusions (fixes NVFP4 garbage output).
 - **[2026/07/13]** [vLLM v0.25.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.25.0-gpu-py312-ec2` · SageMaker: `0.25.0-gpu-py312` · LLaVA-OneVision-2, Unlimited OCR, MOSS-Transcribe-Diarize, openai/privacy-filter, Hy3.
 - **[2026/07/11]** [SGLang v0.5.15 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.15-gpu-py312-ec2` · SageMaker: `0.5.15-gpu-py312` · GLM 5.2 Tuned, Hy3, HRM-Text, LocateAnything-3B.
 - **[2026/07/10]** [TensorFlow v2.21.0 (SageMaker training)](https://gallery.ecr.aws/deep-learning-containers/tensorflow-training) — SageMaker CPU: `2.21.0-cpu-py312-amzn2023-sagemaker` · SageMaker GPU: `2.21.0-gpu-py312-cu129-amzn2023-sagemaker` · Amazon Linux 2023 with Python 3.12; GPU images ship CUDA 12.9.1.
@@ -35,7 +37,6 @@ ______________________________________________________________________
 - **[2026/07/02]** [vLLM Server v2.1 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.1` · SageMaker: `server-sagemaker-cuda-v2.1` · vLLM `0.24.0`; adds JetBrains Mellum2-12B-A2.5B-Thinking (`MellumForCausalLM`); FlashInfer 0.6.12; drops the `transformers<5.10` pin (now requires transformers ≥ 5.5.3).
 - **[2026/07/02]** [vLLM-Omni v1.4 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.4` · SageMaker: `omni-sagemaker-cuda-v1.4` · SageMaker `/v1/videos` and `/v1/videos/sync` accept `application/json` again (JSON→multipart conversion restored); no framework bump (vLLM-Omni 0.21.0rc1).
 - **[2026/07/02]** [PyTorch v2.12.1](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.12.1-cu130-amzn2023` · SageMaker: `2.12.1-cu130-amzn2023-sagemaker` · Amazon Linux 2023 with EFA, flash-attn, and Transformer Engine; PyTorch 2.12.1 bug-fix release (B200/Triton correctness fixes).
-- **[2026/07/01]** [vLLM v0.24.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.24.0-gpu-py312-ec2` · SageMaker: `0.24.0-gpu-py312` · MiniMax-M3, DiffusionGemma (+CPU), Hierarchical Reasoning Model, OpenMOSS; streaming parser engine (Qwen3, MiniMax-M2, GLM-4.7/5.1/5.2, Nemotron V3); DeepSeek-V4 fixes.
 
 ### 📢 Support Updates
 

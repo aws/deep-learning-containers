@@ -68,6 +68,7 @@ display_names:
     # Repositories
     base: "Base"
     ray: "Ray"
+    sagemaker-scikit-learn: "Scikit-Learn"
     sagemaker-xgboost: "XGBoost"
     sglang: "SGLang (Ubuntu)"
     sglang-server: "SGLang"
@@ -220,4 +221,5 @@ table_order:
   - sagemaker-tritonserver
   - stabilityai-pytorch-inference
   - pytorch-trcomp-training
+  - sagemaker-scikit-learn
   - sagemaker-xgboost
