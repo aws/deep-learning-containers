@@ -128,6 +128,8 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     triton \
     s3torchconnector \
     fastai \
+    # pin fastcore<2: fastcore 2.0 removed L.starmap, which pinned fastai's optimizer.py still calls
+    "fastcore<2" \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
