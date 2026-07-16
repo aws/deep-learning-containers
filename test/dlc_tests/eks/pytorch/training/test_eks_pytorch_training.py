@@ -64,9 +64,11 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 
     args = f"git clone https://github.com/pytorch/examples.git && cd examples && git reset --hard 5a06e9cac1728c860b53ebfc6792e0a0e21a5678 && {mnist_dataset_download_config}  && python mnist/main.py"
 
-    # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-    cpu_limit = 72
-    cpu_limit = str(int(cpu_limit) / 2)
+    # MNIST single-node training is not CPU-bound; request a small CPU limit so the pod
+    # schedules on any test_type=gpu node (e.g. g6.2xlarge = 8 vCPU) instead of requiring
+    # very large instances. Previously 36 vCPU, which forced g5.24xlarge-class nodes and
+    # left the pod Pending whenever that capacity was unavailable.
+    cpu_limit = "2.0"
 
     search_replace_dict = {
         "<POD_NAME>": pod_name,
@@ -125,9 +127,11 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
         f"cd /dgl/examples/pytorch/gcn/ && DGLBACKEND=pytorch python train.py --dataset cora"
     )
 
-    # TODO: Change hardcoded value to read a mapping from the EKS cluster instance.
-    cpu_limit = 72
-    cpu_limit = str(int(cpu_limit) / 2)
+    # This single-node training test is not CPU-bound; request a small CPU limit so the pod
+    # schedules on any test_type=gpu node (e.g. g6.2xlarge = 8 vCPU) instead of requiring
+    # very large instances. Previously 36 vCPU, which forced g5.24xlarge-class nodes and
+    # left the pod Pending whenever that capacity was unavailable.
+    cpu_limit = "2.0"
 
     search_replace_dict = {
         "<POD_NAME>": pod_name,
