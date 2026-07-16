@@ -9,7 +9,7 @@ dependencies = [
     # ships forward-ABI-compatible SONAMEs so TF 2.21's 9.3-linked binary loads
     # against 9.5 without rebuild. Dockerfile.cuda copies the .so files out into
     # /usr/local/cuda/lib64.
-    "nvidia-cudnn-cu12==9.5.1.17",
+    "nvidia-cudnn-cu12==9.24.0.43",
     "nvidia-nccl-cu12==2.30.7",
     "mpi4py",
     "boto3",
