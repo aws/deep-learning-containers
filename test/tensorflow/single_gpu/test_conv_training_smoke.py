@@ -8,9 +8,7 @@ from tensorflow.keras.datasets import mnist
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
 from tensorflow.keras.models import Sequential
 
-pytestmark = pytest.mark.skipif(
-    not tf.config.list_physical_devices("GPU"), reason="GPU only"
-)
+pytestmark = pytest.mark.skipif(not tf.config.list_physical_devices("GPU"), reason="GPU only")
 
 
 def test_deep_canary_mnist_gpu():
