@@ -4,13 +4,11 @@ Current coverage (basic):
 
 - **Sanity** — `test/sanity/scripts/test_sanity_ray_train.py`, wired into
   `_reusable.sanity-tests.yml` on `framework == ray && job_type == training`.
-  Its own script (like the Ray Serve image keeps its own suite) because RayTrain
-  diverges from the PyTorch/TF training contract in two ways — it uses EFA's
-  bundled OpenMPI (no from-source double-wrap) and a passive/KubeRay entrypoint
-  (no `/usr/local/bin/entrypoint.sh`). Covers the shared training-cluster contract
-  it *does* honor (env, PATH, EFA/NCCL, CUDA, SSH, venv, OSS, nccl-tests binary)
-  plus Ray specifics (Ray version, `ray[train,tune,data]` imports, CUDA torch
-  build, Ray Serve extra absent). Runs on a CPU sanity runner.
+  Its own script (framework: ray, not pytorch_runtime) for the Ray-specific
+  contract, plus the shared training-cluster contract it honors (env, PATH,
+  EFA/NCCL, CUDA, SSH, venv, OSS, nccl-tests binary) and Ray specifics (version,
+  `ray[default,train,tune,data]` imports, KubeRay probe binaries, Ray Serve extra
+  absent). Runs on a CPU sanity runner.
 - **Security** — shared Ray ECR scan allowlist at
   `test/security/data/ecr_scan_allowlist/ray/` (RayTrain uses `framework: ray`, so it
   shares the allowlist with the Ray Serve DLC).

@@ -11,13 +11,11 @@ With test gating (env vars from image config, passed by CI):
                 -e EXPECTED_DEVICE=gpu \
                 <container> python3 /workdir/test/sanity/scripts/test_sanity_ray_train.py
 
-RayTrain is its own sanity script (not folded into test_sanity_training.py)
-because it diverges from the PyTorch/TensorFlow training contract in two ways:
-it uses EFA's bundled OpenMPI as-is (no from-source double-wrap) and a
-passive / KubeRay entrypoint (no /usr/local/bin/entrypoint.sh). It shares the
-rest of the training-cluster contract (SSH+MPI+EFA/NCCL+CUDA+venv), which is
-verified here directly. This mirrors how the Ray Serve image keeps its own
-test suite rather than reusing an inference framework's.
+RayTrain has its own sanity script (framework: ray, not pytorch_runtime) for the
+Ray-specific contract (ray[default,train,tune,data], no ray[serve], KubeRay probe
+binaries). It also verifies the shared training-cluster contract it honors
+(SSH+MPI+EFA/NCCL+CUDA+venv). It uses EFA's bundled OpenMPI as-is (no from-source
+double-wrap), so it does not assert PyTorch's OpenMPI-double-wrap contract.
 
 Gating env vars:
     EXPECTED_FRAMEWORK_VERSION - expected Ray version (e.g. "2.56.0")

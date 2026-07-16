@@ -213,17 +213,16 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
-# CUDA forward-compat shim (sourced by the entrypoint) for older-driver hosts.
-COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-COPY scripts/docker/ray-train/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/start_cuda_compat.sh /usr/local/bin/dockerd_entrypoint.sh
+# Entrypoint: CUDA forward-compat check, then exec the command (same as PyTorch DLC).
+COPY scripts/docker/ray-train/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Ray ports: gcs 6379, dashboard 8265, client 10001 (no serve 8000 — training image).
 EXPOSE 6379 8265 10001
 
 WORKDIR /workspace
-ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
-CMD ["/bin/bash"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["bash"]
 
 
 # ── Stage: wheel-export (CI-only — extracts built wheels for S3 cache upload) ─
