@@ -20,7 +20,7 @@ build:
   python_version: "3.13.12"
   cuda_version: "12.9.1"
   dlc_major_version: "1"
-  dlc_minor_version: "0"
+  dlc_minor_version: "2"
 
 release:
   release: true

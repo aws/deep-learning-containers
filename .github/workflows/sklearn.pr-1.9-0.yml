@@ -1,4 +1,4 @@
-name: "PR - Scikit-learn 1.4-2-py312"
+name: "PR - Scikit-learn 1.9.0"
 
 on:
   workflow_dispatch:
@@ -6,13 +6,13 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/sklearn/sagemaker-py312.yml"
+      - ".github/config/image/sklearn/sagemaker-1.9-0.yml"
       - ".github/workflows/sklearn.pipeline.yml"
-      - ".github/workflows/sklearn.pr-1.4-py312.yml"
+      - ".github/workflows/sklearn.pr-1.9-0.yml"
       - ".github/workflows/sklearn.tests-unit.yml"
       - ".github/workflows/sklearn.tests-integ-local.yml"
       - ".github/workflows/sklearn.tests-sagemaker.yml"
-      - "docker/sklearn/1.4-2-py312/**"
+      - "docker/sklearn/1.9-0/**"
       - "docker/sklearn/resources/**"
       - "scripts/ci/build/sklearn/**"
       - "scripts/docker/common/**"
@@ -54,8 +54,8 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/sklearn/sagemaker-py312.yml"
-              - "docker/sklearn/1.4-2-py312/**"
+              - ".github/config/image/sklearn/sagemaker-1.9-0.yml"
+              - "docker/sklearn/1.9-0/**"
               - "docker/sklearn/resources/**"
               - "scripts/ci/build/sklearn/**"
               - "scripts/docker/common/**"
@@ -71,7 +71,7 @@ jobs:
             telemetry-test-change:
               - "test/telemetry/**"
             unit-test-change:
-              - "docker/sklearn/1.4-2-py312/**"
+              - "docker/sklearn/1.9-0/**"
 
   discover:
     needs: [gatekeeper]
@@ -83,7 +83,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/sklearn/sagemaker-py312.yml"
+          pattern: ".github/config/image/sklearn/sagemaker-1.9-0.yml"
 
   pipeline:
     needs: [check-changes, discover]

@@ -3,7 +3,7 @@ image:
   description: "SageMaker Scikit-learn 1.4-2 py312"
 
 metadata:
-  framework: "sklearn"
+  framework: "sklearn_1_4_2_py312"
   framework_version: "1.4.2"
   os_version: "ubuntu24.04"
   customer_type: "sagemaker"
@@ -21,14 +21,10 @@ build:
   python_version: "3.12"
   pyarrow_version: "17.0.0"
   numpy_version: "2.1.0"
-  # Pinned to upstream master (currently 1.4-2-py312 HEAD).
-  # When upstream master moves past 1.4-2, swap to a release branch/tag
-  # that preserves 1.4-2 behavior — same pattern xgboost 3.0.5 uses
-  # (xgboost_container_branch: "release-3.0.5").
-  sklearn_container_branch: "master"
+  sklearn_container_branch: "release-1.4-2-py312"
 
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: false
   private_registry: true

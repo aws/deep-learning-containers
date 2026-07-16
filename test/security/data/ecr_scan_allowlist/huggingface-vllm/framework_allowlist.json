@@ -93,5 +93,20 @@
         "vulnerability_id": "CVE-2026-27145",
         "reason": "go/stdlib statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
         "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39822",
+        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-55574",
+        "reason": "vllm 0.22.1; fixed only in 0.24.0, which would require changing the base vLLM DLC version — cannot be bumped independently of the base image",
+        "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "false positive: torch 2.9.1 is referenced only in a stray text file (dist-packages/benchmarks/requirements.txt) shipped by the upstream vllm-openai base, not an installed package; the image's installed torch is 2.11.0, which already contains the 2.10.0 weights_only unpickler fix",
+        "review_by": "2026-09-25"
     }
 ]

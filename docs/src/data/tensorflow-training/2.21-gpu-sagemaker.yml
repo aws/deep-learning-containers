@@ -1,0 +1,16 @@
+framework: TensorFlow
+version: "2.21"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: amzn2023
+platform: sagemaker
+ga: "2026-07-10"
+eop: "2027-07-10"
+public_registry: true
+
+tags:
+  - "2.21.0-gpu-py312-cu129-amzn2023-sagemaker"
+  - "2.21-gpu-py312-cu129-amzn2023-sagemaker-v1"
+  - "2.21.0-gpu-py312-sagemaker"
+  - "2.21-gpu-py312-sagemaker"

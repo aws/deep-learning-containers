@@ -9,6 +9,8 @@ on:
       - ".github/workflows/ray.pipeline.yml"
       - ".github/workflows/ray.pr-cpu.yml"
       - "docker/ray/Dockerfile.cpu"
+      - "docker/ray/pyproject.toml"
+      - "docker/ray/uv.lock"
       - "scripts/docker/common/**"
       - "scripts/docker/ray/**"
       - "scripts/docker/telemetry/**"
@@ -54,6 +56,8 @@ jobs:
             build-change:
               - ".github/config/image/ray/*-cpu.yml"
               - "docker/ray/Dockerfile.cpu"
+              - "docker/ray/pyproject.toml"
+              - "docker/ray/uv.lock"
               - "scripts/docker/common/**"
               - "scripts/docker/ray/**"
               - "test/security/data/ecr_scan_allowlist/ray/**"
