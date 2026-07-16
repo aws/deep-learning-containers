@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
+# CUDA forward compatibility — adds /usr/local/cuda/compat to LD_LIBRARY_PATH when
+# the host NVIDIA driver is older than this image's CUDA needs. Sourced (not exec'd)
+# so the exported LD_LIBRARY_PATH persists into the command below.
+if [ -f /usr/local/bin/start_cuda_compat.sh ]; then
+    source /usr/local/bin/start_cuda_compat.sh
+fi
+
 # Emit telemetry (best-effort, never blocks startup).
 bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
 

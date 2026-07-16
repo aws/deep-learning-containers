@@ -11,6 +11,7 @@ dependencies = [
     "torch==2.13.0",
     "torchvision==0.28.0",
     "pytorch-lightning>=2.5.0",
+    "deepspeed>=0.18.0",
     "transformers>=4.46.0",
     "datasets>=3.0.0",
     "accelerate>=1.0.0",

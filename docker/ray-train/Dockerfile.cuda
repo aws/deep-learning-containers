@@ -2,14 +2,17 @@
 # RayTrain DLC — Amazon Linux 2023 (CUDA 13.0), multi-node distributed training
 #
 # Ray Train/Tune/Data on the PyTorch multi-node training stack (EFA/NCCL/GDRCopy/
-# OpenMPI). Built on our own base CUDA DLC (Python + uv + OSS compliance + patched
-# CUDA), then layered with the interconnect stack reused from the PyTorch DLC.
+# OpenMPI + Flash Attention + Transformer Engine + DeepSpeed). Built on our own
+# base CUDA DLC (Python + uv + OSS compliance + patched CUDA), then layered with
+# the interconnect + accelerated-training stack reused from the PyTorch DLC.
 #
-#   builder-base ── (base:devel — venv from uv.lock)
+#   builder-base ──── builder-flash-attn   (torch + TE, then flash-attn)
 #   builder-gdrcopy ── (GDRCopy userspace lib, independent)
 #   builder-oss ── (OSS license generation, isolated)
 #
 #   runtime-base ──── ec2  (single GPU image: EC2 + KubeRay head/worker on EKS/HyperPod)
+#
+#   wheel-export (CI-only — scratch image with built wheels for S3 cache upload)
 #
 # The build: block in each image config is the source of truth for all pins;
 # the ARG defaults below only apply to bare local `docker build` invocations.
@@ -25,18 +28,23 @@ ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK_VERSION=2.56.0
 ARG TORCH_VERSION=2.13.0
 ARG CUDA_VERSION=13.0.2
+ARG TRANSFORMER_ENGINE_VERSION=2.13.0
+ARG FLASH_ATTN_VERSION=2.8.3
 ARG EFA_VERSION=1.47.0
 ARG GDRCOPY_VERSION=2.4.4
+# Compiler parallelism cap per stage — prevents OOM when nproc > available RAM.
+ARG MAX_JOBS=8
 # Base CUDA DLC (we own it). devel for builder stages, runtime for output.
 ARG BUILDER_BASE_IMAGE=public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023
 ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023
 
 
-# ── Stage: builder-base (resolve venv from the committed lockfile) ───────────
+# ── Stage: builder-base (venv from lockfile + Transformer Engine) ────────────
 FROM ${BUILDER_BASE_IMAGE} AS builder-base
 
-# uv + python ship in the base DLC. Install the pinned deps into a standalone
-# venv we can copy wholesale into the runtime stages.
+# uv + python ship in the base DLC. ninja is needed to compile TE / flash-attn.
+RUN dnf install -y --allowerasing ninja-build && dnf clean all
+
 ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
@@ -44,6 +52,53 @@ ENV PATH="/opt/venv/bin:${PATH}"
 COPY docker/ray-train/pyproject.toml docker/ray-train/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
+
+# Transformer Engine (FP8). Requires torch + cudnn.h at build time; point it at
+# the cudnn headers shipped inside the nvidia-cudnn pip package. If CI staged a
+# cached TE wheel into docker/ray-train/wheels/, install it; else build from
+# source and save the wheel to /tmp/built_wheels/ for later S3 upload.
+ARG TRANSFORMER_ENGINE_VERSION
+COPY docker/ray-train/wheel[s]/ /tmp/wheels/
+RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") && \
+  NCCL_HOME=$(python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
+  cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ && \
+  cp ${NCCL_HOME}/include/*.h /usr/local/cuda/include/ && \
+  cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ && \
+  ldconfig && \
+  export CUDNN_HOME CUDNN_PATH="$CUDNN_HOME" && \
+  mkdir -p /tmp/built_wheels && \
+  TE_WHL=$(find /tmp/wheels -name "transformer_engine_torch*.whl" 2>/dev/null | head -1) && \
+  if [ -n "${TE_WHL}" ]; then \
+    echo "Installing cached TE torch wheel: ${TE_WHL}" && \
+    pip install "${TE_WHL}" && \
+    pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}"; \
+  else \
+    echo "No cached TE torch wheel — building from source" && \
+    pip install --no-build-isolation "transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}" && \
+    cp /root/.cache/pip/wheels/*/transformer_engine_torch*.whl /tmp/built_wheels/ 2>/dev/null || true; \
+  fi
+
+
+# ── Stage: builder-flash-attn (FROM builder-base — needs torch) ──────────────
+FROM builder-base AS builder-flash-attn
+ARG FLASH_ATTN_VERSION
+ARG MAX_JOBS
+
+# Install a cached flash-attn wheel if CI staged one into docker/ray-train/wheels/;
+# otherwise build from source and save the wheel to /tmp/built_wheels/ for S3 upload.
+COPY docker/ray-train/wheel[s]/ /tmp/wheels/
+RUN --mount=type=cache,target=/root/.cache/uv \
+  mkdir -p /tmp/built_wheels && \
+  WHL=$(find /tmp/wheels -name "flash*attn*.whl" 2>/dev/null | head -1) && \
+  if [ -n "${WHL}" ]; then \
+    echo "Installing cached flash-attn wheel: ${WHL}" && \
+    uv pip install "${WHL}"; \
+  else \
+    echo "No cached wheel — building flash-attn from source" && \
+    MAX_JOBS=${MAX_JOBS} pip wheel --no-deps --no-build-isolation \
+      --wheel-dir /tmp/built_wheels flash-attn==${FLASH_ATTN_VERSION} && \
+    uv pip install /tmp/built_wheels/flash_attn*.whl; \
+  fi
 
 
 # ── Stage: builder-gdrcopy (parallel — independent of Python) ────────────────
@@ -56,6 +111,7 @@ RUN bash /tmp/install_gdrcopy.sh ${GDRCOPY_VERSION} && rm /tmp/install_gdrcopy.s
 # ── Stage: builder-oss (license files, isolated from runtime venv) ───────────
 FROM ${BASE_IMAGE} AS builder-oss
 COPY --from=builder-base /opt/venv /opt/venv
+COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 # Use the venv's python3 (the base image ships python3); avoids depending on a
 # versioned python binary name.
@@ -108,8 +164,10 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
     cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} \
   && dnf clean all
 
-# Python venv (base + torch/ray/HF deps from builder-base)
+# Python venv: base + torch/ray/HF/deepspeed/TE from builder-base, then overlay
+# the compiled flash-attn (+ TE) libs from builder-flash-attn.
 COPY --from=builder-base /opt/venv /opt/venv
+COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 
 # GDRCopy userspace lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
@@ -180,8 +238,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
+# CUDA forward-compat shim — lets CUDA 13 run on hosts with an older NVIDIA
+# driver by conditionally adding /usr/local/cuda/compat to LD_LIBRARY_PATH.
+# Sourced by the entrypoint at container start.
+COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY scripts/docker/ray-train/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh /usr/local/bin/dockerd_entrypoint.sh
 
 # Ray ports: gcs (6379), dashboard (8265), client (10001).
 # No serve port (8000): this is a training image; ray[serve] is intentionally excluded.
@@ -190,3 +252,9 @@ EXPOSE 6379 8265 10001
 WORKDIR /workspace
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
+
+
+# ── Stage: wheel-export (CI-only — extracts built wheels for S3 cache upload) ─
+FROM scratch AS wheel-export
+COPY --from=builder-flash-attn /tmp/built_wheels/ /wheels/
+COPY --from=builder-base /tmp/built_wheels/ /wheels/

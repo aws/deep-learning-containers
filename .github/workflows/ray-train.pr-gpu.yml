@@ -9,6 +9,7 @@ on:
       - ".github/workflows/ray-train.pipeline.yml"
       - ".github/workflows/ray-train.pr-gpu.yml"
       - "docker/ray-train/**"
+      - "scripts/ci/build/ray/**"
       - "scripts/docker/common/**"
       - "scripts/docker/pytorch/**"
       - "scripts/docker/ray-train/**"
@@ -51,6 +52,7 @@ jobs:
             build-change:
               - ".github/config/image/ray-train/*-gpu.yml"
               - "docker/ray-train/**"
+              - "scripts/ci/build/ray/**"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"
               - "scripts/docker/ray-train/**"

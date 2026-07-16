@@ -22,8 +22,11 @@ build:
   python_short_version: "3.13"
   cuda_version: "13.0.2"
   torch_version: "2.13.0"
+  transformer_engine_version: "2.13.0"
+  flash_attn_version: "2.8.3"
   efa_version: "1.47.0"
   gdrcopy_version: "2.4.4"
+  max_jobs: "8"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

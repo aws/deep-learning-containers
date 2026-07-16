@@ -25,3 +25,6 @@ HANDOVER.md
 
 # local Claude Code settings (personal, not shared)
 .claude/settings.local.json
+
+# RayTrain CI wheel cache (fetched from S3 at build time; never committed)
+docker/ray-train/wheels/
