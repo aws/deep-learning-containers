@@ -26,6 +26,9 @@ if [[ -z "$FLASH_ATTN_VERSION" && -z "$TRANSFORMER_ENGINE_VERSION" ]]; then
 fi
 
 CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
+# Derive the CPython tag from python_version (3.13.12 → cp313) to scope the shared cache.
+PYTHON_VERSION=$(yq '.build.python_version' "$CONFIG_FILE")
+PYTHON_TAG="cp$(echo "$PYTHON_VERSION" | cut -d. -f1,2 | tr -d '.')"
 DEST="docker/ray-train/wheels"
 mkdir -p "$DEST"
 
@@ -36,7 +39,7 @@ PACKAGES=()
 PACKAGES_STR=$(IFS=','; echo "${PACKAGES[*]}")
 echo "Fetching cached wheels: ${PACKAGES_STR:-none}"
 if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --dest-dir "$DEST" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
-    --cuda-version "$CUDA_VERSION" --packages "$PACKAGES_STR"; then
+    --cuda-version "$CUDA_VERSION" --python-tag "$PYTHON_TAG" --packages "$PACKAGES_STR"; then
   echo "WHEEL_CACHE_HIT=true" >> "${GITHUB_ENV:-/dev/null}"
   echo "Wheel cache hit"
 else

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Extract RayTrain's wheel-export wheels and upload to S3 under the ray-train/ prefix.
+# Extract wheel-export wheels and upload to the shared per-package S3 cache.
 
 set -euo pipefail
 
@@ -53,7 +53,7 @@ for spec in "${SPECS[@]}"; do
   fi
 
   FNAME=$(basename "${WHL}")
-  S3_KEY="wheels/ray-train/${PKG_UNDER}/${CUDA_SHORT}/${FNAME}"
+  S3_KEY="wheels/${PKG_UNDER}/${CUDA_SHORT}/${FNAME}"
 
   if aws s3 ls "s3://${BUCKET}/${S3_KEY}" &>/dev/null; then
     echo "Already cached: ${S3_KEY}"
