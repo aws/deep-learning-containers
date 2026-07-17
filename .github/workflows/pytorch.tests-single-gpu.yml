@@ -64,15 +64,9 @@ jobs:
 
       - name: Run single-GPU tests
         run: |
-          # TODO: Remove NVIDIA_DISABLE_REQUIRE=true once the runner AMI ships
-          # nvidia-container-toolkit >= 1.20. The current toolkit (1.19.1) has
-          # a stale semver parser and compat table that reject the
-          # `com.nvidia.cuda.requires=cuda>=13.3` label, even though the
-          # runner's actual driver (580.159.04) exceeds CUDA 13.3's declared
-          # minimum (580.65). Upstream fix landed in nvidia-container-toolkit
-          # v1.20.0-rc.1 (2026-07-09). To remove: delete this comment + the
-          # `-e NVIDIA_DISABLE_REQUIRE=true` flag, then verify CI passes on
-          # the updated runner AMI.
+          # TEMPORARY: bypasses buggy `cuda>=13.3` label check in
+          # nvidia-container-toolkit 1.19.1 (fixed upstream in v1.20.0).
+          # Remove flag + this comment once the runner AMI ships toolkit >= 1.20.
           CONTAINER_ID=$(docker run -d --rm --gpus all -e NVIDIA_DISABLE_REQUIRE=true --shm-size=2g \
             --entrypoint /bin/bash \
             -v $(pwd):/workdir --workdir /workdir \
