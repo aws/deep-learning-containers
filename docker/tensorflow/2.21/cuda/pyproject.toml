@@ -5,10 +5,13 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "tensorflow==2.21.0",
     # cuDNN + NCCL come from pip because AL2023 core and NVIDIA's amzn2023 CUDA
-    # repo don't ship the RPMs. cuDNN 9.5.1.17 patches CVE-2025-23339; cuDNN 9.x
-    # ships forward-ABI-compatible SONAMEs so TF 2.21's 9.3-linked binary loads
-    # against 9.5 without rebuild. Dockerfile.cuda copies the .so files out into
-    # /usr/local/cuda/lib64.
+    # repo don't ship the RPMs. Pinned to 9.24.0.43 (up from 9.5.1.17): cuDNN
+    # 9.5.x lacks a valid engine for the fused __cudnn$convBiasActivationForward
+    # kernel that TF 2.21's XLA emits for Conv2D + model.fit(), causing training
+    # to fail on every CUDA compute capability with autotuner "no supported
+    # configs" errors. cuDNN 9.x ships forward-ABI-compatible SONAMEs so TF
+    # 2.21's 9.3-linked binary loads against 9.24 without rebuild. Dockerfile.cuda
+    # copies the .so files out into /usr/local/cuda/lib64.
     "nvidia-cudnn-cu12==9.24.0.43",
     "nvidia-nccl-cu12==2.30.7",
     "mpi4py",
