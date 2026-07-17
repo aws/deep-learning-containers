@@ -34,6 +34,7 @@ done
 [[ -f "$CONFIG_FILE" ]] || { echo "ERROR: Config file not found: $CONFIG_FILE" >&2; exit 1; }
 
 CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
+FRAMEWORK_VERSION=$(yq '.metadata.framework_version' "$CONFIG_FILE")
 FLASH_ATTN_VERSION=$(yq '.build.flash_attn_version // ""' "$CONFIG_FILE")
 TRANSFORMER_ENGINE_VERSION=$(yq '.build.transformer_engine_version // ""' "$CONFIG_FILE")
 DOCKERFILE=$(yq '.build.dockerfile' "$CONFIG_FILE")
@@ -45,5 +46,5 @@ PACKAGES=()
 PACKAGES_STR=$(IFS=','; echo "${PACKAGES[*]}")
 echo "Uploading wheels to cache: ${PACKAGES_STR:-none}"
 bash "$SCRIPT_DIR/lib/upload_wheels.sh" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
-  --cuda-version "$CUDA_VERSION" --image-uri "${CI_IMAGE_URI}" \
-  --dockerfile "$DOCKERFILE" --packages "$PACKAGES_STR" || true
+  --cuda-version "$CUDA_VERSION" --torch-version "$FRAMEWORK_VERSION" \
+  --image-uri "${CI_IMAGE_URI}" --dockerfile "$DOCKERFILE" --packages "$PACKAGES_STR" || true

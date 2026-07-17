@@ -1,8 +1,8 @@
-name: "Auto Release - Ray Train GPU"
+name: "Auto Release - PyTorch 2.13 EC2"
 
 on:
   schedule:
-    - cron: '30 23 * * 2,4'
+    - cron: '30 19 * * 2,4'
   workflow_dispatch:
 
 concurrency:
@@ -22,7 +22,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/ray-train/*-gpu.yml"
+          pattern: ".github/config/image/pytorch/2.13-ec2-*.yml"
 
   pipeline:
     needs: [discover]
@@ -30,10 +30,11 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.discover.outputs.configs) }}
-    uses: ./.github/workflows/ray-train.pipeline.yml
+    uses: ./.github/workflows/pytorch.pipeline.yml
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
-      run-efa-test: true
+      run-multi-gpu-test: false
+      run-multi-node-test: false
       release: true
     secrets: inherit
