@@ -97,5 +97,9 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router /usr/local/bi
 
 ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:cpu:inference:tei
 
+# Security refresh — bust cache to pull latest apt patches on each daily rebuild
+RUN apt-get update && apt-get upgrade -y \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY --chmod=775 docker/tei/1.9.3/cpu/entrypoint.sh entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]

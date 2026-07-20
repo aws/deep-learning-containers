@@ -114,5 +114,9 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router-120 /usr/loca
 
 ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tei
 
+# Security refresh — bust cache to pull latest apt patches on each daily rebuild
+RUN apt-get update && apt-get upgrade -y \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY --chmod=775 docker/tei/1.9.3/gpu/entrypoint.sh entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
