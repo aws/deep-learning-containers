@@ -93,10 +93,10 @@ def get_models_for_image(image_type, device_type):
     elif image_type == "TEI":
         if device_type == "gpu":
             return [
-                ("BAAI/bge-m3", None, "ml.g6.12xlarge"),
-                ("intfloat/multilingual-e5-base", None, "ml.g6.12xlarge"),
-                ("thenlper/gte-base", None, "ml.g6.12xlarge"),
-                ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g6.12xlarge"),
+                ("BAAI/bge-m3", None, "ml.g4dn.2xlarge"),
+                ("intfloat/multilingual-e5-base", None, "ml.g4dn.2xlarge"),
+                ("thenlper/gte-base", None, "ml.g4dn.2xlarge"),
+                ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g4dn.2xlarge"),
             ]
         elif device_type == "cpu":
             return [("BAAI/bge-m3", None, "ml.m5.xlarge")]
