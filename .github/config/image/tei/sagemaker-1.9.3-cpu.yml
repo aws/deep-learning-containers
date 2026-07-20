@@ -1,0 +1,27 @@
+image:
+  name: "sagemaker-tei-cpu"
+  description: "SageMaker TEI 1.9.3 CPU"
+
+metadata:
+  framework: "tei"
+  framework_version: "1.9.3"
+  os_version: "ubuntu24.04"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "cpu"
+  job_type: "inference"
+  prod_image: "tei-cpu:2.0.1-tei1.9.3-cpu-py310-ubuntu24.04"
+
+build:
+  dockerfile: "docker/tei/1.9.3/cpu/Dockerfile"
+  target: "sagemaker"
+  python_version: "3.10"
+
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "gamma"
