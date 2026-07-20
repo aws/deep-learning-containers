@@ -79,6 +79,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   ca-certificates \
   libssl-dev \
   curl \
+  python3 \
+  python3-pip \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy a lot of the Intel shared objects because of the mkl_serv_intel_cpu_true patch...
@@ -96,6 +98,28 @@ COPY --from=builder /usr/src/libfakeintel.so /usr/local/libfakeintel.so
 COPY --from=builder /usr/src/target/release/text-embeddings-router /usr/local/bin/text-embeddings-router
 
 ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:cpu:inference:tei
+
+# PEP 668 escape hatch: pip.conf so setup_oss_compliance.sh can pip-install piplicenses
+# under system Python. Also install `requests` — needed by oss_compliance's
+# process_licenses_json_file.py which system Python doesn't ship by default.
+RUN mkdir -p /root/.config/pip \
+  && printf '[global]\nbreak-system-packages = true\n' >/root/.config/pip/pip.conf \
+  && pip3 install --no-cache requests
+
+# DLC telemetry + OSS compliance (sanity gate expects /usr/local/bin/testOSSCompliance).
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+  && bash setup_oss_compliance.sh python3 && rm setup_oss_compliance.sh \
+  && rm -rf /root/oss_compliance* /tmp/tmp*
 
 # Security refresh — bust cache to pull latest apt patches on each daily rebuild
 RUN apt-get update && apt-get upgrade -y \

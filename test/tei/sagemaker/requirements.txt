@@ -1,2 +1,2 @@
 pytest
-sagemaker[huggingface]>=2.220.0
+sagemaker>=2,<3
