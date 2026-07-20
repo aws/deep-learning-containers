@@ -99,7 +99,7 @@ def get_models_for_image(image_type, device_type):
                 ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g6.12xlarge"),
             ]
         elif device_type == "cpu":
-            return [("BAAI/bge-m3", None, "ml.g6.12xlarge")]
+            return [("BAAI/bge-m3", None, "ml.m5.xlarge")]
         else:
             raise ValueError(
                 f"No testing models found for {image_type} on instance {device_type}. "
