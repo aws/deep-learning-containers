@@ -1,5 +1,4 @@
-# Build context = repo root. Upstream Rust source is staged at
-# docker/tei/1.9.3/gpu/tei-src/ by scripts/ci/build/tei/pre_build.sh.
+# Ported from awslabs/llm-hosting-container tei/1.9.3/gpu. Adjustments: tei-src/ COPY paths (staged by pre_build.sh), dropped --mount=type=secret, added dlc_major_version label + trailing apt upgrade.
 FROM nvidia/cuda:12.9.1-devel-ubuntu24.04 AS base-builder
 
 ENV SCCACHE=0.10.0
@@ -14,7 +13,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   pkg-config \
   && rm -rf /var/lib/apt/lists/*
 
-# Download and configure sccache
+# Donwload and configure sccache
 RUN curl -fsSL https://github.com/mozilla/sccache/releases/download/v$SCCACHE/sccache-v$SCCACHE-x86_64-unknown-linux-musl.tar.gz | tar -xzv --strip-components=1 -C /usr/local/bin sccache-v$SCCACHE-x86_64-unknown-linux-musl/sccache \
   && chmod +x /usr/local/bin/sccache
 
@@ -48,17 +47,17 @@ WORKDIR /usr/src
 
 COPY --from=planner /usr/src/recipe.json recipe.json
 
-RUN cargo chef cook --release --recipe-path recipe.json && sccache -s
+RUN cargo chef cook --release --recipe-path recipe.json && sccache -s;
 
-RUN CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --recipe-path recipe.json && sccache -s
+RUN CUDA_COMPUTE_CAP=75 cargo chef cook --release --features candle-cuda-turing --recipe-path recipe.json && sccache -s;
 
-RUN CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s
+RUN CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s;
 
-RUN CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s
+RUN CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s;
 
-RUN CUDA_COMPUTE_CAP=100 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s
+RUN CUDA_COMPUTE_CAP=100 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s;
 
-RUN CUDA_COMPUTE_CAP=120 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s
+RUN CUDA_COMPUTE_CAP=120 cargo chef cook --release --features candle-cuda --recipe-path recipe.json && sccache -s;
 
 COPY docker/tei/1.9.3/gpu/tei-src/backends backends
 COPY docker/tei/1.9.3/gpu/tei-src/core core
@@ -66,23 +65,23 @@ COPY docker/tei/1.9.3/gpu/tei-src/router router
 COPY docker/tei/1.9.3/gpu/tei-src/Cargo.toml ./
 COPY docker/tei/1.9.3/gpu/tei-src/Cargo.lock ./
 
-RUN CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing && sccache -s
+RUN CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing && sccache -s;
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-75
 
-RUN CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s
+RUN CUDA_COMPUTE_CAP=80 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s;
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-80
 
-RUN CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s
+RUN CUDA_COMPUTE_CAP=90 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s;
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-90
 
-RUN CUDA_COMPUTE_CAP=100 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s
+RUN CUDA_COMPUTE_CAP=100 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s;
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-100
 
-RUN CUDA_COMPUTE_CAP=120 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s
+RUN CUDA_COMPUTE_CAP=120 cargo build --release --bin text-embeddings-router -F candle-cuda && sccache -s;
 
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-120
 
@@ -104,8 +103,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   libssl-dev \
   curl \
   cuda-compat-12-9 \
-  python3 \
-  python3-pip \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/src/target/release/text-embeddings-router-75 /usr/local/bin/text-embeddings-router-75
@@ -115,28 +112,6 @@ COPY --from=builder /usr/src/target/release/text-embeddings-router-100 /usr/loca
 COPY --from=builder /usr/src/target/release/text-embeddings-router-120 /usr/local/bin/text-embeddings-router-120
 
 ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tei
-
-# PEP 668 escape hatch: pip.conf so setup_oss_compliance.sh can pip-install piplicenses
-# under system Python. Also install `requests` — needed by oss_compliance's
-# process_licenses_json_file.py which system Python doesn't ship by default.
-RUN mkdir -p /root/.config/pip \
-  && printf '[global]\nbreak-system-packages = true\n' >/root/.config/pip/pip.conf \
-  && pip3 install --no-cache requests
-
-# DLC telemetry + OSS compliance (sanity gate expects /usr/local/bin/testOSSCompliance).
-COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
-  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
-    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
-    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
-  && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
-  && bash setup_oss_compliance.sh python3 && rm setup_oss_compliance.sh \
-  && rm -rf /root/oss_compliance* /tmp/tmp*
 
 # Security refresh — bust cache to pull latest apt patches on each daily rebuild
 RUN apt-get update && apt-get upgrade -y \

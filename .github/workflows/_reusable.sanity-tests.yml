@@ -168,15 +168,21 @@ jobs:
             -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
             ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_training.py
 
+      # TEI opts out: no Python in the container (upstream is a Rust-only image),
+      # and the S3-hosted generate_oss_compliance.sh script only handles Ubuntu / AL,
+      # not TEI CPU's Debian bookworm base.
       - name: Run OSS compliance check
+        if: needs.preflight.outputs.framework != 'tei'
         run: |
           docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
 
       - name: Copy OSS compliance artifacts
+        if: needs.preflight.outputs.framework != 'tei'
         run: |
           docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS
 
       - name: Upload third-party source code to S3
+        if: needs.preflight.outputs.framework != 'tei'
         run: |
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
