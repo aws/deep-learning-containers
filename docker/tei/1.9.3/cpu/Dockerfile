@@ -7,8 +7,8 @@ ENV SCCACHE=0.10.0
 ENV RUSTC_WRAPPER=/usr/local/bin/sccache
 
 # Download and configure sccache
-RUN curl -fsSL https://github.com/mozilla/sccache/releases/download/v$SCCACHE/sccache-v$SCCACHE-x86_64-unknown-linux-musl.tar.gz | tar -xzv --strip-components=1 -C /usr/local/bin sccache-v$SCCACHE-x86_64-unknown-linux-musl/sccache && \
-    chmod +x /usr/local/bin/sccache
+RUN curl -fsSL https://github.com/mozilla/sccache/releases/download/v$SCCACHE/sccache-v$SCCACHE-x86_64-unknown-linux-musl.tar.gz | tar -xzv --strip-components=1 -C /usr/local/bin sccache-v$SCCACHE-x86_64-unknown-linux-musl/sccache \
+  && chmod +x /usr/local/bin/sccache
 
 FROM chef AS planner
 
@@ -18,7 +18,7 @@ COPY docker/tei/1.9.3/cpu/tei-src/router router
 COPY docker/tei/1.9.3/cpu/tei-src/Cargo.toml ./
 COPY docker/tei/1.9.3/cpu/tei-src/Cargo.lock ./
 
-RUN cargo chef prepare  --recipe-path recipe.json
+RUN cargo chef prepare --recipe-path recipe.json
 
 FROM chef AS builder
 
@@ -29,29 +29,27 @@ ARG DOCKER_LABEL
 ARG SCCACHE_GHA_ENABLED
 
 RUN apt-get update && DEBIAN_FRONTEND=nointeractive apt-get install -y --no-install-recommends \
-    ca-certificates \
-    wget \
-    gnupg \
-    && rm -rf /var/lib/apt/lists/*
+  ca-certificates \
+  wget \
+  gnupg \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-    | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | \
-    tee /etc/apt/sources.list.d/oneAPI.list
+  | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg >/dev/null \
+  && echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" \
+  | tee /etc/apt/sources.list.d/oneAPI.list
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    intel-oneapi-mkl-devel=2024.0.0-49656 \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+  intel-oneapi-mkl-devel=2024.0.0-49656 \
+  build-essential \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN echo "int mkl_serv_intel_cpu_true() {return 1;}" > fakeintel.c && \
     gcc -shared -fPIC -o libfakeintel.so fakeintel.c
 
 COPY --from=planner /usr/src/recipe.json recipe.json
 
-RUN --mount=type=secret,id=actions_results_url,env=ACTIONS_RESULTS_URL \
-    --mount=type=secret,id=actions_runtime_token,env=ACTIONS_RUNTIME_TOKEN \
-    cargo chef cook --release --features ort,candle,mkl,static-linking --no-default-features --recipe-path recipe.json && sccache -s
+RUN cargo chef cook --release --features ort,candle,mkl,static-linking --no-default-features --recipe-path recipe.json && sccache -s
 
 COPY docker/tei/1.9.3/cpu/tei-src/backends backends
 COPY docker/tei/1.9.3/cpu/tei-src/core core
@@ -59,9 +57,7 @@ COPY docker/tei/1.9.3/cpu/tei-src/router router
 COPY docker/tei/1.9.3/cpu/tei-src/Cargo.toml ./
 COPY docker/tei/1.9.3/cpu/tei-src/Cargo.lock ./
 
-RUN --mount=type=secret,id=actions_results_url,env=ACTIONS_RESULTS_URL \
-    --mount=type=secret,id=actions_runtime_token,env=ACTIONS_RUNTIME_TOKEN \
-    cargo build --release --bin text-embeddings-router --features ort,candle,mkl,static-linking,http --no-default-features && sccache -s
+RUN cargo build --release --bin text-embeddings-router --features ort,candle,mkl,static-linking,http --no-default-features && sccache -s
 
 FROM debian:bookworm-slim AS sagemaker
 
@@ -70,18 +66,18 @@ ARG FRAMEWORK_VERSION
 ARG CACHE_REFRESH
 
 ENV HUGGINGFACE_HUB_CACHE=/opt/ml/model \
-    PORT=8080 \
-    MKL_ENABLE_INSTRUCTIONS=AVX512_E4 \
-    RAYON_NUM_THREADS=8 \
-    LD_PRELOAD=/usr/local/libfakeintel.so \
-    LD_LIBRARY_PATH=/usr/local/lib
+  PORT=8080 \
+  MKL_ENABLE_INSTRUCTIONS=AVX512_E4 \
+  RAYON_NUM_THREADS=8 \
+  LD_PRELOAD=/usr/local/libfakeintel.so \
+  LD_LIBRARY_PATH=/usr/local/lib
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    libomp-dev \
-    ca-certificates \
-    libssl-dev \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+  libomp-dev \
+  ca-certificates \
+  libssl-dev \
+  curl \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy a lot of the Intel shared objects because of the mkl_serv_intel_cpu_true patch...
 COPY --from=builder /opt/intel/oneapi/mkl/latest/lib/intel64/libmkl_intel_lp64.so.2 /usr/local/lib/libmkl_intel_lp64.so.2

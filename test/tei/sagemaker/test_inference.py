@@ -3,7 +3,6 @@ import logging
 import sys
 import time
 
-import pytest
 from sagemaker.huggingface import HuggingFaceModel
 
 logging.basicConfig(stream=sys.stdout, format="%(message)s", level=logging.INFO)
