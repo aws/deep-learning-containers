@@ -1,6 +1,7 @@
 # Ported from awslabs/llm-hosting-container/tests/huggingface/sagemaker_dlc_test.py.
 # Adjustments: env var names remapped to what our CI harness exports
 # (IMAGE_URI -> TEST_IMAGE_URI, TEST_ROLE_ARN -> SM_ROLE_ARN, TARGET_IMAGE_TYPE hardcoded to TEI, DEVICE_TYPE -> TEST_DEVICE_TYPE).
+# TGI branch dropped (deprecated). Instance types tuned for DLC CI capacity.
 import argparse
 import json
 import logging
@@ -27,15 +28,7 @@ def run_test(args):
     default_env = {"HF_MODEL_ID": args.model_id}
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
-    if args.instance_type.startswith("ml.inf2"):
-        default_env["MODEL_ID"] = default_env.pop("HF_MODEL_ID")
-        default_env["HF_NUM_CORES"] = "2"
-        default_env["HF_AUTO_CAST_TYPE"] = "bf16"
-        default_env["MAX_BATCH_SIZE"] = "1"
-        default_env["MAX_INPUT_TOKENS"] = "2048"
-        default_env["MAX_TOTAL_TOKENS"] = "4096"
-    else:
-        default_env["SM_NUM_GPUS"] = "4"
+    default_env["SM_NUM_GPUS"] = "4"
 
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(int(args.timeout))
@@ -53,9 +46,6 @@ def run_test(args):
             "endpoint_name": endpoint_name,
             "container_startup_health_check_timeout": 1800,
         }
-        if args.instance_type.startswith("ml.inf2"):
-            deploy_parameters["volume_size"] = 256
-            deploy_parameters["inference_ami_version"] = "al2-ami-sagemaker-inference-neuron-2"
         predictor = model.deploy(**deploy_parameters)
 
         logging.info("Endpoint deployment complete.")
@@ -76,21 +66,7 @@ def run_test(args):
 
 
 def get_models_for_image(image_type, device_type):
-    if image_type == "TGI":
-        if device_type == "gpu":
-            return [
-                ("bigscience/bloom-560m", None, "ml.g6.12xlarge"),
-                ("EleutherAI/gpt-neox-20b", None, "ml.g6.12xlarge"),
-                ("google/flan-t5-xxl", None, "ml.g6.12xlarge"),
-            ]
-        elif device_type == "inf2":
-            return [("Qwen/Qwen3-0.6B", None, "ml.inf2.8xlarge")]
-        else:
-            raise ValueError(
-                f"No testing models found for {image_type} on instance {device_type}. "
-                f"please check whether the image_type and instance_type are supported."
-            )
-    elif image_type == "TEI":
+    if image_type == "TEI":
         if device_type == "gpu":
             return [
                 ("BAAI/bge-m3", None, "ml.g4dn.2xlarge"),
@@ -106,7 +82,7 @@ def get_models_for_image(image_type, device_type):
                 f"please check whether the image_type and instance_type are supported."
             )
     else:
-        raise ValueError("Invalid image type. Supported types are 'TGI' and 'TEI'.")
+        raise ValueError("Invalid image type. Supported type is 'TEI'.")
 
 
 def should_run_test_for_image(test_type, target_type):
