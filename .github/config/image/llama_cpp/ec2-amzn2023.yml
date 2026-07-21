@@ -1,0 +1,30 @@
+image:
+  name: "llama-cpp-ec2-amzn2023"
+  description: "llama.cpp for EC2 instances (AL2023, ARM64/Graviton, CPU, built from source)"
+
+metadata:
+  framework: "llama_cpp"
+  framework_version: "b10075"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "arm64"
+  device_type: "cpu"
+  job_type: "inference"
+  prod_image: "llama-cpp:server-cpu-arm64-v1"
+
+build:
+  dockerfile: "docker/llama_cpp/Dockerfile.amzn2023"
+  target: "llama-cpp-ec2"
+  python_version: "3.12"
+  llama_cpp_ref: "b10075"
+  mcpu: "neoverse-v1"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: false
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: false
+  environment: "production"
