@@ -2,6 +2,7 @@
 # Adjustments: env var names remapped to what our CI harness exports
 # (IMAGE_URI -> TEST_IMAGE_URI, TEST_ROLE_ARN -> SM_ROLE_ARN, TARGET_IMAGE_TYPE hardcoded to TEI, DEVICE_TYPE -> TEST_DEVICE_TYPE).
 # TGI branch dropped (deprecated). Instance types tuned for DLC CI capacity.
+# Models pre-staged in S3 to avoid HF Hub cold-start overrunning SageMaker health-check window.
 import argparse
 import json
 import logging
@@ -15,6 +16,13 @@ from sagemaker.huggingface import HuggingFaceModel
 
 logging.basicConfig(stream=sys.stdout, format="%(message)s", level=logging.INFO)
 
+MODEL_S3_PREFIX = "s3://dlc-cicd-models/tei-models"
+
+
+def model_data_uri(model_id):
+    slug = model_id.replace("/", "__")
+    return f"{MODEL_S3_PREFIX}/{slug}.tar.gz"
+
 
 class TimeoutError(Exception):
     pass
@@ -25,7 +33,9 @@ def timeout_handler(signum, frame):
 
 
 def run_test(args):
-    default_env = {"HF_MODEL_ID": args.model_id}
+    # Model is pre-staged in S3 and extracted to /opt/ml/model by SageMaker
+    # before the container starts, so TEI's router loads from local disk.
+    default_env = {"HF_MODEL_ID": "/opt/ml/model"}
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
     default_env["SM_NUM_GPUS"] = "4"
@@ -38,7 +48,11 @@ def run_test(args):
         endpoint_name = args.model_id.replace("/", "-").replace(".", "-")[:40]
         endpoint_name = endpoint_name + "-" + time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
         model = HuggingFaceModel(
-            name=endpoint_name, env=default_env, role=args.role, image_uri=args.image_uri
+            name=endpoint_name,
+            env=default_env,
+            role=args.role,
+            image_uri=args.image_uri,
+            model_data=model_data_uri(args.model_id),
         )
         deploy_parameters = {
             "instance_type": args.instance_type,
