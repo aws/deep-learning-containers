@@ -1,8 +1,3 @@
-# Ported from awslabs/llm-hosting-container/tests/huggingface/sagemaker_dlc_test.py.
-# Adjustments: env var names remapped to what our CI harness exports
-# (IMAGE_URI -> TEST_IMAGE_URI, TEST_ROLE_ARN -> SM_ROLE_ARN, TARGET_IMAGE_TYPE hardcoded to TEI, DEVICE_TYPE -> TEST_DEVICE_TYPE).
-# TGI branch dropped (deprecated). Instance types tuned for DLC CI capacity.
-# Models pre-staged in S3 to avoid HF Hub cold-start overrunning SageMaker health-check window.
 import argparse
 import json
 import logging
@@ -17,6 +12,10 @@ from sagemaker.huggingface import HuggingFaceModel
 logging.basicConfig(stream=sys.stdout, format="%(message)s", level=logging.INFO)
 
 MODEL_S3_PREFIX = "s3://dlc-cicd-models/tei-models"
+INFERENCE_AMI_VERSION_CU12 = "al2-ami-sagemaker-inference-gpu-3-1"
+# Models without a safetensors artifact on HF Hub; TEI's GPU Candle backend
+# needs safetensors from local disk, so we let the router download at startup.
+MODELS_WITHOUT_LOCAL_MOUNT = {"BAAI/bge-m3"}
 
 
 def model_data_uri(model_id):
@@ -33,9 +32,12 @@ def timeout_handler(signum, frame):
 
 
 def run_test(args):
-    # Model is pre-staged in S3 and extracted to /opt/ml/model by SageMaker
-    # before the container starts, so TEI's router loads from local disk.
-    default_env = {"HF_MODEL_ID": "/opt/ml/model"}
+    if args.model_id in MODELS_WITHOUT_LOCAL_MOUNT:
+        default_env = {"HF_MODEL_ID": args.model_id}
+        model_data = None
+    else:
+        default_env = {"HF_MODEL_ID": "/opt/ml/model"}
+        model_data = model_data_uri(args.model_id)
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
     default_env["SM_NUM_GPUS"] = "4"
@@ -44,22 +46,25 @@ def run_test(args):
     signal.alarm(int(args.timeout))
     predictor = None
     try:
-        # Create Hugging Face Model Class
         endpoint_name = args.model_id.replace("/", "-").replace(".", "-")[:40]
         endpoint_name = endpoint_name + "-" + time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-        model = HuggingFaceModel(
-            name=endpoint_name,
-            env=default_env,
-            role=args.role,
-            image_uri=args.image_uri,
-            model_data=model_data_uri(args.model_id),
-        )
+        model_kwargs = {
+            "name": endpoint_name,
+            "env": default_env,
+            "role": args.role,
+            "image_uri": args.image_uri,
+        }
+        if model_data is not None:
+            model_kwargs["model_data"] = model_data
+        model = HuggingFaceModel(**model_kwargs)
         deploy_parameters = {
             "instance_type": args.instance_type,
             "initial_instance_count": 1,
             "endpoint_name": endpoint_name,
             "container_startup_health_check_timeout": 1800,
         }
+        if args.instance_type.startswith("ml.g") or args.instance_type.startswith("ml.p"):
+            deploy_parameters["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
         predictor = model.deploy(**deploy_parameters)
 
         logging.info("Endpoint deployment complete.")
@@ -83,10 +88,10 @@ def get_models_for_image(image_type, device_type):
     if image_type == "TEI":
         if device_type == "gpu":
             return [
-                ("BAAI/bge-m3", None, "ml.g4dn.8xlarge"),
-                ("intfloat/multilingual-e5-base", None, "ml.g4dn.8xlarge"),
-                ("thenlper/gte-base", None, "ml.g4dn.8xlarge"),
-                ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g4dn.8xlarge"),
+                ("BAAI/bge-m3", None, "ml.g6.12xlarge"),
+                ("intfloat/multilingual-e5-base", None, "ml.g6.12xlarge"),
+                ("thenlper/gte-base", None, "ml.g6.12xlarge"),
+                ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g6.12xlarge"),
             ]
         elif device_type == "cpu":
             return [("BAAI/bge-m3", None, "ml.m5.xlarge")]
