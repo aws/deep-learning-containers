@@ -1,0 +1,14 @@
+framework: PyTorch
+version: "2.13"
+accelerator: gpu
+python: py312
+cuda: cu133
+os: amzn2023
+platform: sagemaker
+ga: "2026-07-20"
+eop: "2027-07-20"
+public_registry: true
+
+tags:
+  - "2.13.0-cu133-amzn2023-sagemaker"
+  - "2.13-cu133-amzn2023-sagemaker"
