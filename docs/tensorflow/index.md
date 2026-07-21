@@ -23,7 +23,7 @@ The `2.21.0-*` fully-qualified tags (e.g. `2.21.0-gpu-py312-cu129-amzn2023-sagem
 The GPU image includes:
 
 - **TensorFlow 2.21.0** (`tensorflow==2.21.0`)
-- **CUDA 12.9.1** with **cuDNN 9.5.1.17** (`nvidia-cudnn-cu12`) and **NCCL 2.30.7** (`nvidia-nccl-cu12`) for multi-GPU collectives
+- **CUDA 12.9.1** with **cuDNN 9.24.0.43** (`nvidia-cudnn-cu12`) and **NCCL 2.30.7** (`nvidia-nccl-cu12`) for multi-GPU collectives
 - **[EFA](https://aws.amazon.com/hpc/efa/) 1.49.0** with **OpenMPI 4.1.8** for low-latency multi-node communication on EFA-capable instances
 - **[MPI for Python](https://mpi4py.readthedocs.io/) (`mpi4py`)** for multi-process Python coordination
 - **[SageMaker training toolkits](https://github.com/aws/sagemaker-tensorflow-training-toolkit)** — `sagemaker-tensorflow-training`,

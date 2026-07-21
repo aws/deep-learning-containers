@@ -7,7 +7,8 @@ set by the workflow:
   SM_ROLE_ARN     the SageMaker execution role ARN
   AWS_REGION      region (default us-west-2)
 
-One 4-GPU endpoint (ml.g6.12xlarge) serves every case. The handler's GPU pool
+One 4-GPU endpoint (ml.g6.12xlarge) serves every case; the suite is skipped
+if SageMaker has no capacity (ICE). The handler's GPU pool
 leases one GPU per concurrent request, so "1 GPU" means a single in-flight
 request and "4 GPU" means four concurrent requests fanned across the four GPUs.
 
@@ -51,8 +52,13 @@ IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 ROLE_ARN = os.environ["SM_ROLE_ARN"]
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 
-# One 4-GPU instance hosts every case; 1-GPU cases just send 1 request.
-INSTANCE_TYPE = "ml.g6.12xlarge"
+# Only g6.12xlarge (4x L4) is viable: g6e has 0 endpoint quota, g5 is rejected by the cu13 AMI.
+INSTANCE_TYPES = ["ml.g6.12xlarge"]
+# Retry deploy on capacity errors (ICE) before giving up.
+DEPLOY_ATTEMPTS = 3
+DEPLOY_RETRY_WAIT = 300
+# On exhausted ICE retries: release runs skip (capacity shouldn't block release); PR runs fail.
+RELEASE_RUN = os.environ.get("RELEASE_RUN", "false").lower() == "true"
 MAX_CONCURRENT_INVOCATIONS = 4
 # Generous: warmup compiles CUDA kernels (~6 min) before /ping returns 200.
 STARTUP_HEALTH_CHECK_TIMEOUT = 1200
@@ -65,8 +71,7 @@ OUTPUT_PREFIX = "openfold3/async-output"
 
 SMALL_QUERY = "small.json"  # ubiquitin, 76 residues
 LARGE_QUERY = "large.json"  # synthetic, 622 residues
-# 622-res protein with an inline precomputed MSA (colabfold_main.a3m); exercises
-# the bring-your-own-MSA path. Uploaded by Scripts/upload_openfold3_test_queries.sh.
+# 622-res protein with an inline precomputed MSA; exercises the bring-your-own-MSA path.
 MSA_QUERY = "large_msa.json"
 # Small protein with use_msa_server=true; the handler must reject it under isolation.
 MSA_SERVER_QUERY = "small_msa_server.json"
@@ -151,65 +156,108 @@ def _invoke(endpoint_name: str, query_files: list[str]) -> list[tuple[float, dic
     return [_poll_one(out, fail, start) for out, fail in submitted]
 
 
+def _is_capacity_error(exc: Exception) -> bool:
+    """True if the deploy failed for lack of instance capacity (ICE), not a real defect."""
+    return "insufficientinstancecapacity" in str(exc).lower()
+
+
+def _deploy(name: str, instance_type: str):
+    """Create model + async endpoint config + endpoint on instance_type; wait for InService.
+
+    Returns (model, endpoint_config, endpoint). Raises on failure (caller handles ICE fallback).
+    """
+    LOGGER.info(f"Creating model: {name}")
+    model = Model.create(
+        model_name=name,
+        primary_container=ContainerDefinition(
+            image=IMAGE_URI,
+            environment={"OPENFOLD_CACHE": "/root/.openfold3"},
+        ),
+        execution_role_arn=ROLE_ARN,
+        # Validate the production no-outbound-network posture (MSA off by default).
+        enable_network_isolation=True,
+    )
+    LOGGER.info(f"Creating async endpoint config: {name} on {instance_type}")
+    endpoint_config = EndpointConfig.create(
+        endpoint_config_name=name,
+        production_variants=[
+            ProductionVariant(
+                variant_name="AllTraffic",
+                model_name=name,
+                initial_instance_count=1,
+                instance_type=instance_type,
+                inference_ami_version=INFERENCE_AMI_VERSION,
+                container_startup_health_check_timeout_in_seconds=STARTUP_HEALTH_CHECK_TIMEOUT,
+            ),
+        ],
+        async_inference_config=AsyncInferenceConfig(
+            output_config=AsyncInferenceOutputConfig(
+                s3_output_path=f"s3://{BUCKET}/{OUTPUT_PREFIX}/",
+            ),
+            client_config=AsyncInferenceClientConfig(
+                max_concurrent_invocations_per_instance=MAX_CONCURRENT_INVOCATIONS,
+            ),
+        ),
+    )
+    LOGGER.info(f"Deploying endpoint {name} on {instance_type} (~10-15 min incl. warmup)...")
+    endpoint = Endpoint.create(endpoint_name=name, endpoint_config_name=name)
+    endpoint.wait_for_status("InService")
+    return model, endpoint_config, endpoint
+
+
+def _cleanup(model, endpoint_config, endpoint):
+    for resource in (endpoint, endpoint_config, model):
+        if resource is None:
+            continue
+        try:
+            resource.delete()
+        except Exception as e:
+            LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
+
+
 @pytest.fixture(scope="module")
 def endpoint_name():
-    """Deploy one 4-GPU async endpoint for the module; sweep stale first, clean up after."""
+    """Deploy one 4-GPU async endpoint, retrying instances on capacity errors (ICE).
+
+    ICE is an AWS-side capacity issue, not an image defect: retry each instance a
+    few times (waiting between tries). If all attempts still hit ICE, a release run
+    skips (capacity shouldn't block the release) while a PR run fails (human re-triggers).
+    """
     _preflight_s3()
     _sweep_stale()
 
-    name = random_suffix_name("openfold3-async", 50)
-    model = endpoint_config = endpoint = None
-    try:
-        LOGGER.info(f"Creating model: {name}")
-        model = Model.create(
-            model_name=name,
-            primary_container=ContainerDefinition(
-                image=IMAGE_URI,
-                environment={"OPENFOLD_CACHE": "/root/.openfold3"},
-            ),
-            execution_role_arn=ROLE_ARN,
-            # Validate the production no-outbound-network posture (MSA off by default).
-            enable_network_isolation=True,
-        )
+    last_error = None
+    # Each instance gets DEPLOY_ATTEMPTS tries; capacity is intermittent so a wait often clears it.
+    attempts = [(it, n) for it in INSTANCE_TYPES for n in range(DEPLOY_ATTEMPTS)]
+    for i, (instance_type, _) in enumerate(attempts):
+        name = random_suffix_name("openfold3-async", 50)
+        model = endpoint_config = endpoint = None
+        try:
+            model, endpoint_config, endpoint = _deploy(name, instance_type)
+        except Exception as e:
+            _cleanup(model, endpoint_config, endpoint)
+            if not _is_capacity_error(e):
+                raise  # a real deploy failure — surface it
+            last_error = e
+            if i + 1 < len(attempts):
+                LOGGER.warning(
+                    f"[capacity] {instance_type} ICE; retrying in {DEPLOY_RETRY_WAIT}s. {e}"
+                )
+                time.sleep(DEPLOY_RETRY_WAIT)
+            continue
 
-        LOGGER.info(f"Creating async endpoint config: {name}")
-        endpoint_config = EndpointConfig.create(
-            endpoint_config_name=name,
-            production_variants=[
-                ProductionVariant(
-                    variant_name="AllTraffic",
-                    model_name=name,
-                    initial_instance_count=1,
-                    instance_type=INSTANCE_TYPE,
-                    inference_ami_version=INFERENCE_AMI_VERSION,
-                    container_startup_health_check_timeout_in_seconds=STARTUP_HEALTH_CHECK_TIMEOUT,
-                ),
-            ],
-            async_inference_config=AsyncInferenceConfig(
-                output_config=AsyncInferenceOutputConfig(
-                    s3_output_path=f"s3://{BUCKET}/{OUTPUT_PREFIX}/",
-                ),
-                client_config=AsyncInferenceClientConfig(
-                    max_concurrent_invocations_per_instance=MAX_CONCURRENT_INVOCATIONS,
-                ),
-            ),
-        )
+        try:
+            LOGGER.info(f"Endpoint InService on {instance_type}; settling {SETTLE_SECONDS}s")
+            time.sleep(SETTLE_SECONDS)
+            yield name
+        finally:
+            _cleanup(model, endpoint_config, endpoint)
+        return
 
-        LOGGER.info(f"Deploying endpoint {name} (~10-15 min incl. warmup)...")
-        endpoint = Endpoint.create(endpoint_name=name, endpoint_config_name=name)
-        endpoint.wait_for_status("InService")
-        LOGGER.info(f"Endpoint InService; settling {SETTLE_SECONDS}s before first invocation")
-        time.sleep(SETTLE_SECONDS)
-
-        yield name
-    finally:
-        for resource in (endpoint, endpoint_config, model):
-            if resource is None:
-                continue
-            try:
-                resource.delete()
-            except Exception as e:
-                LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
+    msg = f"No SageMaker capacity after {len(attempts)} attempts (ICE). Last: {last_error}"
+    if RELEASE_RUN:
+        pytest.skip(msg)  # don't let AWS capacity block the weekly release
+    raise AssertionError(msg)  # PR runs surface ICE so a human can re-trigger
 
 
 def _sweep_stale():

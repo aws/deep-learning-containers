@@ -10,6 +10,7 @@
 ## Notice
 
 - We cannot guarantee security patching on Ubuntu-based vLLM and SGLang images due to the lack of Ubuntu Pro licensing. Customers may continue using these images at their own discretion and risk. We recommend migrating to our Amazon Linux-based images.
+- We cannot fully patch Ubuntu-based PyTorch 2.8–2.10 images due to the lack of Ubuntu Pro licensing. Customers may continue using these images at their own discretion and risk. We recommend migrating to our Amazon Linux 2023-based PyTorch 2.11 or later images.
 - We are extending support for PyTorch 2.6 Inference images until end of June 2026 as these are the last available PyTorch inference images with torchserve support.
 - Scikit-Learn 1.4-2 for Python 3.10 is no longer supported. Please migrate to Scikit-Learn 1.4-2 for Python 3.12 (`sagemaker-scikit-learn:1.4-2-py312`).
 

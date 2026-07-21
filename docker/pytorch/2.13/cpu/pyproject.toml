@@ -1,12 +1,12 @@
 [project]
 name = "pytorch-dlc-cpu"
-version = "2.11.0"
+version = "2.13.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "torch==2.11.0",
-    "torchvision==0.26.0",
+    "torch==2.13.0",
+    "torchvision==0.28.0",
     "torchaudio==2.11.0",
-    "deepspeed==0.18.8",
+    "deepspeed==0.19.2",
     "fastai",
     "boto3",
     "botocore",
@@ -23,9 +23,9 @@ dependencies = [
     "scikit-learn",
     "opencv-python",
     "msgpack>=1.2.1",  # CVE GHSA-6v7p-g79w-8964 (transitive via deepspeed)
-    "soupsieve>=2.8.4",   # CVE GHSA-2wc2-fm75-p42x, GHSA-836r-79rf-4m37 (transitive via beautifulsoup4)
-    "click>=8.3.3",       # CVE-2026-7246 (transitive)
-    "pillow>=12.3.0",     # CVE-2026-55379 (transitive via torchvision / fastai)
+    "soupsieve>=2.8.4",  # CVE GHSA-2wc2-fm75-p42x, GHSA-836r-79rf-4m37 (transitive via beautifulsoup4 -> python-fasthtml -> fastai)
+    "click>=8.3.3",  # CVE-2026-7246 (transitive)
+    "pillow>=12.3.0",  # CVE-2026-55379 (transitive via torchvision / fastai)
 ]
 
 [project.optional-dependencies]
