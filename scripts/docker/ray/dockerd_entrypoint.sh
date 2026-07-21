@@ -12,6 +12,23 @@ else
 fi
 echo "Detected ${NUM_GPUS} GPU(s)"
 
+# Worker mode: join an existing Ray head instead of starting our own.
+# Set RAY_ROLE=worker and RAY_HEAD_ADDRESS=<head-host>:6379 to enable.
+if [ "${RAY_ROLE:-head}" = "worker" ]; then
+    : "${RAY_HEAD_ADDRESS:?RAY_HEAD_ADDRESS required for worker mode (e.g. head-host:6379)}"
+    # Serve replicas scheduled on this worker run user deployment code, so mirror
+    # the head's Python setup: model dir on PYTHONPATH + runtime requirements.
+    # The deployment code must be present at /opt/ml/model on the worker (mount a
+    # shared volume, bake into the image, or use a Serve runtime_env working_dir).
+    export PYTHONPATH="/opt/ml/model:${PYTHONPATH}"
+    if [ -f "/opt/ml/model/code/requirements.txt" ]; then
+        echo "Installing packages from /opt/ml/model/code/requirements.txt..."
+        pip install -r /opt/ml/model/code/requirements.txt
+    fi
+    echo "Joining Ray head at ${RAY_HEAD_ADDRESS}"
+    exec ray start --address="${RAY_HEAD_ADDRESS}" --num-gpus="${NUM_GPUS}" --block
+fi
+
 # Add model directory to Python path
 export PYTHONPATH="/opt/ml/model:${PYTHONPATH}"
 
