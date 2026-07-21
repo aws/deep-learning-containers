@@ -10,16 +10,20 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-"""Multi-node distributed inference test for Ray DLC.
+"""Multi-node replica-distribution test for Ray DLC.
 
 Deploys cv-densenet across two containers (head + worker on a shared Docker
-network), forces one replica per node via `max_replicas_per_node: 1`, and
-verifies that inference requests succeed and both replicas are placed on
-distinct Ray nodes.
+network) with `num_replicas: 2, max_replicas_per_node: 1` — one full replica of
+the model per node (data-parallel; each node serves requests independently, no
+model sharding). Verifies:
+  1. A replica is placed on each of the two distinct Ray nodes (i.e. the worker
+     joined the cluster and Serve scheduled a replica onto it).
+  2. Inference requests against the real cv-densenet model return valid
+     predictions through the multi-node deployment.
 
 The head container uses the DLC's default entrypoint (single-node Ray Serve
-runtime). The worker container uses the entrypoint's new RAY_ROLE=worker
-branch to join the head instead of starting its own head.
+runtime). The worker container uses the entrypoint's new RAY_ROLE=worker branch
+to join the head instead of starting its own head.
 """
 
 import json
@@ -245,27 +249,32 @@ def _wait_for_distributed_replicas(head_name):
     raise TimeoutError(f"2 replicas on distinct nodes not ready within {REPLICA_READY_TIMEOUT}s")
 
 
-def test_distributed_densenet_inference(multinode_cluster):
-    """Distributed cv-densenet inference across head + worker: replicas spread + requests succeed."""
+def test_multinode_replica_distribution(multinode_cluster):
+    """cv-densenet replicas spread one-per-node across head + worker, and the
+    real model serves valid predictions through the multi-node deployment."""
     head = multinode_cluster["head"]
 
-    # 1. Verify replica distribution: 2 replicas on 2 distinct nodes.
+    # 1. Verify replica distribution: one replica placed on each of the two
+    #    distinct nodes (confirms the worker joined and Serve scheduled a
+    #    replica onto it, not just onto the head).
     running = _query_running_replicas(head)
     assert running is not None, "replica placement query failed (see logged stderr)"
     node_ids = {node for _, node in running}
     assert len(node_ids) == 2, f"expected replicas on 2 nodes, got {len(node_ids)} ({running})"
 
-    # 2. Send inference requests and validate structure.
+    # 2. Send real cv-densenet inference requests and validate predictions.
+    #    Repeat each image several times so requests fan out across both nodes'
+    #    replicas (not just a single call that one replica could fully serve).
     images = download_all_test_images()
     for img_name, img_data in images.items():
-        response = post_bytes(img_data, "image/jpeg")
-        LOGGER.info("cv-densenet %s response: %s", img_name, response)
-        err = validate_densenet_response(response)
-        assert not err, f"cv-densenet {img_name}: {err}"
+        for _ in range(5):
+            response = post_bytes(img_data, "image/jpeg")
+            err = validate_densenet_response(response)
+            assert not err, f"cv-densenet {img_name}: {err}"
 
         top = response["predictions"][0]
         LOGGER.info(
-            "  %s -> %s (class_id=%s, prob=%.4f)",
+            "cv-densenet %s -> %s (class_id=%s, prob=%.4f)",
             img_name,
             top["class_name"],
             top["class_id"],
