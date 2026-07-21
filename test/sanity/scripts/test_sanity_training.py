@@ -204,7 +204,6 @@ class TestOpenMPI(unittest.TestCase):
     def test_openmpi_binary_exists(self):
         self.assertTrue(os.access("/opt/amazon/openmpi/bin/mpirun", os.X_OK))
 
-    @unittest.skipIf(FRAMEWORK == "ray", "RayTrain uses EFA's bundled OpenMPI (no source build)")
     def test_openmpi_double_wrap(self):
         """`mpirun` is a wrapper that exec's `mpirun.real --allow-run-as-root`. Verify the
         wrapper-vs-real split is in place — single grep -c match means it's NOT

@@ -154,17 +154,9 @@ COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
 RUN ldconfig
 
-# EFA + OpenMPI + OFI NCCL plugin
-COPY scripts/docker/ray-train/install_efa.sh /tmp/install_efa.sh
+# EFA + OpenMPI + OFI NCCL + SSH + NCCL config (monolithic AL2023 script, shared with other frameworks)
+COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
-
-# OpenSSH (worker comms for MPI/Ray)
-COPY scripts/docker/common/configure_ssh.sh /tmp/configure_ssh.sh
-RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
-
-# NCCL config
-COPY scripts/docker/common/configure_nccl.sh /tmp/configure_nccl.sh
-RUN bash /tmp/configure_nccl.sh && rm /tmp/configure_nccl.sh
 
 # NCCL tests binary (all_reduce_perf) — pinned for reproducible builds.
 ARG NCCL_TESTS_VERSION=2.19.6
