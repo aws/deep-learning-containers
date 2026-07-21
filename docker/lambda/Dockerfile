@@ -180,7 +180,7 @@ RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /va
 COPY --from=builder-base-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
-COPY ./scripts/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
+COPY ./scripts/docker/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:$PATH" \
@@ -232,7 +232,7 @@ RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /va
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
-COPY ./scripts/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
+COPY ./scripts/docker/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:$PATH" \
@@ -291,7 +291,7 @@ COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=ffmpeg-builder /usr/local/bin/ffmpeg /usr/local/bin/ffprobe /usr/local/bin/
 COPY --from=ffmpeg-builder /usr/local/lib/libav*.so* /usr/local/lib/libsw*.so* /usr/local/lib/libpostproc.so* /usr/local/lib/
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
-COPY ./scripts/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
+COPY ./scripts/docker/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
