@@ -10,10 +10,10 @@ collectives, flash-attn and Transformer Engine for fused attention/FP8 kernels, 
 
 | Platform | Variant | Image |
 | --- | --- | --- |
-| {{ ec2_short }} / {{ eks_short }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023` |
-| {{ ec2_short }} / {{ eks_short }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.12-cpu-amzn2023` |
-| {{ sagemaker }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.12-cu130-amzn2023-sagemaker` |
-| {{ sagemaker }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.12-cpu-amzn2023-sagemaker` |
+| {{ ec2_short }} / {{ eks_short }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.13-cu133-amzn2023` |
+| {{ ec2_short }} / {{ eks_short }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.13-cpu-amzn2023` |
+| {{ sagemaker }} | GPU | `public.ecr.aws/deep-learning-containers/pytorch:2.13-cu133-amzn2023-sagemaker` |
+| {{ sagemaker }} | CPU | `public.ecr.aws/deep-learning-containers/pytorch:2.13-cpu-amzn2023-sagemaker` |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/pytorch). For private ECR URIs, see
 [Image Access](../get_started/index.md).
@@ -22,15 +22,15 @@ All images are also available on the [ECR Public Gallery](https://gallery.ecr.aw
 
 The GPU images bundle the full distributed-training stack so you can launch multi-GPU and multi-node training without building a custom image:
 
-- **PyTorch 2.12.1** with `torchvision` 0.27.1 and `torchaudio` 2.11.0 (CUDA 13.0 wheels for the GPU variant, CPU wheels for the CPU variant)
-- **CUDA 13.0.2** with cuDNN and **NCCL 2.26.2** for multi-GPU collectives
-- **[EFA](https://aws.amazon.com/hpc/efa/) 1.47.0** with **OpenMPI** and the **AWS NCCL OFI plugin** for low-latency multi-node communication on
+- **PyTorch 2.13.0** with `torchvision` 0.28.0 and `torchaudio` 2.11.0 (CUDA 13.3 wheels for the GPU variant, CPU wheels for the CPU variant)
+- **CUDA 13.3.0** with cuDNN and **NCCL 2.30.7** for multi-GPU collectives
+- **[EFA](https://aws.amazon.com/hpc/efa/) 1.49.0** with **OpenMPI** and the **AWS NCCL OFI plugin** for low-latency multi-node communication on
   EFA-capable instances
-- **[GDRCopy](https://github.com/NVIDIA/gdrcopy) 2.4.4** userspace library for direct GPU-to-NIC memory copies
+- **[GDRCopy](https://github.com/NVIDIA/gdrcopy) 2.6** userspace library for direct GPU-to-NIC memory copies
 - **[flash-attn](https://github.com/Dao-AILab/flash-attention) 2.8.3** — fused attention kernels for transformer training
-- **[Transformer Engine](https://github.com/NVIDIA/TransformerEngine) 2.12.0** — FP8/BF16 mixed-precision primitives optimized for Hopper and newer
+- **[Transformer Engine](https://github.com/NVIDIA/TransformerEngine) 2.17.0** — FP8/BF16 mixed-precision primitives optimized for Hopper and newer
   GPUs
-- **[DeepSpeed](https://www.deepspeed.ai/) 0.18.8** — ZeRO sharding, pipeline parallel, and memory-efficient optimizers
+- **[DeepSpeed](https://www.deepspeed.ai/) 0.19.2** — ZeRO sharding, pipeline parallel, and memory-efficient optimizers
 - **[FastAI](https://www.fast.ai/)**, `boto3`, `botocore`, `requests`, `PyYAML`, `GitPython`, `Mako`
 - **NCCL test utility** — `all_reduce_perf` is pre-installed at `/usr/local/bin/all_reduce_perf` for verifying EFA/NCCL connectivity before training
 - **OpenSSH** server pre-configured (port 22) for inter-node communication in MPI/`torchrun` launches
