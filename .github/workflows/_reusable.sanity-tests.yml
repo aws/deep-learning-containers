@@ -160,7 +160,8 @@ jobs:
         if: |
           needs.preflight.outputs.framework == 'pytorch_runtime' ||
           needs.preflight.outputs.framework == 'tensorflow' ||
-          needs.preflight.outputs.framework == 'xgboost'
+          needs.preflight.outputs.framework == 'xgboost' ||
+          (needs.preflight.outputs.framework == 'ray' && needs.preflight.outputs.job-type == 'training')
         run: |
           docker exec \
             -e EXPECTED_FRAMEWORK=${{ needs.preflight.outputs.framework }} \

@@ -95,7 +95,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ── Stage: builder-gdrcopy (parallel — independent of Python) ────────────────
 FROM ${BUILDER_BASE_IMAGE} AS builder-gdrcopy
 ARG GDRCOPY_VERSION
-COPY scripts/docker/ray-train/install_gdrcopy.sh /tmp/install_gdrcopy.sh
+COPY scripts/docker/common/install_gdrcopy.sh /tmp/install_gdrcopy.sh
 RUN bash /tmp/install_gdrcopy.sh ${GDRCOPY_VERSION} && rm /tmp/install_gdrcopy.sh
 
 
@@ -159,11 +159,11 @@ COPY scripts/docker/ray-train/install_efa.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
 # OpenSSH (worker comms for MPI/Ray)
-COPY scripts/docker/ray-train/configure_ssh.sh /tmp/configure_ssh.sh
+COPY scripts/docker/common/configure_ssh.sh /tmp/configure_ssh.sh
 RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
 
 # NCCL config
-COPY scripts/docker/ray-train/configure_nccl.sh /tmp/configure_nccl.sh
+COPY scripts/docker/common/configure_nccl.sh /tmp/configure_nccl.sh
 RUN bash /tmp/configure_nccl.sh && rm /tmp/configure_nccl.sh
 
 # NCCL tests binary (all_reduce_perf) — pinned for reproducible builds.

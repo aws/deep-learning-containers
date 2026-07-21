@@ -51,7 +51,7 @@ tensorflow_only = unittest.skipIf(FRAMEWORK != "tensorflow", "TF-only test")
 # (SSH cluster, MPI, entrypoint script). xgboost is a SageMaker
 # algorithm container and does not honor this contract.
 training_cluster_only = unittest.skipUnless(
-    FRAMEWORK in {"tensorflow", "pytorch_runtime"},
+    FRAMEWORK in {"tensorflow", "pytorch_runtime", "ray"},
     "training-cluster-only test (requires SSH+MPI stack; xgboost is algorithm container)",
 )
 
@@ -204,6 +204,7 @@ class TestOpenMPI(unittest.TestCase):
     def test_openmpi_binary_exists(self):
         self.assertTrue(os.access("/opt/amazon/openmpi/bin/mpirun", os.X_OK))
 
+    @unittest.skipIf(FRAMEWORK == "ray", "RayTrain uses EFA's bundled OpenMPI (no source build)")
     def test_openmpi_double_wrap(self):
         """`mpirun` is a wrapper that exec's `mpirun.real --allow-run-as-root`. Verify the
         wrapper-vs-real split is in place — single grep -c match means it's NOT
