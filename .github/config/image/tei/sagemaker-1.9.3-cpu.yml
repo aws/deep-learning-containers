@@ -5,6 +5,7 @@ image:
 metadata:
   framework: "tei"
   framework_version: "1.9.3"
+  # CPU runtime base is debian:bookworm-slim; os_version preserves the customer-facing tag suffix.
   os_version: "ubuntu24.04"
   customer_type: "sagemaker"
   platform: "sagemaker"

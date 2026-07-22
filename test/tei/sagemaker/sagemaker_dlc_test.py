@@ -13,9 +13,6 @@ logging.basicConfig(stream=sys.stdout, format="%(message)s", level=logging.INFO)
 
 MODEL_S3_PREFIX = "s3://dlc-cicd-models/tei-models"
 INFERENCE_AMI_VERSION_CU12 = "al2-ami-sagemaker-inference-gpu-3-1"
-# Models without a safetensors artifact on HF Hub; TEI's GPU Candle backend
-# needs safetensors from local disk, so we let the router download at startup.
-MODELS_WITHOUT_LOCAL_MOUNT = {"BAAI/bge-m3"}
 
 
 def model_data_uri(model_id):
@@ -32,15 +29,9 @@ def timeout_handler(signum, frame):
 
 
 def run_test(args):
-    if args.model_id in MODELS_WITHOUT_LOCAL_MOUNT:
-        default_env = {"HF_MODEL_ID": args.model_id}
-        model_data = None
-    else:
-        default_env = {"HF_MODEL_ID": "/opt/ml/model"}
-        model_data = model_data_uri(args.model_id)
+    default_env = {"HF_MODEL_ID": "/opt/ml/model"}
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
-    default_env["SM_NUM_GPUS"] = "4"
 
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(int(args.timeout))
@@ -48,15 +39,13 @@ def run_test(args):
     try:
         endpoint_name = args.model_id.replace("/", "-").replace(".", "-")[:40]
         endpoint_name = endpoint_name + "-" + time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-        model_kwargs = {
-            "name": endpoint_name,
-            "env": default_env,
-            "role": args.role,
-            "image_uri": args.image_uri,
-        }
-        if model_data is not None:
-            model_kwargs["model_data"] = model_data
-        model = HuggingFaceModel(**model_kwargs)
+        model = HuggingFaceModel(
+            name=endpoint_name,
+            env=default_env,
+            role=args.role,
+            image_uri=args.image_uri,
+            model_data=model_data_uri(args.model_id),
+        )
         deploy_parameters = {
             "instance_type": args.instance_type,
             "initial_instance_count": 1,
@@ -116,6 +105,7 @@ def should_run_test_for_image(test_type, target_type):
     ],
 )
 def test(image_type, device_type, timeout: str = "3000"):
+    # Multi-image gating preserved from upstream; TEI is currently the only image.
     test_target_image_type = "TEI"
     test_device_type = os.getenv("TEST_DEVICE_TYPE")
     if test_target_image_type and not should_run_test_for_image(image_type, test_target_image_type):
