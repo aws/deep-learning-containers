@@ -17,15 +17,9 @@ build:
   target: "whisperx-ec2-amzn2023"
   python_version: "3.12"
   cuda_version: "12.8.2"
-  torch_version: "2.8.0"
-  torchaudio_version: "2.8.0"
-  whisperx_version: "3.8.6"
-  faster_whisper_version: "1.2.1"
-  ctranslate2_version: "4.8.0"
-  pyannote_audio_version: "4.0.7"
-  fastapi_version: "0.121.0"
-  uvicorn_version: "0.40.0"
-  python_multipart_version: "0.0.30"
+  # Python dependency pins live in docker/whisperx/{pyproject.toml,uv.lock},
+  # installed via `uv sync --frozen`. framework_version (metadata) tracks the
+  # WhisperX release; bump it there and in pyproject.toml together.
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

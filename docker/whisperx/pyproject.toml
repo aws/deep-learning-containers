@@ -1,0 +1,33 @@
+[project]
+name = "dlc-whisperx"
+version = "3.8.6"
+requires-python = "==3.12.*"
+dependencies = [
+    # ASR + diarization stack
+    "ctranslate2==4.8.0",
+    "faster-whisper==1.2.1",
+    "whisperx==3.8.6",
+    "pyannote.audio==4.0.7",
+    "torch==2.8.0",
+    "torchaudio==2.8.0",
+    # HTTP serving layer
+    "fastapi==0.121.0",
+    "uvicorn[standard]==0.40.0",
+    "python-multipart==0.0.30",
+    # DLC telemetry runtime deps (deep_learning_container.py imports botocore + requests)
+    "boto3",
+    "requests",
+]
+
+# torch/torchaudio come from the PyTorch CUDA 12.8 index, not PyPI. `explicit`
+# keeps every other package on PyPI; only the mapped packages use this index.
+[tool.uv]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]
+torchaudio = [{ index = "pytorch-cu128" }]

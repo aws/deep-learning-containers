@@ -50,43 +50,19 @@ ENV VIRTUAL_ENV="/opt/venv"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=500
-ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
-ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
-ARG TORCH_VERSION
-ARG TORCHAUDIO_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
-  "torch==${TORCH_VERSION}" \
-  "torchaudio==${TORCHAUDIO_VERSION}" \
-  --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')
-
-# ASR + diarization stack. Order matters: install ctranslate2 explicitly first
-# so faster-whisper's dep resolver doesn't pull a mismatched version.
-ARG WHISPERX_VERSION
-ARG FASTER_WHISPER_VERSION
-ARG CTRANSLATE2_VERSION
-ARG PYANNOTE_AUDIO_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
-  "ctranslate2==${CTRANSLATE2_VERSION}" \
-  "faster-whisper==${FASTER_WHISPER_VERSION}" \
-  "whisperx==${WHISPERX_VERSION}" \
-  "pyannote.audio==${PYANNOTE_AUDIO_VERSION}"
-
-# HTTP layer.
-ARG FASTAPI_VERSION
-ARG UVICORN_VERSION
-ARG PYTHON_MULTIPART_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
-  "fastapi==${FASTAPI_VERSION}" \
-  "uvicorn[standard]==${UVICORN_VERSION}" \
-  "python-multipart==${PYTHON_MULTIPART_VERSION}"
-
-# ---- DLC telemetry runtime deps ----
-# The DLC telemetry script (deep_learning_container.py, run at container start via
-# bashrc) imports botocore + requests. Install into the venv so the DLC telemetry
-# CI check passes. Small deps; they do not affect the ASR stack.
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install "boto3" "requests"
+# Install the fully pinned dependency graph from the lockfile. pyproject.toml
+# maps torch/torchaudio to the PyTorch cu128 index; every other package resolves
+# from PyPI. --frozen fails the build if the lock is stale vs pyproject (the lock
+# is authoritative, so no resolution happens here). The ASR stack (ctranslate2,
+# faster-whisper, whisperx, pyannote.audio), the HTTP layer (fastapi, uvicorn,
+# python-multipart), and the DLC telemetry deps (boto3, requests) are all locked.
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+COPY docker/whisperx/pyproject.toml docker/whisperx/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project \
+  && rm -rf /tmp/deps
 
 # ---- Prune ----
 # torch cu12x wheels statically reference libnccl, libcusparseLt, and a
