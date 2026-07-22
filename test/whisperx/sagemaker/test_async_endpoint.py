@@ -18,8 +18,8 @@ and the async output live in the account default `sagemaker-<region>-<account>`
 bucket. The audio fixture is read from `dlc-cicd-models` with the test runner's own
 credentials, then re-uploaded (wrapped in a multipart body) to the sagemaker bucket.
 
-AMI pin (DESIGN decision 9): CUDA 12.8 image -> must use INFERENCE_AMI_VERSION_CU12
-(AL2, driver 550). The default CU13 AMI causes a zero-log CannotStartContainerError.
+AMI pin: CUDA 12.8 image -> must use INFERENCE_AMI_VERSION_CU12 (AL2, driver 550).
+The default CU13 AMI causes a zero-log CannotStartContainerError.
 
 Validation is smoke-level and deterministic: a successful async invocation returns
 JSON with non-empty transcription text. WhisperX output is not byte-stable.

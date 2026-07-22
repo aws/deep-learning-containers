@@ -3,28 +3,25 @@
 Like ``test_server_options.py`` these run on CPU with no container and no GPU:
 torch / whisperx / fastapi are stubbed in ``sys.modules`` before ``server.py``
 is imported (``anyio`` and ``functools`` are the real thing — ``anyio`` ships
-with fastapi/starlette). We then exercise two behaviors that are pure control
-flow and need no model:
+with fastapi/starlette). We exercise behaviors that are pure control flow and
+need no model:
 
-  * FIX B — the alignment fallback only degrades on the exceptions whisperX
-    raises for a genuinely unsupported language (ValueError / NotImplementedError
-    / KeyError). Any other error (e.g. a CUDA-OOM RuntimeError) propagates as a
-    real failure instead of a silent HTTP 200, and an explicit ``diarize=true``
-    that degrades becomes a 422 rather than a speaker-less 200.
-  * FIX A — the blocking ``_transcribe`` call is offloaded off the event loop
-    via ``anyio.to_thread.run_sync`` so long transcriptions don't starve /ping.
-
-Later review findings covered here (all GPU-free control flow):
-
-  * FINDING #1 — GPU inference is serialized via ``_INFERENCE_LIMITER``
+  * the alignment fallback only degrades on the exceptions whisperX raises for a
+    genuinely unsupported language (ValueError / NotImplementedError / KeyError).
+    Any other error (e.g. a CUDA-OOM RuntimeError) propagates as a real failure
+    instead of a silent HTTP 200, and an explicit ``diarize=true`` that degrades
+    becomes a 422 rather than a speaker-less 200.
+  * the blocking ``_transcribe`` call is offloaded off the event loop via
+    ``anyio.to_thread.run_sync`` so long transcriptions don't starve /ping.
+  * GPU inference is serialized via ``_INFERENCE_LIMITER``
     (``WHISPERX_MAX_CONCURRENT_REQUESTS``, default 1), so two concurrent
     ``_handle_transcription`` calls never run ``_transcribe`` at the same time.
-  * FINDING #3 — the returned dict's ``task`` reflects ``WHISPERX_TASK``.
-  * FINDING #4 — admission control: a full inference queue is shed with 503
-    before the body is read, and an oversized upload is rejected with 413.
-  * FINDING #5 — passive readiness: ``/ping`` reports 503 once the inference
-    path observes a fatal CUDA fault; transient OOM leaves it healthy.
-  * FINDING #6 — extension params are validated at the boundary (422).
+  * the returned dict's ``task`` reflects ``WHISPERX_TASK``.
+  * admission control: a full inference queue is shed with 503 before the body is
+    read, and an oversized upload is rejected with 413.
+  * passive readiness: ``/ping`` reports 503 once the inference path observes a
+    fatal CUDA fault; transient OOM leaves it healthy.
+  * extension params are validated at the boundary (422).
 """
 
 import asyncio
@@ -165,7 +162,7 @@ def _transcribe(server, *, want_words: bool, diarize: bool):
 
 
 # ---------------------------------------------------------------------------
-# FIX B — narrowed alignment except
+# narrowed alignment except
 # ---------------------------------------------------------------------------
 def test_alignment_runtime_error_propagates():
     """A non-degradation error (CUDA OOM) must bubble up, not become a 200."""
@@ -203,7 +200,7 @@ def test_notimplementederror_also_degrades():
 
 
 # ---------------------------------------------------------------------------
-# FIX A — offload blocking work off the event loop
+# offload blocking work off the event loop
 # ---------------------------------------------------------------------------
 class _FakeUpload:
     """One-shot upload: yields the payload once, then b"" to end the chunk loop.
@@ -262,7 +259,7 @@ def test_transcribe_runs_in_worker_thread():
 
 
 # ---------------------------------------------------------------------------
-# FIX C — cache getters dedupe concurrent loads under the worker-thread pool
+# cache getters dedupe concurrent loads under the worker-thread pool
 # ---------------------------------------------------------------------------
 def _run_concurrently(target, n=8):
     """Fire ``n`` threads at ``target`` at once; return once all have joined."""
@@ -332,7 +329,7 @@ def _handle(server, upload=None, **overrides):
 
 
 # ---------------------------------------------------------------------------
-# FINDING #2 — one model per container: the `model` field left the request path
+# one model per container: the `model` field left the request path
 # ---------------------------------------------------------------------------
 def test_model_field_removed_from_request_path():
     """`model` is gone from every request-path signature, and so is override."""
@@ -346,10 +343,10 @@ def test_model_field_removed_from_request_path():
 
 
 # ---------------------------------------------------------------------------
-# FINDING #3 — the returned dict's task reflects WHISPERX_TASK, not a literal
+# the returned dict's task reflects WHISPERX_TASK, not a literal
 # ---------------------------------------------------------------------------
 def test_transcribe_task_reflects_env(monkeypatch):
-    """WHISPERX_TASK=translate => result['task'] == 'translate' (was hardcoded)."""
+    """WHISPERX_TASK=translate => result['task'] == 'translate'."""
     monkeypatch.setenv("WHISPERX_TASK", "translate")
     server = _load_server()
     server.whisperx.load_audio = lambda path: [0.0] * 16000
@@ -472,15 +469,14 @@ def test_inference_serialized_to_capacity_one():
 
 
 # ---------------------------------------------------------------------------
-# FINDING #4 — admission control: shed a full queue (503) and cap upload (413)
+# admission control: shed a full queue (503) and cap upload (413)
 # ---------------------------------------------------------------------------
 def test_full_queue_returns_503_before_reading_body():
     """No free admission token => 503 raised BEFORE the upload is read.
 
-    Admission is now a hard BoundedSemaphore (_ADMISSION), not the old
-    observational tasks_waiting check. A fake whose non-blocking acquire always
-    fails stands in for a full queue; the handler must shed with 503 and must
-    not touch file.read at all.
+    A fake whose non-blocking acquire on the hard-capped _ADMISSION semaphore
+    always fails stands in for a full queue; the handler must shed with 503 and
+    must not touch file.read at all.
     """
     server = _load_server()
 
@@ -585,11 +581,10 @@ def test_upload_read_in_chunks():
 
 
 def test_max_queue_zero_admits_when_idle(monkeypatch):
-    """WHISPERX_MAX_QUEUE=0 must still admit one idle request (was: rejected all).
+    """WHISPERX_MAX_QUEUE=0 must still admit one idle request.
 
-    The old tasks_waiting >= MAX_QUEUE check shed every request when MAX_QUEUE=0,
-    even an idle server. With the semaphore sized to MAX_CONCURRENT + MAX_QUEUE
-    (== 1 here), a single request gets the lone token and succeeds.
+    With the semaphore sized to MAX_CONCURRENT + MAX_QUEUE (== 1 here), a single
+    request gets the lone token and succeeds.
     """
     monkeypatch.setenv("WHISPERX_MAX_QUEUE", "0")
     server = _load_server()
@@ -616,7 +611,7 @@ def test_max_concurrent_clamped_to_one(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# FINDING #5 — passive readiness health reflected by /ping
+# passive readiness health reflected by /ping
 # ---------------------------------------------------------------------------
 def test_ping_healthy_returns_200():
     server = _load_server()
@@ -673,7 +668,7 @@ def test_transient_oom_does_not_flip_health():
 
 
 # ---------------------------------------------------------------------------
-# FINDING #6 — parameter validation at the boundary (422)
+# parameter validation at the boundary (422)
 # ---------------------------------------------------------------------------
 @pytest.mark.parametrize(
     "overrides",
@@ -714,11 +709,9 @@ def test_valid_params_reach_transcribe():
 def test_align_evicts_before_loading():
     """A cold miss on a full LRU evicts BEFORE loading, so peak stays <= MAX.
 
-    The old order loaded the new aligner and then evicted, transiently holding
-    _ALIGN_LRU_MAX + 1 GPU-resident models (an OOM risk). We record the cache
-    size seen at each load_align_model call: with MAX=2, filling "a","b" then
-    loading "c" must observe [0, 1, 1] — the 3rd load sees size 1, proving an
-    eviction happened first. The cache never exceeds MAX afterward.
+    We record the cache size seen at each load_align_model call: with MAX=2,
+    filling "a","b" then loading "c" must observe [0, 1, 1] — the 3rd load sees
+    size 1, proving an eviction happened first. The cache never exceeds MAX.
     """
     server = _load_server()
     server._ALIGN_LRU_MAX = 2

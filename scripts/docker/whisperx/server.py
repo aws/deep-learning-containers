@@ -1,7 +1,5 @@
 """WhisperX FastAPI server.
 
-Design ref: workspace/whisperx-docker/DESIGN.md §5.
-
 Four routes, all served in one process:
     POST /v1/audio/transcriptions   — primary, OpenAI-compatible
     POST /invocations               — alias for SageMaker
@@ -178,21 +176,14 @@ VAD_OPTIONS = _build_vad_options()
 # ---------------------------------------------------------------------------
 # Request admission + inference concurrency
 # ---------------------------------------------------------------------------
-# Concurrency is fixed at 1: this container serves a single WhisperX model /
-# pipeline and running two transcriptions on it at once is unsafe (WhisperX's
-# FasterWhisperPipeline mutates self.options/self.tokenizer mid-call and the
-# shared diarization pipeline is not documented thread-safe), so
-# WHISPERX_MAX_CONCURRENT_REQUESTS is clamped to 1 (any other value is ignored
-# with a warning; scale out with more containers instead). _INFERENCE_LIMITER
-# serializes the in-flight transcription in the worker thread.
-#
-# Admission is a hard cap enforced by _ADMISSION, a BoundedSemaphore sized to
-# MAX_CONCURRENT_REQUESTS executing + MAX_QUEUE waiting. Each request takes a
-# non-blocking token before touching the body and releases it in finally; when
-# no token is free the request is shed with 503. This replaces the old
-# observational CapacityLimiter.statistics().tasks_waiting check, which was racy
-# and, with MAX_QUEUE=0, rejected every request even when idle. MAX_UPLOAD_BYTES
-# bounds per-request temp-file retention (upload is streamed to disk in chunks).
+# A single WhisperX model/pipeline is not concurrency-safe (FasterWhisperPipeline
+# mutates its options/tokenizer mid-call; diarization is not documented
+# thread-safe), so inference is serialized to 1: MAX_CONCURRENT_REQUESTS is clamped
+# to 1 (other values ignored with a warning) and _INFERENCE_LIMITER serializes the
+# in-flight transcription. _ADMISSION is a hard cap — a BoundedSemaphore sized to
+# executing + queue; each request takes a non-blocking token before touching the
+# body and releases it in finally, shedding 503 when none is free. MAX_UPLOAD_BYTES
+# bounds temp-file retention (upload streamed in chunks).
 _RAW_MAX_CONCURRENT = int(os.environ.get("WHISPERX_MAX_CONCURRENT_REQUESTS", "1"))
 if _RAW_MAX_CONCURRENT != 1:
     print(
@@ -208,9 +199,6 @@ MAX_UPLOAD_BYTES = int(os.environ.get("WHISPERX_MAX_UPLOAD_BYTES", str(100 * 102
 _UPLOAD_CHUNK_BYTES = 1024 * 1024  # 1 MiB stream chunk
 
 # Hard admission bound: MAX_CONCURRENT_REQUESTS executing + MAX_QUEUE waiting.
-# A non-blocking acquire before we touch the body gives a real cap (the old
-# CapacityLimiter.statistics().tasks_waiting check was observational/racy and,
-# with MAX_QUEUE=0, rejected every request even when idle). Released in finally.
 _ADMISSION_CAPACITY = MAX_CONCURRENT_REQUESTS + MAX_QUEUE
 _ADMISSION = threading.BoundedSemaphore(_ADMISSION_CAPACITY)
 
@@ -242,11 +230,10 @@ def _get_align(language: str) -> tuple[Any, dict[str, Any]]:
         if language in _ALIGN_LRU:
             _ALIGN_LRU.move_to_end(language)
             return _ALIGN_LRU[language]
-        # MISS: evict BEFORE loading. whisperx.align models are GPU-resident;
-        # loading the new one first (the old order) made peak memory hold
-        # _ALIGN_LRU_MAX + 1 models and could OOM on a full cache. Evicting
-        # first, dropping the Python ref, and emptying the CUDA caching
-        # allocator keeps the resident set bounded by _ALIGN_LRU_MAX.
+        # MISS: evict BEFORE loading. whisperx.align models are GPU-resident, so
+        # evicting first (dropping the Python ref and emptying the CUDA caching
+        # allocator) keeps the resident set bounded by _ALIGN_LRU_MAX rather than
+        # transiently holding _ALIGN_LRU_MAX + 1 and risking OOM on a full cache.
         evicted = False
         while len(_ALIGN_LRU) >= _ALIGN_LRU_MAX:
             _, old = _ALIGN_LRU.popitem(last=False)
@@ -268,9 +255,9 @@ def _get_align(language: str) -> tuple[Any, dict[str, Any]]:
 async def lifespan(_: FastAPI):
     """Load fixed models before uvicorn binds so /ping stays shallow but honest.
 
-    Design §6 decision 8: `/ping` reachable ⇒ the diarization pipeline and the
-    default Whisper model are resident. VAD uses whisperx's default (pyannote),
-    whose segmentation model ships inside the whisperx wheel.
+    `/ping` reachable ⇒ the diarization pipeline and the default Whisper model are
+    resident. VAD uses whisperx's default (pyannote), whose segmentation model
+    ships inside the whisperx wheel.
     """
     global _DIARIZE_PIPELINE, _HEALTHY
     # Warm the default Whisper model so the first request isn't a cold ~30 s

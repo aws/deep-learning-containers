@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# EC2 PID 1. Design §3: no tini, exec uvicorn directly so signals reach it.
+# EC2 PID 1. No tini: exec uvicorn directly so signals reach it.
 set -euo pipefail
 
 # DLC telemetry: fire-and-forget IMDS ping at container start. Runs here (not

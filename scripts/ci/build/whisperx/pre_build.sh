@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Pre-build hook for WhisperX.
 # Downloads the pyannote speaker-diarization weights tarball from the CI models
-# bucket into the Docker build context so the Dockerfile can COPY it in. Mirrors
-# the S3 step in the standalone whisperx-docker/scripts/build.sh. The CI runner
-# has read access to dlc-cicd-models (same account), so no AWS creds enter the
-# docker build itself.
+# bucket into the Docker build context so the Dockerfile can COPY it in. The CI
+# runner has read access to dlc-cicd-models (same account), so no AWS creds enter
+# the docker build itself.
 #
 # Usage:
 #   bash scripts/ci/build/whisperx/pre_build.sh --config-file <path>

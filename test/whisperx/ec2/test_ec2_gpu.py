@@ -213,9 +213,9 @@ def test_json_minimal(container, aws_session, tmp_path):
 def test_diarize_false_no_speakers(container, aws_session, tmp_path):
     """diarize omitted (default false) -> no `speakers` key and no per-segment speaker.
 
-    DESIGN Dim 5 / OpenAI byte-compat: without diarization the verbose_json body
-    must be indistinguishable from OpenAI's — no top-level speakers list and no
-    `speaker` field leaking onto any segment.
+    OpenAI byte-compat: without diarization the verbose_json body must be
+    indistinguishable from OpenAI's — no top-level speakers list and no `speaker`
+    field leaking onto any segment.
     """
     audio = download_fixture(aws_session, AUDIO_EN, str(tmp_path / AUDIO_EN))
 

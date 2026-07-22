@@ -17,8 +17,8 @@ the env override reached the container via two positive invocations:
 
 Kept separate from ``test_sm_endpoint.py`` so the custom-env deploy never touches
 the default endpoint. ``tiny`` also warm-loads fast, keeping deploy + health check
-quick. AMI pin (DESIGN decision 9): CUDA 12.8 image -> INFERENCE_AMI_VERSION_CU12
-(AL2, driver 550); the default CU13 AMI causes a zero-log CannotStartContainerError.
+quick. AMI pin: CUDA 12.8 image -> INFERENCE_AMI_VERSION_CU12 (AL2, driver 550);
+the default CU13 AMI causes a zero-log CannotStartContainerError.
 
 Validation is deterministic: assert served-model behavior and non-empty text, never
 an exact transcript (WhisperX output is not byte-stable).

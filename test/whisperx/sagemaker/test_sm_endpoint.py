@@ -6,8 +6,8 @@ The container is a FastAPI WhisperX server that expects `multipart/form-data` wi
 required `file` part plus optional form fields, so each request builds a multipart
 body locally and sends the raw bytes via `endpoint.invoke(body=..., content_type=...)`.
 
-AMI pin (DESIGN decision 9): WhisperX is a CUDA 12.8 GPU image, so the endpoint MUST
-run on INFERENCE_AMI_VERSION_CU12 (AL2, driver 550). The default test AMI is CU13
+AMI pin: WhisperX is a CUDA 12.8 GPU image, so the endpoint MUST run on
+INFERENCE_AMI_VERSION_CU12 (AL2, driver 550). The default test AMI is CU13
 (driver 580); using it makes the container fail to start with a zero-log
 CannotStartContainerError. Pin CU12 explicitly.
 
