@@ -440,6 +440,31 @@ def _transcribe(
         result = model.transcribe(audio, **transcribe_kwargs)
         detected_language = result.get("language", language or "")
 
+        # Whisper's translate task emits ENGLISH text, but detected_language is
+        # the SOURCE language of the audio. A source-language wav2vec2 aligner
+        # forced over the English translation produces meaningless word timings
+        # (and, since diarization assigns speakers BY word timing, wrong speakers
+        # too) with no error — a silent 200. Upstream WhisperX refuses to align
+        # in translate mode ("translation cannot be aligned", transcribe.py); we
+        # mirror that: a best-effort want_words degrades to segment-level (logged,
+        # like the unsupported-language path below), while an explicit diarize
+        # request fails loudly (422) rather than returning speaker-less output.
+        if TASK == "translate" and (want_words or diarize):
+            if diarize:
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        "diarization is not available with task=translate: the "
+                        "translated (English) output cannot be word-aligned to the "
+                        "source-language audio. Use task=transcribe for diarization."
+                    ),
+                )
+            print(
+                "WARN: word-level timestamps unavailable with task=translate "
+                "(translation cannot be aligned); returning segment-level output"
+            )
+            want_words = False
+
         # Alignment (word-level timestamps). Required if the caller asked for
         # word granularity OR diarization (word-level speaker assignment needs
         # word timing).

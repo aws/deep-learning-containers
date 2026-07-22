@@ -361,7 +361,75 @@ def test_transcribe_task_reflects_env(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# FINDING #1 — GPU inference is serialized to one at a time (default capacity 1)
+# translate mode must not word-align (mirrors upstream "translation cannot be
+# aligned"). Whisper's translate task emits ENGLISH text while detected_language
+# stays the SOURCE language, so a source-language wav2vec2 aligner forced over
+# the English translation yields silently-wrong word timings — and wrong
+# speakers, since diarization assigns speakers BY word timing. So under
+# task=translate: a best-effort want_words degrades to segment-level (no
+# alignment, no error), while an explicit diarize fails loudly with 422.
+# ---------------------------------------------------------------------------
+def _translate_server():
+    """Server pinned to task=translate with load_audio/_get_whisper stubbed and
+    whisperx.align booby-trapped so any alignment attempt fails the test."""
+    server = _load_server()
+    server.whisperx.load_audio = lambda path: [0.0] * 16000
+    server._get_whisper = lambda name: _FakeModel()
+
+    def _must_not_align(*args, **kwargs):
+        raise AssertionError("alignment ran under task=translate")
+
+    server.whisperx.align = _must_not_align
+    return server
+
+
+def test_translate_want_words_degrades_without_aligning(monkeypatch):
+    """task=translate + word granularity: skip alignment, return segments, words=None."""
+    monkeypatch.setenv("WHISPERX_TASK", "translate")
+    server = _translate_server()
+
+    result = _transcribe(server, want_words=True, diarize=False)
+    assert server.TASK == "translate"
+    assert result["words"] is None  # degraded: no word timings on a translation
+    assert result["segments"] == [{"text": "hola", "start": 0.0, "end": 1.0}]
+    assert result["speakers"] is None
+
+
+def test_translate_diarize_returns_422(monkeypatch):
+    """task=translate + diarize: a loud 422, not silently-wrong speakers.
+
+    The 422 must fire from the translate guard BEFORE the diarize-pipeline-None
+    check (which would otherwise 400 here), so asserting 422 proves ordering.
+    """
+    monkeypatch.setenv("WHISPERX_TASK", "translate")
+    server = _translate_server()
+
+    with pytest.raises(server.HTTPException) as exc_info:
+        _transcribe(server, want_words=False, diarize=True)
+    assert exc_info.value.status_code == 422
+    assert "translate" in exc_info.value.detail
+
+
+def test_transcribe_task_still_word_aligns(monkeypatch):
+    """Guard is task-scoped: task=transcribe still aligns for want_words."""
+    monkeypatch.setenv("WHISPERX_TASK", "transcribe")
+    server = _load_server()
+    server.whisperx.load_audio = lambda path: [0.0] * 16000
+    server._get_whisper = lambda name: _FakeModel()
+    aligned = {"v": False}
+
+    def _align(*args, **kwargs):
+        aligned["v"] = True
+        return {"segments": [{"text": "hola", "start": 0.0, "end": 1.0, "words": []}]}
+
+    server.whisperx.align = _align
+
+    _transcribe(server, want_words=True, diarize=False)
+    assert aligned["v"] is True  # transcribe mode is unaffected by the guard
+
+
+# ---------------------------------------------------------------------------
+# GPU inference is serialized to one at a time (default capacity 1)
 # ---------------------------------------------------------------------------
 def test_inference_serialized_to_capacity_one():
     """Two concurrent handlers must never run _transcribe at the same time.
