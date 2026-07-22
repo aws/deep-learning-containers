@@ -51,7 +51,7 @@ tensorflow_only = unittest.skipIf(FRAMEWORK != "tensorflow", "TF-only test")
 # (SSH cluster, MPI, entrypoint script). xgboost is a SageMaker
 # algorithm container and does not honor this contract.
 training_cluster_only = unittest.skipUnless(
-    FRAMEWORK in {"tensorflow", "pytorch_runtime"},
+    FRAMEWORK in {"tensorflow", "pytorch_runtime", "ray"},
     "training-cluster-only test (requires SSH+MPI stack; xgboost is algorithm container)",
 )
 

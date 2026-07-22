@@ -1,0 +1,102 @@
+name: "PR - Ray Train GPU"
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/ray-train/*-gpu.yml"
+      - ".github/workflows/ray-train.pipeline.yml"
+      - ".github/workflows/ray-train.pr-gpu.yml"
+      - "docker/ray-train/**"
+      - "scripts/ci/build/ray/**"
+      - "scripts/docker/common/**"
+      - "scripts/docker/ray-train/**"
+      - "scripts/docker/telemetry/**"
+      - "test/ray-train/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/ray/**"
+      - "test/telemetry/**"
+      - "test/efa/**"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  check-changes:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
+      single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: changes
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/ray-train/*-gpu.yml"
+              - "docker/ray-train/**"
+              - "scripts/ci/build/ray/**"
+              - "scripts/docker/common/**"
+              - "scripts/docker/ray-train/**"
+              - "test/security/data/ecr_scan_allowlist/ray/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            telemetry-test-change:
+              - "scripts/docker/telemetry/**"
+              - "test/telemetry/**"
+            unit-test-change:
+              - "test/ray-train/unit/**"
+            single-gpu-test-change:
+              - "test/ray-train/single_gpu/**"
+            efa-test-change:
+              - "test/efa/**"
+
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/ray-train/*-gpu.yml"
+
+  pipeline:
+    needs: [check-changes, discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/ray-train.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      build: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
+      run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
+      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
+      release: false
+    secrets: inherit

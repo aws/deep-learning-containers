@@ -97,3 +97,7 @@ schedules:
   - cron: "00 23 * * 2,4"
     workflow: pytorch.autorelease-2.13-sagemaker.yml
     gpu: light
+
+  - cron: "30 23 * * 2,4"
+    workflow: ray-train.autorelease-gpu.yml
+    gpu: heavy
