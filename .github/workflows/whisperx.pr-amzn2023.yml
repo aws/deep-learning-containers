@@ -11,6 +11,7 @@ on:
       - ".github/workflows/whisperx.pr-amzn2023.yml"
       - ".github/workflows/whisperx.tests-ec2.yml"
       - ".github/workflows/whisperx.tests-sagemaker.yml"
+      - ".github/workflows/whisperx.tests-unit.yml"
       - "docker/whisperx/**"
       - "scripts/docker/whisperx/**"
       - "scripts/docker/common/**"

@@ -160,9 +160,12 @@ def make_container_fixture(device, docker_run_flags=None):
             stop_container(container_id)
             pytest.fail("WhisperX server health check timed out")
 
-        yield {"container_id": container_id, "port": port}
-
-        stop_container(container_id)
+        # try/finally so `docker rm -f` always runs — a failing test body must
+        # never leak the container (port 8000 + GPU), which would block the runner.
+        try:
+            yield {"container_id": container_id, "port": port}
+        finally:
+            stop_container(container_id)
 
     return container
 

@@ -199,6 +199,14 @@ def test_notimplementederror_also_degrades():
     assert result["segments"]
 
 
+def test_keyerror_also_degrades():
+    """KeyError (missing align metadata key) is the third documented degrade trigger."""
+    server = _server_with_align_error(KeyError("language"))
+    result = _transcribe(server, want_words=True, diarize=False)
+    assert result["words"] is None
+    assert result["segments"]
+
+
 # ---------------------------------------------------------------------------
 # offload blocking work off the event loop
 # ---------------------------------------------------------------------------
@@ -704,6 +712,20 @@ def test_valid_params_reach_transcribe():
     server._transcribe = _recorder
     _handle(server, min_speakers=1, max_speakers=2, max_line_width=40, max_line_count=2)
     assert reached["v"] is True
+
+
+def test_unknown_response_format_returns_400():
+    """An unrecognized response_format is rejected at the boundary before inference."""
+    server = _load_server()
+
+    def _must_not_run(**kwargs):
+        raise AssertionError("_transcribe ran despite invalid response_format")
+
+    server._transcribe = _must_not_run
+    with pytest.raises(server.HTTPException) as exc_info:
+        _handle(server, response_format="bogus")
+    assert exc_info.value.status_code == 400
+    assert "response_format" in exc_info.value.detail
 
 
 def test_align_evicts_before_loading():

@@ -188,36 +188,49 @@ def custom_model_endpoint(aws_session, image_uri):
 
 
 def test_custom_default_model_served(custom_model_endpoint, audio_en):
-    """WHISPERX_DEFAULT_MODEL=tiny propagates through SageMaker to the container.
+    """WHISPERX_DEFAULT_MODEL=tiny endpoint serves and ignores the request `model`.
 
-    Per-request model selection was removed, so the served model can't be probed via
-    a rejected id anymore. Two positive invocations over the SageMaker /invocations
-    route prove the env override reached the running container:
+    What this proves — and what it deliberately does NOT:
 
-    1. A request with no `model` returns 200 with non-empty text — only possible if
-       `tiny` warm-loaded and is being served.
-    2. A request naming `large-v2` (the server's built-in default) is IGNORED and
-       ALSO returns 200 with non-empty text — the launched `tiny` model serves
-       regardless, demonstrating the request `model` field is a no-op.
+    SageMaker exposes only POST /invocations (no GET /v1/models), the request
+    `model` field was removed as a selector, and the response body (text/segments/
+    language/duration) is model-agnostic — nothing in it identifies which Whisper
+    model produced it. So over this surface we CANNOT prove the resident model is
+    `tiny` rather than the built-in `large-v2` from a single positive invocation;
+    the endpoint reaching InService with WHISPERX_DEFAULT_MODEL=tiny set (see the
+    fixture) is what evidences the env override propagated. Content/timing
+    assertions to distinguish the two models would be flaky (output is not
+    byte-stable) and are intentionally avoided.
+
+    This test therefore asserts the two contract properties that ARE observable
+    over /invocations, and does not overclaim which model is resident:
+
+    1. The env-configured endpoint transcribes: no `model` field -> 200 non-empty
+       text. A broken env override would fail the endpoint's startup health check
+       and it would never reach InService, so merely getting here + a real
+       transcription evidences WHISPERX_DEFAULT_MODEL propagated.
+    2. Supplying the request `model` field does not break the request: naming
+       `large-v2` still returns 200 non-empty text (the field is accepted and
+       ignored, not rejected).
     """
     endpoint = custom_model_endpoint
 
-    # (1) Served-model check: no `model` field -> the launched (tiny) model serves.
+    # (1) The env-configured endpoint serves: no `model` field -> 200 non-empty text.
     body = _invoke_transcription(endpoint, audio_en, language="en")
     text = body.get("text", "")
     assert isinstance(text, str) and text.strip(), (
-        f"Default (tiny) model returned empty text; is tiny actually served? {body!r}"
+        f"Endpoint returned empty text; did WHISPERX_DEFAULT_MODEL=tiny fail to serve? {body!r}"
     )
-    LOGGER.info(f"tiny model served; transcription text (len={len(text)}): {text[:120]!r}")
+    LOGGER.info(f"served transcription text (len={len(text)}): {text[:120]!r}")
 
-    # (2) Ignored-field check: naming `large-v2` is a no-op — the launched `tiny`
-    # model still serves and returns 200 non-empty text. With model selection
-    # removed the served id can't be probed via a rejected id, so InService plus
-    # this non-empty transcription is the proof the env var propagated.
+    # (2) Supplying `model` is accepted and ignored (not rejected): still 200
+    # non-empty text. We do NOT assert equality with (1) — WhisperX output is not
+    # byte-stable, so a strict-equality check would be flaky; and the response body
+    # carries no model id, so this surface cannot prove which model served.
     body = _invoke_transcription(endpoint, audio_en, model=NORMAL_DEFAULT_MODEL, language="en")
     text = body.get("text", "")
     assert isinstance(text, str) and text.strip(), (
-        f"Ignored `{NORMAL_DEFAULT_MODEL}` request returned empty text; "
-        f"is the launched tiny model serving regardless? {body!r}"
+        f"Supplying `{NORMAL_DEFAULT_MODEL}` broke the request (empty text); "
+        f"the model field should be accepted and ignored, not rejected: {body!r}"
     )
-    LOGGER.info(f"`{NORMAL_DEFAULT_MODEL}` ignored; tiny still served (len={len(text)})")
+    LOGGER.info(f"`{NORMAL_DEFAULT_MODEL}` accepted and ignored; still served (len={len(text)})")
