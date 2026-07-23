@@ -16,8 +16,8 @@ dependencies = [
     "sagemaker-inference==1.5.5",
     "sagemaker-training==4.8.0",
     "PyYAML==6.0.3",
-    "requests==2.33.0",
-    "setuptools>=80.9.0,<81",
+    "requests==2.34.2",
+    "setuptools>=83.0.0,<84",
     "protobuf==3.20.2",
 ]
 
