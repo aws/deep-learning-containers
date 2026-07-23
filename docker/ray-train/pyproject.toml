@@ -38,5 +38,5 @@ url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
 [tool.uv.sources]
-torch = [{ index = "pytorch-cu130" }]
-torchvision = [{ index = "pytorch-cu130" }]
+torch = [{index = "pytorch-cu130"}]
+torchvision = [{index = "pytorch-cu130"}]
