@@ -314,12 +314,18 @@ class TestPackageVersionConsistency(unittest.TestCase):
 
         Reproduces the report's failing chain: `from torchcodec.decoders import
         VideoDecoder` dlopen's libtorchcodec_core*.so, which links
-        libavutil.so.* (and siblings). The huggingface-vllm image builds FFmpeg
-        from source; if it isn't built with --enable-shared / registered with
-        ldconfig, the shared libs are absent and this raises. vLLM 0.25.1 makes
-        the import lazy, so the failure moves from container start to the first
-        actual video decode — this guards that runtime path directly.
+        libavutil.so.* (and siblings). Only images that ship an FFmpeg runtime
+        are expected to satisfy this — the huggingface-vllm image builds FFmpeg
+        from source; base vLLM / SGLang images bundle torchcodec without FFmpeg
+        and are skipped. If ffmpeg is present but not built with --enable-shared
+        / registered via ldconfig, the shared libs are absent and this raises.
+        vLLM 0.25.1 makes the import lazy, so the failure moves from container
+        start to the first actual video decode — this guards that runtime path.
         """
+        import shutil
+
+        if not shutil.which("ffmpeg"):
+            self.skipTest("image ships no ffmpeg runtime (video backend N/A)")
         try:
             import torchcodec  # noqa: F401
         except ImportError:
