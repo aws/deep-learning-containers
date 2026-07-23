@@ -17,8 +17,6 @@ EKS_CLUSTER="${EKS_CLUSTER:-dlc-shared-cluster}"
 AWS_REGION="${AWS_REGION:-us-west-2}"
 NAMESPACE="${NAMESPACE:-ray-train}"
 CLUSTER_NAME="ray-train-test"
-HEAD_NODEGROUP="${EKS_CLUSTER}-cpu-ray-train-head"
-GPU_NODEGROUP="${EKS_CLUSTER}-g6-ray-train"
 TIMEOUT_READY=600
 TIMEOUT_JOB=1800
 
@@ -29,38 +27,11 @@ cleanup() {
     kubectl delete raycluster "${CLUSTER_NAME}" -n "${NAMESPACE}" --ignore-not-found=true --timeout=120s || true
     echo "=== Cleanup: waiting for pods to terminate ==="
     kubectl wait --for=delete pod -l "ray.io/cluster=${CLUSTER_NAME}" -n "${NAMESPACE}" --timeout=180s 2>/dev/null || true
-    echo "=== Cleanup: scaling node groups to zero ==="
-    aws eks update-nodegroup-config --cluster-name "${EKS_CLUSTER}" --nodegroup-name "${HEAD_NODEGROUP}" \
-        --scaling-config minSize=0,maxSize=1,desiredSize=0 --region "${AWS_REGION}" 2>/dev/null || true
-    aws eks update-nodegroup-config --cluster-name "${EKS_CLUSTER}" --nodegroup-name "${GPU_NODEGROUP}" \
-        --scaling-config minSize=0,maxSize=2,desiredSize=0 --region "${AWS_REGION}" 2>/dev/null || true
 }
 trap cleanup EXIT
 
 echo "=== Configuring kubectl for ${EKS_CLUSTER} ==="
 aws eks update-kubeconfig --name "${EKS_CLUSTER}" --region "${AWS_REGION}"
-
-echo "=== Scaling up node groups ==="
-aws eks update-nodegroup-config --cluster-name "${EKS_CLUSTER}" --nodegroup-name "${HEAD_NODEGROUP}" \
-    --scaling-config minSize=0,maxSize=1,desiredSize=1 --region "${AWS_REGION}"
-aws eks update-nodegroup-config --cluster-name "${EKS_CLUSTER}" --nodegroup-name "${GPU_NODEGROUP}" \
-    --scaling-config minSize=0,maxSize=2,desiredSize=2 --region "${AWS_REGION}"
-
-echo "=== Waiting for nodes to join cluster ==="
-for i in $(seq 1 60); do
-    NODE_COUNT=$(kubectl get nodes -l "node-type in (cpu-ray-train-head, g6-ray-train)" --no-headers 2>/dev/null | grep -c "Ready" || echo 0)
-    if [ "${NODE_COUNT}" -ge 3 ]; then
-        echo "All 3 nodes Ready"
-        break
-    fi
-    echo "Waiting for nodes... (${NODE_COUNT}/3 ready, attempt ${i}/60)"
-    sleep 15
-done
-if [ "${NODE_COUNT}" -lt 3 ]; then
-    echo "FAIL: nodes did not become Ready within timeout"
-    kubectl get nodes -o wide
-    exit 1
-fi
 
 echo "=== Applying RayCluster manifest ==="
 envsubst '${IMAGE_URI} ${RAY_VERSION}' < "${SCRIPT_DIR}/raycluster.yml" | kubectl apply -f -
