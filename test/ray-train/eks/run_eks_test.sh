@@ -54,13 +54,14 @@ HEAD_POD=$(kubectl get pod -l "ray.io/cluster=${CLUSTER_NAME},ray.io/node-type=h
 echo "Head pod: ${HEAD_POD}"
 
 echo "=== Copying training script to head pod ==="
-kubectl cp "${SCRIPT_DIR}/scripts/fsdp_ray.py" "${NAMESPACE}/${HEAD_POD}:/tmp/fsdp_ray.py"
+kubectl exec "${HEAD_POD}" -n "${NAMESPACE}" -- mkdir -p /workspace
+kubectl cp "${SCRIPT_DIR}/scripts/fsdp_ray.py" "${NAMESPACE}/${HEAD_POD}:/workspace/fsdp_ray.py"
 
 echo "=== Submitting Ray job (timeout ${TIMEOUT_JOB}s) ==="
 JOB_OUTPUT=$(kubectl exec "${HEAD_POD}" -n "${NAMESPACE}" -- \
     timeout "${TIMEOUT_JOB}" ray job submit \
         --address http://localhost:8265 \
-        --working-dir /tmp \
+        --working-dir /workspace \
         -- python3 fsdp_ray.py 2>&1) || {
     echo "=== Job failed ==="
     echo "${JOB_OUTPUT}"
