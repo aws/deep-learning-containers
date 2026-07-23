@@ -10,12 +10,28 @@ set -euo pipefail
 # telemetry never blocks or fails startup.
 bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
 
-# If the customer mounted a model tarball, point HF_HOME at it so any pre-baked
-# Whisper / wav2vec2 caches inside the tarball are picked up. If /opt/ml/model
-# is empty (SageMaker still mounts an empty dir) fall back to the image's cache.
+# Model source resolution (mirrors the vLLM SageMaker entrypoint's ladder):
+#   1. WHISPERX_DEFAULT_MODEL already set    -> explicit override, respect it.
+#   2. /opt/ml/model populated (SageMaker    -> serve it directly. SageMaker
+#      staged the customer's ModelDataUrl        extracts ModelDataUrl here; a
+#      here)                                      customer model dir is the common
+#                                                 bring-your-own-model path.
+#   3. neither                                -> image default (large-v2 in server.py).
+#
+# For (2) we point WHISPERX_DEFAULT_MODEL at the dir itself: faster-whisper's
+# WhisperModel loads an existing directory path directly (its os.path.isdir
+# branch), so a flat model dir works without needing an HF-cache layout. HF_HOME
+# is also repointed so an HF-cache-layout tarball (or bundled aligner caches) is
+# still picked up. If /opt/ml/model is empty (SageMaker mounts an empty dir when
+# no ModelDataUrl is given) both are skipped and the image default is used.
 if [ -d /opt/ml/model ] && [ -n "$(ls -A /opt/ml/model 2>/dev/null || true)" ]; then
   export HF_HOME=/opt/ml/model
-  echo "INFO: /opt/ml/model is populated; using it as HF_HOME"
+  if [ -z "${WHISPERX_DEFAULT_MODEL:-}" ]; then
+    export WHISPERX_DEFAULT_MODEL=/opt/ml/model
+    echo "INFO: /opt/ml/model is populated; serving it (WHISPERX_DEFAULT_MODEL=/opt/ml/model)"
+  else
+    echo "INFO: /opt/ml/model populated but WHISPERX_DEFAULT_MODEL=${WHISPERX_DEFAULT_MODEL} is set; respecting override"
+  fi
 fi
 
 # Activate CUDA forward-compat if the host driver is older than the baked CUDA
