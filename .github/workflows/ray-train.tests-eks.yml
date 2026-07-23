@@ -63,7 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Configure AWS credentials
+      - name: ECR login
         uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}

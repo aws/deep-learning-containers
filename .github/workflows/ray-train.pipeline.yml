@@ -45,7 +45,7 @@ on:
         description: "Run multi-node EFA/NCCL test (2x EFA GPU instances)"
         required: false
         type: boolean
-        default: false
+        default: true
       run-eks-test:
         description: "Run multi-node EKS integration test (KubeRay BERT FSDP)"
         required: false
