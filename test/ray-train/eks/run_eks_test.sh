@@ -71,9 +71,28 @@ JOB_OUTPUT=$(kubectl exec "${HEAD_POD}" -n "${NAMESPACE}" -- \
 echo "${JOB_OUTPUT}"
 
 echo "=== Validating results ==="
-if echo "${JOB_OUTPUT}" | grep -q "EKS_TEST_RESULT: SUCCESS"; then
-    echo "PASS: EKS integration test completed successfully"
+FAILED=false
+
+if ! echo "${JOB_OUTPUT}" | grep -q "EKS_TEST_RESULT: SUCCESS"; then
+    echo "FAIL: SUCCESS marker not found"
+    FAILED=true
+fi
+
+if echo "${JOB_OUTPUT}" | grep -q "nranks 8"; then
+    echo "PASS: multi-node confirmed (nranks=8)"
 else
-    echo "FAIL: EKS_TEST_RESULT: SUCCESS not found in job output"
+    echo "FAIL: nranks 8 not found in NCCL logs"
+    FAILED=true
+fi
+
+if echo "${JOB_OUTPUT}" | grep -q "NET/OFI.*Libfabric\|Selected provider is efa"; then
+    echo "PASS: EFA/OFI provider engaged"
+else
+    echo "FAIL: EFA/Libfabric not found in NCCL logs"
+    FAILED=true
+fi
+
+if [ "${FAILED}" = "true" ]; then
     exit 1
 fi
+echo "PASS: EKS integration test completed successfully"
