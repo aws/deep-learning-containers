@@ -108,5 +108,10 @@
         "vulnerability_id": "CVE-2026-24747",
         "reason": "false positive: torch 2.9.1 is referenced only in a stray text file (dist-packages/benchmarks/requirements.txt) shipped by the upstream vllm-openai base, not an installed package; the image's installed torch is 2.11.0, which already contains the 2.10.0 weights_only unpickler fix",
         "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "GHSA-hrxh-6v49-42gf",
+        "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
     }
 ]
