@@ -34,7 +34,7 @@ _activate_cuda_forward_compat() {
   # Max driver the compat build speaks, parsed from e.g.
   # libcuda.so.1 -> libcuda.so.570.211.01  =>  570.211.01
   local compat_max
-  compat_max="$(readlink "$compat_file" | cut -d'.' -f3-)"
+  compat_max="$(readlink "$compat_file" 2>/dev/null | cut -d'.' -f3- || true)"
   [ -n "$compat_max" ] || return 0
 
   # Host driver: prefer /proc (present iff a GPU + kernel module exist), then
@@ -49,7 +49,7 @@ _activate_cuda_forward_compat() {
   # Activate compat ONLY when host_drv < compat_max (strict). If the host driver
   # is >= the compat build, the host driver is already sufficient — leave it.
   local lowest
-  lowest="$(printf '%s\n%s\n' "$host_drv" "$compat_max" | sort -V | head -n1)"
+  lowest="$(printf '%s\n%s\n' "$host_drv" "$compat_max" | sort -V | head -n1 || true)"
   if [ "$host_drv" = "$lowest" ] && [ "$host_drv" != "$compat_max" ]; then
     export LD_LIBRARY_PATH="/usr/local/cuda/compat:${LD_LIBRARY_PATH:-}"
     echo "INFO: host NVIDIA driver ${host_drv} < CUDA compat ${compat_max}; activated forward-compat libcuda (/usr/local/cuda/compat)"

@@ -347,6 +347,18 @@ def test_handle_transcription_vtt_highlight_forces_alignment():
     assert recorded["want_words"] is True
 
 
+def test_handle_transcription_srt_max_line_count_forces_alignment():
+    """srt + max_line_count alone forces want_words=True (each knob is a trigger).
+
+    Guards the third subtitle knob: if knob-detection dropped max_line_count, a
+    request setting only it would silently skip alignment and still pass.
+    """
+    server = _load_server()
+    recorded, resp = _run_handle(server, response_format="srt", max_line_count=2)
+    assert recorded["want_words"] is True
+    assert resp.content == _SRT_SENTINEL  # routed through the WhisperX writer
+
+
 def test_handle_transcription_srt_no_knob_does_not_force_alignment():
     """srt with no knob leaves want_words as derived (False here)."""
     server = _load_server()
