@@ -24,12 +24,19 @@ dependencies = [
     # mistune>=3.3.0   — CVE-2026-59922 + CVE-2026-49851 (HIGH,
     #                    quadratic-work DoS in markdown parser; transitive via
     #                    notebook / sagemaker-studio-analytics-extension)
+    # GitPython>=3.1.52 — GHSA-956x-8gvw-wg5v + GHSA-v396-v7q4-x2qj + GHSA-2f96-g7mh-g2hx
+    #                    (3.1.51) and GHSA-rwj8-pgh3-r573 (3.1.52) — argument-injection
+    #                    and clone-URL command-injection in Git.polish_url path
+    # pyasn1>=0.6.4    — CVE-2026-59885 + CVE-2026-59886 (HIGH, quadratic-time
+    #                    decoding + big-integer exponentiation DoS)
     "PyJWT>=2.13.0",
     "cryptography>=48.0.1",
     "starlette>=1.3.1",
     "tornado>=6.5.6",
     "soupsieve>=2.8.4",
     "mistune>=3.3.0",
+    "GitPython>=3.1.52",
+    "pyasn1>=0.6.4",
     # TF compat pins
     "numpy>=2.1,<2.5",
     "requests",
