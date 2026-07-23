@@ -1,9 +1,9 @@
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.25.0-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.25.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
 
 ARG FRAMEWORK=huggingface-vllm
-ARG FRAMEWORK_VERSION=0.25.0
+ARG FRAMEWORK_VERSION=0.25.1
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 
@@ -90,6 +90,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     --disable-debug \
     --disable-doc \
     --enable-gpl \
+    --enable-shared \
     --enable-libmp3lame \
     --enable-libopus \
     --enable-libvorbis \
@@ -98,6 +99,8 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     --enable-libx265 \
   && make -j"$(nproc)" \
   && make install \
+  && echo /usr/local/lib >/etc/ld.so.conf.d/ffmpeg-local.conf \
+  && ldconfig \
   && which ffmpeg \
   && ffmpeg -version \
   && ffprobe -version \

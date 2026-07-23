@@ -283,6 +283,59 @@ class TestPackageVersionConsistency(unittest.TestCase):
             f"Framework version {actual} doesn't match expected {expected_mm}",
         )
 
+    def test_server_entrypoint_imports(self):
+        """vLLM server entrypoint module must import cleanly.
+
+        Startup guard: the vLLM process imports this module under supervisord,
+        so anything that throws here crash-loops the container and fails the
+        /ping health check. vLLM 0.25.1 defers the torchcodec import to runtime
+        (PR vllm-project/vllm#47888), so this no longer catches a missing FFmpeg
+        runtime by itself — test_torchcodec_video_backend_loads covers that. It
+        still catches any import-time regression (e.g. a future re-eager import).
+        """
+        try:
+            import vllm  # noqa: F401
+        except ImportError:
+            self.skipTest("vllm not installed (sglang image)")
+        result = subprocess.run(
+            [sys.executable, "-c", "import vllm.entrypoints.openai.api_server"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"Importing vLLM server entrypoint failed:\n{result.stderr}",
+        )
+
+    def test_torchcodec_video_backend_loads(self):
+        """torchcodec's video backend must load its FFmpeg-backed native lib.
+
+        Reproduces the report's failing chain: `from torchcodec.decoders import
+        VideoDecoder` dlopen's libtorchcodec_core*.so, which links
+        libavutil.so.* (and siblings). The huggingface-vllm image builds FFmpeg
+        from source; if it isn't built with --enable-shared / registered with
+        ldconfig, the shared libs are absent and this raises. vLLM 0.25.1 makes
+        the import lazy, so the failure moves from container start to the first
+        actual video decode — this guards that runtime path directly.
+        """
+        try:
+            import torchcodec  # noqa: F401
+        except ImportError:
+            self.skipTest("torchcodec not installed")
+        result = subprocess.run(
+            [sys.executable, "-c", "from torchcodec.decoders import VideoDecoder"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"torchcodec failed to load its FFmpeg runtime:\n{result.stderr}",
+        )
+
     def test_python_version(self):
         """Python major.minor should match the declared version."""
         expected = os.environ.get("EXPECTED_PYTHON_VERSION", "")
