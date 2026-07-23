@@ -52,7 +52,7 @@ jobs:
         run: |
           echo "framework-version=$(yq '.metadata.framework_version' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
 
-  eks-bert-fsdp:
+  eks-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
     runs-on:
