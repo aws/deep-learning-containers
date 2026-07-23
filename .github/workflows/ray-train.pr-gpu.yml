@@ -18,6 +18,7 @@ on:
       - "test/security/data/ecr_scan_allowlist/ray/**"
       - "test/telemetry/**"
       - "test/efa/**"
+      - "test/ray-train/eks/**"
       - "!docs/**"
 
 permissions:
@@ -44,6 +45,7 @@ jobs:
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
       single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
       efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
+      eks-test-change: ${{ steps.changes.outputs.eks-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -68,6 +70,8 @@ jobs:
               - "test/ray-train/single_gpu/**"
             efa-test-change:
               - "test/efa/**"
+            eks-test-change:
+              - "test/ray-train/eks/**"
 
   discover:
     needs: [gatekeeper]
@@ -98,5 +102,6 @@ jobs:
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
+      run-eks-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.eks-test-change == 'true' }}
       release: false
     secrets: inherit

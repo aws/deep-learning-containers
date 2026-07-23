@@ -46,6 +46,11 @@ on:
         required: false
         type: boolean
         default: false
+      run-eks-test:
+        description: "Run multi-node EKS integration test (KubeRay BERT FSDP)"
+        required: false
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -156,6 +161,18 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  # Multi-node EKS test (KubeRay RayCluster, BERT FSDP, 8 GPU across 2 nodes).
+  eks-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-eks-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-eks-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/ray-train.tests-eks.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   release-gate:
     if: >-
       github.ref == 'refs/heads/main' &&
@@ -164,7 +181,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, efa-test]
+    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, efa-test, eks-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}

@@ -1,0 +1,84 @@
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: ray-train-test
+  namespace: ray-train
+spec:
+  rayVersion: "${RAY_VERSION}"
+  headGroupSpec:
+    rayStartParams:
+      dashboard-host: "0.0.0.0"
+      num-gpus: "0"
+    template:
+      spec:
+        nodeSelector:
+          node-type: cpu-ray-train-head
+        tolerations:
+          - key: ray.io/head-node
+            operator: Equal
+            value: "true"
+            effect: NoSchedule
+        containers:
+          - name: ray-head
+            image: "${IMAGE_URI}"
+            imagePullPolicy: Always
+            env:
+              - { name: NVIDIA_VISIBLE_DEVICES, value: "void" }
+            ports:
+              - { containerPort: 6379, name: gcs-server }
+              - { containerPort: 8265, name: dashboard }
+              - { containerPort: 10001, name: client }
+            resources:
+              limits:   { cpu: "4", memory: 16Gi }
+              requests: { cpu: "4", memory: 16Gi }
+            volumeMounts:
+              - { name: fsx-storage, mountPath: /fsx }
+              - { name: ray-logs, mountPath: /tmp/ray }
+            lifecycle:
+              preStop: { exec: { command: ["/bin/sh", "-c", "ray stop"] } }
+        volumes:
+          - { name: ray-logs, emptyDir: {} }
+          - name: fsx-storage
+            persistentVolumeClaim:
+              claimName: fsx-lustre-pvc
+  workerGroupSpecs:
+    - groupName: gpu-workers
+      replicas: 2
+      minReplicas: 2
+      maxReplicas: 2
+      rayStartParams:
+        num-gpus: "4"
+      template:
+        spec:
+          nodeSelector:
+            node-type: g6-ray-train
+          tolerations:
+            - key: nvidia.com/gpu
+              operator: Equal
+              value: "true"
+              effect: NoSchedule
+            - key: aws.amazon.com/efa
+              operator: Equal
+              value: "true"
+              effect: NoSchedule
+          containers:
+            - name: ray-worker
+              image: "${IMAGE_URI}"
+              imagePullPolicy: Always
+              env:
+                - { name: NCCL_DEBUG, value: "INFO" }
+                - { name: FI_PROVIDER, value: "efa" }
+                - { name: NCCL_SOCKET_IFNAME, value: "eth0" }
+              resources:
+                limits:   { nvidia.com/gpu: "4", vpc.amazonaws.com/efa: "1", cpu: "40", memory: 160Gi }
+                requests: { nvidia.com/gpu: "4", vpc.amazonaws.com/efa: "1", cpu: "40", memory: 160Gi }
+              volumeMounts:
+                - { name: fsx-storage, mountPath: /fsx }
+                - { name: ray-logs, mountPath: /tmp/ray }
+              lifecycle:
+                preStop: { exec: { command: ["/bin/sh", "-c", "ray stop"] } }
+          volumes:
+            - { name: ray-logs, emptyDir: {} }
+            - name: fsx-storage
+              persistentVolumeClaim:
+                claimName: fsx-lustre-pvc
