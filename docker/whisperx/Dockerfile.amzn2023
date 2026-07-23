@@ -1,0 +1,270 @@
+# =============================================================================
+# WhisperX DLC image — AL2023, CUDA 12.8, Python 3.12
+#
+# Two BuildKit targets, one Dockerfile:
+#   whisperx-ec2-amzn2023        (docker buildx build --target whisperx-ec2-amzn2023 …)
+#   whisperx-sagemaker-amzn2023  (docker buildx build --target whisperx-sagemaker-amzn2023 …)
+#
+# Multi-stage layout (design §7):
+#   builder  — CUDA-runtime base, installs everything into /opt/venv, prunes.
+#   runtime  — CUDA-base image (no /usr/local/cuda/targets), copies venv +
+#              models across. Final image is ~4 GB smaller than a single-stage
+#              build on the runtime base.
+#
+# In DLC CI the build-image action passes these as --build-args from the image
+# config. For a standalone build the caller sources versions.env, e.g.:
+#   set -a; . versions.env; set +a
+#   docker buildx build --build-arg CUDA_VERSION --build-arg PYTHON_VERSION …
+# =============================================================================
+ARG CUDA_VERSION=12.8.2
+ARG PYTHON_VERSION=3.12
+
+# =============================================================================
+# STAGE: builder — installs everything into /opt/venv on the CUDA runtime
+# base. The runtime base is needed here because pip-installing torch cu12x
+# probes the base's CUDA installation during resolution; the final image
+# uses the smaller -base- variant.
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+
+# System packages the *build* needs. Split into "needed at runtime too" and
+# "builder only" — we don't try to install them here selectively; runtime
+# stage installs its own subset.
+# No CVE patch here: this stage's OS layer is discarded (only /opt/venv +
+# /opt/models cross into runtime), so patching it would add build time without
+# affecting any shipped image.
+RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
+  && dnf install -y spal-release \
+  && dnf install -y --setopt=install_weak_deps=False \
+    python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+    tar gzip git ca-certificates \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+ENV UV_HTTP_TIMEOUT=500
+ENV UV_LINK_MODE=copy
+
+# Install the fully pinned dependency graph from the lockfile. pyproject.toml
+# maps torch/torchaudio to the PyTorch cu128 index; every other package resolves
+# from PyPI. --frozen fails the build if the lock is stale vs pyproject (the lock
+# is authoritative, so no resolution happens here). The ASR stack (ctranslate2,
+# faster-whisper, whisperx, pyannote.audio), the HTTP layer (fastapi, uvicorn,
+# python-multipart), and the DLC telemetry deps (boto3, requests) are all locked.
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+COPY docker/whisperx/pyproject.toml docker/whisperx/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project \
+  && rm -rf /tmp/deps
+
+# ---- Prune ----
+# torch cu12x wheels statically reference libnccl, libcusparseLt, and a
+# handful of other nvidia/* libs at import time (`from torch._C import *`).
+# Uninstalling them post-install breaks `import torch`. We tried and it
+# fails with "libcusparseLt.so.0: cannot open shared object file". Do NOT
+# add nvidia/* packages to the uninstall list without proving torch still
+# imports afterwards.
+#
+# Drop __pycache__ (rebuilt lazily at first import; PYTHONDONTWRITEBYTECODE
+# prevents new ones) and strip debug symbols from every .so in site-packages.
+# strip only removes debug info; runtime symbols stay. Saves ~500 MB.
+#
+# NOTE: triton (~540 MB) is torch's torch.compile JIT backend. Nothing in the
+# current WhisperX stack calls torch.compile, so it's dead weight today — but
+# we deliberately KEEP it: torch increasingly enables compile paths by default,
+# and a future version could reach for it at *runtime* (failing only at compute,
+# not import). 540 MB isn't worth that latent break. Revisit only if image size
+# becomes a hard constraint AND a smoke test proves the compile path is unused.
+RUN find /opt/venv -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null; \
+    find /opt/venv -type f \( -name '*.so' -o -name '*.so.*' \) \
+      -exec strip --strip-unneeded {} + 2>/dev/null; \
+    true
+
+# ---- Model cache dirs ----
+# HF_HOME / TORCH_HOME are where Whisper + per-language wav2vec2 aligners cache
+# lazily at runtime (design Dim 2: too many languages to bake). TORCH_HOME is
+# also where whisperx's default (pyannote) VAD resolves torch.hub._get_torch_home().
+# The default pyannote VAD segmentation model ships inside the whisperx wheel
+# (whisperx/assets/pytorch_model.bin, loaded from a local file — no network), so
+# no VAD model is baked here. Silero VAD is not used: whisperx 3.8.6 defaults to
+# vad_method="pyannote" and server.py never selects silero, so we avoid its
+# torch.hub GitHub download (rate-limit-prone at build and runtime).
+ENV HF_HOME=/opt/models/hf
+ENV TORCH_HOME=/opt/models/torch
+RUN mkdir -p ${HF_HOME} ${TORCH_HOME}
+
+# pyannote diarization weights: pre-downloaded from S3 by scripts/build.sh into
+# the build context, extracted here into a fixed path. No HF token, no network
+# at build. The tarball never reaches the final image: only /opt/models and
+# /opt/venv cross into the runtime stage (this builder stage is discarded).
+COPY docker/whisperx/pyannote-diarization.tar.gz /tmp/pyannote-diarization.tar.gz
+RUN mkdir -p /opt/models/pyannote/speaker-diarization-community-1 \
+  && tar xzf /tmp/pyannote-diarization.tar.gz \
+    -C /opt/models/pyannote/speaker-diarization-community-1 \
+  && rm /tmp/pyannote-diarization.tar.gz
+
+# =============================================================================
+# STAGE: runtime — small final image on the CUDA -base- variant.
+# The -base- image ships libcuda stub + NVIDIA container hooks but NOT the
+# full CUDA userspace (/usr/local/cuda/targets/*). Torch's cu128 wheel
+# bundles the CUDA libs it needs under torch/lib/, so LD_LIBRARY_PATH is
+# pointed there. Saves ~2.4 GB vs the -runtime- base.
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-base-amzn2023 AS runtime
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+
+# Runtime system packages only:
+#   python3.12         — needed to run the venv
+#   ffmpeg-free        — audio decode (used by whisperx.load_audio → subprocess)
+#   espeak-ng          — phoneme fallback for wav2vec2 aligner
+#   jack-audio-...     — ffmpeg-free is linked against libjack.so.0
+#   ca-certificates    — needed for HF cache misses over HTTPS
+# Notice: no python-devel/pip, no gcc, no git — build-only.
+# Runtime OS packages. `system-release` floats the AL2023 release forward (also
+# needed for the spal-release repo, which supplies ffmpeg-free + espeak-ng).
+# The CVE --security sweep is NOT here: this layer's inputs are stable, so CI's
+# layer cache would hit it forever and never re-patch. Instead the sweep lives
+# in the ec2/sagemaker leaf stages behind CACHE_REFRESH (see below), so a
+# rebuild re-patches without busting the expensive torch/model layers.
+RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
+  && dnf install -y spal-release \
+  && dnf install -y --setopt=install_weak_deps=False \
+    python${PYTHON_VERSION} \
+    ffmpeg-free espeak-ng jack-audio-connection-kit \
+    ca-certificates \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# Bring across the venv (pruned, stripped) and baked models.
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /opt/models /opt/models
+
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+ENV HF_HOME=/opt/models/hf
+ENV TORCH_HOME=/opt/models/torch
+
+# No explicit LD_LIBRARY_PATH for torch's CUDA libs. Torch's cu12x wheels bake
+# an $ORIGIN-relative RPATH into libtorch_cuda.so (and the nvidia/* libs use
+# $ORIGIN too), so cudart/cublas/cudnn/cufft/cusolver/cusparse/nvrtc/nvjitlink —
+# including the lazily-dlopen'd cuDNN engine sublibs — all resolve from inside
+# the venv with no env help. Verified: `ldd` on every CUDA .so reports zero
+# "not found" with LD_LIBRARY_PATH at only the base default, and
+# torch.backends.cudnn.version() (which forces a real dlopen) resolves.
+# The inherited base value (/usr/local/nvidia/lib{,64}) is left intact for the
+# NVIDIA driver libs injected at `docker run --gpus` time.
+# If a future torch wheel drops its RPATH, restore an explicit path here.
+
+# ---- Server code ----
+COPY scripts/docker/whisperx/server.py /opt/whisperx/server.py
+
+# ---- CUDA forward-compat activation (sourced by both entrypoints) ----
+# Activates /usr/local/cuda/compat when the host NVIDIA driver is older than the
+# baked cu128 libs need (e.g. SageMaker ml.g4dn). No-op on new-driver / CPU
+# hosts. Without this, old-driver GPU hosts fail to start with a zero-log
+# CannotStartContainerError.
+COPY scripts/docker/whisperx/cuda_compat.sh /opt/whisperx/cuda_compat.sh
+RUN chmod +x /opt/whisperx/cuda_compat.sh
+
+# ---- Third-party attribution (CC-BY-4.0 for pyannote diarization weights) ----
+COPY docker/whisperx/NOTICE /NOTICE
+
+# ---- DLC telemetry + OSS compliance (required by DLC sanity & telemetry CI) ----
+# FRAMEWORK / FRAMEWORK_VERSION / CONTAINER_TYPE are injected automatically by the
+# DLC build-image action from the image config metadata. DLC_CONTAINER_TYPE must
+# equal metadata.job_type (inference). The venv is on PATH, so `python` resolves to
+# /opt/venv/bin/python (where boto3/requests were installed above).
+ENV DLC_CONTAINER_TYPE=inference
+COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE=inference
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash setup_oss_compliance.sh python \
+  && rm setup_oss_compliance.sh \
+  && rm -rf /root/oss_compliance* /tmp/tmp*
+
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  PYTHONPATH=/opt/whisperx
+
+WORKDIR /opt/whisperx
+
+# =============================================================================
+# TARGET: whisperx-ec2-amzn2023
+# =============================================================================
+FROM runtime AS whisperx-ec2-amzn2023
+
+# ---- OS CVE patch (cache-bustable) ----
+# Drives open AL2023 security advisories to zero in the shipped image. Placed in
+# the leaf stage (not runtime) on purpose: CI relies on the layer cache, and
+# runtime's dnf layer has stable inputs so it would cache-hit forever and never
+# re-patch. Gating this layer on CACHE_REFRESH lets CI pass
+# `--build-arg CACHE_REFRESH=<date/commit>` to force a fresh re-patch every
+# rebuild — re-applying advisories published since the cached layer — WITHOUT
+# busting the expensive torch/model layers below in runtime. Default 0 keeps
+# local builds cache-friendly. Runs on the base system python (dnf's own 3.9);
+# it never touches /opt/venv, so no python symlink fixup is needed.
+ARG CACHE_REFRESH=0
+RUN echo "CVE patch refresh token: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever=latest --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+LABEL com.amazon.dlc.variant="whisperx-ec2-amzn2023"
+EXPOSE 8000
+
+COPY scripts/docker/whisperx/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# =============================================================================
+# TARGET: whisperx-sagemaker-amzn2023
+# =============================================================================
+FROM runtime AS whisperx-sagemaker-amzn2023
+
+# ---- OS CVE patch (cache-bustable) ---- (see ec2 target above for rationale)
+ARG CACHE_REFRESH=0
+RUN echo "CVE patch refresh token: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever=latest --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+LABEL com.amazon.dlc.variant="whisperx-sagemaker-amzn2023"
+EXPOSE 8080
+
+COPY scripts/docker/whisperx/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

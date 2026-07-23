@@ -1,0 +1,45 @@
+name: Reusable WhisperX Unit Tests
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Unused (unit tests are image-independent); kept for signature parity."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  unit-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install pytest anyio
+
+      - name: Run WhisperX unit tests (CPU-only, image-independent)
+        run: |
+          source .venv/bin/activate
+          cd test/
+          # --noconftest: skip the root test/conftest.py, which imports boto3/fabric
+          # (heavy AWS deps) that these image-independent tests don't need or install.
+          python3 -m pytest -v --tb=short -rA --noconftest \
+            whisperx/test_server_options.py \
+            whisperx/test_transcribe_behavior.py \
+            whisperx/test_subtitle_format.py \
+            whisperx/test_sagemaker_entrypoint_model_resolution.py
