@@ -1,0 +1,225 @@
+# ============================================================================
+# TensorFlow Serving 2.20 Inference DLC — Amazon Linux 2023 (CPU)
+# Multi-stage build:
+#   builder-base ──┬── builder-oss   (OSS license generation — isolated)
+#                  └── builder-njs   (compile nginx + njs dynamic module)
+#   runtime-base ──── sagemaker      (SageMaker inference, MME-capable)
+#
+# All version defaults mirror docker/tensorflow/inference/2.20/versions-cpu.env.
+# Workflows source versions-cpu.env and pass ARGs via --build-arg — single
+# source of truth.
+#
+# Same structure as Dockerfile.cuda; deltas:
+#   - amazonlinux:2023 base (no CUDA).
+#   - tensorflow/serving:${TF_SERVING_VERSION}-devel (no -gpu) for binary copy.
+#   - tensorflow-serving-api (no -gpu suffix) installed via --no-deps.
+# ============================================================================
+
+# ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+ARG PYTHON_VERSION=3.12
+ARG TF_SERVING_VERSION=2.20.0
+ARG TFS_SHORT_VERSION=2.20
+ARG NGINX_VERSION=1.30.2
+ARG NJS_VERSION=0.9.9
+
+
+# ── Stage: build_image (TFS upstream binary source) ──────────────────────────
+FROM tensorflow/serving:${TF_SERVING_VERSION}-devel AS build_image
+
+
+# ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────
+FROM amazonlinux:2023 AS builder-base
+ARG PYTHON_VERSION
+
+RUN dnf install -y --allowerasing \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  gcc gcc-c++ make cmake git openssl-devel ninja-build \
+  tar xz curl wget \
+  && dnf clean all
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+COPY docker/tensorflow/inference/2.20/cpu/pyproject.toml docker/tensorflow/inference/2.20/cpu/uv.lock /tmp/build/
+WORKDIR /tmp/build
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact
+
+
+# ── Stage: builder-oss (generates license files in isolation) ───────────────
+FROM amazonlinux:2023 AS builder-oss
+ARG PYTHON_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=builder-base /opt/venv /opt/venv
+COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+
+# ── Stage: builder-njs (compile nginx + njs dynamic module from source) ─────
+# Output: /out/modules/ngx_http_js_module.so
+# Identical to the cuda variant's builder-njs — njs build is CPU-only and
+# produces an architecture-matched .so that loads into the AL2023 nginx.
+FROM amazonlinux:2023 AS builder-njs
+ARG NGINX_VERSION
+ARG NJS_VERSION
+
+RUN dnf install -y --allowerasing \
+  gcc gcc-c++ make \
+  pcre-devel pcre2-devel zlib-devel openssl-devel libxml2-devel libxslt-devel \
+  curl tar gzip xz \
+  && dnf clean all
+
+WORKDIR /tmp/njs-build
+
+RUN curl -fsSLO "https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" \
+  && tar xzf nginx-${NGINX_VERSION}.tar.gz \
+  && curl -fsSL "https://github.com/nginx/njs/archive/refs/tags/${NJS_VERSION}.tar.gz" -o njs-${NJS_VERSION}.tar.gz \
+  && tar xzf njs-${NJS_VERSION}.tar.gz
+
+RUN cd nginx-${NGINX_VERSION} \
+  && ./configure \
+    --with-compat \
+    --add-dynamic-module=/tmp/njs-build/njs-${NJS_VERSION}/nginx \
+  && make -j$(nproc) modules \
+  && mkdir -p /out/modules \
+  && cp objs/ngx_http_js_module.so /out/modules/
+
+
+# ── Stage: runtime-base (shared base for output stages) ─────────────────────
+FROM amazonlinux:2023 AS runtime-base
+ARG PYTHON_VERSION
+ARG TF_SERVING_VERSION
+ARG TFS_SHORT_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+
+# Labels live on runtime-base so all output stages inherit them.
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+LABEL framework="tensorflow"
+LABEL framework_version="${TF_SERVING_VERSION}"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=inference \
+  MODEL_BASE_PATH=/models \
+  MODEL_NAME=model
+
+# Runtime system deps via dnf — equivalent of master TF 2.19 CPU apt-get block.
+RUN dnf install -y --allowerasing \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
+  nginx \
+  gcc gcc-c++ make git \
+  tar gzip xz which findutils util-linux \
+  libpng-devel freetype-devel zlib-devel \
+  openssl unzip jq curl wget \
+  && dnf clean all
+
+# Copy venv from builder-base
+COPY --from=builder-base /opt/venv /opt/venv
+
+# Copy njs dynamic modules
+COPY --from=builder-njs /out/modules/ngx_http_js_module.so /usr/lib64/nginx/modules/
+
+# TF Serving binary
+COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/local/bin/tensorflow_model_server
+
+# python symlink — some TF tooling expects /usr/local/bin/python.
+RUN ln -sf $(which python${PYTHON_VERSION}) /usr/local/bin/python \
+  && ln -sf $(which pip3) /usr/local/bin/pip
+
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+
+# Models dir
+RUN mkdir -p ${MODEL_BASE_PATH}
+
+# License file (S3 bucket pre-provisioned for tensorflow-2.20)
+RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TFS_SHORT_VERSION}/license.txt" \
+ || echo "tensorflow-${TFS_SHORT_VERSION}/license.txt not yet provisioned in aws-dlc-licenses bucket; placeholder emitted" >/license.txt
+
+WORKDIR /
+
+
+# ── Stage: sagemaker (SageMaker inference output, MME-capable) ──────────────
+FROM runtime-base AS sagemaker
+ARG TF_SERVING_VERSION
+ARG TFS_SHORT_VERSION
+ARG PYTHON_VERSION
+
+# SageMaker inference labels — accept-bind-to-port allows pipeline use of
+# SAGEMAKER_BIND_TO_PORT; multi-models=true enables MME loading.
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
+
+ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
+ENV PATH="$PATH:/sagemaker"
+
+# SageMaker BYOC paths
+RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
+
+# tensorflow-serving-api — installed inline with --no-deps; see locked
+# decision Q1 in cpu/pyproject.toml header.
+RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api==${TF_SERVING_VERSION}" 2>/dev/null \
+  || /opt/venv/bin/pip install --no-deps --no-cache-dir "tensorflow-serving-api==${TF_SERVING_VERSION}"
+
+# SageMaker handler artifacts (TFS toolkit ported in Phase 3 from master TF 2.19
+# build_artifacts/sagemaker/: serve/serve.py, python_service.py, tfs_utils.py,
+# multi_model_utils.py, tensorflowServing.js, nginx.conf.template).
+COPY scripts/tensorflow/inference/sagemaker /sagemaker
+
+# Telemetry
+COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK="tensorflow"
+ARG CONTAINER_TYPE="inference"
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TF_SERVING_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template
+
+# Security patch — run after all installers so every OS package is covered.
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf upgrade -y libcurl libcurl-minimal --refresh \
+  && dnf clean all
+
+# Telemetry bashrc hook — MUST be after `dnf upgrade --security`.
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+
+# OSS compliance
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# SM entrypoint — start_cuda_compat.sh is a safe no-op on CPU (the compat .so
+# does not exist), so we ship it for uniformity with the GPU image's entrypoint
+# contract. PR #6107 training Dockerfile.cpu makes the same simplification.
+COPY scripts/tensorflow/inference/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY scripts/tensorflow/inference/tf_serving_entrypoint.sh /usr/local/bin/tf_serving_entrypoint.sh
+COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh \
+  /usr/local/bin/tf_serving_entrypoint.sh \
+  /usr/local/bin/start_cuda_compat.sh
+
+RUN rm -rf /tmp/* /root/.cache
+
+# Expose ports — TF Serving native gRPC (8500) and REST (8501).
+EXPOSE 8500 8501
+
+ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
+CMD ["/usr/local/bin/tf_serving_entrypoint.sh"]
