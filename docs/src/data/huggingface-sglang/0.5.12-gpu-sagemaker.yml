@@ -1,0 +1,11 @@
+framework: SGLang
+version: "0.5.12"
+accelerator: gpu
+python: py312
+cuda: cu130
+transformers: "5.8.1"
+os: ubuntu24.04
+platform: sagemaker
+
+tags:
+  - "0.5.12-transformers5.8.1-gpu-py312-cu130-ubuntu24.04"
