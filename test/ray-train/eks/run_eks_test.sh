@@ -16,11 +16,11 @@ set -euo pipefail
 EKS_CLUSTER="${EKS_CLUSTER:-dlc-shared-cluster}"
 AWS_REGION="${AWS_REGION:-us-west-2}"
 NAMESPACE="${NAMESPACE:-ray-train}"
-CLUSTER_NAME="ray-train-test"
 TIMEOUT_READY=600
 TIMEOUT_JOB=1800
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLUSTER_NAME=$(yq '.metadata.name' "${SCRIPT_DIR}/raycluster.yml")
 
 cleanup() {
     echo "=== Cleanup: deleting RayCluster ${CLUSTER_NAME} ==="
