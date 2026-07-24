@@ -113,5 +113,15 @@
         "vulnerability_id": "GHSA-hrxh-6v49-42gf",
         "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
         "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46600",
+        "reason": "golang.org/x/net v0.48.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56852",
+        "reason": "golang.org/x/text v0.32.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
+        "review_by": "2026-08-30"
     }
 ]
