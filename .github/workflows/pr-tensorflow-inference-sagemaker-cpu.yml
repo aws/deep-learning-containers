@@ -180,7 +180,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup buildkitd
-        run: .github/scripts/buildkitd.sh
+        run: bash .github/actions/build-image/buildkitd.sh
 
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
