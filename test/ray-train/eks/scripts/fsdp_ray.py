@@ -152,10 +152,11 @@ def main():
     metrics = result.metrics
 
     # --- Assertions ---
-    # (a) Loss decreased across epochs
+    # Loss decreased: compare first and last reported train_loss across epochs.
+    # metrics_dataframe has one row per report (per epoch); use the 'epoch' column.
     df = result.metrics_dataframe
-    first_loss = df["train_loss"].iloc[0]
-    last_loss = df["train_loss"].iloc[-1]
+    first_loss = df.loc[df["epoch"] == df["epoch"].min(), "train_loss"].iloc[0]
+    last_loss = df.loc[df["epoch"] == df["epoch"].max(), "train_loss"].iloc[0]
     assert last_loss < first_loss, f"Loss did not decrease: {first_loss} -> {last_loss}"
 
     print(f"EKS_TEST_RESULT: train_loss={last_loss:.4f} (from {first_loss:.4f})")
