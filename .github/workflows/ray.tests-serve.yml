@@ -125,7 +125,7 @@ jobs:
           cd test/
           python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
-            ray/ec2/test_ec2_cpu.py
+            ray/ec2/test_ec2_cpu.py ray/ec2/test_multinode.py
 
       - name: Clean stale ray temp files
         if: always()
