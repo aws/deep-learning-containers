@@ -1,0 +1,14 @@
+framework: vLLM
+version: "0.24.0"
+accelerator: gpu
+python: py312
+cuda: cu130
+os: ubuntu22.04
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "0.24.0-gpu-py312-cu130-ubuntu22.04-sagemaker"
+  - "0.24-gpu-py312-cu130-ubuntu22.04-sagemaker-v1"
+  - "0.24.0-gpu-py312"
+  - "0.24-gpu-py312"

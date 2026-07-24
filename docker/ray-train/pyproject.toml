@@ -1,0 +1,42 @@
+[project]
+name = "dlc-ray-train"
+version = "2.56.0"
+requires-python = "==3.13.*"
+dependencies = [
+    # ray[default] ships the dashboard + job-submission server that KubeRay's
+    # health probes (/api/gcs_healthz, /api/local_raylet_healthz) and `ray job
+    # submit` depend on — without it the head runs in "minimal mode" and job
+    # submission fails. It does NOT pull in ray[serve], so this stays training-scoped.
+    "ray[default,train,tune,data]==2.56.0",
+    "torch==2.13.0",
+    "torchvision==0.28.0",
+    "pytorch-lightning>=2.5.0",
+    "deepspeed>=0.18.0",
+    "transformers>=4.46.0",
+    "datasets>=3.0.0",
+    "accelerate>=1.0.0",
+    "evaluate>=0.4.0",
+    "torchmetrics>=1.5.0",
+    "scikit-learn>=1.5.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "pyyaml>=6.0.2",
+    "boto3>=1.35.0",
+    "awscli>=1.35.0",
+    "pip>=25.0",
+    # TODO(ray-train): evaluate adding peft/trl for LoRA / RLHF fine-tuning use
+    # cases (larger image + CVE surface — deferred from v1).
+    # NOTE: torchaudio is intentionally omitted — no cu130 wheel past 2.11.0, and
+    # audio is not part of the core distributed-training use case.
+]
+
+[tool.uv]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu130" }]
+torchvision = [{ index = "pytorch-cu130" }]

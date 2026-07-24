@@ -94,8 +94,8 @@ assert len(embeddings) == 2, f"Expected 2 embeddings, got {len(embeddings)}"
 dim = len(embeddings[0])
 print(f"  Embedding dimension: {dim}")
 assert dim > 0, "Embedding dimension is 0"
-# Qwen3-Embedding-0.6B: 1024, Qwen3-VL-Embedding-2B: 2048
-assert dim in (1024, 2048, 768, 512, 256), f"Unexpected dimension: {dim}"
+# Qwen3-Embedding-0.6B: 1024, Qwen3-VL-Embedding-2B: 2048, langcache-embed-v3-small: 384
+assert dim in (1024, 2048, 768, 512, 384, 256), f"Unexpected dimension: {dim}"
 print(f"  PASS: Generated {len(embeddings)} embeddings of dim {dim}")
 
 # --- Test 2: Cosine similarity ordering ---
@@ -146,8 +146,9 @@ sim_with = cosine_sim(embs[0], embs[2])
 sim_without = cosine_sim(embs[1], embs[2])
 print(f"  With instruction: {sim_with:.4f}")
 print(f"  Without instruction: {sim_without:.4f}")
-# Both should produce reasonable similarity; instruction may or may not improve
-assert sim_with > 0.3, f"Instruction-aware similarity too low: {sim_with:.4f}"
+# Both should produce reasonable similarity; instruction may or may not improve.
+# Non-instruction-aware models (e.g. MiniLM-based) may score lower with prefixed text.
+assert sim_with > 0.2, f"Instruction-aware similarity too low: {sim_with:.4f}"
 print(f"  PASS: Instruction-aware embedding works")
 
 print(f"\n=== All tests passed for {model_name} ===")

@@ -1,0 +1,39 @@
+name: "Auto Release - Ray Train GPU"
+
+on:
+  schedule:
+    - cron: '30 23 * * 2,4'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/ray-train/*-gpu.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/ray-train.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: ${{ github.run_id }}
+      run-efa-test: true
+      release: true
+    secrets: inherit

@@ -1,0 +1,224 @@
+# Lambda pipeline — builds one Lambda image variant, runs tests, optionally releases.
+# Lambda uses a single Dockerfile with multiple --target stages (one per variant).
+
+name: "Pipeline - Lambda"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      tag-suffix:
+        description: "CI tag suffix (run_id or pr-NUMBER)"
+        required: true
+        type: string
+      build:
+        description: "Whether to build the image (false = skip build, test against prod)"
+        required: false
+        type: boolean
+        default: true
+      run-sanity-test:
+        description: "Run sanity tests"
+        required: false
+        type: boolean
+        default: true
+      run-security-test:
+        description: "Run security tests"
+        required: false
+        type: boolean
+        default: true
+      run-telemetry-test:
+        description: "Run telemetry tests"
+        required: false
+        type: boolean
+        default: true
+      run-validation-test:
+        description: "Run GPU validation tests"
+        required: false
+        type: boolean
+        default: true
+      release:
+        description: "Run release job after tests pass"
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      image-uri:
+        description: "Built image URI (empty if build was skipped)"
+        value: ${{ jobs.build.outputs.image-uri }}
+
+jobs:
+  build:
+    if: ${{ inputs.build }}
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    timeout-minutes: 120
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: build
+        uses: ./.github/actions/build-image
+        with:
+          config-file: ${{ inputs.config-file }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-suffix: ${{ inputs.tag-suffix }}
+
+  sanity-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.sanity-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  security-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.security-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  telemetry-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.telemetry-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  # GPU validation — Lambda-specific pytest suite run inside the container
+  validation-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-validation-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-validation-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ needs.build.outputs.image-uri || '' }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: ECR login
+        if: steps.check.outputs.exists == 'true'
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Parse validation tests
+        if: steps.check.outputs.exists == 'true'
+        id: config
+        run: |
+          CONFIG_FILE="${{ inputs.config-file }}"
+          # Read tests.validation as a space-separated list of paths
+          TESTS=$(yq -r '.tests.validation[]' "$CONFIG_FILE" | tr '\n' ' ')
+          echo "tests=${TESTS}" >> $GITHUB_OUTPUT
+
+      - name: Run GPU validation tests
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          docker run --rm --gpus all --entrypoint python \
+            -v $(pwd)/test/lambda:/test \
+            ${{ steps.image.outputs.image-uri }} \
+            -m pytest ${{ steps.config.outputs.tests }} -v
+
+      - name: Skip notice
+        if: steps.check.outputs.exists != 'true'
+        run: echo "Image not found in ECR — skipping tests (first release scenario)"
+
+  release-gate:
+    if: >-
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/lambda') &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release &&
+      !failure() && !cancelled() &&
+      needs.build.result == 'success'
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test]
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      release-spec: ${{ steps.spec.outputs.release-spec }}
+      environment: ${{ steps.check.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: check
+        run: |
+          SHOULD_RELEASE=$(yq '.release.release' "${{ inputs.config-file }}")
+          ENVIRONMENT=$(yq '.release.environment' "${{ inputs.config-file }}")
+          echo "should-release=${SHOULD_RELEASE}" >> $GITHUB_OUTPUT
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+      - id: spec
+        if: steps.check.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-file: ${{ inputs.config-file }}
+
+  release:
+    if: ${{ !failure() && !cancelled() && needs.release-gate.outputs.should-release == 'true' }}
+    needs: [build, release-gate]
+    uses: ./.github/workflows/_reusable.release-image.yml
+    with:
+      source-image-uri: ${{ needs.build.outputs.image-uri }}
+      release-spec: ${{ needs.release-gate.outputs.release-spec }}
+      environment: ${{ needs.release-gate.outputs.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+    secrets: inherit
+
+  notify-failure:
+    # Notify Slack immediately when an auto-release/dispatch-release run fails.
+    # Guarded on release context so PR runs never notify.
+    if: >-
+      failure() &&
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, release-gate, release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/notify-slack-failure
+        with:
+          webhook-url: ${{ secrets.SLACK_RELEASE_FAILURE_WEBHOOK_URL }}
+          workflow-name: ${{ github.workflow }}
+          config-file: ${{ inputs.config-file }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

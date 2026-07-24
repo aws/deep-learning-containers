@@ -17,15 +17,16 @@ test/xgboost/
 Runs the XGBoost container locally via docker-py. The container is mounted with
 `/opt/ml/` directory structures and exercised directly — no SageMaker jobs are created.
 
-| File                      | What it tests                                                                                                                                                |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `test_training.py`        | Algorithm-mode training: libsvm/csv, single/multi-file, weights, HPO metrics, objectives, verbosity, checkpoint/reload, distributed, invalid hyperparameters |
-| `test_scoring.py`         | Inference: csv/libsvm/protobuf payloads, execution parameters, 20 MB payload, content type validation                                                        |
-| `test_batch_transform.py` | Batch transform with `SAGEMAKER_BATCH=True`                                                                                                                  |
+| File                      | What it tests                                                                                                                                                                                 |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `test_training.py`        | Algorithm-mode training: libsvm/csv, single/multi-file, weights, HPO metrics, objectives, verbosity, checkpoint/reload, distributed, invalid hyperparameters                                  |
+| `test_scoring.py`         | Inference: csv/libsvm/protobuf payloads, execution parameters, 20 MB payload, content type validation                                                                                         |
+| `test_batch_transform.py` | Batch transform with `SAGEMAKER_BATCH=True`                                                                                                                                                   |
+| `test_longevity.py`       | Resource-impact longevity: serving container under sustained `/invocations` load, sampling memory/CPU via `docker stats`; asserts no memory leak, bounded peak usage, and liveness after load |
 
 Supporting files:
 
-- `container_helper.py` — `run_training()` and `ServingContainer` context manager
+- `container_helper.py` — `run_training()` and `ServingContainer` context manager (with `stats()` for resource sampling)
 - `generate_models.py` — generates XGBoost 3.0.5-compatible inference models
 
 ### Tier 2: E2E Tests (`e2e/`)

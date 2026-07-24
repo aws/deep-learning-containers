@@ -1,0 +1,12 @@
+# Table Configuration - HuggingFace Llama.cpp
+columns:
+  - field: framework_version
+    header: "Framework"
+  - field: cuda
+    header: "CUDA"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: example_url
+    header: "Example URL"

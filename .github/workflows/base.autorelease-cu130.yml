@@ -1,0 +1,38 @@
+name: "Auto Release - Base cu130"
+
+on:
+  schedule:
+    - cron: '30 22 * * 1,3'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/base/cu130-*.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/base.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit

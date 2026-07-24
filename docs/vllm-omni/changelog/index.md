@@ -4,6 +4,27 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 * * *
 
+## v1.4.0 — 2026-07-02
+
+**Tags:** `omni-cuda-v1.4` · `omni-sagemaker-cuda-v1.4`
+
+**vLLM-Omni source:** [v0.21.0rc1](https://github.com/vllm-project/vllm-omni/releases/tag/v0.21.0rc1) (unchanged from v1.3)
+
+**DLC PR:** [#6298](https://github.com/aws/deep-learning-containers/pull/6298)
+
+### Changes
+
+- **SageMaker `/v1/videos` and `/v1/videos/sync` now accept `application/json` again.** The routing middleware restores JSON→multipart conversion for
+  the form-data video routes, so clients can send a plain JSON body instead of hand-building multipart. The existing `multipart/form-data` path is
+  unchanged (byte-for-byte passthrough), so callers already sending multipart need no changes.
+
+### Notes
+
+- No framework bump — still tracks vLLM-Omni 0.21.0rc1 (upstream vLLM v0.21.0). This is a DLC-minor release (v1.3 → v1.4) scoped to the SageMaker
+  video-route change above.
+
+* * *
+
 ## v1.3.0 — 2026-05-21
 
 **Tags:** `omni-cuda-v1.3` · `omni-sagemaker-cuda-v1.3`

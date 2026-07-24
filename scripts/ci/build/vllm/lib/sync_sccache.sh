@@ -1,0 +1,1 @@
+../../vllm_server/lib/sync_sccache.sh

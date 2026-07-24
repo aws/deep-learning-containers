@@ -1,0 +1,84 @@
+name: "PR - OpenFold3 AL2023"
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/openfold3/*.yml"
+      - ".github/workflows/openfold3.pipeline.yml"
+      - ".github/workflows/openfold3.pr-amzn2023.yml"
+      - ".github/workflows/openfold3.tests-sagemaker.yml"
+      - "docker/openfold3/Dockerfile"
+      - "scripts/docker/common/**"
+      - "scripts/docker/openfold3/**"
+      - "test/sanity/**"
+      - "test/openfold3/sagemaker/**"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  check-changes:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: changes
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/openfold3/*.yml"
+              - "docker/openfold3/Dockerfile"
+              - "scripts/docker/common/**"
+              - "scripts/docker/openfold3/**"
+            sanity-test-change:
+              - "test/sanity/**"
+            sagemaker-test-change:
+              - "test/openfold3/sagemaker/**"
+
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/openfold3/*.yml"
+
+  pipeline:
+    needs: [check-changes, discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/openfold3.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      build: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
+      release: false
+    secrets: inherit

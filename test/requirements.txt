@@ -1,4 +1,5 @@
 boto3
 botocore
 fabric
+packaging
 pytest

@@ -1,0 +1,141 @@
+name: "Pipeline - Base"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      tag-suffix:
+        description: "CI tag suffix (run_id or pr-NUMBER)"
+        required: true
+        type: string
+      build:
+        description: "Whether to build the image (false = skip build, test against prod)"
+        required: false
+        type: boolean
+        default: true
+      run-sanity-test:
+        description: "Run sanity tests"
+        required: false
+        type: boolean
+        default: true
+      run-security-test:
+        description: "Run security tests"
+        required: false
+        type: boolean
+        default: false
+      release:
+        description: "Run release job after tests pass"
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      image-uri:
+        description: "Built image URI (empty if build was skipped)"
+        value: ${{ jobs.build.outputs.image-uri }}
+
+jobs:
+  build:
+    if: ${{ inputs.build }}
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    timeout-minutes: 720
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: build
+        uses: ./.github/actions/build-image
+        with:
+          config-file: ${{ inputs.config-file }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-suffix: ${{ inputs.tag-suffix }}
+
+  sanity-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.sanity-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  security-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.security-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  release-gate:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release &&
+      !failure() && !cancelled() &&
+      needs.build.result == 'success'
+    needs: [build, sanity-test, security-test]
+    runs-on: ubuntu-latest
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      release-spec: ${{ steps.spec.outputs.release-spec }}
+      environment: ${{ steps.check.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: check
+        run: |
+          SHOULD_RELEASE=$(yq '.release.release' "${{ inputs.config-file }}")
+          ENVIRONMENT=$(yq '.release.environment' "${{ inputs.config-file }}")
+          echo "should-release=${SHOULD_RELEASE}" >> $GITHUB_OUTPUT
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+      - id: spec
+        if: steps.check.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-file: ${{ inputs.config-file }}
+
+  release:
+    if: ${{ !failure() && !cancelled() && needs.release-gate.outputs.should-release == 'true' }}
+    needs: [build, release-gate]
+    uses: ./.github/workflows/_reusable.release-image.yml
+    with:
+      source-image-uri: ${{ needs.build.outputs.image-uri }}
+      release-spec: ${{ needs.release-gate.outputs.release-spec }}
+      environment: ${{ needs.release-gate.outputs.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+    secrets: inherit
+
+  notify-failure:
+    # Notify Slack immediately when an auto-release/dispatch-release run fails.
+    # Guarded on release context so PR runs never notify.
+    if: >-
+      failure() &&
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release
+    needs: [build, sanity-test, security-test, release-gate, release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/notify-slack-failure
+        with:
+          webhook-url: ${{ secrets.SLACK_RELEASE_FAILURE_WEBHOOK_URL }}
+          workflow-name: ${{ github.workflow }}
+          config-file: ${{ inputs.config-file }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

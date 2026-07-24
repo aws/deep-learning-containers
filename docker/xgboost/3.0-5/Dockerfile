@@ -92,7 +92,7 @@ RUN apt-key del 7fa2af80 \
   | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
   && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
   | tee /etc/apt/sources.list.d/nodesource.list \
-  && apt-get update && apt-get install -y nodejs && npm install -g npm@latest \
+  && apt-get update && apt-get install -y nodejs && npm install -g npm@11 \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Miniforge (conda-forge by default, no Anaconda license required)
@@ -174,9 +174,9 @@ ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
 
 # Telemetry
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
@@ -206,7 +206,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Security patches — Python packages
-RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2" "idna>=3.7" "setuptools>=80.9.0,<81"
+RUN python3 -m pip install --no-cache-dir "protobuf>=3.20.0,<=3.20.3" "fonttools>=4.60.2" "idna>=3.15" "setuptools>=80.9.0,<81"
 
 # Patch collections.Mapping deprecation in sagemaker-containers
 RUN sed -i 's/collections\.Mapping/collections.abc.Mapping/g' \
@@ -235,6 +235,9 @@ RUN mkdir -p /opt/ml/models && chmod +rwx /opt/ml/models
 RUN mkdir -p /etc/dask
 COPY docker/xgboost/resources/dask_configs.yaml /etc/dask/
 
+# Drop temp dirs left by pip/smdebug installs (sanity check requires clean /tmp)
+RUN rm -rf /tmp/tmp* /tmp/pip-*
+
 # Labels
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -249,5 +252,12 @@ ENV SM_INPUT=/opt/ml/input \
   SAGEMAKER_TRAINING_MODULE=sagemaker_xgboost_container.training:main \
   SAGEMAKER_SERVING_MODULE=sagemaker_xgboost_container.serving:main \
   TEMP=/home/model-server/tmp
+
+# Security refresh — bust cache to pull latest patches
+ARG CACHE_REFRESH
+RUN apt-get update && apt-get upgrade -y \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+# Pin to the requirements.txt version; the integ test asserts the exact pin.
+RUN python3 -m pip install --no-cache-dir cryptography==48.0.1
 
 EXPOSE 8080

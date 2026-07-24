@@ -1,0 +1,44 @@
+name: 'Resolve Image URI'
+description: 'Resolve the image URI to use for testing. Uses provided URI if given, otherwise derives prod URI from config.'
+
+inputs:
+  image-uri:
+    description: 'Explicit image URI (from build output). If empty, derives prod URI from config.'
+    required: false
+    default: ''
+  config-file:
+    description: 'Path to image config YAML (used to derive prod URI when image-uri is empty)'
+    required: true
+  ci-aws-account-id:
+    description: 'CI AWS account ID'
+    required: true
+  prod-aws-account-id:
+    description: 'Prod AWS account ID'
+    required: true
+  aws-region:
+    description: 'AWS region'
+    required: true
+
+outputs:
+  image-uri:
+    description: 'Resolved image URI'
+    value: ${{ steps.resolve.outputs.image-uri }}
+  aws-account-id:
+    description: 'AWS account ID for the resolved image (CI or prod)'
+    value: ${{ steps.resolve.outputs.aws-account-id }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Resolve image URI
+      id: resolve
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.image-uri }}" ]]; then
+          echo "image-uri=${{ inputs.image-uri }}" >> $GITHUB_OUTPUT
+          echo "aws-account-id=${{ inputs.ci-aws-account-id }}" >> $GITHUB_OUTPUT
+        else
+          PROD_IMAGE=$(yq '.metadata.prod_image' "${{ inputs.config-file }}")
+          echo "image-uri=${{ inputs.prod-aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${PROD_IMAGE}" >> $GITHUB_OUTPUT
+          echo "aws-account-id=${{ inputs.prod-aws-account-id }}" >> $GITHUB_OUTPUT
+        fi

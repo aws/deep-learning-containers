@@ -43,7 +43,12 @@ SIDE_CHANNEL_PORT=5559
 KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_connector_extra_config":{"backends":["LIBFABRIC"],"kv_load_failure_policy":"fail"}}'
 
 # Side-channel host: needs to be the IP that the worker can reach this box on.
-SIDE_CHANNEL_HOST=$(ip -4 -o addr show scope global | awk '{print $4}' | cut -d/ -f1 | head -1)
+# The AL2023 runtime image ships no iproute2 (`ip`), so resolve the primary
+# private IP via the kernel routing table using a UDP socket — connect() on a
+# datagram socket sends no packets, it just selects the source address for the
+# default route. Python is always present in the vLLM image.
+SIDE_CHANNEL_HOST=$(python3 -c 'import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.connect(("8.8.8.8", 80)); print(s.getsockname()[0]); s.close()')
+[[ -n "${SIDE_CHANNEL_HOST}" ]] || { echo "could not resolve side-channel host IP" >&2; exit 1; }
 
 # Block size must match across P and D for remote_block_ids to map correctly;
 # upstream's NIXL accuracy test pins this to 128 (OPT's default is 16, which

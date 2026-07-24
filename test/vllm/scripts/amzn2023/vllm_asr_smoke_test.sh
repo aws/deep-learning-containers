@@ -39,11 +39,8 @@ echo "=== Model directory: ${MODEL_DIR} ==="
 echo "=== Test fixtures ==="
 ls -lh "${FIXTURES_DIR}"
 
-if [ -f "${MODEL_DIR}/requirements.txt" ]; then
-  echo "=== Installing model dependencies ==="
-  cat "${MODEL_DIR}/requirements.txt"
-  pip install --no-cache-dir -r "${MODEL_DIR}/requirements.txt"
-fi
+# Audio deps (mistral_common[audio], av, scipy, soundfile) ship in the image, so
+# no model-root requirements.txt install is needed.
 
 echo "=== Starting vLLM server ==="
 # shellcheck disable=SC2086

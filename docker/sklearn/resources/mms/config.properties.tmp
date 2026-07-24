@@ -1,0 +1,12 @@
+model_store=$$SAGEMAKER_MMS_MODEL_STORE$$
+load_models=$$SAGEMAKER_MMS_LOAD_MODELS$$
+plugins_path=/tmp/plugins
+inference_address=http://0.0.0.0:$$SAGEMAKER_BIND_TO_PORT$$
+management_address=http://0.0.0.0:$$SAGEMAKER_BIND_TO_PORT$$
+default_workers_per_model=$$SAGEMAKER_NUM_MODEL_WORKERS$$
+max_request_size=$$SAGEMAKER_MAX_REQUEST_SIZE$$
+decode_input_request=false
+default_service_handler=$$SAGEMAKER_MMS_DEFAULT_HANDLER$$
+job_queue_size=$$SAGEMAKER_MODEL_JOB_QUEUE_SIZE$$
+preload_model=true
+

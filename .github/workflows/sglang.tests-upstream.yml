@@ -1,0 +1,116 @@
+name: Reusable SGLang Upstream Tests
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      sglang-ref: ${{ steps.parse.outputs.sglang-ref }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Parse config
+        if: steps.check.outputs.exists == 'true'
+        id: parse
+        run: |
+          CONFIG_FILE="${{ inputs.config-file }}"
+          echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "sglang-ref=$(yq '.build.sglang_ref // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+
+  srt-backend-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Checkout SGLang tests
+        uses: actions/checkout@v6
+        with:
+          repository: sgl-project/sglang
+          ref: ${{ needs.preflight.outputs.sglang-ref != '' && needs.preflight.outputs.sglang-ref || format('v{0}', needs.preflight.outputs.framework-version) }}
+          path: sglang_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ./sglang_source:/workdir --workdir /workdir \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.preflight.outputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+
+      - name: Setup for SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            pip install --break-system-packages \
+              pytest tabulate parameterized scipy
+          '
+
+      - name: Run SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            nvidia-smi
+
+            export PYTHONPATH=/workdir/python:${PYTHONPATH:-}
+
+            # Workaround: sglang v0.5.12 has an incomplete suite rename
+            case "${{ needs.preflight.outputs.framework-version }}" in 0.5.12*)
+              rm -f /workdir/test/registered/radix_cache/test_unified_radix_cache_kl_hicache.py
+            ;;
+            esac
+
+            cd /workdir/test
+            export SGLANG_TIMEOUT=600
+            python3 run_suite.py --hw cuda --suite stage-a-test-1
+          '

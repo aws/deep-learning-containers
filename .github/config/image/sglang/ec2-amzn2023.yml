@@ -1,0 +1,41 @@
+image:
+  name: "sglang-ec2-amzn2023"
+  description: "SGLang for EC2 instances (AL2023, built from source)"
+
+metadata:
+  framework: "sglang_server"
+  framework_version: "0.5.14+dlc1"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  prod_image: "sglang:server-cuda-v1"
+
+build:
+  dockerfile: "docker/sglang/Dockerfile.amzn2023"
+  target: "sglang-ec2"
+  python_version: "3.12"
+  cuda_version: "13.0.3"
+  sglang_ref: "bc8b3ab1f55c60951b586d84d4aec773a6f654df"
+  sglang_kernel_version: "0.4.4"
+  flashinfer_version: "0.6.12"
+  deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
+  mooncake_version: "0.3.11.post1"
+  torch_version: "2.11.0"
+  nccl_version: "2.30.4"
+  cudnn_version: "9.16.0.29"
+  efa_version: "1.49.0"
+  rust_version: "1.96.1"
+  gdrcopy_version: "2.6"
+  torch_cuda_arch_list: "9.0;10.0;10.3"
+  dlc_major_version: "1"
+  dlc_minor_version: "2"
+
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"

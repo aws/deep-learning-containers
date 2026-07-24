@@ -26,8 +26,12 @@ SIDE_CHANNEL_PORT=5659
 KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both","kv_connector_extra_config":{"backends":["LIBFABRIC"],"kv_load_failure_policy":"fail"}}'
 
 # Side-channel host must be reachable from the prefill node (cross-host pull).
-# Default to the first non-loopback IPv4 address on this box.
-SIDE_CHANNEL_HOST=$(ip -4 -o addr show scope global | awk '{print $4}' | cut -d/ -f1 | head -1)
+# The AL2023 runtime image ships no iproute2 (`ip`), so resolve the primary
+# private IP via the kernel routing table using a UDP socket — connect() on a
+# datagram socket sends no packets, it just selects the source address for the
+# default route. Python is always present in the vLLM image.
+SIDE_CHANNEL_HOST=$(python3 -c 'import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.connect(("8.8.8.8", 80)); print(s.getsockname()[0]); s.close()')
+[[ -n "${SIDE_CHANNEL_HOST}" ]] || { echo "could not resolve side-channel host IP" >&2; exit 1; }
 
 # Block size must match prefill (see nixl_disagg_pd.sh).
 BLOCK_SIZE=128

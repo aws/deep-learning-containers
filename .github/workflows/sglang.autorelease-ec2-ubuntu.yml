@@ -1,0 +1,53 @@
+name: "Auto Release - SGLang EC2 Ubuntu"
+
+on:
+  schedule:
+    - cron: '00 20 * * 2,4'
+  # Trigger when an auto-update PR is merged
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Gate: skip push events unless it's a merged auto-update PR for sglang
+  autocurrency-pr-gate:
+    if: >-
+      github.event_name != 'push' || (
+        contains(github.event.head_commit.message, '[Auto-Update] sglang') &&
+        github.event.head_commit.author.name == 'aws-deep-learning-containers-ci[bot]'
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Gate passed"
+
+  discover:
+    needs: [autocurrency-pr-gate]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/sglang/ec2-ubuntu.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/sglang.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit

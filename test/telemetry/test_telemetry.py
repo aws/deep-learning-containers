@@ -12,7 +12,7 @@ instance and modify host-level state (iptables rules, IMDS hop limit, instance t
 that would conflict under parallel execution.
 
 Usage:
-    PYTHONPATH=$(pwd)/test:$(pwd)/scripts/telemetry:$PYTHONPATH \
+    PYTHONPATH=$(pwd)/test:$(pwd)/scripts/docker/telemetry:$PYTHONPATH \
         pytest test/telemetry/test_telemetry.py -v \
         --image-uri <uri> --framework <fw> --framework-version <ver> \
         --container-type <type> \

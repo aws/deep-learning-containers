@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.13
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.15
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -43,14 +43,15 @@ RUN pip install \
   "pillow>=12.1.1" \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
+  "starlette>=1.3.1" \
   "xgrammar>=0.1.32"
 
 # Copy artifacts
 # ===============
-COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/common/install_efa.sh install_efa.sh
-COPY ./scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/install_efa.sh install_efa.sh
+COPY ./scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
@@ -92,6 +93,7 @@ RUN rm -rf \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/python/Cargo.lock \
   /sgl-workspace/sglang/sgl-model-gateway/Cargo.lock \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
+  /sgl-workspace/sglang/rust/sglang-grpc/Cargo.lock \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Remove oh-my-zsh to avoid false positive in credentials scan
@@ -130,7 +132,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
 
 RUN rm -rf /tmp/*
 
-COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
+COPY ./scripts/docker/sglang/sagemaker_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]
@@ -149,7 +151,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
 
 RUN rm -rf /tmp/*
 
-COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
+COPY ./scripts/docker/sglang/dockerd_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]

@@ -1,0 +1,77 @@
+[
+    {
+        "vulnerability_id": "CVE-2023-30861",
+        "reason": "Flask session cookie leak. Blocked from upgrade by upstream sagemaker-containers pin; not exploitable in SageMaker managed container context (no session exposure).",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2024-56326",
+        "reason": "Jinja2 sandbox escape. Blocked from upgrade by upstream dependency chain; no user-controlled templates rendered in serving/training path.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2025-27516",
+        "reason": "Jinja2 sandbox escape. Blocked from upgrade by upstream dependency chain; no user-controlled templates rendered in serving/training path.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2023-46136",
+        "reason": "Werkzeug multipart upload DoS. Blocked from upgrade by upstream dependency chain; SageMaker manages inbound traffic and controls request size.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2024-34069",
+        "reason": "Werkzeug debugger RCE. Debugger disabled in production container.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2023-25577",
+        "reason": "Werkzeug multipart DoS. Blocked from upgrade by upstream dependency chain; SageMaker controls inbound traffic.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2022-29361",
+        "reason": "Werkzeug HTTP request smuggling. Disputed by Werkzeug maintainers: this behavior can only occur in unsupported configurations involving development mode and an HTTP server from outside the Werkzeug project.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2024-49767",
+        "reason": "Werkzeug multipart resource exhaustion. Blocked from upgrade by upstream dependency chain; SageMaker controls inbound traffic.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "GHSA-537c-gmf6-5ccf",
+        "reason": "gevent WebSocket parser DoS. WebSocket protocol not exposed in serving/training path.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66418",
+        "reason": "urllib3 outbound HTTP vulnerability. Fix requires urllib3 2.x, blocked by transitive dependency cap; container makes only outbound calls to trusted AWS APIs.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66471",
+        "reason": "urllib3 outbound HTTP vulnerability. Fix requires urllib3 2.x, blocked by transitive dependency cap; container makes only outbound calls to trusted AWS APIs.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21441",
+        "reason": "urllib3 outbound HTTP vulnerability. Fix requires urllib3 2.x, blocked by transitive dependency cap; container makes only outbound calls to trusted AWS APIs.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2026-0994",
+        "reason": "protobuf vulnerability. Version hard-capped by upstream SageMaker training toolkit; not exploitable via container's typed protobuf usage.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23949",
+        "reason": "jaraco.context vendored in setuptools. Likely scanner false positive (installed setuptools version post-dates the reported fix); tarball extraction not used in serving/training path.",
+        "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25087",
+        "reason": "pyarrow Arrow C++ IPC reader use-after-free. IPC file reading not in serving/training path.",
+        "review_by": "2026-10-06"
+    }
+]

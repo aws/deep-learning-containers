@@ -26,6 +26,7 @@ release. A *Smoke + Benchmark* tag means both apply.
 |  | [google/gemma-4-31B-it](https://huggingface.co/google/gemma-4-31B-it) | Benchmark |
 |  | [google/gemma-4-E4B-it](https://huggingface.co/google/gemma-4-E4B-it) | Benchmark |
 | **GPT-OSS** | [openai/gpt-oss-20b](https://huggingface.co/openai/gpt-oss-20b) | Benchmark |
+| **JetBrains** | [JetBrains/Mellum2-12B-A2.5B-Thinking](https://huggingface.co/JetBrains/Mellum2-12B-A2.5B-Thinking) | Smoke + Benchmark |
 
 ## Model-Specific Tuning
 

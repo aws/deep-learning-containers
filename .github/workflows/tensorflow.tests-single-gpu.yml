@@ -1,0 +1,75 @@
+name: Reusable TensorFlow Single-GPU Tests
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  single-gpu-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: ECR login
+        if: steps.check.outputs.exists == 'true'
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Derive framework short version
+        if: steps.check.outputs.exists == 'true'
+        id: fw
+        run: |
+          FRAMEWORK_VERSION=$(yq '.metadata.framework_version' '${{ inputs.config-file }}')
+          SHORT_VERSION=$(echo "${FRAMEWORK_VERSION}" | cut -d. -f1,2)
+          echo "short-version=${SHORT_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Run single-GPU tests
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
+            --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ steps.image.outputs.image-uri }} -c 'sleep infinity')
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          docker exec ${CONTAINER_ID} pip install -r /workdir/test/requirements.txt -q
+          docker exec \
+            -e PYTHONPATH=/workdir/test \
+            -e DLC_WORKDIR=/workdir \
+            -e DLC_TENSORFLOW_VERSION=${{ steps.fw.outputs.short-version }} \
+            ${CONTAINER_ID} \
+            pytest /workdir/test/tensorflow/single_gpu/ -v
+          docker kill ${CONTAINER_ID}

@@ -1,20 +1,20 @@
+#!/usr/bin/env python3
 """
 GPU-free sanity tests for vLLM and SGLang DLC images.
 
 Run inside the container:
-    docker run --rm --entrypoint python3 <image> /tests/test_sanity_vllm_sglang.py
+    docker run --rm --entrypoint python3 <image> /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
 
-Or with pytest:
-    docker run --rm --entrypoint pytest <image> /tests/test_sanity_vllm_sglang.py -v
-
-Optionally pass IMAGE_TAG env var for version consistency checks:
-    -e IMAGE_TAG="vllm:0.17-gpu-py312-cu129-ubuntu22.04-sagemaker-v1"
+With version consistency checks (env vars from image config):
+    docker exec -e EXPECTED_FRAMEWORK_VERSION=0.22.1rc0 \
+                -e EXPECTED_PYTHON_VERSION=3.12 \
+                -e EXPECTED_CUDA_VERSION=13.0.2 \
+                <container> python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
 
 Test categories:
-    1. TestCudaJitDependencies  - CUDA binaries required by JIT libraries (cuobjdump, nvcc, ptxas, etc.)
+    1. TestCudaJitDependencies  - CUDA binaries required by JIT libraries
     2. TestEntrypointArgHandling - SageMaker entrypoint env var → CLI arg translation
-                                  (boolean flags, model auto-detection, HF_MODEL_ID fallback)
-    3. TestPackageVersionConsistency - Image tag vs installed versions, torch↔CUDA agreement
+    3. TestPackageVersionConsistency - Declared versions vs installed versions
     4. TestEntrypointContract - Entrypoint exists, is executable, invokes correct server
 
 Framework-aware: tests auto-detect whether the image is vLLM or SGLang based on the
@@ -253,50 +253,112 @@ class TestEntrypointArgHandling(unittest.TestCase):
 
 
 class TestPackageVersionConsistency(unittest.TestCase):
-    """Category 3: Verify package versions match image tag and are internally consistent."""
+    """Category 3: Verify installed package versions match declared config values.
 
-    def _parse_image_tag(self):
-        """Parse IMAGE_TAG env var like 'vllm:0.17-gpu-py312-cu129-ubuntu22.04-sagemaker-v1'."""
-        tag = os.environ.get("IMAGE_TAG", "")
-        if not tag:
-            self.skipTest("IMAGE_TAG not set, skipping tag-based checks")
-        return tag
+    Env vars (passed by CI from the image config):
+        EXPECTED_FRAMEWORK_VERSION  - e.g. "0.22.1rc0"
+        EXPECTED_PYTHON_VERSION     - e.g. "3.12"
+        EXPECTED_CUDA_VERSION       - e.g. "13.0.2" (empty for CPU)
+    """
 
-    def test_vllm_version_matches_tag(self):
-        """vllm.__version__ major.minor should match the image tag."""
-        tag = self._parse_image_tag()
-        match = re.search(r"vllm[:/](\d+\.\d+)", tag)
-        if not match:
-            self.skipTest(f"Cannot parse vllm version from tag: {tag}")
-        expected = match.group(1)
-        import vllm
+    def test_framework_version(self):
+        """Installed framework version should match the declared version."""
+        expected = os.environ.get("EXPECTED_FRAMEWORK_VERSION", "")
+        if not expected:
+            self.skipTest("EXPECTED_FRAMEWORK_VERSION not set")
+        expected_mm = ".".join(expected.split(".")[:2])
+        try:
+            import vllm
 
-        actual = vllm.__version__
+            actual = vllm.__version__
+        except ImportError:
+            try:
+                import sglang
+
+                actual = sglang.__version__
+            except ImportError:
+                self.skipTest("Neither vllm nor sglang installed")
         self.assertTrue(
-            actual.startswith(expected),
-            f"vllm {actual} doesn't match tag version {expected}",
+            actual.startswith(expected_mm),
+            f"Framework version {actual} doesn't match expected {expected_mm}",
         )
 
-    def test_python_version_matches_tag(self):
-        """Python major.minor should match the image tag."""
-        tag = self._parse_image_tag()
-        match = re.search(r"py(\d)(\d+)", tag)
-        if not match:
-            self.skipTest(f"Cannot parse Python version from tag: {tag}")
-        expected = f"{match.group(1)}.{match.group(2)}"
-        actual = f"{sys.version_info.major}.{sys.version_info.minor}"
-        self.assertEqual(actual, expected, f"Python {actual} doesn't match tag version {expected}")
+    def test_server_entrypoint_imports(self):
+        """vLLM server entrypoint module must import cleanly.
 
-    def test_cuda_version_matches_tag(self):
-        """CUDA toolkit major.minor should match the image tag."""
-        tag = self._parse_image_tag()
-        # Parse "cu129" -> "12.9"
-        match = re.search(r"cu(\d+)", tag)
-        if not match:
-            self.skipTest(f"Cannot parse CUDA version from tag: {tag}")
-        cu_digits = match.group(1)  # e.g. "129"
-        expected = f"{cu_digits[:-1]}.{cu_digits[-1]}"  # "12.9"
-        # Get actual from nvcc
+        Startup guard: the vLLM process imports this module under supervisord,
+        so anything that throws here crash-loops the container and fails the
+        /ping health check. vLLM 0.25.1 defers the torchcodec import to runtime
+        (PR vllm-project/vllm#47888), so this no longer catches a missing FFmpeg
+        runtime by itself — test_torchcodec_video_backend_loads covers that. It
+        still catches any import-time regression (e.g. a future re-eager import).
+        """
+        try:
+            import vllm  # noqa: F401
+        except ImportError:
+            self.skipTest("vllm not installed (sglang image)")
+        result = subprocess.run(
+            [sys.executable, "-c", "import vllm.entrypoints.openai.api_server"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"Importing vLLM server entrypoint failed:\n{result.stderr}",
+        )
+
+    def test_torchcodec_video_backend_loads(self):
+        """torchcodec's video backend must load its FFmpeg-backed native lib.
+
+        Reproduces the report's failing chain: `from torchcodec.decoders import
+        VideoDecoder` dlopen's libtorchcodec_core*.so, which links
+        libavutil.so.* (and siblings). Only images that ship an FFmpeg runtime
+        are expected to satisfy this — the huggingface-vllm image builds FFmpeg
+        from source; base vLLM / SGLang images bundle torchcodec without FFmpeg
+        and are skipped. If ffmpeg is present but not built with --enable-shared
+        / registered via ldconfig, the shared libs are absent and this raises.
+        vLLM 0.25.1 makes the import lazy, so the failure moves from container
+        start to the first actual video decode — this guards that runtime path.
+        """
+        import shutil
+
+        if not shutil.which("ffmpeg"):
+            self.skipTest("image ships no ffmpeg runtime (video backend N/A)")
+        try:
+            import torchcodec  # noqa: F401
+        except ImportError:
+            self.skipTest("torchcodec not installed")
+        result = subprocess.run(
+            [sys.executable, "-c", "from torchcodec.decoders import VideoDecoder"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"torchcodec failed to load its FFmpeg runtime:\n{result.stderr}",
+        )
+
+    def test_python_version(self):
+        """Python major.minor should match the declared version."""
+        expected = os.environ.get("EXPECTED_PYTHON_VERSION", "")
+        if not expected:
+            self.skipTest("EXPECTED_PYTHON_VERSION not set")
+        expected_mm = ".".join(expected.split(".")[:2])
+        actual = f"{sys.version_info.major}.{sys.version_info.minor}"
+        self.assertEqual(
+            actual, expected_mm, f"Python {actual} doesn't match expected {expected_mm}"
+        )
+
+    def test_cuda_version(self):
+        """CUDA toolkit major.minor should match the declared version."""
+        expected = os.environ.get("EXPECTED_CUDA_VERSION", "")
+        if not expected:
+            self.skipTest("EXPECTED_CUDA_VERSION not set (CPU image)")
+        expected_mm = ".".join(expected.split(".")[:2])
         cuda_home = os.environ.get("CUDA_HOME") or os.environ.get("CUDA_PATH") or "/usr/local/cuda"
         nvcc = os.path.join(cuda_home, "bin", "nvcc")
         result = subprocess.run([nvcc, "--version"], capture_output=True, text=True, timeout=10)
@@ -304,16 +366,15 @@ class TestPackageVersionConsistency(unittest.TestCase):
         if not ver_match:
             self.skipTest("Cannot parse nvcc version output")
         actual = ver_match.group(1)
-        self.assertEqual(actual, expected, f"CUDA {actual} doesn't match tag version {expected}")
+        self.assertEqual(actual, expected_mm, f"CUDA {actual} doesn't match expected {expected_mm}")
 
     def test_torch_cuda_matches_toolkit(self):
         """torch.version.cuda should agree with the installed CUDA toolkit."""
         import torch
 
-        torch_cuda = torch.version.cuda  # e.g. "12.9"
+        torch_cuda = torch.version.cuda
         if not torch_cuda:
             self.skipTest("torch not built with CUDA")
-        # Get toolkit version from nvcc
         for cuda_home in [os.environ.get("CUDA_HOME", ""), "/usr/local/cuda"]:
             nvcc = os.path.join(cuda_home, "bin", "nvcc")
             if os.path.isfile(nvcc):
@@ -377,7 +438,7 @@ class TestEntrypointContract(unittest.TestCase):
             self.skipTest("Not a SageMaker image")
         with open(ep) as f:
             content = f.read()
-        has_vllm = "vllm.entrypoints.openai.api_server" in content
+        has_vllm = "vllm.entrypoints.openai.api_server" in content or "vllm serve" in content
         has_sglang = "sglang.launch_server" in content
         self.assertTrue(has_vllm or has_sglang, "Entrypoint does not invoke vllm or sglang server")
 
