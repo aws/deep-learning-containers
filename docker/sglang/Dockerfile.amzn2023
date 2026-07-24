@@ -417,6 +417,7 @@ RUN dnf upgrade -y --security --releasever latest \
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python
 
 COPY ./scripts/docker/sglang/sagemaker_entrypoint.sh /usr/bin/serve
+COPY ./scripts/docker/sglang/sagemaker_diffusion_serve.py /usr/local/bin/sagemaker_diffusion_serve.py
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]

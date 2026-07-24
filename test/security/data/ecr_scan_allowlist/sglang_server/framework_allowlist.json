@@ -65,6 +65,11 @@
         "review_by": "2026-09-10"
     },
     {
+        "vulnerability_id": "CVE-2026-39822",
+        "reason": "go/stdlib embedded in mooncake libetcd_wrapper.so, os.Root symlink traversal, cannot patch without upstream mooncake rebuild with Go 1.26.5+",
+        "review_by": "2026-09-10"
+    },
+    {
         "vulnerability_id": "RUSTSEC-2026-0185",
         "reason": "quinn-proto in uv binary, upstream uv has not released a fix yet. QUIC reassembly DoS requires malicious server, low risk for pip installer.",
         "review_by": "2026-09-10"
