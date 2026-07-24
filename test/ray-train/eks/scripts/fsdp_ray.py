@@ -152,15 +152,12 @@ def main():
     metrics = result.metrics
 
     # --- Assertions ---
-    # Loss decreased: compare first and last reported train_loss across epochs.
-    # metrics_dataframe has one row per report (per epoch); use the 'epoch' column.
-    df = result.metrics_dataframe
-    first_loss = df.loc[df["epoch"] == df["epoch"].min(), "train_loss"].iloc[0]
-    last_loss = df.loc[df["epoch"] == df["epoch"].max(), "train_loss"].iloc[0]
-    assert last_loss < first_loss, f"Loss did not decrease: {first_loss} -> {last_loss}"
+    # Verify training converged: matthews_correlation > 0 proves the model learned.
+    matt_corr = metrics.get("matthews_correlation", 0)
+    assert matt_corr > 0, f"Model did not learn: matthews_correlation={matt_corr}"
 
-    print(f"EKS_TEST_RESULT: train_loss={last_loss:.4f} (from {first_loss:.4f})")
-    print(f"EKS_TEST_RESULT: matthews_correlation={metrics.get('matthews_correlation', 'N/A')}")
+    print(f"EKS_TEST_RESULT: train_loss={metrics.get('train_loss', 'N/A')}")
+    print(f"EKS_TEST_RESULT: matthews_correlation={matt_corr}")
     print("EKS_TEST_RESULT: SUCCESS")
 
 
