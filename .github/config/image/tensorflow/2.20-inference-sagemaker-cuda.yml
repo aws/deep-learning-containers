@@ -1,6 +1,6 @@
 image:
-  name: "tensorflow-2.20-inference-sagemaker-cpu"
-  description: "TensorFlow Serving 2.20 CPU inference for SageMaker"
+  name: "tensorflow-2.20-inference-sagemaker-cuda"
+  description: "TensorFlow Serving 2.20 CUDA inference for SageMaker"
 
 metadata:
   framework: "tensorflow"
@@ -8,15 +8,19 @@ metadata:
   os_version: "amzn2023"
   customer_type: "sagemaker"
   arch_type: "x86"
-  device_type: "cpu"
+  device_type: "gpu"
   job_type: "inference"
-  prod_image: "tensorflow-inference:2.20-cpu-py312-amzn2023-sagemaker-v1"
+  prod_image: "tensorflow-inference:2.20-gpu-py312-cu129-amzn2023-sagemaker-v1"
 
 build:
-  dockerfile: "docker/tensorflow/inference/2.20/Dockerfile.cpu"
+  dockerfile: "docker/tensorflow/inference/2.20/Dockerfile.cuda"
   target: "sagemaker"
   python_version: "3.12"
+  cuda_version: "12.9.1"
   tf_serving_version: "2.20.0"
+  tfs_short_version: "2.20"
+  nginx_version: "1.30.2"
+  njs_version: "0.9.9"
   dlc_major_version: "1"
 
 release:

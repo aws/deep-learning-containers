@@ -5,9 +5,10 @@
 #                  └── builder-njs   (compile nginx + njs dynamic module)
 #   runtime-base ──── sagemaker      (SageMaker inference, MME-capable)
 #
-# All version defaults mirror docker/tensorflow/inference/2.20/versions-cpu.env.
-# Workflows source versions-cpu.env and pass ARGs via --build-arg — single
-# source of truth.
+# All version defaults mirror the build: block of
+# .github/config/image/tensorflow/2.20-inference-sagemaker-cpu.yml. The
+# build-image action forwards those keys as --build-arg — single source of
+# truth.
 #
 # Same structure as Dockerfile.cuda; deltas:
 #   - amazonlinux:2023 base (no CUDA).
@@ -175,7 +176,7 @@ RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api==$
 # SageMaker handler artifacts (TFS toolkit ported in Phase 3 from master TF 2.19
 # build_artifacts/sagemaker/: serve/serve.py, python_service.py, tfs_utils.py,
 # multi_model_utils.py, tensorflowServing.js, nginx.conf.template).
-COPY scripts/tensorflow/inference/sagemaker /sagemaker
+COPY scripts/docker/tensorflow/inference/sagemaker /sagemaker
 
 # Telemetry
 COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -209,8 +210,8 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSC
 # SM entrypoint — start_cuda_compat.sh is a safe no-op on CPU (the compat .so
 # does not exist), so we ship it for uniformity with the GPU image's entrypoint
 # contract. PR #6107 training Dockerfile.cpu makes the same simplification.
-COPY scripts/tensorflow/inference/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-COPY scripts/tensorflow/inference/tf_serving_entrypoint.sh /usr/local/bin/tf_serving_entrypoint.sh
+COPY scripts/docker/tensorflow/inference/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY scripts/docker/tensorflow/inference/tf_serving_entrypoint.sh /usr/local/bin/tf_serving_entrypoint.sh
 COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh \
   /usr/local/bin/tf_serving_entrypoint.sh \
