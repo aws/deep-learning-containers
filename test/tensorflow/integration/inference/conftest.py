@@ -42,9 +42,9 @@ def sagemaker_role_arn() -> str:
 @pytest.fixture(scope="session")
 def inference_image_uri() -> str:
     """ECR URI for the TF 2.20 inference image under test. Skips if not set."""
-    uri = os.environ.get("INFERENCE_IMAGE_URI")
+    uri = os.environ.get("TEST_IMAGE_URI")
     if not uri:
-        pytest.skip("INFERENCE_IMAGE_URI not set")
+        pytest.skip("TEST_IMAGE_URI not set")
     return uri
 
 
