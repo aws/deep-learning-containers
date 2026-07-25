@@ -55,7 +55,7 @@ FROM amazonlinux:2023 AS builder-oss
 ARG PYTHON_VERSION
 RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
-COPY scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
@@ -178,8 +178,8 @@ RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api==$
 COPY scripts/tensorflow/inference/sagemaker /sagemaker
 
 # Telemetry
-COPY scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK="tensorflow"
 ARG CONTAINER_TYPE="inference"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
@@ -211,7 +211,7 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSC
 # contract. PR #6107 training Dockerfile.cpu makes the same simplification.
 COPY scripts/tensorflow/inference/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 COPY scripts/tensorflow/inference/tf_serving_entrypoint.sh /usr/local/bin/tf_serving_entrypoint.sh
-COPY scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh \
   /usr/local/bin/tf_serving_entrypoint.sh \
   /usr/local/bin/start_cuda_compat.sh
