@@ -33,9 +33,9 @@ def aws_region() -> str:
 @pytest.fixture(scope="session")
 def sagemaker_role_arn() -> str:
     """SageMaker execution role ARN. Skips the test if not set."""
-    arn = os.environ.get("SAGEMAKER_ROLE_ARN")
+    arn = os.environ.get("SM_ROLE_ARN")
     if not arn:
-        pytest.skip("SAGEMAKER_ROLE_ARN not set")
+        pytest.skip("SM_ROLE_ARN not set")
     return arn
 
 

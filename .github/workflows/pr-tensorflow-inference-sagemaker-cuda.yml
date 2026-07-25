@@ -29,9 +29,9 @@ on:
       - "docker/tensorflow/inference/*/Dockerfile.cuda"
       - "docker/tensorflow/inference/*/cuda/**"
       - "docker/tensorflow/inference/*/versions-cuda.env"
-      - "scripts/common/**"
+      - "scripts/docker/common/**"
       - "scripts/tensorflow/inference/**"
-      - "scripts/telemetry/**"
+      - "scripts/docker/telemetry/**"
       - "test/tensorflow/integration/inference/**"
       - "test/sanity/**"
       - "test/telemetry/**"
@@ -125,17 +125,17 @@ jobs:
             if [ -f "$CONFIG_FILE" ]; then
               CONFIGS=$(echo "$CONFIGS" | jq -c \
                 --arg v "$V" \
-                --arg fw "$(yq '.common.framework' $CONFIG_FILE)" \
-                --arg fwv "$(yq '.common.framework_version' $CONFIG_FILE)" \
-                --arg py "$(yq '.common.python_version' $CONFIG_FILE)" \
-                --arg cuda "$(yq '.common.cuda_version' $CONFIG_FILE)" \
-                --arg os "$(yq '.common.os_version' $CONFIG_FILE)" \
-                --arg ct "$(yq '.common.job_type' $CONFIG_FILE)" \
-                --arg dt "$(yq '.common.device_type // "gpu"' $CONFIG_FILE)" \
-                --arg at "$(yq '.common.arch_type // "x86"' $CONFIG_FILE)" \
-                --arg contrib "$(yq '.common.contributor // "None"' $CONFIG_FILE)" \
-                --arg cust "$(yq '.common.customer_type // ""' $CONFIG_FILE)" \
-                --arg prod "$(yq '.common.prod_image' $CONFIG_FILE)" \
+                --arg fw "$(yq '.metadata.framework' $CONFIG_FILE)" \
+                --arg fwv "$(yq '.metadata.framework_version' $CONFIG_FILE)" \
+                --arg py "$(yq '.build.python_version' $CONFIG_FILE)" \
+                --arg cuda "$(yq '.build.cuda_version' $CONFIG_FILE)" \
+                --arg os "$(yq '.metadata.os_version' $CONFIG_FILE)" \
+                --arg ct "$(yq '.metadata.job_type' $CONFIG_FILE)" \
+                --arg dt "$(yq '.metadata.device_type // "gpu"' $CONFIG_FILE)" \
+                --arg at "$(yq '.metadata.arch_type // "x86"' $CONFIG_FILE)" \
+                --arg contrib "$(yq '.metadata.contributor // "None"' $CONFIG_FILE)" \
+                --arg cust "$(yq '.metadata.customer_type // ""' $CONFIG_FILE)" \
+                --arg prod "$(yq '.metadata.prod_image' $CONFIG_FILE)" \
                 '. + [{"version": $v, "framework": $fw, "framework_version": $fwv, "python_version": $py, "cuda_version": $cuda, "os_version": $os, "container_type": $ct, "device_type": $dt, "arch_type": $at, "contributor": $contrib, "customer_type": $cust, "prod_image": $prod}]')
             fi
           done
@@ -152,10 +152,10 @@ jobs:
               - "docker/tensorflow/inference/*/Dockerfile.cuda"
               - "docker/tensorflow/inference/*/cuda/**"
               - "docker/tensorflow/inference/*/versions-cuda.env"
-              - "scripts/common/setup_oss_compliance.sh"
-              - "scripts/common/start_cuda_compat.sh"
+              - "scripts/docker/common/setup_oss_compliance.sh"
+              - "scripts/docker/common/start_cuda_compat.sh"
               - "scripts/tensorflow/inference/**"
-              - "scripts/telemetry/bash_telemetry.sh.template"
+              - "scripts/docker/telemetry/bash_telemetry.sh.template"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -203,8 +203,11 @@ jobs:
           # Derive label values to match check_labels.py expectations
           FRAMEWORK_LABEL=$(echo "${{ matrix.framework }}" | tr '_' '-')
           FWK_VER_LABEL=$(echo "${{ matrix.framework_version }}" | tr '.' '-')
-          CUDA_LABEL="${{ matrix.cuda_version }}"
           OS_LABEL=$(echo "${{ matrix.os_version }}" | tr '.' '-')
+          # matrix.python_version and matrix.cuda_version are now semver
+          # (e.g. "3.12", "12.9.1"); derive short forms (py312, cu129)
+          PY_SHORT="py$(echo '${{ matrix.python_version }}' | cut -d. -f1,2 | tr -d '.')"
+          CUDA_LABEL="cu$(echo '${{ matrix.cuda_version }}' | tr -d '.' | cut -c1-3)"
 
           docker buildx build --progress plain \
             --build-arg FRAMEWORK=${{ matrix.framework }} \
@@ -221,7 +224,7 @@ jobs:
             --label "com.amazonaws.ml.engines.sagemaker.dlc.job.${{ matrix.container_type }}=true" \
             --label "com.amazonaws.ml.engines.sagemaker.dlc.arch.${{ matrix.arch_type }}=true" \
             --label "com.amazonaws.ml.engines.sagemaker.dlc.os.${OS_LABEL}=true" \
-            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.${{ matrix.python_version }}=true" \
+            --label "com.amazonaws.ml.engines.sagemaker.dlc.python.${PY_SHORT}=true" \
             --label "com.amazonaws.ml.engines.sagemaker.dlc.contributor.${{ matrix.contributor }}=true" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
