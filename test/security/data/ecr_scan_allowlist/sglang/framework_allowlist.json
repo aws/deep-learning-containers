@@ -1,5 +1,20 @@
 [
     {
+        "vulnerability_id": "GHSA-hrxh-6v49-42gf",
+        "reason": "google.golang.org/grpc v1.79.3 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
+        "review_by": "2026-10-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56852",
+        "reason": "golang.org/x/text v0.32.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
+        "review_by": "2026-10-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46600",
+        "reason": "golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
+        "review_by": "2026-10-25"
+    },
+    {
         "vulnerability_id": "CVE-2026-39820",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
         "review_by": "2026-09-10"
