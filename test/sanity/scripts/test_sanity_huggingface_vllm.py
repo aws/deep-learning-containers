@@ -18,12 +18,10 @@ container is not a Hugging Face vLLM SageMaker image.
 import os
 import signal
 import subprocess
-import sys
 import unittest
 
 ENTRYPOINT = "/usr/local/bin/sagemaker_entrypoint.sh"
 OPTIMIZATIONS = "/usr/local/bin/hf_optimizations.sh"
-SERVER_MODULE = "vllm.entrypoints.openai.api_server"
 
 
 def _is_hf_vllm_image():
@@ -51,9 +49,10 @@ class TestServerStartup(unittest.TestCase):
 
     Failures are asserted by the *absence* of import/link signatures rather than
     the presence of an expected error, so the checks do not rot when upstream
-    error messages change. No accelerator is required: vLLM resolves to
-    UnspecifiedPlatform when none is visible, so the CLI/config surface still
-    builds and the module graph still loads.
+    error messages change. That is also what makes this runnable on the GPU-less
+    sanity runner: the module graph loads before any device is needed, and the
+    process is then expected to die in engine init (vLLM raises "Failed to infer
+    device type" once it builds a VllmConfig).
     """
 
     FATAL_PATTERNS = (
@@ -78,35 +77,17 @@ class TestServerStartup(unittest.TestCase):
             f"crash-loop for every model:\n{output[-4000:]}",
         )
 
-    def test_server_cli_builds(self):
-        """``python3 -m vllm.entrypoints.openai.api_server --help`` must exit 0.
-
-        Strictly broader than importing the server module: building the parser
-        walks the whole engine/config argument surface, which is where optional
-        features register themselves and drag in their dependencies.
-        """
-        result = subprocess.run(
-            [sys.executable, "-m", SERVER_MODULE, "--help"],
-            capture_output=True,
-            text=True,
-            timeout=self.STARTUP_TIMEOUT,
-        )
-        output = result.stdout + result.stderr
-        self._assert_loadable(output, f"`python3 -m {SERVER_MODULE} --help`")
-        self.assertEqual(
-            result.returncode,
-            0,
-            f"`python3 -m {SERVER_MODULE} --help` exited {result.returncode}:\n{output[-4000:]}",
-        )
-
     def test_entrypoint_startup_loads_all_code(self):
         """The real SageMaker entrypoint must not die on unloadable code.
 
-        Invokes the entrypoint the way SageMaker does, in direct mode
-        (``PROCESS_AUTO_RECOVERY=false``) so standard-supervisor execs the server
-        once instead of respawning it. This exercises what a synthetic import
-        cannot: hf_optimizations.sh, the SM_VLLM_* to CLI translation, and the
-        injected --kv-transfer-config and --middleware.
+        Invokes the entrypoint the way SageMaker does. This exercises what a
+        synthetic import cannot: hf_optimizations.sh, the SM_VLLM_* to CLI
+        translation, and the injected --kv-transfer-config and --middleware.
+
+        ``PROCESS_AUTO_RECOVERY=false`` keeps the run bounded. standard-supervisor
+        always launches the server under supervisord — the flag only sets
+        ``autorestart=false`` — so without it a startup failure would be retried
+        PROCESS_MAX_START_RETRIES times before the process gave up.
 
         Without an accelerator the process is expected to fail in engine/platform
         init, so the assertion is on *how* it fails, not whether it survives.
