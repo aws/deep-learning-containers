@@ -284,7 +284,7 @@ RUN CUDA_MAJOR=$(echo ${CUDA_REF} | cut -d. -f1) \
 # Patch CVEs
 RUN uv pip install --system --no-cache --prerelease=allow \
   "diffusers>=0.38.0" \
-  "pillow>=12.1.1" \
+  "pillow>=12.3.0" \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32" \
   "setuptools>=78.1.1" \
@@ -398,6 +398,9 @@ FROM runtime AS sglang-ec2
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest \
+  # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2026-24193
+  # (NVIDIA repo — not flagged in AL2023 security advisories, so --security misses it)
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python
@@ -412,6 +415,9 @@ FROM runtime AS sglang-sagemaker
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest \
+  # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2026-24193
+  # (NVIDIA repo — not flagged in AL2023 security advisories, so --security misses it)
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
   && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python
