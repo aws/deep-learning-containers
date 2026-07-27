@@ -164,10 +164,10 @@ jobs:
         if: ${{ steps.check.outputs.exists == 'true' }}
         env:
           PYTHONPATH: ${{ github.workspace }}/test
+          TEST_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ steps.image.outputs.aws-account-id }}:role/SageMakerRole
         run: |
-          pytest test/tensorflow/integration/inference/ -v \
-            --image-uri "${{ steps.image.outputs.image-uri }}"
+          pytest test/tensorflow/integration/inference/ -v
 
   release-gate:
     if: >-
