@@ -48,6 +48,10 @@ dependencies = [
     # ── Compat / security pins inherited from training PR #6107 ───────────────
     "cython<3",
     "aiohttp>=3.14.0",
+    # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 (HIGH, quadratic-time
+    # decoding + big-integer exponentiation DoS). Direct pin forces resolver
+    # to the patched line. Mirrors TF 2.21 training pin.
+    "pyasn1>=0.6.4",
     "urllib3",
 ]
 
