@@ -46,7 +46,6 @@ def test_single_model_predict(
         tar_path = build_sample_model(
             output_dir=workdir,
             multiplier=2.0,
-            model_name="model",
         )
 
         # Upload the tarball via the v3 helper Session — same default-bucket /

@@ -60,10 +60,10 @@ def test_mme_two_models(
         model1_dir = workdir_path / "m1"
         model2_dir = workdir_path / "m2"
         model1_tar = build_sample_model(
-            output_dir=model1_dir, multiplier=2.0, model_name="model", tar_filename="model1.tar.gz"
+            output_dir=model1_dir, multiplier=2.0, tar_filename="model1.tar.gz"
         )
         model2_tar = build_sample_model(
-            output_dir=model2_dir, multiplier=3.0, model_name="model", tar_filename="model2.tar.gz"
+            output_dir=model2_dir, multiplier=3.0, tar_filename="model2.tar.gz"
         )
 
         bucket = sagemaker_session.default_bucket()
