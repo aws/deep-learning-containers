@@ -18,7 +18,7 @@ build:
   python_version: "3.12"
   tf_serving_version: "2.20.0"
   tfs_short_version: "2.20"
-  nginx_version: "1.30.2"
+  nginx_version: "1.30.3"
   njs_version: "0.9.9"
   dlc_major_version: "1"
 
