@@ -249,6 +249,36 @@ RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh \
   /usr/local/bin/tf_serving_entrypoint.sh \
   /usr/local/bin/start_cuda_compat.sh
 
+# Build-time smoke check — catches runtime library / config / command drift
+# at build time instead of at endpoint deploy time. See PR #6243 discussion.
+RUN set -eux \
+  # 1. Every nginx dynamic module resolves all shared-lib deps.
+  &&  for so in /usr/share/nginx/modules/*.so /usr/lib64/nginx/modules/*.so; do \
+        [ -e "$so" ] || continue; \
+        echo "checking $so"; \
+        ldd "$so" | grep -F 'not found' && exit 1; \
+      done; true \
+  # 2. nginx config parses with our njs module loaded (module ABI vs nginx version).
+  &&  cp /sagemaker/nginx.conf.template /tmp/nginx.conf.smoke \
+  &&  sed -i \
+        -e 's|%NGINX_LOG_LEVEL%|info|g' \
+        -e 's|%NGINX_HTTP_PORT%|8080|g' \
+        -e 's|%PROXY_READ_TIMEOUT%|60|g' \
+        -e 's|%TFS_UPSTREAM%|server 127.0.0.1:8501|g' \
+        -e 's|%TFS_VERSION%|2|g' \
+        -e 's|%TFS_DEFAULT_MODEL_NAME%|model|g' \
+        -e 's|%FORWARD_PING_REQUESTS%|return 200|g' \
+        -e 's|%FORWARD_INVOCATION_REQUESTS%|return 200|g' \
+        /tmp/nginx.conf.smoke \
+  &&  nginx -t -c /tmp/nginx.conf.smoke \
+  &&  rm /tmp/nginx.conf.smoke \
+  # 3. Shell commands our handlers invoke at runtime.
+  &&  for cmd in free nginx python3 pip3 gunicorn; do \
+        command -v "$cmd" >/dev/null || { echo "MISSING: $cmd"; exit 1; }; \
+      done \
+  # 4. Python imports handlers rely on at request time.
+  &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests, tensorflow_serving.apis.predict_pb2"
+
 RUN rm -rf /tmp/* /root/.cache
 
 # Expose ports — TF Serving native gRPC (8500) and REST (8501).
