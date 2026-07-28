@@ -304,6 +304,7 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall "pillow>=12.3.0" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
      sglang-kernel==${SGLANG_KERNEL_VERSION} \
      --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
