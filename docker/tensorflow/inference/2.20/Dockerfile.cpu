@@ -115,7 +115,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Runtime system deps via dnf — equivalent of master TF 2.19 CPU apt-get block.
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
-  nginx libxslt \
+  nginx libxslt procps-ng \
   gcc gcc-c++ make git \
   tar gzip xz which findutils util-linux \
   libpng-devel freetype-devel zlib-devel \
