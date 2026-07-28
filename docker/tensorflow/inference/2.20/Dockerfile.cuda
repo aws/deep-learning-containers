@@ -1,9 +1,8 @@
 # ============================================================================
 # TensorFlow Serving 2.20 Inference DLC — Amazon Linux 2023 (CUDA 12.9.1)
 # Multi-stage build:
-#   builder-base ──┬── builder-oss   (OSS license generation — isolated)
-#                  └── builder-njs   (compile nginx + njs dynamic module)
-#   runtime-base ──── sagemaker      (SageMaker inference, MME-capable)
+#   builder-base ──── builder-oss   (OSS license generation — isolated)
+#   runtime-base ──── sagemaker     (SageMaker inference, MME-capable)
 #
 # All version defaults mirror the build: block of
 # .github/config/image/tensorflow/2.20-inference-sagemaker-cuda.yml. The
@@ -11,11 +10,9 @@
 # truth.
 #
 # This image is SageMaker-only (no `runtime` stage). It is patterned after
-# PR #6107 (TF 2.21 training v2) for stage layout, with two key deltas:
+# PR #6107 (TF 2.21 training v2) for stage layout, with one key delta:
 #   1. No EFA / NCCL / OpenMPI — inference does not run multi-node MPI.
-#   2. NEW `builder-njs` stage that compiles nginx-mod-njs from source because
-#      AL2023's core repo does not ship nginx-module-njs (master TF 2.19 used
-#      Ubuntu's nginx.org apt repo, which does not exist for AL2023).
+# nginx + njs come from nginx.org's official AL2023 RPM repo (matched pair).
 # ============================================================================
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────
@@ -66,43 +63,6 @@ RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHO
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 
-# ── Stage: builder-njs (compile nginx + njs dynamic module from source) ─────
-# Output: /out/modules/ngx_http_js_module.so
-# We use the CUDA -devel base for build toolchain consistency with builder-base;
-# this stage produces a CPU-only .so artifact that is identical for cuda and cpu
-# variants (kept in this Dockerfile as well as Dockerfile.cpu for self-contained
-# multi-stage builds).
-FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-njs
-ARG NGINX_VERSION
-ARG NJS_VERSION
-
-RUN dnf install -y --allowerasing \
-  gcc gcc-c++ make \
-  pcre-devel pcre2-devel zlib-devel openssl-devel libxml2-devel libxslt-devel \
-  curl tar gzip xz \
-  && dnf clean all
-
-WORKDIR /tmp/njs-build
-
-# Fetch nginx + njs sources, both with checksum-validated release tarballs
-# from the upstream maintainer.
-RUN curl -fsSLO "https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz" \
-  && tar xzf nginx-${NGINX_VERSION}.tar.gz \
-  && curl -fsSL "https://github.com/nginx/njs/archive/refs/tags/${NJS_VERSION}.tar.gz" -o njs-${NJS_VERSION}.tar.gz \
-  && tar xzf njs-${NJS_VERSION}.tar.gz
-
-# Configure nginx with the njs dynamic module, then build only the modules.
-# --with-compat is REQUIRED so the resulting .so loads into a stock nginx
-# binary (we install nginx via dnf in runtime-base; the .so must be ABI-compat).
-RUN cd nginx-${NGINX_VERSION} \
-  && ./configure \
-    --with-compat \
-    --add-dynamic-module=/tmp/njs-build/njs-${NJS_VERSION}/nginx \
-  && make -j$(nproc) modules \
-  && mkdir -p /out/modules \
-  && cp objs/ngx_http_js_module.so /out/modules/
-
-
 # ── Stage: runtime-base (shared base for output stages) ─────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime-base
 ARG CUDA_VERSION
@@ -110,6 +70,8 @@ ARG PYTHON_VERSION
 ARG TF_SERVING_VERSION
 ARG TFS_SHORT_VERSION
 ARG DLC_MAJOR_VERSION
+ARG NGINX_VERSION
+ARG NJS_VERSION
 
 # Labels live on runtime-base so all output stages inherit them.
 LABEL maintainer="Amazon AI"
@@ -128,26 +90,32 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   MODEL_NAME=model
 
 # Runtime system deps via dnf — equivalent of master TF 2.19 GPU apt-get block,
-# minus the training-specific packages (NCCL/EFA/OpenMPI). nginx is installed
-# from AL2023 core (1.24.x); the njs .so we built in builder-njs is dropped
-# into /usr/lib64/nginx/modules. tar/gzip/which/findutils/util-linux are
-# baseline shell utilities the SM handler scripts and TFS launcher rely on.
+# minus the training-specific packages (NCCL/EFA/OpenMPI). nginx and its njs
+# module come from nginx.org's official AL2023 RPM repo below (matched pair);
+# everything in this list is from AL2023 core. tar/gzip/which/findutils/
+# util-linux are baseline shell utilities the SM handlers rely on.
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
-  nginx libxslt procps-ng \
+  procps-ng \
   gcc gcc-c++ make git \
   tar gzip xz which findutils util-linux \
   libpng-devel freetype-devel zlib-devel \
   openssl unzip jq curl wget \
   && dnf clean all
 
+# nginx + njs module from nginx.org's official AL2023 repo (matched versions).
+# Kills the source-build-vs-dnf version-drift bug class: nginx and its njs
+# module ship as a single GPG-signed RPM pair from the same upstream.
+RUN printf '[nginx-stable]\nname=nginx stable\nbaseurl=https://nginx.org/packages/amzn/2023/$basearch/\ngpgcheck=1\ngpgkey=https://nginx.org/keys/nginx_signing.key\nmodule_hotfixes=true\npriority=9\n' \
+        > /etc/yum.repos.d/nginx.repo \
+    && rpm --import https://nginx.org/keys/nginx_signing.key \
+    && dnf install -y --allowerasing \
+        nginx-${NGINX_VERSION} \
+        nginx-module-njs-${NGINX_VERSION}+${NJS_VERSION} \
+    && dnf clean all
+
 # Copy venv from builder-base
 COPY --from=builder-base /opt/venv /opt/venv
-
-# Copy njs dynamic module(s) into the system nginx modules dir. The package
-# nginx (1.24.x) on AL2023 honors `load_module modules/ngx_http_js_module.so`
-# in its conf, since we built with --with-compat against matching nginx headers.
-COPY --from=builder-njs /out/modules/ngx_http_js_module.so /usr/share/nginx/modules/
 
 # TF Serving binary — copied from the official upstream devel image.
 COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/local/bin/tensorflow_model_server
