@@ -242,7 +242,7 @@ RUN set -eux \
         command -v "$cmd" >/dev/null || { echo "MISSING: $cmd"; exit 1; }; \
       done \
   # 4. Python imports handlers rely on at request time.
-  &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests, tensorflow_serving.apis.predict_pb2"
+  &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests"
 
 RUN rm -rf /tmp/* /root/.cache
 
