@@ -159,7 +159,7 @@ jobs:
       - name: Run training image sanity checks
         if: |
           needs.preflight.outputs.framework == 'pytorch_runtime' ||
-          needs.preflight.outputs.framework == 'tensorflow' ||
+          (needs.preflight.outputs.framework == 'tensorflow' && needs.preflight.outputs.job-type == 'training') ||
           needs.preflight.outputs.framework == 'xgboost' ||
           (needs.preflight.outputs.framework == 'ray' && needs.preflight.outputs.job-type == 'training')
         run: |
