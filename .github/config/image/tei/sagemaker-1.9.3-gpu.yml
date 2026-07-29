@@ -20,7 +20,7 @@ build:
   cuda_version: "12.9.1"
 
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: false
   private_registry: true
