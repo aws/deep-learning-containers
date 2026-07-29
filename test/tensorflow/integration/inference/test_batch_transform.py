@@ -26,7 +26,6 @@ import pytest
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
 
-
 # Batch transform always runs on CPU regardless of the image's device type:
 # (1) the DLC handler request path is device-agnostic, so we get the same
 # CreateTransformJob wire-contract coverage; (2) TransformJob GPU instance

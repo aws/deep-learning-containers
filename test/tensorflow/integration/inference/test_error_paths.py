@@ -27,7 +27,6 @@ from botocore.exceptions import ClientError
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
 
-
 # Scenarios: (scenario_id, body, content_type, extra_body_check).
 # ``extra_body_check`` runs on the container's response body string; None
 # means "just require non-empty status in the 4xx/5xx range".

@@ -8,7 +8,6 @@ and the customer ``inference.py`` fixture text without duplicating strings.
 
 from __future__ import annotations
 
-
 # Minimal customer inference.py used by G2. Implements the standard
 # input_handler / output_handler contract that python_service.py imports at
 # request time (see python_service.py::_import_handlers). Tests deploy a

@@ -277,7 +277,7 @@ class PythonServiceResource:
             # (/sagemaker/tfs-config/{model_name}/... and
             # /opt/ml/models/{model_name}/...). The SM MME data-plane is the
             # trust boundary in front of us, but reject obvious traversal
-            # attempts (/, .., NUL) here so a mis-configured upstream can't
+            # attempts (/, .., NUL) here so a misconfigured upstream can't
             # write outside the tfs-config tree or shutil.rmtree a parent.
             if (
                 not model_name
