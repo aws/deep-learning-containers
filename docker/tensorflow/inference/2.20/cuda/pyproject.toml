@@ -27,6 +27,14 @@ requires-python = ">=3.12,<3.13"
 # to uv/pyproject form per training PR #6107 pattern.
 # ──────────────────────────────────────────────────────────────────────────────
 dependencies = [
+    # cuDNN 9.24.0.43 — CUDA math library required by TF Serving's GPU binary.
+    # The `nvidia/cuda:12.9.1-runtime-amzn2023` base image ships CUDA but NOT
+    # cuDNN; TF Serving links dynamically to libcudnn*.so and would fail on the
+    # first Conv/RNN op without this. Dockerfile.cuda copies the .so files out
+    # of the site-packages install into /usr/local/cuda/lib64 and runs ldconfig.
+    # Version pinned to match TF 2.21 training image for cross-DLC consistency.
+    # NCCL is intentionally NOT installed (no multi-node inference).
+    "nvidia-cudnn-cu12==9.24.0.43",
     # ── tfs-api transitive runtime needs (explicit pins; see header note) ─────
     # numpy 1.26.4 — TF SavedModel/numpy ABI compat. Must match the version
     # the TF 2.21 training image uses to export SavedModels (handoff §16).

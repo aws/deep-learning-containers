@@ -23,14 +23,13 @@ import pytest
 
 from .resources.build_sample_model import build_sample_model
 
-INSTANCE_TYPE = "ml.c5.xlarge"
-
 
 def test_single_model_predict(
     boto_session,
     sagemaker_session,
     sagemaker_role_arn,
     inference_image_uri,
+    sm_instance_type,
     unique_name,
     cleanup_endpoint,
 ):
@@ -82,7 +81,7 @@ def test_single_model_predict(
                     variant_name="AllTraffic",
                     model_name=model_name,
                     initial_instance_count=1,
-                    instance_type=INSTANCE_TYPE,
+                    instance_type=sm_instance_type,
                 ),
             ],
             session=boto_session,

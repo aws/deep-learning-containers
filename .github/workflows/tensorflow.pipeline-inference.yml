@@ -126,6 +126,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      device-type: ${{ needs.ci-config.outputs.device-type }}
 
   release-gate:
     if: >-

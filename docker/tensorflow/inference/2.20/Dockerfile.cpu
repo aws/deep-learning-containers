@@ -120,7 +120,12 @@ RUN ln -sf $(which python${PYTHON_VERSION}) /usr/local/bin/python \
   && ln -sf $(which pip3) /usr/local/bin/pip
 
 ENV PATH="/opt/venv/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+# Do not expand ${LD_LIBRARY_PATH} — it is unset at this point in the build,
+# so the expansion collapses to a trailing colon which ld.so interprets as
+# "." (current working directory). That is a library-injection surface if any
+# process later cd's into an attacker-controlled path. Nothing prior sets
+# LD_LIBRARY_PATH, so hard-set it here instead.
+ENV LD_LIBRARY_PATH="/usr/local/lib"
 
 # Models dir
 RUN mkdir -p ${MODEL_BASE_PATH}
@@ -150,8 +155,10 @@ ENV PATH="$PATH:/sagemaker"
 RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 
 # tensorflow-serving-api — installed inline with --no-deps; see locked
-# decision Q1 in cpu/pyproject.toml header.
-RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api==${TF_SERVING_VERSION}" 2>/dev/null \
+# decision Q1 in cpu/pyproject.toml header. Falls through to pip only if uv
+# genuinely errors — no stderr redirect, so real failures surface in the
+# build log rather than silently swallowing "wheel not found" / network errors.
+RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api==${TF_SERVING_VERSION}" \
   || /opt/venv/bin/pip install --no-deps --no-cache-dir "tensorflow-serving-api==${TF_SERVING_VERSION}"
 
 # SageMaker handler artifacts (TFS toolkit ported in Phase 3 from master TF 2.19
@@ -222,16 +229,32 @@ RUN set -eux \
   &&  nginx -t -c /sagemaker/nginx.conf.smoke \
   &&  rm /sagemaker/nginx.conf.smoke \
   # 3. Shell commands our handlers invoke at runtime.
-  &&  for cmd in free nginx python3 pip3 gunicorn; do \
+  &&  for cmd in free nginx python3 pip3 gunicorn tensorflow_model_server; do \
         command -v "$cmd" >/dev/null || { echo "MISSING: $cmd"; exit 1; }; \
       done \
   # 4. Python imports handlers rely on at request time.
-  &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests"
+  &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests" \
+  # 5. tensorflow_model_server binary resolves all shared-lib deps and
+  #    responds to --version. This is the check that would have caught a
+  #    missing cuDNN / libtensorflow_framework / glibc-ABI regression at
+  #    build time rather than on the first customer request.
+  #    (tensorflow_serving.apis.predict_pb2 is intentionally NOT imported —
+  #    tensorflow-serving-api is installed with --no-deps, so the transitive
+  #    `tensorflow` framework wheel is absent; see commit 112e59a7.)
+  &&  ldd "$(command -v tensorflow_model_server)" | { ! grep -F 'not found'; } \
+  &&  tensorflow_model_server --version
 
-RUN rm -rf /tmp/* /root/.cache
+# Final image-size cleanup. `dnf clean all` empties the on-disk repo cache but
+# leaves history/log/cachedir metadata behind (~150-300 MB across all dnf runs
+# in this Dockerfile); scrub them here as the last step so all prior layers
+# still see a valid dnf DB during build.
+RUN rm -rf /tmp/* /root/.cache \
+  /var/cache/dnf /var/lib/dnf/history* /var/log/dnf.log*
 
-# Expose ports — TF Serving native gRPC (8500) and REST (8501).
-EXPOSE 8500 8501
+# Expose ports — SageMaker /invocations and /ping (8080, served by nginx per
+# nginx.conf.template), plus TF Serving native gRPC (8500) and REST (8501).
+# EXPOSE is documentation-only; docker does not port-map without --publish.
+EXPOSE 8080 8500 8501
 
 ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
 CMD ["/usr/local/bin/tf_serving_entrypoint.sh"]

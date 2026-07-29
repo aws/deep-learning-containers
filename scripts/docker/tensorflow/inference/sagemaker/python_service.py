@@ -273,6 +273,25 @@ class PythonServiceResource:
             model_name = data["model_name"]
             base_path = data["url"]
 
+            # Defence-in-depth: model_name flows into filesystem paths
+            # (/sagemaker/tfs-config/{model_name}/... and
+            # /opt/ml/models/{model_name}/...). The SM MME data-plane is the
+            # trust boundary in front of us, but reject obvious traversal
+            # attempts (/, .., NUL) here so a mis-configured upstream can't
+            # write outside the tfs-config tree or shutil.rmtree a parent.
+            if (
+                not model_name
+                or "/" in model_name
+                or "\x00" in model_name
+                or model_name in (".", "..")
+                or model_name.startswith(".")
+            ):
+                res.status = falcon.HTTP_400
+                res.body = json.dumps(
+                    {"error": "invalid model_name: {!r}".format(model_name)}
+                )
+                return
+
             # sync sync_local_mme_instance_status & update available ports
             self._sync_local_mme_instance_status()
             self._update_ports_available()
@@ -486,10 +505,15 @@ class PythonServiceResource:
                 if model_name not in self._mme_tfs_instances_status:
                     res.status = falcon.HTTP_404
                     res.body = json.dumps(
-                        {"error": "Model {} is loaded yet.".format(model_name)}
+                        {"error": "Model {} is not loaded yet.".format(model_name)}
                     ).encode("utf-8")
                 else:
-                    port = self._mme_tfs_instances_status[model_name].rest_port
+                    # _mme_tfs_instances_status[model_name] is a list of
+                    # TfsInstanceStatus (see line 304). Pick the first
+                    # instance's rest_port — matches the pattern on line 360
+                    # (.pid). Bug in master TF 2.19: `.rest_port` on the raw
+                    # list raised AttributeError → 500 from GET /models/{name}.
+                    port = self._mme_tfs_instances_status[model_name][0].rest_port
                     uri = "http://localhost:{}/v1/models/{}".format(port, model_name)
                     try:
                         info = requests.get(uri)

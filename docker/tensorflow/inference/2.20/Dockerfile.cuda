@@ -120,6 +120,17 @@ RUN dnf install -y --releasever latest --allowerasing \
 # Copy venv from builder-base
 COPY --from=builder-base /opt/venv /opt/venv
 
+# cuDNN shared libs from the pip-installed nvidia-cudnn-cu12 package. The
+# nvidia/cuda:*-runtime-amzn2023 base image ships CUDA but NOT cuDNN, and TF
+# Serving's GPU binary links dynamically to libcudnn*.so — without this copy,
+# the first Conv/RNN op at request time fails with
+# `libcudnn.so.9: cannot open shared object file`. Mirrors TF 2.21 training's
+# cuDNN staging (NCCL intentionally omitted — no multi-node inference).
+RUN CUDNN_HOME=$(/opt/venv/bin/python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") \
+ && cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ \
+ && cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ \
+ && ldconfig
+
 # TF Serving binary — copied from the official upstream devel image.
 COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/local/bin/tensorflow_model_server
 
@@ -128,7 +139,12 @@ RUN ln -sf $(which python${PYTHON_VERSION}) /usr/local/bin/python \
   && ln -sf $(which pip3) /usr/local/bin/pip
 
 ENV PATH="/opt/venv/bin:/usr/local/cuda/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
+# Do not expand ${LD_LIBRARY_PATH} — it is unset at this point in the build,
+# so the expansion collapses to a trailing colon which ld.so interprets as
+# "." (current working directory). That is a library-injection surface if any
+# process later cd's into an attacker-controlled path. Nothing prior sets
+# LD_LIBRARY_PATH, so hard-set it here instead.
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/lib"
 
 # Models dir
 RUN mkdir -p ${MODEL_BASE_PATH}
@@ -164,7 +180,10 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 # `tensorflow` framework wheel is NOT pulled into an inference image. See
 # locked decision Q1 in cuda/pyproject.toml header. The transitive runtime
 # needs (numpy / protobuf / grpcio) are already in the venv from builder-base.
-RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api-gpu==${TF_SERVING_VERSION}" 2>/dev/null \
+# Falls through to pip only if uv genuinely errors — no stderr redirect, so
+# real failures surface in the build log rather than silently swallowing
+# "wheel not found" / network errors.
+RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api-gpu==${TF_SERVING_VERSION}" \
   || /opt/venv/bin/pip install --no-deps --no-cache-dir "tensorflow-serving-api-gpu==${TF_SERVING_VERSION}"
 
 # SageMaker handler artifacts (TFS toolkit ported in Phase 3 from master TF 2.19
@@ -244,19 +263,32 @@ RUN set -eux \
   &&  nginx -t -c /sagemaker/nginx.conf.smoke \
   &&  rm /sagemaker/nginx.conf.smoke \
   # 3. Shell commands our handlers invoke at runtime.
-  &&  for cmd in free nginx python3 pip3 gunicorn; do \
+  &&  for cmd in free nginx python3 pip3 gunicorn tensorflow_model_server; do \
         command -v "$cmd" >/dev/null || { echo "MISSING: $cmd"; exit 1; }; \
       done \
   # 4. Python imports handlers rely on at request time.
-  &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests"
+  &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests" \
+  # 5. tensorflow_model_server binary resolves all shared-lib deps and
+  #    responds to --version. This is the check that would have caught a
+  #    missing cuDNN / libtensorflow_framework / glibc-ABI regression at
+  #    build time rather than on the first customer request.
+  #    (tensorflow_serving.apis.predict_pb2 is intentionally NOT imported —
+  #    tensorflow-serving-api-gpu is installed with --no-deps, so the
+  #    transitive `tensorflow` framework wheel is absent; see commit 112e59a7.)
+  &&  ldd "$(command -v tensorflow_model_server)" | { ! grep -F 'not found'; } \
+  &&  tensorflow_model_server --version
 
-RUN rm -rf /tmp/* /root/.cache
+# Final image-size cleanup. `dnf clean all` empties the on-disk repo cache but
+# leaves history/log/cachedir metadata behind (~150-300 MB across all dnf runs
+# in this Dockerfile); scrub them here as the last step so all prior layers
+# still see a valid dnf DB during build.
+RUN rm -rf /tmp/* /root/.cache \
+  /var/cache/dnf /var/lib/dnf/history* /var/log/dnf.log*
 
-# Expose ports — TF Serving native gRPC (8500) and REST (8501).
-# Master TF 2.19 SM image exposes the same pair; the SM frontend nginx (port
-# 8080 from the SM contract) is set up at runtime by the handler scripts and
-# does not need an EXPOSE here.
-EXPOSE 8500 8501
+# Expose ports — SageMaker /invocations and /ping (8080, served by nginx per
+# nginx.conf.template), plus TF Serving native gRPC (8500) and REST (8501).
+# EXPOSE is documentation-only; docker does not port-map without --publish.
+EXPOSE 8080 8500 8501
 
 ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
 CMD ["/usr/local/bin/tf_serving_entrypoint.sh"]

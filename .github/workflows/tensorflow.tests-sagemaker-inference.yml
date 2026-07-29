@@ -12,6 +12,11 @@ on:
         required: false
         type: string
         default: ""
+      device-type:
+        description: "Device type from config metadata (cpu|gpu). Selects the SM instance type for endpoint deploys."
+        required: false
+        type: string
+        default: "cpu"
 
 permissions:
   contents: read
@@ -71,5 +76,14 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/test
           TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ needs.preflight.outputs.aws-account-id }}:role/SageMakerRole
+          # Region propagates to conftest.py::aws_region so endpoint creates
+          # land in the CI account's region rather than conftest's us-west-2
+          # default (would break if CI account is elsewhere).
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          # device-type selects the SageMaker endpoint instance type in
+          # test/tensorflow/integration/inference/conftest.py::sm_instance_type
+          # (cpu -> ml.c5.xlarge, gpu -> ml.g5.xlarge). Ensures the CUDA image
+          # is exercised on a GPU host rather than silently running only on CPU.
+          SM_DEVICE_TYPE: ${{ inputs.device-type }}
         run: |
           pytest test/tensorflow/integration/inference/ -v

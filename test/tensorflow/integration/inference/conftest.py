@@ -48,6 +48,30 @@ def inference_image_uri() -> str:
     return uri
 
 
+# SageMaker instance-type map keyed on the image's device_type (from the config
+# metadata forwarded via SM_DEVICE_TYPE by the reusable workflow). Kept as
+# module-level constants so a test can `import` them for parametrization; the
+# `sm_instance_type` fixture is the normal entry point.
+_SM_INSTANCE_TYPE_BY_DEVICE = {
+    "cpu": "ml.c5.xlarge",
+    "gpu": "ml.g5.xlarge",
+}
+
+
+@pytest.fixture(scope="session")
+def sm_instance_type() -> str:
+    """SageMaker endpoint instance type appropriate for the image under test.
+
+    Selected from the ``SM_DEVICE_TYPE`` env var (``cpu``/``gpu``) forwarded
+    from the reusable workflow. Defaults to CPU when the env var is absent so
+    ``pytest`` from a developer laptop keeps working. The GPU mapping
+    (``ml.g5.xlarge``) is what actually exercises the CUDA image's cuDNN /
+    tensorflow_model_server GPU path end-to-end.
+    """
+    device = os.environ.get("SM_DEVICE_TYPE", "cpu").lower()
+    return _SM_INSTANCE_TYPE_BY_DEVICE.get(device, "ml.c5.xlarge")
+
+
 @pytest.fixture(scope="session")
 def boto_session(aws_region: str):
     """A boto3 session bound to the configured region.
@@ -87,6 +111,92 @@ def unique_name():
         return f"{prefix}-{int(time.time())}-{uuid4().hex[:6]}"
 
     return _make
+
+
+@pytest.fixture
+def deploy_endpoint(
+    boto_session,
+    sagemaker_session,
+    sagemaker_role_arn,
+    inference_image_uri,
+    sm_instance_type,
+    unique_name,
+):
+    """Deploy a SageMaker endpoint and return a callable that returns the
+    ``Endpoint`` handle plus its name — pair with ``cleanup_endpoint`` for
+    teardown. Wraps the ``Model.create -> EndpointConfig.create ->
+    Endpoint.create -> wait_for_status`` sequence used by every integration
+    test so individual tests stay focused on assertions.
+
+    Usage::
+
+        def test_x(deploy_endpoint, cleanup_endpoint):
+            endpoint, endpoint_name, model_name = deploy_endpoint(
+                model_data_url="s3://.../model.tar.gz",  # or an MME prefix
+                mode="SingleModel",                       # or "MultiModel"
+                container_env={"SAGEMAKER_TFS_ENABLE_BATCHING": "true"},
+                name_prefix="tf220-batching",
+            )
+            cleanup_endpoint(endpoint_name, model_name=model_name)
+            ...
+    """
+
+    def _deploy(
+        *,
+        model_data_url: str,
+        mode: str = "SingleModel",
+        container_env: dict | None = None,
+        name_prefix: str = "tf220-inference",
+    ):
+        from sagemaker.core.resources import (
+            ContainerDefinition,
+            Endpoint,
+            EndpointConfig,
+            Model,
+            ProductionVariant,
+        )
+
+        endpoint_name = unique_name(name_prefix)
+        model_name = unique_name(f"{name_prefix}-model")
+
+        container_kwargs = {
+            "image": inference_image_uri,
+            "model_data_url": model_data_url,
+        }
+        if mode == "MultiModel":
+            container_kwargs["mode"] = "MultiModel"
+        if container_env:
+            container_kwargs["environment"] = dict(container_env)
+
+        Model.create(
+            model_name=model_name,
+            primary_container=ContainerDefinition(**container_kwargs),
+            execution_role_arn=sagemaker_role_arn,
+            session=boto_session,
+        )
+
+        EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=model_name,
+                    initial_instance_count=1,
+                    instance_type=sm_instance_type,
+                ),
+            ],
+            session=boto_session,
+        )
+
+        endpoint = Endpoint.create(
+            endpoint_name=endpoint_name,
+            endpoint_config_name=endpoint_name,
+            session=boto_session,
+        )
+        endpoint.wait_for_status("InService")
+        return endpoint, endpoint_name, model_name
+
+    return _deploy
 
 
 @pytest.fixture
