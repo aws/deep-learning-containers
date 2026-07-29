@@ -105,9 +105,9 @@ RUN dnf install -y --allowerasing \
 # pattern is already used at the security-patch step later in this
 # Dockerfile.
 RUN dnf install -y --releasever latest --allowerasing \
-        nginx-${NGINX_VERSION} \
-        nginx-mod-njs-${NJS_VERSION} \
-    && dnf clean all
+  nginx-${NGINX_VERSION} \
+  nginx-mod-njs-${NJS_VERSION} \
+  && dnf clean all
 
 # Copy venv from builder-base
 COPY --from=builder-base /opt/venv /opt/venv
