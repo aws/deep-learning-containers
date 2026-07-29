@@ -1,5 +1,5 @@
 name: 'Notify Slack Failure'
-description: 'Post a failed auto-release run to a Slack Workflow Builder webhook.'
+description: 'Post a failed production auto-release run to a Slack Workflow Builder webhook. Non-production environments are skipped.'
 
 inputs:
   webhook-url:
@@ -29,6 +29,13 @@ runs:
         if [[ -z "${SLACK_WEBHOOK_URL}" ]]; then
           echo "::error::webhook-url is empty — set the SLACK_RELEASE_FAILURE_WEBHOOK_URL secret."
           exit 1
+        fi
+
+        # Production releases only: gamma/preprod runs are often manual tests.
+        environment=$(yq -r '.release.environment // ""' "${CONFIG_FILE}")
+        if [[ "${environment}" != "production" ]]; then
+          echo "Skipping notification: environment is '${environment:-unset}', not production."
+          exit 0
         fi
 
         # Include the config basename: one workflow releases several configs via matrix.
