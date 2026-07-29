@@ -40,6 +40,7 @@ OS_VERSION=$(yq '.metadata.os_version // ""' "$CONFIG_FILE")
 CUSTOMER_TYPE=$(yq '.metadata.customer_type // ""' "$CONFIG_FILE")
 PLATFORM=$(yq '.metadata.platform // ""' "$CONFIG_FILE")
 CONTAINER_TYPE=$(yq '.metadata.container_type // ""' "$CONFIG_FILE")
+PROD_IMAGE=$(yq '.metadata.prod_image // ""' "$CONFIG_FILE")
 
 # Derived fields
 PYTHON_RAW=$(yq '.build.python_version // ""' "$CONFIG_FILE")
@@ -83,6 +84,7 @@ SPEC+="version: \"${VERSION}\""$'\n'
 [[ -n "$OS_VERSION" ]]      && SPEC+="os_version: \"${OS_VERSION}\""$'\n'
 [[ -n "$CUSTOMER_TYPE" ]]   && SPEC+="customer_type: \"${CUSTOMER_TYPE}\""$'\n'
 [[ -n "$CUDA_VERSION" ]]    && SPEC+="cuda_version: \"${CUDA_VERSION}\""$'\n'
+[[ -n "$PROD_IMAGE" ]]      && SPEC+="prod_image: \"${PROD_IMAGE}\""$'\n'
 [[ -n "$TRANSFORMERS_VERSION" ]] && SPEC+="transformers_version: \"${TRANSFORMERS_VERSION}\""$'\n'
 [[ -n "$PLATFORM" ]]        && SPEC+="platform: \"${PLATFORM}\""$'\n'
 [[ -n "$CONTAINER_TYPE" ]]  && SPEC+="container_type: \"${CONTAINER_TYPE}\""$'\n'
