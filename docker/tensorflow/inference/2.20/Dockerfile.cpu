@@ -84,8 +84,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   MODEL_NAME=model
 
 # Runtime system deps via dnf — equivalent of master TF 2.19 CPU apt-get block.
-# nginx and its njs module come from nginx.org's official AL2023 repo below;
-# everything else in this list is from AL2023 core.
+# nginx and its njs module are installed from AL2023 core below (via a
+# separate --releasever latest step); everything else in this list is from
+# AL2023 core.
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
   procps-ng \
@@ -95,15 +96,17 @@ RUN dnf install -y --allowerasing \
   openssl unzip jq curl wget \
   && dnf clean all
 
-# nginx + njs module from nginx.org's official AL2023 repo (matched versions).
-# Kills the source-build-vs-dnf version-drift bug class: nginx and its njs
-# module ship as a single GPG-signed RPM pair from the same upstream.
-RUN printf '[nginx-stable]\nname=nginx stable\nbaseurl=https://nginx.org/packages/amzn/2023/$basearch/\ngpgcheck=1\ngpgkey=https://nginx.org/keys/nginx_signing.key\nmodule_hotfixes=true\npriority=9\n' \
-        > /etc/yum.repos.d/nginx.repo \
-    && rpm --import https://nginx.org/keys/nginx_signing.key \
-    && dnf install -y --allowerasing \
+# nginx + njs module from AL2023 core. Same 1.30.3 + 0.9.9 versions
+# as nginx.org's amzn2023 RPMs but AL2023-native packaging (so we get
+# AL2023's CVE backports and match the base's OpenSSL). --releasever
+# latest pulls openssl-libs 3.5.5 transitively since AL2023's nginx
+# 1.30.3 links against libssl.so.3(OPENSSL_3.5.0) and the base image's
+# pinned snapshot ships openssl-libs 3.0.x. Same --releasever latest
+# pattern is already used at the security-patch step later in this
+# Dockerfile.
+RUN dnf install -y --releasever latest --allowerasing \
         nginx-${NGINX_VERSION} \
-        nginx-module-njs-${NGINX_VERSION}+${NJS_VERSION} \
+        nginx-mod-njs-${NJS_VERSION} \
     && dnf clean all
 
 # Copy venv from builder-base
