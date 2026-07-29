@@ -20,7 +20,7 @@ build:
   python_version: "3.10"
 
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: false
   private_registry: true
