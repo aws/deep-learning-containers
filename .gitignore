@@ -18,6 +18,8 @@ site/
 tutorials/
 .sisyphus/
 docker/xgboost/prebuilt.whl
+docker/tei/*/cpu/tei-src/
+docker/tei/*/gpu/tei-src/
 
 # tmp
 .github/archive
