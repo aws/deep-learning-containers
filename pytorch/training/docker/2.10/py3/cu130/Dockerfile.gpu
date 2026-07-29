@@ -29,7 +29,7 @@ FROM public.ecr.aws/deep-learning-containers/base:13.0.2-gpu-py313-cu130-ubuntu2
 # base has EFA, PYTHON and CUDA 13.0
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTORCH_VERSION
@@ -244,7 +244,7 @@ CMD ["/bin/bash"]
 FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
