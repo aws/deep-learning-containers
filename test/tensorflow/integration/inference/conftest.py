@@ -52,9 +52,17 @@ def inference_image_uri() -> str:
 # metadata forwarded via SM_DEVICE_TYPE by the reusable workflow). Kept as
 # module-level constants so a test can `import` them for parametrization; the
 # `sm_instance_type` fixture is the normal entry point.
+#
+# GPU is ml.g6.4xlarge to match the CI account's provisioned hosting fleet.
+# ml.g5.xlarge is NOT hosted in this account — CreateEndpoint on it fails with
+# a generic `CannotStartContainerError` and zero container stdout (docker /
+# nvidia-runtime layer, before entrypoint). Verified 2026-07-29: same image
+# on ml.g6.4xlarge reaches InService cleanly. Matches TEI's working GPU
+# sagemaker-test (test/tei/sagemaker/sagemaker_dlc_test.py); other v2
+# frameworks use the same family (vLLM ml.g6.xlarge, openfold3 ml.g6.12xlarge).
 _SM_INSTANCE_TYPE_BY_DEVICE = {
     "cpu": "ml.c5.xlarge",
-    "gpu": "ml.g5.xlarge",
+    "gpu": "ml.g6.4xlarge",
 }
 
 
@@ -65,7 +73,7 @@ def sm_instance_type() -> str:
     Selected from the ``SM_DEVICE_TYPE`` env var (``cpu``/``gpu``) forwarded
     from the reusable workflow. Defaults to CPU when the env var is absent so
     ``pytest`` from a developer laptop keeps working. The GPU mapping
-    (``ml.g5.xlarge``) is what actually exercises the CUDA image's cuDNN /
+    (``ml.g6.4xlarge``) is what actually exercises the CUDA image's cuDNN /
     tensorflow_model_server GPU path end-to-end.
     """
     device = os.environ.get("SM_DEVICE_TYPE", "cpu").lower()
