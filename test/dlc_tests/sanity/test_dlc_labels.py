@@ -261,6 +261,18 @@ def test_dlc_major_version_dockerfiles(image):
             f"in one of the Dockerfiles. Please inspect {versions}"
         )
 
+    # PyTorch training 2.8/2.9/2.10 moved to v2 when emacs was removed, so v1 no longer exists
+    if (framework, fw_version_major_minor, job_type) in (
+        ("pytorch", "2.8", "training"),
+        ("pytorch", "2.9", "training"),
+        ("pytorch", "2.10", "training"),
+    ):
+        expected_versions = [v + 1 for v in expected_versions]
+        assert 1 not in actual_versions, (
+            f"DLC v1 is superseded in PyTorch {fw_version_major_minor} training containers, but found "
+            f"major version 1 in one of the Dockerfiles. Please inspect {versions}"
+        )
+
     # Note: If, for example, we find 3 dockerfiles with the same framework major/minor version, same processor,
     # and same python major/minor version, we will expect DLC major versions 1, 2, and 3. If an exception needs to be
     # made to this rule, please see the above handling of TF2.3 as an example.
