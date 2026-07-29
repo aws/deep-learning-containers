@@ -62,7 +62,7 @@ WORKDIR /
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1 \
     build-essential \
     ca-certificates \
     zlib1g-dev \
@@ -179,7 +179,6 @@ RUN apt-get update \
     wget \
     git \
     jq \
-    emacs \
     vim \
     unzip \
  && rm -rf /var/lib/apt/lists/* \

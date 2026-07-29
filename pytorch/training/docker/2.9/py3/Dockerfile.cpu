@@ -74,12 +74,11 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
-    emacs \
     git \
     jq \
     libcurl4-openssl-dev \
     libglib2.0-0 \
-    libgl1-mesa-glx \
+    libgl1 \
     libsm6 \
     libssl-dev \
     libxext6 \
