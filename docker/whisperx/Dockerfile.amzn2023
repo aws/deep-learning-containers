@@ -171,8 +171,21 @@ COPY scripts/docker/whisperx/server.py /opt/whisperx/server.py
 # baked cu128 libs need (e.g. SageMaker ml.g4dn). No-op on new-driver / CPU
 # hosts. Without this, old-driver GPU hosts fail to start with a zero-log
 # CannotStartContainerError.
-COPY scripts/docker/whisperx/cuda_compat.sh /opt/whisperx/cuda_compat.sh
-RUN chmod +x /opt/whisperx/cuda_compat.sh
+#
+# whisperx-local copy of the canonical DLC PyTorch compat script (kept in sync;
+# see the script header). Both entrypoints `source` it (not `bash`) so its
+# `export LD_LIBRARY_PATH` reaches the exec'd uvicorn; they pre-seed
+# LD_LIBRARY_PATH so the script's unguarded `$LD_LIBRARY_PATH` reference is safe
+# under `set -u` (see the entrypoints).
+#
+# NOTE for SageMaker GPU endpoints: cuda-compat only bridges from a base driver
+# that itself meets the compat package's minimum. SageMaker's DEFAULT g4dn AMI
+# ships a driver too old even for that, so the endpoint config MUST pin
+# InferenceAmiVersion to a CUDA-12.x AMI (al2-ami-sagemaker-inference-gpu-3-1,
+# driver 550) regardless of this script. See test/whisperx/sagemaker/*.py and
+# test/test_utils/constants.py (INFERENCE_AMI_VERSION_CU12) for the pin.
+COPY scripts/docker/whisperx/start_cuda_compat.sh /opt/whisperx/start_cuda_compat.sh
+RUN chmod +x /opt/whisperx/start_cuda_compat.sh
 
 # ---- Third-party attribution (CC-BY-4.0 for pyannote diarization weights) ----
 COPY docker/whisperx/NOTICE /NOTICE
