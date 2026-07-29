@@ -101,7 +101,7 @@ RUN mv /opt/amazon/openmpi/bin/mpirun /opt/amazon/openmpi/bin/mpirun.real \
   && echo "rmaps_base_mapping_policy = slot" >>/opt/amazon/openmpi/etc/openmpi-mca-params.conf
 
 # OpenSSH (root, port 22)
-COPY scripts/docker/pytorch/configure_ssh.sh /tmp/configure_ssh.sh
+COPY scripts/docker/common/configure_ssh.sh /tmp/configure_ssh.sh
 RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
 
 # ldconfig

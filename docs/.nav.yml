@@ -8,6 +8,7 @@ nav:
     - TEI: tei
     - Ray: ray
     - PyTorch: pytorch
+    - TensorFlow: tensorflow
     - Base: base
   - Blog Posts: tutorials
   - Resources:

@@ -91,7 +91,7 @@ jobs:
       cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
+        fleet:x86-pytorch-build-runner
         buildspec-override:true
     timeout-minutes: 720
     outputs:

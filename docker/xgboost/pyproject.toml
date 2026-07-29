@@ -19,7 +19,7 @@ dependencies = [
     "numba==0.65.1",
     "numpy==2.1.0",
     "pandas==2.2.3",
-    "Pillow==12.2.0",
+    "Pillow==12.3.0",
     "psutil==7.0.0",
     "pynvml==12.0.0",
     "python-dateutil==2.9.0",
@@ -50,5 +50,5 @@ override-dependencies = [
     "werkzeug==3.1.8",
     "urllib3==2.7.0",
     "certifi==2025.4.26",
-    "pillow==12.2.0",
+    "pillow==12.3.0",
 ]

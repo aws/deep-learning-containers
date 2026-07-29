@@ -72,9 +72,9 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     ---
 
-    Run distributed training with PyTorch on GPU or CPU, with EFA, NCCL, flash-attn, and DeepSpeed pre-installed.
+    Run distributed training with PyTorch or TensorFlow on GPU or CPU, with EFA and NCCL pre-installed for multi-node workloads.
 
-    [PyTorch Guide](pytorch/index.md)
+    [PyTorch Guide](pytorch/index.md) · [TensorFlow Guide](tensorflow/index.md)
 
 -   **Build Your Own Image**
 

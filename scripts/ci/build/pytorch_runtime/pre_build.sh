@@ -49,7 +49,7 @@ PACKAGES=()
 PACKAGES_STR=$(IFS=','; echo "${PACKAGES[*]}")
 echo "Fetching cached wheels: ${PACKAGES_STR:-none}"
 if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --dest-dir "$DEST" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
-    --cuda-version "$CUDA_VERSION" --packages "$PACKAGES_STR"; then
+    --cuda-version "$CUDA_VERSION" --torch-version "$FRAMEWORK_VERSION" --packages "$PACKAGES_STR"; then
   echo "WHEEL_CACHE_HIT=true" >> "${GITHUB_ENV:-/dev/null}"
   echo "Wheel cache hit"
 else

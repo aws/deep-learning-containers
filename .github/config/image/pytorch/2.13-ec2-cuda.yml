@@ -1,0 +1,39 @@
+image:
+  name: "pytorch-2.13-ec2-cuda"
+  description: "PyTorch 2.13 CUDA training for EC2 instances"
+
+metadata:
+  framework: "pytorch_runtime"
+  framework_version: "2.13.0"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "training"
+  prod_image: "pytorch:2.13-cu133-amzn2023"
+
+build:
+  dockerfile: "docker/pytorch/Dockerfile.cuda"
+  target: "runtime"
+  python_version: "3.12"
+  cuda_version: "13.3.0"
+  torch_version: "2.13.0"
+  torchvision_version: "0.28.0"
+  torchaudio_version: "2.11.0"
+  flash_attn_version: "2.8.3"
+  deepspeed_version: "0.19.2"
+  transformer_engine_version: "2.17.0"
+  nccl_version: "2.30.7-1"
+  efa_version: "1.49.0"
+  gdrcopy_version: "2.6"
+  max_jobs: "8"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"

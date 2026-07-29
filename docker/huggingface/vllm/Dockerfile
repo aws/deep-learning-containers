@@ -1,9 +1,9 @@
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.25.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
 
 ARG FRAMEWORK=huggingface-vllm
-ARG FRAMEWORK_VERSION=0.22.1
+ARG FRAMEWORK_VERSION=0.25.1
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 
@@ -90,6 +90,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     --disable-debug \
     --disable-doc \
     --enable-gpl \
+    --enable-shared \
     --enable-libmp3lame \
     --enable-libopus \
     --enable-libvorbis \
@@ -98,6 +99,8 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     --enable-libx265 \
   && make -j"$(nproc)" \
   && make install \
+  && echo /usr/local/lib >/etc/ld.so.conf.d/ffmpeg-local.conf \
+  && ldconfig \
   && which ffmpeg \
   && ffmpeg -version \
   && ffprobe -version \
@@ -106,10 +109,11 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && rm -rf /var/lib/apt/lists/*
 
 # NOTE: the mooncake-transfer-engine (CVE-2026-33186) and openssh
-# (CVE-2026-35385/35414/35386) backports the v0.21 image carried are dropped
-# here: the 0.22.1 base already ships the fixed versions
-# (mooncake-transfer-engine 0.3.10.post2, openssh 1:8.9p1-3ubuntu0.15).
-# ffmpeg above is still required (the base ships the vulnerable 4.4.2).
+# (CVE-2026-35385/35414/35386) backports the v0.21 image carried stay dropped:
+# the 0.22.1+ bases ship the fixed versions. ffmpeg above is kept because the
+# ubuntu22.04 base still ships the vulnerable 4.4.2 — re-verify both against
+# the 0.25 base scan; the unpatchable mooncake go/stdlib findings are
+# allowlisted (test/security/data/ecr_scan_allowlist/huggingface-vllm/).
 
 RUN HOME_DIR=/root \
   && uv pip install --system --upgrade pip requests PTable \

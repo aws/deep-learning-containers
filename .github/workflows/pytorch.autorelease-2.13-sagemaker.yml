@@ -1,0 +1,40 @@
+name: "Auto Release - PyTorch 2.13 SageMaker"
+
+on:
+  schedule:
+    - cron: '00 23 * * 2,4'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/pytorch/2.13-sagemaker-*.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/pytorch.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: ${{ github.run_id }}
+      run-multi-gpu-test: false
+      run-multi-node-test: false
+      release: true
+    secrets: inherit

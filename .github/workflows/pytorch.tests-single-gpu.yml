@@ -64,7 +64,10 @@ jobs:
 
       - name: Run single-GPU tests
         run: |
-          CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
+          # TEMPORARY: bypasses buggy `cuda>=13.3` label check in
+          # nvidia-container-toolkit 1.19.1 (fixed upstream in v1.20.0).
+          # Remove flag + this comment once the runner AMI ships toolkit >= 1.20.
+          CONTAINER_ID=$(docker run -d --rm --gpus all -e NVIDIA_DISABLE_REQUIRE=true --shm-size=2g \
             --entrypoint /bin/bash \
             -v $(pwd):/workdir --workdir /workdir \
             ${{ needs.preflight.outputs.image-uri }} -c 'sleep infinity')

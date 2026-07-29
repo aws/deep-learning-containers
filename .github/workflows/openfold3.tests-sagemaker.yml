@@ -68,6 +68,8 @@ jobs:
           TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
           SM_ROLE_ARN: arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/SageMakerRole
           AWS_REGION: ${{ vars.AWS_REGION }}
+          # Release runs skip on capacity (ICE); PR runs surface it as a failure.
+          RELEASE_RUN: ${{ contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release') }}
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
