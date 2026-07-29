@@ -271,7 +271,7 @@ def test_dlc_major_version_dockerfiles(image):
         ("pytorch", "2.9", "training"),
         ("pytorch", "2.10", "training"),
     ):
-        expected_versions = [PYTORCH_TRAINING_CURRENT_MAJOR_VERSION] * len(dockerfiles)
+        expected_versions = [PYTORCH_TRAINING_CURRENT_MAJOR_VERSION]
 
     # Note: If, for example, we find 3 dockerfiles with the same framework major/minor version, same processor,
     # and same python major/minor version, we will expect DLC major versions 1, 2, and 3. If an exception needs to be
