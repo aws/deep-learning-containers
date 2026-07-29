@@ -59,9 +59,7 @@ def test_csv_content_type_multi_column(
             return row["output"] if isinstance(row, dict) and "output" in row else row
 
         # Row 1: [1,2,3] * 2 = [2,4,6]; row 2: [4,5,6] * 2 = [8,10,12].
-        assert _values(rows[0]) == pytest.approx([2.0, 4.0, 6.0]), (
-            f"row 1 got {_values(rows[0])!r}"
-        )
+        assert _values(rows[0]) == pytest.approx([2.0, 4.0, 6.0]), f"row 1 got {_values(rows[0])!r}"
         assert _values(rows[1]) == pytest.approx([8.0, 10.0, 12.0]), (
             f"row 2 got {_values(rows[1])!r}"
         )

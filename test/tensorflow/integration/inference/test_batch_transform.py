@@ -20,7 +20,6 @@ import json
 import tempfile
 import time
 from pathlib import Path
-from uuid import uuid4
 
 import pytest
 
@@ -28,12 +27,19 @@ from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
 
 
+# Batch transform always runs on CPU regardless of the image's device type:
+# (1) the DLC handler request path is device-agnostic, so we get the same
+# CreateTransformJob wire-contract coverage; (2) TransformJob GPU instance
+# quotas are 0 by default in CI accounts (ResourceLimitExceeded), and this
+# test is about the batch-job pipeline, not GPU inference throughput.
+BATCH_TRANSFORM_INSTANCE_TYPE = "ml.c5.xlarge"
+
+
 def test_batch_transform_json(
     boto_session,
     sagemaker_session,
     sagemaker_role_arn,
     inference_image_uri,
-    sm_instance_type,
     unique_name,
 ):
     """End-to-end batch transform on JSON inputs. Uploads 3 single-record
@@ -95,7 +101,10 @@ def test_batch_transform_json(
         )
 
         try:
-            # 4. Kick off the transform job.
+            # 4. Kick off the transform job. TransformJob is a batch/async
+            #    resource and the SDK v3 does not expose a `wait_for_status`
+            #    helper on it (unlike Endpoint), so we poll `refresh()` until
+            #    the job leaves the pending/in-progress states.
             job = TransformJob.create(
                 transform_job_name=job_name,
                 model_name=model_name,
@@ -115,12 +124,27 @@ def test_batch_transform_json(
                     assemble_with="None",
                 ),
                 transform_resources=TransformResources(
-                    instance_type=sm_instance_type,
+                    instance_type=BATCH_TRANSFORM_INSTANCE_TYPE,
                     instance_count=1,
                 ),
                 session=boto_session,
             )
-            job.wait_for_status("Completed")
+            terminal = {"Completed", "Failed", "Stopped"}
+            deadline = time.time() + 45 * 60  # 45 min ceiling
+            while True:
+                job.refresh()
+                status = getattr(job, "transform_job_status", None)
+                if status in terminal:
+                    break
+                if time.time() > deadline:
+                    raise TimeoutError(
+                        f"TransformJob {job_name} still in status {status!r} after 45 min"
+                    )
+                time.sleep(30)
+            assert status == "Completed", (
+                f"TransformJob failed: status={status!r} "
+                f"failure_reason={getattr(job, 'failure_reason', None)!r}"
+            )
 
             # 5. Download output objects and assert predictions.
             resp = s3.list_objects_v2(
@@ -143,11 +167,7 @@ def test_batch_transform_json(
                 predictions = parsed.get("predictions", [])
                 assert predictions, f"empty predictions in {key}: {body!r}"
                 first = predictions[0]
-                values = (
-                    first["output"]
-                    if isinstance(first, dict) and "output" in first
-                    else first
-                )
+                values = first["output"] if isinstance(first, dict) and "output" in first else first
                 filename = key.rsplit("/", 1)[-1]
                 assert values == pytest.approx(expected_by_input[filename]), (
                     f"{filename}: got {values!r}, expected {expected_by_input[filename]!r}"

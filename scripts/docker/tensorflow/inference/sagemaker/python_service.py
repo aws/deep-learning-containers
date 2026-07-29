@@ -287,9 +287,7 @@ class PythonServiceResource:
                 or model_name.startswith(".")
             ):
                 res.status = falcon.HTTP_400
-                res.body = json.dumps(
-                    {"error": "invalid model_name: {!r}".format(model_name)}
-                )
+                res.body = json.dumps({"error": "invalid model_name: {!r}".format(model_name)})
                 return
 
             # sync sync_local_mme_instance_status & update available ports

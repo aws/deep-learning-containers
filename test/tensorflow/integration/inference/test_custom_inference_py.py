@@ -14,12 +14,11 @@ from __future__ import annotations
 
 import json
 import tempfile
-from pathlib import Path
 
 import pytest
 
 from .resources.build_sample_model import build_sample_model
-from .resources.helpers import CUSTOM_INFERENCE_PY, read_predictions, upload_tarball
+from .resources.helpers import CUSTOM_INFERENCE_PY, upload_tarball
 
 
 def test_custom_inference_py_handlers(

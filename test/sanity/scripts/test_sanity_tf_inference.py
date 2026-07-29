@@ -109,23 +109,18 @@ class TestTFServingBinary(unittest.TestCase):
     def test_tfs_version(self):
         """--version resolves + prints a version string. Catches broken
         --no-deps installs of tensorflow-serving-api."""
-        out = subprocess.run(
-            [self.BIN, "--version"], capture_output=True, text=True, check=True
-        )
+        out = subprocess.run([self.BIN, "--version"], capture_output=True, text=True, check=True)
         combined = out.stdout + out.stderr
         self.assertIn("TensorFlow ModelServer", combined)
 
     def test_tfs_shared_libs_resolve(self):
         """No `not found` in ldd. This is the check that would have caught
         B1 (missing cuDNN in GPU image) before endpoint deploy."""
-        out = subprocess.run(
-            ["ldd", self.BIN], capture_output=True, text=True, check=True
-        )
+        out = subprocess.run(["ldd", self.BIN], capture_output=True, text=True, check=True)
         missing = [line for line in out.stdout.splitlines() if "not found" in line]
         self.assertFalse(
             missing,
-            "unresolved shared libraries in tensorflow_model_server:\n"
-            + "\n".join(missing),
+            "unresolved shared libraries in tensorflow_model_server:\n" + "\n".join(missing),
         )
 
 
@@ -192,9 +187,7 @@ class TestEntrypoints(unittest.TestCase):
         for path in self.ENTRYPOINTS:
             with self.subTest(path=path):
                 with open(path) as f:
-                    self.assertTrue(
-                        f.readline().startswith("#!"), f"missing shebang: {path}"
-                    )
+                    self.assertTrue(f.readline().startswith("#!"), f"missing shebang: {path}")
 
 
 class TestNginxNjsModule(unittest.TestCase):
@@ -224,9 +217,7 @@ class TestCuDNN(unittest.TestCase):
     fails at the sanity stage instead of at endpoint deploy."""
 
     def test_libcudnn_in_ldconfig_cache(self):
-        out = subprocess.run(
-            ["ldconfig", "-p"], capture_output=True, text=True, check=True
-        )
+        out = subprocess.run(["ldconfig", "-p"], capture_output=True, text=True, check=True)
         self.assertIn("libcudnn.so", out.stdout, "libcudnn.so absent from ld cache")
 
     def test_libcudnn_files_on_disk(self):

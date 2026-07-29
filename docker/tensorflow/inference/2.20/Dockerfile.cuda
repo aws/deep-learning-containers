@@ -92,16 +92,30 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Runtime system deps via dnf — equivalent of master TF 2.19 GPU apt-get block,
 # minus the training-specific packages (NCCL/EFA/OpenMPI). nginx and its njs
 # module are installed from AL2023 core below (via a separate --releasever
-# latest step, matched pair); everything in this list is from AL2023 core.
+# latest step, matched pair); everything in this list is from AL2023 core
+# except the libcu* math libraries which come from NVIDIA's CUDA repo that
+# the base image already has configured.
 # tar/gzip/which/findutils/util-linux are baseline shell utilities the SM
 # handlers rely on.
-RUN dnf install -y --allowerasing \
-  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
-  procps-ng \
-  gcc gcc-c++ make git \
-  tar gzip xz which findutils util-linux \
-  libpng-devel freetype-devel zlib-devel \
-  openssl unzip jq curl wget \
+#
+# libcublas / libcufft / libcurand / libcusolver / libcusparse / libnvjpeg
+# are required at TFS init on a real GPU host: `tensorflow_model_server` is
+# dynamically linked against cuBLAS et al. and the CUDA runtime image ships
+# CUDA proper but not these math libraries. Without them the container
+# starts cleanly on a CPU host (TFS falls back to CPU) but crashes at
+# `cuInit` on `ml.g5.xlarge`, surfacing as `CannotStartContainerError` at
+# SageMaker endpoint deploy. Pinned to CUDA 12.9 matching the base image.
+RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
+  && dnf install -y --allowerasing \
+    python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
+    procps-ng \
+    gcc gcc-c++ make git \
+    tar gzip xz which findutils util-linux \
+    libpng-devel freetype-devel zlib-devel \
+    libcublas-${CUDA_MAJOR_MINOR} libcufft-${CUDA_MAJOR_MINOR} \
+    libcurand-${CUDA_MAJOR_MINOR} libcusolver-${CUDA_MAJOR_MINOR} \
+    libcusparse-${CUDA_MAJOR_MINOR} libnvjpeg-${CUDA_MAJOR_MINOR} \
+    openssl unzip jq curl wget \
   && dnf clean all
 
 # nginx + njs module from AL2023 core. Same 1.30.3 + 0.9.9 versions
