@@ -1,4 +1,4 @@
-name: "Dispatch Release - TEI"
+name: "Dispatch - TEI Release"
 
 on:
   workflow_dispatch:
