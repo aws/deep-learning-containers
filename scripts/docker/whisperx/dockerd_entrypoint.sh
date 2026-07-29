@@ -10,9 +10,14 @@ bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
 
 # Activate CUDA forward-compat if the host driver is older than the baked CUDA
 # libs need. No-op on new-driver and CPU hosts. Must run before uvicorn imports
-# torch. See cuda_compat.sh.
+# torch. We source (not `bash`) start_cuda_compat.sh so its
+# `export LD_LIBRARY_PATH` lands in this shell and is inherited by the exec'd
+# uvicorn. That script references $LD_LIBRARY_PATH unguarded, so pre-seed it to
+# empty first — otherwise `set -u` aborts the entrypoint when it is unset (which
+# it is on this image; nothing sets it before here).
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
 # shellcheck source=/dev/null
-. /opt/whisperx/cuda_compat.sh
+. /opt/whisperx/start_cuda_compat.sh
 
 # Any extra flags the operator passes on `docker run` land in $@; forward them
 # to uvicorn (e.g. --workers 2, --log-level debug).

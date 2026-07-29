@@ -36,9 +36,15 @@ fi
 
 # Activate CUDA forward-compat if the host driver is older than the baked CUDA
 # libs need (e.g. SageMaker ml.g4dn ships an older driver). No-op on new-driver
-# and CPU hosts. Must run before uvicorn imports torch. See cuda_compat.sh.
+# and CPU hosts. Must run before uvicorn imports torch. We source (not `bash`)
+# start_cuda_compat.sh so its `export LD_LIBRARY_PATH` lands in this
+# shell and is inherited by the exec'd uvicorn. That script references
+# $LD_LIBRARY_PATH unguarded, so pre-seed it to empty first — otherwise `set -u`
+# aborts the entrypoint when it is unset (which it is on this image; nothing
+# sets it before here).
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
 # shellcheck source=/dev/null
-. /opt/whisperx/cuda_compat.sh
+. /opt/whisperx/start_cuda_compat.sh
 
 # SageMaker passes `serve` when it launches an inference endpoint. Any other
 # invocation (including no args at all) is a local docker run — treat it the
