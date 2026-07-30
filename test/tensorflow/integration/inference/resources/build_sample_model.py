@@ -80,6 +80,66 @@ def build_sample_model(
     return str(tar_path)
 
 
+def build_conv_sample_model(
+    output_dir: str | os.PathLike | None = None,
+    tar_filename: str = "model.tar.gz",
+    version: int = 1,
+) -> str:
+    """Build a tiny Conv2D SavedModel that exercises cuDNN kernels on GPU.
+
+    Sanity tests only check ``libcudnn.so.*`` presence in ``ldconfig -p``
+    and ``ldd tensorflow_model_server`` — they do NOT exercise a cuDNN op
+    at request time. A cuDNN ABI drift (library present but incompatible
+    with the TFS binary) would pass sanity and fault on the first customer
+    Conv request. This model closes that gap: on GPU, TFS routes the
+    ``Conv2D`` op through cuDNN's ``cudnnConvolutionForward`` path.
+
+    Architecture (kept intentionally tiny — this is a smoke, not a
+    benchmark):
+
+    - Input: ``(None, 8, 8, 3)`` float32
+    - ``Conv2D(4, kernel_size=3, activation='relu')`` -> 112 params
+      (3*3*3*4 weights + 4 bias)
+    - ``GlobalAveragePooling2D()`` -> 0 params
+    - ``Dense(1)`` -> 5 params (4 weights + 1 bias)
+    - Total: 117 trainable params
+
+    Layout matches SageMaker TFS / MME: the tarball contains
+    ``<version>/saved_model.pb`` at the top level so both single-model and
+    multi-model endpoints can consume it without repackaging.
+    """
+    import tensorflow as tf
+
+    output_dir = Path(output_dir) if output_dir else Path(tempfile.mkdtemp(prefix="tf220-conv-"))
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    inputs = tf.keras.Input(shape=(8, 8, 3), dtype=tf.float32, name="input")
+    x = tf.keras.layers.Conv2D(4, kernel_size=3, activation="relu", name="conv")(inputs)
+    x = tf.keras.layers.GlobalAveragePooling2D(name="gap")(x)
+    outputs = tf.keras.layers.Dense(1, name="dense")(x)
+    model = tf.keras.Model(inputs=inputs, outputs=outputs, name="conv_smoke")
+
+    # Serving signature: fixed shape so TFS builds a deterministic input
+    # spec that mirrors the payload the test sends.
+    @tf.function(input_signature=[tf.TensorSpec(shape=[None, 8, 8, 3], dtype=tf.float32)])
+    def serve(x):
+        return {"output": model(x, training=False)}
+
+    saved_model_dir = output_dir / str(version)
+    saved_model_dir.mkdir(parents=True, exist_ok=True)
+    tf.saved_model.save(
+        model,
+        str(saved_model_dir),
+        signatures={"serving_default": serve},
+    )
+
+    tar_path = output_dir / tar_filename
+    with tarfile.open(tar_path, "w:gz") as tar:
+        tar.add(str(output_dir / str(version)), arcname=str(version))
+
+    return str(tar_path)
+
+
 if __name__ == "__main__":
     path = build_sample_model()
     print(path)
