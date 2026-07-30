@@ -18,7 +18,7 @@ build:
   target: "runtime"
   python_version: "3.13.12"
   cuda_version: "13.2.1"
-  uv_version: "0.11.17"
+  uv_version: "0.11.33"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
