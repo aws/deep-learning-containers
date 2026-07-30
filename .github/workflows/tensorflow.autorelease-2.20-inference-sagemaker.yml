@@ -32,5 +32,6 @@ jobs:
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
+      run-security-test: true
       release: true
     secrets: inherit
