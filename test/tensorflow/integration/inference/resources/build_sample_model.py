@@ -113,24 +113,44 @@ def build_conv_sample_model(
     output_dir = Path(output_dir) if output_dir else Path(tempfile.mkdtemp(prefix="tf220-conv-"))
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    inputs = tf.keras.Input(shape=(8, 8, 3), dtype=tf.float32, name="input")
-    x = tf.keras.layers.Conv2D(4, kernel_size=3, activation="relu", name="conv")(inputs)
-    x = tf.keras.layers.GlobalAveragePooling2D(name="gap")(x)
-    outputs = tf.keras.layers.Dense(1, name="dense")(x)
-    model = tf.keras.Model(inputs=inputs, outputs=outputs, name="conv_smoke")
+    class ConvSmokeModel(tf.Module):
+        """Small Conv2D SavedModel used to exercise cuDNN at request time.
 
-    # Serving signature: fixed shape so TFS builds a deterministic input
-    # spec that mirrors the payload the test sends.
-    @tf.function(input_signature=[tf.TensorSpec(shape=[None, 8, 8, 3], dtype=tf.float32)])
-    def serve(x):
-        return {"output": model(x, training=False)}
+        Wrapping the Keras model as an attribute on a ``tf.Module`` keeps the
+        serving signature and the model's variables under the same trackable
+        root, so TFS can bind every variable (e.g. ``dense/bias``) at invoke
+        time. A bare ``tf.function`` that closes over the Keras model via
+        Python scope leaves variables unowned by the SavedModel root and
+        surfaces at request time as ``FAILED_PRECONDITION: Could not find
+        variable dense/bias``.
+        """
+
+        def __init__(self, name: str = "conv_smoke") -> None:
+            super().__init__(name=name)
+            self.model = tf.keras.Sequential(
+                [
+                    tf.keras.layers.Input(shape=(8, 8, 3), dtype=tf.float32, name="input"),
+                    tf.keras.layers.Conv2D(4, kernel_size=3, activation="relu", name="conv"),
+                    tf.keras.layers.GlobalAveragePooling2D(name="gap"),
+                    tf.keras.layers.Dense(1, name="dense"),
+                ],
+                name=name,
+            )
+
+        # Serving signature: fixed shape so TFS builds a deterministic input
+        # spec that mirrors the payload the test sends.
+        @tf.function(input_signature=[tf.TensorSpec(shape=[None, 8, 8, 3], dtype=tf.float32, name="input")])
+        def serve(self, x):
+            return {"output": self.model(x, training=False)}
+
+    module = ConvSmokeModel()
 
     saved_model_dir = output_dir / str(version)
     saved_model_dir.mkdir(parents=True, exist_ok=True)
     tf.saved_model.save(
-        model,
+        module,
         str(saved_model_dir),
-        signatures={"serving_default": serve},
+        signatures={"serving_default": module.serve},
     )
 
     tar_path = output_dir / tar_filename
