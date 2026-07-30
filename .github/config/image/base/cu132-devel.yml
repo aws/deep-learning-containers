@@ -1,0 +1,35 @@
+image:
+  name: "base-cu132-devel"
+  description: "Base devel GPU image with CUDA 13.2.1, Python 3.13, build tools, and the NCCL/EFA stack on AL2023"
+
+metadata:
+  framework: "base_dlc"
+  framework_version: "13.2.1"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  container_type: "devel"
+  prod_image: "base:devel-cu132-amzn2023"
+
+build:
+  dockerfile: "docker/base/cu132/Dockerfile"
+  target: "devel"
+  python_version: "3.13.12"
+  cuda_version: "13.2.1"
+  uv_version: "0.11.17"
+  nccl_version: "2.29.7-1"
+  gdrcopy_version: "2.6"
+  # EFA 1.49.0 vends libfabric 2.4.0amzn5.0 and aws-ofi-nccl 1.20.0
+  efa_version: "1.49.0"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"
