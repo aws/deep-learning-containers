@@ -21,13 +21,14 @@ source /usr/local/bin/hf_optimizations.sh
 # LMCache: expose the kv-transfer-config through the SM_VLLM_ contract so the
 # mapping below turns it into --kv-transfer-config, unless the user set one.
 #
-# Pass the JSON verbatim. standard-supervisor >=0.1.16 — pinned by the AWS base
-# since the vLLM 0.24.0 image — shlex.join()s argv into supervisord's command=,
-# which supervisord shlex.split()s back, so the double quotes survive intact.
-# Up to 0.1.15 it space-joined instead and the value had to be single-quote
-# wrapped to survive; doing that now reaches vLLM with literal quotes and dies in
-# json.loads. PROCESS_AUTO_RECOVERY never affected this: it only sets supervisord's
-# autorestart, and the command= round-trip happens on every path.
+# Pass the JSON verbatim, on both launch paths:
+#   PROCESS_AUTO_RECOVERY=false -> standard-supervisor os.execvp()s argv verbatim.
+#   PROCESS_AUTO_RECOVERY=true  -> argv is joined into supervisord's command=,
+#     which supervisord shlex.split()s back. standard-supervisor >=0.1.16 joins
+#     with shlex.join, so the double quotes survive; <=0.1.15 space-joined and the
+#     value had to be single-quote wrapped to survive that round-trip.
+# The AWS base has pinned >=0.1.16 since the vLLM 0.24.0 image, so wrapping now
+# reaches vLLM with literal quotes and dies in json.loads.
 if [[ -n "${HF_LMCACHE_KV_CONFIG:-}" && -z "${SM_VLLM_KV_TRANSFER_CONFIG:-}" ]]; then
   export SM_VLLM_KV_TRANSFER_CONFIG="${HF_LMCACHE_KV_CONFIG}"
 fi
