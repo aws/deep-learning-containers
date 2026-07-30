@@ -1351,8 +1351,15 @@ def test_package_version_regression_in_image(image):
     released_image_package_version_dict = get_installed_python_packages_using_image_uri(
         context=ctx, image_uri=previous_released_image_uri
     )
+    # fastai (through its latest release) calls L.starmap, removed in fastcore 2.0, so the
+    # training images hold fastcore<2. python-fasthtml follows fastcore's resolution.
+    # The released images predate that pin and carry a fastcore 2.x that breaks fastai.
+    packages_with_intentional_downgrade = {"fastcore", "python-fasthtml"}
+
     violating_packages = {}
     for package_name, version_in_released_image in released_image_package_version_dict.items():
+        if package_name in packages_with_intentional_downgrade:
+            continue
         if package_name not in current_image_package_version_dict:
             violating_packages[package_name] = (
                 "Not present in the image that is being currently built."

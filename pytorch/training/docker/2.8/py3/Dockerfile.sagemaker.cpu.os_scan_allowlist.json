@@ -168,5 +168,36 @@
       "title": "CVE-2026-31900 - black",
       "reason_to_ignore": "Flagged only at /usr/local/lib/python3.12/site-packages/spacy/tests/package/requirements.txt, a spaCy test-fixture requirements file pinning black==22.3.0. The image installs black>=26.3.1; the flagged 22.3.0 exists only as a pin inside that non-executed test fixture, so this is a scanner false-positive, not an exploitable dependency."
     }
+  ],
+  "mesa": [
+    {
+      "description": "In Mesa before 25.3.6 and 26 before 26.0.1, out-of-bounds memory access can occur in WebGPU because the amount of to-be-allocated data depends on an untrusted party, and is then used for alloca.",
+      "vulnerability_id": "CVE-2026-40393",
+      "name": "CVE-2026-40393",
+      "package_name": "mesa",
+      "package_details": {
+        "file_path": null,
+        "name": "mesa",
+        "package_manager": "OS",
+        "version": "23.0.4",
+        "release": "0ubuntu1~22.04.1"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2026/CVE-2026-40393.html",
+      "source": "UBUNTU_CVE",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2026-40393 - mesa",
+      "reason_to_ignore": "mesa is pulled into the image transitively via libgl1-mesa-glx; the CVE is constrained to a WebGPU code path that DLC training workloads do not exercise. Ubuntu jammy has not published a fixed mesa package (recommendation: None Provided), so no upgrade is available."
+    }
   ]
 }
