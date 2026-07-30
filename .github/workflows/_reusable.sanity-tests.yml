@@ -136,6 +136,7 @@ jobs:
         if: |
           needs.preflight.outputs.framework == 'vllm' ||
           needs.preflight.outputs.framework == 'vllm_server' ||
+          needs.preflight.outputs.framework == 'huggingface-vllm' ||
           needs.preflight.outputs.framework == 'sglang' ||
           needs.preflight.outputs.framework == 'sglang_server'
         run: |
