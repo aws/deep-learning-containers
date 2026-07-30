@@ -39,6 +39,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-sglang-upstream-test:
+        description: "Run the upstream SGLang suite (sglang variant only)"
+        required: false
+        type: boolean
+        default: false
       release:
         description: "Run release job after tests pass"
         required: false
@@ -154,6 +159,10 @@ jobs:
               TESTS="$COMMON /test/unit/test_imports_pytorch.py /test/unit/test_environment_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py" ;;
             *cupy*)
               TESTS="$COMMON /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py" ;;
+            *sglang*)
+              TESTS="$COMMON /test/unit/test_imports_sglang.py /test/single_gpu/test_sglang_inference.py" ;;
+            *vllm*)
+              TESTS="$COMMON /test/unit/test_imports_vllm.py /test/single_gpu/test_vllm_inference.py" ;;
             *base*)
               TESTS="$COMMON /test/unit/test_imports_base.py" ;;
           esac
@@ -187,6 +196,23 @@ jobs:
             echo "::endgroup::"
           done
 
+  sglang-upstream-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sglang-upstream-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-sglang-upstream-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/sglang.tests-upstream.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      # These base-a-test-1-gpu-small tests require gated meta-llama/Llama-3.1-8B,
+      # which the CI HF token cannot access. The remaining suite tests are ungated.
+      skip-tests: >-
+        registered/core/test_basic_sanity.py
+        registered/core/test_basic_sanity_eagle3.py
+        registered/core/test_basic_sanity_dflash.py
+
   release-gate:
     if: >-
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/lambda') &&
@@ -195,7 +221,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, validation-test]
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, sglang-upstream-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -235,7 +261,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [build, sanity-test, security-test, telemetry-test, validation-test, release-gate, release]
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, sglang-upstream-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

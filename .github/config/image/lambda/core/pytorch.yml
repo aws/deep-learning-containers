@@ -1,26 +1,24 @@
 image:
-  name: "lambda-pytorch-preview"
-  description: "Lambda PyTorch GPU image with multi-mode concurrency RIC"
+  name: "lambda-pytorch"
+  description: "Lambda PyTorch GPU image with CUDA and Python"
 
 metadata:
   framework: "lambda"
-  framework_version: "12.9.1"
+  framework_version: "13.0.3"
   os_version: "amzn2023"
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
-  container_type: "pytorch-cuda-preview"
-  prod_image: "lambda:pytorch-preview-gpu-py313-cu129"
+  container_type: "pytorch-cuda"
+  prod_image: "lambda:pytorch-cuda"
 
 build:
   dockerfile: "docker/lambda/Dockerfile"
-  target: "pytorch-preview-py3"
+  target: "pytorch-py3"
   python_version: "3.13"
-  cuda_version: "12.9.1"
+  cuda_version: "13.0.3"
   dlc_major_version: "1"
   dlc_minor_version: "0"
-  awslambdaric_version: "3.1.1"
-  awslambdaric_release: "2.0.0.0"
 
 release:
   release: true

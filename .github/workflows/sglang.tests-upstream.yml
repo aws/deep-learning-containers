@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      suite:
+        description: "run_suite.py --suite name (must be valid for the sglang ref)."
+        required: false
+        type: string
+        default: "base-a-test-1-gpu-small"
+      skip-tests:
+        description: "Space-separated registered-test paths (relative to test/) to remove before running, e.g. gated-model tests the CI HF token cannot access."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -110,7 +120,22 @@ jobs:
             ;;
             esac
 
+            # Drop caller-specified tests (e.g. gated-model tests the CI HF token
+            # cannot access) before discovery, so run_suite.py never enqueues them.
+            for t in ${{ inputs.skip-tests }}; do
+              rm -f "/workdir/test/${t}"
+            done
+
             cd /workdir/test
             export SGLANG_TIMEOUT=600
-            python3 run_suite.py --hw cuda --suite stage-a-test-1
+            # run_suite.py returns non-zero when a test fails, but pipefail is
+            # required so `tee` does not mask its exit code. It also returns 0
+            # when a suite matches 0 tests (unknown/empty suite), so additionally
+            # fail if nothing ran.
+            set -o pipefail
+            python3 run_suite.py --hw cuda --suite ${{ inputs.suite }} 2>&1 | tee /tmp/suite.log
+            if grep -qE "No tests found|Test Summary: 0/0" /tmp/suite.log; then
+              echo "ERROR: suite ${{ inputs.suite }} ran 0 tests — invalid/empty suite for this sglang ref" >&2
+              exit 1
+            fi
           '

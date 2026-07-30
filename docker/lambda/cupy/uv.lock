@@ -144,7 +144,7 @@ wheels = [
 ]
 
 [[package]]
-name = "cupy-cuda12x"
+name = "cupy-cuda13x"
 version = "14.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
@@ -152,9 +152,9 @@ dependencies = [
     { name = "numpy" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/67/f967c5aff77bd6ae6765faf20580db80bb8a7e2574e999166de1d4e50146/cupy_cuda12x-14.0.1-cp313-cp313-manylinux2014_aarch64.whl", hash = "sha256:9d9b1bdcf9fa777593017867e8733192c071b94639a1b3e8b2ee99eb3f3ea760", size = 145128055, upload-time = "2026-02-20T10:23:08.765Z" },
-    { url = "https://files.pythonhosted.org/packages/80/53/037c931731151c504cfc00069eb295c903927c92145115623f13bd2ea076/cupy_cuda12x-14.0.1-cp313-cp313-manylinux2014_x86_64.whl", hash = "sha256:21fcb4e917e43237edcc5e3a1a1241e2a2946ba9e577ce36fd580bd9856f91e8", size = 134227269, upload-time = "2026-02-20T10:23:16.147Z" },
-    { url = "https://files.pythonhosted.org/packages/a3/70/ce8344426effda22152bf30cfb8f9b6477645d0f41df784674369af8f422/cupy_cuda12x-14.0.1-cp313-cp313-win_amd64.whl", hash = "sha256:b7399e7fe4e2be3b5c3974fc892a661e10082836a4c78d0152b39cb483608a89", size = 96250134, upload-time = "2026-02-20T10:23:22.631Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/de/679a7a571dcd1b654378cc4f9c5cd6f6d4af09ec8973eb4b2dce276adce4/cupy_cuda13x-14.0.1-cp313-cp313-manylinux2014_aarch64.whl", hash = "sha256:a8488a6a9c934c417f98078ac7dd2a47059c39195199b7e557c84d01b3071c75", size = 73167833, upload-time = "2026-02-20T10:24:30.645Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/05/f60525718e83c0ea10efc4ae3183ea9c5309935b76c200b6d9c2569185de/cupy_cuda13x-14.0.1-cp313-cp313-manylinux2014_x86_64.whl", hash = "sha256:1c206483aaea40cd38bfbd1a29f4df0c19d555d306ffe43ef16f39db0e7e7a7f", size = 69416450, upload-time = "2026-02-20T10:24:35.982Z" },
+    { url = "https://files.pythonhosted.org/packages/73/4e/8b4b996690d91745e34ce6103fbf8a9fb51f2e46b4e47c45ea8b3fff9d2b/cupy_cuda13x-14.0.1-cp313-cp313-win_amd64.whl", hash = "sha256:cd01307b4f67e3bf242537f02ac8e5db729a557510728f70ee41a32490ce1e1a", size = 35336403, upload-time = "2026-02-20T10:24:40.355Z" },
 ]
 
 [[package]]
@@ -254,7 +254,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "awslambdaric" },
     { name = "boto3" },
-    { name = "cupy-cuda12x" },
+    { name = "cupy-cuda13x" },
     { name = "cvxpy" },
     { name = "numba" },
     { name = "numpy" },
@@ -272,7 +272,7 @@ dependencies = [
 requires-dist = [
     { name = "awslambdaric", specifier = "==4.0.0" },
     { name = "boto3", specifier = "==1.40.4" },
-    { name = "cupy-cuda12x", specifier = "==14.0.1" },
+    { name = "cupy-cuda13x", specifier = "==14.0.1" },
     { name = "cvxpy", specifier = "==1.8.1" },
     { name = "numba", specifier = "==0.64.0" },
     { name = "numpy", specifier = "==2.4.2" },

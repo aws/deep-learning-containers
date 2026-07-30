@@ -1,4 +1,4 @@
-ARG CUDA_VERSION=12.9.1
+ARG CUDA_VERSION=13.0.3
 ARG PYTHON_VERSION=3.13
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
@@ -6,7 +6,7 @@ ARG FFMPEG_VERSION=8.0.1
 ARG NV_CODEC_HEADERS_VERSION=12.2.72.0
 ARG AWSLAMBDARIC_VERSION=3.1.1
 ARG FRAMEWORK=lambda
-ARG FRAMEWORK_VERSION=12.9.1
+ARG FRAMEWORK_VERSION=13.0.3
 ARG CONTAINER_TYPE=general
 
 # ============================================================
@@ -69,7 +69,6 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     --disable-debug \
     --enable-nonfree \
     --enable-cuda-nvcc \
-    --enable-libnpp \
     --extra-cflags=-I/usr/local/cuda/include \
     --extra-ldflags=-L/usr/local/cuda/lib64 \
     --nvccflags="-gencode arch=compute_75,code=sm_75 -O2" \
@@ -140,6 +139,160 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   && find /var/lang -type f -name "*.pyo" -delete
 
 # ============================================================
+# sglang builder (Python 3.13 — sglang engine + kernels, from source)
+# ============================================================
+FROM builder-base-devel as builder-sglang-py3
+ARG PYTHON_VERSION
+ARG CUDA_VERSION
+ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
+ARG SGLANG_KERNEL_VERSION=0.4.4
+ARG TORCH_VERSION=2.11.0
+# Build deps: gcc/g++, openssl/pkgconfig/perl (outlines-core Rust), protobuf
+# (sglang router), + Rust toolchain.
+RUN dnf install -y --setopt=install_weak_deps=False \
+  gcc gcc-c++ openssl-devel pkgconfig perl protobuf-compiler protobuf-devel \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+COPY --from=lambda-python /var/lang/bin /var/lang/bin
+COPY --from=lambda-python /var/lang/include /var/lang/include
+COPY --from=lambda-python /var/lang/lib /var/lang/lib
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages
+ENV PATH="/usr/local/cuda/bin:/var/lang/bin:/root/.cargo/bin:$PATH" \
+  UV_PYTHON="/var/lang/bin/python${PYTHON_VERSION}" \
+  SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SGLANG=0.5.14
+RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
+# Install sglang from source at the pinned commit (matches the serving amzn2023
+# image). Non-editable: the runtime copies only /var/lang.
+RUN git clone https://github.com/sgl-project/sglang.git /tmp/sglang \
+  && git -C /tmp/sglang checkout ${SGLANG_REF}
+RUN --mount=type=cache,target=/root/.cache/uv \
+  CUDA_SHORT="$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')" \
+  && uv pip install --python "${UV_PYTHON}" cmake ninja scikit-build-core \
+  # sglang + all extras (flashinfer, outlines, xgrammar, flash-attn-4 prerelease, ...)
+  && uv pip install --python "${UV_PYTHON}" --prerelease=allow "/tmp/sglang/python[all]" \
+  # force the cu130 torch build (python[all] pulls default-index torch)
+  && uv pip install --python "${UV_PYTHON}" --reinstall \
+     "torch==${TORCH_VERSION}" torchvision torchaudio \
+     --index-url "https://download.pytorch.org/whl/cu${CUDA_SHORT}" \
+  # lambda RIC + OSS-scan tooling (pip needed by the OSS-compliance stage)
+  && uv pip install --python "${UV_PYTHON}" pip pytest awslambdaric==4.0.0 boto3 pip-licenses \
+  # prebuilt cu130 sgl_kernel; sm100 variant is binary-compatible down to sm_89 (A10G/L4/L40S)
+  && uv pip install --python "${UV_PYTHON}" --no-deps --reinstall-package sglang-kernel \
+     "sglang-kernel==${SGLANG_KERNEL_VERSION}" --index-url "https://docs.sglang.ai/whl/cu${CUDA_SHORT}/" \
+  # bump sglang transitive deps with fixed CVEs (ECR scan): pillow, diffusers, jaraco.context
+  && uv pip install --python "${UV_PYTHON}" \
+     "pillow>=12.3.0" "diffusers>=0.38.0" "jaraco.context>=6.1.0" \
+  && rm -rf /tmp/sglang \
+  && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
+  && (find /var/lang -type d -name tests -exec rm -rf {} + 2>/dev/null; true) \
+  && find /var/lang -type f -name "*.pyc" -delete \
+  && find /var/lang -type f -name "*.pyo" -delete
+
+# ============================================================
+# vllm builder (Python 3.13 — vLLM engine built from source, on the lambda pytorch base)
+# ============================================================
+# Built on builder-pytorch-py3, which already carries torch 2.11.0+cu130 and the
+# lambda RIC/OSS tooling (awslambdaric, boto3, pip, pip-licenses, pytest). vllm is
+# built FROM SOURCE at a pinned commit (matching the serving amzn2023 image) so the
+# compiled CUDA ops target the cu130 toolchain and the Lambda GPU fleet arches,
+# rather than shipping vllm's cu129 PyPI wheel. Only the resulting wheel is installed
+# into /var/lang; the build toolchain and sccache stay in this throwaway stage.
+#
+# The build runs directly in /var/lang: it already carries torch 2.11.0+cu130
+# (vllm's setup.py imports torch at build time to read the CUDA version) and
+# setuptools <81 (vllm's build breaks on 81; the torch-2.11 closure already
+# constrains it below 81), so no separate build venv is needed.
+FROM builder-pytorch-py3 as builder-vllm-py3
+ARG PYTHON_VERSION
+ARG CUDA_VERSION
+ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
+ARG VLLM_REF=7b3d595eb197d714052ce296cc8b124f0dc8af31
+# vLLM package version stamped onto the source-built wheel (setuptools_scm can't
+# derive it from a shallow clone). Matches the serving amzn2023 image's ref.
+ARG VLLM_VERSION=0.24.0
+ARG FLASHINFER_VERSION=0.6.12
+# Fleet arches: A10G(8.6) L4/L40S(8.9) + g7 Blackwell(12.0); T4/sm_75 is out of
+# scope for engines. 8.0 kept for forward-compat with A100-class if ever added.
+ARG TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 12.0"
+# Cap build parallelism: vllm's CUDA compile is memory-hungry (MAX_JOBS=32 OOM-froze
+# the 185GB box). sccache makes rebuilds cheap; tune via --build-arg.
+ARG MAX_JOBS=8
+ARG NVCC_THREADS=2
+ARG USE_SCCACHE=true
+ENV UV_PYTHON="/var/lang/bin/python${PYTHON_VERSION}" \
+  PATH="/usr/local/cuda/bin:/var/lang/bin:$PATH"
+
+# Build tooling: git (clone), gcc/g++ already present from builder-base-devel.
+RUN dnf install -y --setopt=install_weak_deps=False git \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# Clone vllm at the pinned ref. VLLM_REF is a commit SHA (not a branch/tag), so
+# init + fetch the specific commit rather than `clone --branch` (which rejects SHAs).
+RUN git init /tmp/vllm \
+  && cd /tmp/vllm \
+  && git remote add origin ${VLLM_REPO} \
+  && git fetch --depth 1 origin ${VLLM_REF} \
+  && git checkout FETCH_HEAD
+
+# Build the vllm wheel from source against /var/lang's cu130 torch. sccache
+# (populated in the BuildKit cache mount) keeps recompiles cheap.
+# --py-limited-api=cp38 → the abi3 wheel runs on py3.13.
+RUN --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/sccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/sccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/sccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/ccache \
+  CUDA_SHORT="$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')" \
+  && cd /tmp/vllm \
+  # build tools into /var/lang (torch already present); unsafe-best-match so the
+  # stale cmake 3.25 on the pytorch cu130 index doesn't mask PyPI's cmake>=3.26.1.
+  && UV_INDEX_STRATEGY=unsafe-best-match uv pip install --python "${UV_PYTHON}" \
+     cmake ninja setuptools-scm setuptools-rust \
+  && export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS="${MAX_JOBS}" NVCC_THREADS="${NVCC_THREADS}" \
+     VLLM_TARGET_DEVICE=cuda SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+cu${CUDA_SHORT}" \
+  && if [ "${USE_SCCACHE}" = "true" ]; then \
+       curl -fsSL -o /tmp/sccache.tar.gz "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
+       && tar -xzf /tmp/sccache.tar.gz -C /tmp && mv /tmp/sccache-v0.8.1-*/sccache /usr/bin/sccache && rm -rf /tmp/sccache* \
+       && export SCCACHE_DIR=/root/.cache/sccache SCCACHE_IDLE_TIMEOUT=0 CMAKE_BUILD_TYPE=Release \
+          CMAKE_C_COMPILER_LAUNCHER=sccache CMAKE_CXX_COMPILER_LAUNCHER=sccache CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
+       && sccache --show-stats; \
+     fi \
+  # --no-build-isolation: build in /var/lang so setup.py sees the installed torch.
+  && "${UV_PYTHON}" setup.py bdist_wheel --dist-dir=/tmp/vllm-dist --py-limited-api=cp38 \
+  && (command -v sccache >/dev/null && sccache --show-stats || true)
+
+# Install the built vllm wheel + deps into the runtime venv (/var/lang).
+# The wheel is installed --no-deps because vllm's requirements/cuda.txt pins
+# nvidia-cutlass-dsl[cu13]==4.5.2 → cuda-python 12.9 → cuda-bindings<12.10, which
+# is IRRECONCILABLE with torch 2.11.0+cu130 (needs cuda-bindings>=13.0.3). That
+# cutlass-dsl/quack/humming cluster is only for the FA4 cute-DSL attention path,
+# which we don't use (flashinfer is the attention backend). So we install the real
+# runtime deps (common.txt + the non-broken cuda.txt extras) and drop those three.
+RUN --mount=type=cache,target=/root/.cache/uv \
+  CUDA_SHORT="$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')" \
+  && VLLM_WHL="$(ls -t /tmp/vllm-dist/vllm-*.whl | head -1)" \
+  # filtered cuda.txt: drop the FA4 cute-DSL cluster (broken on cu130) and the
+  # torch trio (already pinned in /var/lang); keep common.txt + numba/flashinfer/etc.
+  # write the filtered reqs INSIDE requirements/ so its `-r common.txt` relative include resolves.
+  # Drop the FA4 cute-DSL cluster (broken on cu130). Keep the torch trio pins so a
+  # transitive dep can't re-resolve torch off cu130 (a filtered install downgraded it
+  # to 2.10.0+cu128 otherwise). torch/vision/audio are already installed in /var/lang,
+  # so these pins just constrain the resolve; the cu130 index serves the matching wheels.
+  && grep -vE 'nvidia-cutlass-dsl|quack-kernels|humming-kernels' \
+       /tmp/vllm/requirements/cuda.txt > /tmp/vllm/requirements/lambda-runtime.txt \
+  && UV_INDEX_STRATEGY=unsafe-best-match uv pip install --python "${UV_PYTHON}" \
+     -r /tmp/vllm/requirements/lambda-runtime.txt \
+     "torch==2.11.0" "torchvision==0.26.0" "torchaudio==2.11.0" \
+     --index-url "https://download.pytorch.org/whl/cu${CUDA_SHORT}" \
+     --extra-index-url "https://pypi.org/simple" \
+  && uv pip install --python "${UV_PYTHON}" --no-deps "${VLLM_WHL}" \
+  && uv pip install --python "${UV_PYTHON}" \
+     "flashinfer-python==${FLASHINFER_VERSION}" "flashinfer-cubin==${FLASHINFER_VERSION}" \
+  # bump vllm transitive deps with fixed CVEs (ECR scan) to match the other images
+  && uv pip install --python "${UV_PYTHON}" "pillow>=12.3.0" \
+  && rm -rf /tmp/vllm /tmp/vllm-dist \
+  && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
+  && (find /var/lang -type d -name tests -exec rm -rf {} + 2>/dev/null; true) \
+  && find /var/lang -type f -name "*.pyc" -delete \
+  && find /var/lang -type f -name "*.pyo" -delete
+
+# ============================================================
 # OSS compliance builders (isolated — prevents dependency closure modification)
 # ============================================================
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-base-py3
@@ -164,6 +317,18 @@ RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && printf '\nFFmpeg n%s https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && printf '\n** FFprobe; version n%s -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFprobe n%s https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-sglang-py3
+COPY --from=builder-sglang-py3 /var/lang /var/lang
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-vllm-py3
+COPY --from=builder-vllm-py3 /var/lang /var/lang
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 # ============================================================
 # Runtime: Base Python 3.13 (CUDA + Python + RIC + RIE)
@@ -330,6 +495,160 @@ ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
 
 # ============================================================
+# Runtime: sglang Python 3.13 (sglang serving engine)
+# ============================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as sglang-py3
+ARG PYTHON_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+ARG CACHE_REFRESH=0
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+# sglang JIT-compiles kernels at cold start (triton + flashinfer), so the runtime
+# needs a CUDA compiler toolchain, not just libs: numactl-libs (libnuma.so.1 for
+# sgl_kernel); gcc/g++/which (host compiler); cuda-nvcc/cudart-devel/crt (nvcc +
+# CUDA headers). JIT caches write to /tmp (see ENV).
+RUN dnf install -y --setopt=install_weak_deps=False \
+  numactl-libs gcc gcc-c++ which \
+  cuda-nvcc-13-0 cuda-cudart-devel-13-0 cuda-crt-13-0 \
+  && dnf upgrade -y --releasever=latest \
+  && dnf clean all && rm -rf /var/cache/dnf
+COPY --from=builder-sglang-py3 /var/lang /var/lang
+COPY --from=lambda-python /var/runtime /var/runtime
+COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
+COPY ./scripts/docker/lambda/sglang_entrypoint.sh /sglang_entrypoint.sh
+COPY ./scripts/docker/lambda/sglang/handler.py /var/task/handler.py
+RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
+  && ln -sf /var/lang/bin/python3 /var/lang/bin/python
+ENV PATH="/var/lang/bin:$PATH" \
+  LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
+  PYTHONPATH="/var/runtime" \
+  PYTHONDONTWRITEBYTECODE=1 \
+  TORCH_HOME=/tmp/torch \
+  HF_HOME=/tmp/huggingface \
+  TRITON_CACHE_DIR=/tmp/triton \
+  FLASHINFER_WORKSPACE_BASE=/tmp/flashinfer \
+  CC=/usr/bin/gcc \
+  CXX=/usr/bin/g++ \
+  CUDA_HOME=/usr/local/cuda \
+  DLC_CONTAINER_TYPE=general \
+  LAMBDA_TASK_ROOT=/var/task \
+  LAMBDA_RUNTIME_DIR=/var/runtime \
+  LANG=en_US.UTF-8 \
+  TZ=:/etc/localtime
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
+COPY --from=oss-sglang-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss-sglang-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss-sglang-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss-sglang-py3 /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss-sglang-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+WORKDIR /var/task
+ENTRYPOINT ["/sglang_entrypoint.sh", "python", "-m", "awslambdaric"]
+CMD ["handler.handler"]
+
+# ============================================================
+# Runtime: vLLM Python 3.13 (lambda pytorch base + vLLM engine)
+# ============================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as vllm-py3
+ARG PYTHON_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+ARG CACHE_REFRESH=0
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+# vllm + flashinfer JIT-compile CUDA kernels for the exact GPU arch at cold start,
+# so the runtime needs a CUDA compiler toolchain AND math-library dev headers, not
+# just libs: numactl-libs (libnuma.so.1); gcc/g++/which (host compiler);
+# cuda-nvcc/cudart-devel/crt (nvcc + CUDA headers); curand/cublas/cusolver/cusparse
+# -devel (headers flashinfer's sampling/gemm kernels include, e.g. curand.h). JIT
+# caches write to /tmp (see ENV).
+RUN dnf install -y --setopt=install_weak_deps=False \
+  numactl-libs gcc gcc-c++ which \
+  cuda-nvcc-13-0 cuda-cudart-devel-13-0 cuda-crt-13-0 \
+  libcurand-devel-13-0 libcublas-devel-13-0 libcusolver-devel-13-0 libcusparse-devel-13-0 \
+  && dnf upgrade -y --releasever=latest \
+  && dnf clean all && rm -rf /var/cache/dnf
+COPY --from=builder-vllm-py3 /var/lang /var/lang
+COPY --from=lambda-python /var/runtime /var/runtime
+COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
+COPY ./scripts/docker/lambda/vllm_entrypoint.sh /vllm_entrypoint.sh
+COPY ./scripts/docker/lambda/vllm/handler.py /var/task/handler.py
+RUN chmod +x /vllm_entrypoint.sh \
+  && ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
+  && ln -sf /var/lang/bin/python3 /var/lang/bin/python
+ENV PATH="/var/lang/bin:$PATH" \
+  LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
+  PYTHONPATH="/var/runtime" \
+  PYTHONDONTWRITEBYTECODE=1 \
+  TORCH_HOME=/tmp/torch \
+  HF_HOME=/tmp/huggingface \
+  TRITON_CACHE_DIR=/tmp/triton \
+  FLASHINFER_WORKSPACE_BASE=/tmp/flashinfer \
+  VLLM_CACHE_ROOT=/tmp/vllm \
+  VLLM_WORKER_MULTIPROC_METHOD=spawn \
+  TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor \
+  USER=lambda \
+  HOME=/tmp \
+  XDG_CONFIG_HOME=/tmp/.config \
+  XDG_CACHE_HOME=/tmp/.cache \
+  CC=/usr/bin/gcc \
+  CXX=/usr/bin/g++ \
+  CUDA_HOME=/usr/local/cuda \
+  DLC_CONTAINER_TYPE=general \
+  LAMBDA_TASK_ROOT=/var/task \
+  LAMBDA_RUNTIME_DIR=/var/runtime \
+  LANG=en_US.UTF-8 \
+  TZ=:/etc/localtime
+# In multi-concurrency mode (AWS_LAMBDA_MAX_CONCURRENCY set), the RIC runs the
+# handler without USER/LOGNAME set. torch inductor's cache_dir() calls
+# getpass.getuser() when TORCHINDUCTOR_CACHE_DIR is unset → "OSError: No username
+# set in the environment" crashes handler import. Setting TORCHINDUCTOR_CACHE_DIR
+# (to /tmp, the only writable FS on Lambda) AND USER above prevents that.
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
+COPY --from=oss-vllm-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss-vllm-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss-vllm-py3 /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss-vllm-py3 /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss-vllm-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+WORKDIR /var/task
+ENTRYPOINT ["/vllm_entrypoint.sh", "python", "-m", "awslambdaric"]
+CMD ["handler.handler"]
+
+# ============================================================
 # RIC builder (compile multi-mode concurrency RIC with C extensions)
 # ============================================================
 FROM builder-base as builder-ric-preview
@@ -391,4 +710,31 @@ COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packa
 # vars take precedence over this image default. In process/hybrid, VRAM scales
 # with worker count (one model copy + CUDA context per process) — size function
 # concurrency to the model's VRAM footprint.
+ENV AWS_LAMBDA_CONCURRENCY_MODE=process
+# ============================================================
+# sglang Python 3.13 (+ multi-mode concurrency RIC)
+# ============================================================
+FROM sglang-py3 as sglang-preview-py3
+ARG PYTHON_VERSION
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
+  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
+COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
+# Default: process mode (RIC-native). Customers override per function at runtime
+# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
+# vars take precedence over this image default. For serving engines, thread mode
+# is recommended so concurrent invocations share one model copy in VRAM.
+ENV AWS_LAMBDA_CONCURRENCY_MODE=process
+
+# ============================================================
+# vLLM Python 3.13 (+ multi-mode concurrency RIC)
+# ============================================================
+FROM vllm-py3 as vllm-preview-py3
+ARG PYTHON_VERSION
+RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
+  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
+COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
+# Default: process mode (RIC-native). Customers override per function at runtime
+# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
+# vars take precedence over this image default. For serving engines, thread mode
+# is recommended so concurrent invocations share one model copy in VRAM.
 ENV AWS_LAMBDA_CONCURRENCY_MODE=process
