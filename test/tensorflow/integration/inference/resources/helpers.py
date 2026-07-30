@@ -58,10 +58,23 @@ def upload_tarball(sagemaker_session, tar_path: str, key_prefix: str) -> str:
 def read_predictions(invoke_result) -> list:
     """Pull the numeric output list out of an InvokeEndpointOutput body.
 
-    Handles both signature-keyed responses (``[{"output": [...]}]``) and raw
-    row responses that some TFS versions surface. Raises AssertionError if
-    the shape is unexpected — tests reading only the numbers can call this
-    and skip the shape branching."""
+    Handles three response shapes that TFS emits depending on how the
+    SavedModel was authored:
+
+    - ``[{"output": [...]}]`` — the ``tf.Module`` + ``@tf.function``
+      signature used by ``build_sample_model`` explicitly names the output
+      tensor ``output`` in the return dict.
+    - ``[{"output_0": [...]}]`` (or similarly synthetic key) — Keras 3's
+      ``model.export()`` picks a default output name from the model, which
+      for our anonymous ``Sequential`` becomes ``output_0``. We accept any
+      single-key dict so a future Keras version renaming this key doesn't
+      silently break the caller.
+    - ``[[...]]`` — some TFS versions flatten single-output signatures to
+      raw rows.
+
+    Raises AssertionError if the shape is unexpected — tests reading only
+    the numbers can call this and skip the shape branching.
+    """
     import json
 
     body = json.loads(invoke_result.body.read().decode("utf-8"))
@@ -69,6 +82,14 @@ def read_predictions(invoke_result) -> list:
     predictions = body["predictions"]
     assert predictions and isinstance(predictions, list)
     first = predictions[0]
-    if isinstance(first, dict) and "output" in first:
-        return first["output"]
+    if isinstance(first, dict):
+        # Prefer the historically-used ``output`` key so callers pinning
+        # to ``build_sample_model``'s multiplier signature keep matching
+        # the same tensor even if TFS ever adds an extra bookkeeping key.
+        if "output" in first:
+            return first["output"]
+        # Fall back to a single-key dict (e.g. Keras 3's ``output_0``)
+        # rather than hardcoding a name that upstream may rename.
+        assert len(first) == 1, f"expected single-key output dict, got keys {list(first)!r}"
+        return next(iter(first.values()))
     return first

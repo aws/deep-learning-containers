@@ -28,7 +28,10 @@ import tempfile
 
 import pytest
 
-from .resources.build_sample_model import build_conv_sample_model
+from .resources.build_sample_model import (
+    build_conv_sample_model,
+    build_conv_sample_model_legacy_save,
+)
 from .resources.helpers import read_predictions, upload_tarball
 
 # Explicit skipif over reading the fixture value inside the test body so the
@@ -40,14 +43,36 @@ pytestmark = pytest.mark.skipif(
 )
 
 
+# Keys are the pytest.mark.parametrize IDs; values are the SavedModel
+# builder callable a customer would reach for. Parametrizing (rather than
+# duplicating the test body) means a regression in either export path
+# shows up as a distinct failing test ID in CI — e.g.
+# ``test_conv2d_gpu_predict[legacy_save]`` — instead of one combined pass
+# that hid the fault.
+_CONV_BUILDERS = {
+    "model_export": build_conv_sample_model,
+    "legacy_save": build_conv_sample_model_legacy_save,
+}
+
+
+@pytest.mark.parametrize("export_mode", list(_CONV_BUILDERS))
 def test_conv2d_gpu_predict(
+    export_mode,
     sagemaker_session,
     deploy_endpoint,
     unique_name,
     cleanup_endpoint,
 ):
     """Deploy a 117-param Conv2D SavedModel and prove cuDNN executes at
-    request time.
+    request time — once per customer-facing SavedModel export API.
+
+    Parametrizations:
+
+    - ``model_export`` — Keras 3 ``model.export()``, the modern path
+      customers on TF >= 2.16 use.
+    - ``legacy_save`` — ``tf.keras.models.save_model(..., save_format="tf")``
+      (or ``model.save(...)`` fallback), the pre-Keras-3 path older
+      customer training scripts still emit.
 
     Payload shape mirrors the model's serving signature — ``(1, 8, 8, 3)``
     of zeros. Correctness of the numeric output is not asserted (this is
@@ -59,16 +84,17 @@ def test_conv2d_gpu_predict(
     (e.g. no compatible algo) would surface as a 5xx from
     ``endpoint.invoke``.
     """
+    builder = _CONV_BUILDERS[export_mode]
     with tempfile.TemporaryDirectory(prefix="tf220-conv-") as workdir:
-        tar_path = build_conv_sample_model(output_dir=workdir)
+        tar_path = builder(output_dir=workdir)
         model_data = upload_tarball(
             sagemaker_session,
             tar_path,
-            key_prefix=f"tf220-inference-tests/conv-gpu/{unique_name('run')}",
+            key_prefix=f"tf220-inference-tests/conv-gpu/{export_mode}/{unique_name('run')}",
         )
         endpoint, endpoint_name, model_name = deploy_endpoint(
             model_data_url=model_data,
-            name_prefix="tf220-conv-gpu",
+            name_prefix=f"tf220-conv-gpu-{export_mode.replace('_', '-')}",
         )
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
