@@ -29,7 +29,7 @@ FROM public.ecr.aws/deep-learning-containers/base:13.0.0-gpu-py312-ubuntu22.04-e
 # base has EFA, PYTHON and CUDA 13.0
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTORCH_VERSION
@@ -62,7 +62,7 @@ WORKDIR /
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1 \
     build-essential \
     ca-certificates \
     zlib1g-dev \
@@ -174,7 +174,6 @@ RUN apt-get update \
     wget \
     git \
     jq \
-    emacs \
     vim \
     unzip \
  && rm -rf /var/lib/apt/lists/* \
@@ -243,7 +242,7 @@ CMD ["/bin/bash"]
 FROM common AS sagemaker
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 

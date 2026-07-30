@@ -7,6 +7,9 @@ from test import test_utils
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
+# Current dlc_major_version for PyTorch training 2.8+, which supersedes v1 in place
+PYTORCH_TRAINING_CURRENT_MAJOR_VERSION = 2
+
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_major_version_label")
@@ -260,6 +263,11 @@ def test_dlc_major_version_dockerfiles(image):
             f"DLC v2.0 is deprecated in PyTorch 1.6.0 gpu containers, but found major version 2 "
             f"in one of the Dockerfiles. Please inspect {versions}"
         )
+
+    # PyTorch training 2.9 supersedes v1 in place rather than adding a v2 variant
+    # beside it, so only assert the current major version is present.
+    if (framework, fw_version_major_minor, job_type) == ("pytorch", "2.9", "training"):
+        expected_versions = [PYTORCH_TRAINING_CURRENT_MAJOR_VERSION]
 
     # Note: If, for example, we find 3 dockerfiles with the same framework major/minor version, same processor,
     # and same python major/minor version, we will expect DLC major versions 1, 2, and 3. If an exception needs to be
