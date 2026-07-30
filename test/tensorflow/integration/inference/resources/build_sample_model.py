@@ -139,7 +139,9 @@ def build_conv_sample_model(
 
         # Serving signature: fixed shape so TFS builds a deterministic input
         # spec that mirrors the payload the test sends.
-        @tf.function(input_signature=[tf.TensorSpec(shape=[None, 8, 8, 3], dtype=tf.float32, name="input")])
+        @tf.function(
+            input_signature=[tf.TensorSpec(shape=[None, 8, 8, 3], dtype=tf.float32, name="input")]
+        )
         def serve(self, x):
             return {"output": self.model(x, training=False)}
 
