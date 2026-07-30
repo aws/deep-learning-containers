@@ -125,8 +125,6 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     triton \
     s3torchconnector \
     fastai \
-    # pin fastcore<2: fastcore 2.0 removed L.starmap, which pinned fastai's optimizer.py still calls
-    "fastcore<2" \
     accelerate \
     # requires explicit declaration of spacy, thinc, blis
     # pin spacy/thinc for numpy compatibility with sagemaker
@@ -240,6 +238,10 @@ CMD ["/bin/bash"]
 #################################################################
 
 FROM common AS sagemaker
+
+# pin fastcore<2 for SageMaker only: fastcore 2.0 removed L.starmap, which the
+# installed fastai's optimizer.py still calls
+RUN pip install --no-cache-dir "fastcore<2"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
