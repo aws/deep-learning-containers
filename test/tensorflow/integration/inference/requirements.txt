@@ -1,5 +1,4 @@
 boto3
-falcon
 pytest
 sagemaker>=3.0.0
 tensorflow>=2.20,<3.0
