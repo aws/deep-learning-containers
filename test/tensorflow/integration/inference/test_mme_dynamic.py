@@ -193,9 +193,7 @@ def test_mme_traversal_rejected(
                 target_model=bad_target_model,
             )
         if isinstance(excinfo.value, ClientError):
-            status = excinfo.value.response.get("ResponseMetadata", {}).get(
-                "HTTPStatusCode", 0
-            )
+            status = excinfo.value.response.get("ResponseMetadata", {}).get("HTTPStatusCode", 0)
             assert 400 <= status < 500, (
                 f"expected 4xx on traversal target_model {bad_target_model!r}, "
                 f"got status {status}: {excinfo.value.response!r}"

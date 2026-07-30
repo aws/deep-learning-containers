@@ -31,7 +31,6 @@ import pytest
 from .resources.build_sample_model import build_conv_sample_model
 from .resources.helpers import read_predictions, upload_tarball
 
-
 # Explicit skipif over reading the fixture value inside the test body so the
 # skip decision is visible at collection time. Matches the semantic the
 # reusable workflow already forwards via SM_DEVICE_TYPE (see conftest.py).
@@ -89,9 +88,13 @@ def test_conv2d_gpu_predict(
         # ``[[v]]`` or ``[v]`` depending on TFS's list-shape flattening.
         if isinstance(values, list) and len(values) == 1 and isinstance(values[0], list):
             values = values[0]
-        assert isinstance(values, list) and len(values) == 1, f"expected 1-element output, got {values!r}"
+        assert isinstance(values, list) and len(values) == 1, (
+            f"expected 1-element output, got {values!r}"
+        )
         (scalar,) = values
-        assert isinstance(scalar, (int, float)), f"expected numeric output, got {type(scalar).__name__}: {scalar!r}"
+        assert isinstance(scalar, (int, float)), (
+            f"expected numeric output, got {type(scalar).__name__}: {scalar!r}"
+        )
         # Finite check — catches NaN/Inf blow-ups from a broken cuDNN path
         # without asserting a specific value (Conv weights are random at
         # save time; only the model architecture is fixed).
