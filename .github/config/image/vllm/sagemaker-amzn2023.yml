@@ -18,11 +18,11 @@ build:
   target: "vllm-sagemaker-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  vllm_ref: "7b3d595eb197d714052ce296cc8b124f0dc8af31"
+  vllm_ref: "d223c900d85224c02f2162ee2c757a769e99f519"
   flashinfer_version: "0.6.12"
   deepep_commit_hash: "73b6ea4"
   dlc_major_version: "2"
-  dlc_minor_version: "1"
+  dlc_minor_version: "2"
   use_sccache: "true"
 
 release:
