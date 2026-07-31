@@ -15,6 +15,7 @@ Private ECR account IDs by region. See [Image Access](../get_started/index.md) f
 | Asia Pacific (Malaysia) | ap-southeast-5 | 550225433462 |
 | Asia Pacific (Melbourne) | ap-southeast-4 | 457447274322 |
 | Asia Pacific (Mumbai) | ap-south-1 | 763104351884 |
+| Asia Pacific (New Zealand) | ap-southeast-6 | 633930458069 |
 | Asia Pacific (Osaka) | ap-northeast-3 | 364406365360 |
 | Asia Pacific (Seoul) | ap-northeast-2 | 763104351884 |
 | Asia Pacific (Singapore) | ap-southeast-1 | 763104351884 |
