@@ -268,6 +268,31 @@ class PythonServiceResource:
                 ),
             }
 
+    @staticmethod
+    def _is_bad_model_name(model_name):
+        return (
+            not model_name
+            or "/" in model_name
+            or "\x00" in model_name
+            or model_name in (".", "..")
+            or model_name.startswith(".")
+        )
+
+    def _reject_bad_model_name(self, res, model_name):
+        """Return True and write a 400 response if model_name is unsafe.
+
+        Called from every route that accepts model_name as a path/body
+        parameter: on_post (load), on_get, on_delete. Kept static-friendly
+        so future call sites (docs, admin verbs) don't have to reimplement.
+        """
+        if self._is_bad_model_name(model_name):
+            res.status = falcon.HTTP_400
+            res.body = json.dumps(
+                {"error": "invalid model_name: {!r}".format(model_name)}
+            ).encode("utf-8")
+            return True
+        return False
+
     def _handle_load_model_post(self, res, data):  # noqa: C901
         with lock():
             model_name = data["model_name"]
@@ -279,15 +304,7 @@ class PythonServiceResource:
             # trust boundary in front of us, but reject obvious traversal
             # attempts (/, .., NUL) here so a misconfigured upstream can't
             # write outside the tfs-config tree or shutil.rmtree a parent.
-            if (
-                not model_name
-                or "/" in model_name
-                or "\x00" in model_name
-                or model_name in (".", "..")
-                or model_name.startswith(".")
-            ):
-                res.status = falcon.HTTP_400
-                res.body = json.dumps({"error": "invalid model_name: {!r}".format(model_name)})
+            if self._reject_bad_model_name(res, model_name):
                 return
 
             # sync sync_local_mme_instance_status & update available ports
@@ -500,6 +517,8 @@ class PythonServiceResource:
                 res.status = falcon.HTTP_200
                 res.body = json.dumps(models_info)
             else:
+                if self._reject_bad_model_name(res, model_name):
+                    return
                 if model_name not in self._mme_tfs_instances_status:
                     res.status = falcon.HTTP_404
                     res.body = json.dumps(
@@ -507,22 +526,26 @@ class PythonServiceResource:
                     ).encode("utf-8")
                 else:
                     # _mme_tfs_instances_status[model_name] is a list of
-                    # TfsInstanceStatus (see line 304). Pick the first
-                    # instance's rest_port — matches the pattern on line 360
-                    # (.pid). Bug in master TF 2.19: `.rest_port` on the raw
-                    # list raised AttributeError → 500 from GET /models/{name}.
+                    # TfsInstanceStatus (see the list append inside
+                    # `_load_model`). Pick the first instance's rest_port —
+                    # the same list-indexing pattern used in
+                    # `_handle_invocation_post` for `.pid`. Bug in master TF
+                    # 2.19: `.rest_port` on the raw list raised
+                    # AttributeError → 500 from GET /models/{name}.
                     port = self._mme_tfs_instances_status[model_name][0].rest_port
                     uri = "http://localhost:{}/v1/models/{}".format(port, model_name)
                     try:
-                        info = requests.get(uri)
+                        info = json.loads(requests.get(uri).content)
                         res.status = falcon.HTTP_200
                         res.body = json.dumps({"model": info}).encode("utf-8")
-                    except ValueError as e:
+                    except (ValueError, TypeError) as e:
                         log.exception("exception handling GET models request.")
                         res.status = falcon.HTTP_500
                         res.body = json.dumps({"error": str(e)}).encode("utf-8")
 
     def on_delete(self, req, res, model_name):  # pylint: disable=W0613
+        if self._reject_bad_model_name(res, model_name):
+            return
         with lock():
             self._sync_local_mme_instance_status()
             if model_name not in self._mme_tfs_instances_status:
@@ -546,7 +569,14 @@ class PythonServiceResource:
         if model_name not in self._mme_tfs_instances_status:
             return
         for tfs_status in self._mme_tfs_instances_status[model_name]:
-            os.kill(tfs_status.pid, signal.SIGKILL)
+            try:
+                os.kill(tfs_status.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                log.warning(
+                    "tfs pid %s already gone for model %s",
+                    tfs_status.pid,
+                    model_name,
+                )
 
     def _remove_model_config(self, model_name):
         shutil.rmtree("/sagemaker/tfs-config/{}".format(model_name), ignore_errors=True)

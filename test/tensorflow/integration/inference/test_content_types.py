@@ -43,6 +43,18 @@ def test_csv_content_type_multi_column(
         )
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
+        # TODO(H-4b coverage): the purely-numeric payload below routes through
+        # the `needs_quotes = false` branch in csv_request. The buggy path
+        # was the `needs_quotes = true` branch at
+        # scripts/docker/tensorflow/inference/sagemaker/tensorflowServing.js:214,
+        # where non-global String.replace only escapes the FIRST quote/comma
+        # per line — a leading-string CSV like "alpha,1.0,2.0" is silently
+        # reshaped to a 2-element vector instead of 3. A meaningful test for
+        # that branch needs either a sample model that accepts mixed string /
+        # numeric input (so the response tensor shape is observable end to
+        # end) or a standalone njs harness — neither exists here yet. Wire in
+        # once we have one, and assert the response is a correct 3-column
+        # result rather than a 200-with-wrong-shape.
         csv_payload = b"1.0,2.0,3.0\n4.0,5.0,6.0\n"
         result = endpoint.invoke(
             body=csv_payload,

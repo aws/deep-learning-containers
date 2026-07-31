@@ -211,7 +211,7 @@ function csv_request(r) {
 
             if (needs_quotes) {
                 line_builder.push('"')
-                line_builder.push(line.replace('"', '\\"').replace(',', '","'))
+                line_builder.push(line.replace(/"/g, '\\"').replace(/,/g, '","'))
                 line_builder.push('"')
             } else {
                 line_builder.push(line)
