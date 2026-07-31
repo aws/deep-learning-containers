@@ -50,7 +50,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 
 COPY docker/tensorflow/inference/2.20/cuda/pyproject.toml docker/tensorflow/inference/2.20/cuda/uv.lock /tmp/build/
 WORKDIR /tmp/build
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact
 
 
 # ── Stage: builder-oss (generates license files in isolation) ───────────────
@@ -194,11 +194,11 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 # `tensorflow` framework wheel is NOT pulled into an inference image. See
 # locked decision Q1 in cuda/pyproject.toml header. The transitive runtime
 # needs (numpy / protobuf / grpcio) are already in the venv from builder-base.
-# Falls through to pip only if uv genuinely errors — no stderr redirect, so
-# real failures surface in the build log rather than silently swallowing
-# "wheel not found" / network errors.
-RUN /opt/venv/bin/uv pip install --no-deps --no-cache "tensorflow-serving-api-gpu==${TF_SERVING_VERSION}" \
-  || /opt/venv/bin/pip install --no-deps --no-cache-dir "tensorflow-serving-api-gpu==${TF_SERVING_VERSION}"
+# uv is staged into this stage because /opt/venv is copied out from
+# builder-base but the uv binary is not.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache \
+    "tensorflow-serving-api-gpu==${TF_SERVING_VERSION}"
 
 # SageMaker handler artifacts (TFS toolkit ported in Phase 3 from master TF 2.19
 # build_artifacts/sagemaker/: serve/serve.py, python_service.py, tfs_utils.py,
