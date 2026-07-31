@@ -287,9 +287,9 @@ class PythonServiceResource:
         """
         if self._is_bad_model_name(model_name):
             res.status = falcon.HTTP_400
-            res.body = json.dumps(
-                {"error": "invalid model_name: {!r}".format(model_name)}
-            ).encode("utf-8")
+            res.body = json.dumps({"error": "invalid model_name: {!r}".format(model_name)}).encode(
+                "utf-8"
+            )
             return True
         return False
 
