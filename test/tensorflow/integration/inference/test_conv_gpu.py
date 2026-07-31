@@ -73,9 +73,12 @@ def test_conv2d_gpu_predict(
         )
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
-        # (batch=1, H=8, W=8, C=3) — all zeros. cuDNN Conv2D still runs the
-        # forward pass; the goal is kernel dispatch, not numerical output.
-        instance = [[[0.0, 0.0, 0.0]] * 8] * 8
+        # (batch=1, H=8, W=8, C=3) — non-zero payload. All-zeros input
+        # combined with Keras zero-initialized biases produces a
+        # deterministic 0.0 output, which would pass this test even if
+        # cuDNN were stubbed to return zero. Feed 1.0 and assert non-zero
+        # below to catch that failure mode.
+        instance = [[[1.0, 1.0, 1.0]] * 8] * 8
         payload = json.dumps({"instances": [instance]})
 
         result = endpoint.invoke(
@@ -101,3 +104,12 @@ def test_conv2d_gpu_predict(
         # save time; only the model architecture is fixed).
         assert scalar == scalar, f"NaN output from Conv2D forward pass: {scalar!r}"
         assert scalar not in (float("inf"), float("-inf")), f"Inf output: {scalar!r}"
+        # Non-zero check — a stubbed cuDNN or bypassed convolution would
+        # return 0.0 for the all-ones input; with random Conv weights and
+        # a ReLU activation, at least one channel of the (1,6,6,4) feature
+        # map after Conv2D + GAP + Dense(1) is overwhelmingly unlikely to
+        # be exactly 0.0. Catches "kernel silently didn't run" regressions.
+        assert scalar != 0.0, (
+            f"conv output was exactly zero; cuDNN kernel likely bypassed "
+            f"or stubbed. value: {scalar!r}"
+        )

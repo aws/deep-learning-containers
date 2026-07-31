@@ -129,6 +129,7 @@ def deploy_endpoint(
     inference_image_uri,
     sm_instance_type,
     unique_name,
+    cleanup_endpoint,
 ):
     """Deploy a SageMaker endpoint and return a callable that returns the
     ``Endpoint`` handle plus its name — pair with ``cleanup_endpoint`` for
@@ -136,16 +137,27 @@ def deploy_endpoint(
     Endpoint.create -> wait_for_status`` sequence used by every integration
     test so individual tests stay focused on assertions.
 
+    Cleanup registration happens BEFORE the first AWS create call. If any
+    step (``Model.create``, ``EndpointConfig.create``, ``Endpoint.create``,
+    or ``wait_for_status``) raises, the endpoint config / partial endpoint /
+    model that was created still gets torn down at fixture teardown — a
+    ``wait_for_status`` failure previously never returned to the caller,
+    so the call-site ``cleanup_endpoint(...)`` line never ran and the
+    endpoint billed until the account was scrubbed. Both this fixture and
+    ``cleanup_endpoint`` are function-scoped, so the injection lifetime
+    matches; cleanup calls at test call sites are now redundant no-ops
+    (double-register is safe — teardown swallows NotFound / already-deleted
+    exceptions per resource).
+
     Usage::
 
-        def test_x(deploy_endpoint, cleanup_endpoint):
+        def test_x(deploy_endpoint):
             endpoint, endpoint_name, model_name = deploy_endpoint(
                 model_data_url="s3://.../model.tar.gz",  # or an MME prefix
                 mode="SingleModel",                       # or "MultiModel"
                 container_env={"SAGEMAKER_TFS_ENABLE_BATCHING": "true"},
                 name_prefix="tf220-batching",
             )
-            cleanup_endpoint(endpoint_name, model_name=model_name)
             ...
     """
 
@@ -166,6 +178,11 @@ def deploy_endpoint(
 
         endpoint_name = unique_name(name_prefix)
         model_name = unique_name(f"{name_prefix}-model")
+
+        # Register cleanup BEFORE any AWS mutation so a mid-flight failure
+        # (Model.create, EndpointConfig.create, Endpoint.create, or the
+        # wait_for_status poll) still gets torn down at fixture teardown.
+        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         container_kwargs = {
             "image": inference_image_uri,

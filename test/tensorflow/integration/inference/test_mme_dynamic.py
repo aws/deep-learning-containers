@@ -134,10 +134,11 @@ def test_mme_late_dynamic_load(
 # Traversal payloads to send through SageMaker Runtime's ``target_model``
 # header. SM Runtime may reject some client-side before the request even
 # reaches the container — that is acceptable, and either rejection layer
-# proves a 4xx surfaces. The container-side handler guard is separately
-# exercised at unit-test level in ``test_python_service_unit.py``
-# (``test_mme_traversal_rejected_by_handler_guard``) so a regression that
-# weakens only the container-side check still fails visibly.
+# proves a 4xx surfaces. Both a leading-dot relative path and an absolute
+# path exercise the container-side guard in
+# ``python_service._handle_load_model_post``; ``GET /models/{name}`` and
+# ``DELETE /models/{name}`` share the same guard but are unreachable from
+# outside the container — see ``README-coverage-gaps.md`` for why.
 _TRAVERSAL_TARGET_MODELS = [
     "../../evil.tar.gz",
     "/etc/passwd",

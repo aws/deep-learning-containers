@@ -27,7 +27,7 @@ import tempfile
 import pytest
 
 from .resources.build_sample_model import build_sample_model
-from .resources.helpers import read_predictions, upload_tarball
+from .resources.helpers import CUSTOM_INFERENCE_PY, upload_tarball
 
 
 def test_nginx_and_gunicorn_env_tuning(
@@ -40,9 +40,20 @@ def test_nginx_and_gunicorn_env_tuning(
     must reach InService and return correct predictions. A template
     substitution bug or a bad worker/thread combo would surface as a 5xx
     at endpoint deploy time (nginx -t fails, gunicorn refuses to start,
-    etc.)."""
+    etc.).
+
+    Ships a customer ``inference.py`` under ``code/`` so the serving stack
+    actually runs gunicorn (``_use_gunicorn = True`` in ``serve.py``).
+    Without a customer handler the SAGEMAKER_GUNICORN_* env vars would be
+    inert — the request would go straight through nginx to TFS and the
+    three gunicorn tuning vars in this test would not be exercised.
+    """
     with tempfile.TemporaryDirectory(prefix="tf220-nginx-env-") as workdir:
-        tar_path = build_sample_model(output_dir=workdir, multiplier=2.0)
+        tar_path = build_sample_model(
+            output_dir=workdir,
+            multiplier=2.0,
+            code_files={"inference.py": CUSTOM_INFERENCE_PY},
+        )
         model_data = upload_tarball(
             sagemaker_session,
             tar_path,
@@ -68,7 +79,33 @@ def test_nginx_and_gunicorn_env_tuning(
             content_type="application/json",
             accept="application/json",
         )
-        assert read_predictions(result) == pytest.approx([2.0, 4.0, 6.0]), (
+        body = json.loads(result.body.read().decode("utf-8"))
+
+        # Gunicorn-served marker — CUSTOM_INFERENCE_PY's output_handler wraps
+        # the TFS response with a ``_handler_marker`` key. Its presence
+        # proves the gunicorn worker actually loaded the customer handler
+        # under the tuned SAGEMAKER_GUNICORN_* env vars (a template
+        # substitution or worker-spawn regression would fail before this
+        # key ever appears).
+        assert body.get("_handler_marker") == "input_output_ok", (
+            f"gunicorn-served output_handler marker missing — env-tuned "
+            f"gunicorn worker did not load customer inference.py. body: {body!r}"
+        )
+
+        # Customer handler prepends 1 marker row → 2 rows returned (marker + 1
+        # customer). Multiplier 2 on customer row [1, 2, 3] → [2, 4, 6].
+        predictions = body["predictions"]
+        assert len(predictions) == 2, (
+            f"expected 2 predictions (1 marker + 1 customer), got {len(predictions)}: "
+            f"{predictions!r}"
+        )
+        customer_values = (
+            predictions[1]["output"]
+            if isinstance(predictions[1], dict) and "output" in predictions[1]
+            else predictions[1]
+        )
+        assert customer_values == pytest.approx([2.0, 4.0, 6.0]), (
             "endpoint under tuned nginx/gunicorn config returned wrong "
-            "predictions — template substitution or worker spawn regressed"
+            f"predictions — template substitution or worker spawn regressed. "
+            f"got {customer_values!r}"
         )
