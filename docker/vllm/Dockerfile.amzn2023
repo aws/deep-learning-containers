@@ -3,6 +3,10 @@ ARG PYTHON_VERSION=3.12
 ARG FRAMEWORK_VERSION=0.24.0
 ARG FLASHINFER_VERSION=0.6.12
 ARG DEEPEP_COMMIT_HASH=73b6ea4
+# DeepEPv2 GIN backend requires NCCL >= 2.30.4. torch pins an older NCCL as a
+# transitive dep, so we override it via UV_OVERRIDE at both build and runtime.
+# Only applied on CUDA 13+; CUDA 12 falls back to torch's default NCCL.
+ARG NCCL_VERSION=2.30.7
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -129,7 +133,13 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
 # Build DeepEP wheels
 ARG DEEPEP_COMMIT_HASH
 ARG NVSHMEM_VER
+ARG NCCL_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
+  && CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && if [ "$CUDA_MAJOR" -ge 13 ] && [ -n "$NCCL_VERSION" ]; then \
+       echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" > /tmp/nccl-override.txt \
+       && export UV_OVERRIDE=/tmp/nccl-override.txt; \
+     fi \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
   && tools/ep_kernels/install_python_libraries.sh \
     --workspace /tmp/ep_kernels_workspace \
@@ -176,6 +186,19 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
+
+# DeepEPv2 GIN requires NCCL >= 2.30.4 at both compile and runtime. torch pins
+# an older version as a transitive dep; this override forces uv to use our
+# pinned version whenever nvidia-nccl-cu* is resolved, so the runtime venv
+# matches the NCCL the DeepEP wheel was compiled against. Empty on CUDA 12.
+ARG NCCL_VERSION
+RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && if [ "$CUDA_MAJOR" -ge 13 ] && [ -n "$NCCL_VERSION" ]; then \
+       echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" > /etc/uv-overrides.txt; \
+     else \
+       touch /etc/uv-overrides.txt; \
+     fi
+ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch
 COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
