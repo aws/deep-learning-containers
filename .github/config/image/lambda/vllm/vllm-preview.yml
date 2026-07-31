@@ -21,7 +21,6 @@ build:
   vllm_version: "0.24.0"
   flashinfer_version: "0.6.12"
   torch_cuda_arch_list: "8.0 8.6 8.9 12.0"
-  torch_version: "2.11.0"
   use_sccache: "true"
   dlc_major_version: "1"
   dlc_minor_version: "0"

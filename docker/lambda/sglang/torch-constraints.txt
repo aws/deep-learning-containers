@@ -1,0 +1,12 @@
+# Torch trio constraints for the sglang source install.
+#
+# torch/vision/audio are already installed (cu130) from the builder-pytorch-py3
+# base — they live in docker/lambda/pytorch/uv.lock, the single source of truth.
+# Passing this as a --constraint to `uv pip install sglang[all]` pins the resolve
+# to those exact versions so the source install can NOT pull a different (non-cu130)
+# torch, which removes the need to reinstall torch afterward.
+#
+# Keep in sync with docker/lambda/pytorch/pyproject.toml.
+torch==2.11.0
+torchaudio==2.11.0
+torchvision==0.26.0

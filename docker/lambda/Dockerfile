@@ -141,42 +141,50 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # ============================================================
 # sglang builder (Python 3.13 — sglang engine + kernels, from source)
 # ============================================================
-FROM builder-base-devel as builder-sglang-py3
+# Built on builder-pytorch-py3 (same base as builder-vllm-py3), which already
+# carries torch 2.11.0+cu130 and the lambda RIC/OSS tooling (awslambdaric, boto3,
+# pip, pip-licenses, pytest) + setuptools<81. So this stage only adds sglang's own
+# build deps + the sglang engine; torch is NOT reinstalled (parity inherited).
+FROM builder-pytorch-py3 as builder-sglang-py3
 ARG PYTHON_VERSION
 ARG CUDA_VERSION
 ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
 ARG SGLANG_KERNEL_VERSION=0.4.4
-ARG TORCH_VERSION=2.11.0
-# Build deps: gcc/g++, openssl/pkgconfig/perl (outlines-core Rust), protobuf
-# (sglang router), + Rust toolchain.
+# sglang engine version, from the config's metadata.framework_version (e.g.
+# 0.5.14+dlc1) — same source the serving amzn2023 image uses.
+ARG FRAMEWORK_VERSION=0.5.14+dlc1
+# Build deps: gcc/g++ (present from builder-base-devel), openssl/pkgconfig/perl
+# (outlines-core Rust), protobuf (sglang router), + Rust toolchain.
 RUN dnf install -y --setopt=install_weak_deps=False \
   gcc gcc-c++ openssl-devel pkgconfig perl protobuf-compiler protobuf-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
   && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
-COPY --from=lambda-python /var/lang/bin /var/lang/bin
-COPY --from=lambda-python /var/lang/include /var/lang/include
-COPY --from=lambda-python /var/lang/lib /var/lang/lib
-RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages
+# Stamp the sglang package version (built from a shallow git clone, so setuptools_scm
+# can't derive it). Matches the serving amzn2023 image's format exactly:
+# ${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF} — e.g. 0.5.14+dlc1.amzn2023.<commit>
+# (the '+dlc1' makes '.amzn2023.<commit>' a PEP 440 local-version segment).
 ENV PATH="/usr/local/cuda/bin:/var/lang/bin:/root/.cargo/bin:$PATH" \
   UV_PYTHON="/var/lang/bin/python${PYTHON_VERSION}" \
-  SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SGLANG=0.5.14
-RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
+  SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SGLANG=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
 # Install sglang from source at the pinned commit (matches the serving amzn2023
-# image). Non-editable: the runtime copies only /var/lang.
+# image). Non-editable: the runtime copies only /var/lang. torch 2.11.0+cu130 is
+# already installed from the pytorch base, so sglang[all] resolves against it and
+# we do NOT reinstall torch.
+COPY ./docker/lambda/sglang/torch-constraints.txt /tmp/torch-constraints.txt
 RUN git clone https://github.com/sgl-project/sglang.git /tmp/sglang \
   && git -C /tmp/sglang checkout ${SGLANG_REF}
 RUN --mount=type=cache,target=/root/.cache/uv \
   CUDA_SHORT="$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')" \
   && uv pip install --python "${UV_PYTHON}" cmake ninja scikit-build-core \
-  # sglang + all extras (flashinfer, outlines, xgrammar, flash-attn-4 prerelease, ...)
-  && uv pip install --python "${UV_PYTHON}" --prerelease=allow "/tmp/sglang/python[all]" \
-  # force the cu130 torch build (python[all] pulls default-index torch)
-  && uv pip install --python "${UV_PYTHON}" --reinstall \
-     "torch==${TORCH_VERSION}" torchvision torchaudio \
-     --index-url "https://download.pytorch.org/whl/cu${CUDA_SHORT}" \
-  # lambda RIC + OSS-scan tooling (pip needed by the OSS-compliance stage)
-  && uv pip install --python "${UV_PYTHON}" pip pytest awslambdaric==4.0.0 boto3 pip-licenses \
-  # prebuilt cu130 sgl_kernel; sm100 variant is binary-compatible down to sm_89 (A10G/L4/L40S)
+  # sglang + all extras (flashinfer, outlines, xgrammar, flash-attn-4 prerelease, ...).
+  # torch/vision/audio are already installed (cu130) from the pytorch base; the
+  # --constraint pins them so sglang[all] can't pull a different torch — so we do
+  # NOT reinstall torch afterward.
+  && uv pip install --python "${UV_PYTHON}" --prerelease=allow \
+     --constraint /tmp/torch-constraints.txt \
+     "/tmp/sglang/python[all]" \
+  # prebuilt cu130 sgl_kernel; sm100 variant is binary-compatible down to sm_89 (A10G/L4/L40S).
+  # Source-built (kernel index is not hash-stable) so it stays a config pin, not a lock.
   && uv pip install --python "${UV_PYTHON}" --no-deps --reinstall-package sglang-kernel \
      "sglang-kernel==${SGLANG_KERNEL_VERSION}" --index-url "https://docs.sglang.ai/whl/cu${CUDA_SHORT}/" \
   # bump sglang transitive deps with fixed CVEs (ECR scan): pillow, diffusers, jaraco.context
@@ -226,6 +234,7 @@ ENV UV_PYTHON="/var/lang/bin/python${PYTHON_VERSION}" \
 RUN dnf install -y --setopt=install_weak_deps=False git \
   && dnf clean all && rm -rf /var/cache/dnf
 
+COPY ./docker/lambda/vllm/torch-constraints.txt /tmp/torch-constraints.txt
 # Clone vllm at the pinned ref. VLLM_REF is a commit SHA (not a branch/tag), so
 # init + fetch the specific commit rather than `clone --branch` (which rejects SHAs).
 RUN git init /tmp/vllm \
@@ -267,20 +276,18 @@ RUN --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.c
 RUN --mount=type=cache,target=/root/.cache/uv \
   CUDA_SHORT="$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')" \
   && VLLM_WHL="$(ls -t /tmp/vllm-dist/vllm-*.whl | head -1)" \
-  # filtered cuda.txt: drop the FA4 cute-DSL cluster (broken on cu130) and the
-  # torch trio (already pinned in /var/lang); keep common.txt + numba/flashinfer/etc.
-  # write the filtered reqs INSIDE requirements/ so its `-r common.txt` relative include resolves.
-  # Drop the FA4 cute-DSL cluster (broken on cu130). Keep the torch trio pins so a
-  # transitive dep can't re-resolve torch off cu130 (a filtered install downgraded it
-  # to 2.10.0+cu128 otherwise). torch/vision/audio are already installed in /var/lang,
-  # so these pins just constrain the resolve; the cu130 index serves the matching wheels.
+  # Filtered cuda.txt: drop the FA4 cute-DSL cluster (nvidia-cutlass-dsl/quack/humming
+  # → cuda-python 12.9, broken on cu130; we use flashinfer for attention). Written
+  # INSIDE requirements/ so its `-r common.txt` relative include resolves. torch/
+  # vision/audio are already installed (cu130) from the base; the --constraint pins
+  # them so this resolve can't downgrade torch (it dropped to 2.10.0+cu128 without it)
+  # — so we do NOT reinstall torch.
   && grep -vE 'nvidia-cutlass-dsl|quack-kernels|humming-kernels' \
        /tmp/vllm/requirements/cuda.txt > /tmp/vllm/requirements/lambda-runtime.txt \
   && UV_INDEX_STRATEGY=unsafe-best-match uv pip install --python "${UV_PYTHON}" \
+     --constraint /tmp/torch-constraints.txt \
      -r /tmp/vllm/requirements/lambda-runtime.txt \
-     "torch==2.11.0" "torchvision==0.26.0" "torchaudio==2.11.0" \
-     --index-url "https://download.pytorch.org/whl/cu${CUDA_SHORT}" \
-     --extra-index-url "https://pypi.org/simple" \
+     --extra-index-url "https://download.pytorch.org/whl/cu${CUDA_SHORT}" \
   && uv pip install --python "${UV_PYTHON}" --no-deps "${VLLM_WHL}" \
   && uv pip install --python "${UV_PYTHON}" \
      "flashinfer-python==${FLASHINFER_VERSION}" "flashinfer-cubin==${FLASHINFER_VERSION}" \
@@ -506,13 +513,15 @@ LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 ARG CACHE_REFRESH=0
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
-# sglang JIT-compiles kernels at cold start (triton + flashinfer), so the runtime
-# needs a CUDA compiler toolchain, not just libs: numactl-libs (libnuma.so.1 for
-# sgl_kernel); gcc/g++/which (host compiler); cuda-nvcc/cudart-devel/crt (nvcc +
-# CUDA headers). JIT caches write to /tmp (see ENV).
+# sglang + flashinfer JIT-compile CUDA kernels at cold start, so the runtime needs
+# a CUDA compiler toolchain AND math-library dev headers, not just libs: numactl-libs
+# (libnuma.so.1 for sgl_kernel); gcc/g++/which (host compiler); cuda-nvcc/cudart-devel/crt
+# (nvcc + CUDA headers); curand/cublas/cusolver/cusparse-devel (headers flashinfer's
+# JIT norm/gemm kernels include, e.g. cublasLt.h). JIT caches write to /tmp (see ENV).
 RUN dnf install -y --setopt=install_weak_deps=False \
   numactl-libs gcc gcc-c++ which \
   cuda-nvcc-13-0 cuda-cudart-devel-13-0 cuda-crt-13-0 \
+  libcurand-devel-13-0 libcublas-devel-13-0 libcusolver-devel-13-0 libcusparse-devel-13-0 \
   && dnf upgrade -y --releasever=latest \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-sglang-py3 /var/lang /var/lang
@@ -530,6 +539,11 @@ ENV PATH="/var/lang/bin:$PATH" \
   HF_HOME=/tmp/huggingface \
   TRITON_CACHE_DIR=/tmp/triton \
   FLASHINFER_WORKSPACE_BASE=/tmp/flashinfer \
+  TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor \
+  USER=lambda \
+  HOME=/tmp \
+  XDG_CONFIG_HOME=/tmp/.config \
+  XDG_CACHE_HOME=/tmp/.cache \
   CC=/usr/bin/gcc \
   CXX=/usr/bin/g++ \
   CUDA_HOME=/usr/local/cuda \
@@ -538,6 +552,10 @@ ENV PATH="/var/lang/bin:$PATH" \
   LAMBDA_RUNTIME_DIR=/var/runtime \
   LANG=en_US.UTF-8 \
   TZ=:/etc/localtime
+# In multi-concurrency mode (AWS_LAMBDA_MAX_CONCURRENCY set) the RIC runs the
+# handler without USER/LOGNAME/HOME; torch inductor's getpass.getuser() and libs
+# writing to ~/.config would crash. USER + HOME=/tmp + XDG dirs + TORCHINDUCTOR
+# cache in /tmp (the only writable FS on Lambda) prevent that.
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 ARG FRAMEWORK

@@ -173,6 +173,13 @@ jobs:
           else
             echo "multimode=false" >> $GITHUB_OUTPUT
           fi
+          # Serving engines (sglang, vllm) ship a shared-server + proxy handler;
+          # they get an extra end-to-end serving test via the real RIC entrypoint.
+          if [[ "$TARGET" == *sglang* || "$TARGET" == *vllm* ]]; then
+            echo "serving=true" >> $GITHUB_OUTPUT
+          else
+            echo "serving=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Run GPU validation tests
         if: steps.check.outputs.exists == 'true'
@@ -181,6 +188,17 @@ jobs:
             -v $(pwd)/test/lambda:/test \
             ${{ steps.image.outputs.image-uri }} \
             -m pytest ${{ steps.config.outputs.tests }} -v
+
+      - name: Run serving + RIC topology test
+        if: steps.check.outputs.exists == 'true' && steps.config.outputs.serving == 'true'
+        run: |
+          chmod +x test/lambda/ric_topology_check.sh
+          if [[ "${{ steps.config.outputs.multimode }}" == "true" ]]; then
+            MODES="thread process hybrid"
+          else
+            MODES="single"
+          fi
+          bash test/lambda/ric_topology_check.sh ${{ steps.image.outputs.image-uri }} 4 "${MODES}"
 
       - name: Verify runtime concurrency-mode override
         if: steps.check.outputs.exists == 'true' && steps.config.outputs.multimode == 'true'

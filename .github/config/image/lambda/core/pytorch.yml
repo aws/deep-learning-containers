@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "lambda"
-  framework_version: "13.0.3"
+  framework_version: "2.11.0"
   os_version: "amzn2023"
   arch_type: "x86"
   device_type: "gpu"
