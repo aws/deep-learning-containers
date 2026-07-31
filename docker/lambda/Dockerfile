@@ -227,6 +227,11 @@ ARG TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 12.0"
 ARG MAX_JOBS=8
 ARG NVCC_THREADS=2
 ARG USE_SCCACHE=true
+# Wheel-cache control (see scripts/ci/build/lambda/pre_build.sh):
+#   USE_PREBUILT_WHEEL=1 + a wheel present in prebuilt_wheels/ → skip the ~85-min
+#   source compile and install the cached wheel. Default 0 (compile) so a plain
+#   `docker build` with empty context dirs still works.
+ARG USE_PREBUILT_WHEEL=0
 ENV UV_PYTHON="/var/lang/bin/python${PYTHON_VERSION}" \
   PATH="/usr/local/cuda/bin:/var/lang/bin:$PATH"
 
@@ -235,36 +240,54 @@ RUN dnf install -y --setopt=install_weak_deps=False git \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./docker/lambda/vllm/torch-constraints.txt /tmp/torch-constraints.txt
+# Cache inputs from the build context. scripts/ci/build/lambda/pre_build.sh creates
+# these dirs (mkdir -p) before every vLLM build and populates them from S3 on a
+# cache hit; they are NOT committed to the repo (matching docker/vllm amzn2023).
+#   prebuilt_wheels/ → a cached vLLM wheel (on cache hit; empty on miss)
+#   sccache-cache/   → warm sccache compiler cache (speeds a cache-miss compile)
+COPY ./docker/lambda/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
+COPY ./docker/lambda/vllm/sccache-cache/ /root/.cache/sccache/
 # Clone vllm at the pinned ref. VLLM_REF is a commit SHA (not a branch/tag), so
 # init + fetch the specific commit rather than `clone --branch` (which rejects SHAs).
+# Needed even on a wheel-cache hit: the install step reads vllm's requirements/.
 RUN git init /tmp/vllm \
   && cd /tmp/vllm \
   && git remote add origin ${VLLM_REPO} \
   && git fetch --depth 1 origin ${VLLM_REF} \
   && git checkout FETCH_HEAD
 
-# Build the vllm wheel from source against /var/lang's cu130 torch. sccache
-# (populated in the BuildKit cache mount) keeps recompiles cheap.
-# --py-limited-api=cp38 → the abi3 wheel runs on py3.13.
-RUN --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/sccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/sccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/sccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/ccache \
-  CUDA_SHORT="$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')" \
-  && cd /tmp/vllm \
-  # build tools into /var/lang (torch already present); unsafe-best-match so the
-  # stale cmake 3.25 on the pytorch cu130 index doesn't mask PyPI's cmake>=3.26.1.
-  && UV_INDEX_STRATEGY=unsafe-best-match uv pip install --python "${UV_PYTHON}" \
-     cmake ninja setuptools-scm setuptools-rust \
-  && export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS="${MAX_JOBS}" NVCC_THREADS="${NVCC_THREADS}" \
-     VLLM_TARGET_DEVICE=cuda SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+cu${CUDA_SHORT}" \
-  && if [ "${USE_SCCACHE}" = "true" ]; then \
-       curl -fsSL -o /tmp/sccache.tar.gz "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
-       && tar -xzf /tmp/sccache.tar.gz -C /tmp && mv /tmp/sccache-v0.8.1-*/sccache /usr/bin/sccache && rm -rf /tmp/sccache* \
-       && export SCCACHE_DIR=/root/.cache/sccache SCCACHE_IDLE_TIMEOUT=0 CMAKE_BUILD_TYPE=Release \
-          CMAKE_C_COMPILER_LAUNCHER=sccache CMAKE_CXX_COMPILER_LAUNCHER=sccache CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
-       && sccache --show-stats; \
-     fi \
-  # --no-build-isolation: build in /var/lang so setup.py sees the installed torch.
-  && "${UV_PYTHON}" setup.py bdist_wheel --dist-dir=/tmp/vllm-dist --py-limited-api=cp38 \
-  && (command -v sccache >/dev/null && sccache --show-stats || true)
+# Produce the vLLM wheel into /tmp/vllm-dist: use the cached wheel if one was
+# fetched, otherwise build from source against /var/lang's cu130 torch. sccache
+# writes to /root/.cache/sccache (a real dir COPY'd from context, so post_build can
+# export + upload it). --py-limited-api=cp38 → the abi3 wheel runs on py3.13.
+# The wheel + sccache are NOT deleted here — the vllm-wheel-export / vllm-sccache-export
+# scratch stages read them out for the S3 cache on a miss.
+RUN --mount=type=cache,target=/root/.cache/uv \
+  mkdir -p /tmp/vllm-dist \
+  && if [ "${USE_PREBUILT_WHEEL}" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+       echo "✅ Using pre-built vLLM wheel from cache — skipping compilation" \
+       && cp /tmp/prebuilt_wheels/*.whl /tmp/vllm-dist/; \
+     else \
+       echo "🔧 Building vLLM wheel from source..." \
+       && CUDA_SHORT="$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr -d '.')" \
+       && cd /tmp/vllm \
+       # build tools into /var/lang (torch already present); unsafe-best-match so the
+       # stale cmake 3.25 on the pytorch cu130 index doesn't mask PyPI's cmake>=3.26.1.
+       && UV_INDEX_STRATEGY=unsafe-best-match uv pip install --python "${UV_PYTHON}" \
+          cmake ninja setuptools-scm setuptools-rust \
+       && export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS="${MAX_JOBS}" NVCC_THREADS="${NVCC_THREADS}" \
+          VLLM_TARGET_DEVICE=cuda SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+cu${CUDA_SHORT}" \
+       && if [ "${USE_SCCACHE}" = "true" ]; then \
+            curl -fsSL -o /tmp/sccache.tar.gz "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
+            && tar -xzf /tmp/sccache.tar.gz -C /tmp && mv /tmp/sccache-v0.8.1-*/sccache /usr/bin/sccache && rm -rf /tmp/sccache* \
+            && export SCCACHE_DIR=/root/.cache/sccache SCCACHE_IDLE_TIMEOUT=0 CMAKE_BUILD_TYPE=Release \
+               CMAKE_C_COMPILER_LAUNCHER=sccache CMAKE_CXX_COMPILER_LAUNCHER=sccache CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
+            && sccache --show-stats; \
+          fi \
+       # --no-build-isolation: build in /var/lang so setup.py sees the installed torch.
+       && "${UV_PYTHON}" setup.py bdist_wheel --dist-dir=/tmp/vllm-dist --py-limited-api=cp38 \
+       && (command -v sccache >/dev/null && sccache --show-stats || true); \
+     fi
 
 # Install the built vllm wheel + deps into the runtime venv (/var/lang).
 # The wheel is installed --no-deps because vllm's requirements/cuda.txt pins
@@ -293,11 +316,28 @@ RUN --mount=type=cache,target=/root/.cache/uv \
      "flashinfer-python==${FLASHINFER_VERSION}" "flashinfer-cubin==${FLASHINFER_VERSION}" \
   # bump vllm transitive deps with fixed CVEs (ECR scan) to match the other images
   && uv pip install --python "${UV_PYTHON}" "pillow>=12.3.0" \
-  && rm -rf /tmp/vllm /tmp/vllm-dist \
+  # NOTE: do NOT delete /tmp/vllm-dist or /root/.cache/sccache — the
+  # vllm-wheel-export / vllm-sccache-export scratch stages read them out of this
+  # builder for the S3 cache. This is a throwaway builder (only /var/lang is copied
+  # into the runtime image), so leaving them costs nothing in the final image.
+  && rm -rf /tmp/vllm \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && (find /var/lang -type d -name tests -exec rm -rf {} + 2>/dev/null; true) \
   && find /var/lang -type f -name "*.pyc" -delete \
   && find /var/lang -type f -name "*.pyo" -delete
+
+# ============================================================
+# vLLM cache-export stages (scratch — for S3 wheel/sccache upload on a cache miss)
+# Built only on demand by the build-image action via EXPORT_TARGETS:
+#   docker buildx build --target vllm-wheel-export   --output type=local,dest=docker/lambda/vllm/prebuilt_wheels
+#   docker buildx build --target vllm-sccache-export --output type=local,dest=docker/lambda/vllm/sccache-cache
+# post_build.sh then uploads the exported wheel + sccache to S3.
+# ============================================================
+FROM scratch as vllm-wheel-export
+COPY --from=builder-vllm-py3 /tmp/vllm-dist/ /
+
+FROM scratch as vllm-sccache-export
+COPY --from=builder-vllm-py3 /root/.cache/sccache/ /
 
 # ============================================================
 # OSS compliance builders (isolated — prevents dependency closure modification)
