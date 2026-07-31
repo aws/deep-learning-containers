@@ -1,0 +1,45 @@
+image:
+  name: "huggingface-pytorch-training-2.11-sagemaker"
+  description: "Hugging Face PyTorch training for SageMaker (layered on the AWS PyTorch training DLC)"
+
+metadata:
+  framework: "huggingface-pytorch"
+  framework_version: "2.11.0"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "training"
+  contributor: "huggingface"
+  prod_image: "huggingface-pytorch-training:2.11.0-transformers5.13.1-gpu-py312-cu130-amzn2023-sagemaker"
+
+build:
+  dockerfile: "docker/huggingface/pytorch/Dockerfile"
+  target: "sagemaker"
+  base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023-sagemaker"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  transformers_version: "5.13.1"
+  huggingface_hub_version: "1.23.0"
+  hf_xet_version: "1.5.1"
+  trl_version: "1.8.0"
+  diffusers_version: "0.39.0"
+  hf_transfer_version: "0.1.9"
+  datasets_version: "5.0.0"
+  accelerate_version: "1.14.0"
+  peft_version: "0.19.1"
+  evaluate_version: "0.4.6"
+  math_verify_version: "0.9.0"
+  vllm_version: "0.25.0"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  # Not yet releasable — AWS infra support for this image family is pending.
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "production"

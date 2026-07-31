@@ -3,6 +3,8 @@ ARG PYTHON_VERSION=3.12
 ARG FRAMEWORK_VERSION=0.24.0
 ARG FLASHINFER_VERSION=0.6.12
 ARG DEEPEP_COMMIT_HASH=73b6ea4
+# DeepEPv2 GIN needs NCCL >= 2.30.4; override torch's older transitive pin.
+ARG NCCL_VERSION=2.30.7
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -126,10 +128,15 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
     fi
 
-# Build DeepEP wheels
+# Build DeepEP wheels. On CUDA 13, NCCL is a separate wheel (not in torch/lib); LIBRARY_PATH puts it on the link search path.
 ARG DEEPEP_COMMIT_HASH
 ARG NVSHMEM_VER
+ARG NCCL_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
+  && CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/tmp/nccl-override.txt \
+  && export UV_OVERRIDE=/tmp/nccl-override.txt \
+  && export LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LIBRARY_PATH}" \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
   && tools/ep_kernels/install_python_libraries.sh \
     --workspace /tmp/ep_kernels_workspace \
@@ -176,6 +183,12 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
+
+# Match runtime venv NCCL to the DeepEP wheel's compile-time NCCL (see build stage).
+ARG NCCL_VERSION
+RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
+ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch
 COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt

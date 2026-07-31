@@ -141,14 +141,23 @@ class TestEntrypointArgHandling(unittest.TestCase):
         """Run entrypoint in dry-run mode and capture the generated args."""
         with open(self.SAGEMAKER_ENTRYPOINT) as f:
             script = f.read()
+        # \s* matters: an entrypoint may guard the exec inside an if-block (the
+        # huggingface-vllm one prefers standard-supervisor when present), and an
+        # unreplaced exec launches the real server instead of dry-running.
         script = re.sub(
-            r"^exec\s+(standard-supervisor\s+)?python3\s+.*$",
+            r"^\s*exec\s+(standard-supervisor\s+)?python3\s+.*$",
             'echo "__ARGS__${ARGS[@]}__END__"',
             script,
             flags=re.MULTILINE,
         )
-        # Also suppress start_cuda_compat.sh if present
-        script = script.replace("bash /usr/local/bin/start_cuda_compat.sh", "true")
+        # Also suppress start_cuda_compat.sh if present, sourced or executed: it
+        # shells out to nvidia-smi, which is slow on a GPU-less sanity runner.
+        script = re.sub(
+            r"^\s*(bash|source|\.)\s+\S*start_cuda_compat\.sh.*$",
+            "true",
+            script,
+            flags=re.MULTILINE,
+        )
 
         env = {k: v for k, v in os.environ.items()}
         # Clear any existing SM_VLLM_ / SM_SGLANG_ vars
