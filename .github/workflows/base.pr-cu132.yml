@@ -73,5 +73,8 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      # TEMPORARY: validates the new EFA/NCCL coverage against this PR's image.
+      # Launches 2x p4d.24xlarge per run — remove before merge.
+      run-efa-test: true
       release: false
     secrets: inherit
