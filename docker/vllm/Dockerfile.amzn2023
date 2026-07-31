@@ -134,7 +134,7 @@ ARG NVSHMEM_VER
 ARG NCCL_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
   && CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
-  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" > /tmp/nccl-override.txt \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/tmp/nccl-override.txt \
   && export UV_OVERRIDE=/tmp/nccl-override.txt \
   && export LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LIBRARY_PATH}" \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
@@ -187,7 +187,7 @@ ENV UV_LINK_MODE=copy
 # Match runtime venv NCCL to the DeepEP wheel's compile-time NCCL (see build stage).
 ARG NCCL_VERSION
 RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
-  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" > /etc/uv-overrides.txt
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
 ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch
