@@ -38,7 +38,9 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # --- HuggingFace training stack ------------------------------------------
 # Security floors for ECR findings: soupsieve fixes GHSA-2wc2-fm75-p42x and
-# GHSA-836r-79rf-4m37; Pillow 12.3.0 fixes CVE-2026-55379.
+# GHSA-836r-79rf-4m37; Pillow 12.3.0 fixes CVE-2026-55379; GitPython 3.1.55
+# clears 9 HIGH advisories up to GHSA-94p4-4cq8-9g67; pyasn1 0.6.4 clears
+# CVE-2026-59885 and CVE-2026-59886.
 RUN uv pip install --python ${VENV_PYTHON} \
   transformers==${TRANSFORMERS_VERSION} \
   huggingface-hub==${HUGGINGFACE_HUB_VERSION} \
@@ -55,6 +57,8 @@ RUN uv pip install --python ${VENV_PYTHON} \
   sentencepiece protobuf einops scipy scikit-learn tensorboard \
   "pillow>=12.3.0" \
   "soupsieve>=2.8.4" \
+  "GitPython>=3.1.55" \
+  "pyasn1>=0.6.4" \
   && uv cache clean
 
 # --- Efficiency / quantization kernels -----------------------------------
