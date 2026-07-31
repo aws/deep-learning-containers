@@ -81,13 +81,7 @@ def build_sample_model(
 
 
 def _build_conv_sequential():
-    """Return the tiny Conv2D Sequential model used by both export paths.
-
-    Kept as a helper (not a fixture) so the modern (``model.export()``) and
-    legacy (``tf.keras.models.save_model()``) builders below share exactly
-    the same architecture. If they diverged, we'd lose the ability to say
-    "same customer model, two export paths, one passes, one fails" — which
-    is the entire point of the parametrized test that consumes these.
+    """Return the tiny Conv2D Sequential model used by the export builder.
 
     Architecture (kept intentionally tiny — this is a smoke, not a
     benchmark):
@@ -115,8 +109,8 @@ def _package_saved_model_tarball(output_dir: Path, version: int, tar_filename: s
     """Package ``<output_dir>/<version>/saved_model.pb`` into ``model.tar.gz``.
 
     SageMaker TFS / MME expects the tarball to contain a numeric version
-    directory at the top level (``<version>/saved_model.pb``). The two Conv
-    builders below both write into that layout so this shared packager can
+    directory at the top level (``<version>/saved_model.pb``); the Conv
+    builder below writes into that layout so this shared packager can
     finish the job.
     """
     tar_path = output_dir / tar_filename
@@ -158,58 +152,6 @@ def build_conv_sample_model(
     model = _build_conv_sequential()
     # Keras 3 dedicated SavedModel writer. This is what customers use.
     model.export(str(saved_model_dir))
-
-    return _package_saved_model_tarball(output_dir, version, tar_filename)
-
-
-def build_conv_sample_model_legacy_save(
-    output_dir: str | os.PathLike | None = None,
-    tar_filename: str = "model.tar.gz",
-    version: int = 1,
-) -> str:
-    """Build a tiny Conv2D SavedModel using the legacy Keras save path.
-
-    Legacy customer path: pre-Keras-3 customers (or customers with existing
-    training scripts they haven't migrated) save via
-    ``tf.keras.models.save_model(model, dir, save_format="tf")`` or
-    ``model.save(dir, save_format="tf")``. Keras 3 has been progressively
-    tightening what ``save_format="tf"`` accepts (the default is the
-    ``.keras`` zip format), but the SavedModel path is still the migration
-    surface for most existing customer code and must keep working on TFS.
-
-    We try ``tf.keras.models.save_model(..., save_format="tf")`` first, then
-    fall back to ``model.save(..., save_format="tf")``. If both raise, we
-    re-raise the last error rather than fake success — a real regression in
-    Keras 3 rejecting SavedModel from ``save_model`` is exactly what this
-    test exists to catch.
-
-    Same architecture and tarball layout as ``build_conv_sample_model``.
-    """
-    import tensorflow as tf
-
-    output_dir = Path(output_dir) if output_dir else Path(tempfile.mkdtemp(prefix="tf220-conv-"))
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    saved_model_dir = output_dir / str(version)
-    saved_model_dir.mkdir(parents=True, exist_ok=True)
-
-    model = _build_conv_sequential()
-
-    # Preferred legacy path: tf.keras.models.save_model(..., save_format="tf").
-    # Fallback: model.save(..., save_format="tf") — historically the same
-    # writer, but Keras 3 has been picky about whether save_model routes
-    # SavedModel or requires a .keras extension.
-    try:
-        tf.keras.models.save_model(model, str(saved_model_dir), save_format="tf")
-    except (ValueError, TypeError) as save_model_err:
-        try:
-            model.save(str(saved_model_dir), save_format="tf")
-        except (ValueError, TypeError) as save_err:
-            raise RuntimeError(
-                "Neither tf.keras.models.save_model(..., save_format='tf') nor "
-                "model.save(..., save_format='tf') accepted the SavedModel path. "
-                f"save_model: {save_model_err!r}; save: {save_err!r}"
-            ) from save_err
 
     return _package_saved_model_tarball(output_dir, version, tar_filename)
 
