@@ -3,9 +3,7 @@ ARG PYTHON_VERSION=3.12
 ARG FRAMEWORK_VERSION=0.24.0
 ARG FLASHINFER_VERSION=0.6.12
 ARG DEEPEP_COMMIT_HASH=73b6ea4
-# DeepEPv2 GIN backend requires NCCL >= 2.30.4. torch pins an older NCCL as a
-# transitive dep, so we override it via UV_OVERRIDE at both build and runtime.
-# Only applied on CUDA 13+; CUDA 12 falls back to torch's default NCCL.
+# DeepEPv2 GIN needs NCCL >= 2.30.4; override torch's older transitive pin (CUDA 13+ only).
 ARG NCCL_VERSION=2.30.7
 
 # =============================================================================
@@ -187,10 +185,7 @@ ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
-# DeepEPv2 GIN requires NCCL >= 2.30.4 at both compile and runtime. torch pins
-# an older version as a transitive dep; this override forces uv to use our
-# pinned version whenever nvidia-nccl-cu* is resolved, so the runtime venv
-# matches the NCCL the DeepEP wheel was compiled against. Empty on CUDA 12.
+# Match runtime venv NCCL to the DeepEP wheel's compile-time NCCL (see build stage).
 ARG NCCL_VERSION
 RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
   && if [ "$CUDA_MAJOR" -ge 13 ] && [ -n "$NCCL_VERSION" ]; then \
