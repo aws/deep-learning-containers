@@ -64,7 +64,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
-    timeout-minutes: 120
+    timeout-minutes: 360
     outputs:
       image-uri: ${{ steps.build.outputs.image-uri }}
     steps:
