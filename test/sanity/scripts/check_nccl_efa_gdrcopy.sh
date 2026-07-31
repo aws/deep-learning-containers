@@ -251,13 +251,16 @@ fi
 echo "=============== OpenMPI ==============="
 
 # --- mpirun wrapper runs as root (the installer wraps it with
-#     --allow-run-as-root; without that every multi-node launch fails). ---
+#     --allow-run-as-root; without that every multi-node launch fails).
+#     Launch an absolute path: mpirun treats its first unrecognized token as the
+#     executable, and AL2023 minimal ships no `hostname` binary, so a bare name
+#     would fail on a missing binary rather than on OpenMPI. ---
 if command -v mpirun &>/dev/null; then
   pass "mpirun on PATH ($(command -v mpirun))"
-  if MPI_OUT=$(mpirun -n 1 hostname 2>&1); then
-    pass "mpirun -n 1 hostname succeeded as root"
+  if MPI_OUT=$(mpirun -n 1 /usr/bin/uname -n 2>&1); then
+    pass "mpirun launched a rank as root"
   else
-    fail "mpirun -n 1 hostname failed as root"
+    fail "mpirun could not launch a rank as root (--allow-run-as-root wrapper broken?)"
     echo "$MPI_OUT"
   fi
 else
