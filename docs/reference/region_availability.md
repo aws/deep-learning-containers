@@ -23,8 +23,8 @@ Private ECR account IDs by region. See [Image Access](../get_started/index.md) f
 | Asia Pacific (Taipei) | ap-east-2 | 975050140332 |
 | Asia Pacific (Thailand) | ap-southeast-7 | 590183813437 |
 | Asia Pacific (Tokyo) | ap-northeast-1 | 763104351884 |
-| Canada (Central) | ca-central-1 | 763104351884 |
 | Canada (Calgary) | ca-west-1 | 204538143572 |
+| Canada (Central) | ca-central-1 | 763104351884 |
 | EU (Frankfurt) | eu-central-1 | 763104351884 |
 | EU (Ireland) | eu-west-1 | 763104351884 |
 | EU (London) | eu-west-2 | 763104351884 |
