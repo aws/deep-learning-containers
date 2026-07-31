@@ -264,9 +264,12 @@ def test_dlc_major_version_dockerfiles(image):
             f"in one of the Dockerfiles. Please inspect {versions}"
         )
 
-    # PyTorch training 2.9 supersedes v1 in place rather than adding a v2 variant
+    # PyTorch training 2.9/2.10 supersede v1 in place rather than adding a v2 variant
     # beside it, so only assert the current major version is present.
-    if (framework, fw_version_major_minor, job_type) == ("pytorch", "2.9", "training"):
+    if (framework, fw_version_major_minor, job_type) in (
+        ("pytorch", "2.9", "training"),
+        ("pytorch", "2.10", "training"),
+    ):
         expected_versions = [PYTORCH_TRAINING_CURRENT_MAJOR_VERSION]
 
     # Note: If, for example, we find 3 dockerfiles with the same framework major/minor version, same processor,
