@@ -1,23 +1,23 @@
 image:
-  name: "base-cu130-devel"
-  description: "Base devel GPU image with CUDA 13.0.2, Python 3.13, and build tools on AL2023"
+  name: "base-cu132-runtime"
+  description: "Base runtime GPU image with CUDA 13.2.1 and Python 3.13 on AL2023"
 
 metadata:
   framework: "base_dlc"
-  framework_version: "13.0.2"
+  framework_version: "13.2.1"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
-  container_type: "devel"
-  prod_image: "base:devel-cu130-amzn2023"
+  container_type: "runtime"
+  prod_image: "base:runtime-cu132-amzn2023"
 
 build:
-  dockerfile: "docker/base/cu130/Dockerfile"
-  target: "devel"
+  dockerfile: "docker/base/cu132/Dockerfile"
+  target: "runtime"
   python_version: "3.13.12"
-  cuda_version: "13.0.2"
+  cuda_version: "13.2.1"
   uv_version: "0.11.33"
   dlc_major_version: "1"
   dlc_minor_version: "0"

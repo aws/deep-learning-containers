@@ -29,6 +29,10 @@ schedules:
     workflow: vllm.autorelease-ec2-ubuntu.yml
     gpu: heavy
 
+  - cron: "30 20 * * 1,3"
+    workflow: base.autorelease-cu132.yml
+    gpu: minimal
+
   - cron: "00 21 * * 1,3"
     workflow: base.autorelease-cu129.yml
     gpu: minimal
