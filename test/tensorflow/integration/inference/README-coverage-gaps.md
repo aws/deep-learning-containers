@@ -31,12 +31,12 @@ GET / DELETE guards on the same code path have no external test surface.
 A container-level test harness that:
 
 1. Pulls the built image from the PR's ECR tag.
-2. `docker run` locally with the MME env
+1. `docker run` locally with the MME env
    (`SAGEMAKER_MULTI_MODEL=true`, port 8080 exposed).
-3. Drives `POST /models`, `GET /models`, `GET /models/{name}`,
+1. Drives `POST /models`, `GET /models`, `GET /models/{name}`,
    `DELETE /models/{name}`, and `POST /invocations` via `requests`
    against `localhost:8080`.
-4. Cleans up the container in a `finally`.
+1. Cleans up the container in a `finally`.
 
 Blocked in this PR because:
 
