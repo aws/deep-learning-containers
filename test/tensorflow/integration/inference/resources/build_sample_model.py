@@ -92,15 +92,38 @@ def _build_conv_sequential():
     - ``GlobalAveragePooling2D()`` -> 0 params
     - ``Dense(1)`` -> 5 params (4 weights + 1 bias)
     - Total: 117 trainable params
+
+    H-1 flake fix — pin bias_initializer to a positive constant on both
+    the Conv2D and Dense layers. With the default Glorot-uniform kernel
+    + zero-init bias, feeding all-ones through Conv2D yields a
+    pre-activation of exactly the kernel sum per filter; the ReLU
+    output is zero for any filter whose kernel sum is non-positive, and
+    P(all 4 filters have non-positive kernel sums) is ~1/16. That would
+    flip the final ``Dense(1)`` output to exactly ``0.0`` (feature map
+    all zeros × any weights + zero bias = zero) with ~6% probability
+    per run, tripping ``test_conv_gpu.py``'s ``scalar != 0.0`` guard
+    with a message ("cuDNN kernel likely bypassed or stubbed") that is
+    indistinguishable from the real cuDNN regression the test defends
+    against. Pinning both biases to a positive constant makes the final
+    output deterministically non-zero for the all-ones payload (the
+    Dense bias floor alone is enough — Conv2D bias is pinned as
+    belt-and-braces so the feature map is also non-zero).
     """
     import tensorflow as tf
+
+    positive_bias = tf.keras.initializers.Constant(1.0)
 
     return tf.keras.Sequential(
         [
             tf.keras.layers.Input(shape=(8, 8, 3), dtype=tf.float32),
-            tf.keras.layers.Conv2D(4, kernel_size=3, activation="relu"),
+            tf.keras.layers.Conv2D(
+                4,
+                kernel_size=3,
+                activation="relu",
+                bias_initializer=positive_bias,
+            ),
             tf.keras.layers.GlobalAveragePooling2D(),
-            tf.keras.layers.Dense(1),
+            tf.keras.layers.Dense(1, bias_initializer=positive_bias),
         ]
     )
 

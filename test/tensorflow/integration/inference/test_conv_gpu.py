@@ -77,7 +77,10 @@ def test_conv2d_gpu_predict(
         # combined with Keras zero-initialized biases produces a
         # deterministic 0.0 output, which would pass this test even if
         # cuDNN were stubbed to return zero. Feed 1.0 and assert non-zero
-        # below to catch that failure mode.
+        # below to catch that failure mode. The model itself pins its
+        # bias initializers to a positive constant so a REAL cuDNN
+        # execution deterministically returns non-zero (H-1 flake fix,
+        # see _build_conv_sequential in resources/build_sample_model.py).
         instance = [[[1.0, 1.0, 1.0]] * 8] * 8
         payload = json.dumps({"instances": [instance]})
 

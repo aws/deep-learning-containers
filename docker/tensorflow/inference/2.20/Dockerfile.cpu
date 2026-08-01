@@ -205,6 +205,16 @@ RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh \
   /usr/local/bin/tf_serving_entrypoint.sh \
   /usr/local/bin/start_cuda_compat.sh
 
+# Compat symlinks — master's canary / ECS / EKS harnesses hardcode
+# /usr/bin/ paths for ``tensorflow_model_server`` and
+# ``tf_serving_entrypoint.sh`` (7 call sites in test/test_utils/). This v2
+# image installs both to /usr/local/bin/, so provide /usr/bin/ symlinks
+# so those hardcoded harness paths keep working the moment this image is
+# promoted past gamma. No behavior change for callers already using
+# /usr/local/bin.
+RUN ln -s /usr/local/bin/tensorflow_model_server /usr/bin/tensorflow_model_server \
+ && ln -s /usr/local/bin/tf_serving_entrypoint.sh /usr/bin/tf_serving_entrypoint.sh
+
 # Build-time smoke check — catches runtime library / config / command drift
 # at build time instead of at endpoint deploy time. See PR #6243 discussion.
 RUN set -eux \

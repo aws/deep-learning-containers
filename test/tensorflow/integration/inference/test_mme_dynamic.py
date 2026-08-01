@@ -24,7 +24,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, ParamValidationError
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import read_predictions
@@ -66,9 +66,8 @@ def test_mme_target_model_not_found(
                 target_model="does_not_exist.tar.gz",
             )
         status = excinfo.value.response.get("ResponseMetadata", {}).get("HTTPStatusCode", 0)
-        assert 400 <= status < 600, (
-            f"expected 4xx/5xx on unknown target_model, got status {status}: "
-            f"{excinfo.value.response!r}"
+        assert 400 <= status < 500, (
+            f"expected 4xx on unknown target_model, got status {status}: {excinfo.value.response!r}"
         )
 
 
@@ -182,11 +181,16 @@ def test_mme_traversal_rejected(
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
-        # SM Runtime surfaces client-side rejection as ``ClientError``
-        # (ValidationException / ParamValidationError). Either shape is
-        # acceptable — both prove the traversal input was not routed to
-        # the container as-is with a 2xx.
-        with pytest.raises(Exception) as excinfo:
+        # SM Runtime surfaces client-side rejection as either a
+        # ``ClientError`` (ValidationException from the service) or a
+        # ``ParamValidationError`` (raised by botocore before the request
+        # even goes on the wire). Both prove the traversal input was not
+        # routed to the container as-is with a 2xx. Narrowed from
+        # ``pytest.raises(Exception)`` — the broader match let the test
+        # pass with the ``ClientError``-status assertion inside an
+        # ``isinstance`` guard, so a ``ParamValidationError`` skipped
+        # the assertion entirely.
+        with pytest.raises((ClientError, ParamValidationError)) as excinfo:
             endpoint.invoke(
                 body=payload,
                 content_type="application/json",
@@ -199,3 +203,7 @@ def test_mme_traversal_rejected(
                 f"expected 4xx on traversal target_model {bad_target_model!r}, "
                 f"got status {status}: {excinfo.value.response!r}"
             )
+        # else: ParamValidationError. Botocore rejected the arg client-side
+        # before the request left the SDK — that is a 4xx-equivalent, and
+        # the container-side guard was never even reached. Nothing more to
+        # assert; the ``pytest.raises`` type guard is the assertion.
