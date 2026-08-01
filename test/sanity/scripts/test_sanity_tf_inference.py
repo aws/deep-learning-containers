@@ -23,8 +23,12 @@ Test categories:
     6. TestEntrypoints         - /usr/local/bin/*_entrypoint.sh executable
     7. TestNginxNjsModule      - /usr/lib64/nginx/modules/ngx_http_js_module.so
                                  present (AL2023 hardcode in nginx.conf.template)
-    8. TestCuDNN               - libcudnn.so.9 findable via ldconfig (GPU only) —
-                                 defends against B1 regressing
+    8. TestCuDNN               - each cuDNN 9 sub-library findable on disk AND
+                                 in ldconfig cache (GPU only) — defends against
+                                 B1 (missing libcudnn) AND the "only dispatcher
+                                 stub shipped, sub-libraries missing" failure
+                                 that let PR #6418's training-canary regression
+                                 through the build-time ldd + libcudnn glob
     9. TestOSSLicenseFiles     - /root/*_LICENSES artifacts
    10. TestVenv                - /opt/venv exists
 
@@ -34,6 +38,7 @@ Gating env vars:
     EXPECTED_CUSTOMER  - sagemaker
 """
 
+import glob
 import os
 import shutil
 import subprocess
@@ -206,24 +211,76 @@ class TestNginxNjsModule(unittest.TestCase):
         )
 
 
+# cuDNN 9 sub-libraries. Every one is dlopen'd by TF Serving's GPU code
+# path at first Conv/RNN/LSTM invocation; ``ldd tensorflow_model_server``
+# only surfaces the direct link to the dispatcher (``libcudnn.so.9``) and
+# does NOT reveal a missing sub-library. Enumerating them explicitly here
+# closes the "only stub present" hole that let PR #6418's training-canary
+# cuDNN regression ship past the build-time ldd + libcudnn glob checks.
+CUDNN_9_REQUIRED_SUBLIBS = [
+    "libcudnn.so.9",
+    "libcudnn_ops.so.9",
+    "libcudnn_cnn.so.9",
+    "libcudnn_adv.so.9",
+    "libcudnn_graph.so.9",
+    "libcudnn_engines_precompiled.so.9",
+    "libcudnn_engines_runtime_compiled.so.9",
+    "libcudnn_heuristics.so.9",
+]
+
+
 @gpu_only
 class TestCuDNN(unittest.TestCase):
-    """B1 regression guard.
+    """B1 regression guard + "only-stub-shipped" defense.
 
     tensorflow_model_server links dynamically to libcudnn.so; the CUDA base
     image ships CUDA but not cuDNN. This PR copies libcudnn*.so from the
     pip-installed nvidia-cudnn-cu12 package into /usr/local/cuda/lib64 in
-    Dockerfile.cuda and runs ldconfig. If any of that regresses, this test
-    fails at the sanity stage instead of at endpoint deploy."""
+    Dockerfile.cuda and runs ldconfig.
 
-    def test_libcudnn_in_ldconfig_cache(self):
-        out = subprocess.run(["ldconfig", "-p"], capture_output=True, text=True, check=True)
-        self.assertIn("libcudnn.so", out.stdout, "libcudnn.so absent from ld cache")
+    A previous training-canary failure (PR #6418) demonstrated that ``ldd``
+    on the binary only surfaces the direct link to the dispatcher
+    (``libcudnn.so.9``); TF's autotuning path dlopens each sub-library at
+    first kernel launch, so a build shipping only the dispatcher stub
+    would satisfy ``ldd`` and a bare ``libcudnn*`` glob yet fault at the
+    first customer request. Enumerate every required sub-library and
+    assert both presence on disk AND resolvability via ldconfig.
+    """
 
-    def test_libcudnn_files_on_disk(self):
-        cuda_lib = "/usr/local/cuda/lib64"
-        matches = [f for f in os.listdir(cuda_lib) if f.startswith("libcudnn")]
-        self.assertTrue(matches, f"no libcudnn* files under {cuda_lib}")
+    # Search locations for cuDNN sub-libs. The build copies from
+    # nvidia-cudnn-cu12's site-packages layout into /usr/local/cuda/lib64,
+    # but preserve the site-packages fallback so this test does not tightly
+    # couple to the Dockerfile's staging directory choice.
+    _CUDNN_SEARCH_GLOBS = (
+        "/usr/local/cuda/lib64/{lib}",
+        "/opt/venv/lib64/python*/site-packages/nvidia/cudnn/lib/{lib}",
+        "/opt/venv/lib/python*/site-packages/nvidia/cudnn/lib/{lib}",
+    )
+
+    def _find_on_disk(self, lib: str) -> list:
+        matches: list = []
+        for pattern in self._CUDNN_SEARCH_GLOBS:
+            matches.extend(glob.glob(pattern.format(lib=lib)))
+        return matches
+
+    def test_all_cudnn_sublibs_on_disk(self):
+        for lib in CUDNN_9_REQUIRED_SUBLIBS:
+            with self.subTest(lib=lib):
+                found = self._find_on_disk(lib)
+                self.assertTrue(
+                    found,
+                    f"cuDNN sub-library {lib} not found on disk; searched "
+                    f"{[p.format(lib=lib) for p in self._CUDNN_SEARCH_GLOBS]}",
+                )
+
+    def test_all_cudnn_sublibs_in_ldconfig(self):
+        try:
+            out = subprocess.check_output(["ldconfig", "-p"], text=True)
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            self.fail(f"ldconfig -p failed: {e}")
+        for lib in CUDNN_9_REQUIRED_SUBLIBS:
+            with self.subTest(lib=lib):
+                self.assertIn(lib, out, f"cuDNN sub-library {lib} not in ldconfig cache")
 
 
 class TestOSSLicenseFiles(unittest.TestCase):
