@@ -18,6 +18,7 @@ v0.26.0)
 - New Rust frontend (`vllm-rs`) added upstream in v0.26.0 — the build stage now installs the Rust toolchain and `protoc` so the source build produces
   the required `_rust_*.so` PyO3 extensions.
 - Serving-extras aligned with upstream v0.26.0: added `modelscope<1.38` cap and `runai-model-streamer[azure]` extra.
+- Added `s3tokenizer==0.3.0` — CosyVoice3 hard-imports it in 0.26.0 but upstream ships it only in the `dev` extra, so the base install misses it.
 
 ### Fixes / Cleanups
 

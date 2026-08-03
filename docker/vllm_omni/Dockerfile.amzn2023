@@ -360,6 +360,14 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
 # so no --prerelease=allow flag needed.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_OMNI_VERSION}
 
+# s3tokenizer: CosyVoice3's model code (cosyvoice3.py) hard-imports it at load
+# time in vllm-omni 0.26.0 (new vs 0.21.0rc1). Upstream ships it only in the
+# `dev` optional-dependency group ("s3tokenizer==0.3.0", "# for tts test"), so
+# the base `vllm-omni` install above does NOT pull it and CosyVoice3 fails with
+# `ModuleNotFoundError: No module named 's3tokenizer'`. Pin to the version
+# upstream tests against.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "s3tokenizer==0.3.0"
+
 # transformers <5.9.0 cap DROPPED in vllm-omni v0.26.0: upstream removed the
 # cap from requirements/common.txt and handles the breakage in code via
 # `transformers_keys_to_ignore_compat` (vllm_omni/model_executor/models/utils.py).
