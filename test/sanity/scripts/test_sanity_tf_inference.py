@@ -225,7 +225,7 @@ CUDNN_9_REQUIRED_SUBLIBS = [
     "libcudnn_graph.so.9",
     "libcudnn_engines_precompiled.so.9",
     "libcudnn_engines_runtime_compiled.so.9",
-    "libcudnn_heuristics.so.9",
+    "libcudnn_heuristic.so.9",
 ]
 
 

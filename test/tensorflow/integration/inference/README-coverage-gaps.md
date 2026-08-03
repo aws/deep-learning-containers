@@ -61,3 +61,30 @@ All fixed in commits ff460f92 + d76611f4:
   same path component unvalidated.
 - `DELETE /models/{name}` leaked the dict entry on `ProcessLookupError`
   from `os.kill`, wedging the model name at 409 permanently.
+
+## TFS 2.20 x TF 2.21 forward-compat boundary — `DecodeJxl`
+
+TF 2.21 adds `tf.raw_ops.DecodeJxl` (JPEG XL image decoder). TFS 2.20's
+kernel registry does not know this op. A customer SavedModel that
+invokes `DecodeJxl` will:
+
+- **`Model.create`** — succeeds (SavedModel proto validation only checks
+  op name / attr shape, not that a kernel is registered).
+- **`Endpoint.create`** — reports `InService`; TFS boots and reports the
+  model as `AVAILABLE` on `/models/{name}`.
+- **First `predict`** — expected to return 4xx with `"Op type not
+  registered 'DecodeJxl'"`.
+
+**Coverage status**: an integration test attempting to pin this boundary
+was added and then removed. In practice, when the test host has
+TF 2.21 installed, the exported model reached the endpoint in a form
+that TFS 2.20 accepted (op likely inlined or optimized away during
+export), so the test could not reliably distinguish "TFS rejected the
+op" from "SM/TFS returned an empty error body for another reason." A
+proper boundary test needs either a direct-to-TFS harness (bypassing
+SageMaker's response reshaping) or a pre-built SavedModel artifact
+committed to the repo that guarantees the op survives export.
+
+**Customer guidance until this is properly covered**: if a customer's
+model uses JPEG XL decode, they must decode at the client and send
+raw pixels to the endpoint, or wait for a TFS 2.21+ image.
