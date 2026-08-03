@@ -72,8 +72,7 @@ invokes `DecodeJxl` will:
   op name / attr shape, not that a kernel is registered).
 - **`Endpoint.create`** — reports `InService`; TFS boots and reports the
   model as `AVAILABLE` on `/models/{name}`.
-- **First `predict`** — expected to return 4xx with `"Op type not
-  registered 'DecodeJxl'"`.
+- **First `predict`** — expected to return 4xx with `"Op type not registered 'DecodeJxl'"`.
 
 **Coverage status**: an integration test attempting to pin this boundary
 was added and then removed. In practice, when the test host has
