@@ -58,7 +58,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 # upstream's `build_rust.sh` (invoked below, after the source is copied) do the
 # explicit `rustup toolchain install "$TOOLCHAIN"` call, mirroring upstream.
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
-    | sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
+  | sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
 ENV PATH="/root/.cargo/bin:${PATH}"
 # Cap cargo parallelism — rustc spawns enough concurrent processes to hit
 # RLIMIT_NOFILE on CI hosts otherwise. Matches upstream vllm v0.26.0.

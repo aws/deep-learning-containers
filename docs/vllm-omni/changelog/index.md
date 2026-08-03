@@ -8,28 +8,38 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 **Tags:** `omni-cuda-v1.5` · `omni-sagemaker-cuda-v1.5`
 
-**vLLM-Omni source:** [v0.26.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.26.0) (first stable since v0.20.0 — tracks upstream vLLM v0.26.0)
+**vLLM-Omni source:** [v0.26.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.26.0) (first stable since v0.20.0 — tracks upstream vLLM
+v0.26.0)
 
 ### Highlights
 
 - Upgraded to vLLM-Omni 0.26.0 (stable), aligned with upstream vLLM v0.26.0.
 - FlashInfer bumped 0.6.8.post1 → 0.6.14 (per upstream vLLM v0.26.0 `docker/versions.json`).
-- New Rust frontend (`vllm-rs`) added upstream in v0.26.0 — the build stage now installs the Rust toolchain and `protoc` so the source build produces the required `_rust_*.so` PyO3 extensions.
+- New Rust frontend (`vllm-rs`) added upstream in v0.26.0 — the build stage now installs the Rust toolchain and `protoc` so the source build produces
+  the required `_rust_*.so` PyO3 extensions.
 - Serving-extras aligned with upstream v0.26.0: added `modelscope<1.38` cap and `runai-model-streamer[azure]` extra.
 
 ### Fixes / Cleanups
 
-- **Transformers `<5.9.0` cap dropped.** vLLM-Omni 0.26.0's `requirements/common.txt` removed the upper bound; the qwen3-tts breakage the cap worked around is now handled in code via `transformers_keys_to_ignore_compat`. The image tracks upstream's `transformers >= 5.5.3` pin transitively.
+- **Transformers `<5.9.0` cap dropped.** vLLM-Omni 0.26.0's `requirements/common.txt` removed the upper bound; the qwen3-tts breakage the cap worked
+  around is now handled in code via `transformers_keys_to_ignore_compat`. The image tracks upstream's `transformers >= 5.5.3` pin transitively.
 
 ### Build changes (developer-facing)
 
-- Dockerfile now installs `unzip`, `perl`, and rustup, and runs `tools/install_protoc.sh` + upstream's `build_rust.sh` from the cloned vLLM source before `setup.py bdist_wheel`. `build_rust.sh` installs the toolchain pinned in `rust-toolchain.toml` explicitly and drops the pre-built Rust artifacts into the source tree; `setup.py` then ships them as-is. `VLLM_REQUIRE_RUST_FRONTEND=1` guards against a silent Rust-optional skip.
-- `torch_cuda_arch_list` no longer includes `+PTX` — matches upstream, which now filters torch's top-level PTX flag out of per-kernel arch lists anyway.
-- FlashInfer JIT cache install switched from `--extra-index-url` to `--index-url` for its flashinfer wheel index, because `flashinfer-cubin` is no longer on PyPI as of 0.6.14.
+- Dockerfile now installs `unzip`, `perl`, and rustup, and runs `tools/install_protoc.sh` + upstream's `build_rust.sh` from the cloned vLLM source
+  before `setup.py bdist_wheel`. `build_rust.sh` installs the toolchain pinned in `rust-toolchain.toml` explicitly and drops the pre-built Rust
+  artifacts into the source tree; `setup.py` then ships them as-is. `VLLM_REQUIRE_RUST_FRONTEND=1` guards against a silent Rust-optional skip.
+- `torch_cuda_arch_list` no longer includes `+PTX` — matches upstream, which now filters torch's top-level PTX flag out of per-kernel arch lists
+  anyway.
+- FlashInfer JIT cache install switched from `--extra-index-url` to `--index-url` for its flashinfer wheel index, because `flashinfer-cubin` is no
+  longer on PyPI as of 0.6.14.
 
 ### Known limitations
 
-- **DeepGEMM `_C` extension not built.** Upstream v0.26.0's docker build provisions per-`requires-python` interpreters (`tools/setup_deepgemm_pythons.sh` + `DEEPGEMM_PYTHON_INTERPRETERS`) so cmake can build `vllm._deep_gemm_C`. This DLC image does not port that setup — the extension is `optional=True` upstream, so it silently no-ops and the image falls back to the Python path. Follow-up: port the interpreter provisioning to reclaim the acceleration.
+- **DeepGEMM `_C` extension not built.** Upstream v0.26.0's docker build provisions per-`requires-python` interpreters
+  (`tools/setup_deepgemm_pythons.sh` + `DEEPGEMM_PYTHON_INTERPRETERS`) so cmake can build `vllm._deep_gemm_C`. This DLC image does not port that setup
+  — the extension is `optional=True` upstream, so it silently no-ops and the image falls back to the Python path. Follow-up: port the interpreter
+  provisioning to reclaim the acceleration.
 
 * * *
 
