@@ -181,6 +181,12 @@ class PythonServiceResource:
                     model_name, model_index
                 )
                 if self._tfs_enable_batching:
+                    # B-4 fix: mirror the tfs_config_file makedirs above.
+                    # create_batching_config does a bare open() with no
+                    # directory creation; without this, MME + batching
+                    # fails FileNotFoundError -> HTTP 500 on every POST
+                    # /models. Inherited from master.
+                    os.makedirs(os.path.dirname(batching_config_file), exist_ok=True)
                     tfs_utils.create_batching_config(batching_config_file)
 
                 cmd = tfs_utils.tfs_command(

@@ -73,14 +73,12 @@ def test_conv2d_gpu_predict(
         )
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
-        # (batch=1, H=8, W=8, C=3) — non-zero payload. All-zeros input
-        # combined with Keras zero-initialized biases produces a
-        # deterministic 0.0 output, which would pass this test even if
-        # cuDNN were stubbed to return zero. Feed 1.0 and assert non-zero
-        # below to catch that failure mode. The model itself pins its
-        # bias initializers to a positive constant so a REAL cuDNN
-        # execution deterministically returns non-zero (H-1 flake fix,
-        # see _build_conv_sequential in resources/build_sample_model.py).
+        # (batch=1, H=8, W=8, C=3) — all-ones payload. The model pins
+        # every trainable parameter to a constant (Conv2D kernel=1.0/
+        # bias=0.0, Dense kernel=1.0/bias=0.0) so the forward pass has
+        # exactly one correct answer. See ``_build_conv_sequential`` in
+        # ``resources/build_sample_model.py`` for the closed-form
+        # derivation.
         instance = [[[1.0, 1.0, 1.0]] * 8] * 8
         payload = json.dumps({"instances": [instance]})
 
@@ -102,17 +100,26 @@ def test_conv2d_gpu_predict(
         assert isinstance(scalar, (int, float)), (
             f"expected numeric output, got {type(scalar).__name__}: {scalar!r}"
         )
-        # Finite check — catches NaN/Inf blow-ups from a broken cuDNN path
-        # without asserting a specific value (Conv weights are random at
-        # save time; only the model architecture is fixed).
+        # Finite check — catches NaN/Inf blow-ups from a broken cuDNN
+        # path before the closed-form assertion runs (comparing NaN
+        # against 108.0 would fail with a confusing "expected 108.0,
+        # got nan" instead of pointing at the NaN itself).
         assert scalar == scalar, f"NaN output from Conv2D forward pass: {scalar!r}"
         assert scalar not in (float("inf"), float("-inf")), f"Inf output: {scalar!r}"
-        # Non-zero check — a stubbed cuDNN or bypassed convolution would
-        # return 0.0 for the all-ones input; with random Conv weights and
-        # a ReLU activation, at least one channel of the (1,6,6,4) feature
-        # map after Conv2D + GAP + Dense(1) is overwhelmingly unlikely to
-        # be exactly 0.0. Catches "kernel silently didn't run" regressions.
-        assert scalar != 0.0, (
-            f"conv output was exactly zero; cuDNN kernel likely bypassed "
-            f"or stubbed. value: {scalar!r}"
+        # Deterministic closed-form check.
+        # With Conv2D kernel=1.0, bias=0.0, Dense kernel=1.0, bias=0.0,
+        # all-ones (1, 8, 8, 3) input:
+        #   Conv2D: each of 4 filters sums 27 ones -> pre-activation 27.0
+        #   ReLU: 27.0 (positive, unchanged)
+        #   GAP: [27.0, 27.0, 27.0, 27.0]
+        #   Dense(1): 27+27+27+27 = 108.0
+        # A dead / stubbed cuDNN convolution yields Dense = 0.0 ->
+        # assertion fires loudly. This replaces an earlier
+        # ``scalar != 0.0`` guard that had a 100 % false-negative rate:
+        # with a Dense bias floor of 1.0, a zero feature map still
+        # produced 1.0 at the output, which passed the guard.
+        assert scalar == pytest.approx(108.0, abs=0.5), (
+            f"expected 108.0 from closed-form conv (Conv2D kernel=1.0 x all-ones "
+            f"8x8x3 input), got {scalar!r}. A stubbed or bypassed cuDNN kernel "
+            f"produces 0.0 here."
         )

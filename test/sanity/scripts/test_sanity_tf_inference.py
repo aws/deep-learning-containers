@@ -217,15 +217,24 @@ class TestNginxNjsModule(unittest.TestCase):
 # does NOT reveal a missing sub-library. Enumerating them explicitly here
 # closes the "only stub present" hole that let PR #6418's training-canary
 # cuDNN regression ship past the build-time ldd + libcudnn glob checks.
+#
+# List is enumerated to match the actual wheel manifest for
+# ``nvidia-cudnn-cu12==9.24.0.43`` — 10 shared libraries, all shipped in
+# the wheel's ``nvidia/cudnn/lib/`` directory. Keep in sync when bumping
+# the cuDNN pin; a regression that drops any of these from the cp glob
+# would satisfy ``ldd`` on the dispatcher yet fault at first customer
+# Conv/RNN request.
 CUDNN_9_REQUIRED_SUBLIBS = [
     "libcudnn.so.9",
-    "libcudnn_ops.so.9",
-    "libcudnn_cnn.so.9",
     "libcudnn_adv.so.9",
-    "libcudnn_graph.so.9",
+    "libcudnn_cnn.so.9",
     "libcudnn_engines_precompiled.so.9",
     "libcudnn_engines_runtime_compiled.so.9",
+    "libcudnn_engines_tensor_ir.so.9",  # transitive via libcudnn_graph DT_NEEDED
+    "libcudnn_ext.so.9",  # dlopen'd by name by libcudnn.so.9 dispatcher (new in 9.24 line)
+    "libcudnn_graph.so.9",
     "libcudnn_heuristic.so.9",
+    "libcudnn_ops.so.9",
 ]
 
 
@@ -245,6 +254,10 @@ class TestCuDNN(unittest.TestCase):
     would satisfy ``ldd`` and a bare ``libcudnn*`` glob yet fault at the
     first customer request. Enumerate every required sub-library and
     assert both presence on disk AND resolvability via ldconfig.
+
+    ``CUDNN_9_REQUIRED_SUBLIBS`` matches the wheel manifest for
+    ``nvidia-cudnn-cu12==9.24.0.43`` (10 libraries); keep it in sync
+    when bumping the cuDNN pin.
     """
 
     # Search locations for cuDNN sub-libs. The build copies from

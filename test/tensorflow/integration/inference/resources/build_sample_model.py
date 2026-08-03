@@ -93,25 +93,34 @@ def _build_conv_sequential():
     - ``Dense(1)`` -> 5 params (4 weights + 1 bias)
     - Total: 117 trainable params
 
-    H-1 flake fix — pin bias_initializer to a positive constant on both
-    the Conv2D and Dense layers. With the default Glorot-uniform kernel
-    + zero-init bias, feeding all-ones through Conv2D yields a
-    pre-activation of exactly the kernel sum per filter; the ReLU
-    output is zero for any filter whose kernel sum is non-positive, and
-    P(all 4 filters have non-positive kernel sums) is ~1/16. That would
-    flip the final ``Dense(1)`` output to exactly ``0.0`` (feature map
-    all zeros × any weights + zero bias = zero) with ~6% probability
-    per run, tripping ``test_conv_gpu.py``'s ``scalar != 0.0`` guard
-    with a message ("cuDNN kernel likely bypassed or stubbed") that is
-    indistinguishable from the real cuDNN regression the test defends
-    against. Pinning both biases to a positive constant makes the final
-    output deterministically non-zero for the all-ones payload (the
-    Dense bias floor alone is enough — Conv2D bias is pinned as
-    belt-and-braces so the feature map is also non-zero).
+    Closed-form deterministic init (B-1 fix). Every trainable parameter
+    is pinned to a constant so the forward pass has a single correct
+    numeric answer for an all-ones input; a stubbed / bypassed cuDNN
+    kernel that returns a zero feature map produces a distinguishable
+    output (``0.0``) that the test can catch loudly.
+
+    Math (all-ones ``(1, 8, 8, 3)`` input, Conv2D kernel = 1.0 /
+    bias = 0.0, Dense kernel = 1.0 / bias = 0.0):
+
+    - Conv2D pre-activation at each of 6*6 spatial positions per filter:
+      sum of a 3*3*3 patch of ones = ``27.0``. ReLU passes 27.0 through.
+      Feature map shape ``(1, 6, 6, 4)``, every entry ``27.0``.
+    - GAP averages the 6*6 spatial dims per filter -> ``(1, 4)`` of
+      ``[27.0, 27.0, 27.0, 27.0]``.
+    - Dense(1) with kernel=1.0, bias=0.0: 27+27+27+27 + 0 = ``108.0``.
+
+    A dead / stubbed cuDNN convolution yields a zero feature map, which
+    propagates to Dense output = 0.0 — the test's closed-form assertion
+    (``scalar ≈ 108.0``) fires. This is why we no longer rely on
+    random init + a Dense bias floor: with a bias of 1.0 alone, the
+    Dense output for a zero feature map would be ``0 + 1.0 = 1.0``,
+    which passed the old ``scalar != 0.0`` guard — a 100 % false
+    negative on cuDNN kernel bypass.
     """
     import tensorflow as tf
 
-    positive_bias = tf.keras.initializers.Constant(1.0)
+    kernel_ones = tf.keras.initializers.Constant(1.0)
+    bias_zeros = tf.keras.initializers.Constant(0.0)
 
     return tf.keras.Sequential(
         [
@@ -120,10 +129,15 @@ def _build_conv_sequential():
                 4,
                 kernel_size=3,
                 activation="relu",
-                bias_initializer=positive_bias,
+                kernel_initializer=kernel_ones,
+                bias_initializer=bias_zeros,
             ),
             tf.keras.layers.GlobalAveragePooling2D(),
-            tf.keras.layers.Dense(1, bias_initializer=positive_bias),
+            tf.keras.layers.Dense(
+                1,
+                kernel_initializer=kernel_ones,
+                bias_initializer=bias_zeros,
+            ),
         ]
     )
 

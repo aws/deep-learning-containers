@@ -54,6 +54,13 @@ jobs:
               - "scripts/docker/common/**"
               - "scripts/docker/tensorflow/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
+              # B-2 fix: integration test files must also force a rebuild.
+              # Without this, a test-only PR skips the build job, falls
+              # back to a prod-account ECR tag that does not exist for
+              # this new family, check-image-exists returns false,
+              # sagemaker-test is skipped, and the parent job reports
+              # green — merging a PR that breaks every endpoint test.
+              - "test/tensorflow/integration/inference/**"
             sagemaker-test-change:
               - "test/tensorflow/integration/inference/**"
             sanity-test-change:
