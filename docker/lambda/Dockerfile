@@ -183,8 +183,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   && uv pip install --python "${UV_PYTHON}" --prerelease=allow \
      --constraint /tmp/torch-constraints.txt \
      "/tmp/sglang/python[all]" \
-  # prebuilt cu130 sgl_kernel; sm100 variant is binary-compatible down to sm_89 (A10G/L4/L40S).
-  # Source-built (kernel index is not hash-stable) so it stays a config pin, not a lock.
+  # sgl_kernel from sglang's own cu130 wheel index (installed --no-deps, outside the
+  # frozen closure, since that index is not hash-stable — it stays a config pin).
   && uv pip install --python "${UV_PYTHON}" --no-deps --reinstall-package sglang-kernel \
      "sglang-kernel==${SGLANG_KERNEL_VERSION}" --index-url "https://docs.sglang.ai/whl/cu${CUDA_SHORT}/" \
   # bump sglang transitive deps with fixed CVEs (ECR scan): pillow, diffusers, jaraco.context
@@ -611,6 +611,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && mkdir -p "$HOME" && echo 'source /usr/local/bin/bash_telemetry.sh' >>"$HOME/.bashrc" \
   && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-sglang-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-sglang-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
@@ -696,6 +697,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && mkdir -p "$HOME" && echo 'source /usr/local/bin/bash_telemetry.sh' >>"$HOME/.bashrc" \
   && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-vllm-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-vllm-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
@@ -777,10 +779,11 @@ ARG PYTHON_VERSION
 RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
   && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
 COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-# Default: process mode (RIC-native). Customers override per function at runtime
-# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
-# vars take precedence over this image default. For serving engines, thread mode
-# is recommended so concurrent invocations share one model copy in VRAM.
+# Default: process mode (RIC-native). Customers override per function at runtime;
+# function-config env vars take precedence over this image default. For serving
+# engines the handler starts ONE shared engine server (module-level in thread mode,
+# @register_pre_fork in process/hybrid) that all RIC workers proxy to, so every mode
+# — including this process default — shares a single model copy in VRAM.
 ENV AWS_LAMBDA_CONCURRENCY_MODE=process
 
 # ============================================================
@@ -791,8 +794,9 @@ ARG PYTHON_VERSION
 RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
   && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
 COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-# Default: process mode (RIC-native). Customers override per function at runtime
-# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
-# vars take precedence over this image default. For serving engines, thread mode
-# is recommended so concurrent invocations share one model copy in VRAM.
+# Default: process mode (RIC-native). Customers override per function at runtime;
+# function-config env vars take precedence over this image default. For serving
+# engines the handler starts ONE shared engine server (module-level in thread mode,
+# @register_pre_fork in process/hybrid) that all RIC workers proxy to, so every mode
+# — including this process default — shares a single model copy in VRAM.
 ENV AWS_LAMBDA_CONCURRENCY_MODE=process

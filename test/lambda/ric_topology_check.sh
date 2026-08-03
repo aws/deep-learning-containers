@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # Verify the multi-mode RIC topology AND the shared-server serving model for the
-# vllm-preview image, per AWS_LAMBDA_CONCURRENCY_MODE + AWS_LAMBDA_MAX_CONCURRENCY(=N).
+# serving-engine images (sglang, vllm), per AWS_LAMBDA_CONCURRENCY_MODE +
+# AWS_LAMBDA_MAX_CONCURRENCY(=N). Engine-agnostic: it sets both engines' tuning
+# env vars (each engine reads only its own) and checks the shared-model invariant
+# by counting GPU processes, so it applies to sglang and vllm alike.
 #
-# Handler design (LMI serving pattern): ONE shared `vllm serve` HTTP server is
-# started once (module-level in thread mode; @register_pre_fork in process/hybrid),
+# Handler design (LMI serving pattern): ONE shared OpenAI-compatible HTTP server
+# is started once (module-level in thread mode; @register_pre_fork in process/hybrid),
 # and each RIC worker is a thin proxy to it. So the invariants are:
-#   * exactly ONE vllm server / ONE "EngineCore pid" for ALL modes (one model copy)
+#   * exactly ONE engine server on the GPU for ALL modes (one model copy)
 #   * RIC worker topology per spec (awslambdaric/__main__.py, vcpus = nproc):
 #       thread  -> 1 process,  N threads
 #       process -> N processes, 1 thread
@@ -57,6 +60,7 @@ for MODE in ${MODES}; do
     ${CONC_ENV} \
     -e MODEL_ID="${MODEL}" -e HF_HOME=/tmp/hf \
     -e VLLM_GPU_MEM_UTIL=0.4 -e VLLM_MAX_MODEL_LEN=2048 \
+    -e SGLANG_MEM_FRACTION=0.4 -e SGLANG_MAX_TOTAL_TOKENS=2048 \
     -e TORCHINDUCTOR_CACHE_DIR="${TORCHINDUCTOR_CACHE_DIR:-/tmp/torchinductor}" \
     -e USER="${USER:-lambda}" \
     -e HOME=/tmp -e XDG_CONFIG_HOME=/tmp/.config -e XDG_CACHE_HOME=/tmp/.cache \
