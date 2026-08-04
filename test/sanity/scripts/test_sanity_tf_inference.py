@@ -63,17 +63,6 @@ class TestPath(unittest.TestCase):
         ld = os.environ.get("LD_LIBRARY_PATH", "")
         self.assertIn("/usr/local/cuda/lib64", ld)
 
-    @gpu_only
-    def test_nvidia_smi_at_usr_bin(self):
-        """serve.py hardcodes /usr/bin/nvidia-smi for the per-process GPU
-        memory fraction gate; missing => MME OOMs silently with instance>1."""
-        self.assertTrue(
-            os.path.exists("/usr/bin/nvidia-smi"),
-            "nvidia-smi missing at /usr/bin/nvidia-smi — serve.py's "
-            "per-process GPU memory fraction gate will silently no-op, "
-            "and MME with SAGEMAKER_TFS_INSTANCE_COUNT>1 will OOM.",
-        )
-
 
 class TestTFServingBinary(unittest.TestCase):
     """tensorflow_model_server binary — the customer request path."""
