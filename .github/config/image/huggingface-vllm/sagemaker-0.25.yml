@@ -1,0 +1,41 @@
+image:
+  name: "huggingface-vllm-sagemaker-0.25"
+  description: "Hugging Face vLLM 0.25 for SageMaker (layered on the AWS vLLM DLC)"
+
+metadata:
+  framework: "huggingface-vllm"
+  framework_version: "0.25.1"
+  os_version: "ubuntu22.04"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  contributor: "huggingface"
+  prod_image: "huggingface-vllm:0.25-gpu-py312-cu130-ubuntu22.04"
+
+build:
+  dockerfile: "docker/huggingface/vllm/Dockerfile"
+  target: "huggingface-vllm-sagemaker"
+  base_image: "public.ecr.aws/deep-learning-containers/vllm:0.25.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  transformers_version: "5.10.2"
+  huggingface_hub_version: "1.17.0"
+  hf_xet_version: "1.5.0"
+  ffmpeg_tag: "n8.1"
+  dlc_major_version: "1"
+  # Second build of 0.25.1: carries the LMCache --kv-transfer-config entrypoint
+  # fix (#6464), which landed after sagemaker.yml had moved to 0.26. Note only
+  # dlc_major_version reaches the image (LABEL dlc_major_version); the minor is
+  # bookkeeping — it is absent from the release spec, so the publish tool, not
+  # this field, decides the final tag.
+  dlc_minor_version: "1"
+
+release:
+  release: true
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "production"
