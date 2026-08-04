@@ -37,10 +37,10 @@ v0.26.0)
 
 ### Notes
 
-- **DeepGEMM builds for our single interpreter.** Upstream's `DEEPGEMM_PYTHON_INTERPRETERS` provisioning
-  (`tools/setup_deepgemm_pythons.sh`) exists to compile `vllm._deep_gemm_C` for *multiple* Python versions in a
-  manylinux wheel. This is a single-Python (3.12) image, so it is intentionally not ported — `cmake/external_projects/deepgemm.cmake`
-  falls back to the build interpreter when the env var is unset, building the extension for the one interpreter we ship.
+- **DeepGEMM builds for our single interpreter.** Upstream's `DEEPGEMM_PYTHON_INTERPRETERS` provisioning (`tools/setup_deepgemm_pythons.sh`) exists to
+  compile `vllm._deep_gemm_C` for *multiple* Python versions in a manylinux wheel. This is a single-Python (3.12) image, so it is intentionally not
+  ported — `cmake/external_projects/deepgemm.cmake` falls back to the build interpreter when the env var is unset, building the extension for the one
+  interpreter we ship.
 
 * * *
 
