@@ -504,6 +504,13 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== omni sagemaker =========================================
 FROM omni-base AS vllm-omni-sagemaker-amzn2023
 
+# Advertise SageMaker Bidirectional Streaming support so the platform will open
+# WebSocket connections to this container (at /invocations-bidirectional-stream,
+# rerouted by the client's model_invocation_path). The SageMakerRouteMiddleware
+# in omni_sagemaker_serve.py bridges those to vLLM-Omni's native WS routes.
+# EC2 has no equivalent label — it exposes the WS routes on port 8080 directly.
+LABEL com.amazonaws.sagemaker.capabilities.bidirectional-streaming=true
+
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
   # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
