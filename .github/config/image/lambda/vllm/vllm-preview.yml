@@ -1,0 +1,36 @@
+image:
+  name: "lambda-vllm-preview"
+  description: "Lambda vLLM GPU image with multi-mode concurrency RIC"
+
+metadata:
+  framework: "lambda"
+  framework_version: "13.0.3"
+  os_version: "amzn2023"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  container_type: "vllm-cuda-preview"
+  prod_image: "lambda:vllm-cuda-preview"
+
+build:
+  dockerfile: "docker/lambda/Dockerfile"
+  target: "vllm-preview-py3"
+  python_version: "3.13"
+  cuda_version: "13.0.3"
+  vllm_ref: "7b3d595eb197d714052ce296cc8b124f0dc8af31"
+  vllm_version: "0.24.0"
+  flashinfer_version: "0.6.12"
+  torch_cuda_arch_list: "8.0 8.6 8.9 12.0"
+  use_sccache: "true"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+  awslambdaric_version: "3.1.1"
+  awslambdaric_release: "2.0.0.0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "gamma"

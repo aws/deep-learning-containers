@@ -1,0 +1,13 @@
+# Torch trio constraints for the vLLM runtime-deps install.
+#
+# torch/vision/audio are already installed (cu130) from the builder-pytorch-py3
+# base — they live in docker/lambda/pytorch/uv.lock, the single source of truth.
+# vLLM's requirements/cuda.txt pins torch too; passing this as a --constraint pins
+# the resolve to the base's exact cu130 versions so the runtime-deps install can NOT
+# pull a different (non-cu130) torch — without this, the filtered cuda.txt resolve
+# downgraded torch to 2.10.0+cu128. This removes the need to reinstall torch.
+#
+# Keep in sync with docker/lambda/pytorch/pyproject.toml.
+torch==2.11.0
+torchaudio==2.11.0
+torchvision==0.26.0

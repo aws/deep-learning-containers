@@ -1,0 +1,33 @@
+image:
+  name: "lambda-sglang-preview"
+  description: "Lambda SGLang GPU image with multi-mode concurrency RIC"
+
+metadata:
+  framework: "lambda"
+  framework_version: "0.5.14+dlc1"
+  os_version: "amzn2023"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  container_type: "sglang-cuda-preview"
+  prod_image: "lambda:sglang-cuda-preview"
+
+build:
+  dockerfile: "docker/lambda/Dockerfile"
+  target: "sglang-preview-py3"
+  python_version: "3.13"
+  cuda_version: "13.0.3"
+  sglang_ref: "bc8b3ab1f55c60951b586d84d4aec773a6f654df"
+  sglang_kernel_version: "0.4.4"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+  awslambdaric_version: "3.1.1"
+  awslambdaric_release: "2.0.0.0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "gamma"
