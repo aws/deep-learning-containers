@@ -31,9 +31,12 @@ def test_rie_binary_exists():
 
 
 def test_entrypoint_exists():
-    script = "/lambda_entrypoint.sh"
-    assert os.path.isfile(script), "lambda_entrypoint.sh not found"
-    assert os.access(script, os.X_OK), "lambda_entrypoint.sh not executable"
+    # Core images ship lambda_entrypoint.sh; serving variants (sglang, vllm) ship
+    # their own dedicated entrypoint. Accept whichever the image provides.
+    candidates = ["/lambda_entrypoint.sh", "/sglang_entrypoint.sh", "/vllm_entrypoint.sh"]
+    script = next((s for s in candidates if os.path.isfile(s)), None)
+    assert script is not None, f"no entrypoint found (looked for {candidates})"
+    assert os.access(script, os.X_OK), f"{script} not executable"
 
 
 def _multimode_config_provider():

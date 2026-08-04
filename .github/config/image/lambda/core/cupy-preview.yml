@@ -1,24 +1,26 @@
 image:
-  name: "lambda-cupy"
-  description: "Lambda CuPy GPU image with CUDA and Python"
+  name: "lambda-cupy-preview"
+  description: "Lambda CuPy GPU image with multi-mode concurrency RIC"
 
 metadata:
   framework: "lambda"
-  framework_version: "12.9.1"
+  framework_version: "13.0.3"
   os_version: "amzn2023"
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
-  container_type: "cupy-cuda"
-  prod_image: "lambda:cupy-gpu-py313-cu129"
+  container_type: "cupy-cuda-preview"
+  prod_image: "lambda:cupy-cuda-preview"
 
 build:
   dockerfile: "docker/lambda/Dockerfile"
-  target: "cupy-py3"
+  target: "cupy-preview-py3"
   python_version: "3.13"
-  cuda_version: "12.9.1"
+  cuda_version: "13.0.3"
   dlc_major_version: "1"
   dlc_minor_version: "0"
+  awslambdaric_version: "3.1.1"
+  awslambdaric_release: "2.0.0.0"
 
 release:
   release: true

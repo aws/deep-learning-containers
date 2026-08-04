@@ -1,16 +1,16 @@
-name: "PR - Lambda"
+name: "PR - Lambda SGLang"
 
 on:
   pull_request:
     branches: [lambda]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/lambda/*.yml"
+      - ".github/config/image/lambda/sglang/*.yml"
       - ".github/workflows/lambda.pipeline.yml"
-      - ".github/workflows/lambda.pr.yml"
+      - ".github/workflows/lambda-sglang.pr.yml"
+      - ".github/workflows/sglang.tests-upstream.yml"
       - "docker/lambda/**"
-      - "scripts/lambda/**"
-      - "scripts/ci/build/lambda/**"
+      - "scripts/docker/lambda/sglang/**"
       - "scripts/common/**"
       - "scripts/telemetry/**"
       - "test/lambda/**"
@@ -39,6 +39,7 @@ jobs:
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       validation-test-change: ${{ steps.changes.outputs.validation-test-change }}
+      upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
@@ -48,15 +49,16 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/workflows/lambda.pr.yml"
-              - ".github/config/image/lambda/*.yml"
+              - ".github/workflows/lambda-sglang.pr.yml"
+              - ".github/config/image/lambda/sglang/*.yml"
               - "docker/lambda/**"
-              - "scripts/lambda/**"
-              - "scripts/ci/build/lambda/**"
+              - "scripts/docker/lambda/sglang/**"
               - "scripts/common/**"
               - "test/security/data/ecr_scan_allowlist/lambda/**"
             validation-test-change:
               - "test/lambda/**"
+            upstream-test-change:
+              - ".github/workflows/sglang.tests-upstream.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -73,7 +75,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/lambda/*.yml"
+          pattern: ".github/config/image/lambda/sglang/*.yml"
 
   pipeline:
     needs: [check-changes, discover]
@@ -90,5 +92,6 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-validation-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
+      run-sglang-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       release: false
     secrets: inherit

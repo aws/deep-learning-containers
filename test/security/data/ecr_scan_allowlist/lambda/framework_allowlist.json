@@ -81,5 +81,20 @@
         "vulnerability_id": "CVE-2026-39822",
         "reason": "Go stdlib CVE in aws-lambda-rie binary (built with Go 1.25.8). Fixed in Go 1.26.5. No new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
         "review_by": "2026-10-01"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24193",
+        "reason": "NVIDIA kernel-mode Display Driver CVE (out-of-bounds write, AV:L). ECR miss-attributes it to a userspace CUDA package. The kernel-mode GPU driver is not shipped in the container (it lives on the Lambda host); the image only carries userspace CUDA runtime libraries, which are outside the scope of this CVE. Not applicable at Lambda runtime.",
+        "review_by": "2026-10-01"
+    },
+    {
+        "vulnerability_id": "GHSA-9g5q-2w5x-hmxf",
+        "reason": "go-chi/chi RealIP X-Forwarded-For spoofing CVE in the aws-lambda-rie binary (bundles chi v1.5.5 + chi/v5 v5.2.2). No fix for the v1.x line; latest RIE release still bundles it. RIE is a local test emulator not on the real Lambda invoke path, and the RealIP middleware is not exposed to untrusted clients. Will auto-resolve on next RIE release.",
+        "review_by": "2026-10-01"
+    },
+    {
+        "vulnerability_id": "GHSA-rjr7-jggh-pgcp",
+        "reason": "go-chi/chi RealIP X-Forwarded-For spoofing CVE (duplicate advisory of GHSA-9g5q-2w5x-hmxf) in the aws-lambda-rie binary. No fix for the bundled chi v1.x line; latest RIE release still bundles it. RIE is a local test emulator not on the real Lambda invoke path. Will auto-resolve on next RIE release.",
+        "review_by": "2026-10-01"
     }
 ]

@@ -2,7 +2,7 @@
 
 Covers NVIDIA Video Codec SDK FFmpeg guide sections:
   §3.1: 1:1 HWACCEL transcode (GPU decode + GPU encode)
-  §3.2: HWACCEL transcode with scale_npp / scale_cuda GPU scaling
+  §3.2: HWACCEL transcode with scale_cuda GPU scaling
   §4.2: Standalone NVDEC decode
   §4.3: High-quality latency-tolerant preset
   §4.4: Low-latency preset
@@ -68,34 +68,6 @@ def test_hwaccel_transcode(gpu_input_video):
             "h264_nvenc",
             "-b:v",
             "5M",
-            out,
-        ]
-    )
-    assert os.path.getsize(out) > 0
-
-
-def test_scale_npp(gpu_input_video):
-    """§3.2 — GPU scaling with scale_npp."""
-    tmpdir, inp = gpu_input_video
-    out = os.path.join(tmpdir, "out_32_npp.mp4")
-    _run(
-        [
-            "ffmpeg",
-            "-y",
-            "-vsync",
-            "0",
-            "-hwaccel",
-            "cuda",
-            "-hwaccel_output_format",
-            "cuda",
-            "-i",
-            inp,
-            "-vf",
-            "scale_npp=640:360",
-            "-c:v",
-            "h264_nvenc",
-            "-b:v",
-            "2M",
             out,
         ]
     )

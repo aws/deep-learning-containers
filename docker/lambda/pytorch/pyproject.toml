@@ -21,11 +21,11 @@ dependencies = [
     "safetensors==0.8.0rc1",
     "sam-2 @ git+https://github.com/facebookresearch/segment-anything-2.git@2b90b9f5ceec907a1c18123530e92e794ad901a4",
     "scipy==1.17.1",
-    "setuptools==82.0.1",
+    "setuptools==81.0.0",
     "soundfile==0.13.1",
-    "torch==2.10.0",
-    "torchaudio==2.10.0",
-    "torchvision==0.25.0",
+    "torch==2.11.0",
+    "torchaudio==2.11.0",
+    "torchvision==0.26.0",
     "transformers==5.5.0",
     "urllib3==2.7.0",
     "pytest==8.4.1",
@@ -34,11 +34,11 @@ dependencies = [
 [tool.uv]
 
 [[tool.uv.index]]
-name = "pytorch-cu129"
-url = "https://download.pytorch.org/whl/cu129"
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
 [tool.uv.sources]
-torch = [{ index = "pytorch-cu129" }]
-torchvision = [{ index = "pytorch-cu129" }]
-torchaudio = [{ index = "pytorch-cu129" }]
+torch = [{ index = "pytorch-cu130" }]
+torchvision = [{ index = "pytorch-cu130" }]
+torchaudio = [{ index = "pytorch-cu130" }]
