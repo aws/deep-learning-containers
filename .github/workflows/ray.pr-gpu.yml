@@ -8,7 +8,7 @@ on:
       - ".github/config/image/ray/*-gpu.yml"
       - ".github/workflows/ray.pipeline.yml"
       - ".github/workflows/ray.pr-gpu.yml"
-      - "docker/ray/Dockerfile.gpu"
+      - "docker/ray/Dockerfile.cuda"
       - "docker/ray/pyproject.toml"
       - "docker/ray/uv.lock"
       - "scripts/docker/common/**"
@@ -55,7 +55,7 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/ray/*-gpu.yml"
-              - "docker/ray/Dockerfile.gpu"
+              - "docker/ray/Dockerfile.cuda"
               - "docker/ray/pyproject.toml"
               - "docker/ray/uv.lock"
               - "scripts/docker/common/**"
