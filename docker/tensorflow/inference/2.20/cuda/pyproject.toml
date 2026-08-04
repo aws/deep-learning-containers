@@ -10,10 +10,10 @@ requires-python = ">=3.12,<3.13"
 # `tensorflow-serving-api-gpu` wheel is the matched gRPC stub (used by
 # python_service.py to call the local serving binary on port 8500).
 #
-# IMPORTANT — locked decision Q1 (handoff):
+# IMPORTANT:
 #   `tensorflow-serving-api-gpu==2.20.0` is INTENTIONALLY OMITTED from this
 #   `dependencies` list. The PyPI wheel declares a hard `tensorflow` runtime
-#   dep (≈600 MB framework wheel) which we do not want in an inference image.
+#   dep (~600 MB framework wheel) which we do not want in an inference image.
 #   uv's resolver does not support per-package `--no-deps`, so the wheel is
 #   instead installed inline in the Dockerfile via:
 #       uv pip install --no-deps tensorflow-serving-api-gpu==2.20.0
@@ -24,7 +24,7 @@ requires-python = ">=3.12,<3.13"
 #
 # Source for this dep list: master TF 2.19 inference Dockerfile.gpu
 # (RUN pip install blocks at lines ~155 and SM-stage line ~265), translated
-# to uv/pyproject form per training PR #6107 pattern.
+# to uv/pyproject form per PR #6107 pattern.
 # ──────────────────────────────────────────────────────────────────────────────
 dependencies = [
     # cuDNN 9.24.0.43 — CUDA math library required by TF Serving's GPU binary.
@@ -37,7 +37,7 @@ dependencies = [
     "nvidia-cudnn-cu12==9.24.0.43",
     # ── tfs-api transitive runtime needs (explicit pins; see header note) ─────
     # numpy 1.26.4 — TF SavedModel/numpy ABI compat. Must match the version
-    # the TF 2.21 training image uses to export SavedModels (handoff §16).
+    # the TF 2.21 training image uses to export SavedModels.
     "numpy==1.26.4",
     # protobuf — tfs-api uses protobuf for the gRPC stubs. Master 2.19 pinned
     # protobuf==6.33.4; we relax to >=3.20,<7 here so the resolver can pick the
@@ -56,8 +56,9 @@ dependencies = [
     "gevent",
 
     # ── Falcon-based SM handler stack ─────────────────────────────────────────
-    # Both pins user-locked per handoff §16. Master GPU used falcon==3.0.1, but
-    # we standardize on 3.1.0 (matches master CPU and is forward-compatible).
+    # Master GPU used falcon==3.0.1, but we standardize on 3.1.0 (matches
+    # master CPU and is forward-compatible). falcon 3.1.0 is the last version
+    # supporting the shipped handler API surface.
     "falcon==3.1.0",
     "gunicorn>=22.0.0",
 
@@ -77,8 +78,7 @@ dependencies = [
 
 [project.optional-dependencies]
 sagemaker = [
-    # NOTE: `sagemaker-tensorflow-serving-container` is NOT on PyPI (verified
-    # via `uv lock` failure on 2026-06-11; handoff §14.4 flagged this risk).
+    # NOTE: `sagemaker-tensorflow-serving-container` is NOT on PyPI.
     # Master TF 2.19 inference references it but never pip-installs it from
     # PyPI — it is vendored as the local handler scripts under
     # docker/build_artifacts/sagemaker/, which we port to scripts/tensorflow/

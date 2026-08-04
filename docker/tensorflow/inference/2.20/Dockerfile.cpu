@@ -152,7 +152,7 @@ ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
 ENV PATH="$PATH:/sagemaker"
 
 # SageMaker BYOC paths
-RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
+RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output
 
 # tensorflow-serving-api — installed inline with --no-deps; see locked
 # decision Q1 in cpu/pyproject.toml header. uv is staged into this stage

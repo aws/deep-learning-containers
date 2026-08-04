@@ -24,7 +24,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from botocore.exceptions import ClientError, ParamValidationError
+from botocore.exceptions import ClientError
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import read_predictions
@@ -128,82 +128,3 @@ def test_mme_late_dynamic_load(
         assert read_predictions(r2) == pytest.approx([3.0, 6.0, 9.0]), (
             "late-loaded model2 did not respond with 3x — MME dynamic load path broken"
         )
-
-
-# Traversal payloads to send through SageMaker Runtime's ``target_model``
-# header. SM Runtime may reject some client-side before the request even
-# reaches the container — that is acceptable, and either rejection layer
-# proves a 4xx surfaces. Both a leading-dot relative path and an absolute
-# path exercise the container-side guard in
-# ``python_service._handle_load_model_post``; ``GET /models/{name}`` and
-# ``DELETE /models/{name}`` share the same guard but are unreachable from
-# outside the container — see ``README-coverage-gaps.md`` for why.
-_TRAVERSAL_TARGET_MODELS = [
-    "../../evil.tar.gz",
-    "/etc/passwd",
-]
-
-
-@pytest.mark.parametrize(
-    "bad_target_model",
-    _TRAVERSAL_TARGET_MODELS,
-    ids=["parent-traversal", "absolute-path"],
-)
-def test_mme_traversal_rejected(
-    boto_session,
-    sagemaker_session,
-    deploy_endpoint,
-    unique_name,
-    cleanup_endpoint,
-    bad_target_model,
-):
-    """Invoking an MME with a traversal-style ``target_model`` must 4xx
-    (either from SM Runtime client-side or from the container-side guard
-    at ``python_service.py`` lines ~275-292). Never 2xx, never a hang.
-    """
-    with tempfile.TemporaryDirectory(prefix="tf220-mme-trav-") as workdir:
-        workdir_path = Path(workdir)
-        model1_tar = build_sample_model(
-            output_dir=workdir_path / "m1",
-            multiplier=2.0,
-            tar_filename="model1.tar.gz",
-        )
-        bucket = sagemaker_session.default_bucket()
-        s3_key_prefix = f"tf220-inference-tests/mme-trav/{unique_name('run')}"
-        sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
-        s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
-
-        endpoint, endpoint_name, model_name = deploy_endpoint(
-            model_data_url=s3_model_prefix,
-            mode="MultiModel",
-            name_prefix="tf220-mme-trav",
-        )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
-
-        payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
-        # SM Runtime surfaces client-side rejection as either a
-        # ``ClientError`` (ValidationException from the service) or a
-        # ``ParamValidationError`` (raised by botocore before the request
-        # even goes on the wire). Both prove the traversal input was not
-        # routed to the container as-is with a 2xx. Narrowed from
-        # ``pytest.raises(Exception)`` — the broader match let the test
-        # pass with the ``ClientError``-status assertion inside an
-        # ``isinstance`` guard, so a ``ParamValidationError`` skipped
-        # the assertion entirely.
-        with pytest.raises((ClientError, ParamValidationError)) as excinfo:
-            endpoint.invoke(
-                body=payload,
-                content_type="application/json",
-                accept="application/json",
-                target_model=bad_target_model,
-            )
-        if isinstance(excinfo.value, ClientError):
-            status = excinfo.value.response.get("ResponseMetadata", {}).get("HTTPStatusCode", 0)
-            assert 400 <= status < 500, (
-                f"expected 4xx on traversal target_model {bad_target_model!r}, "
-                f"got status {status}: {excinfo.value.response!r}"
-            )
-        # else: ParamValidationError. Botocore rejected the arg client-side
-        # before the request left the SDK — that is a 4xx-equivalent, and
-        # the container-side guard was never even reached. Nothing more to
-        # assert; the ``pytest.raises`` type guard is the assertion.

@@ -34,8 +34,10 @@ from .resources.helpers import read_predictions, upload_tarball
 # Explicit skipif over reading the fixture value inside the test body so the
 # skip decision is visible at collection time. Matches the semantic the
 # reusable workflow already forwards via SM_DEVICE_TYPE (see conftest.py).
+_device = os.environ.get("SM_DEVICE_TYPE", "").lower()
+assert _device in {"cpu", "gpu"}, f"SM_DEVICE_TYPE must be 'cpu' or 'gpu'; got {_device!r}"
 pytestmark = pytest.mark.skipif(
-    os.environ.get("SM_DEVICE_TYPE", "cpu").lower() != "gpu",
+    _device != "gpu",
     reason="cuDNN Conv2D smoke requires SM_DEVICE_TYPE=gpu (workflow sets this for GPU device-type only)",
 )
 

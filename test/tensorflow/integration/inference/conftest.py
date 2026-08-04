@@ -76,8 +76,13 @@ def sm_instance_type() -> str:
     (``ml.g6.4xlarge``) is what actually exercises the CUDA image's cuDNN /
     tensorflow_model_server GPU path end-to-end.
     """
-    device = os.environ.get("SM_DEVICE_TYPE", "cpu").lower()
-    return _SM_INSTANCE_TYPE_BY_DEVICE.get(device, "ml.c5.xlarge")
+    device = os.environ.get("SM_DEVICE_TYPE", "").lower()
+    assert device in {"cpu", "gpu"}, (
+        f"SM_DEVICE_TYPE must be 'cpu' or 'gpu'; got {device!r}. Workflow "
+        f"forwards this from ci-config's yq of metadata.device_type — a "
+        f"missing config key would print 'null'."
+    )
+    return _SM_INSTANCE_TYPE_BY_DEVICE[device]
 
 
 @pytest.fixture(scope="session")
@@ -141,11 +146,11 @@ def deploy_endpoint(
     step (``Model.create``, ``EndpointConfig.create``, ``Endpoint.create``,
     or ``wait_for_status``) raises, the endpoint config / partial endpoint /
     model that was created still gets torn down at fixture teardown — a
-    ``wait_for_status`` failure previously never returned to the caller,
-    so the call-site ``cleanup_endpoint(...)`` line never ran and the
-    endpoint billed until the account was scrubbed. Both this fixture and
-    ``cleanup_endpoint`` are function-scoped, so the injection lifetime
-    matches; cleanup calls at test call sites are now redundant no-ops
+    ``wait_for_status`` failure does not return to the caller, so a
+    call-site ``cleanup_endpoint(...)`` line would never run and the
+    endpoint would bill until the account was scrubbed. Both this fixture
+    and ``cleanup_endpoint`` are function-scoped, so the injection lifetime
+    matches; cleanup calls at test call sites are redundant no-ops
     (double-register is safe — teardown swallows NotFound / already-deleted
     exceptions per resource).
 

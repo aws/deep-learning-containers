@@ -15,8 +15,7 @@ Test categories:
     1. TestContainerEnv        - DLC_CONTAINER_TYPE=inference + universal env
     2. TestPath                - PATH / LD_LIBRARY_PATH inference-side entries
     3. TestTFServingBinary     - tensorflow_model_server present, --version,
-                                 ldd resolves (the exact regression path
-                                 that produced audit finding B1)
+                                 ldd resolves
     4. TestHandlerFiles        - SageMaker handler artifacts at /sagemaker/
     5. TestHandlerImports      - falcon / gunicorn / gevent / grpc / boto3 /
                                  requests importable (handler request path)
@@ -25,7 +24,7 @@ Test categories:
                                  present (AL2023 hardcode in nginx.conf.template)
     8. TestCuDNN               - each cuDNN 9 sub-library findable on disk AND
                                  in ldconfig cache (GPU only) — defends against
-                                 B1 (missing libcudnn) AND the "only dispatcher
+                                 a missing libcudnn AND the "only dispatcher
                                  stub shipped, sub-libraries missing" failure
                                  that let PR #6418's training-canary regression
                                  through the build-time ldd + libcudnn glob
@@ -38,6 +37,7 @@ Gating env vars:
     EXPECTED_CUSTOMER  - sagemaker
 """
 
+import ctypes
 import glob
 import os
 import shutil
@@ -97,8 +97,8 @@ class TestPath(unittest.TestCase):
 class TestTFServingBinary(unittest.TestCase):
     """tensorflow_model_server binary — the customer request path.
 
-    Missing / unlinkable cuDNN here produced audit finding B1 (fixed in this
-    PR). These tests keep that class of regression out."""
+    Missing / unlinkable cuDNN would surface here rather than at endpoint
+    deploy. These tests keep that class of regression out."""
 
     BIN = "/usr/local/bin/tensorflow_model_server"
 
@@ -112,15 +112,29 @@ class TestTFServingBinary(unittest.TestCase):
         self.assertTrue(os.access(self.BIN, os.X_OK), f"{self.BIN} not executable")
 
     def test_tfs_version(self):
-        """--version resolves + prints a version string. Catches broken
-        --no-deps installs of tensorflow-serving-api."""
+        """--version resolves + matches EXPECTED_TFS_VERSION.
+
+        Catches (a) broken --no-deps installs of tensorflow-serving-api,
+        and (b) accidental shipping of a wrong TFS version (e.g. 2.19 or
+        2.21 slipping in via a base-image bump). The 2.20-serves-2.21
+        SavedModel compat boundary depends on the specific TFS version
+        shipped.
+        """
         out = subprocess.run([self.BIN, "--version"], capture_output=True, text=True, check=True)
         combined = out.stdout + out.stderr
         self.assertIn("TensorFlow ModelServer", combined)
 
+        expected = os.environ.get("EXPECTED_TFS_VERSION")
+        if expected:
+            self.assertIn(
+                expected,
+                combined,
+                f"tensorflow_model_server --version should include {expected!r}; got: {combined!r}",
+            )
+
     def test_tfs_shared_libs_resolve(self):
-        """No `not found` in ldd. This is the check that would have caught
-        B1 (missing cuDNN in GPU image) before endpoint deploy."""
+        """No `not found` in ldd. Catches a missing cuDNN in the GPU image
+        before endpoint deploy."""
         out = subprocess.run(["ldd", self.BIN], capture_output=True, text=True, check=True)
         missing = [line for line in out.stdout.splitlines() if "not found" in line]
         self.assertFalse(
@@ -240,7 +254,7 @@ CUDNN_9_REQUIRED_SUBLIBS = [
 
 @gpu_only
 class TestCuDNN(unittest.TestCase):
-    """B1 regression guard + "only-stub-shipped" defense.
+    """cuDNN presence guard + "only-stub-shipped" defense.
 
     tensorflow_model_server links dynamically to libcudnn.so; the CUDA base
     image ships CUDA but not cuDNN. This PR copies libcudnn*.so from the
@@ -294,6 +308,18 @@ class TestCuDNN(unittest.TestCase):
         for lib in CUDNN_9_REQUIRED_SUBLIBS:
             with self.subTest(lib=lib):
                 self.assertIn(lib, out, f"cuDNN sub-library {lib} not in ldconfig cache")
+
+    def test_all_cudnn_sublibs_dlopen(self):
+        """Actually dlopen each sub-library — catches truncated, zero-byte,
+        wrong-arch, and ABI-drifted files that pass glob + ldconfig -p.
+        Mirrors the pattern from test_sanity_training.py.
+        """
+        for lib in CUDNN_9_REQUIRED_SUBLIBS:
+            with self.subTest(lib=lib):
+                try:
+                    ctypes.CDLL(lib)
+                except OSError as e:
+                    self.fail(f"cuDNN sub-library {lib} failed to dlopen: {e}")
 
 
 class TestOSSLicenseFiles(unittest.TestCase):

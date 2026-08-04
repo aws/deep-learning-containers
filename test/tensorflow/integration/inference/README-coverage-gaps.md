@@ -3,12 +3,18 @@
 ## What's covered end-to-end
 
 - `POST /invocations` — every test file in this directory.
-- `POST /models` (implicit via SM MME load path) — traversal guard exercised
-  at SageMaker level in `test_mme_dynamic.py::test_mme_traversal_rejected`
-  (parametrized with `../../evil.tar.gz` and `/etc/passwd`).
 
 ## What's NOT covered end-to-end
 
+- `POST /models` traversal guard — code-reviewed only, not end-to-end
+  tested. SageMaker Runtime's `target_model` header maps to an S3 key
+  lookup on the MME prefix, not to the container's `POST /models`
+  route directly, so a traversal payload sent as `target_model` never
+  reaches the container-side guard in
+  `python_service._handle_load_model_post`. Botocore does not enforce
+  a `pattern` on the `TargetModel` param either (only min/max length),
+  so a client-side reject is not guaranteed. A meaningful end-to-end
+  test needs a direct-to-container harness (see below).
 - `GET /models` (collection)
 - `GET /models/{name}` (per-model status)
 - `DELETE /models/{name}` (unload)

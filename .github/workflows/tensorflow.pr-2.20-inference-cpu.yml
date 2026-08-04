@@ -8,6 +8,7 @@ on:
       - ".github/config/image/tensorflow/2.20-inference-*-cpu.yml"
       - ".github/workflows/tensorflow.pipeline-inference.yml"
       - ".github/workflows/tensorflow.pr-2.20-inference-cpu.yml"
+      - ".github/workflows/tensorflow.tests-sagemaker-inference.yml"
       - "docker/tensorflow/inference/2.20/Dockerfile.cpu"
       - "docker/tensorflow/inference/2.20/cpu/**"
       - "scripts/docker/common/**"

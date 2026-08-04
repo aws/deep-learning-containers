@@ -10,10 +10,10 @@ requires-python = ">=3.12,<3.13"
 # wheel is the matched gRPC stub (used by python_service.py to call the local
 # serving binary on port 8500).
 #
-# IMPORTANT — locked decision Q1 (handoff):
+# IMPORTANT:
 #   `tensorflow-serving-api==2.20.0` is INTENTIONALLY OMITTED from this
 #   `dependencies` list. The PyPI wheel declares a hard `tensorflow` runtime
-#   dep (≈600 MB framework wheel) which we do not want in an inference image.
+#   dep (~600 MB framework wheel) which we do not want in an inference image.
 #   uv's resolver does not support per-package `--no-deps`, so the wheel is
 #   instead installed inline in the Dockerfile via:
 #       uv pip install --no-deps tensorflow-serving-api==2.20.0
@@ -23,8 +23,8 @@ requires-python = ">=3.12,<3.13"
 #   wheel is physically present in the image.
 #
 # Source for this dep list: master TF 2.19 inference Dockerfile.cpu
-# (RUN pip install blocks), translated to uv/pyproject form per training
-# PR #6107 pattern.
+# (RUN pip install blocks), translated to uv/pyproject form per PR #6107
+# pattern.
 # ──────────────────────────────────────────────────────────────────────────────
 dependencies = [
     # ── tfs-api transitive runtime needs (explicit pins; see header note) ─────
@@ -41,7 +41,8 @@ dependencies = [
     "gevent",
 
     # ── Falcon-based SM handler stack ─────────────────────────────────────────
-    # Both pins user-locked per handoff §16.
+    # falcon 3.1.0 is the last version supporting the shipped handler API
+    # surface.
     "falcon==3.1.0",
     "gunicorn>=22.0.0",
 
