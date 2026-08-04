@@ -93,6 +93,25 @@ class TestPath(unittest.TestCase):
         ld = os.environ.get("LD_LIBRARY_PATH", "")
         self.assertIn("/usr/local/cuda/lib64", ld)
 
+    @gpu_only
+    def test_nvidia_smi_at_usr_bin(self):
+        """serve.py:_enable_per_process_gpu_memory_fraction hardcodes the
+        path ``/usr/bin/nvidia-smi``. On a GPU host, the NVIDIA container
+        runtime injects the driver's nvidia-smi into the container at that
+        exact path; without it, serve.py silently declines to pass
+        ``--per_process_gpu_memory_fraction`` to TFS, and MME customers
+        running SAGEMAKER_TFS_INSTANCE_COUNT>1 hit OOM at first inference
+        with no log signal. A base-image bump that moves the injection
+        path would regress this — assert it here so CI catches it before
+        a customer does.
+        """
+        self.assertTrue(
+            os.path.exists("/usr/bin/nvidia-smi"),
+            "nvidia-smi missing at /usr/bin/nvidia-smi — serve.py's "
+            "per-process GPU memory fraction gate will silently no-op, "
+            "and MME with SAGEMAKER_TFS_INSTANCE_COUNT>1 will OOM.",
+        )
+
 
 class TestTFServingBinary(unittest.TestCase):
     """tensorflow_model_server binary — the customer request path.
