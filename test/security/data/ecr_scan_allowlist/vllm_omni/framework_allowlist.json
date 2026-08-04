@@ -63,5 +63,10 @@
         "vulnerability_id": "RUSTSEC-2026-0195",
         "reason": "quick-xml vendored in uv binary, unbounded namespace allocation DoS, fixed in uv>=0.11.32 (Cargo.lock quick-xml 0.41.0); auto-resolves on next image rebuild via curl|sh unpinned install — prune once next scan is clean",
         "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "torch 2.9.1 is only a version pin in the upstream vllm/vllm-openai base image's benchmarks/requirements.txt (benchmark metadata), not the installed package. Installed torch is 2.11.0 (>= 2.10.0 fix). weights_only unpickler RCE requires loading a malicious checkpoint; the benchmark requirements file is inert. Not exploitable in the runtime.",
+        "review_by": "2026-09-25"
     }
 ]
