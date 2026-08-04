@@ -108,8 +108,8 @@ jobs:
 
       - name: Run SGLang tests
         run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
+          docker exec ${CONTAINER_ID} bash -c '
+            set -euxo pipefail
             nvidia-smi
 
             export PYTHONPATH=/workdir/python:${PYTHONPATH:-}
@@ -128,11 +128,9 @@ jobs:
 
             cd /workdir/test
             export SGLANG_TIMEOUT=600
-            # run_suite.py returns non-zero when a test fails, but pipefail is
-            # required so `tee` does not mask its exit code. It also returns 0
-            # when a suite matches 0 tests (unknown/empty suite), so additionally
-            # fail if nothing ran.
-            set -o pipefail
+            # run_suite.py returns non-zero when a test fails; pipefail (set at
+            # top) ensures `tee` does not mask its exit code. Fail additionally
+            # if nothing ran (unknown/empty suite).
             python3 run_suite.py --hw cuda --suite ${{ inputs.suite }} 2>&1 | tee /tmp/suite.log
             if grep -qE "No tests found|Test Summary: 0/0" /tmp/suite.log; then
               echo "ERROR: suite ${{ inputs.suite }} ran 0 tests — invalid/empty suite for this sglang ref" >&2
