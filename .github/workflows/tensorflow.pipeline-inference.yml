@@ -114,8 +114,8 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # SageMaker integration tests — only for sagemaker images (TF DLC is SM-only).
-  # Separate reusable from tensorflow.tests-sagemaker.yml, which targets training.
+  # SageMaker integration tests — TF DLC is SM-only. Separate reusable from
+  # tensorflow.tests-sagemaker.yml (which targets training).
   sagemaker-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
     needs: [build, ci-config]

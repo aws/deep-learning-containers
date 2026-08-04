@@ -1,40 +1,10 @@
 #!/usr/bin/env python3
-"""
-Sanity tests for TensorFlow inference DLC images.
+"""Sanity tests for TensorFlow inference DLC images.
 
-Runs inside the container:
-    docker exec -e EXPECTED_FRAMEWORK=tensorflow \
-                -e EXPECTED_DEVICE=gpu \
-                -e EXPECTED_CUSTOMER=sagemaker \
-                <container> python3 /workdir/test/sanity/scripts/test_sanity_tf_inference.py
-
-Fast, deterministic, no AWS. Fails at the sanity stage instead of at the
-~10-minute SageMaker-endpoint-deploy stage when the image is broken.
-
-Test categories:
-    1. TestContainerEnv        - DLC_CONTAINER_TYPE=inference + universal env
-    2. TestPath                - PATH / LD_LIBRARY_PATH inference-side entries
-    3. TestTFServingBinary     - tensorflow_model_server present, --version,
-                                 ldd resolves
-    4. TestHandlerFiles        - SageMaker handler artifacts at /sagemaker/
-    5. TestHandlerImports      - falcon / gunicorn / gevent / grpc / boto3 /
-                                 requests importable (handler request path)
-    6. TestEntrypoints         - /usr/local/bin/*_entrypoint.sh executable
-    7. TestNginxNjsModule      - /usr/lib64/nginx/modules/ngx_http_js_module.so
-                                 present (AL2023 hardcode in nginx.conf.template)
-    8. TestCuDNN               - each cuDNN 9 sub-library findable on disk AND
-                                 in ldconfig cache (GPU only) — defends against
-                                 a missing libcudnn AND the "only dispatcher
-                                 stub shipped, sub-libraries missing" failure
-                                 that let PR #6418's training-canary regression
-                                 through the build-time ldd + libcudnn glob
-    9. TestOSSLicenseFiles     - /root/*_LICENSES artifacts
-   10. TestVenv                - /opt/venv exists
-
-Gating env vars:
-    EXPECTED_FRAMEWORK - tensorflow
-    EXPECTED_DEVICE    - cpu | gpu
-    EXPECTED_CUSTOMER  - sagemaker
+Runs inside the container via `docker exec ... python3 test_sanity_tf_inference.py`,
+gated by EXPECTED_FRAMEWORK / EXPECTED_DEVICE / EXPECTED_CUSTOMER env vars.
+Fast, deterministic, no AWS — catches breakage at sanity stage rather than at
+the ~10-min SageMaker endpoint-deploy stage.
 """
 
 import ctypes
@@ -95,16 +65,8 @@ class TestPath(unittest.TestCase):
 
     @gpu_only
     def test_nvidia_smi_at_usr_bin(self):
-        """serve.py:_enable_per_process_gpu_memory_fraction hardcodes the
-        path ``/usr/bin/nvidia-smi``. On a GPU host, the NVIDIA container
-        runtime injects the driver's nvidia-smi into the container at that
-        exact path; without it, serve.py silently declines to pass
-        ``--per_process_gpu_memory_fraction`` to TFS, and MME customers
-        running SAGEMAKER_TFS_INSTANCE_COUNT>1 hit OOM at first inference
-        with no log signal. A base-image bump that moves the injection
-        path would regress this — assert it here so CI catches it before
-        a customer does.
-        """
+        """serve.py hardcodes /usr/bin/nvidia-smi for the per-process GPU
+        memory fraction gate; missing => MME OOMs silently with instance>1."""
         self.assertTrue(
             os.path.exists("/usr/bin/nvidia-smi"),
             "nvidia-smi missing at /usr/bin/nvidia-smi — serve.py's "
@@ -114,10 +76,7 @@ class TestPath(unittest.TestCase):
 
 
 class TestTFServingBinary(unittest.TestCase):
-    """tensorflow_model_server binary — the customer request path.
-
-    Missing / unlinkable cuDNN would surface here rather than at endpoint
-    deploy. These tests keep that class of regression out."""
+    """tensorflow_model_server binary — the customer request path."""
 
     BIN = "/usr/local/bin/tensorflow_model_server"
 
@@ -131,14 +90,7 @@ class TestTFServingBinary(unittest.TestCase):
         self.assertTrue(os.access(self.BIN, os.X_OK), f"{self.BIN} not executable")
 
     def test_tfs_version(self):
-        """--version resolves + matches EXPECTED_TFS_VERSION.
-
-        Catches (a) broken --no-deps installs of tensorflow-serving-api,
-        and (b) accidental shipping of a wrong TFS version (e.g. 2.19 or
-        2.21 slipping in via a base-image bump). The 2.20-serves-2.21
-        SavedModel compat boundary depends on the specific TFS version
-        shipped.
-        """
+        """--version resolves + matches EXPECTED_TFS_VERSION."""
         out = subprocess.run([self.BIN, "--version"], capture_output=True, text=True, check=True)
         combined = out.stdout + out.stderr
         self.assertIn("TensorFlow ModelServer", combined)
@@ -152,8 +104,7 @@ class TestTFServingBinary(unittest.TestCase):
             )
 
     def test_tfs_shared_libs_resolve(self):
-        """No `not found` in ldd. Catches a missing cuDNN in the GPU image
-        before endpoint deploy."""
+        """No `not found` in ldd — catches missing cuDNN before endpoint deploy."""
         out = subprocess.run(["ldd", self.BIN], capture_output=True, text=True, check=True)
         missing = [line for line in out.stdout.splitlines() if "not found" in line]
         self.assertFalse(
@@ -164,9 +115,7 @@ class TestTFServingBinary(unittest.TestCase):
 
 @sagemaker_only
 class TestHandlerFiles(unittest.TestCase):
-    """SageMaker handler artifacts ported from master TF 2.19
-    build_artifacts/sagemaker/ to scripts/docker/tensorflow/inference/
-    sagemaker/ in this PR. COPY'd into the image at /sagemaker/."""
+    """SageMaker handler artifacts at /sagemaker/."""
 
     HANDLER_FILES = [
         "/sagemaker/serve",
@@ -229,10 +178,8 @@ class TestEntrypoints(unittest.TestCase):
 
 
 class TestNginxNjsModule(unittest.TestCase):
-    """nginx.conf.template hardcodes an AL2023-specific absolute path
-    (commit 3e7012d6). If the base image or nginx-mod-njs RPM ever moves
-    the module, nginx -t fails at container start and the endpoint never
-    reaches InService."""
+    """nginx.conf.template hardcodes an AL2023-specific absolute path — if
+    the base image or nginx-mod-njs RPM moves it, nginx -t fails at start."""
 
     NJS_MODULE = "/usr/lib64/nginx/modules/ngx_http_js_module.so"
 
@@ -244,19 +191,10 @@ class TestNginxNjsModule(unittest.TestCase):
         )
 
 
-# cuDNN 9 sub-libraries. Every one is dlopen'd by TF Serving's GPU code
-# path at first Conv/RNN/LSTM invocation; ``ldd tensorflow_model_server``
-# only surfaces the direct link to the dispatcher (``libcudnn.so.9``) and
-# does NOT reveal a missing sub-library. Enumerating them explicitly here
-# closes the "only stub present" hole that let PR #6418's training-canary
-# cuDNN regression ship past the build-time ldd + libcudnn glob checks.
-#
-# List is enumerated to match the actual wheel manifest for
-# ``nvidia-cudnn-cu12==9.24.0.43`` — 10 shared libraries, all shipped in
-# the wheel's ``nvidia/cudnn/lib/`` directory. Keep in sync when bumping
-# the cuDNN pin; a regression that drops any of these from the cp glob
-# would satisfy ``ldd`` on the dispatcher yet fault at first customer
-# Conv/RNN request.
+# cuDNN 9 sub-libraries — each dlopen'd by TFS on first Conv/RNN/LSTM.
+# ldd only reveals the dispatcher (libcudnn.so.9); missing sub-libs slip past.
+# Enumerated to match nvidia-cudnn-cu12==9.24.0.43's wheel manifest; keep in
+# sync when bumping the cuDNN pin.
 CUDNN_9_REQUIRED_SUBLIBS = [
     "libcudnn.so.9",
     "libcudnn_adv.so.9",
@@ -273,30 +211,15 @@ CUDNN_9_REQUIRED_SUBLIBS = [
 
 @gpu_only
 class TestCuDNN(unittest.TestCase):
-    """cuDNN presence guard + "only-stub-shipped" defense.
+    """cuDNN presence guard + "only-stub-shipped" defense (see PR #6418).
 
-    tensorflow_model_server links dynamically to libcudnn.so; the CUDA base
-    image ships CUDA but not cuDNN. This PR copies libcudnn*.so from the
-    pip-installed nvidia-cudnn-cu12 package into /usr/local/cuda/lib64 in
-    Dockerfile.cuda and runs ldconfig.
-
-    A previous training-canary failure (PR #6418) demonstrated that ``ldd``
-    on the binary only surfaces the direct link to the dispatcher
-    (``libcudnn.so.9``); TF's autotuning path dlopens each sub-library at
-    first kernel launch, so a build shipping only the dispatcher stub
-    would satisfy ``ldd`` and a bare ``libcudnn*`` glob yet fault at the
-    first customer request. Enumerate every required sub-library and
-    assert both presence on disk AND resolvability via ldconfig.
-
-    ``CUDNN_9_REQUIRED_SUBLIBS`` matches the wheel manifest for
-    ``nvidia-cudnn-cu12==9.24.0.43`` (10 libraries); keep it in sync
-    when bumping the cuDNN pin.
+    Asserts each required sub-library is present on disk AND resolvable via
+    ldconfig — a build shipping only the dispatcher stub would pass ldd yet
+    fault on first Conv/RNN request.
     """
 
-    # Search locations for cuDNN sub-libs. The build copies from
-    # nvidia-cudnn-cu12's site-packages layout into /usr/local/cuda/lib64,
-    # but preserve the site-packages fallback so this test does not tightly
-    # couple to the Dockerfile's staging directory choice.
+    # Search /usr/local/cuda/lib64 first (Dockerfile stages here), fall back
+    # to the nvidia-cudnn-cu12 site-packages layout.
     _CUDNN_SEARCH_GLOBS = (
         "/usr/local/cuda/lib64/{lib}",
         "/opt/venv/lib64/python*/site-packages/nvidia/cudnn/lib/{lib}",
@@ -329,10 +252,7 @@ class TestCuDNN(unittest.TestCase):
                 self.assertIn(lib, out, f"cuDNN sub-library {lib} not in ldconfig cache")
 
     def test_all_cudnn_sublibs_dlopen(self):
-        """Actually dlopen each sub-library — catches truncated, zero-byte,
-        wrong-arch, and ABI-drifted files that pass glob + ldconfig -p.
-        Mirrors the pattern from test_sanity_training.py.
-        """
+        """dlopen each — catches truncated, zero-byte, wrong-arch, ABI-drifted."""
         for lib in CUDNN_9_REQUIRED_SUBLIBS:
             with self.subTest(lib=lib):
                 try:

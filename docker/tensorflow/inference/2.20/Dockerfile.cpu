@@ -1,18 +1,7 @@
 # ============================================================================
 # TensorFlow Serving 2.20 Inference DLC — Amazon Linux 2023 (CPU)
-# Multi-stage build:
-#   builder-base ──── builder-oss   (OSS license generation — isolated)
-#   runtime-base ──── sagemaker     (SageMaker inference, MME-capable)
-#
-# All version defaults mirror the build: block of
-# .github/config/image/tensorflow/2.20-inference-sagemaker-cpu.yml. The
-# build-image action forwards those keys as --build-arg — single source of
-# truth.
-#
-# Same structure as Dockerfile.cuda; deltas:
-#   - amazonlinux:2023 base (no CUDA).
-#   - tensorflow/serving:${TF_SERVING_VERSION}-devel (no -gpu) for binary copy.
-#   - tensorflow-serving-api (no -gpu suffix) installed via --no-deps.
+# Stages: builder-base -> builder-oss ; runtime-base -> sagemaker (MME-capable).
+# Version defaults mirror the config's build: block (forwarded as --build-arg).
 # ============================================================================
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────
@@ -83,10 +72,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   MODEL_BASE_PATH=/models \
   MODEL_NAME=model
 
-# Runtime system deps via dnf — equivalent of master TF 2.19 CPU apt-get block.
-# nginx and its njs module are installed from AL2023 core below (via a
-# separate --releasever latest step); everything else in this list is from
-# AL2023 core.
+# Runtime system deps. nginx + njs come from AL2023 core in the separate
+# --releasever latest step below; everything here is AL2023 core.
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
   procps-ng \
@@ -96,14 +83,9 @@ RUN dnf install -y --allowerasing \
   openssl unzip jq curl wget \
   && dnf clean all
 
-# nginx + njs module from AL2023 core. Same 1.30.3 + 0.9.9 versions
-# as nginx.org's amzn2023 RPMs but AL2023-native packaging (so we get
-# AL2023's CVE backports and match the base's OpenSSL). --releasever
-# latest pulls openssl-libs 3.5.5 transitively since AL2023's nginx
-# 1.30.3 links against libssl.so.3(OPENSSL_3.5.0) and the base image's
-# pinned snapshot ships openssl-libs 3.0.x. Same --releasever latest
-# pattern is already used at the security-patch step later in this
-# Dockerfile.
+# nginx + njs module from AL2023 core. --releasever latest is required so
+# openssl-libs 3.5.5 is pulled transitively (AL2023 nginx 1.30.3 links
+# against libssl.so.3(OPENSSL_3.5.0); the pinned base ships 3.0.x).
 RUN dnf install -y --releasever latest --allowerasing \
   nginx-${NGINX_VERSION} \
   nginx-mod-njs-${NJS_VERSION} \
@@ -120,11 +102,8 @@ RUN ln -sf $(which python${PYTHON_VERSION}) /usr/local/bin/python \
   && ln -sf $(which pip3) /usr/local/bin/pip
 
 ENV PATH="/opt/venv/bin:${PATH}"
-# Do not expand ${LD_LIBRARY_PATH} — it is unset at this point in the build,
-# so the expansion collapses to a trailing colon which ld.so interprets as
-# "." (current working directory). That is a library-injection surface if any
-# process later cd's into an attacker-controlled path. Nothing prior sets
-# LD_LIBRARY_PATH, so hard-set it here instead.
+# Hard-set (do not expand ${LD_LIBRARY_PATH}) — it is unset here and would
+# collapse to a trailing colon, which ld.so treats as "." (CWD injection).
 ENV LD_LIBRARY_PATH="/usr/local/lib"
 
 # Models dir
@@ -143,8 +122,8 @@ ARG TF_SERVING_VERSION
 ARG TFS_SHORT_VERSION
 ARG PYTHON_VERSION
 
-# SageMaker inference labels — accept-bind-to-port allows pipeline use of
-# SAGEMAKER_BIND_TO_PORT; multi-models=true enables MME loading.
+# SM capability labels: accept-bind-to-port enables SAGEMAKER_BIND_TO_PORT;
+# multi-models=true enables MME loading.
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
@@ -154,16 +133,13 @@ ENV PATH="$PATH:/sagemaker"
 # SageMaker BYOC paths
 RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output
 
-# tensorflow-serving-api — installed inline with --no-deps; see locked
-# decision Q1 in cpu/pyproject.toml header. uv is staged into this stage
-# because /opt/venv is copied out from builder-base but the uv binary is not.
+# tensorflow-serving-api installed with --no-deps (skips the ~600 MB
+# `tensorflow` framework wheel; see cpu/pyproject.toml header).
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache \
   "tensorflow-serving-api==${TF_SERVING_VERSION}"
 
-# SageMaker handler artifacts (TFS toolkit ported in Phase 3 from master TF 2.19
-# build_artifacts/sagemaker/: serve/serve.py, python_service.py, tfs_utils.py,
-# multi_model_utils.py, tensorflowServing.js, nginx.conf.template).
+# SageMaker handler artifacts (TFS toolkit).
 COPY scripts/docker/tensorflow/inference/sagemaker /sagemaker
 
 # Telemetry
@@ -184,7 +160,8 @@ RUN dnf upgrade -y --security --releasever latest \
   && dnf upgrade -y libcurl libcurl-minimal --refresh \
   && dnf clean all
 
-# Telemetry bashrc hook — MUST be after `dnf upgrade --security`.
+# Telemetry bashrc hook — MUST be after `dnf upgrade --security` (upgrade
+# may replace /etc/bashrc and silently wipe any earlier source line).
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
@@ -195,9 +172,8 @@ COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICEN
 COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
-# SM entrypoint — start_cuda_compat.sh is a safe no-op on CPU (the compat .so
-# does not exist), so we ship it for uniformity with the GPU image's entrypoint
-# contract. PR #6107 training Dockerfile.cpu makes the same simplification.
+# SM entrypoint — start_cuda_compat.sh ships for uniformity with GPU
+# (safe no-op on CPU; matches PR #6107 training Dockerfile.cpu).
 COPY scripts/docker/tensorflow/inference/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 COPY scripts/docker/tensorflow/inference/tf_serving_entrypoint.sh /usr/local/bin/tf_serving_entrypoint.sh
 COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
@@ -205,18 +181,12 @@ RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh \
   /usr/local/bin/tf_serving_entrypoint.sh \
   /usr/local/bin/start_cuda_compat.sh
 
-# Compat symlinks — master's canary / ECS / EKS harnesses hardcode
-# /usr/bin/ paths for ``tensorflow_model_server`` and
-# ``tf_serving_entrypoint.sh`` (7 call sites in test/test_utils/). This v2
-# image installs both to /usr/local/bin/, so provide /usr/bin/ symlinks
-# so those hardcoded harness paths keep working the moment this image is
-# promoted past gamma. No behavior change for callers already using
-# /usr/local/bin.
+# Compat symlinks — canary/ECS/EKS harnesses hardcode /usr/bin/ paths.
 RUN ln -s /usr/local/bin/tensorflow_model_server /usr/bin/tensorflow_model_server \
   && ln -s /usr/local/bin/tf_serving_entrypoint.sh /usr/bin/tf_serving_entrypoint.sh
 
-# Build-time smoke check — catches runtime library / config / command drift
-# at build time instead of at endpoint deploy time. See PR #6243 discussion.
+# Build-time smoke check — catches library / config / command drift here
+# rather than at endpoint deploy.
 RUN set -eux \
   # 1. Every nginx dynamic module resolves all shared-lib deps.
   &&  for so in /usr/share/nginx/modules/*.so /usr/lib64/nginx/modules/*.so; do \
@@ -224,7 +194,7 @@ RUN set -eux \
         echo "checking $so"; \
         ldd "$so" | grep -F 'not found' && exit 1; \
       done; true \
-  # 2. nginx config parses with our njs module loaded (module ABI vs nginx version).
+  # 2. nginx config parses with our njs module loaded (module-vs-nginx ABI).
   &&  cp /sagemaker/nginx.conf.template /sagemaker/nginx.conf.smoke \
   &&  sed -i \
         -e 's|%NGINX_LOG_LEVEL%|info|g' \
@@ -238,32 +208,24 @@ RUN set -eux \
         /sagemaker/nginx.conf.smoke \
   &&  nginx -t -c /sagemaker/nginx.conf.smoke \
   &&  rm /sagemaker/nginx.conf.smoke \
-  # 3. Shell commands our handlers invoke at runtime.
+  # 3. Shell commands handlers invoke at runtime.
   &&  for cmd in free nginx python3 pip3 gunicorn tensorflow_model_server; do \
         command -v "$cmd" >/dev/null || { echo "MISSING: $cmd"; exit 1; }; \
       done \
   # 4. Python imports handlers rely on at request time.
   &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests" \
-  # 5. tensorflow_model_server binary resolves all shared-lib deps and
-  #    responds to --version. This is the check that would have caught a
-  #    missing cuDNN / libtensorflow_framework / glibc-ABI regression at
-  #    build time rather than on the first customer request.
-  #    (tensorflow_serving.apis.predict_pb2 is intentionally NOT imported —
-  #    tensorflow-serving-api is installed with --no-deps, so the transitive
-  #    `tensorflow` framework wheel is absent; see commit 112e59a7.)
+  # 5. tensorflow_model_server resolves libs and responds to --version.
+  #    (Do NOT import tensorflow_serving.apis.* — --no-deps means the
+  #    `tensorflow` framework wheel is absent.)
   &&  ldd "$(command -v tensorflow_model_server)" | { ! grep -F 'not found'; } \
   &&  tensorflow_model_server --version
 
-# Final image-size cleanup. `dnf clean all` empties the on-disk repo cache but
-# leaves history/log/cachedir metadata behind (~150-300 MB across all dnf runs
-# in this Dockerfile); scrub them here as the last step so all prior layers
-# still see a valid dnf DB during build.
+# Final size cleanup — `dnf clean all` leaves history/log/cachedir metadata
+# (~150-300 MB). Scrub last so prior layers still see a valid dnf DB.
 RUN rm -rf /tmp/* /root/.cache \
   /var/cache/dnf /var/lib/dnf/history* /var/log/dnf.log*
 
-# Expose ports — SageMaker /invocations and /ping (8080, served by nginx per
-# nginx.conf.template), plus TF Serving native gRPC (8500) and REST (8501).
-# EXPOSE is documentation-only; docker does not port-map without --publish.
+# Ports: 8080 SM /invocations + /ping (nginx), 8500 TFS gRPC, 8501 TFS REST.
 EXPOSE 8080 8500 8501
 
 ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]

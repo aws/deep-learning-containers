@@ -1,18 +1,8 @@
 """Pytest fixtures for TF 2.20 inference integration tests on SageMaker.
 
-Uses the SageMaker Python SDK v3 (``sagemaker>=3.0.0``) — the v2 Estimator /
-Model / Predictor classes were removed in v3 in favor of the unified
-``ModelBuilder`` and the ``sagemaker-core`` resource layer
-(``Endpoint``, ``EndpointConfig``, ``Model``, ``ContainerDefinition``,
-``ProductionVariant``). For these DLC tests we already have a custom
-``image_uri`` and a pre-built ``model.tar.gz``, so the simplest v3 path is
-the resource layer directly: ``Model.create -> EndpointConfig.create ->
-Endpoint.create -> endpoint.invoke()``. ``ModelBuilder`` is the right choice
-when the SDK should auto-detect the framework / container / packaging — for
-us, those are all fixed by the test fixture inputs.
-
-Fixtures intentionally defer all AWS calls until test-execution time so that
-``pytest --collect-only`` works in environments without AWS credentials.
+Uses SageMaker Python SDK v3 resource layer (Model.create -> EndpointConfig ->
+Endpoint -> endpoint.invoke). Fixtures defer AWS calls to test-execution time
+so `pytest --collect-only` works without credentials.
 """
 
 from __future__ import annotations
@@ -48,18 +38,9 @@ def inference_image_uri() -> str:
     return uri
 
 
-# SageMaker instance-type map keyed on the image's device_type (from the config
-# metadata forwarded via SM_DEVICE_TYPE by the reusable workflow). Kept as
-# module-level constants so a test can `import` them for parametrization; the
-# `sm_instance_type` fixture is the normal entry point.
-#
-# GPU is ml.g6.4xlarge to match the CI account's provisioned hosting fleet.
-# ml.g5.xlarge is NOT hosted in this account — CreateEndpoint on it fails with
-# a generic `CannotStartContainerError` and zero container stdout (docker /
-# nvidia-runtime layer, before entrypoint). Verified 2026-07-29: same image
-# on ml.g6.4xlarge reaches InService cleanly. Matches TEI's working GPU
-# sagemaker-test (test/tei/sagemaker/sagemaker_dlc_test.py); other v2
-# frameworks use the same family (vLLM ml.g6.xlarge, openfold3 ml.g6.12xlarge).
+# SM instance-type map keyed on the image's device_type. GPU is ml.g6.4xlarge
+# to match the CI account's provisioned hosting fleet (ml.g5.xlarge is not
+# hosted here and fails CreateEndpoint with CannotStartContainerError).
 _SM_INSTANCE_TYPE_BY_DEVICE = {
     "cpu": "ml.c5.xlarge",
     "gpu": "ml.g6.4xlarge",
@@ -68,31 +49,15 @@ _SM_INSTANCE_TYPE_BY_DEVICE = {
 
 @pytest.fixture(scope="session")
 def sm_instance_type() -> str:
-    """SageMaker endpoint instance type appropriate for the image under test.
-
-    Selected from the ``SM_DEVICE_TYPE`` env var (``cpu``/``gpu``) forwarded
-    from the reusable workflow. Defaults to CPU when the env var is absent so
-    ``pytest`` from a developer laptop keeps working. The GPU mapping
-    (``ml.g6.4xlarge``) is what actually exercises the CUDA image's cuDNN /
-    tensorflow_model_server GPU path end-to-end.
-    """
+    """SM endpoint instance type from SM_DEVICE_TYPE (cpu|gpu)."""
     device = os.environ.get("SM_DEVICE_TYPE", "").lower()
-    assert device in {"cpu", "gpu"}, (
-        f"SM_DEVICE_TYPE must be 'cpu' or 'gpu'; got {device!r}. Workflow "
-        f"forwards this from ci-config's yq of metadata.device_type — a "
-        f"missing config key would print 'null'."
-    )
+    assert device in {"cpu", "gpu"}, f"SM_DEVICE_TYPE must be 'cpu' or 'gpu'; got {device!r}."
     return _SM_INSTANCE_TYPE_BY_DEVICE[device]
 
 
 @pytest.fixture(scope="session")
 def boto_session(aws_region: str):
-    """A boto3 session bound to the configured region.
-
-    Used purely as a transport for ``sagemaker.core.helper.session_helper.Session``
-    and for the underlying ``s3`` client when uploading model artifacts; no
-    SageMaker control-plane calls go through it directly.
-    """
+    """boto3 session bound to the configured region."""
     import boto3
 
     return boto3.Session(region_name=aws_region)
@@ -100,13 +65,7 @@ def boto_session(aws_region: str):
 
 @pytest.fixture(scope="session")
 def sagemaker_session(boto_session):
-    """A SageMaker SDK v3 session.
-
-    ``sagemaker.core.helper.session_helper.Session`` is the v3 replacement for
-    the v2 ``sagemaker.Session``. We use it for ``default_bucket()`` and
-    ``upload_data()``; resource-layer ``create()`` calls accept it via the
-    ``session=`` kwarg.
-    """
+    """SageMaker SDK v3 session (default_bucket / upload_data)."""
     from sagemaker.core.helper.session_helper import Session
 
     return Session(boto_session=boto_session)
@@ -136,34 +95,12 @@ def deploy_endpoint(
     unique_name,
     cleanup_endpoint,
 ):
-    """Deploy a SageMaker endpoint and return a callable that returns the
-    ``Endpoint`` handle plus its name — pair with ``cleanup_endpoint`` for
-    teardown. Wraps the ``Model.create -> EndpointConfig.create ->
-    Endpoint.create -> wait_for_status`` sequence used by every integration
-    test so individual tests stay focused on assertions.
+    """Deploy a SageMaker endpoint; returns (endpoint, endpoint_name, model_name).
 
-    Cleanup registration happens BEFORE the first AWS create call. If any
-    step (``Model.create``, ``EndpointConfig.create``, ``Endpoint.create``,
-    or ``wait_for_status``) raises, the endpoint config / partial endpoint /
-    model that was created still gets torn down at fixture teardown — a
-    ``wait_for_status`` failure does not return to the caller, so a
-    call-site ``cleanup_endpoint(...)`` line would never run and the
-    endpoint would bill until the account was scrubbed. Both this fixture
-    and ``cleanup_endpoint`` are function-scoped, so the injection lifetime
-    matches; cleanup calls at test call sites are redundant no-ops
-    (double-register is safe — teardown swallows NotFound / already-deleted
-    exceptions per resource).
-
-    Usage::
-
-        def test_x(deploy_endpoint):
-            endpoint, endpoint_name, model_name = deploy_endpoint(
-                model_data_url="s3://.../model.tar.gz",  # or an MME prefix
-                mode="SingleModel",                       # or "MultiModel"
-                container_env={"SAGEMAKER_TFS_ENABLE_BATCHING": "true"},
-                name_prefix="tf220-batching",
-            )
-            ...
+    Cleanup is registered BEFORE any AWS create call so a mid-flight failure
+    (Model.create, EndpointConfig.create, Endpoint.create, wait_for_status)
+    still gets torn down — otherwise a wait_for_status raise would skip a
+    call-site cleanup and leak billing.
     """
 
     def _deploy(
@@ -184,9 +121,7 @@ def deploy_endpoint(
         endpoint_name = unique_name(name_prefix)
         model_name = unique_name(f"{name_prefix}-model")
 
-        # Register cleanup BEFORE any AWS mutation so a mid-flight failure
-        # (Model.create, EndpointConfig.create, Endpoint.create, or the
-        # wait_for_status poll) still gets torn down at fixture teardown.
+        # Register cleanup BEFORE any AWS mutation.
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
         container_kwargs = {
@@ -231,20 +166,7 @@ def deploy_endpoint(
 
 @pytest.fixture
 def cleanup_endpoint(boto_session):
-    """Yield-style fixture that tears down endpoint, endpoint config, and model.
-
-    Uses the v3 ``sagemaker-core`` resource layer (``Endpoint.get(...).delete()``,
-    etc.) rather than raw boto3 SDK calls, so cleanup code matches the deploy
-    code in the tests. The ``session=`` kwarg on resource ``get`` / ``create``
-    methods accepts a raw ``boto3.session.Session`` (see
-    ``sagemaker.core.utils.utils.SageMakerClient``); pass ``boto_session``
-    rather than the helper ``Session``.
-
-    Usage:
-        def test_x(cleanup_endpoint, ...):
-            cleanup_endpoint(endpoint_name, model_name=model_name)
-            # ... deploy + predict ...
-    """
+    """Yield-style fixture that tears down endpoint, endpoint config, and model."""
     registered: list[dict] = []
 
     def _register(endpoint_name: str, model_name: str | None = None) -> None:
@@ -259,7 +181,7 @@ def cleanup_endpoint(boto_session):
         endpoint_name = item["endpoint_name"]
         model_name = item["model_name"]
 
-        # Endpoint config name == endpoint name in our deploy flow below.
+        # Endpoint config name == endpoint name in our deploy flow.
         for resource_cls, get_kwargs in (
             (Endpoint, {"endpoint_name": endpoint_name}),
             (EndpointConfig, {"endpoint_config_name": endpoint_name}),

@@ -1,13 +1,7 @@
-"""Customer-supplied inference.py handler test for TF 2.20 inference DLC.
+"""Customer inference.py handler test for TF 2.20 inference DLC.
 
-Deploys a SavedModel packaged with a customer ``code/inference.py`` that
-implements the standard ``input_handler`` + ``output_handler`` contract.
-Asserts both handlers fired end-to-end: the input handler prepends a marker
-sample, and the output handler adds a ``_handler_marker`` key to the response.
-
-Covers audit finding G2 — the #1 customer usage pattern for TF inference,
-uncovered on master TF 2.19 by 5 handler variants, uncovered here by 0
-tests until this file.
+Deploys a SavedModel packaged with a customer code/inference.py implementing
+input_handler + output_handler; asserts both fire end-to-end via markers.
 """
 
 from __future__ import annotations

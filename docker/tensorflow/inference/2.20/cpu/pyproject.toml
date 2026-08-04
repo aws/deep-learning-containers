@@ -3,36 +3,22 @@ name = "tensorflow-serving-inference-dlc-cpu"
 version = "2.20.0"
 requires-python = ">=3.12,<3.13"
 # ──────────────────────────────────────────────────────────────────────────────
-# TF Serving 2.20 CPU AL2023 inference DLC — runtime-base dependencies
+# TF Serving 2.20 CPU AL2023 inference DLC — runtime-base dependencies.
+# The TFS binary is COPYed from tensorflow/serving:2.20.0-devel; the
+# tensorflow-serving-api wheel is the matched gRPC stub used by python_service.
 #
-# The TF Serving binary itself is NOT installed via pip — it is COPYed out of
-# tensorflow/serving:2.20.0-devel in the Dockerfile. The `tensorflow-serving-api`
-# wheel is the matched gRPC stub (used by python_service.py to call the local
-# serving binary on port 8500).
-#
-# IMPORTANT:
-#   `tensorflow-serving-api==2.20.0` is INTENTIONALLY OMITTED from this
-#   `dependencies` list. The PyPI wheel declares a hard `tensorflow` runtime
-#   dep (~600 MB framework wheel) which we do not want in an inference image.
-#   uv's resolver does not support per-package `--no-deps`, so the wheel is
-#   instead installed inline in the Dockerfile via:
-#       uv pip install --no-deps tensorflow-serving-api==2.20.0
-#   The transitive runtime needs of tfs-api (numpy, protobuf, grpcio) are
-#   declared explicitly below so a coherent venv is locked. OSS license
-#   tracking still picks up tfs-api at compliance-scan time because the
-#   wheel is physically present in the image.
-#
-# Source for this dep list: master TF 2.19 inference Dockerfile.cpu
-# (RUN pip install blocks), translated to uv/pyproject form per PR #6107
-# pattern.
+# tensorflow-serving-api is intentionally OMITTED here — the PyPI wheel pulls
+# the ~600 MB tensorflow framework wheel, which we do not want in an inference
+# image. It is installed inline in the Dockerfile with --no-deps. Its
+# transitive runtime deps (numpy/protobuf/grpcio) are pinned explicitly below.
 # ──────────────────────────────────────────────────────────────────────────────
 dependencies = [
-    # ── tfs-api transitive runtime needs (explicit pins; see header note) ─────
+    # tfs-api transitive runtime deps (see header).
     "numpy==1.26.4",
     "protobuf>=3.20,<7",
     "grpcio>=1.0",
 
-    # ── AWS / network / common utilities (carried over from master 2.19) ─────
+    # AWS / network / common utilities.
     "awscli<2",
     "boto3",
     "botocore",
@@ -40,32 +26,24 @@ dependencies = [
     "packaging",
     "gevent",
 
-    # ── Falcon-based SM handler stack ─────────────────────────────────────────
-    # falcon 3.1.0 is the last version supporting the shipped handler API
-    # surface.
+    # Falcon SM handler stack. falcon 3.1.0 is the last version compatible
+    # with the shipped handler API surface.
     "falcon==3.1.0",
     "gunicorn>=22.0.0",
 
-    # ── Compat / security pins inherited from training PR #6107 ───────────────
+    # Compat / security pins.
     "cython<3",
-    # aiohttp>=3.14.3 — bumped from 3.14.0 for CVE-2026-69244 (HIGH,
-    # out-of-bounds heap read in the C response parser). Original pin
-    # rationale: CVE-2026-34993 + CVE-2026-47265. Pulled transitively.
+    # aiohttp>=3.14.3 — CVE-2026-69244 (HIGH) OOB heap read in the C parser.
     "aiohttp>=3.14.3",
-    # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 (HIGH, quadratic-time
-    # decoding + big-integer exponentiation DoS). Direct pin forces resolver
-    # to the patched line. Mirrors TF 2.21 training pin.
+    # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 DoS pins.
     "pyasn1>=0.6.4",
     "urllib3",
 ]
 
 [project.optional-dependencies]
 sagemaker = [
-    # See cuda/pyproject.toml for rationale on each entry; CPU mirrors CUDA
-    # for SM-stage deps. `sagemaker-tensorflow-serving-container` is NOT on
-    # PyPI; the `sagemaker` SDK is intentionally omitted to avoid pulling
-    # torch + nvidia-* into an inference image. Handler scripts use boto3
-    # directly (matches master TF 2.19 inference behavior).
+    # SM-stage lightweight data tooling. `sagemaker` SDK is intentionally
+    # omitted (would pull torch + nvidia-* into an inference image).
     "pandas",
     "scikit-learn",
     "cloudpickle",

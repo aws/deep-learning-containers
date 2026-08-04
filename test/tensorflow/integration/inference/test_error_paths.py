@@ -1,19 +1,8 @@
 """Error-path integration tests for TF 2.20 inference DLC.
 
-Verifies the endpoint returns useful 4xx/5xx responses for malformed or
-unsupported client input rather than hanging, crashing, or leaking nginx
-default error pages. Covers audit finding G3.
-
-SageMaker Runtime surfaces non-2xx container responses via a botocore
-``ClientError`` (subclasses ``ModelError`` / ``ValidationError``). The error
-carries the container's response body in ``err.response['Body']`` (bytes
-or ``StreamingBody``) and the HTTP status in
-``err.response['ResponseMetadata']['HTTPStatusCode']``.
-
-Deploys a single endpoint and drives all error scenarios through it as a
-single parametrized test — SageMaker endpoint provisioning is the dominant
-cost (~5 min), so amortizing across scenarios matters. All scenarios are
-read-only on server state, so sharing is safe.
+Verifies the endpoint returns useful 4xx/5xx for malformed input rather than
+hanging or leaking nginx HTML. Drives all scenarios through one endpoint
+(scenarios are read-only; SM endpoint provisioning dominates cost).
 """
 
 from __future__ import annotations
@@ -53,8 +42,7 @@ ERROR_SCENARIOS = [
         "wrong-tensor-shape",
         json.dumps({"instances": "not_a_list_of_lists"}).encode("utf-8"),
         "application/json",
-        # Response must not leak a raw nginx HTML 500 page — customers rely
-        # on the JSON error string for debugging.
+        # Must not leak a raw nginx HTML 500 page.
         lambda body: "<html" not in body.lower(),
     ),
 ]
@@ -79,13 +67,7 @@ def test_error_scenarios_return_useful_4xx_or_5xx(
     unique_name,
     cleanup_endpoint,
 ):
-    """Single endpoint deploy, drive all error scenarios against it.
-
-    Loops over ``ERROR_SCENARIOS`` and asserts each one. Not parametrized
-    across pytest cases because parametrizing would force per-case fixture
-    re-invocation and either re-deploy or violate fixture-scope rules; a
-    plain loop is the simplest way to share the endpoint safely.
-    """
+    """Single endpoint deploy, drive all error scenarios via a loop."""
     with tempfile.TemporaryDirectory(prefix="tf220-errors-") as workdir:
         tar_path = build_sample_model(output_dir=workdir, multiplier=2.0)
         model_data = upload_tarball(
@@ -114,18 +96,13 @@ def test_error_scenarios_return_useful_4xx_or_5xx(
                     continue
                 if extra_check is not None:
                     response_body = _body(excinfo.value)
-                    # Empty bodies are fine — SageMaker Runtime sometimes
-                    # returns just a status with no container body attached.
-                    # The extra_check exists to guard against actively-bad
-                    # bodies (e.g. raw nginx HTML pages), not to require
-                    # a body at all.
+                    # Empty bodies are OK (SM sometimes strips them).
                     if response_body and not extra_check(response_body):
                         failures.append(
                             f"[{scenario_id}] body failed extra check: {response_body[:200]!r}"
                         )
             except pytest.fail.Exception as e:  # noqa: PERF203
-                # pytest.raises didn't raise → the endpoint accepted a
-                # payload it should have rejected. That's a real bug.
+                # Endpoint accepted a payload it should have rejected.
                 failures.append(f"[{scenario_id}] endpoint accepted bad input: {e}")
 
         assert not failures, "error-path scenarios failed:\n  " + "\n  ".join(failures)

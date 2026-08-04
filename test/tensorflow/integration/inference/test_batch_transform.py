@@ -1,17 +1,7 @@
 """SageMaker Batch Transform integration test for TF 2.20 inference DLC.
 
-Runs a batch transform job against the DLC image: upload input JSON objects
-to S3, create a Model + TransformJob, wait for completion, download the
-output objects and assert the multiplier was applied.
-
-Batch transform reuses the exact same handler stack as real-time endpoints
-(nginx + gunicorn + python_service.py + tensorflow_model_server), so this
-test's primary value is exercising the SageMaker-side ``CreateTransformJob``
-wiring and the DLC's request-per-file behaviour — a code path the
-real-time single-model / MME tests do not touch.
-
-Covers audit finding "batch transform" — master TF 2.19 had
-``test_batch_transform`` on the local test tier that this PR does not port.
+Exercises the CreateTransformJob wire contract and the DLC's request-per-file
+behaviour — a code path that the real-time single-model/MME tests don't touch.
 """
 
 from __future__ import annotations
@@ -26,11 +16,8 @@ import pytest
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
 
-# Batch transform always runs on CPU regardless of the image's device type:
-# (1) the DLC handler request path is device-agnostic, so we get the same
-# CreateTransformJob wire-contract coverage; (2) TransformJob GPU instance
-# quotas are 0 by default in CI accounts (ResourceLimitExceeded), and this
-# test is about the batch-job pipeline, not GPU inference throughput.
+# Always CPU — CreateTransformJob wire is device-agnostic, and CI accounts
+# have zero TransformJob GPU quota by default.
 BATCH_TRANSFORM_INSTANCE_TYPE = "ml.c5.xlarge"
 
 
@@ -41,9 +28,7 @@ def test_batch_transform_json(
     inference_image_uri,
     unique_name,
 ):
-    """End-to-end batch transform on JSON inputs. Uploads 3 single-record
-    JSON files, runs the job, then downloads and verifies each output file
-    contains predictions matching ``input * 2.0``."""
+    """End-to-end batch transform on JSON: 3 single-record files, verify 2x output."""
     # Late imports so pytest --collect-only works without the SDK.
     from sagemaker.core.resources import (
         ContainerDefinition,
@@ -72,8 +57,7 @@ def test_batch_transform_json(
             key_prefix=f"tf220-inference-tests/batch/{run_id}/model",
         )
 
-        # 2. Write 3 input files (one JSON body per file — the simplest
-        #    batch split strategy: SplitType=None, one request per S3 object).
+        # 2. Write 3 input files — one JSON body per file (SplitType=None).
         input_dir = workdir_path / "input"
         input_dir.mkdir()
         for i, row in enumerate([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]):
@@ -100,10 +84,7 @@ def test_batch_transform_json(
         )
 
         try:
-            # 4. Kick off the transform job. TransformJob is a batch/async
-            #    resource and the SDK v3 does not expose a `wait_for_status`
-            #    helper on it (unlike Endpoint), so we poll `refresh()` until
-            #    the job leaves the pending/in-progress states.
+            # 4. TransformJob has no wait_for_status in SDK v3 — poll refresh().
             job = TransformJob.create(
                 transform_job_name=job_name,
                 model_name=model_name,
@@ -172,8 +153,7 @@ def test_batch_transform_json(
                     f"{filename}: got {values!r}, expected {expected_by_input[filename]!r}"
                 )
         finally:
-            # Best-effort cleanup — TransformJob is a completed record, only
-            # model needs deletion; output S3 objects survive by design.
+            # Best-effort model cleanup; TransformJob is a completed record.
             try:
                 Model.get(model_name=model_name, session=boto_session).delete()
             except Exception:

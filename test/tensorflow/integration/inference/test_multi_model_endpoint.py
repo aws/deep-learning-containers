@@ -1,17 +1,7 @@
 """Multi-model endpoint (MME) integration test for TF 2.20 inference DLC.
 
-Builds two tiny SavedModels (``y = 2x`` and ``y = 3x``), uploads both to a
-shared S3 prefix, deploys a SageMaker MME backed by the v2 inference image,
-and asserts that ``target_model`` routes invocations correctly.
-
-Uses the SageMaker Python SDK v3 ``sagemaker-core`` resource layer — v3
-removed ``sagemaker.multidatamodel.MultiDataModel``. The native MME wire
-contract (``ContainerDefinition.mode = "MultiModel"``,
-``model_data_url = s3://bucket/prefix/``, plus the
-``X-Amzn-SageMaker-Target-Model`` header on invoke) is unchanged, so we
-express it directly: ``Model.create`` with ``mode="MultiModel"`` and an S3
-prefix in ``model_data_url``, then ``endpoint.invoke(target_model=...)``
-which sets the runtime header for us.
+Builds two tiny SavedModels (y=2x, y=3x), uploads to a shared S3 prefix,
+deploys an MME, and asserts target_model routes invocations correctly.
 """
 
 from __future__ import annotations
@@ -54,8 +44,7 @@ def test_mme_two_models(
     with tempfile.TemporaryDirectory(prefix="tf220-mme-") as workdir:
         workdir_path = Path(workdir)
 
-        # Build two models with different multipliers, each in its own subdir
-        # so build_sample_model doesn't collide on the SavedModel layout.
+        # Two models with different multipliers, each in its own subdir.
         model1_dir = workdir_path / "m1"
         model2_dir = workdir_path / "m2"
         model1_tar = build_sample_model(
@@ -69,8 +58,7 @@ def test_mme_two_models(
         run_id = unique_name("mme")
         s3_key_prefix = f"tf220-inference-tests/mme-models/{run_id}"
 
-        # Upload each tarball under the shared MME prefix so the runtime can
-        # resolve target_model relative to the same S3 location.
+        # Upload both under the shared MME prefix.
         sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
         sagemaker_session.upload_data(path=model2_tar, bucket=bucket, key_prefix=s3_key_prefix)
         s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
@@ -79,9 +67,7 @@ def test_mme_two_models(
         model_name = unique_name("tf220-mme-model")
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
-        # 1. Create a multi-model SageMaker Model. The MME contract is
-        #    expressed at the container definition level: mode="MultiModel"
-        #    plus an S3 *prefix* (not a single tar) in model_data_url.
+        # 1. Multi-model SM Model: mode="MultiModel" + S3 prefix in model_data_url.
         Model.create(
             model_name=model_name,
             primary_container=ContainerDefinition(
@@ -93,7 +79,7 @@ def test_mme_two_models(
             session=boto_session,
         )
 
-        # 2. Endpoint config + endpoint — same shape as single-model.
+        # 2. Endpoint config + endpoint.
         EndpointConfig.create(
             endpoint_config_name=endpoint_name,
             production_variants=[
@@ -116,9 +102,7 @@ def test_mme_two_models(
 
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
 
-        # 3. Invoke each model by name. ``target_model`` maps to the
-        #    X-Amzn-SageMaker-Target-Model header that selects the tarball
-        #    within the MME's S3 prefix.
+        # 3. Invoke each by name (target_model -> X-Amzn-SageMaker-Target-Model).
         resp1 = endpoint.invoke(
             body=payload,
             content_type="application/json",

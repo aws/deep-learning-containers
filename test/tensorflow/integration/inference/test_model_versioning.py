@@ -1,16 +1,8 @@
 """Model-versioning test for TF 2.20 inference DLC.
 
-Verifies TensorFlow Serving picks the highest numeric version directory
-when a model tarball contains multiple ``<version>/saved_model.pb`` layouts.
-This is the standard TFS behaviour customers rely on when they publish a
-new model version alongside an older one.
-
-Covers audit finding G7 — enabled by ``build_sample_model(versions=(1, 2))``
-added in the earlier shortlist pass. Both versions carry the *same*
-multiplier so the correctness check does not depend on TFS picking a
-specific one; the test guards against tarball-layout regressions in
-``build_sample_model`` (e.g. losing a version dir) and TFS-side crashes on
-multi-version tarballs (would have surfaced 5xx at endpoint deploy).
+Verifies TFS picks the highest numeric version when a tarball contains
+multiple <version>/saved_model.pb layouts. Both versions use the same
+multiplier so the check doesn't depend on TFS picking a specific one.
 """
 
 from __future__ import annotations
@@ -31,8 +23,7 @@ def test_two_version_saved_model(
     cleanup_endpoint,
 ):
     with tempfile.TemporaryDirectory(prefix="tf220-versions-") as workdir:
-        # versions=(1, 2) writes SavedModels under 1/ and 2/ and archives
-        # both into the tarball; TFS picks version 2 by default.
+        # versions=(1, 2) writes both under 1/ and 2/; TFS picks version 2.
         tar_path = build_sample_model(
             output_dir=workdir,
             multiplier=2.0,

@@ -181,11 +181,8 @@ class PythonServiceResource:
                     model_name, model_index
                 )
                 if self._tfs_enable_batching:
-                    # B-4 fix: mirror the tfs_config_file makedirs above.
-                    # create_batching_config does a bare open() with no
-                    # directory creation; without this, MME + batching
-                    # fails FileNotFoundError -> HTTP 500 on every POST
-                    # /models. Inherited from master.
+                    # create_batching_config opens the file without mkdir;
+                    # missing dir -> FileNotFoundError -> HTTP 500 on POST /models.
                     os.makedirs(os.path.dirname(batching_config_file), exist_ok=True)
                     tfs_utils.create_batching_config(batching_config_file)
 
@@ -285,12 +282,7 @@ class PythonServiceResource:
         )
 
     def _reject_bad_model_name(self, res, model_name):
-        """Return True and write a 400 response if model_name is unsafe.
-
-        Called from every route that accepts model_name as a path/body
-        parameter: on_post (load), on_get, on_delete. Kept static-friendly
-        so future call sites (docs, admin verbs) don't have to reimplement.
-        """
+        """Return True and write a 400 response if model_name is unsafe."""
         if self._is_bad_model_name(model_name):
             res.status = falcon.HTTP_400
             res.body = json.dumps({"error": "invalid model_name: {!r}".format(model_name)}).encode(
@@ -304,12 +296,9 @@ class PythonServiceResource:
             model_name = data["model_name"]
             base_path = data["url"]
 
-            # Defence-in-depth: model_name flows into filesystem paths
-            # (/sagemaker/tfs-config/{model_name}/... and
-            # /opt/ml/models/{model_name}/...). The SM MME data-plane is the
-            # trust boundary in front of us, but reject obvious traversal
-            # attempts (/, .., NUL) here so a misconfigured upstream can't
-            # write outside the tfs-config tree or shutil.rmtree a parent.
+            # Defence-in-depth: model_name flows into filesystem paths under
+            # /sagemaker/tfs-config and /opt/ml/models. Reject obvious traversal
+            # attempts (/, .., NUL) so a misconfigured upstream can't escape.
             if self._reject_bad_model_name(res, model_name):
                 return
 
@@ -531,13 +520,8 @@ class PythonServiceResource:
                         {"error": "Model {} is not loaded yet.".format(model_name)}
                     ).encode("utf-8")
                 else:
-                    # _mme_tfs_instances_status[model_name] is a list of
-                    # TfsInstanceStatus (see the list append inside
-                    # `_load_model`). Pick the first instance's rest_port —
-                    # the same list-indexing pattern used in
-                    # `_handle_invocation_post` for `.pid`. Bug in master TF
-                    # 2.19: `.rest_port` on the raw list raised
-                    # AttributeError → 500 from GET /models/{name}.
+                    # Value is a list of TfsInstanceStatus (see _load_model);
+                    # pick the first instance's rest_port.
                     port = self._mme_tfs_instances_status[model_name][0].rest_port
                     uri = "http://localhost:{}/v1/models/{}".format(port, model_name)
                     try:

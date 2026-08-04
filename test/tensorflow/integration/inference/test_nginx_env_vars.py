@@ -1,22 +1,9 @@
 """nginx / gunicorn env-var configuration test for TF 2.20 inference DLC.
 
-Customers tune the serving stack via a documented set of env vars that
-``serve.py`` and ``nginx.conf.template`` consume:
-
-  * ``SAGEMAKER_TFS_NGINX_LOGLEVEL``    (nginx error_log severity)
-  * ``SAGEMAKER_GUNICORN_WORKERS``       (gunicorn worker count)
-  * ``SAGEMAKER_GUNICORN_THREADS``       (gunicorn threads per worker)
-  * ``SAGEMAKER_GUNICORN_LOGLEVEL``      (gunicorn log severity)
-
-Master TF 2.19 had 3 dedicated nginx-config tests (``test_nginx_config*``)
-that spawned the container locally and grepped the generated conf. Since
-we can't ``docker exec`` into a SageMaker managed endpoint, the strongest
-end-to-end assertion is that the endpoint still deploys and serves
-predictions correctly under the tuned config — i.e. the template
-substitution and gunicorn spawn logic accepts these values without
-crashing.
-
-Covers audit finding G8.
+Deploys with non-default SAGEMAKER_TFS_NGINX_LOGLEVEL /
+SAGEMAKER_GUNICORN_{WORKERS,THREADS,LOGLEVEL} and asserts endpoint still
+serves predictions — proves template substitution + gunicorn spawn accept
+these values without crashing.
 """
 
 from __future__ import annotations
@@ -36,17 +23,10 @@ def test_nginx_and_gunicorn_env_tuning(
     unique_name,
     cleanup_endpoint,
 ):
-    """Deploy with non-default nginx/gunicorn tuning env vars — endpoint
-    must reach InService and return correct predictions. A template
-    substitution bug or a bad worker/thread combo would surface as a 5xx
-    at endpoint deploy time (nginx -t fails, gunicorn refuses to start,
-    etc.).
+    """Deploy with non-default nginx/gunicorn env vars — must serve correctly.
 
-    Ships a customer ``inference.py`` under ``code/`` so the serving stack
-    actually runs gunicorn (``_use_gunicorn = True`` in ``serve.py``).
-    Without a customer handler the SAGEMAKER_GUNICORN_* env vars would be
-    inert — the request would go straight through nginx to TFS and the
-    three gunicorn tuning vars in this test would not be exercised.
+    Ships a customer inference.py so `_use_gunicorn=True` in serve.py, else
+    requests bypass gunicorn and the tuning vars would be inert.
     """
     with tempfile.TemporaryDirectory(prefix="tf220-nginx-env-") as workdir:
         tar_path = build_sample_model(
@@ -63,8 +43,7 @@ def test_nginx_and_gunicorn_env_tuning(
             model_data_url=model_data,
             name_prefix="tf220-nginx-env",
             container_env={
-                # Non-default values in a range that the DLC handler must
-                # accept. Values chosen small enough to fit on ml.c5.xlarge.
+                # Small non-default values, fits on ml.c5.xlarge.
                 "SAGEMAKER_TFS_NGINX_LOGLEVEL": "warn",
                 "SAGEMAKER_GUNICORN_WORKERS": "2",
                 "SAGEMAKER_GUNICORN_THREADS": "2",
@@ -81,19 +60,14 @@ def test_nginx_and_gunicorn_env_tuning(
         )
         body = json.loads(result.body.read().decode("utf-8"))
 
-        # Gunicorn-served marker — CUSTOM_INFERENCE_PY's output_handler wraps
-        # the TFS response with a ``_handler_marker`` key. Its presence
-        # proves the gunicorn worker actually loaded the customer handler
-        # under the tuned SAGEMAKER_GUNICORN_* env vars (a template
-        # substitution or worker-spawn regression would fail before this
-        # key ever appears).
+        # Presence of the marker proves the gunicorn worker loaded the
+        # customer handler under the tuned env vars.
         assert body.get("_handler_marker") == "input_output_ok", (
             f"gunicorn-served output_handler marker missing — env-tuned "
             f"gunicorn worker did not load customer inference.py. body: {body!r}"
         )
 
-        # Customer handler prepends 1 marker row → 2 rows returned (marker + 1
-        # customer). Multiplier 2 on customer row [1, 2, 3] → [2, 4, 6].
+        # Handler prepends 1 marker row => 2 total rows; customer row 2x.
         predictions = body["predictions"]
         assert len(predictions) == 2, (
             f"expected 2 predictions (1 marker + 1 customer), got {len(predictions)}: "

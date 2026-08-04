@@ -1,20 +1,9 @@
 """MME dynamic load / miss-path tests for TF 2.20 inference DLC.
 
-Extends ``test_multi_model_endpoint.py`` (which covers happy-path
-target_model routing across 2 pre-uploaded models) with two scenarios the
-existing test does not exercise:
-
-  1. Target-model miss: invoke with a ``target_model`` that does not exist
-     in the MME's S3 prefix — SageMaker Runtime must surface a 4xx (typically
-     ``ValidationError`` / ``ModelError`` from the DLC handler), not a hang.
-  2. Late-add dynamic load: upload a third tarball to the MME's S3 prefix
-     AFTER the endpoint is InService, then invoke it — MME must load the new
-     model on first reference (proves the ``_handle_load_model_post`` path
-     in ``python_service.py`` really works end-to-end, not just from the
-     initial ``target_model`` set).
-
-Covers audit finding G5 (partial — master TF 2.19 had 8 API tests; these
-are the two highest-value cases).
+Extends test_multi_model_endpoint.py with two scenarios:
+  1. Target-model miss — must return 4xx, not hang.
+  2. Late-add dynamic load — upload a model to the MME prefix after
+     the endpoint is InService, then invoke it.
 """
 
 from __future__ import annotations
@@ -78,9 +67,7 @@ def test_mme_late_dynamic_load(
     unique_name,
     cleanup_endpoint,
 ):
-    """Deploy MME with one model, upload a second AFTER the endpoint is
-    InService, then invoke it — MME must dynamically load the newcomer on
-    first reference."""
+    """Deploy MME with one model, upload a second after InService, invoke it."""
     with tempfile.TemporaryDirectory(prefix="tf220-mme-late-") as workdir:
         workdir_path = Path(workdir)
         model1_tar = build_sample_model(
@@ -110,8 +97,7 @@ def test_mme_late_dynamic_load(
         )
         assert read_predictions(r1) == pytest.approx([2.0, 4.0, 6.0])
 
-        # Now upload a second model to the SAME S3 prefix while the endpoint
-        # is running. MME must pick it up on first invocation.
+        # Upload a second model to the same S3 prefix while endpoint is running.
         model2_tar = build_sample_model(
             output_dir=workdir_path / "m2",
             multiplier=3.0,
