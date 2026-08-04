@@ -134,61 +134,6 @@ def build_conv_sample_model(
     return _package_saved_model_tarball(output_dir, version, tar_filename)
 
 
-def _build_lstm_sequential():
-    """Return a tiny LSTM Sequential model (units=1, deterministic init).
-
-    Input(3, 2) -> LSTM(1, kernel=1, recurrent=1, bias=0). Constant weights
-    make the forward pass deterministic — the same input on CPU and GPU
-    yields the same output — so a cuDNN RNN regression (NaN, zero, or
-    non-deterministic dispatch) is distinguishable at test time.
-
-    LSTM is chosen over SimpleRNN because TF's cuDNN RNN dispatch fires
-    specifically for LSTM / GRU with default (tanh + sigmoid) activations.
-    """
-    import tensorflow as tf
-
-    kernel_ones = tf.keras.initializers.Constant(1.0)
-    bias_zeros = tf.keras.initializers.Constant(0.0)
-
-    return tf.keras.Sequential(
-        [
-            tf.keras.layers.Input(shape=(3, 2), dtype=tf.float32),
-            tf.keras.layers.LSTM(
-                units=1,
-                kernel_initializer=kernel_ones,
-                recurrent_initializer=kernel_ones,
-                bias_initializer=bias_zeros,
-            ),
-        ]
-    )
-
-
-def build_lstm_sample_model(
-    output_dir: str | os.PathLike | None = None,
-    tar_filename: str = "model.tar.gz",
-    version: int = 1,
-) -> str:
-    """Build a tiny LSTM SavedModel via Keras 3 ``model.export()``.
-
-    On GPU, TFS routes LSTM through cuDNN's RNN library (libcudnn_adv.so.9).
-    Sanity tests assert the library file is present but no request exercises
-    the RNN kernel until this. Constant-initialized weights + all-ones input
-    give a deterministic output, so a regression in cuDNN RNN dispatch
-    (NaN, zero, or run-to-run variance) is distinguishable.
-    """
-    output_dir = Path(output_dir) if output_dir else Path(tempfile.mkdtemp(prefix="tf220-lstm-"))
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    saved_model_dir = output_dir / str(version)
-    saved_model_dir.mkdir(parents=True, exist_ok=True)
-
-    model = _build_lstm_sequential()
-    # Keras 3 dedicated SavedModel writer.
-    model.export(str(saved_model_dir))
-
-    return _package_saved_model_tarball(output_dir, version, tar_filename)
-
-
 if __name__ == "__main__":
     path = build_sample_model()
     print(path)
