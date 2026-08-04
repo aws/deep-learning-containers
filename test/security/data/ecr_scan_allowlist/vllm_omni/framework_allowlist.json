@@ -1,83 +1,13 @@
 [
     {
-        "vulnerability_id": "CVE-2025-68121",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-25679",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-32280",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2025-61726",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-32283",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33186",
-        "reason": "google.golang.org/grpc in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-32281",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33811",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-39820",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-42499",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-39836",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-33814",
-        "reason": "go/stdlib + golang.org/x/net in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-39821",
-        "reason": "golang.org/x/net in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
         "vulnerability_id": "CVE-2026-42504",
         "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
         "review_by": "2026-08-25"
     },
     {
         "vulnerability_id": "CVE-2026-27145",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
-    },
-    {
-        "vulnerability_id": "RUSTSEC-2026-0185",
-        "reason": "quinn-proto in uv binary, upstream uv has not released a fix yet",
-        "review_by": "2026-09-25"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, unpatchable without mooncake rebuild with Go 1.26.4+",
+        "review_by": "2026-09-10"
     },
     {
         "vulnerability_id": "CVE-2026-53923",
@@ -100,8 +30,38 @@
         "review_by": "2026-09-25"
     },
     {
-        "vulnerability_id": "CVE-2026-27145",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, unpatchable without mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-09-10"
+        "vulnerability_id": "CVE-2026-39822",
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, os.Root symlink traversal, unpatchable without mooncake rebuild with Go 1.26.5+",
+        "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46600",
+        "reason": "golang.org/x/net in mooncake/libetcd_wrapper.so, SVCB/HTTPS RR parse panic, unpatchable without mooncake rebuild with golang.org/x/net>=0.56.0",
+        "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54234",
+        "reason": "vllm rejection sampler out-of-bounds via speculative decoding, fix requires vllm>=0.24.0, image pinned to 0.21.0rc1+amzn2023",
+        "review_by": "2027-01-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-55574",
+        "reason": "vllm structured_outputs.regex ReDoS, fix requires vllm>=0.24.0, image pinned to 0.21.0rc1+amzn2023",
+        "review_by": "2027-01-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56852",
+        "reason": "golang.org/x/text in mooncake/libetcd_wrapper.so, norm.Iter infinite loop on invalid UTF-8, unpatchable without mooncake rebuild with golang.org/x/text>=0.39.0",
+        "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "GHSA-hrxh-6v49-42gf",
+        "reason": "google.golang.org/grpc in mooncake/libetcd_wrapper.so, xDS RBAC engine vulnerabilities, unpatchable without mooncake rebuild with grpc-go>=1.82.1",
+        "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0195",
+        "reason": "quick-xml vendored in uv binary, unbounded namespace allocation DoS, fixed in uv>=0.11.32 (Cargo.lock quick-xml 0.41.0); auto-resolves on next image rebuild via curl|sh unpinned install — prune once next scan is clean",
+        "review_by": "2026-10-22"
     }
 ]

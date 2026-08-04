@@ -2,7 +2,7 @@ ARG CUDA_VERSION=13.0.2
 # Short CUDA tag — also the docker/base/<dir> name (cu129, cu130, ...)
 ARG CUDA_VERSION_SHORT=cu130
 # uv release to copy the binary from (pinned via the config build: block)
-ARG UV_VERSION=0.11.17
+ARG UV_VERSION=0.11.33
 
 # ============================================================
 # uv binary source (pinned)

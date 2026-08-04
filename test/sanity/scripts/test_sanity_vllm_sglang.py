@@ -141,14 +141,23 @@ class TestEntrypointArgHandling(unittest.TestCase):
         """Run entrypoint in dry-run mode and capture the generated args."""
         with open(self.SAGEMAKER_ENTRYPOINT) as f:
             script = f.read()
+        # \s* matters: an entrypoint may guard the exec inside an if-block (the
+        # huggingface-vllm one prefers standard-supervisor when present), and an
+        # unreplaced exec launches the real server instead of dry-running.
         script = re.sub(
-            r"^exec\s+(standard-supervisor\s+)?python3\s+.*$",
+            r"^\s*exec\s+(standard-supervisor\s+)?python3\s+.*$",
             'echo "__ARGS__${ARGS[@]}__END__"',
             script,
             flags=re.MULTILINE,
         )
-        # Also suppress start_cuda_compat.sh if present
-        script = script.replace("bash /usr/local/bin/start_cuda_compat.sh", "true")
+        # Also suppress start_cuda_compat.sh if present, sourced or executed: it
+        # shells out to nvidia-smi, which is slow on a GPU-less sanity runner.
+        script = re.sub(
+            r"^\s*(bash|source|\.)\s+\S*start_cuda_compat\.sh.*$",
+            "true",
+            script,
+            flags=re.MULTILINE,
+        )
 
         env = {k: v for k, v in os.environ.items()}
         # Clear any existing SM_VLLM_ / SM_SGLANG_ vars
@@ -281,6 +290,65 @@ class TestPackageVersionConsistency(unittest.TestCase):
         self.assertTrue(
             actual.startswith(expected_mm),
             f"Framework version {actual} doesn't match expected {expected_mm}",
+        )
+
+    def test_server_entrypoint_imports(self):
+        """vLLM server entrypoint module must import cleanly.
+
+        Startup guard: the vLLM process imports this module under supervisord,
+        so anything that throws here crash-loops the container and fails the
+        /ping health check. vLLM 0.25.1 defers the torchcodec import to runtime
+        (PR vllm-project/vllm#47888), so this no longer catches a missing FFmpeg
+        runtime by itself — test_torchcodec_video_backend_loads covers that. It
+        still catches any import-time regression (e.g. a future re-eager import).
+        """
+        try:
+            import vllm  # noqa: F401
+        except ImportError:
+            self.skipTest("vllm not installed (sglang image)")
+        result = subprocess.run(
+            [sys.executable, "-c", "import vllm.entrypoints.openai.api_server"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"Importing vLLM server entrypoint failed:\n{result.stderr}",
+        )
+
+    def test_torchcodec_video_backend_loads(self):
+        """torchcodec's video backend must load its FFmpeg-backed native lib.
+
+        Reproduces the report's failing chain: `from torchcodec.decoders import
+        VideoDecoder` dlopen's libtorchcodec_core*.so, which links
+        libavutil.so.* (and siblings). Only images that ship an FFmpeg runtime
+        are expected to satisfy this — the huggingface-vllm image builds FFmpeg
+        from source; base vLLM / SGLang images bundle torchcodec without FFmpeg
+        and are skipped. If ffmpeg is present but not built with --enable-shared
+        / registered via ldconfig, the shared libs are absent and this raises.
+        vLLM 0.25.1 makes the import lazy, so the failure moves from container
+        start to the first actual video decode — this guards that runtime path.
+        """
+        import shutil
+
+        if not shutil.which("ffmpeg"):
+            self.skipTest("image ships no ffmpeg runtime (video backend N/A)")
+        try:
+            import torchcodec  # noqa: F401
+        except ImportError:
+            self.skipTest("torchcodec not installed")
+        result = subprocess.run(
+            [sys.executable, "-c", "from torchcodec.decoders import VideoDecoder"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"torchcodec failed to load its FFmpeg runtime:\n{result.stderr}",
         )
 
     def test_python_version(self):

@@ -103,5 +103,30 @@
         "vulnerability_id": "CVE-2026-27145",
         "reason": "go/stdlib 1.24.11 embedded in mooncake libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
         "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39822",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-09-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56852",
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-10-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46600",
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-10-25"
+    },
+    {
+        "vulnerability_id": "GHSA-hrxh-6v49-42gf",
+        "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-10-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "torch 2.9.1 is only a version pin in the upstream vllm base image's benchmarks/requirements.txt (benchmark metadata), not the installed package. weights_only unpickler RCE requires loading a malicious checkpoint; the benchmark requirements file is inert. Not exploitable in the runtime.",
+        "review_by": "2026-09-25"
     }
 ]

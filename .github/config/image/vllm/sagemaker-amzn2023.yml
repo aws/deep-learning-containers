@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "vllm_server"
-  framework_version: "0.24.0"
+  framework_version: "0.26.0"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -18,11 +18,11 @@ build:
   target: "vllm-sagemaker-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  vllm_ref: "7b3d595eb197d714052ce296cc8b124f0dc8af31"
-  flashinfer_version: "0.6.12"
-  deepep_commit_hash: "73b6ea4"
+  vllm_ref: "d223c900d85224c02f2162ee2c757a769e99f519"
+  flashinfer_version: "0.6.15.post1"
+  deepep_commit_hash: "d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb"
   dlc_major_version: "2"
-  dlc_minor_version: "1"
+  dlc_minor_version: "2"
   use_sccache: "true"
 
 release:
