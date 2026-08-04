@@ -65,10 +65,12 @@ dependencies = [
     # ── Compat / security pins inherited from training PR #6107 ───────────────
     # cython<3 — TF/numpy ABI compat; same constraint as training image.
     "cython<3",
-    # aiohttp>=3.14.0 — security pin (CVE-2026-34993, CVE-2026-47265). Pulled
-    # transitively by aiobotocore / boto3 ecosystem. Direct pin forces resolver
-    # to pick the patched line.
-    "aiohttp>=3.14.0",
+    # aiohttp>=3.14.3 — bumped from 3.14.0 for CVE-2026-69244 (HIGH,
+    # out-of-bounds heap read in the C response parser pre-3.14.3).
+    # Original pin rationale: CVE-2026-34993 + CVE-2026-47265. Pulled
+    # transitively by aiobotocore / boto3 ecosystem. Direct pin forces
+    # resolver to pick the patched line.
+    "aiohttp>=3.14.3",
     # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 (HIGH, quadratic-time
     # decoding + big-integer exponentiation DoS). Direct pin forces resolver
     # to the patched line. Mirrors TF 2.21 training pin.

@@ -48,7 +48,10 @@ dependencies = [
 
     # ── Compat / security pins inherited from training PR #6107 ───────────────
     "cython<3",
-    "aiohttp>=3.14.0",
+    # aiohttp>=3.14.3 — bumped from 3.14.0 for CVE-2026-69244 (HIGH,
+    # out-of-bounds heap read in the C response parser). Original pin
+    # rationale: CVE-2026-34993 + CVE-2026-47265. Pulled transitively.
+    "aiohttp>=3.14.3",
     # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 (HIGH, quadratic-time
     # decoding + big-integer exponentiation DoS). Direct pin forces resolver
     # to the patched line. Mirrors TF 2.21 training pin.
