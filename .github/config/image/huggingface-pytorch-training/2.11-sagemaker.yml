@@ -36,10 +36,12 @@ build:
   dlc_minor_version: "0"
 
 release:
-  # Not yet releasable — AWS infra support for this image family is pending.
-  release: false
+  # Gamma-testing the release before production. Release-logic support for the
+  # huggingface-pytorch family was added in DLContainersReleaseLogicPython
+  # (frameworks.yml). Flip environment back to "production" after gamma validates.
+  release: true
   force_release: false
   public_registry: false
   private_registry: true
   enable_soci: false
-  environment: "production"
+  environment: "gamma"
