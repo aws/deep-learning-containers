@@ -3,7 +3,7 @@ image:
   description: "Hugging Face PyTorch training for SageMaker (layered on the AWS PyTorch training DLC)"
 
 metadata:
-  framework: "huggingface-pytorch"
+  framework: "huggingface-pytorch-training"
   framework_version: "2.11.0"
   os_version: "amzn2023"
   customer_type: "sagemaker"
