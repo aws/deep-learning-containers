@@ -13,10 +13,9 @@ on:
         type: string
         default: ""
       device-type:
-        description: "Device type from config metadata (cpu|gpu). Selects the SM instance type for endpoint deploys."
-        required: false
+        description: "Device type from config metadata (cpu|gpu). Selects the SM instance type for endpoint deploys. Required to fail closed on wiring bugs."
+        required: true
         type: string
-        default: "cpu"
 
 permissions:
   contents: read

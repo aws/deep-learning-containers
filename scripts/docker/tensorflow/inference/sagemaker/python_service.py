@@ -343,6 +343,11 @@ class PythonServiceResource:
                 log.info(f"Failed to load model : {model_name}, Starting to cleanup...")
                 self._delete_model(model_name)
                 self._remove_model_config(model_name)
+                # F-6: setdefault(...).append(...) above ran on the failure branch too
+                # (response carries a pid). Without this pop, retrying the load returns
+                # a permanent 409 "already loaded" in this worker.
+                self._mme_tfs_instances_status.pop(model_name, None)
+                self._upload_mme_instance_status()
             else:
                 self._upload_mme_instance_status()
 
@@ -410,13 +415,20 @@ class PythonServiceResource:
                     ]
                     grpc_port = grpc_ports[rest_ports.index(rest_port)]
                     log.info("grpc port: {}".format(str(grpc_port)))
-                    data, context = tfs_utils.parse_request(
-                        req,
-                        rest_port,
-                        grpc_port,
-                        self._tfs_default_model_name,
-                        model_name=model_name,
-                    )
+                    try:
+                        data, context = tfs_utils.parse_request(
+                            req,
+                            rest_port,
+                            grpc_port,
+                            self._tfs_default_model_name,
+                            model_name=model_name,
+                        )
+                    except ValueError as ve:
+                        # make_tfs_uri raises ValueError on bad tfs-* custom attributes;
+                        # surface as 400 rather than an opaque 500.
+                        res.status = falcon.HTTP_400
+                        res.body = json.dumps({"error": str(ve)}).encode("utf-8")
+                        return
             else:
                 res.status = falcon.HTTP_400
                 res.body = json.dumps({"error": "Invocation request does not contain model name."})
@@ -425,13 +437,20 @@ class PythonServiceResource:
             # Randomly pick port used for routing incoming request.
             grpc_port = self._pick_port(self._tfs_grpc_ports)
             rest_port = self._pick_port(self._tfs_rest_ports)
-            data, context = tfs_utils.parse_request(
-                req,
-                rest_port,
-                grpc_port,
-                self._tfs_default_model_name,
-                channel=self._channels[grpc_port],
-            )
+            try:
+                data, context = tfs_utils.parse_request(
+                    req,
+                    rest_port,
+                    grpc_port,
+                    self._tfs_default_model_name,
+                    channel=self._channels[grpc_port],
+                )
+            except ValueError as ve:
+                # make_tfs_uri raises ValueError on bad tfs-* custom attributes;
+                # surface as 400 rather than an opaque 500.
+                res.status = falcon.HTTP_400
+                res.body = json.dumps({"error": str(ve)}).encode("utf-8")
+                return
 
         try:
             res.status = falcon.HTTP_200
@@ -595,20 +614,33 @@ class PythonServiceResource:
         return False
 
     def _upload_mme_instance_status(self):
-        log.info(
-            "uploaded mme instance status file with content: {}".format(
-                self._mme_tfs_instances_status
-            )
-        )
-        with open(MME_TFS_INSTANCE_STATUS_FILE, "wb") as handle:
+        log.info("uploading mme instance status: {}".format(self._mme_tfs_instances_status))
+        # Atomic write: tmp file + fsync + rename. Without this, a SIGKILL
+        # during pickle.dump (OOM / scale-in) leaves a truncated pickle on
+        # disk that bricks every subsequent /models call with a 500 while
+        # /ping stays 200.
+        tmp_path = MME_TFS_INSTANCE_STATUS_FILE + ".tmp"
+        with open(tmp_path, "wb") as handle:
             pickle.dump(self._mme_tfs_instances_status, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp_path, MME_TFS_INSTANCE_STATUS_FILE)
 
     def _sync_local_mme_instance_status(self):
         if not os.path.exists(MME_TFS_INSTANCE_STATUS_FILE):
-            log.info("mme instance status file does not found.")
+            log.info("mme instance status file does not exist.")
+            self._mme_tfs_instances_status = {}
             return
-        with open(MME_TFS_INSTANCE_STATUS_FILE, "rb") as handle:
-            self._mme_tfs_instances_status = pickle.load(handle)
+        try:
+            with open(MME_TFS_INSTANCE_STATUS_FILE, "rb") as handle:
+                self._mme_tfs_instances_status = pickle.load(handle)
+        except (EOFError, pickle.UnpicklingError) as e:
+            # Truncated pickle (SIGKILL mid-write during OOM/scale-in). Reset
+            # instead of propagating — otherwise every subsequent /models call
+            # returns 500 forever while /ping keeps returning 200.
+            log.error("mme instance status file corrupted (%s); resetting to empty", e)
+            self._mme_tfs_instances_status = {}
+            return
         log.info(
             "updated local mme instance status with content: {}".format(
                 self._mme_tfs_instances_status

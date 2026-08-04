@@ -59,6 +59,10 @@ jobs:
               # build is skipped, the prod ECR tag doesn't exist for this new
               # family, and sagemaker-test skips cleanly (parent turns green).
               - "test/tensorflow/integration/inference/**"
+              # Sanity edits must trigger a rebuild too, otherwise the sanity job
+              # runs against a prod tag that doesn't exist for this new family
+              # and reports green without the edited test running.
+              - "test/sanity/**"
             sagemaker-test-change:
               - "test/tensorflow/integration/inference/**"
             sanity-test-change:

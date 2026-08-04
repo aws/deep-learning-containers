@@ -31,6 +31,12 @@ DEFAULT_CONTENT_TYPE = "application/json"
 DEFAULT_ACCEPT_HEADER = "application/json"
 CUSTOM_ATTRIBUTES_HEADER = "X-Amzn-SageMaker-Custom-Attributes"
 
+# Validation for user-supplied tfs-* attributes that get interpolated into the
+# TFS REST URI. Without these, an attacker-controlled Custom-Attributes header
+# could redirect the request to an arbitrary path on the local TFS server.
+_TFS_MODEL_VERSION_RE = re.compile(r"^\d+$")
+_TFS_ALLOWED_METHODS = frozenset({"predict", "classify", "regress"})
+
 Context = namedtuple(
     "Context",
     "model_name, model_version, method, rest_uri, grpc_port, channel, "
@@ -69,6 +75,11 @@ def make_tfs_uri(port, attributes, default_model_name, model_name=None):
     tfs_model_version = attributes.get("tfs-model-version")
     tfs_method = attributes.get("tfs-method", "predict")
 
+    if tfs_model_version is not None and not _TFS_MODEL_VERSION_RE.match(tfs_model_version):
+        raise ValueError("invalid tfs-model-version: must be a positive integer")
+    if tfs_method not in _TFS_ALLOWED_METHODS:
+        raise ValueError("invalid tfs-method: must be one of predict|classify|regress")
+
     uri = "http://localhost:{}/v1/models/{}".format(port, tfs_model_name)
     if tfs_model_version:
         uri += "/versions/" + tfs_model_version
@@ -81,7 +92,8 @@ def parse_tfs_custom_attributes(req):
     header = req.get_header(CUSTOM_ATTRIBUTES_HEADER)
     if header:
         matches = re.findall(r"(tfs-[a-z\-]+=[^,]+)", header)
-        attributes = dict(attribute.split("=") for attribute in matches)
+        # maxsplit=1 — base64-padded values contain '='; otherwise dict() raises ValueError -> uncaught 500
+        attributes = dict(attribute.split("=", 1) for attribute in matches)
     return attributes
 
 
