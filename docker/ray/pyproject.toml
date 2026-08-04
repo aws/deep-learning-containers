@@ -3,7 +3,7 @@ name = "dlc-ray"
 version = "1.1.0"
 requires-python = "==3.13.*"
 dependencies = [
-    "awscli==1.44.49",
+    "awscli==1.44.78",
     "pip==26.0.1",
     "boto3==1.42.59",
     "fastapi==0.133.1",
