@@ -153,6 +153,17 @@ class TestEntrypoints(unittest.TestCase):
         "/usr/local/bin/tf_serving_entrypoint.sh",
     ]
 
+    # SIGTERM-critical scripts: each must exec its payload so the payload
+    # becomes PID 1 and receives SIGTERM directly from docker. A regression
+    # that drops the exec (leaving bash as PID 1) silently converts every
+    # scale-in into a 10s-grace SIGKILL with in-flight requests dropped
+    # instead of drained.
+    EXEC_REQUIRED_SCRIPTS = [
+        "/usr/local/bin/dockerd_entrypoint.sh",
+        "/usr/local/bin/tf_serving_entrypoint.sh",
+        "/sagemaker/serve",
+    ]
+
     def test_entrypoints_executable(self):
         for path in self.ENTRYPOINTS:
             with self.subTest(path=path):
@@ -164,6 +175,36 @@ class TestEntrypoints(unittest.TestCase):
             with self.subTest(path=path):
                 with open(path) as f:
                     self.assertTrue(f.readline().startswith("#!"), f"missing shebang: {path}")
+
+    def test_scripts_use_exec_to_hand_off_pid1(self):
+        """SIGTERM propagation requires exec (not eval or plain invocation)
+        so the payload becomes PID 1. Any of the following would drop signal
+        delivery to TFS / serve.py and turn scale-in into SIGKILL after 10s:
+            - dropping the ``exec`` keyword ("$@" as a bare command)
+            - replacing ``exec`` with ``eval``
+            - wrapping in a subshell (``bash -c "..."``)
+        """
+        for path in self.EXEC_REQUIRED_SCRIPTS:
+            with self.subTest(path=path):
+                if not os.path.isfile(path):
+                    if path == "/sagemaker/serve":
+                        # Only present on SageMaker images.
+                        continue
+                    self.fail(f"missing script: {path}")
+                with open(path) as f:
+                    content = f.read()
+                self.assertNotIn(
+                    "eval ",
+                    content,
+                    f"{path} uses eval — SIGTERM will not propagate to PID 1 payload",
+                )
+                self.assertRegex(
+                    content,
+                    r"(?m)^\s*exec\s+\S",
+                    f"{path} must contain an exec line so its payload becomes PID 1; "
+                    "without it, bash owns PID 1 and docker SIGKILLs after 10s with "
+                    "in-flight requests dropped instead of drained",
+                )
 
 
 class TestNginxNjsModule(unittest.TestCase):
