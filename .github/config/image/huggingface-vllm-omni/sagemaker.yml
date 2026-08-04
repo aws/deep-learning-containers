@@ -26,6 +26,7 @@ build:
   python_version: "3.12"
   cuda_version: "13.0.2"
   vllm_omni_version: "0.26.0"
+  s3tokenizer_version: "0.3.0"
   transformers_version: "5.10.2"
   huggingface_hub_version: "1.17.0"
   hf_xet_version: "1.5.0"

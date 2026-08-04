@@ -2,8 +2,9 @@
 #
 # Deliberately NOT layered on AWS's vLLM-Omni DLC
 # (docker/vllm_omni/Dockerfile.amzn2023): that image compiles vLLM from source
-# for Amazon Linux 2023, and its omni layer is pinned to vllm-omni 0.21.0rc1 —
-# five minor releases behind upstream.
+# for AL2023, so its omni version is bound to whatever that build ships
+# (0.21.0rc1 on main; PR #6477 raises it to 0.26.0) and layering on it would
+# tie our releases to that build's cadence instead of upstream's.
 #
 # vllm-omni is a pure-Python vLLM plugin: it registers its models through the
 # `vllm.general_plugins` entry point and adds `--omni` to vLLM's own argument
@@ -45,6 +46,15 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
 
 ARG VLLM_OMNI_VERSION=0.26.0
 
+# s3tokenizer is a hard runtime import of vllm-omni's CosyVoice3 model code
+# (vllm_omni/model_executor/models/cosyvoice3.py) as of 0.26.0 — it was not in
+# 0.21.0rc1. Upstream declares it only in the `dev` optional-dependency group,
+# so installing vllm-omni does NOT pull it and CosyVoice3 fails at model load
+# with `ModuleNotFoundError: No module named 's3tokenizer'`. Installed in the
+# same layer as vllm-omni so the torch/vllm assertions below cover it too.
+# Same gap AWS hit in docker/vllm_omni (#6477).
+ARG S3TOKENIZER_VERSION=0.3.0
+
 # Two build-time assertions, both guarding silent breakage rather than style:
 #
 # 1. Pairing. vllm-omni's wheel metadata declares no `vllm` requirement at all;
@@ -69,7 +79,7 @@ RUN _v() { python3 -c "from importlib.metadata import version; print(version('$1
     echo "       bump BASE_IMAGE to the vLLM ${OMNI_MINOR} DLC, or VLLM_OMNI_VERSION to ${BASE_MINOR}.x"; \
     exit 1; \
   fi \
-  && uv pip install "vllm-omni==${VLLM_OMNI_VERSION}" \
+  && uv pip install "vllm-omni==${VLLM_OMNI_VERSION}" "s3tokenizer==${S3TOKENIZER_VERSION}" \
   && VLLM_AFTER="$(_v vllm)" \
   && TORCH_AFTER="$(_v torch)" \
   && if [ "${VLLM_BEFORE}" != "${VLLM_AFTER}" ]; then \
