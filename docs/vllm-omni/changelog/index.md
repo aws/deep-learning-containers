@@ -35,12 +35,12 @@ v0.26.0)
 - FlashInfer JIT cache install switched from `--extra-index-url` to `--index-url` for its flashinfer wheel index, because `flashinfer-cubin` is no
   longer on PyPI as of 0.6.14.
 
-### Known limitations
+### Notes
 
-- **DeepGEMM `_C` extension not built.** Upstream v0.26.0's docker build provisions per-`requires-python` interpreters
-  (`tools/setup_deepgemm_pythons.sh` + `DEEPGEMM_PYTHON_INTERPRETERS`) so cmake can build `vllm._deep_gemm_C`. This DLC image does not port that setup
-  — the extension is `optional=True` upstream, so it silently no-ops and the image falls back to the Python path. Follow-up: port the interpreter
-  provisioning to reclaim the acceleration.
+- **DeepGEMM builds for our single interpreter.** Upstream's `DEEPGEMM_PYTHON_INTERPRETERS` provisioning
+  (`tools/setup_deepgemm_pythons.sh`) exists to compile `vllm._deep_gemm_C` for *multiple* Python versions in a
+  manylinux wheel. This is a single-Python (3.12) image, so it is intentionally not ported — `cmake/external_projects/deepgemm.cmake`
+  falls back to the build interpreter when the env var is unset, building the extension for the one interpreter we ship.
 
 * * *
 

@@ -374,6 +374,24 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install "s3tokenizer==0.3.0
 # Requirement is now just `transformers >= 5.5.3` — resolved transitively by the
 # vllm-omni wheel install above, no explicit pin needed here.
 
+# Remove stray top-level benchmarks/ and samples/ dirs shipped by the
+# PyNvVideoCodec 2.0.4 wheel (new in upstream vllm v0.26.0's requirements/cuda.txt).
+# Its setup.py used a loose find_packages() that swept the repo's benchmark/sample
+# scripts into the wheel ROOT, so they land as top-level dirs in site-packages —
+# each carrying a requirements.txt that pins `torch==2.9.1` for a benchmark script.
+# The ECR scanner reads those inert manifest files and flags CVE-2026-24747
+# (torch weights_only unpickler RCE) even though the INSTALLED torch is 2.11.0
+# (>= the 2.10.0 fix) and the files are never imported (no __init__.py; `import
+# benchmarks` raises ModuleNotFoundError). Delete both to clear the false positive
+# at source. Do NOT `pip uninstall pynvvideocodec` — the real codec module
+# (PyNvVideoCodec/) is a runtime dep for omni video decode; only the stray
+# script dirs are removed here.
+# Glob python* rather than ${PYTHON_VERSION}: this stage (omni-deps) does not
+# re-declare ARG PYTHON_VERSION, so the var would expand empty here and the rm
+# would silently no-op. The glob also survives a Python minor bump.
+RUN rm -rf /opt/venv/lib/python*/site-packages/benchmarks \
+  /opt/venv/lib/python*/site-packages/samples
+
 # =============================================================================
 # STAGE: builder-oss-omni — OSS compliance for omni venv
 # =============================================================================
