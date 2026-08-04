@@ -23,10 +23,11 @@ ARG SAGEMAKER_XGBOOST_VERSION=3.0-5
 
 # ── Stage: sqlite-builder ───────────────────────────────────────────────────
 FROM ubuntu:${UBUNTU_VERSION} AS sqlite-builder
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get update && apt-get install -y --no-install-recommends \
   build-essential wget ca-certificates \
   && cd /tmp \
-  && wget https://www.sqlite.org/2025/sqlite-autoconf-3500200.tar.gz \
+  && wget --tries=5 --retry-connrefused --waitretry=5 --timeout=30 https://www.sqlite.org/2025/sqlite-autoconf-3500200.tar.gz \
   && tar xzf sqlite-autoconf-3500200.tar.gz \
   && cd sqlite-autoconf-3500200 \
   && ./configure --prefix=/usr/local && make && make install && ldconfig \
@@ -35,6 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # ── Stage: wheel-builder ───────────────────────────────────────────────────
 FROM ubuntu:${UBUNTU_VERSION} AS wheel-builder
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get update && apt-get install -y --no-install-recommends \
   python3 python3-pip python3-setuptools python3-wheel git ca-certificates \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -62,17 +64,21 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=utf-8
 
+# Retry apt fetches — the Ubuntu 20.04 (Focal) mirrors intermittently refuse
+# connections from CI runners. Persists into the xgboost-sagemaker child stage.
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
+
 # System dependencies
 RUN apt-key del 7fa2af80 \
   && apt-get update && apt-get install -y --no-install-recommends wget \
-  && wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.0-1_all.deb \
+  && wget --tries=5 --retry-connrefused --waitretry=5 --timeout=30 https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-keyring_1.0-1_all.deb \
   && dpkg -i cuda-keyring_1.0-1_all.deb \
   && apt-get update && apt-get -y upgrade \
   && apt-get -y install --no-install-recommends \
     build-essential curl git jq libatlas-base-dev expat nginx \
     openjdk-8-jdk-headless unzip wget apparmor linux-libc-dev \
     libxml2 libgstreamer1.0-0 libglib2.0-0 \
-  && wget http://es.archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi7_3.3-4_amd64.deb \
+  && wget --tries=5 --retry-connrefused --waitretry=5 --timeout=30 http://es.archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi7_3.3-4_amd64.deb \
   && dpkg -i libffi7_3.3-4_amd64.deb \
   && apt-get -y install --no-install-recommends \
     apt-transport-https ca-certificates gnupg software-properties-common \
