@@ -22,6 +22,9 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   libffi-devel \
   bzip2-devel \
   xz-devel \
+  sqlite-devel \
+  readline-devel \
+  ncurses-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Build FFmpeg from source

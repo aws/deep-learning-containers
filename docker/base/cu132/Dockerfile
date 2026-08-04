@@ -20,6 +20,7 @@ ARG PYTHON_SHORT_VERSION="3.13"
 RUN dnf install -y --setopt=install_weak_deps=False \
   gcc gcc-c++ make tar gzip wget \
   openssl-devel libffi-devel bzip2-devel xz-devel zlib-devel \
+  sqlite-devel readline-devel ncurses-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./scripts/docker/common/install_python.sh install_python.sh
