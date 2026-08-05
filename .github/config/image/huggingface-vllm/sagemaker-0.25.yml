@@ -25,12 +25,10 @@ build:
   hf_xet_version: "1.5.0"
   ffmpeg_tag: "n8.1"
   dlc_major_version: "1"
-  # Second build of 0.25.1: carries the LMCache --kv-transfer-config entrypoint
-  # fix (#6464), which landed after sagemaker.yml had moved to 0.26. Note only
-  # dlc_major_version reaches the image (LABEL dlc_major_version); the minor is
-  # bookkeeping — it is absent from the release spec, so the publish tool, not
-  # this field, decides the final tag.
-  dlc_minor_version: "1"
+  # No dlc_minor_version: the release logic auto-versions off the image digest.
+  # This build differs from the released 0.25 image (it carries the LMCache
+  # --kv-transfer-config fix, #6464), so the DLC version bumps -v1.0 -> -v1.1 on
+  # its own. The -v1.x suffix is the DLC image version, not the vLLM version.
 
 release:
   release: true
