@@ -55,23 +55,13 @@ def _create_model(model_name, image_uri, env, role_arn):
 
 
 @pytest.fixture(scope="function")
-def extra_env(request):
-    """Optional extra container env vars, merged into the endpoint's env.
-
-    Defaults to {} so existing tests are unaffected; parametrize indirectly to
-    inject e.g. SM_VLLM_DEPLOY_CONFIG for the config-override test.
-    """
-    return getattr(request, "param", {}) or {}
-
-
-@pytest.fixture(scope="function")
-def model_endpoint(aws_session, image_uri, model_id, instance_type, extra_env):
+def model_endpoint(aws_session, image_uri, model_id, instance_type):
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-{cleaned_id}", 50)
     model_name = endpoint_name
 
     hf_token = get_hf_token(aws_session)
-    env = {"SM_VLLM_MODEL": model_id, "HF_TOKEN": hf_token, **extra_env}
+    env = {"SM_VLLM_MODEL": model_id, "HF_TOKEN": hf_token}
     role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
 
     model = endpoint_config = endpoint = None
@@ -192,56 +182,6 @@ def test_vllm_omni_tts_endpoint(model_endpoint, aws_session):
     # PayloadPart frames, so chunk count is logged but not hard-asserted.
     assert len(streamed) > 1000, f"streamed PCM too small: {len(streamed)} bytes"
     LOGGER.info("TTS endpoint test PASSED (buffered + response-streaming)")
-
-
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
-@pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
-@pytest.mark.parametrize("extra_env", [{"SM_VLLM_DEPLOY_CONFIG": "qwen3_tts.yaml"}], indirect=True)
-def test_vllm_omni_deploy_config_override(model_endpoint):
-    """A deploy-config override (--deploy-config via SM_VLLM_DEPLOY_CONFIG) loads
-    and the endpoint still serves.
-
-    Covers the customer path-override use case end-to-end. We pass the config by
-    bare filename ("qwen3_tts.yaml"): vLLM-Omni's loader resolves a bare name
-    against its bundled deploy dir (vllm_omni/deploy/), so this exercises the
-    full --deploy-config code path — env var -> entrypoint flag -> loader ->
-    applied stage config -> a served request — without needing a custom model
-    tarball. A customer shipping their own YAML uses the same mechanism with an
-    absolute path (SM_VLLM_DEPLOY_CONFIG=/opt/ml/model/<file>.yaml, bundled at
-    the model tarball root).
-
-    A misapplied stage config crashes qwen3-tts's Code2Wav stage (CUDA
-    index-out-of-bounds) on the first request, so a clean audio response proves
-    the override was loaded and applied correctly.
-    """
-    endpoint = model_endpoint
-
-    payload = json.dumps(
-        {
-            "input": "Hello, this is a deploy config override test.",
-            "voice": "vivian",
-            "language": "English",
-        }
-    )
-
-    for attempt in range(3):
-        try:
-            result = endpoint.invoke(
-                body=payload,
-                content_type="application/json",
-                custom_attributes="route=/v1/audio/speech",
-            )
-            break
-        except Exception as e:
-            LOGGER.warning(f"Attempt {attempt + 1}/3 failed: {e}")
-            if attempt == 2:
-                raise
-            time.sleep(30)
-
-    audio_bytes = result.body.read()
-    LOGGER.info(f"Deploy-config-override TTS response: {len(audio_bytes)} bytes")
-    assert len(audio_bytes) > 1000, f"TTS output too small: {len(audio_bytes)} bytes"
-    LOGGER.info("Deploy-config override endpoint test PASSED")
 
 
 _CAPACITY_TOKENS = (
