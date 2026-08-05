@@ -8,7 +8,6 @@ on:
       - ".github/config/image/sglang/*-ubuntu.yml"
       - ".github/config/model-tests/sglang-model-tests.yml"
       - ".github/workflows/sglang.pipeline.yml"
-      - ".github/workflows/sglang.tests-upstream.yml"
       - ".github/workflows/sglang.pr-ubuntu.yml"
       - "docker/sglang/Dockerfile"
       - "scripts/docker/common/**"
