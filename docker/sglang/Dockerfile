@@ -1,6 +1,7 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
 ARG BASE_IMAGE=lmsysorg/sglang:v0.5.16
+# no-op: trigger CI build for env var fix validation
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
