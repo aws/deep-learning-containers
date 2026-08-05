@@ -65,11 +65,14 @@ jobs:
           # endpoint tests so everything else here — including all of
           # test_sagemaker_middleware.py — still runs.
           - name: realtime
-            filter: "not test_async_endpoint"
+            filter: "not async_endpoint"
           # Slow async-inference tests only: each deploys its own endpoint and
-          # waits ~40 min for InService before its first S3 upload.
+          # waits ~40 min for InService before its first S3 upload. Filter is
+          # the "async_endpoint" substring — it must be a *contiguous* substring
+          # of the node id (pytest -k), which "test_vllm_omni_tts_async_endpoint"
+          # contains but "test_async_endpoint" does not.
           - name: async
-            filter: "test_async_endpoint"
+            filter: "async_endpoint"
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
