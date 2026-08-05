@@ -12,6 +12,7 @@ on:
 permissions:
   contents: read
   actions: read
+  pull-requests: read
 
 concurrency:
   group: currency-fix-${{ github.event.workflow_run.head_branch }}
@@ -51,13 +52,45 @@ jobs:
           fi
           gh --version
 
+      # Skip if the branch moved past the failed run's commit (stale trigger) or
+      # the PR carries the stop-agent-fix label (manual override).
+      - name: Guard — stale commit or stop label
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
+          echo "HEAD_SHA=$SHA" >> $GITHUB_ENV
+
+          TIP=$(gh api "/repos/${{ github.repository }}/git/refs/heads/$HEAD_BRANCH" --jq '.object.sha' 2>/dev/null || true)
+          if [ -z "$TIP" ]; then
+            echo "::notice::Branch '$HEAD_BRANCH' no longer exists. Skipping."
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          if [ "$TIP" != "$SHA" ]; then
+            echo "::notice::Failed run commit ($SHA) is stale; branch tip is $TIP. A newer run will handle it. Skipping."
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          HAS_STOP=$(gh pr list --head "$HEAD_BRANCH" --json labels \
+            --jq '[.[0].labels[].name | select(. == "stop-agent-fix")] | length')
+          if [ "${HAS_STOP:-0}" -gt 0 ]; then
+            echo "::notice::PR has 'stop-agent-fix' label. Skipping."
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "should_run=true" >> $GITHUB_OUTPUT
+
       - name: Wait for tracked workflows to complete
+        if: steps.guard.outputs.should_run == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TRACKED="PR - vLLM Ubuntu|PR - SGLang Ubuntu"
-          SHA=$(gh api "/repos/${{ github.repository }}/actions/runs/${RUN_ID}" --jq '.head_sha')
-          echo "HEAD_SHA=$SHA" >> $GITHUB_ENV
+          SHA="${HEAD_SHA}"
           TIMEOUT=1800
           ELAPSED=0
           while [ $ELAPSED -lt $TIMEOUT ]; do
@@ -76,6 +109,7 @@ jobs:
           fi
 
       - name: Find failed tracked workflows
+        if: steps.guard.outputs.should_run == 'true'
         id: failures
         env:
           GH_TOKEN: ${{ github.token }}
