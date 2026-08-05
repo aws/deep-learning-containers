@@ -132,7 +132,7 @@ class ImageConfig:
 
     @property
     def display_example_uri(self) -> str:
-        """Example ECR URL for table display."""
+        """Example ECR URI for table display."""
         account = self.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
         return f"`{build_ecr_uri(account, self.ecr_repository, self.display_tag)}`"
 
