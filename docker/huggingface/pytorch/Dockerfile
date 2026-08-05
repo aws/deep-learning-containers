@@ -40,7 +40,8 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Security floors for ECR findings: soupsieve fixes GHSA-2wc2-fm75-p42x and
 # GHSA-836r-79rf-4m37; Pillow 12.3.0 fixes CVE-2026-55379; GitPython 3.1.55
 # clears 9 HIGH advisories up to GHSA-94p4-4cq8-9g67; pyasn1 0.6.4 clears
-# CVE-2026-59885 and CVE-2026-59886.
+# CVE-2026-59885 and CVE-2026-59886; cryptography 50.0.0 clears CVE-2026-69247
+# and CVE-2026-69249; aiohttp 3.14.3 clears CVE-2026-69244.
 RUN uv pip install --python ${VENV_PYTHON} \
   transformers==${TRANSFORMERS_VERSION} \
   huggingface-hub==${HUGGINGFACE_HUB_VERSION} \
@@ -59,6 +60,8 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "soupsieve>=2.8.4" \
   "GitPython>=3.1.55" \
   "pyasn1>=0.6.4" \
+  "cryptography>=50.0.0" \
+  "aiohttp>=3.14.3" \
   && uv cache clean
 
 # --- Efficiency / quantization kernels -----------------------------------
