@@ -36,9 +36,8 @@ build:
   dlc_minor_version: "0"
 
 release:
-  # Gamma-testing the release before production. Release-logic support for the
-  # huggingface-pytorch family was added in DLContainersReleaseLogicPython
-  # (frameworks.yml). Flip environment back to "production" after gamma validates.
+  # Gamma-testing the release before production.
+  # Flip environment back to "production" after gamma validates.
   release: true
   force_release: false
   public_registry: false
