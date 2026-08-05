@@ -1,0 +1,13 @@
+framework: Base Devel
+version: "13.2.1"
+accelerator: gpu
+python: py313
+cuda: cu132
+os: amzn2023
+platform: ec2
+ga: "2026-07-31"
+eop: "2027-07-31"
+public_registry: true
+
+tags:
+  - "devel-cu132-amzn2023"

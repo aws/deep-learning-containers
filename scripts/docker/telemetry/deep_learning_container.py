@@ -243,7 +243,7 @@ def parse_args():
             "ray",
             "vllm_omni",
             "huggingface-vllm",
-            "huggingface-pytorch",
+            "huggingface-pytorch-training",
         ],
         help="framework of container image.",
         required=True,

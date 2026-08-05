@@ -4,6 +4,18 @@ Changelog for the Amazon Linux 2023-based Base images (`runtime`, `devel`).
 
 * * *
 
+## CUDA 13.2 — 2026-07-31
+
+**Tags:** `runtime-cu132-amzn2023` · `devel-cu132-amzn2023`
+
+### Highlights
+
+- Initial release of the CUDA 13.2 Base image line on Amazon Linux 2023
+- CUDA 13.2.1 with Python 3.13.12
+- `devel` variant now bundles the multi-node stack: GDRCopy userspace library, NCCL 2.29.7, and the EFA installer (libfabric, aws-ofi-nccl, OpenMPI)
+
+* * *
+
 ## CUDA 13.0 — 2026-04-30
 
 **Tags:** `runtime-cu130-amzn2023` · `devel-cu130-amzn2023`

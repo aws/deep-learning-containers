@@ -1,11 +1,9 @@
-# Table Configuration - AutoGluon Training
+# Table Configuration - Base (Ubuntu)
 columns:
-  - field: framework_version
+  - field: base_framework
     header: "Framework"
   - field: python
     header: "Python"
-  - field: cuda
-    header: "CUDA"
   - field: accelerator
     header: "Accelerator"
   - field: platform

@@ -154,8 +154,8 @@ Eg: deprecation_notice section will render its header as `## deprecation_notice`
        header: "Framework"
      - field: python
        header: "Python"
-     - field: example_url
-       header: "Example URL"
+     - field: example_uri
+       header: "Example URI"
    ```
 
 1. Add to `docs/src/global.yml`:
@@ -184,7 +184,7 @@ columns:
   # Add/remove/reorder columns here
 ```
 
-**Available fields:** `framework_version`, `python`, `cuda`, `sdk`, `accelerator`, `platform`, `os`, `example_url`, `version`, `ga`, `eop`, `framework_group`, `repository`, `release_note_link`
+**Available fields:** `framework_version`, `python`, `cuda`, `sdk`, `accelerator`, `platform`, `os`, `example_uri`, `version`, `ga`, `eop`, `framework_group`, `repository`, `release_note_link`
 To add additional fields, ensure that the image configuration YAML file contains said field of the same name.
 Additionally, if you require the field to be formatted, add an additional attribute in `ImageConfig` class of `display_<field_name>` to grab the formatted field.
 

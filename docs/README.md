@@ -51,6 +51,16 @@ mkdocs serve --livereload
 
 Live reload does **not** detect changes requiring documentation regeneration (e.g., image config YAML files, templates). To regenerate documentation, stop the server (`Ctrl+C`) and rerun `mkdocs serve`.
 
+## Running Tests
+
+The documentation tests live under `test/docs/`.
+```bash
+# From the repository root, with the virtual environment activated
+uv pip install -r test/requirements.txt
+cd test/
+python3 -m pytest -vs -rA docs
+```
+
 ## Navigation
 
 Site navigation is managed centrally in `docs/.nav.yml` using the `awesome-nav` plugin. Structure:
