@@ -15,6 +15,7 @@
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - SGLang"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/ray.autorelease-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/ray.autorelease-ec2.yml/badge.svg" alt="Auto Release - Ray"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/base.autorelease-cu130.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/base.autorelease-cu130.yml/badge.svg" alt="Auto Release - Base cu130"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/base.autorelease-cu132.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/base.autorelease-cu132.yml/badge.svg" alt="Auto Release - Base cu132"></a>
 </p>
 
 ______________________________________________________________________
@@ -30,6 +31,7 @@ ______________________________________________________________________
 ### 🚀 Release Highlights
 
 - **[2026/08/03]** [vLLM Server v2.2 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.2` · SageMaker: `server-sagemaker-cuda-v2.2` · vLLM `0.26.0` (up from 0.24.0); FlashInfer 0.6.15.post1; DeepEP EPv2/GIN backend (NCCL pinned to 2.30.7); Inkling (piecewise CUDA graph, MTP speculative decoding, LoRA, NVFP4), Cosmos3 Edge Reasoner, TranslateGemma-12b-it, BertForMaskedLM.
+- **[2026/07/31]** [Base cu132 (CUDA 13.2, AL2023)](https://gallery.ecr.aws/deep-learning-containers/base) — EC2: `devel-cu132-amzn2023` · `runtime-cu132-amzn2023` · CUDA 13.2.1 with Python 3.13.12 (built from source) and `uv` pre-installed; `devel` and `runtime` variants; `devel` bundles the multi-node stack (GDRCopy, NCCL 2.29.7, EFA installer).
 - **[2026/07/26]** [vLLM v0.26.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.26.0-gpu-py312-ec2` · SageMaker: `0.26.0-gpu-py312` · Inkling (piecewise CUDA graph, MTP speculative decoding, LoRA, NVFP4), Cosmos3 Edge Reasoner, TranslateGemma-12b-it, BertForMaskedLM; DeepSeek-V4 routing-kernel and `fused_topk_bias` speedups; fp32 `lm_head` via `head_dtype`; per-KV-cache-group attention backends.
 - **[2026/07/26]** [SGLang v0.5.16 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.16-gpu-py312-ec2` · SageMaker: `0.5.16-gpu-py312` · Inkling day-0 support, LongCat 2.0 FP8, JetBrains Mellum v2, Pi0.5; DSpark speculative decoding (`--speculative-algorithm DSPARK`); UnifiedRadixTree now the default for SWA, Mamba, and DSA models.
 - **[2026/07/20]** [PyTorch v2.13.0](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.13-cu133-amzn2023` · SageMaker: `2.13-cu133-amzn2023-sagemaker` · Amazon Linux 2023 with EFA, flash-attn, and Transformer Engine; PyTorch 2.13.0 with CUDA 13.3.0, NCCL 2.30.7, TE 2.17.0, DeepSpeed 0.19.2.

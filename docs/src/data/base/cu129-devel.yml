@@ -1,5 +1,5 @@
-framework: Base
-version: "1"
+framework: Base Devel
+version: "12.9.1"
 accelerator: gpu
 python: py313
 cuda: cu129
@@ -9,4 +9,3 @@ public_registry: true
 
 tags:
   - "devel-cu129-amzn2023"
-  - "runtime-cu129-amzn2023"

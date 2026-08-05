@@ -1,0 +1,11 @@
+framework: Base Runtime
+version: "13.0.2"
+accelerator: gpu
+python: py313
+cuda: cu130
+os: amzn2023
+platform: ec2
+public_registry: true
+
+tags:
+  - "runtime-cu130-amzn2023"

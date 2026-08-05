@@ -72,8 +72,6 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
-  # Explicitly upgrade cuda-compat-13-2 to pick up fix for CVE-2025-33219
-  && dnf upgrade -y --releasever latest cuda-compat-13-2 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=uv /uv /usr/local/bin/uv
@@ -161,8 +159,6 @@ RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
 # Security patch — run after all installers so every OS package is covered
 RUN dnf upgrade -y --security --releasever latest \
-  # Explicitly upgrade cuda-compat-13-2 to pick up fix for CVE-2025-33219
-  && dnf upgrade -y --releasever latest cuda-compat-13-2 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=uv /uv /usr/local/bin/uv
