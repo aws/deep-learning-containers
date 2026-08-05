@@ -95,6 +95,9 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ./sglang_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            -e SGLANG_IS_IN_CI=1 \
+            -e SGLANG_ENABLE_ASYNC_ASSERT=false \
+            -e SGLANG_JIT_DEEPGEMM_FAST_WARMUP=true \
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
 
