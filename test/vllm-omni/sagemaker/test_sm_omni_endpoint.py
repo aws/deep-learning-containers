@@ -55,13 +55,23 @@ def _create_model(model_name, image_uri, env, role_arn):
 
 
 @pytest.fixture(scope="function")
-def model_endpoint(aws_session, image_uri, model_id, instance_type):
+def extra_env(request):
+    """Optional extra container env vars, merged into the endpoint's env.
+
+    Defaults to {} so existing tests are unaffected; parametrize indirectly to
+    inject e.g. SM_VLLM_DEPLOY_CONFIG for the config-override test.
+    """
+    return getattr(request, "param", {}) or {}
+
+
+@pytest.fixture(scope="function")
+def model_endpoint(aws_session, image_uri, model_id, instance_type, extra_env):
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-{cleaned_id}", 50)
     model_name = endpoint_name
 
     hf_token = get_hf_token(aws_session)
-    env = {"SM_VLLM_MODEL": model_id, "HF_TOKEN": hf_token}
+    env = {"SM_VLLM_MODEL": model_id, "HF_TOKEN": hf_token, **extra_env}
     role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
 
     model = endpoint_config = endpoint = None
@@ -96,10 +106,21 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
 
 @pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
-def test_vllm_omni_tts_endpoint(model_endpoint):
-    """TTS via /invocations routed to /v1/audio/speech by the serve proxy."""
+def test_vllm_omni_tts_endpoint(model_endpoint, aws_session):
+    """TTS via /invocations, covering both response transports on ONE endpoint.
+
+    Two SageMaker transports share this deployment to avoid a second ~15-min
+    endpoint spin-up (and a second AWS-token-expiry window on the long-running
+    sagemaker job):
+      1. Buffered — InvokeEndpoint, one audio blob.
+      2. Response-streaming — InvokeEndpointWithResponseStream with
+         stream=true + response_format=pcm, yielding chunked PCM. This is the
+         customer's Alexa transport. (The bidirectional-WebSocket transport is
+         covered separately in test_sm_omni_bidi_endpoint.py.)
+    """
     endpoint = model_endpoint
 
+    # --- Transport 1: buffered InvokeEndpoint ---
     payload = json.dumps(
         {
             "input": "Hello, this is a test of the text to speech system.",
@@ -108,9 +129,101 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
         }
     )
 
-    LOGGER.info("Sending TTS request via /invocations with route=/v1/audio/speech")
+    LOGGER.info("Sending buffered TTS request via /invocations with route=/v1/audio/speech")
     # First request triggers torch.compile + CUDA graph capture (~67s),
     # which exceeds SageMaker's 60s invoke timeout. Retry after warmup completes.
+    for attempt in range(3):
+        try:
+            result = endpoint.invoke(
+                body=payload,
+                content_type="application/json",
+                custom_attributes="route=/v1/audio/speech",
+            )
+            break
+        except Exception as e:
+            LOGGER.warning(f"Buffered attempt {attempt + 1}/3 failed: {e}")
+            if attempt == 2:
+                raise
+            time.sleep(30)
+
+    audio_bytes = result.body.read()
+    LOGGER.info(f"Buffered TTS response: {len(audio_bytes)} bytes")
+    assert len(audio_bytes) > 1000, f"buffered TTS output too small: {len(audio_bytes)} bytes"
+
+    # --- Transport 2: response-streaming InvokeEndpointWithResponseStream ---
+    # vLLM-Omni's /v1/audio/speech returns a StreamingResponse of raw PCM when
+    # the body sets stream=true + pcm; SageMaker surfaces it as an EventStream
+    # of PayloadPart frames. boto3 is used (not the v3 SDK): sagemaker-core's
+    # invoke_with_response_stream pipes the response through a generic codec
+    # with no event-stream branch and raises on a live EventStream; boto3
+    # yields the raw EventStream directly.
+    smr = aws_session.session.client("sagemaker-runtime", region_name=aws_session.region)
+    stream_body = json.dumps(
+        {
+            "input": "Hello, this is a streaming text to speech test.",
+            "voice": "vivian",
+            "language": "English",
+            "stream": True,
+            "response_format": "pcm",
+        }
+    ).encode()
+
+    LOGGER.info("Sending streaming TTS request via InvokeEndpointWithResponseStream")
+    # Model is already warm from transport 1, so a single attempt is enough.
+    resp = smr.invoke_endpoint_with_response_stream(
+        EndpointName=endpoint.endpoint_name,
+        Body=stream_body,
+        ContentType="application/json",
+        CustomAttributes="route=/v1/audio/speech",
+    )
+    streamed = bytearray()
+    n_chunks = 0
+    for event in resp["Body"]:
+        if "PayloadPart" in event:
+            streamed += event["PayloadPart"]["Bytes"]  # raw PCM — do not decode
+            n_chunks += 1
+        elif "ModelStreamError" in event:
+            raise AssertionError(f"ModelStreamError: {event['ModelStreamError']}")
+        elif "InternalStreamFailure" in event:
+            raise AssertionError(f"InternalStreamFailure: {event['InternalStreamFailure']}")
+
+    LOGGER.info(f"Streaming TTS response: {len(streamed)} PCM bytes across {n_chunks} chunk(s)")
+    # Byte count is the robust assertion; SageMaker/botocore may coalesce
+    # PayloadPart frames, so chunk count is logged but not hard-asserted.
+    assert len(streamed) > 1000, f"streamed PCM too small: {len(streamed)} bytes"
+    LOGGER.info("TTS endpoint test PASSED (buffered + response-streaming)")
+
+
+@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+@pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
+@pytest.mark.parametrize("extra_env", [{"SM_VLLM_DEPLOY_CONFIG": "qwen3_tts.yaml"}], indirect=True)
+def test_vllm_omni_deploy_config_override(model_endpoint):
+    """A deploy-config override (--deploy-config via SM_VLLM_DEPLOY_CONFIG) loads
+    and the endpoint still serves.
+
+    Covers the customer path-override use case end-to-end. We pass the config by
+    bare filename ("qwen3_tts.yaml"): vLLM-Omni's loader resolves a bare name
+    against its bundled deploy dir (vllm_omni/deploy/), so this exercises the
+    full --deploy-config code path — env var -> entrypoint flag -> loader ->
+    applied stage config -> a served request — without needing a custom model
+    tarball. A customer shipping their own YAML uses the same mechanism with an
+    absolute path (SM_VLLM_DEPLOY_CONFIG=/opt/ml/model/<file>.yaml, bundled at
+    the model tarball root).
+
+    A misapplied stage config crashes qwen3-tts's Code2Wav stage (CUDA
+    index-out-of-bounds) on the first request, so a clean audio response proves
+    the override was loaded and applied correctly.
+    """
+    endpoint = model_endpoint
+
+    payload = json.dumps(
+        {
+            "input": "Hello, this is a deploy config override test.",
+            "voice": "vivian",
+            "language": "English",
+        }
+    )
+
     for attempt in range(3):
         try:
             result = endpoint.invoke(
@@ -126,9 +239,9 @@ def test_vllm_omni_tts_endpoint(model_endpoint):
             time.sleep(30)
 
     audio_bytes = result.body.read()
-    LOGGER.info(f"TTS audio response: {len(audio_bytes)} bytes")
+    LOGGER.info(f"Deploy-config-override TTS response: {len(audio_bytes)} bytes")
     assert len(audio_bytes) > 1000, f"TTS output too small: {len(audio_bytes)} bytes"
-    LOGGER.info("TTS endpoint test PASSED")
+    LOGGER.info("Deploy-config override endpoint test PASSED")
 
 
 _CAPACITY_TOKENS = (
@@ -147,7 +260,6 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
     the skip rather than failing CI so the rest of the matrix still gets
     useful signal.
     """
-    s3_client = boto3.client("s3")
     cleaned_instance = clean_string(instance_type, "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_instance}", 50)
     model_name = endpoint_name
@@ -194,7 +306,7 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
                 pytest.skip(f"SageMaker capacity unavailable for {instance_type}: {e}")
             raise
 
-        yield endpoint, s3_client, s3_output
+        yield endpoint, s3_output
     finally:
         _cleanup([endpoint, endpoint_config, model])
 
@@ -203,7 +315,11 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_async_endpoint(async_endpoint):
     """TTS via async inference — no 60s timeout, up to 1 hour."""
-    endpoint, s3_client, s3_output = async_endpoint
+    endpoint, s3_output = async_endpoint
+    # Build the S3 client at point-of-use, not at fixture setup: the endpoint
+    # deploy + InService wait can run ~40 min, long enough for a session token
+    # captured earlier to expire before the first S3 call.
+    s3_client = boto3.client("s3")
 
     payload = json.dumps(
         {
@@ -259,7 +375,10 @@ def test_vllm_omni_video_async_endpoint(async_endpoint):
     sends it directly — no in-middleware conversion required. Result is
     video/mp4 bytes deposited at S3 output location.
     """
-    endpoint, s3_client, s3_output = async_endpoint
+    endpoint, s3_output = async_endpoint
+    # Build the S3 client at point-of-use (see note in the TTS async test): the
+    # long endpoint-deploy wait can outlive a session token captured earlier.
+    s3_client = boto3.client("s3")
 
     boundary = uuid.uuid4().hex
     payload = _build_multipart_body(
