@@ -4,7 +4,7 @@ ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn
 
 FROM ${BASE_IMAGE} AS install
 
-ARG FRAMEWORK=huggingface-pytorch
+ARG FRAMEWORK=huggingface-pytorch-training
 ARG FRAMEWORK_VERSION=2.11.0
 ARG CONTAINER_TYPE=training
 ARG DLC_MAJOR_VERSION=1
