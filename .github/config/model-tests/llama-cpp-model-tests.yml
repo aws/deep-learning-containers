@@ -1,0 +1,21 @@
+# llama.cpp Model Test Configuration
+#
+# smoke-test: CPU model serving + inference validation.
+#
+# The llama.cpp image is CPU-only (x86_64), so tests run on an x86 CPU
+# CodeBuild fleet rather than GPU runners. The smoke test serves a small
+# quantized GGUF and asserts /health + a chat completion.
+#
+# codebuild-fleet runners (x86 CPU):
+#   x86-build-runner = m6a.8xlarge (32 vCPU / 128 GiB)
+
+s3_prefix: "s3://dlc-cicd-models/llm-models"
+
+smoke-test:
+  codebuild-fleet:
+    - name: "qwen2.5-0.5b-q4_0"
+      s3_model: "qwen2.5-0.5b-instruct-q4_0.gguf.tar.gz"
+      fleet: "x86-build-runner"
+      extra_args: "--ctx-size 4096"
+
+  runner-scale-sets: []

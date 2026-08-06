@@ -1,0 +1,29 @@
+image:
+  name: "llama-cpp-ec2-amzn2023"
+  description: "llama.cpp CPU-inference for EC2 instances (AL2023, built from source)"
+
+metadata:
+  framework: "llama_cpp"
+  framework_version: "b10075+dlc1"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "cpu"
+  job_type: "general"
+  prod_image: "llama-cpp:server-cpu-v1"
+
+build:
+  dockerfile: "docker/llama_cpp/Dockerfile.amzn2023"
+  target: "llama-cpp-ec2"
+  python_version: "3.12"
+  llama_cpp_ref: "b10075"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"
