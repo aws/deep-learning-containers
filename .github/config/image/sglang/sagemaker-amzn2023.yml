@@ -32,10 +32,11 @@ build:
   efa_version: "1.49.0"
   rust_version: "1.96.1"
   gdrcopy_version: "2.6"
-  # 10.3f, not a bare 10.3: MXFP4 kernels emit cvt.e2m1x2, which ptxas accepts only under
+  # 10.3a, not a bare 10.3: MXFP4 kernels emit cvt.e2m1x2, which ptxas accepts only under
   # an a- or f-suffixed target. A bare 10.3 builds clean but emits no usable FP4 code for
-  # sm_103, failing only at load time on B300. f is preferred over a for forward compat.
-  torch_cuda_arch_list: "9.0;10.0;10.3f"
+  # sm_103, failing only at load time on B300. a, not f: the only consumers are FlashMLA
+  # and DeepEP, which build via torch's cpp_extension and reject f-suffixed arches.
+  torch_cuda_arch_list: "9.0;10.0;10.3a"
   dlc_major_version: "1"
   dlc_minor_version: "2"
 
