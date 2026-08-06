@@ -2,6 +2,8 @@
 
 Private ECR account IDs by region. See [Image Access](../get_started/index.md) for authentication and pull instructions.
 
+## Deep Learning Containers
+
 | Region | Code | Account ID |
 | --- | --- | --- |
 | US East (Ohio) | us-east-2 | 763104351884 |
@@ -40,3 +42,40 @@ Private ECR account IDs by region. See [Image Access](../get_started/index.md) f
 | South America (Sao Paulo) | sa-east-1 | 763104351884 |
 | China (Beijing) | cn-north-1 | 727897471807 |
 | China (Ningxia) | cn-northwest-1 | 727897471807 |
+
+## SageMaker XGBoost and Scikit-learn
+
+XGBoost and Scikit-learn images use SageMaker's algorithm ECR registries, which have a different account ID per region than the Deep Learning
+Containers table above. XGBoost and Scikit-learn share the same account ID within a region.
+
+| Region | Code | Account ID |
+| --- | --- | --- |
+| US East (Ohio) | us-east-2 | 257758044811 |
+| US East (N. Virginia) | us-east-1 | 683313688378 |
+| US West (N. California) | us-west-1 | 746614075791 |
+| US West (Oregon) | us-west-2 | 246618743249 |
+| Africa (Cape Town) | af-south-1 | 510948584623 |
+| Asia Pacific (Hong Kong) | ap-east-1 | 651117190479 |
+| Asia Pacific (Hyderabad) | ap-south-2 | 628508329040 |
+| Asia Pacific (Jakarta) | ap-southeast-3 | 951798379941 |
+| Asia Pacific (Melbourne) | ap-southeast-4 | 106583098589 |
+| Asia Pacific (Mumbai) | ap-south-1 | 720646828776 |
+| Asia Pacific (Osaka) | ap-northeast-3 | 867004704886 |
+| Asia Pacific (Seoul) | ap-northeast-2 | 366743142698 |
+| Asia Pacific (Singapore) | ap-southeast-1 | 121021644041 |
+| Asia Pacific (Sydney) | ap-southeast-2 | 783357654285 |
+| Asia Pacific (Tokyo) | ap-northeast-1 | 354813040037 |
+| Canada (Calgary) | ca-west-1 | 190319476487 |
+| Canada (Central) | ca-central-1 | 341280168497 |
+| EU (Frankfurt) | eu-central-1 | 492215442770 |
+| EU (Ireland) | eu-west-1 | 141502667606 |
+| EU (London) | eu-west-2 | 764974769150 |
+| EU (Milan) | eu-south-1 | 978288397137 |
+| EU (Paris) | eu-west-3 | 659782779980 |
+| EU (Spain) | eu-south-2 | 104374241257 |
+| EU (Stockholm) | eu-north-1 | 662702820516 |
+| EU (Zurich) | eu-central-2 | 680994064768 |
+| Israel (Tel Aviv) | il-central-1 | 898809789911 |
+| South America (Sao Paulo) | sa-east-1 | 737474898029 |
+| China (Beijing) | cn-north-1 | 450853457545 |
+| China (Ningxia) | cn-northwest-1 | 451049120500 |
