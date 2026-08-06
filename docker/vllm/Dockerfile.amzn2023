@@ -19,11 +19,18 @@ RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
   || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
 
 COPY scripts/docker/vllm/amzn2023/patches/ /tmp/patches/
-RUN cd /src && \
-    for p in /tmp/patches/*.patch; do \
-      [ -f "$p" ] && [ "$(basename "$p")" != ".gitkeep" ] && \
-        git apply "$p" && echo "Applied $(basename $p)"; \
-    done; true
+# Fail hard on a patch that does not apply. The previous form ended in `; true` to tolerate
+# an unmatched glob when no patches exist, but that also swallowed genuine apply failures,
+# yielding a green build with an unpatched image -- detectable only by inspecting the source.
+# Skip non-existent paths explicitly instead, so "no patches" stays fine and "patch is stale
+# against VLLM_REF" stops the build. Matters because VLLM_REF moves.
+RUN cd /src \
+  && for p in /tmp/patches/*.patch; do \
+       [ -f "$p" ] || continue; \
+       echo "Applying $(basename "$p")"; \
+       git apply --verbose "$p" || exit 1; \
+     done \
+  && echo "all patches applied"
 
 # Generate source manifest
 RUN echo "vLLM AL2023 Image Source Manifest" >/src/SOURCE_MANIFEST \
@@ -89,7 +96,8 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${FRAMEWORK
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
 #   bash scripts/docker/vllm/amzn2023/fetch_cached_wheels.sh cu130 v0.24.0
-# The directory is empty by default so COPY always succeeds.
+# The directory holds only a .gitkeep by default, so COPY always succeeds -- git cannot track
+# an empty directory, and without that placeholder this COPY fails on a clean clone.
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
 # --- Build options ---
