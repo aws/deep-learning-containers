@@ -94,13 +94,18 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
 
 # Stamp the sglang package version for CVE scanner compatibility.
 ARG FRAMEWORK_VERSION
+# Checked here rather than left to setuptools_scm: an unset FRAMEWORK_VERSION yields
+# a leading-dot version, which packaging rejects several minutes into the install below
+# with a traceback that never names the missing arg.
+RUN test -n "${FRAMEWORK_VERSION}" \
+    || (echo "FRAMEWORK_VERSION build-arg is required (from the image config's metadata)" >&2; exit 1)
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
 
 # Install sglang from source + flashinfer + sglang-kernel
-# sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
-# We reinstall torch+torchvision+torchaudio from the cu129 index after to match
-# our CUDA 12.9 toolkit. TORCH_VERSION must match what sgl_kernel wheels on
-# docs.sglang.ai/whl/cu129/ are compiled against (ABI-sensitive).
+# sglang's pyproject.toml pins torch from PyPI for x86_64, so torch+torchvision+torchaudio
+# are reinstalled from the cu${CUDA_SHORT} index below to match the CUDA_REF toolkit.
+# TORCH_VERSION must match what the sglang-kernel wheels on
+# docs.sglang.ai/whl/cu${CUDA_SHORT}/ are compiled against (ABI-sensitive).
 # Uses pip --force-reinstall to bypass local version segment matching issues.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
