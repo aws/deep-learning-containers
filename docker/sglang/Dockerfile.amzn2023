@@ -7,9 +7,13 @@ FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 
 ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
-ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
-ARG SGLANG_KERNEL_VERSION=0.4.4
-ARG FLASHINFER_VERSION=0.6.12
+# Kimi-K3 needs srt/models/kimi_k3.py, absent from every released tag, so this is a
+# commit ref (#32541). Release builds override it from config/image/sglang/*-amzn2023.yml;
+# keep the two in sync. Move to the first released tag carrying kimi_k3.py when one exists.
+ARG SGLANG_REF=abddb1c7e9d61ddddeaf016d885c2f20aab426e8
+# ABI-coupled to SGLANG_REF; both must move with it. Matches upstream's Dockerfile.
+ARG SGLANG_KERNEL_VERSION=0.4.5
+ARG FLASHINFER_VERSION=0.6.15.post1
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
 ARG MOONCAKE_VERSION=0.3.11.post1
 ARG GDRCOPY_VERSION=2.6
@@ -19,7 +23,16 @@ ARG TORCH_VERSION=2.11.0
 # CUDA / GPU
 ARG NCCL_VERSION=2.30.4
 ARG CUDNN_VERSION=9.16.0.29
-ARG TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3'
+# 10.3a, not a bare 10.3: B300 (sm_103) kernels emit cvt.e2m1x2 for MXFP4, which ptxas
+# accepts only under an a- or f-suffixed target. A bare 10.3 builds clean but emits no
+# usable FP4 code, failing only at load time. Needed for Kimi-K3's MXFP4 routed experts.
+#
+# a, not f, despite f being the more forward-compatible family target: this list is only
+# consumed by FlashMLA and DeepEP, both of which build via torch's cpp_extension, whose
+# _get_cuda_arch_flags validates against a fixed list carrying no f variants -- 10.3f dies
+# with "Unknown CUDA arch". Use f only for CMake-based builds. sgl_kernel is unaffected
+# either way; it is installed as a prebuilt wheel below, not compiled here.
+ARG TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3a'
 
 # Build
 ARG BUILD_PARALLEL=8
@@ -87,13 +100,18 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
 
 # Stamp the sglang package version for CVE scanner compatibility.
 ARG FRAMEWORK_VERSION
+# Checked here rather than left to setuptools_scm: an unset FRAMEWORK_VERSION yields
+# a leading-dot version, which packaging rejects several minutes into the install below
+# with a traceback that never names the missing arg.
+RUN test -n "${FRAMEWORK_VERSION}" \
+    || (echo "FRAMEWORK_VERSION build-arg is required (from the image config's metadata)" >&2; exit 1)
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
 
 # Install sglang from source + flashinfer + sglang-kernel
-# sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
-# We reinstall torch+torchvision+torchaudio from the cu129 index after to match
-# our CUDA 12.9 toolkit. TORCH_VERSION must match what sgl_kernel wheels on
-# docs.sglang.ai/whl/cu129/ are compiled against (ABI-sensitive).
+# sglang's pyproject.toml pins torch from PyPI for x86_64, so torch+torchvision+torchaudio
+# are reinstalled from the cu${CUDA_SHORT} index below to match the CUDA_REF toolkit.
+# TORCH_VERSION must match what the sglang-kernel wheels on
+# docs.sglang.ai/whl/cu${CUDA_SHORT}/ are compiled against (ABI-sensitive).
 # Uses pip --force-reinstall to bypass local version segment matching issues.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
@@ -174,10 +192,17 @@ ARG CUDA_REF
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.11.0
-ARG SGLANG_KERNEL_VERSION=0.4.4
+# Keep in lockstep with the builder-stage SGLANG_KERNEL_VERSION above.
+ARG SGLANG_KERNEL_VERSION=0.4.5
 ARG EFA_VERSION=1.49.0
 ARG NCCL_VERSION=2.30.4
 ARG CUDNN_VERSION=9.16.0.29
+# Exact pin, and must equal the nvidia-cutlass-dsl[cu13] pin in sglang's own requirements at
+# SGLANG_REF -- the reinstall below previously carried a >=4.5.2 floor and floated onto 4.7.0,
+# against sglang's ==4.6.0. Bump only together with SGLANG_REF. Unrelated to the lib/lib64
+# split handled further down, which affects all versions alike.
+ARG CUTLASS_DSL_VERSION=4.6.0
+ARG Z3_VERSION=4.15.3.0
 
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=2
@@ -300,7 +325,18 @@ RUN uv pip install --system --no-cache decord lmdb peft
 # The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
 # which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
 # Also reinstall sgl_kernel from the sglang wheel index (compiled against torch 2.11.0).
+# The runtime stage installs its own pip, then COPY --from=builder overlays the builder's
+# site-packages on top, splicing two pip trees together and breaking as
+# `ImportError: cannot import name 'get_runnable_pip'`. ensurepip is a no-op against the
+# stale dist-info, so drop both trees and bootstrap one clean pip from get-pip.py.
 RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
+  && rm -rf /usr/local/lib/python${PYTHON_VERSION}/site-packages/pip \
+            /usr/local/lib/python${PYTHON_VERSION}/site-packages/pip-*.dist-info \
+            /usr/local/lib64/python${PYTHON_VERSION}/site-packages/pip \
+            /usr/local/lib64/python${PYTHON_VERSION}/site-packages/pip-*.dist-info \
+  && curl -sS --retry 3 https://bootstrap.pypa.io/get-pip.py \
+     | python${PYTHON_VERSION} - --no-cache-dir \
+  && python${PYTHON_VERSION} -m pip --version \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
      --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
@@ -312,23 +348,53 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
-     "nvidia-cutlass-dsl>=4.5.2" "nvidia-cutlass-dsl-libs-cu13>=4.5.2" \
+     "nvidia-cutlass-dsl==${CUTLASS_DSL_VERSION}" \
+     "nvidia-cutlass-dsl-libs-cu13==${CUTLASS_DSL_VERSION}" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig
 
+# The CuTe DSL's two payload wheels disagree on their wheel tag while writing into one shared
+# directory, so on AL2023 pip splits the package across lib/ (cutlass/__init__.py) and lib64/
+# (cutlass/_mlir/) and `import cutlass._mlir` fails. See the script for the full mechanism;
+# it is an upstream bug affecting every version, visible only on lib/lib64-split distros.
+COPY ./scripts/docker/sglang/merge_cutlass_dsl_split.py /tmp/merge_cutlass_dsl_split.py
+RUN python${PYTHON_VERSION} /tmp/merge_cutlass_dsl_split.py
+
+# Assert the CuTe DSL imports end to end. A missing _mlir is a hard startup failure on
+# Blackwell only: bf16_gemm_backend='auto' picks the CuTe DSL path on SM100/SM103 and cuBLAS
+# elsewhere, so it would surface on customer hardware and nowhere in CI. This guard is what
+# caught the split above; keep it as the tripwire for the next version bump.
+RUN python${PYTHON_VERSION} -c "import cutlass; import cutlass._mlir; print('cutlass DSL OK:', cutlass.__file__)"
+
+# Record which MXFP4 MoE kernels this image can reach; see the script for why this warns
+# rather than fails. Kept as a file rather than an inline heredoc because this Dockerfile
+# declares no `# syntax=` frontend, so a release build should not depend on the daemon's
+# default BuildKit accepting heredocs.
+COPY ./scripts/docker/sglang/probe_mxfp4_moe_backends.py /tmp/probe_mxfp4_moe_backends.py
+RUN python${PYTHON_VERSION} /tmp/probe_mxfp4_moe_backends.py > /etc/dlc-mxfp4-moe-backends.txt 2>&1 || true; \
+    cat /etc/dlc-mxfp4-moe-backends.txt; \
+    rm -f /tmp/probe_mxfp4_moe_backends.py
+
 # tilelang compatibility fixes for AL2023:
-# 1. z3-libs: TVM (bundled in tilelang) requires libz3.so at runtime
+# 1. libz3: TVM (bundled in tilelang) links a specific z3 soname. AL2023's z3-libs
+#    packages only 4.8 while tilelang needs 4.15, so take it from the z3-solver wheel.
+#    Keep aligned with tilelang: a bump can move the soname, surfacing as an OSError
+#    on `import tilelang`.
 # 2. _xxsubinterpreters: CPython internal module needed by tilelang's cython
 #    wrapper. Debian/Ubuntu ship it but AL2023 does not — compile from source.
 # 3. Patch tilelang's cudart.cc stub: in child processes, CUDA symbols aren't
 #    in the global namespace yet. Add a dlopen("libcudart.so") fallback before
 #    the abort() so it loads the library explicitly when dlsym fails.
-RUN dnf install -y --setopt=install_weak_deps=False z3-libs \
-  && ln -sf /usr/lib64/libz3.so.4.8 /usr/lib64/libz3.so \
-  && ldconfig \
-  && dnf clean all && rm -rf /var/cache/dnf
+#    tilelang >=0.1.10 ships a prebuilt lib/libcudart_stub.so instead of C++ sources, so
+#    skip the patch when cudart.cc is absent. The `ls` fails the layer if neither exists.
+RUN uv pip install --system --no-cache "z3-solver==${Z3_VERSION}" \
+  && Z3LIB=$(python${PYTHON_VERSION} -c "import z3, os; print(os.path.join(os.path.dirname(z3.__file__), 'lib'))") \
+  && ls ${Z3LIB}/libz3.so.* >/dev/null \
+  && ln -sf ${Z3LIB}/libz3.so.* /usr/lib64/ \
+  && ln -sf ${Z3LIB}/libz3.so /usr/lib64/libz3.so \
+  && ldconfig
 
 RUN PYVER=$(python${PYTHON_VERSION} -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')") \
   && cd /tmp \
@@ -343,6 +409,11 @@ RUN PYVER=$(python${PYTHON_VERSION} -c "import sys; print(f'{sys.version_info.ma
   && cd / && rm -rf /tmp/Python-*
 
 RUN TILELANG=$(python${PYTHON_VERSION} -c "import tilelang, os; print(os.path.dirname(tilelang.__file__))") \
+  && if [ ! -f "${TILELANG}/src/target/stubs/cudart.cc" ]; then \
+       echo "tilelang ships no cudart.cc; relying on prebuilt lib/libcudart_stub.so"; \
+       ls "${TILELANG}/lib/libcudart_stub.so"; \
+       exit 0; \
+     fi \
   && python${PYTHON_VERSION} -c "\
 import os; \
 src = '${TILELANG}/src/target/stubs/cudart.cc'; \

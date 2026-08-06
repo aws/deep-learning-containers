@@ -17,18 +17,29 @@ build:
   target: "sglang-ec2"
   python_version: "3.12"
   cuda_version: "13.0.3"
-  sglang_ref: "bc8b3ab1f55c60951b586d84d4aec773a6f654df"
-  sglang_kernel_version: "0.4.4"
-  flashinfer_version: "0.6.12"
+  # Kimi-K3 support is on main only (#32541), in no released tag, hence a bare hash.
+  # sglang_kernel_version and flashinfer_version are ABI-coupled to it and must move
+  # with it; both match upstream's docker/Dockerfile at this commit.
+  sglang_ref: "abddb1c7e9d61ddddeaf016d885c2f20aab426e8"
+  sglang_kernel_version: "0.4.5"
+  flashinfer_version: "0.6.15.post1"
   deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
   mooncake_version: "0.3.11.post1"
   torch_version: "2.11.0"
   nccl_version: "2.30.4"
   cudnn_version: "9.16.0.29"
+  # Must equal sglang's own nvidia-cutlass-dsl[cu13] pin at sglang_ref; the reinstall in the
+  # Dockerfile previously floated past it onto 4.7.0. Only the CuTe DSL bf16 GEMM path on
+  # SM100/SM103 uses this, so a mismatch shows up on Blackwell and nowhere else.
+  cutlass_dsl_version: "4.6.0"
   efa_version: "1.49.0"
   rust_version: "1.96.1"
   gdrcopy_version: "2.6"
-  torch_cuda_arch_list: "9.0;10.0;10.3"
+  # 10.3a, not a bare 10.3: MXFP4 kernels emit cvt.e2m1x2, which ptxas accepts only under
+  # an a- or f-suffixed target. A bare 10.3 builds clean but emits no usable FP4 code for
+  # sm_103, failing only at load time on B300. a, not f: the only consumers are FlashMLA
+  # and DeepEP, which build via torch's cpp_extension and reject f-suffixed arches.
+  torch_cuda_arch_list: "9.0;10.0;10.3a"
   dlc_major_version: "1"
   dlc_minor_version: "2"
 
