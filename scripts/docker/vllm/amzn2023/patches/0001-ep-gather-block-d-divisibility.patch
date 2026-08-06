@@ -1,0 +1,18 @@
+diff --git a/vllm/model_executor/layers/fused_moe/deep_gemm_utils.py b/vllm/model_executor/layers/fused_moe/deep_gemm_utils.py
+index f4319b99c..cba2758d2 100644
+--- a/vllm/model_executor/layers/fused_moe/deep_gemm_utils.py
++++ b/vllm/model_executor/layers/fused_moe/deep_gemm_utils.py
+@@ -424,7 +424,13 @@ def ep_gather(
+     num_warps = 2
+     num_tokens = output_tensor.shape[0]
+     hidden_size = input_tensor.shape[1]
++    # min(hidden_size, 1024) need not divide hidden_size, so experts whose width is not a
++    # multiple of 1024 trip the assert below during memory profiling (Kimi-K3 is 3584 wide).
++    # Halve until it divides: that preserves the power of two the kernel's tl.arange requires
++    # and terminates at 1. The grid already uses cdiv, so the kernel itself is unchanged.
+     BLOCK_D = min(hidden_size, 1024)
++    while hidden_size % BLOCK_D != 0:
++        BLOCK_D //= 2
+     assert hidden_size % BLOCK_D == 0
+     grid = (triton.cdiv(hidden_size, BLOCK_D), min(num_tokens, 1024))
+
