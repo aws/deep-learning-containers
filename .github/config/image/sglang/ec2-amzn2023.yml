@@ -28,6 +28,9 @@ build:
   torch_version: "2.11.0"
   nccl_version: "2.30.4"
   cudnn_version: "9.16.0.29"
+  # Must equal sglang's own nvidia-cutlass-dsl[cu13] pin at sglang_ref. 4.7.0 relocated the
+  # package and drops cutlass._mlir, which breaks bf16_gemm_backend='auto' on Blackwell only.
+  cutlass_dsl_version: "4.6.0"
   efa_version: "1.49.0"
   rust_version: "1.96.1"
   gdrcopy_version: "2.6"

@@ -197,6 +197,11 @@ ARG SGLANG_KERNEL_VERSION=0.4.5
 ARG EFA_VERSION=1.49.0
 ARG NCCL_VERSION=2.30.4
 ARG CUDNN_VERSION=9.16.0.29
+# Exact pin, and must equal the nvidia-cutlass-dsl[cu13] pin in sglang's own requirements
+# at SGLANG_REF. 4.7.0 relocated the package to nvidia_cutlass_dsl/dsl_packages/cutlass/
+# and its -libs wheel no longer lands _mlir there, so `import cutlass._mlir` fails; the
+# assertion below catches it. Bump only together with SGLANG_REF.
+ARG CUTLASS_DSL_VERSION=4.6.0
 ARG Z3_VERSION=4.15.3.0
 
 ARG DLC_MAJOR_VERSION=1
@@ -343,18 +348,20 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
-     "nvidia-cutlass-dsl>=4.5.2" "nvidia-cutlass-dsl-libs-cu13>=4.5.2" \
+     "nvidia-cutlass-dsl==${CUTLASS_DSL_VERSION}" \
+     "nvidia-cutlass-dsl-libs-cu13==${CUTLASS_DSL_VERSION}" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig
 
 # Assert the CuTe DSL native libs landed. nvidia-cutlass-dsl ships pure Python; its MLIR
-# extension modules come from the separate -libs-cu13 wheel above. Both are declared, yet a
-# prior image shipped without _mlir, so `import cutlass` failed. That is a hard startup
-# failure on Blackwell only: bf16_gemm_backend='auto' picks the CuTe DSL path on SM100/SM103
-# and cuBLAS elsewhere. Root cause unresolved; this turns a silent packaging gap into a
-# build failure rather than one found on customer hardware.
+# extension modules come from the separate -libs-cu13 wheel above. A missing _mlir is a hard
+# startup failure on Blackwell only: bf16_gemm_backend='auto' picks the CuTe DSL path on
+# SM100/SM103 and cuBLAS elsewhere, so it would surface on customer hardware and nowhere in
+# CI. This guard caught exactly that when the install above still carried a >=4.5.2 floor and
+# floated onto 4.7.0, which moved the package under nvidia_cutlass_dsl/dsl_packages/. Now
+# pinned via CUTLASS_DSL_VERSION; keep the assertion as the tripwire for the next bump.
 RUN python${PYTHON_VERSION} -c "import cutlass; import cutlass._mlir; print('cutlass DSL OK:', cutlass.__file__)"
 
 # Record which MXFP4 MoE kernels this image can reach; see the script for why this warns
