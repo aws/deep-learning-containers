@@ -48,6 +48,31 @@ jobs:
   endpoint-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
+    # Split the suite across independent jobs, each on its own fresh runner.
+    # The CodeBuild runner's role session has a hard ~1h max lifetime that
+    # cannot be refreshed past its ceiling; running every endpoint test in one
+    # job serialized to ~55 min, so the async tests (which start last and then
+    # do an S3 PutObject after a ~40 min InService wait) hit ExpiredToken.
+    # Each matrix leg is a separate job with a fresh session, so each test
+    # group starts at t=0 with a full-lifetime token.
+    strategy:
+      fail-fast: false
+      matrix:
+        group:
+          # Unit tests (middleware, no endpoint) + fast real-time endpoint
+          # transports: buffered + response-stream (one endpoint) and the two
+          # bidirectional-WebSocket tests. `-k` deselects only the slow async
+          # endpoint tests so everything else here — including all of
+          # test_sagemaker_middleware.py — still runs.
+          - name: realtime
+            filter: "not async_endpoint"
+          # Slow async-inference tests only: each deploys its own endpoint and
+          # waits ~40 min for InService before its first S3 upload. Filter is
+          # the "async_endpoint" substring — it must be a *contiguous* substring
+          # of the node id (pytest -k), which "test_vllm_omni_tts_async_endpoint"
+          # contains but "test_async_endpoint" does not.
+          - name: async
+            filter: "async_endpoint"
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -69,8 +94,10 @@ jobs:
           uv pip install -r test/requirements.txt
           uv pip install -r test/vllm-omni/sagemaker/requirements.txt
 
-      - name: Run SageMaker endpoint tests
+      - name: Run SageMaker endpoint tests (${{ matrix.group.name }})
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} vllm-omni/sagemaker
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            -k "${{ matrix.group.filter }}" \
+            vllm-omni/sagemaker
