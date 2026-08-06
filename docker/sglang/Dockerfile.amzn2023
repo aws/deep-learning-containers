@@ -7,9 +7,13 @@ FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 
 ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
-ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
-ARG SGLANG_KERNEL_VERSION=0.4.4
-ARG FLASHINFER_VERSION=0.6.12
+# Kimi-K3 needs srt/models/kimi_k3.py, absent from every released tag, so this is a
+# commit ref (#32541). Release builds override it from config/image/sglang/*-amzn2023.yml;
+# keep the two in sync. Move to the first released tag carrying kimi_k3.py when one exists.
+ARG SGLANG_REF=abddb1c7e9d61ddddeaf016d885c2f20aab426e8
+# ABI-coupled to SGLANG_REF; both must move with it. Matches upstream's Dockerfile.
+ARG SGLANG_KERNEL_VERSION=0.4.5
+ARG FLASHINFER_VERSION=0.6.15.post1
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
 ARG MOONCAKE_VERSION=0.3.11.post1
 ARG GDRCOPY_VERSION=2.6
@@ -177,7 +181,8 @@ ARG CUDA_REF
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.11.0
-ARG SGLANG_KERNEL_VERSION=0.4.4
+# Keep in lockstep with the builder-stage SGLANG_KERNEL_VERSION above.
+ARG SGLANG_KERNEL_VERSION=0.4.5
 ARG EFA_VERSION=1.49.0
 ARG NCCL_VERSION=2.30.4
 ARG CUDNN_VERSION=9.16.0.29
