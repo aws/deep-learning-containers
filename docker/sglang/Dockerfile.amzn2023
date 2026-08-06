@@ -197,10 +197,10 @@ ARG SGLANG_KERNEL_VERSION=0.4.5
 ARG EFA_VERSION=1.49.0
 ARG NCCL_VERSION=2.30.4
 ARG CUDNN_VERSION=9.16.0.29
-# Exact pin, and must equal the nvidia-cutlass-dsl[cu13] pin in sglang's own requirements
-# at SGLANG_REF. 4.7.0 relocated the package to nvidia_cutlass_dsl/dsl_packages/cutlass/
-# and its -libs wheel no longer lands _mlir there, so `import cutlass._mlir` fails; the
-# assertion below catches it. Bump only together with SGLANG_REF.
+# Exact pin, and must equal the nvidia-cutlass-dsl[cu13] pin in sglang's own requirements at
+# SGLANG_REF -- the reinstall below previously carried a >=4.5.2 floor and floated onto 4.7.0,
+# against sglang's ==4.6.0. Bump only together with SGLANG_REF. Unrelated to the lib/lib64
+# split handled further down, which affects all versions alike.
 ARG CUTLASS_DSL_VERSION=4.6.0
 ARG Z3_VERSION=4.15.3.0
 
@@ -355,13 +355,17 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig
 
-# Assert the CuTe DSL native libs landed. nvidia-cutlass-dsl ships pure Python; its MLIR
-# extension modules come from the separate -libs-cu13 wheel above. A missing _mlir is a hard
-# startup failure on Blackwell only: bf16_gemm_backend='auto' picks the CuTe DSL path on
-# SM100/SM103 and cuBLAS elsewhere, so it would surface on customer hardware and nowhere in
-# CI. This guard caught exactly that when the install above still carried a >=4.5.2 floor and
-# floated onto 4.7.0, which moved the package under nvidia_cutlass_dsl/dsl_packages/. Now
-# pinned via CUTLASS_DSL_VERSION; keep the assertion as the tripwire for the next bump.
+# The CuTe DSL's two payload wheels disagree on their wheel tag while writing into one shared
+# directory, so on AL2023 pip splits the package across lib/ (cutlass/__init__.py) and lib64/
+# (cutlass/_mlir/) and `import cutlass._mlir` fails. See the script for the full mechanism;
+# it is an upstream bug affecting every version, visible only on lib/lib64-split distros.
+COPY ./scripts/docker/sglang/merge_cutlass_dsl_split.py /tmp/merge_cutlass_dsl_split.py
+RUN python${PYTHON_VERSION} /tmp/merge_cutlass_dsl_split.py
+
+# Assert the CuTe DSL imports end to end. A missing _mlir is a hard startup failure on
+# Blackwell only: bf16_gemm_backend='auto' picks the CuTe DSL path on SM100/SM103 and cuBLAS
+# elsewhere, so it would surface on customer hardware and nowhere in CI. This guard is what
+# caught the split above; keep it as the tripwire for the next version bump.
 RUN python${PYTHON_VERSION} -c "import cutlass; import cutlass._mlir; print('cutlass DSL OK:', cutlass.__file__)"
 
 # Record which MXFP4 MoE kernels this image can reach; see the script for why this warns
