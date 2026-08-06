@@ -19,6 +19,7 @@ dependencies = [
     "requests==2.33.0",
     "setuptools>=80.9.0,<81",
     "protobuf==3.20.2",
+    "cryptography>=50.0.0",
 ]
 
 [tool.uv]
