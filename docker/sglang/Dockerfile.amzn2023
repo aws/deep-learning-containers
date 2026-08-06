@@ -346,29 +346,14 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
 # build failure rather than one found on customer hardware.
 RUN python${PYTHON_VERSION} -c "import cutlass; import cutlass._mlir; print('cutlass DSL OK:', cutlass.__file__)"
 
-# Record which MXFP4 MoE kernels this image can reach. With moe_runner_backend='auto' sglang
-# picks trtllm-gen on SM100/SM103 when its cubins are present and silently drops to marlin
-# when they are not, so an image can ship on a slower expert path unnoticed. MXFP4 is K3's
-# routed-expert format. This warns rather than fails: trtllm-gen's MoE cubins are unmerged
-# upstream and a version bump does not help. Probing trtllm_fp4_block_scale_moe mirrors what
-# sglang itself gates on; a positive is necessary but not sufficient, since the symbol
-# resolving does not prove cubins exist for a given shape.
-RUN { python${PYTHON_VERSION} - <<'EOF'
-backends = []
-try:
-    from flashinfer import trtllm_fp4_block_scale_moe  # noqa: F401
-    backends.append("flashinfer_mxfp4/trtllm-gen")
-except Exception as e:
-    print(f"MXFP4 MoE: trtllm-gen NOT available ({type(e).__name__}), auto will fall back")
-for name, mod in (("deep_gemm", "deep_gemm"), ("marlin", "sglang.srt.layers.quantization.marlin_utils_fp4")):
-    try:
-        __import__(mod)
-        backends.append(name)
-    except Exception:
-        pass
-print("MXFP4_MOE_BACKENDS=" + (",".join(backends) if backends else "none"))
-EOF
-} > /etc/dlc-mxfp4-moe-backends.txt 2>&1 || true; cat /etc/dlc-mxfp4-moe-backends.txt
+# Record which MXFP4 MoE kernels this image can reach; see the script for why this warns
+# rather than fails. Kept as a file rather than an inline heredoc because this Dockerfile
+# declares no `# syntax=` frontend, so a release build should not depend on the daemon's
+# default BuildKit accepting heredocs.
+COPY ./scripts/docker/sglang/probe_mxfp4_moe_backends.py /tmp/probe_mxfp4_moe_backends.py
+RUN python${PYTHON_VERSION} /tmp/probe_mxfp4_moe_backends.py > /etc/dlc-mxfp4-moe-backends.txt 2>&1 || true; \
+    cat /etc/dlc-mxfp4-moe-backends.txt; \
+    rm -f /tmp/probe_mxfp4_moe_backends.py
 
 # tilelang compatibility fixes for AL2023:
 # 1. libz3: TVM (bundled in tilelang) links a specific z3 soname. AL2023's z3-libs
