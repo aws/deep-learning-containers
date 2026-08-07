@@ -1,0 +1,137 @@
+ARG BASE_REF=2023
+
+# =============================================================================
+# STAGE 0: builder — compile llama.cpp from a pinned upstream ref
+# =============================================================================
+# x86-64 CPU-inference build. Uses GGML_CPU_ALL_VARIANTS so a single image
+# carries every x86 microarch backend (SSE4.2/AVX/AVX2/AVX512/AMX) as
+# dlopen-able .so files and picks the best one for the host CPU at runtime.
+# This is the x86 analog of the arm64 -mcpu portability decision: one portable
+# image that runs well from older EC2 (Haswell/Skylake) through Sapphire Rapids.
+FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS builder
+
+# Pin the upstream ref for reproducible builds.
+ARG LLAMA_CPP_REF=b10075
+ARG BUILD_PARALLEL=16
+
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  gcc gcc-c++ make cmake git \
+  libcurl-devel openblas-devel \
+  libgomp \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+WORKDIR /src
+RUN git clone https://github.com/ggml-org/llama.cpp.git \
+  && cd llama.cpp \
+  && git checkout ${LLAMA_CPP_REF}
+
+WORKDIR /src/llama.cpp/build
+# GGML_NATIVE=OFF + GGML_CPU_ALL_VARIANTS=ON + GGML_BACKEND_DL=ON:
+#   build all x86 CPU variants as loadable backends, dispatch at runtime.
+RUN cmake .. \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_NATIVE=OFF \
+  -DGGML_CPU_ALL_VARIANTS=ON \
+  -DGGML_BACKEND_DL=ON \
+  -DGGML_OPENMP=ON \
+  -DLLAMA_CURL=ON \
+  && cmake --build . --config Release -j ${BUILD_PARALLEL} --target llama-server llama-cli llama-bench
+
+# =============================================================================
+# STAGE 1: runtime — slim image with just the server + shared libs
+# =============================================================================
+FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS runtime
+
+ARG PYTHON="python3"
+# Re-declared here (ARGs don't cross build stages) so OSS-compliance tracking
+# below can record the built llama.cpp ref.
+ARG LLAMA_CPP_REF=b10075
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=general \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8
+
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  libgomp libcurl openblas shadow-utils \
+  python3 python3-pip \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# setup_oss_compliance.sh imports `requests`, which the slim AL2023 runtime lacks.
+RUN pip3 install --no-cache-dir requests
+
+# Binaries + the .so files llama.cpp produces (libllama, libggml*, and the
+# per-microarch libggml-cpu-*.so backend variants for runtime dispatch).
+COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/
+ENV PATH="/opt/llama.cpp/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/llama.cpp/bin:${LD_LIBRARY_PATH}"
+
+# Faster HF model pulls at run time.
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
+
+# Telemetry, common scripts, and OSS compliance (DLC convention).
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} \
+  # Track llama.cpp itself (built from source) for OSS compliance — its binaries
+  # and libggml*/libllama shared objects under /opt/llama.cpp are otherwise untracked.
+  && printf '\n** llama.cpp; version %s -- https://github.com/ggml-org/llama.cpp\n' "${LLAMA_CPP_REF}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nllama.cpp %s https://github.com/ggml-org/llama.cpp/tree/%s\n' "${LLAMA_CPP_REF}" "${LLAMA_CPP_REF}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && rm setup_oss_compliance.sh \
+  && rm -rf /root/oss_compliance* \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /var/cache/dnf \
+  && rm -rf /root/.cache || true
+
+# ====================== ec2 =========================================
+FROM runtime AS llama-cpp-ec2
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+COPY ./scripts/docker/llama_cpp/dockerd_entrypoint.sh /usr/bin/serve
+RUN chmod +x /usr/bin/serve
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/bin/serve"]
+
+# ====================== sagemaker ===================================
+# SageMaker inference requires GET /ping and POST /invocations on 8080.
+# llama-server (a C++ binary) exposes only /health and OpenAI-compatible
+# routes, so we front it with an nginx reverse proxy that maps those two
+# SageMaker paths onto llama-server. See sagemaker_entrypoint.sh.
+FROM runtime AS llama-cpp-sagemaker
+
+ARG CACHE_REFRESH=0
+# nginx = reverse proxy; gettext = envsubst (renders the nginx conf template).
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  nginx gettext \
+  && dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+COPY ./scripts/docker/llama_cpp/llama_cpp_sagemaker.conf.template /etc/nginx/llama_cpp_sagemaker.conf.template
+COPY ./scripts/docker/llama_cpp/sagemaker_entrypoint.sh /usr/bin/serve
+RUN chmod +x /usr/bin/serve
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/bin/serve"]

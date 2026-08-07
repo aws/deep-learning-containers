@@ -1,0 +1,43 @@
+# nginx reverse proxy that adapts llama-server to the SageMaker inference
+# contract. Rendered by sagemaker_entrypoint.sh (envsubst fills the ports),
+# dropped into /etc/nginx/conf.d/, and loaded by the stock AL2023 nginx.conf
+# (its http block already `include`s conf.d/*.conf).
+#
+#   GET  /ping        -> llama-server /health              (health check)
+#   POST /invocations -> llama-server /v1/chat/completions (inference)
+#
+# All other paths are proxied through untouched so the OpenAI-compatible
+# routes (/v1/models, /v1/completions, /v1/embeddings, ...) stay reachable.
+upstream llama_cpp_upstream {
+    server 127.0.0.1:${UPSTREAM_PORT};
+}
+
+server {
+    listen ${SERVE_PORT} default_server;
+    listen [::]:${SERVE_PORT} default_server;
+    server_name _;
+
+    # SageMaker allows large request/response bodies; don't cap them.
+    client_max_body_size 0;
+    # Generation can be slow on CPU — give the upstream generous timeouts.
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+
+    location = /ping {
+        proxy_pass http://llama_cpp_upstream/health;
+        proxy_set_header Host $host;
+    }
+
+    location = /invocations {
+        proxy_pass http://llama_cpp_upstream/v1/chat/completions;
+        proxy_set_header Host $host;
+        proxy_set_header Content-Type $content_type;
+        proxy_buffering off;
+    }
+
+    location / {
+        proxy_pass http://llama_cpp_upstream;
+        proxy_set_header Host $host;
+        proxy_buffering off;
+    }
+}
