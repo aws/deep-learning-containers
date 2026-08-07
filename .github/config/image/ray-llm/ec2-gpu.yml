@@ -1,0 +1,34 @@
+image:
+  name: "ray-llm-ec2-gpu"
+  description: "Ray Serve + vLLM for online LLM serving on EC2 (GPU, single- and multi-node under KubeRay)"
+
+metadata:
+  framework: "ray-llm"
+  framework_version: "2.56.1"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "inference"
+  container_type: "llm"
+  prod_image: "ray:llm-cuda"
+
+build:
+  dockerfile: "docker/ray-llm/Dockerfile.cuda"
+  target: "ec2"
+  builder_base_image: "public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023"
+  base_image: "public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023"
+  python_version: "3.13.12"
+  python_short_version: "3.13"
+  cuda_version: "13.0.2"
+  vllm_version: "0.22.0"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: true
+  environment: "gamma"

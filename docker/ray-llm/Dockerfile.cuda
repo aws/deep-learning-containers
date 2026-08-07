@@ -1,0 +1,149 @@
+# ============================================================================
+# Ray LLM DLC — Amazon Linux 2023 (CUDA 13.0), online LLM serving
+#
+# Ray Serve + vLLM on the base cu130 image. Supports single-node and multi-node
+# LLM serving under KubeRay via ray.serve.llm.build_openai_app.
+#
+# The base image already ships Python 3.13.12, uv, EFA 1.49.0, NCCL 2.29.7, and
+# GDRCopy 2.6 (see docker/base/cu130/Dockerfile), so this file just layers on
+# the Python stack, shell tools vLLM needs at runtime, and a pass-through
+# entrypoint compatible with KubeRay's rayStartParams-driven ray start.
+#
+# Config build: block is the source of truth for pins; ARG defaults are local-
+# build fallbacks.
+# ============================================================================
+
+# ── Global ARGs ─────────────────────────────────────────────────────────────
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+ARG PYTHON_VERSION=3.13
+ARG PYTHON_SHORT_VERSION=3.13
+ARG FRAMEWORK_VERSION=2.56.1
+ARG VLLM_VERSION=0.22.0
+
+# Base DLCs (we own them). devel for the venv build stage, runtime for output.
+ARG BUILDER_BASE_IMAGE=public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023
+
+
+# ── Stage: builder-venv (resolve Python deps from lockfile) ──────────────────
+FROM ${BUILDER_BASE_IMAGE} AS builder-venv
+
+# uv + python ship in the base DLC. Resolve the venv from the lockfile.
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+COPY docker/ray-llm/pyproject.toml docker/ray-llm/uv.lock /tmp/build/
+WORKDIR /tmp/build
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
+
+
+# ── Stage: builder-oss (OSS license generation, isolated) ────────────────────
+FROM ${BASE_IMAGE} AS builder-oss
+COPY --from=builder-venv /opt/venv /opt/venv
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python3 \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+
+# ── Stage: runtime-base (shared base for output stages) ──────────────────────
+FROM ${BASE_IMAGE} AS runtime-base
+ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
+ARG FRAMEWORK_VERSION
+ARG VLLM_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+LABEL framework="ray-llm"
+LABEL framework_version="${FRAMEWORK_VERSION}"
+LABEL vllm_version="${VLLM_VERSION}"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=inference \
+  CUDA_HOME=/usr/local/cuda \
+  # EFA/NCCL runtime defaults. Base image's install_efa writes NCCL_SOCKET_IFNAME
+  # exclusions to /etc/nccl.conf, which auto-detects on any host. Do NOT hardcode
+  # eth0 here — breaks Slurm/EC2 hosts that use ens6/enp40s0. Manifest can override.
+  FI_PROVIDER=efa \
+  FI_LOG_LEVEL=warn \
+  NCCL_DEBUG=INFO
+
+# Shell tools vLLM needs at runtime:
+# - `which` for FlashInfer's nvcc probe (without it: FileNotFoundError)
+# - gcc/g++/make + CC for torch.compile's runtime kernel compilation
+# - wget for KubeRay's default health probes
+# - cuda-nvcc / cudart-devel for any user-side vLLM plugin builds
+# - libcurand-devel: FlashInfer JIT-compiles its sampling kernel on first use
+#   (top-k/top-p), which #includes curand.h. Missing header → RuntimeError from
+#   ninja, EngineCore fails to start, Ray Serve loops on replica init.
+RUN CUDA_MAJOR_MINOR=$(echo "13.0" | tr '.' '-') \
+  && dnf install -y --allowerasing \
+    shadow-utils tar gzip curl wget which findutils util-linux gcc gcc-c++ make \
+    cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} \
+    libcurand-devel-${CUDA_MAJOR_MINOR} \
+  && dnf clean all
+
+# torch.compile probes CC at runtime; set it now so customers don't need to.
+ENV CC=/usr/bin/gcc \
+  CXX=/usr/bin/g++
+
+# Python venv from builder
+COPY --from=builder-venv /opt/venv /opt/venv
+
+# Security patch after all installers so every OS package is covered.
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf upgrade -y cuda-compat-* libcap \
+  && dnf clean all
+
+# OSS compliance
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
+  LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
+
+
+# ── Stage: ec2 (single output — EC2 + KubeRay head/worker on EKS) ────────────
+FROM runtime-base AS ec2
+ARG FRAMEWORK_VERSION
+
+# Telemetry
+COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK="ray-llm"
+ARG CONTAINER_TYPE="inference"
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+
+# Pass-through entrypoint: CUDA forward-compat check, then exec the command.
+# Lets KubeRay's rayStartParams-driven `ray start` run unmodified. Same pattern
+# as ray-train — see scripts/docker/ray-llm/entrypoint.sh.
+COPY scripts/docker/ray-llm/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Ray cluster essentials: gcs 6379 (head↔worker), dashboard 8265 (KubeRay probes + UI).
+# Customer manifests declare additional containerPorts they need (serve 8000, etc.).
+EXPOSE 6379 8265
+
+WORKDIR /workspace
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["bash"]
