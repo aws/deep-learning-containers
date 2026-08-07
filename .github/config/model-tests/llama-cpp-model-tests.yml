@@ -1,0 +1,19 @@
+# llama.cpp Model Test Configuration
+#
+# smoke-test: CPU model serving + inference validation on a Graviton fleet.
+#
+# The llama.cpp image is CPU-only (ARM64/Graviton), so tests run on ARM64
+# CodeBuild fleets rather than GPU runners. The smoke test serves a small
+# quantized GGUF and asserts /health + a chat completion.
+#
+# codebuild-fleet runners (ARM64):
+#   arm64-c8g4xl-runner = c8g.4xlarge (Graviton4, 16 vCPU / 32 GiB)
+
+s3_prefix: "s3://dlc-cicd-models/llm-models"
+
+smoke-test:
+  codebuild-fleet:
+    - name: "qwen2.5-0.5b-q4_0"
+      s3_model: "qwen2.5-0.5b-instruct-q4_0.gguf.tar.gz"
+      fleet: "arm64-c8g4xl-runner"
+      extra_args: "--ctx-size 4096 --threads 16"

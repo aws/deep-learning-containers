@@ -1,0 +1,105 @@
+# =============================================================================
+# llama.cpp — ARM64 (AWS Graviton) CPU-inference DLC (Amazon Linux 2023)
+#
+# Builds llama.cpp from a pinned upstream ref for aarch64 and serves quantized
+# GGUF models on CPU via llama-server (OpenAI-compatible HTTP API).
+#
+# Build target is pinned to the Graviton3 baseline (-mcpu=neoverse-v1): a single
+# image is portable across Graviton3/4/5 because llama.cpp repacks quantized
+# weights to the CPU-optimal int8 layout at load time. This image is CPU-only
+# (no CUDA).
+# =============================================================================
+
+# =============================================================================
+# STAGE 0: builder — compile llama.cpp
+# =============================================================================
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS builder
+
+ARG PYTHON_VERSION=3.12
+ARG LLAMA_CPP_REF=b10075
+ARG MCPU=neoverse-v1
+ARG BUILD_PARALLEL=16
+
+# --allowerasing: the AL2023 base ships libcurl-minimal, which conflicts with
+# the full libcurl(-devel) that llama.cpp's -DLLAMA_CURL=ON requires.
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+      gcc gcc-c++ make cmake git \
+      libcurl-devel openblas-devel libgomp \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+WORKDIR /src
+RUN git clone https://github.com/ggml-org/llama.cpp.git \
+  && cd llama.cpp \
+  && git checkout ${LLAMA_CPP_REF}
+
+WORKDIR /src/llama.cpp/build
+RUN cmake .. \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DGGML_NATIVE=OFF \
+      -DCMAKE_C_FLAGS="-mcpu=${MCPU}" \
+      -DCMAKE_CXX_FLAGS="-mcpu=${MCPU}" \
+      -DGGML_OPENMP=ON \
+      -DLLAMA_CURL=ON \
+  && cmake --build . --config Release -j ${BUILD_PARALLEL} \
+      --target llama-server llama-cli llama-bench
+
+# =============================================================================
+# STAGE 1: runtime — slim image with llama-server + shared libs
+# =============================================================================
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS runtime
+
+ARG PYTHON_VERSION=3.12
+ARG PYTHON=python${PYTHON_VERSION}
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# shadow-utils provides useradd (absent from the minimal base); libcurl swap as above.
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+      libgomp libcurl openblas shadow-utils \
+      python${PYTHON_VERSION} python${PYTHON_VERSION}-pip \
+      tar gzip unzip \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && useradd -m -u 1000 llama
+
+COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/
+ENV PATH="/opt/llama.cpp/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/llama.cpp/bin:${LD_LIBRARY_PATH}"
+
+# Faster HF model pulls at run time.
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
+
+# Telemetry + OSS compliance, mirroring the other framework DLCs.
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
+
+ARG FRAMEWORK=llama_cpp
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE=inference
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
+  && rm -rf /root/oss_compliance* /tmp/tmp* /var/cache/dnf /root/.cache || true
+
+# ====================== ec2 =========================================
+FROM runtime AS llama-cpp-ec2
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+COPY ./scripts/docker/llama_cpp/dockerd_entrypoint.sh /usr/bin/serve
+RUN chmod +x /usr/bin/serve
+
+USER llama
+WORKDIR /home/llama
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/bin/serve"]
