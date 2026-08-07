@@ -1,0 +1,51 @@
+[project]
+name = "dlc-ray-llm"
+version = "2.56.1"
+requires-python = "==3.13.*"
+dependencies = [
+    # ray[default,serve,llm]:
+    # - default: dashboard + job-submission server that KubeRay's health probes
+    #   (/api/gcs_healthz, /api/local_raylet_healthz) and `ray job submit` depend on
+    # - serve: Ray Serve HTTP layer (fastapi/starlette/uvicorn) — needed for
+    #   ray.serve.llm.build_openai_app in serveConfigV2
+    # - llm: LLM extras (hf_transfer, nixl, jsonref, jsonschema, etc.). Pulls
+    #   vllm[audio]>=0.18.0 by default; we pin vllm explicitly below to override.
+    "ray[default,serve,llm]==2.56.1",
+    # ray[llm] 2.56.1 hard-pins vllm[audio]==0.22.0 — matching keeps ray.serve.llm's
+    # internal deep imports valid. Bump when Ray moves its pin.
+    "vllm==0.22.0",
+    "torch==2.11.0",
+    "torchvision==0.26.0",
+    "torchaudio==2.11.0",
+    "transformers==5.14.1",
+    # fastapi >=0.140 breaks Ray Serve's cloudpickle path for @serve.ingress
+    # (add_api_route holds a _thread.lock). Pin to the version the Ray Serve DLC
+    # ships, which is known to work with ray[serve]==2.56.x.
+    "fastapi==0.133.1",
+    "boto3>=1.35.0",
+    "awscli>=1.35.0",
+    "pip>=25.0",
+]
+
+# PyTorch wheels default to CUDA 12 on PyPI. Pull the cu130-built variants from
+# PyTorch's own index so torch links against the base cu130 image's libcudart.so.13.
+# Same pattern as docker/ray-train/pyproject.toml.
+[tool.uv]
+# `nixl` (pulled by ray[llm]) hard-depends on BOTH `nixl-cu12` AND `nixl-cu13`.
+# Both wheels install into the same `site-packages/nixl_ep/` path and overwrite
+# each other's `.so`; cu12 tends to win, which fails to import on this cu130
+# image (`libcudart.so.12: not found`). A never-true marker drops nixl-cu12 at
+# resolution time so only the cu13 variant is locked and installed.
+override-dependencies = [
+    "nixl-cu12 ; sys_platform == 'never'",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [{index = "pytorch-cu130"}]
+torchvision = [{index = "pytorch-cu130"}]
+torchaudio = [{index = "pytorch-cu130"}]
