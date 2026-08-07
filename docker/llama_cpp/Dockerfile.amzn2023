@@ -15,9 +15,9 @@ ARG LLAMA_CPP_REF=b10075
 ARG BUILD_PARALLEL=16
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
-      gcc gcc-c++ make cmake git \
-      libcurl-devel openblas-devel \
-      libgomp \
+  gcc gcc-c++ make cmake git \
+  libcurl-devel openblas-devel \
+  libgomp \
   && dnf clean all && rm -rf /var/cache/dnf
 
 WORKDIR /src
@@ -29,12 +29,12 @@ WORKDIR /src/llama.cpp/build
 # GGML_NATIVE=OFF + GGML_CPU_ALL_VARIANTS=ON + GGML_BACKEND_DL=ON:
 #   build all x86 CPU variants as loadable backends, dispatch at runtime.
 RUN cmake .. \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DGGML_NATIVE=OFF \
-      -DGGML_CPU_ALL_VARIANTS=ON \
-      -DGGML_BACKEND_DL=ON \
-      -DGGML_OPENMP=ON \
-      -DLLAMA_CURL=ON \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_NATIVE=OFF \
+  -DGGML_CPU_ALL_VARIANTS=ON \
+  -DGGML_BACKEND_DL=ON \
+  -DGGML_OPENMP=ON \
+  -DLLAMA_CURL=ON \
   && cmake --build . --config Release -j ${BUILD_PARALLEL} --target llama-server llama-cli llama-bench
 
 # =============================================================================
@@ -58,8 +58,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONIOENCODING=UTF-8
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
-      libgomp libcurl openblas shadow-utils \
-      python3 python3-pip \
+  libgomp libcurl openblas shadow-utils \
+  python3 python3-pip \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # setup_oss_compliance.sh imports `requests`, which the slim AL2023 runtime lacks.
@@ -125,7 +125,7 @@ FROM runtime AS llama-cpp-sagemaker
 ARG CACHE_REFRESH=0
 # nginx = reverse proxy; gettext = envsubst (renders the nginx conf template).
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
-      nginx gettext \
+  nginx gettext \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/*
 
