@@ -2,7 +2,7 @@
 # DLC images to patch - force_release is not allowed in this file
 release_images:
   # PyTorch 2.9 Images
-  3:
+  1:
     framework: "pytorch"
     version: "2.9.0"
     customer_type: "ec2"
@@ -17,7 +17,7 @@ release_images:
       force_release: False
       public_registry: True
       enable_soci: True
-  4:
+  2:
     framework: "pytorch"
     version: "2.9.0"
     customer_type: "sagemaker"
@@ -34,7 +34,7 @@ release_images:
       enable_soci: True
 
   # PyTorch 2.10 Images
-  5:
+  3:
     framework: "pytorch"
     version: "2.10.0"
     customer_type: "ec2"
@@ -49,7 +49,7 @@ release_images:
       force_release: False
       public_registry: True
       enable_soci: True
-  6:
+  4:
     framework: "pytorch"
     version: "2.10.0"
     customer_type: "sagemaker"
