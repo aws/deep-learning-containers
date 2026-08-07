@@ -15,6 +15,7 @@ on:
       - "scripts/docker/telemetry/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/llama_cpp/**"
+      - "test/llama_cpp/**"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -38,6 +39,7 @@ jobs:
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       model-test-change: ${{ steps.changes.outputs.model-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
@@ -54,6 +56,8 @@ jobs:
               - "test/security/data/ecr_scan_allowlist/llama_cpp/**"
             model-test-change:
               - ".github/config/model-tests/llama-cpp-model-tests.yml"
+            sagemaker-test-change:
+              - "test/llama_cpp/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -87,5 +91,6 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
+      run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false
     secrets: inherit
