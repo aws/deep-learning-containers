@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fsx-inspect
+spec:
+  containers:
+  - name: fsx-inspect
+    image: amazonlinux:2
+    command: ["sleep", "3600"]
+    volumeMounts:
+    - name: fsx-lustre-volume
+      mountPath: /mnt/fsx
+  volumes:
+  - name: fsx-lustre-volume
+    persistentVolumeClaim:
+      claimName: fsx-lustre-pvc

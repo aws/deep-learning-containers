@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: fsx-lustre-pv
+spec:
+  capacity:
+    storage: 1200Gi  # Adjust based on your FSx Lustre filesystem size
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: fsx-sc
+  csi:
+    driver: fsx.csi.aws.com
+    volumeHandle: <fs-id>  # FSx Lustre filesystem ID
+    volumeAttributes:
+      dnsname: <fs-id>.fsx.us-west-2.amazonaws.com  # FSx Lustre DNS name
+      mountname: <mount-name>  # The mount name of your FSx Lustre filesyst
