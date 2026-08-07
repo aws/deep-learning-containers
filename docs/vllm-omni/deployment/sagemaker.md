@@ -109,6 +109,35 @@ For the async `/v1/videos` route on SageMaker async inference, see
 For Qwen2.5-Omni multimodal chat (text + speech output), set `route=/v1/chat/completions` and use the request shape from the
 [EC2 multimodal-chat example](ec2.md#speech-output-requirements).
 
+## Bidirectional Streaming (WebSocket)
+
+The {{ sm_short }} image advertises `com.amazonaws.sagemaker.capabilities.bidirectional-streaming=true`, so SageMaker's
+[Bidirectional Streaming API](https://docs.aws.amazon.com/sagemaker/latest/dg/realtime-endpoints-bidirectional-streaming.html)
+(`InvokeEndpointWithBidirectionalStream`, an HTTP/2 WebSocket) can open a persistent socket to the container. A routing middleware bridges that socket
+to vLLM-Omni's native WebSocket routes for low-latency streaming TTS and realtime sessions.
+
+Supported WebSocket routes (select one via `model_invocation_path`):
+
+| `model_invocation_path` | Purpose |
+| --- | --- |
+| `v1/audio/speech/stream` | Streaming TTS |
+| `v1/realtime` | Realtime audio session |
+| `v1/realtime/video` | Realtime video session |
+| `v1/video/chat/stream` | Streaming video chat |
+| `v1/duplex` | Full-duplex session |
+| `v1/realtime/robot/openpi` | OpenPI robot control |
+
+Key requirements:
+
+- **`inference_ami_version` is mandatory** — bidirectional streaming requires a recent SageMaker inference AMI (e.g.
+  `al2023-ami-sagemaker-inference-gpu-4-1` for CUDA 13). Without it the WebSocket never reaches the container and the request appears to hang.
+- **`model_invocation_path` is slashless** — pass `v1/audio/speech/stream`, not `/v1/audio/speech/stream`. A leading slash fails
+  `model_invocation_path` validation with HTTP 400; SageMaker prepends the slash so the container sees the real route.
+- **`boto3` has no bidirectional API** — use the experimental `aws-sdk-sagemaker-runtime-http2` client.
+
+A complete deploy → stream → teardown example is at
+[`examples/vllm-omni/bidi/deploy_bidi_stream.py`](https://github.com/aws/deep-learning-containers/blob/main/examples/vllm-omni/bidi/deploy_bidi_stream.py).
+
 ## Notes
 
 - GPU deployments require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 13.0 images.
