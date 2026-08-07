@@ -1,0 +1,262 @@
+# ============================================================================
+# TensorFlow Serving 2.20 Inference DLC — Amazon Linux 2023 (CUDA 12.9.1)
+# Stages: builder-base -> builder-oss ; runtime-base -> sagemaker (MME-capable).
+# SageMaker-only (no runtime stage), no EFA/NCCL/OpenMPI (inference is not
+# multi-node). Version defaults mirror the config's build: block.
+# ============================================================================
+
+# ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG DLC_MAJOR_VERSION=1
+ARG CUDA_VERSION=12.9.1
+ARG PYTHON_VERSION=3.12
+ARG TF_SERVING_VERSION=2.20.0
+ARG TFS_SHORT_VERSION=2.20
+ARG NGINX_VERSION=1.30.3
+ARG NJS_VERSION=0.9.9
+
+
+# ── Stage: build_image (TFS upstream binary source) ──────────────────────────
+# Provides /usr/local/bin/tensorflow_model_server (CUDA 12.x build; runs on the
+# 12.9.1 runtime via CUDA minor-version forward compat).
+FROM tensorflow/serving:${TF_SERVING_VERSION}-devel-gpu AS build_image
+
+
+# ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
+ARG PYTHON_VERSION
+
+RUN dnf install -y --allowerasing \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  gcc gcc-c++ make cmake git openssl-devel ninja-build \
+  tar xz curl \
+  && dnf clean all
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+COPY docker/tensorflow/inference/2.20/cuda/pyproject.toml docker/tensorflow/inference/2.20/cuda/uv.lock /tmp/build/
+WORKDIR /tmp/build
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact
+
+
+# ── Stage: builder-oss (generates license files in isolation) ───────────────
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
+ARG PYTHON_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=builder-base /opt/venv /opt/venv
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+
+# ── Stage: runtime-base (shared base for output stages) ─────────────────────
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime-base
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG TF_SERVING_VERSION
+ARG TFS_SHORT_VERSION
+ARG DLC_MAJOR_VERSION
+ARG NGINX_VERSION
+ARG NJS_VERSION
+
+# Labels live on runtime-base so all output stages inherit them.
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL framework="tensorflow"
+LABEL framework_version="${TF_SERVING_VERSION}"
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=inference \
+  CUDA_HOME=/usr/local/cuda \
+  MODEL_BASE_PATH=/models \
+  MODEL_NAME=model
+
+# Runtime system deps. nginx + njs come from AL2023 core in the separate
+# --releasever latest step below; libcu* math libs come from NVIDIA's CUDA
+# repo (configured on the base image); the rest is AL2023 core.
+#
+# libcublas/libcufft/libcurand/libcusolver/libcusparse/libnvjpeg are required
+# at TFS init on a real GPU — the CUDA runtime image ships CUDA but not these
+# math libs. Missing -> `cuInit` crash on GPU hosts, CPU falls back cleanly.
+RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
+  && dnf install -y --allowerasing \
+    python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
+    procps-ng \
+    gcc gcc-c++ make git \
+    tar gzip xz which findutils util-linux \
+    libpng-devel freetype-devel zlib-devel \
+    libcublas-${CUDA_MAJOR_MINOR} libcufft-${CUDA_MAJOR_MINOR} \
+    libcurand-${CUDA_MAJOR_MINOR} libcusolver-${CUDA_MAJOR_MINOR} \
+    libcusparse-${CUDA_MAJOR_MINOR} libnvjpeg-${CUDA_MAJOR_MINOR} \
+    openssl unzip jq curl wget \
+  && dnf clean all
+
+# nginx + njs module from AL2023 core. --releasever latest is required so
+# openssl-libs 3.5.5 is pulled transitively (AL2023 nginx 1.30.3 links
+# against libssl.so.3(OPENSSL_3.5.0); the pinned base ships 3.0.x).
+RUN dnf install -y --releasever latest --allowerasing \
+  nginx-${NGINX_VERSION} \
+  nginx-mod-njs-${NJS_VERSION} \
+  && dnf clean all
+
+# Copy venv from builder-base
+COPY --from=builder-base /opt/venv /opt/venv
+
+# Stage cuDNN from the pip-installed nvidia-cudnn-cu12 wheel. The CUDA runtime
+# base ships CUDA but NOT cuDNN, and TFS's GPU binary links libcudnn*.so
+# dynamically — missing => first Conv/RNN op fails at request time.
+RUN CUDNN_HOME=$(/opt/venv/bin/python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") \
+ && cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ \
+ && cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ \
+ && ldconfig
+
+# TF Serving binary from the upstream devel image.
+COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/local/bin/tensorflow_model_server
+
+# python symlink — some TF tooling expects /usr/local/bin/python.
+RUN ln -sf $(which python${PYTHON_VERSION}) /usr/local/bin/python \
+  && ln -sf $(which pip3) /usr/local/bin/pip
+
+ENV PATH="/opt/venv/bin:/usr/local/cuda/bin:${PATH}"
+# Hard-set (do not expand ${LD_LIBRARY_PATH}) — it is unset here and would
+# collapse to a trailing colon, which ld.so treats as "." (CWD injection).
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/lib"
+
+# Models dir
+RUN mkdir -p ${MODEL_BASE_PATH}
+
+# License file (S3 bucket pre-provisioned for tensorflow-2.20)
+RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TFS_SHORT_VERSION}/license.txt" \
+ || echo "tensorflow-${TFS_SHORT_VERSION}/license.txt not yet provisioned in aws-dlc-licenses bucket; placeholder emitted" >/license.txt
+
+WORKDIR /
+
+
+# ── Stage: sagemaker (SageMaker inference output, MME-capable) ──────────────
+FROM runtime-base AS sagemaker
+ARG TF_SERVING_VERSION
+ARG TFS_SHORT_VERSION
+ARG PYTHON_VERSION
+
+# SM capability labels: accept-bind-to-port enables SAGEMAKER_BIND_TO_PORT;
+# multi-models=true enables MME loading via tensorflowServing.js.
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
+LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.9
+
+ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
+ENV PATH="$PATH:/sagemaker"
+
+# SageMaker BYOC paths
+RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output
+
+# tensorflow-serving-api-gpu installed with --no-deps (skips the ~600 MB
+# `tensorflow` framework wheel; see cuda/pyproject.toml header). Transitive
+# runtime deps (numpy/protobuf/grpcio) already come from builder-base.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache \
+  "tensorflow-serving-api-gpu==${TF_SERVING_VERSION}"
+
+# SageMaker handler artifacts (TFS toolkit).
+COPY scripts/docker/tensorflow/inference/sagemaker /sagemaker
+
+# Telemetry
+COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG FRAMEWORK="tensorflow"
+ARG CONTAINER_TYPE="inference"
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${TF_SERVING_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template
+
+# Security patch — run after all installers so every OS package is covered.
+# libcurl --refresh: --security sometimes misses libcurl CVE patches that
+# ship as regular updates rather than security advisories.
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf upgrade -y cuda-compat-* \
+  && dnf upgrade -y libcurl libcurl-minimal --refresh \
+  && dnf clean all
+
+# Telemetry bashrc hook — MUST be after `dnf upgrade --security` (upgrade
+# may replace /etc/bashrc and silently wipe any earlier source line).
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+
+# OSS compliance
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# SM entrypoint. dockerd_entrypoint.sh runs telemetry, sources
+# start_cuda_compat when the -gpu wheel is installed, then `exec "$@"` —
+# so `docker run ... serve` execs /sagemaker/serve as PID 1 (signals reach
+# TFS directly). A bare `docker run` falls through to CMD (non-SM smoke).
+COPY scripts/docker/tensorflow/inference/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY scripts/docker/tensorflow/inference/tf_serving_entrypoint.sh /usr/local/bin/tf_serving_entrypoint.sh
+COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh \
+  /usr/local/bin/tf_serving_entrypoint.sh \
+  /usr/local/bin/start_cuda_compat.sh
+
+# Compat symlinks — canary/ECS/EKS harnesses hardcode /usr/bin/ paths.
+RUN ln -s /usr/local/bin/tensorflow_model_server /usr/bin/tensorflow_model_server \
+  && ln -s /usr/local/bin/tf_serving_entrypoint.sh /usr/bin/tf_serving_entrypoint.sh
+
+# Build-time smoke check — catches library / config / command drift here
+# rather than at endpoint deploy.
+RUN set -eux \
+  # 1. Every nginx dynamic module resolves all shared-lib deps.
+  &&  for so in /usr/share/nginx/modules/*.so /usr/lib64/nginx/modules/*.so; do \
+        [ -e "$so" ] || continue; \
+        echo "checking $so"; \
+        ldd "$so" | grep -F 'not found' && exit 1; \
+      done; true \
+  # 2. nginx config parses with our njs module loaded (module-vs-nginx ABI).
+  &&  cp /sagemaker/nginx.conf.template /sagemaker/nginx.conf.smoke \
+  &&  sed -i \
+        -e 's|%NGINX_LOG_LEVEL%|info|g' \
+        -e 's|%NGINX_HTTP_PORT%|8080|g' \
+        -e 's|%PROXY_READ_TIMEOUT%|60|g' \
+        -e 's|%TFS_UPSTREAM%|server 127.0.0.1:8501|g' \
+        -e 's|%TFS_VERSION%|2|g' \
+        -e 's|%TFS_DEFAULT_MODEL_NAME%|model|g' \
+        -e 's|%FORWARD_PING_REQUESTS%|return 200|g' \
+        -e 's|%FORWARD_INVOCATION_REQUESTS%|return 200|g' \
+        /sagemaker/nginx.conf.smoke \
+  &&  nginx -t -c /sagemaker/nginx.conf.smoke \
+  &&  rm /sagemaker/nginx.conf.smoke \
+  # 3. Shell commands handlers invoke at runtime.
+  &&  for cmd in free nginx python3 pip3 gunicorn tensorflow_model_server; do \
+        command -v "$cmd" >/dev/null || { echo "MISSING: $cmd"; exit 1; }; \
+      done \
+  # 4. Python imports handlers rely on at request time.
+  &&  /opt/venv/bin/python3 -c "import falcon, gunicorn, gevent, grpc, boto3, requests" \
+  # 5. tensorflow_model_server resolves libs and responds to --version.
+  #    (Do NOT import tensorflow_serving.apis.* — --no-deps means the
+  #    `tensorflow` framework wheel is absent.)
+  &&  ldd "$(command -v tensorflow_model_server)" | { ! grep -F 'not found'; } \
+  &&  tensorflow_model_server --version
+
+# Final size cleanup — `dnf clean all` leaves history/log/cachedir metadata
+# (~150-300 MB). Scrub last so prior layers still see a valid dnf DB.
+RUN rm -rf /tmp/* /root/.cache \
+  /var/cache/dnf /var/lib/dnf/history* /var/log/dnf.log*
+
+# Ports: 8080 SM /invocations + /ping (nginx), 8500 TFS gRPC, 8501 TFS REST.
+EXPOSE 8080 8500 8501
+
+ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
+CMD ["/usr/local/bin/tf_serving_entrypoint.sh"]
