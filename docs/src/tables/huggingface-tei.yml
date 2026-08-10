@@ -1,4 +1,5 @@
 # Table Configuration - HuggingFace TEI
+note: "ECR account IDs for Text Embeddings Inference vary by region. See [Region Availability](../reference/region_availability.md#sagemaker-algorithm-registry-xgboost-scikit-learn-huggingface-tei) for your region's account ID."
 columns:
   - field: framework_version
     header: "Framework"

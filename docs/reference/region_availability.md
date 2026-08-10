@@ -43,10 +43,10 @@ Private ECR account IDs by region. See [Image Access](../get_started/index.md) f
 | China (Beijing) | cn-north-1 | 727897471807 |
 | China (Ningxia) | cn-northwest-1 | 727897471807 |
 
-## SageMaker XGBoost and Scikit-learn
+## SageMaker Algorithm Registry (XGBoost, Scikit-learn, HuggingFace TEI)
 
-XGBoost and Scikit-learn images use SageMaker's algorithm ECR registries, which have a different account ID per region than the Deep Learning
-Containers table above. XGBoost and Scikit-learn share the same account ID within a region.
+XGBoost, Scikit-learn, and HuggingFace Text Embeddings Inference (TEI) images are distributed through SageMaker's algorithm ECR registries, which have
+a different account ID per region than the Deep Learning Containers table above. All three share the same account ID within a region.
 
 | Region | Code | Account ID |
 | --- | --- | --- |
