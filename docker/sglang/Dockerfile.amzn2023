@@ -412,7 +412,7 @@ ARG TRTLLM_GEN_MOE_CUBIN_POOL_SHA256=4900501cbe782a76b08a5858f9f07152287b97cb681
 ENV SGLANG_TRTLLM_GEN_MOE_CUBIN_POOL=/opt/trtllm_gen_moe_cubin_pool
 RUN cd /tmp \
   && curl --retry 3 -sSLo pool.zip \
-     https://github.com/sgl-project/whl/releases/download/${TRTLLM_GEN_MOE_CUBIN_POOL_TAG}/${TRTLLM_GEN_MOE_CUBIN_POOL_VERSION}.zip \
+    https://github.com/sgl-project/whl/releases/download/${TRTLLM_GEN_MOE_CUBIN_POOL_TAG}/${TRTLLM_GEN_MOE_CUBIN_POOL_VERSION}.zip \
   && echo "${TRTLLM_GEN_MOE_CUBIN_POOL_SHA256}  pool.zip" | sha256sum -c - \
   && unzip -q pool.zip \
   && mv ${TRTLLM_GEN_MOE_CUBIN_POOL_VERSION} ${SGLANG_TRTLLM_GEN_MOE_CUBIN_POOL} \
