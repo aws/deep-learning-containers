@@ -10,7 +10,13 @@ set -euo pipefail
 
 REF=""
 VERSION=""
-PATCHES_DIR="scripts/vllm/amzn2023/patches"
+# Default matches the path the Dockerfiles COPY patches from
+# (docker/vllm/amzn2023/patches). The earlier "scripts/vllm/amzn2023/patches"
+# default did not exist, so `find` below exited non-zero under `set -e` and
+# silently killed the fetch/upload hooks that capture this hash — every build
+# then missed the wheel cache and recompiled. Keep this in sync with the
+# Dockerfile COPY source.
+PATCHES_DIR="scripts/docker/vllm/amzn2023/patches"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -27,8 +33,14 @@ done
 {
   echo "ref:${REF}"
   echo "version:${VERSION}"
-  find "${PATCHES_DIR}" -name '*.patch' -type f 2>/dev/null | sort | while read -r p; do
-    echo "patch:$(basename "$p")"
-    cat "$p"
-  done
+  # Guard the dir check so a missing patches dir contributes nothing to the
+  # hash rather than exiting non-zero under `set -e` (which previously killed
+  # the callers that capture this hash). The hash stays stable whether the dir
+  # is absent or empty.
+  if [[ -d "${PATCHES_DIR}" ]]; then
+    find "${PATCHES_DIR}" -name '*.patch' -type f 2>/dev/null | sort | while read -r p; do
+      echo "patch:$(basename "$p")"
+      cat "$p"
+    done
+  fi
 } | sha256sum | cut -c1-12

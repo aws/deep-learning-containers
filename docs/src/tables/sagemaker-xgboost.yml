@@ -1,5 +1,5 @@
 # Table Configuration - XGBoost
-note: "ECR account IDs for XGBoost vary by region. Refer to [SageMaker AI ECR Paths](https://docs.aws.amazon.com/sagemaker/latest/dg-ecr-paths/sagemaker-algo-docker-registry-paths.html) for your region's account ID."
+note: "ECR account IDs for XGBoost vary by region. See [Region Availability](../reference/region_availability.md#sagemaker-algorithm-registry-xgboost-scikit-learn-huggingface-tei) for your region's account ID."
 columns:
   - field: framework_version
     header: "Framework"
@@ -7,5 +7,5 @@ columns:
     header: "Accelerator"
   - field: platform
     header: "Platform"
-  - field: example_url
-    header: "Example URL"
+  - field: example_uri
+    header: "Example URI"

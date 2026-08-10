@@ -1,14 +1,12 @@
 # Table Configuration - Base
 columns:
-  - field: framework_version
+  - field: base_framework
     header: "Framework"
   - field: python
     header: "Python"
-  - field: cuda
-    header: "CUDA"
   - field: accelerator
     header: "Accelerator"
   - field: platform
     header: "Platform"
-  - field: example_url
-    header: "Example URL"
+  - field: example_uri
+    header: "Example URI"

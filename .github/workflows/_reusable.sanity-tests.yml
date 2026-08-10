@@ -131,7 +131,7 @@ jobs:
             ${{ needs.preflight.outputs.image-uri }}
 
       - name: Run base image checks
-        if: needs.preflight.outputs.framework == 'base_dlc'
+        if: needs.preflight.outputs.framework == 'base'
         run: |
           PYTHON_SHORT=$(echo '${{ needs.preflight.outputs.python-version }}' | cut -d. -f1,2)
           CUDA_SHORT=$(echo '${{ needs.preflight.outputs.cuda-version }}' | cut -d. -f1,2)
@@ -143,7 +143,7 @@ jobs:
       # the stack doesn't fail this step.
       - name: Run NCCL / GDRCopy / EFA install checks
         if: |
-          needs.preflight.outputs.framework == 'base_dlc' &&
+          needs.preflight.outputs.framework == 'base' &&
           needs.preflight.outputs.nccl-version != '' &&
           needs.preflight.outputs.efa-version != '' &&
           needs.preflight.outputs.gdrcopy-version != ''
@@ -255,9 +255,9 @@ jobs:
             --transformers-version "${{ needs.preflight.outputs.transformers-version }}"
 
   # TODO: Change to device_type == 'gpu' when other GPU frameworks need this job.
-  # Move the base_dlc condition to the CUDA test step specifically.
+  # Move the base condition to the CUDA test step specifically.
   sanity-gpu:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.framework == 'base_dlc' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.framework == 'base' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}

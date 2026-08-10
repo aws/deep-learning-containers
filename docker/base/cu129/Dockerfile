@@ -20,6 +20,7 @@ ARG PYTHON_SHORT_VERSION="3.13"
 RUN dnf install -y --setopt=install_weak_deps=False \
   gcc gcc-c++ make tar gzip wget \
   openssl-devel libffi-devel bzip2-devel xz-devel zlib-devel \
+  sqlite-devel readline-devel ncurses-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./scripts/docker/common/install_python.sh install_python.sh
@@ -79,6 +80,27 @@ RUN bash /tmp/setup_oss_compliance.sh ${PYTHON} \
   && rm -rf /tmp/tmp* \
   && rm -rf /root/.cache
 
+# ============================================================
+# Telemetry
+# ============================================================
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE}
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+
 CMD ["/bin/bash"]
 
 # ============================================================
@@ -135,5 +157,26 @@ RUN bash /tmp/setup_oss_compliance.sh ${PYTHON} \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
   && rm -rf /root/.cache
+
+# ============================================================
+# Telemetry
+# ============================================================
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE}
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 CMD ["/bin/bash"]

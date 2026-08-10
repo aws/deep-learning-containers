@@ -1,5 +1,5 @@
-framework: Base
-version: "2"
+framework: Base Devel
+version: "13.0.2"
 accelerator: gpu
 python: py313
 cuda: cu130
@@ -9,4 +9,3 @@ public_registry: true
 
 tags:
   - "devel-cu130-amzn2023"
-  - "runtime-cu130-amzn2023"
