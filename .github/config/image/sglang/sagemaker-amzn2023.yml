@@ -22,7 +22,7 @@ build:
   sglang_kernel_version: "0.4.4"
   flashinfer_version: "0.6.12"
   deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
-  mooncake_version: "0.3.11.post1"
+  mooncake_version: "0.3.12.post1"
   torch_version: "2.11.0"
   nccl_version: "2.30.4"
   cudnn_version: "9.16.0.29"

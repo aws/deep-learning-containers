@@ -11,7 +11,7 @@ ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
 ARG SGLANG_KERNEL_VERSION=0.4.4
 ARG FLASHINFER_VERSION=0.6.12
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
-ARG MOONCAKE_VERSION=0.3.11.post1
+ARG MOONCAKE_VERSION=0.3.12.post1
 ARG GDRCOPY_VERSION=2.6
 ARG RUST_VERSION=1.96.1
 ARG TORCH_VERSION=2.11.0
@@ -139,12 +139,13 @@ RUN cd /sgl-workspace/DeepEP \
   && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
     uv pip install --system --no-cache --no-build-isolation .
 
-# Mooncake: force-install because the 0.3.9 wheel declares manylinux_2_35 (glibc 2.35)
-# but AL2023 ships glibc 2.34. The wheel's actual native code only needs 2.34 symbols,
-# so the force-install works today. If a future mooncake version starts using glibc 2.35+
-# symbols, this will segfault at runtime — re-test after any MOONCAKE_VERSION bump.
+# Mooncake: 0.3.12+ wheels are tagged manylinux_2_28 (glibc >= 2.28), which AL2023's
+# glibc 2.34 satisfies natively — unlike the 0.3.9-0.3.11 wheels, which declared
+# manylinux_2_35 and needed a force-install to land here at all.
+# --platform is matched literally, so re-check the wheel's platform tag on PyPI after
+# any MOONCAKE_VERSION bump; a retag surfaces as a misleading "no matching distribution".
 # Uses pip (not uv) because uv lacks --platform/--target flags.
-RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_35_x86_64 --only-binary :all: --target /tmp/mooncake \
+RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_28_x86_64 --only-binary :all: --target /tmp/mooncake \
     && cp -r /tmp/mooncake/* $(python3 -c "import site; print(site.getsitepackages()[0])") \
     && rm -rf /tmp/mooncake
 
