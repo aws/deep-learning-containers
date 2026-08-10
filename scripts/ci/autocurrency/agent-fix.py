@@ -6,11 +6,14 @@ Called by agent-currency-fix.yml workflow.
 """
 
 import argparse
+import io
 import json
 import os
 import re
 import subprocess
 import sys
+import urllib.request
+import zipfile
 from pathlib import Path
 
 import boto3
@@ -18,9 +21,18 @@ import boto3
 MODEL_ID = "us.anthropic.claude-opus-4-6-v1"
 MAX_TOKENS = 16384
 REGION = os.environ.get("AWS_REGION", "us-west-2")
-MAX_LOG_LINES = 500
+MAX_LOG_LINES = 500  # per failed job; the tail is kept — that is where the failure is
 MAX_LLM_RETRIES = 3
 CONTEXT_MAP_PATH = ".github/config/agent-context-files.yml"
+
+TRACKED_JOBS = [
+    "build-image",
+    "sanity-test",
+    "security-test",
+    "telemetry-test",
+    "upstream-tests",
+    "sagemaker-test",
+]
 
 SEARCH_REPLACE_PATTERN = re.compile(
     r"^([^\n]*?/[^\n]*)\n<<<<<<< SEARCH\n(.*?)\n=======\n(.*?)\n>>>>>>> REPLACE$",
@@ -71,52 +83,75 @@ def parse_args():
     return p.parse_args()
 
 
+def _github_request(url: str, token: str) -> urllib.request.Request:
+    return urllib.request.Request(
+        url,
+        headers={
+            "Authorization": f"token {token}",
+            "Accept": "application/vnd.github+json",
+        },
+    )
+
+
+def _match_tracked_job(job_name: str) -> str | None:
+    """Map a workflow job name onto one of TRACKED_JOBS, or None if untracked."""
+    normalized = job_name.lower().replace("-", "").replace(" ", "")
+    for key in TRACKED_JOBS:
+        if key.replace("-", "") in normalized:
+            return key
+    return None
+
+
+def _tail_log(log_bytes: bytes, max_lines: int = MAX_LOG_LINES) -> list:
+    """Return the last `max_lines` lines, with an explicit marker when clipped.
+
+    The failure is almost always at the end of a job log, while the head is
+    build chatter. Keeping the tail bounds the prompt without losing the part
+    that matters — and the marker tells the model the log was clipped rather
+    than letting it assume it is reading from the start.
+    """
+    lines = log_bytes.decode(errors="replace").splitlines()
+    if len(lines) <= max_lines:
+        return lines
+    omitted = len(lines) - max_lines
+    return [f"... {omitted} earlier lines omitted ..."] + lines[-max_lines:]
+
+
+def _fetch_run_logs(run_id: str, token: str, repo: str, cache: dict) -> zipfile.ZipFile:
+    """Return the log archive for a run, downloading it at most once per run."""
+    if run_id not in cache:
+        zip_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/logs"
+        resp = urllib.request.urlopen(_github_request(zip_url, token))
+        cache[run_id] = zipfile.ZipFile(io.BytesIO(resp.read()))
+    return cache[run_id]
+
+
 def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
     """Use GitHub API to get structured failure info. Returns (error_text, failed_job_names)."""
     print("Using GitHub API for structured failure extraction")
-    import urllib.request
 
     results = []
     failed_job_names = []
+    log_archives: dict = {}  # run_id -> ZipFile; the archive covers the whole run
+
     for run_id in run_ids.strip().split():
         if not run_id:
             continue
         # Get jobs for this run
         url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/jobs?per_page=100"
-        req = urllib.request.Request(
-            url,
-            headers={
-                "Authorization": f"token {token}",
-                "Accept": "application/vnd.github+json",
-            },
-        )
         try:
-            resp = urllib.request.urlopen(req)
+            resp = urllib.request.urlopen(_github_request(url, token))
             data = json.loads(resp.read())
         except Exception as e:
             results.append(f"Failed to fetch jobs for run {run_id}: {e}")
             continue
 
-        # Find failed jobs and steps
-        tracked_jobs = [
-            "build-image",
-            "sanity-test",
-            "security-test",
-            "telemetry-test",
-            "upstream-tests",
-            "sagemaker-test",
-        ]
         for job in data.get("jobs", []):
             if job.get("conclusion") != "failure":
                 continue
 
             # Only process jobs that match our tracked job names
-            job_lower = job["name"].lower()
-            matched_key = None
-            for key in tracked_jobs:
-                if key.replace("-", "") in job_lower.replace("-", "").replace(" ", ""):
-                    matched_key = key
-                    break
+            matched_key = _match_tracked_job(job["name"])
             if not matched_key:
                 continue
 
@@ -127,26 +162,13 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
             failed_job_names.append(matched_key)
             results.append(f"  Failed steps: {', '.join(failed_steps)}")
 
-            # Download log from run zip
-            import io
-            import zipfile
-
-            zip_url = f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/logs"
-            zip_req = urllib.request.Request(
-                zip_url,
-                headers={
-                    "Authorization": f"token {token}",
-                    "Accept": "application/vnd.github+json",
-                },
-            )
             try:
-                resp = urllib.request.urlopen(zip_req)
-                z = zipfile.ZipFile(io.BytesIO(resp.read()))
+                z = _fetch_run_logs(run_id, token, repo, log_archives)
                 target = job["name"].replace(" / ", " _ ")
                 for name in z.namelist():
                     if target in name:
-                        log_lines = z.read(name).decode(errors="replace").splitlines()
-                        results.append(f"  Log ({name}, {len(log_lines)} lines):")
+                        log_lines = _tail_log(z.read(name))
+                        results.append(f"  Log ({name}, last {MAX_LOG_LINES} lines):")
                         results.extend(f"    {line}" for line in log_lines)
                         break
                 else:
@@ -159,59 +181,11 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
     return "\n".join(results) or "No failure info extracted.", failed_job_names
 
 
-def _extract_via_grep(logs_dir: str) -> str:
-    """Fallback: grep log files for error keywords."""
-    logs_path = Path(logs_dir)
-    if not logs_path.exists():
-        return "No logs available."
-
-    error_lines = []
-    keywords = ["error", "failed", "failure", "cve-", "not found", "exception", "denied"]
-
-    for log_file in sorted(logs_path.rglob("*.txt")):
-        try:
-            lines = log_file.read_text(errors="replace").splitlines()
-        except Exception:
-            continue
-        for i, line in enumerate(lines):
-            if any(kw in line.lower() for kw in keywords):
-                start, end = max(0, i - 2), min(len(lines), i + 3)
-                error_lines.append(f"--- {log_file.name}:{i + 1} ---")
-                error_lines.extend(lines[start:end])
-                error_lines.append("")
-        if len(error_lines) > MAX_LOG_LINES:
-            break
-
-    return "\n".join(error_lines[:MAX_LOG_LINES]) or "No error patterns found in logs."
-
-
 def read_file(path: str) -> str:
     try:
         return Path(path).read_text()
     except (FileNotFoundError, PermissionError):
         return ""
-
-
-def detect_failed_jobs(logs_dir: str) -> list:
-    """Detect which CI jobs failed based on log filenames."""
-    logs_path = Path(logs_dir)
-    if not logs_path.exists():
-        return []
-    # Log files are named like "8_security-test _ ecr-vulnerability-scan.txt"
-    job_names = set()
-    for f in logs_path.rglob("*.txt"):
-        name = f.stem.lower()
-        for job in [
-            "build-image",
-            "sanity-test",
-            "security-test",
-            "telemetry-test",
-            "upstream-tests",
-            "sagemaker-test",
-        ]:
-            if job in name:
-                job_names.add(job)
-    return list(job_names)
 
 
 def load_context_files(framework: str, failed_jobs: list) -> dict:
@@ -414,9 +388,9 @@ def main():
     args = parse_args()
     print(f"=== Currency Fix Agent: {args.framework} @ {args.branch} ===\n")
 
-    error_lines, api_failed_jobs = extract_failure_info(args.run_ids, args.token, args.repo)
-    # Use API-detected jobs if available, otherwise fall back to log filename detection
-    failed_jobs = api_failed_jobs
+    # An empty failed_jobs list makes load_context_files fall back to every
+    # job's context files rather than a job-specific subset.
+    error_lines, failed_jobs = extract_failure_info(args.run_ids, args.token, args.repo)
     context_files = load_context_files(args.framework, failed_jobs)
     previous_fixes = get_previous_fixes()
 
