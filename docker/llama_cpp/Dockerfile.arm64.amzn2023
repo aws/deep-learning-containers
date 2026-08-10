@@ -3,11 +3,12 @@ ARG BASE_REF=2023
 # =============================================================================
 # STAGE 0: builder — compile llama.cpp from a pinned upstream ref
 # =============================================================================
-# x86-64 CPU-inference build. Uses GGML_CPU_ALL_VARIANTS so a single image
-# carries every x86 microarch backend (SSE4.2/AVX/AVX2/AVX512/AMX) as
-# dlopen-able .so files and picks the best one for the host CPU at runtime.
-# This is the x86 analog of the arm64 -mcpu portability decision: one portable
-# image that runs well from older EC2 (Haswell/Skylake) through Sapphire Rapids.
+# aarch64 (Graviton) CPU-inference build. Targets -mcpu=neoverse-v1
+# (Graviton3 baseline) via GGML_CPU_ARM_ARCH so a SINGLE image is portable
+# across Graviton3/4/5: llama.cpp repacks quantized weights (e.g. Q4_0) into
+# the CPU-optimal int8 layout at load time, so a neoverse-v1-baseline build
+# still picks up newer-gen int8/bf16 kernels at runtime. This is the arm64
+# analog of the x86 build's microarch runtime-dispatch decision.
 FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS builder
 
 # Pin the upstream ref for reproducible builds.
@@ -26,12 +27,13 @@ RUN git clone https://github.com/ggml-org/llama.cpp.git \
   && git checkout ${LLAMA_CPP_REF}
 
 WORKDIR /src/llama.cpp/build
-# GGML_NATIVE=OFF + GGML_CPU_ALL_VARIANTS=ON + GGML_BACKEND_DL=ON:
-#   build all x86 CPU variants as loadable backends, dispatch at runtime.
+# GGML_NATIVE=OFF + GGML_CPU_ARM_ARCH=neoverse-v1 + GGML_BACKEND_DL=ON:
+#   pin the -mcpu baseline to Graviton3 (neoverse-v1); newer int8/bf16 kernels
+#   are selected at runtime via weight repacking, keeping one portable image.
 RUN cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
   -DGGML_NATIVE=OFF \
-  -DGGML_CPU_ALL_VARIANTS=ON \
+  -DGGML_CPU_ARM_ARCH=neoverse-v1 \
   -DGGML_BACKEND_DL=ON \
   -DGGML_OPENMP=ON \
   -DLLAMA_CURL=ON \

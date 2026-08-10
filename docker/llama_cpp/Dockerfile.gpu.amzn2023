@@ -1,14 +1,13 @@
-ARG BASE_REF=2023
-
 # =============================================================================
-# STAGE 0: builder — compile llama.cpp from a pinned upstream ref
+# STAGE 0: builder — compile llama.cpp (CUDA) from a pinned upstream ref
 # =============================================================================
-# x86-64 CPU-inference build. Uses GGML_CPU_ALL_VARIANTS so a single image
-# carries every x86 microarch backend (SSE4.2/AVX/AVX2/AVX512/AMX) as
-# dlopen-able .so files and picks the best one for the host CPU at runtime.
-# This is the x86 analog of the arm64 -mcpu portability decision: one portable
-# image that runs well from older EC2 (Haswell/Skylake) through Sapphire Rapids.
-FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS builder
+# x86-64 CUDA-inference build on the NVIDIA CUDA devel base (has nvcc + headers).
+# GGML_CUDA=ON + GGML_CPU_ALL_VARIANTS=ON + GGML_BACKEND_DL=ON gives ONE image
+# that carries the CUDA backend AND every x86 microarch CPU backend
+# (SSE4.2/AVX/AVX2/AVX512/AMX) as dlopen-able .so files. ggml picks the CUDA
+# backend when a GPU is visible and falls back to the best CPU backend
+# otherwise, all dispatched at runtime. No GPU is required to build.
+FROM nvidia/cuda:13.0.2-devel-amzn2023 AS builder
 
 # Pin the upstream ref for reproducible builds.
 ARG LLAMA_CPP_REF=b10075
@@ -26,21 +25,25 @@ RUN git clone https://github.com/ggml-org/llama.cpp.git \
   && git checkout ${LLAMA_CPP_REF}
 
 WORKDIR /src/llama.cpp/build
-# GGML_NATIVE=OFF + GGML_CPU_ALL_VARIANTS=ON + GGML_BACKEND_DL=ON:
-#   build all x86 CPU variants as loadable backends, dispatch at runtime.
+# GGML_CUDA=ON builds the CUDA backend; GGML_NATIVE=OFF + GGML_CPU_ALL_VARIANTS=ON
+# + GGML_BACKEND_DL=ON build all x86 CPU variants as loadable fallback backends.
+# --allow-shlib-undefined lets the CPU-variant .so files link against symbols
+# resolved at load time (matches the upstream CUDA build recipe).
 RUN cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_CUDA=ON \
   -DGGML_NATIVE=OFF \
   -DGGML_CPU_ALL_VARIANTS=ON \
   -DGGML_BACKEND_DL=ON \
   -DGGML_OPENMP=ON \
   -DLLAMA_CURL=ON \
+  -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined \
   && cmake --build . --config Release -j ${BUILD_PARALLEL} --target llama-server llama-cli llama-bench
 
 # =============================================================================
-# STAGE 1: runtime — slim image with just the server + shared libs
+# STAGE 1: runtime — slim CUDA runtime image with the server + shared libs
 # =============================================================================
-FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS runtime
+FROM nvidia/cuda:13.0.2-runtime-amzn2023 AS runtime
 
 ARG PYTHON="python3"
 # Re-declared here (ARGs don't cross build stages) so OSS-compliance tracking
@@ -57,6 +60,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8
 
+# Expose the CUDA compute + utility driver libraries to the container at runtime.
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   libgomp libcurl openblas shadow-utils \
   python3 python3-pip \
@@ -65,8 +71,9 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
 # setup_oss_compliance.sh imports `requests`, which the slim AL2023 runtime lacks.
 RUN pip3 install --no-cache-dir requests
 
-# Binaries + the .so files llama.cpp produces (libllama, libggml*, and the
-# per-microarch libggml-cpu-*.so backend variants for runtime dispatch).
+# Binaries + the .so files llama.cpp produces (libllama, libggml*, the CUDA
+# backend libggml-cuda.so, and the per-microarch libggml-cpu-*.so CPU backend
+# variants for runtime dispatch).
 COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/
 ENV PATH="/opt/llama.cpp/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/opt/llama.cpp/bin:${LD_LIBRARY_PATH}"

@@ -17,6 +17,19 @@ HEALTH_INTERVAL=5
 echo "=== Model path: ${MODEL_PATH} ==="
 ls -la "${MODEL_PATH}" || true
 
+# download-model always extracts the tarball into a directory (/models/<name>),
+# but llama-server --model needs a file. If handed a directory, resolve the
+# single .gguf inside it (sharded models: pick the first shard, 0000x-of-).
+if [ -d "${MODEL_PATH}" ]; then
+  GGUF="$(find "${MODEL_PATH}" -maxdepth 2 -name '*.gguf' | sort | head -n1 || true)"
+  if [ -z "${GGUF}" ]; then
+    echo "ERROR: no *.gguf found under ${MODEL_PATH}"
+    exit 1
+  fi
+  echo "Resolved GGUF: ${GGUF}"
+  MODEL_PATH="${GGUF}"
+fi
+
 echo "=== Starting llama-server ==="
 # shellcheck disable=SC2086
 llama-server \

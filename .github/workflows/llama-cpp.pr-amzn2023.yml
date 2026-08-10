@@ -9,7 +9,7 @@ on:
       - ".github/config/model-tests/llama-cpp-model-tests.yml"
       - ".github/workflows/llama-cpp.pipeline.yml"
       - ".github/workflows/llama-cpp.pr-amzn2023.yml"
-      - "docker/llama_cpp/Dockerfile.amzn2023"
+      - "docker/llama_cpp/Dockerfile*.amzn2023"
       - "scripts/docker/common/**"
       - "scripts/docker/llama_cpp/**"
       - "scripts/docker/telemetry/**"
@@ -50,7 +50,7 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/llama_cpp/*-amzn2023.yml"
-              - "docker/llama_cpp/Dockerfile.amzn2023"
+              - "docker/llama_cpp/Dockerfile*.amzn2023"
               - "scripts/docker/common/**"
               - "scripts/docker/llama_cpp/**"
               - "test/security/data/ecr_scan_allowlist/llama_cpp/**"

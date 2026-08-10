@@ -56,20 +56,31 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       customer-type: ${{ steps.parse.outputs.customer-type }}
+      build-fleet: ${{ steps.parse.outputs.build-fleet }}
     steps:
       - uses: actions/checkout@v6
       - id: parse
         run: |
           echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          # Build fleet is arch-keyed: x86 (cpu + cuda) builds on the x86 fleet
+          # (the CUDA toolkit comes from the devel base image — no GPU needed at
+          # build time); arm64 needs an aarch64 fleet.
+          ARCH=$(yq '.metadata.arch_type' '${{ inputs.config-file }}')
+          if [ "${ARCH}" = "arm64" ]; then
+            echo "build-fleet=arm64-build-runner" >> $GITHUB_OUTPUT
+          else
+            echo "build-fleet=x86-llama-cpp-build-runner" >> $GITHUB_OUTPUT
+          fi
 
   build:
     if: ${{ inputs.build }}
+    needs: [ci-config]
     concurrency:
       group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-llama-cpp-build-runner
+        fleet:${{ needs.ci-config.outputs.build-fleet }}
         buildspec-override:true
     timeout-minutes: 720
     outputs:
