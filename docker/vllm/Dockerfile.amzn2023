@@ -78,7 +78,11 @@ COPY --from=source /src/ ./
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build/cuda.txt \
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
+# 10.3 is B300 (SM103); without it there is no SM103 cubin and no 10.0+PTX to JIT from.
+# Set here, not in the image config: this ARG is lower-case while resolve_build_args.py emits
+# config keys upper-case, and Docker build args are case-sensitive, so a config key silently
+# would not bind.
+ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 10.3 12.0'
 ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 
 ARG max_jobs=32
@@ -145,7 +149,7 @@ RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace
   && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/tmp/nccl-override.txt \
   && export UV_OVERRIDE=/tmp/nccl-override.txt \
   && export LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LIBRARY_PATH}" \
-  && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
+  && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a 10.3a' \
   && tools/ep_kernels/install_python_libraries.sh \
     --workspace /tmp/ep_kernels_workspace \
     --mode wheel \
