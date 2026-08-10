@@ -265,6 +265,15 @@ RUN rm -rf /sgl-workspace/sglang/sgl-model-gateway \
 # Copy sglang-router binary
 COPY --from=builder /usr/local/bin/sglang-router /usr/local/bin/sglang-router
 
+# Console scripts from sglang's [project.scripts] entry points. These land in
+# /usr/local/bin, which is not otherwise copied from the builder stage. The
+# upstream test harness launches servers via the `sglang` executable rather than
+# `python -m`, so it must be on PATH.
+COPY --from=builder /usr/local/bin/sglang /usr/local/bin/sglang
+COPY --from=builder /usr/local/bin/killall_sglang /usr/local/bin/killall_sglang
+RUN command -v sglang && command -v killall_sglang \
+  && python${PYTHON_VERSION} -c "import sglang.cli.main"
+
 # Copy GDRCopy runtime libs
 COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
 

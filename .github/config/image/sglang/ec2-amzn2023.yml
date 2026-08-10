@@ -17,7 +17,7 @@ build:
   target: "sglang-ec2"
   python_version: "3.12"
   cuda_version: "13.0.3"
-  sglang_ref: "b6a09f38fcc5e96574324b4acc19d421c539cfc6"
+  sglang_ref: "29481685462732237d80d86076d6563e1f658102"
   sglang_kernel_version: "0.4.5"
   flashinfer_version: "0.6.15.post1"
   deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
