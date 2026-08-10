@@ -136,7 +136,7 @@ Key requirements:
 - **`boto3` has no bidirectional API** — use the experimental `aws-sdk-sagemaker-runtime-http2` client.
 
 A complete deploy → stream → teardown example is at
-[`examples/vllm-omni/bidi/deploy_bidi_stream.py`](https://github.com/aws/deep-learning-containers/blob/main/examples/vllm-omni/bidi/deploy_bidi_stream.py).
+[examples/vllm-omni/bidi/deploy_bidi_stream.py](https://github.com/aws/deep-learning-containers/blob/main/examples/vllm-omni/bidi/deploy_bidi_stream.py).
 
 ## Notes
 
