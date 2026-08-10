@@ -320,17 +320,13 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && ldconfig
 
 # tilelang compatibility fixes for AL2023:
-# 1. z3-libs: TVM (bundled in tilelang) requires libz3.so at runtime
-# 2. _xxsubinterpreters: CPython internal module needed by tilelang's cython
+# 1. _xxsubinterpreters: CPython internal module needed by tilelang's cython
 #    wrapper. Debian/Ubuntu ship it but AL2023 does not — compile from source.
-# 3. Patch tilelang's cudart.cc stub: in child processes, CUDA symbols aren't
-#    in the global namespace yet. Add a dlopen("libcudart.so") fallback before
-#    the abort() so it loads the library explicitly when dlsym fails.
-RUN dnf install -y --setopt=install_weak_deps=False z3-libs \
-  && ln -sf /usr/lib64/libz3.so.4.8 /usr/lib64/libz3.so \
-  && ldconfig \
-  && dnf clean all && rm -rf /var/cache/dnf
-
+# 2. libz3: tilelang's bundled TVM has a DT_NEEDED on the versioned soname
+#    libz3.so.4.15. AL2023's z3-libs package is 4.8 and the loader matches the
+#    soname literally, so no distro package or symlink can satisfy it. tilelang
+#    depends on z3-solver (<4.15.5) from PyPI, whose wheel vendors
+#    libz3.so.4.15 — put that directory on the loader path instead.
 RUN PYVER=$(python${PYTHON_VERSION} -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')") \
   && cd /tmp \
   && curl --retry 3 -sSL https://www.python.org/ftp/python/${PYVER}/Python-${PYVER}.tgz | tar xz \
@@ -343,21 +339,12 @@ RUN PYVER=$(python${PYTHON_VERSION} -c "import sys; print(f'{sys.version_info.ma
   && cp _xxsubinterpreters.so ${SITE}/ \
   && cd / && rm -rf /tmp/Python-*
 
-RUN TILELANG=$(python${PYTHON_VERSION} -c "import tilelang, os; print(os.path.dirname(tilelang.__file__))") \
-  && python${PYTHON_VERSION} -c "\
-import os; \
-src = '${TILELANG}/src/target/stubs/cudart.cc'; \
-content = open(src).read(); \
-target = '  fprintf(stderr,\n          \"TileLang Error: libcudart symbols not found globally.'; \
-insert = '  // AL2023 fix: try dlopen as fallback\n  void *handle = dlopen(\"libcudart.so\", RTLD_NOW | RTLD_GLOBAL);\n  if (handle != nullptr) {\n    return handle;\n  }\n'; \
-assert target in content, 'cudart.cc patch target not found'; \
-open(src, 'w').write(content.replace(target, insert + target))" \
-  && g++ -shared -fPIC -O2 \
-     -I/usr/local/cuda/include \
-     -I${TILELANG}/3rdparty/tvm/include \
-     ${TILELANG}/src/target/stubs/cudart.cc \
-     -o ${TILELANG}/lib/libcudart_stub.so \
-     -ldl
+# The import below is the check: tilelang loads its bundled TVM eagerly, so it
+# fails here with a clear error if the vendored libz3 soname ever moves again.
+RUN python${PYTHON_VERSION} -c "import importlib.util, os; print(os.path.join(os.path.dirname(importlib.util.find_spec('z3').origin), 'lib'))" \
+      > /etc/ld.so.conf.d/z3-solver.conf \
+  && ldconfig \
+  && python${PYTHON_VERSION} -c "import tilelang; print('tilelang', tilelang.__version__)"
 
 
 # Telemetry, common scripts, and OSS compliance
