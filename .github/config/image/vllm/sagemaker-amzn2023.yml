@@ -21,6 +21,8 @@ build:
   # First release carrying Kimi-K3.
   # Kept in lockstep with ec2-amzn2023.yml -- same Dockerfile.
   vllm_ref: "v0.27.0"
+  # 10.3 == B300 (SM103). Part of the wheel cache key, so changing it forces a recompile.
+  torch_cuda_arch_list: "7.0 7.5 8.0 8.9 9.0 10.0 10.3 12.0"
   flashinfer_version: "0.6.16.post3"
   deepep_commit_hash: "d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb"
   dlc_major_version: "2"

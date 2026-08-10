@@ -79,9 +79,11 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cud
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # 10.3 is B300 (SM103); without it there is no SM103 cubin and no 10.0+PTX to JIT from.
-# Set here, not in the image config: this ARG is lower-case while resolve_build_args.py emits
-# config keys upper-case, and Docker build args are case-sensitive, so a config key silently
-# would not bind.
+# The value below is only a fallback: image configs set build.torch_cuda_arch_list, which
+# resolve_build_args.py forwards verbatim (this ARG is lower-case, and Docker build args are
+# case-sensitive, so the key is exempt from that script's upper-casing). It must come from the
+# config rather than only from here, because the wheel cache key is computed on the CI runner
+# from the config -- an arch list the runner cannot see would not invalidate a stale wheel.
 ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 10.3 12.0'
 ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 
