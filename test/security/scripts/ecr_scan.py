@@ -43,24 +43,24 @@ GLOBAL_ALLOWLIST_FILE = "global_allowlist.json"
 FRAMEWORK_ALLOWLIST_FILE = "framework_allowlist.json"
 
 
-def get_scan_status(ecr_client, image: ImageURI) -> str:
+def get_scan_status(ecr_client, image: ImageURI, digest: str) -> str:
     # ECR/Inspector v2 may take 30-90s after push to register a scan record.
     # Treat that window as "still pending" so wait_for_status keeps polling.
     try:
         resp = ecr_client.describe_image_scan_findings(
             registryId=image.account_id,
             repositoryName=image.repository,
-            imageId={"imageTag": image.image_tag},
+            imageId={"imageDigest": digest},
         )
     except ecr_client.exceptions.ScanNotFoundException:
-        LOGGER.info(f"Scan not yet registered for {image.repository}:{image.image_tag}; will retry")
+        LOGGER.info(f"Scan not yet registered for {image.repository}@{digest}; will retry")
         return SCAN_PENDING
     return resp["imageScanStatus"]["status"]
 
 
-def get_scan_findings(ecr_client, image: ImageURI) -> list:
+def get_scan_findings(ecr_client, image: ImageURI, digest: str) -> list:
     """Retrieve all paginated enhanced scan findings."""
-    image_id = {"imageTag": image.image_tag}
+    image_id = {"imageDigest": digest}
     resp = ecr_client.describe_image_scan_findings(
         registryId=image.account_id,
         repositoryName=image.repository,
@@ -203,6 +203,13 @@ def main():
         repositoryName=image.repository,
         imageIds=[{"imageTag": image.image_tag}],
     )
+    # Resolve the tag to a digest once, then address the image by digest for the
+    # rest of the run. CI tags are deterministic (compute_ci_tag.sh derives them
+    # from config metadata), so a rebuild pushes the same tag to a new digest —
+    # and this script waits up to SCAN_WAIT_PERIOD * SCAN_WAIT_LENGTH seconds plus
+    # SCAN_POST_COMPLETE_WAIT before reading findings. Querying by tag across that
+    # window can return findings for whatever image holds the tag by then, which
+    # would let a vulnerable image pass on another image's clean scan.
     sha = img_resp["imageDetails"][0]["imageDigest"]
 
     LOGGER.info(f"Waiting for ECR enhanced scan: {image.repository}:{image.image_tag} ({sha})")
@@ -213,12 +220,13 @@ def main():
         get_scan_status,
         ecr_client,
         image,
+        sha,
     )
 
     LOGGER.info(f"Waiting {SCAN_POST_COMPLETE_WAIT}s for findings to stabilize...")
     time.sleep(SCAN_POST_COMPLETE_WAIT)
 
-    findings = get_scan_findings(ecr_client, image)
+    findings = get_scan_findings(ecr_client, image, sha)
     LOGGER.info(f"Scan complete: {len(findings)} findings across all severities")
     LOGGER.debug(f"All findings: {json.dumps(findings, indent=2, default=str)}")
 
