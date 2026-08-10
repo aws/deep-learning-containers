@@ -22,23 +22,47 @@ else
   TEST_TXT="vllm_source/requirements/test.txt"
 fi
 
-# Regenerate the test lockfile, but CONSTRAINED by the one upstream shipped.
+# Regenerate the test lockfile under two layers of constraints.
 #
 # We have to recompile at all only because the sed above mutates the .in files, which
-# makes the checked-in .txt stale. Recompiling from the unpinned .in alone, however,
-# throws away every pin upstream chose and floats transitive deps to latest. That is
-# not hypothetical: apache-tvm-ffi is not named in cuda.in and arrives transitively via
-# xgrammar. Upstream pins it to 0.1.11 -- exactly what the image ships -- but a free
-# resolve picked up 0.1.13.post2, which installed over the image's copy and left two
-# tvm-ffi .so versions double-registering the same TypeAttr, aborting the engine in C++
-# ("TypeAttr __ffi_repr__ is already registered for type index 132") after init.
+# makes the checked-in .txt stale. But installing test deps must not mutate the runtime
+# the image ships -- the engine is what we are testing. Two failures proved both
+# directions of that:
 #
-# Using upstream's own .txt as a constraint keeps their pins authoritative while still
-# letting the terratorch/lightning removal take effect. Constraints on packages that no
-# longer resolve are simply unused, so dropping those two lines from the copy is enough.
+#   * Floating free from the unpinned .in pulled apache-tvm-ffi 0.1.13.post2 over the
+#     image's 0.1.11 (it is not named in cuda.in; it arrives transitively via xgrammar).
+#     Two tvm-ffi .so versions then double-registered the same TypeAttr and aborted the
+#     engine in C++: "TypeAttr __ffi_repr__ is already registered for type index 132".
+#   * Constraining purely to upstream's .txt then DOWNGRADED opencv-python-headless from
+#     the image's 5.0.0.93 to upstream's pinned 4.13.0.90, which links libxcb.so.1 -- a
+#     library this image does not ship. cv2 import then failed inside every spawned
+#     engine-core worker: "ImportError: libxcb.so.1: cannot open shared object file".
+#
+# So the image's own installed versions take precedence, and upstream's pins fill in
+# everything the image does not already have. Ordering matters: two conflicting pins for
+# one package make the resolve unsatisfiable, so upstream lines for packages present in
+# the image are dropped rather than layered. If a test dep genuinely cannot satisfy an
+# image pin, uv fails loudly here -- which is the right outcome, since silently swapping
+# a runtime library out from under the engine is the bug both cases above describe.
 TEST_CONSTRAINTS="$(mktemp)"
+IMAGE_FREEZE="$(mktemp)"
+uv pip freeze $UV_FLAGS 2>/dev/null | grep -E '^[A-Za-z0-9._-]+==' > "${IMAGE_FREEZE}" || true
+
+# Canonical PEP 503 name (lowercase, runs of -_. collapsed to -) so that e.g.
+# "opencv_python_headless" and "opencv-python-headless" compare equal.
+canon() { tr 'A-Z' 'a-z' | sed -E 's/[-_.]+/-/g'; }
+IMAGE_NAMES="$(mktemp)"
+sed -E 's/==.*//' "${IMAGE_FREEZE}" | canon | sort -u > "${IMAGE_NAMES}"
+
+cat "${IMAGE_FREEZE}" > "${TEST_CONSTRAINTS}"
 if [ -f "${TEST_TXT}" ]; then
-  sed -E '/(terratorch|lightning)/Id' "${TEST_TXT}" > "${TEST_CONSTRAINTS}"
+  # Keep upstream's pins only for packages the image does not already ship.
+  grep -E '^[A-Za-z0-9._-]+==' "${TEST_TXT}" \
+    | sed -E '/(terratorch|lightning)/Id' \
+    | while IFS= read -r line; do
+        name="$(printf '%s' "${line}" | sed -E 's/==.*//' | canon)"
+        grep -qxF "${name}" "${IMAGE_NAMES}" || printf '%s\n' "${line}"
+      done >> "${TEST_CONSTRAINTS}"
 fi
 rm -f "${TEST_TXT}"
 uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --constraint "${TEST_CONSTRAINTS}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
