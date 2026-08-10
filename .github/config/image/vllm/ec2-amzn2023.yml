@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "vllm_server"
-  framework_version: "0.27.0rc2"
+  framework_version: "0.27.0"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
@@ -17,8 +17,8 @@ build:
   target: "vllm-ec2-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  # First release carrying Kimi-K3; move to v0.27.0 once it tags.
-  vllm_ref: "v0.27.0rc2"
+  # First release carrying Kimi-K3.
+  vllm_ref: "v0.27.0"
   flashinfer_version: "0.6.16.post3"
   deepep_commit_hash: "d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb"
   dlc_major_version: "2"
