@@ -62,10 +62,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   libgomp libcurl openblas shadow-utils \
   python3 python3-pip \
-  && dnf clean all && rm -rf /var/cache/dnf
+  && dnf clean all && rm -rf /var/cache/dnf \
+  # bash_telemetry.sh calls `python`; AL2023 ships only `python3`, so alias it.
+  && ln -sf /usr/bin/python3 /usr/bin/python
 
 # setup_oss_compliance.sh imports `requests`, which the slim AL2023 runtime lacks.
-RUN pip3 install --no-cache-dir requests
+# Pin urllib3 >=2.7.0 to clear CVE-2026-44432 (requests pulls it transitively).
+RUN pip3 install --no-cache-dir requests "urllib3>=2.7.0"
 
 # Binaries + the .so files llama.cpp produces (libllama, libggml*, and the
 # per-microarch libggml-cpu-*.so backend variants for runtime dispatch).
@@ -97,7 +100,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   # Track llama.cpp itself (built from source) for OSS compliance — its binaries
   # and libggml*/libllama shared objects under /opt/llama.cpp are otherwise untracked.
   && printf '\n** llama.cpp; version %s -- https://github.com/ggml-org/llama.cpp\n' "${LLAMA_CPP_REF}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nllama.cpp %s https://github.com/ggml-org/llama.cpp/tree/%s\n' "${LLAMA_CPP_REF}" "${LLAMA_CPP_REF}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\nllama.cpp %s https://github.com/ggml-org/llama.cpp/archive/%s.tar.gz\n' "${LLAMA_CPP_REF}" "${LLAMA_CPP_REF}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \

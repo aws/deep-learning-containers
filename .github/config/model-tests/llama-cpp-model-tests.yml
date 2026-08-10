@@ -1,7 +1,8 @@
 # llama.cpp Model Test Configuration
 #
-# smoke-test: model serving + inference validation. Each entry serves a small
-# quantized GGUF and asserts /health + a chat completion.
+# smoke-test: model serving + inference validation. Both entries serve the same
+# Ornith-1.0-9B (Q4_K_M) GGUF and assert /health + a chat completion — CPU-only
+# on the codebuild fleet, GPU-offloaded on the runner-scale-set.
 #
 # Entries are gated to an arch+device via required_image_pattern:
 #   - x86 CPU images → codebuild-fleet (x86-build-runner), no GPU.
@@ -18,8 +19,10 @@ s3_prefix: "s3://dlc-cicd-models/llm-models"
 
 smoke-test:
   codebuild-fleet:
-    - name: "qwen2.5-0.5b-q4_0"
-      s3_model: "qwen2.5-0.5b-instruct-q4_0.gguf.tar.gz"
+    # x86 CPU smoke test: same Ornith-1.0-9B (Q4_K_M) GGUF as the GPU entry,
+    # served CPU-only (no --n-gpu-layers). Fits comfortably on the 128 GiB fleet.
+    - name: "ornith-1.0-9b-q4_k_m"
+      s3_model: "ornith-1.0-9b-q4_k_m.gguf.tar.gz"
       fleet: "x86-build-runner"
       extra_args: "--ctx-size 4096"
       required_image_pattern:
@@ -27,7 +30,7 @@ smoke-test:
         arch_type: x86
 
   runner-scale-sets:
-    # x86 GPU (CUDA) smoke test: offload the whole model to the GPU
+    # x86 GPU (CUDA) smoke test: same model, offloaded to the GPU
     # (--n-gpu-layers 999) to exercise the CUDA backend.
     - name: "ornith-1.0-9b-q4_k_m"
       s3_model: "ornith-1.0-9b-q4_k_m.gguf.tar.gz"
