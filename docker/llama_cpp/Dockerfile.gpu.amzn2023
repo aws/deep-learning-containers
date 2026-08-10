@@ -66,12 +66,16 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   libgomp libcurl openblas shadow-utils \
   python3 python3-pip \
+  # The CUDA base ships an older cuda-compat than AL2023 has; upgrade it to
+  # clear CVE-2026-24193 / CVE-2025-33219 (not flagged under --security).
+  && dnf upgrade -y cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf \
   # bash_telemetry.sh calls `python`; AL2023 ships only `python3`, so alias it.
   && ln -sf /usr/bin/python3 /usr/bin/python
 
-# setup_oss_compliance.sh imports `requests`, which the slim AL2023 runtime lacks.
-RUN pip3 install --no-cache-dir requests
+# setup_oss_compliance.sh needs `requests`; the telemetry script needs
+# `botocore` and `packaging`. None ship in the slim AL2023 runtime.
+RUN pip3 install --no-cache-dir requests botocore packaging
 
 # Binaries + the .so files llama.cpp produces (libllama, libggml*, the CUDA
 # backend libggml-cuda.so, and the per-microarch libggml-cpu-*.so CPU backend

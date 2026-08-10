@@ -66,8 +66,9 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   # bash_telemetry.sh calls `python`; AL2023 ships only `python3`, so alias it.
   && ln -sf /usr/bin/python3 /usr/bin/python
 
-# setup_oss_compliance.sh imports `requests`, which the slim AL2023 runtime lacks.
-RUN pip3 install --no-cache-dir requests
+# setup_oss_compliance.sh needs `requests`; the telemetry script needs
+# `botocore` and `packaging`. None ship in the slim AL2023 runtime.
+RUN pip3 install --no-cache-dir requests botocore packaging
 
 # Binaries + the .so files llama.cpp produces (libllama, libggml*, and the
 # per-microarch libggml-cpu-*.so backend variants for runtime dispatch).
