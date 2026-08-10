@@ -25,10 +25,21 @@ fi
 # delete old test dependencies file and regen
 rm -f "${TEST_TXT}"
 uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
-uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt --torch-backend=auto
+# dev.txt may live at requirements/dev.txt or requirements/dev/cuda.txt
+if [ -f vllm_source/requirements/dev.txt ]; then
+  uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt --torch-backend=auto
+elif [ -f vllm_source/requirements/dev/cuda.txt ]; then
+  uv pip install $UV_FLAGS -r vllm_source/requirements/dev/cuda.txt --torch-backend=auto
+else
+  # Fall back to installing test requirements directly
+  uv pip install $UV_FLAGS -r "${TEST_TXT}" --torch-backend=auto
+fi
 uv pip install $UV_FLAGS pytest pytest-asyncio
 uv pip install $UV_FLAGS -e vllm_source/tests/vllm_test_utils
 uv pip install $UV_FLAGS hf_transfer
 cd vllm_source
-mkdir src
-mv vllm src/vllm
+# vLLM may already use src/ layout; only move if needed
+if [ -d "vllm" ] && [ ! -d "src/vllm" ]; then
+  mkdir -p src
+  mv vllm src/vllm
+fi
