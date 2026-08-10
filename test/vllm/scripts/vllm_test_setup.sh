@@ -41,9 +41,17 @@ fi
 # So the image's own installed versions take precedence, and upstream's pins fill in
 # everything the image does not already have. Ordering matters: two conflicting pins for
 # one package make the resolve unsatisfiable, so upstream lines for packages present in
-# the image are dropped rather than layered. If a test dep genuinely cannot satisfy an
-# image pin, uv fails loudly here -- which is the right outcome, since silently swapping
-# a runtime library out from under the engine is the bug both cases above describe.
+# the image are dropped rather than layered.
+#
+# One exception outranks the image: a hard "==" pin written directly in the .in files (or
+# anything they -r include). A constraint cannot loosen a requirement, so pinning such a
+# package to the image's version is simply unsatisfiable -- upstream pins grpcio==1.78.0
+# in requirements/test/cuda.in while the image ships 1.83.0, which failed the resolve with
+# "Because you require grpcio==1.78.0 and grpcio==1.83.0". Those names are therefore left
+# out of the constraints entirely and resolve to whatever upstream demands. That is safe
+# for the pins upstream declares today (test-only tools and torch, which the .in pins to
+# the version the image already has); if a future upstream pin ever targets a package the
+# engine links against, this is the line to revisit.
 TEST_CONSTRAINTS="$(mktemp)"
 IMAGE_FREEZE="$(mktemp)"
 uv pip freeze $UV_FLAGS 2>/dev/null | grep -E '^[A-Za-z0-9._-]+==' > "${IMAGE_FREEZE}" || true
@@ -54,7 +62,20 @@ canon() { tr 'A-Z' 'a-z' | sed -E 's/[-_.]+/-/g'; }
 IMAGE_NAMES="$(mktemp)"
 sed -E 's/==.*//' "${IMAGE_FREEZE}" | canon | sort -u > "${IMAGE_NAMES}"
 
-cat "${IMAGE_FREEZE}" > "${TEST_CONSTRAINTS}"
+# Names hard-pinned with "==" anywhere in the requirement inputs. Only the .in files and
+# the .txt files they -r include are scanned; the generated lockfiles are excluded, since
+# every line in those is a "==" and they are the layer we intend to override.
+HARD_PINNED="$(mktemp)"
+find vllm_source/requirements -name "*.in" -o -name "common.txt" \
+  | xargs grep -hE '^[A-Za-z0-9._-]+ *==' 2>/dev/null \
+  | sed -E 's/ *==.*//' | canon | sort -u > "${HARD_PINNED}"
+
+# Image versions win, except where upstream hard-pins the package.
+while IFS= read -r line; do
+  name="$(printf '%s' "${line}" | sed -E 's/==.*//' | canon)"
+  grep -qxF "${name}" "${HARD_PINNED}" || printf '%s\n' "${line}"
+done < "${IMAGE_FREEZE}" > "${TEST_CONSTRAINTS}"
+
 if [ -f "${TEST_TXT}" ]; then
   # Keep upstream's pins only for packages the image does not already ship.
   grep -E '^[A-Za-z0-9._-]+==' "${TEST_TXT}" \
