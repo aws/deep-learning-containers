@@ -209,7 +209,7 @@ RUN CUDA_DASH=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr '.' '-') \
   && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-devel \
-    ca-certificates wget curl git tar gzip \
+    ca-certificates wget curl git tar gzip unzip patch \
     openmpi numactl \
     rdma-core libibverbs librdmacm \
     libnl3 infiniband-diags \
@@ -219,6 +219,9 @@ RUN CUDA_DASH=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr '.' '-') \
     cuda-nvcc-${CUDA_DASH} \
     cuda-cuobjdump-${CUDA_DASH} \
     cuda-cudart-devel-${CUDA_DASH} \
+    # Kimi-K3 JIT-compiles MoE kernels against nvrtc at runtime; without the
+    # devel package there is no <nvrtc.h> and no libnvrtc.so for -lnvrtc.
+    cuda-nvrtc-devel-${CUDA_DASH} \
     libcurand-devel-${CUDA_DASH} \
     libcublas-devel-${CUDA_DASH} \
     gcc gcc-c++ make which hostname findutils \
@@ -322,8 +325,8 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
-     "nvidia-cutlass-dsl>=4.5.2" "nvidia-cutlass-dsl-libs-cu13>=4.5.2" \
-  && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1" \
+     "nvidia-cutlass-dsl[cu13]==4.6.0" \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1,<82" "numpy<2.5" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig
@@ -354,6 +357,86 @@ RUN python${PYTHON_VERSION} -c "import importlib.util, os; print(os.path.join(os
       > /etc/ld.so.conf.d/z3-solver.conf \
   && ldconfig \
   && python${PYTHON_VERSION} -c "import tilelang; print('tilelang', tilelang.__version__)"
+
+# ---------------------------------------------------------------------------
+# Kimi-K3 support (MXFP4 MoE + CuTeDSL MLA decode with DCP)
+# ---------------------------------------------------------------------------
+
+# nvidia-cutlass-dsl splits across purelib and platlib on AL2023: the DSL wheel
+# is pure-Python (-> lib/) while its -libs-cu13 companion is a platform wheel
+# (-> lib64/). Debian/Ubuntu collapse both to one dir, so upstream never sees
+# this. The two trees are complementary, not competing: lib/ has the pure
+# `cutlass` package, lib64/ has the native _mlir extensions it imports. The
+# package's own .pth takes __path__[0] (the payload-free lib entry), and .pth
+# files run in sorted filename order, so no sys.path reordering can fix it —
+# the trees have to be merged. The import below is the check.
+RUN PURE=/usr/local/lib/python${PYTHON_VERSION}/site-packages/nvidia_cutlass_dsl \
+  && PLAT=/usr/local/lib64/python${PYTHON_VERSION}/site-packages/nvidia_cutlass_dsl \
+  && for d in cu12 cu13; do \
+       if [ -e "${PLAT}/${d}" ]; then ln -sfn "${PLAT}/${d}" "${PURE}/${d}"; fi; \
+     done \
+  && mkdir -p "${PURE}/dsl_packages/cutlass" \
+  && for f in "${PLAT}"/dsl_packages/cutlass/*; do \
+       if [ -e "$f" ]; then ln -sfn "$f" "${PURE}/dsl_packages/cutlass/$(basename "$f")"; fi; \
+     done \
+  && python${PYTHON_VERSION} -c "import cutlass, cutlass.cute; print('cutlass-dsl ok')"
+
+# Assert the two nvrtc build-time artifacts exist: the <nvrtc.h> header and the
+# unversioned libnvrtc.so that `ld -lnvrtc` resolves. cuda-nvrtc-devel above
+# supplies both; without them K3's runtime MoE JIT dies in FlashInfer autotune
+# with "ninja: build stopped". The fallback symlinks cover the case where the
+# devel package's layout shifts — the header then comes from the cu13 pip wheel
+# (named explicitly, since a cu12 wheel is installed too) and the library from
+# the versioned soname already in-tree (not the .alt variant, a separate build).
+RUN CUDA_TGT=/usr/local/cuda-$(echo ${CUDA_REF} | cut -d. -f1,2)/targets/x86_64-linux \
+  && [ -e ${CUDA_TGT}/include/nvrtc.h ] \
+     || ln -sf /usr/local/lib/python${PYTHON_VERSION}/site-packages/nvidia/cu13/include/nvrtc.h \
+               ${CUDA_TGT}/include/nvrtc.h \
+  && [ -e ${CUDA_TGT}/lib/libnvrtc.so ] \
+     || ln -sf ${CUDA_TGT}/lib/libnvrtc.so.$(echo ${CUDA_REF} | cut -d. -f1) \
+               ${CUDA_TGT}/lib/libnvrtc.so \
+  && ldconfig \
+  && test -e ${CUDA_TGT}/include/nvrtc.h \
+  && test -e ${CUDA_TGT}/lib/libnvrtc.so \
+  && echo '#include <nvrtc.h>' > /tmp/nvrtc_probe.c \
+  && echo 'int main(){nvrtcVersion(0,0);return 0;}' >> /tmp/nvrtc_probe.c \
+  && gcc /tmp/nvrtc_probe.c -I${CUDA_TGT}/include -L${CUDA_TGT}/lib -lnvrtc -o /tmp/nvrtc_probe \
+  && rm -f /tmp/nvrtc_probe /tmp/nvrtc_probe.c
+
+# Kimi-K3 selects its MoE kernels from a prebuilt trtllm-gen cubin pool, and JIT
+# compiles the accompanying overlay/ sources against it at first use. Absent the
+# pool, MXFP4 MoE has no kernels to dispatch to.
+ARG TRTLLM_GEN_MOE_CUBIN_POOL_VERSION=trtllm_gen_moe_cubin_pool_20260617_v0613rc1
+ARG TRTLLM_GEN_MOE_CUBIN_POOL_TAG=trtllm_gen_moe_cubin_20260617
+ARG TRTLLM_GEN_MOE_CUBIN_POOL_SHA256=4900501cbe782a76b08a5858f9f07152287b97cb68114466dac286366b66c192
+ENV SGLANG_TRTLLM_GEN_MOE_CUBIN_POOL=/opt/trtllm_gen_moe_cubin_pool
+RUN cd /tmp \
+  && curl --retry 3 -sSLo pool.zip \
+     https://github.com/sgl-project/whl/releases/download/${TRTLLM_GEN_MOE_CUBIN_POOL_TAG}/${TRTLLM_GEN_MOE_CUBIN_POOL_VERSION}.zip \
+  && echo "${TRTLLM_GEN_MOE_CUBIN_POOL_SHA256}  pool.zip" | sha256sum -c - \
+  && unzip -q pool.zip \
+  && mv ${TRTLLM_GEN_MOE_CUBIN_POOL_VERSION} ${SGLANG_TRTLLM_GEN_MOE_CUBIN_POOL} \
+  && rm -f pool.zip \
+  && CUBINS=$(find ${SGLANG_TRTLLM_GEN_MOE_CUBIN_POOL} -name '*.cubin' | wc -l) \
+  && echo "trtllm-gen cubins: ${CUBINS}" \
+  && test "${CUBINS}" -eq 1696
+
+# K3 decodes with the CuTeDSL MLA backend, which needs decode context parallel
+# (enable_dcp) plumbed through flashinfer. The patch ships in the sglang source
+# tree but upstream only applies it in their own K3 image. tests/ diffs are
+# stripped (no test tree in site-packages); --dry-run first so a patch that has
+# gone stale against a flashinfer bump fails the build loudly instead of
+# half-applying. The signature check is the assertion that it took.
+RUN FLASHINFER_DCP_PATCH=/sgl-workspace/sglang/docker/kimi_k3/flashinfer-perkz-dcp-0.6.15.txt \
+  && FLASHINFER_SITE_PACKAGES="$(python${PYTHON_VERSION} -c 'from pathlib import Path; import flashinfer; print(Path(flashinfer.__file__).resolve().parent.parent)')" \
+  && sed '/^diff --git a\/tests\//,$d' "${FLASHINFER_DCP_PATCH}" \
+     | patch --dry-run --batch --forward --strip=1 --directory="${FLASHINFER_SITE_PACKAGES}" \
+  && sed '/^diff --git a\/tests\//,$d' "${FLASHINFER_DCP_PATCH}" \
+     | patch --batch --forward --strip=1 --directory="${FLASHINFER_SITE_PACKAGES}" \
+  && python${PYTHON_VERSION} -c "import inspect, flashinfer.decode as d; \
+     assert 'enable_dcp' in inspect.signature(d.trtllm_batch_decode_with_kv_cache_mla).parameters, \
+     'flashinfer DCP patch did not apply'; print('flashinfer DCP ok')" \
+  && rm -rf /root/.cache/flashinfer /root/.cache/pip
 
 
 # Telemetry, common scripts, and OSS compliance
