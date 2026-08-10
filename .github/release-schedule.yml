@@ -62,6 +62,10 @@ schedules:
     workflow: sglang.autorelease-ec2-amzn2023.yml
     gpu: heavy
 
+  - cron: "30 16 * * 2,4"
+    workflow: llama-cpp.autorelease-ec2-amzn2023.yml
+    gpu: light
+
   - cron: "00 17 * * 2,4"
     workflow: ray.autorelease-ec2.yml
     gpu: light
@@ -74,6 +78,10 @@ schedules:
     workflow: sglang.autorelease-sagemaker-amzn2023.yml
     gpu: heavy
 
+  - cron: "30 18 * * 2,4"
+    workflow: llama-cpp.autorelease-sagemaker-amzn2023.yml
+    gpu: light
+
   - cron: "00 19 * * 2,4"
     workflow: vllm-omni.autorelease-ec2.yml
     gpu: medium
@@ -85,6 +93,10 @@ schedules:
   - cron: "00 20 * * 2,4"
     workflow: sglang.autorelease-ec2-ubuntu.yml
     gpu: heavy
+
+  - cron: "30 20 * * 2,4"
+    workflow: llama-cpp.autorelease-ec2-arm64-amzn2023.yml
+    gpu: minimal
 
   - cron: "00 21 * * 2,4"
     workflow: ray.autorelease-sagemaker.yml
@@ -101,6 +113,10 @@ schedules:
   - cron: "30 22 * * 2"
     workflow: openfold3.autorelease-sagemaker-amzn2023.yml
     gpu: heavy
+
+  - cron: "30 22 * * 4"
+    workflow: llama-cpp.autorelease-sagemaker-arm64-amzn2023.yml
+    gpu: minimal
 
   - cron: "00 23 * * 2,4"
     workflow: pytorch.autorelease-2.13-sagemaker.yml

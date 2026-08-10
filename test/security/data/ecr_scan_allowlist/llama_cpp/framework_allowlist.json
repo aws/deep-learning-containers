@@ -1,1 +1,7 @@
-[]
+[
+    {
+        "vulnerability_id": "CVE-2026-44432",
+        "reason": "urllib3 (pulled transitively by requests for OSS-compliance tooling); fix version 2.7.0 requires Python >=3.10, but the AL2023 system python3 is 3.9, so it is not installable on this image. Not runtime-facing — requests is only used by setup_oss_compliance.sh at build time.",
+        "review_by": "2026-10-10"
+    }
+]

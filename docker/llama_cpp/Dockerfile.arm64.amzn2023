@@ -67,8 +67,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   && ln -sf /usr/bin/python3 /usr/bin/python
 
 # setup_oss_compliance.sh imports `requests`, which the slim AL2023 runtime lacks.
-# Pin urllib3 >=2.7.0 to clear CVE-2026-44432 (requests pulls it transitively).
-RUN pip3 install --no-cache-dir requests "urllib3>=2.7.0"
+RUN pip3 install --no-cache-dir requests
 
 # Binaries + the .so files llama.cpp produces (libllama, libggml*, and the
 # per-microarch libggml-cpu-*.so backend variants for runtime dispatch).
