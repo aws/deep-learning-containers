@@ -17,28 +17,15 @@ from test_utils import random_suffix_name
 
 
 def test_single_model_predict(
-    boto_session,
     sagemaker_session,
-    sagemaker_role_arn,
-    inference_image_uri,
-    sm_instance_type,
-    cleanup_endpoint,
+    deploy_endpoint,
 ):
-    from sagemaker.core.resources import (
-        ContainerDefinition,
-        Endpoint,
-        EndpointConfig,
-        Model,
-        ProductionVariant,
-    )
-
     with tempfile.TemporaryDirectory(prefix="tf220-single-") as workdir:
         tar_path = build_sample_model(
             output_dir=workdir,
             multiplier=2.0,
         )
 
-        # Upload via SDK v3 helper Session.
         bucket = sagemaker_session.default_bucket()
         key_prefix = f"tf220-inference-tests/{Path(tar_path).stem}-{random_suffix_name('single', 63)}"
         model_data = sagemaker_session.upload_data(
@@ -47,44 +34,10 @@ def test_single_model_predict(
             key_prefix=key_prefix,
         )
 
-        endpoint_name = random_suffix_name("tf220-single", 63)
-        model_name = random_suffix_name("tf220-single-model", 63)
-        cleanup_endpoint(endpoint_name, model_name=model_name)
-
-        # 1. SM Model pointing at our DLC image + uploaded SavedModel.
-        Model.create(
-            model_name=model_name,
-            primary_container=ContainerDefinition(
-                image=inference_image_uri,
-                model_data_url=model_data,
-            ),
-            execution_role_arn=sagemaker_role_arn,
-            session=boto_session,
+        endpoint, endpoint_name, model_name = deploy_endpoint(
+            model_data_url=model_data,
         )
 
-        # 2. EndpointConfig with a single ProductionVariant.
-        EndpointConfig.create(
-            endpoint_config_name=endpoint_name,
-            production_variants=[
-                ProductionVariant(
-                    variant_name="AllTraffic",
-                    model_name=model_name,
-                    initial_instance_count=1,
-                    instance_type=sm_instance_type,
-                ),
-            ],
-            session=boto_session,
-        )
-
-        # 3. Endpoint; wait for InService.
-        endpoint = Endpoint.create(
-            endpoint_name=endpoint_name,
-            endpoint_config_name=endpoint_name,
-            session=boto_session,
-        )
-        endpoint.wait_for_status("InService")
-
-        # 4. Invoke; body is a streaming bytes-like object.
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
         result = endpoint.invoke(
             body=payload,
@@ -97,7 +50,6 @@ def test_single_model_predict(
         predictions = response["predictions"]
         assert predictions and isinstance(predictions, list)
 
-        # Handle both shapes: {"output": [...]} and raw list.
         first = predictions[0]
         if isinstance(first, dict) and "output" in first:
             values = first["output"]

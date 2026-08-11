@@ -19,7 +19,6 @@ from test_utils import random_suffix_name
 def test_csv_content_type_multi_column(
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     """Two rows, three numeric columns each; assert 2x output."""
     with tempfile.TemporaryDirectory(prefix="tf220-csv-") as workdir:
@@ -33,7 +32,6 @@ def test_csv_content_type_multi_column(
             model_data_url=model_data,
             name_prefix="tf220-csv",
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         csv_payload = b"1.0,2.0,3.0\n4.0,5.0,6.0\n"
         result = endpoint.invoke(

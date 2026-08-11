@@ -20,7 +20,6 @@ from test_utils import random_suffix_name
 def test_two_version_saved_model(
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     with tempfile.TemporaryDirectory(prefix="tf220-versions-") as workdir:
         # versions=(1, 2) writes both under 1/ and 2/; TFS picks version 2.
@@ -38,7 +37,6 @@ def test_two_version_saved_model(
             model_data_url=model_data,
             name_prefix="tf220-versions",
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
         result = endpoint.invoke(

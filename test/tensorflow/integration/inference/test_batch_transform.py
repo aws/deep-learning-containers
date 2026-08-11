@@ -7,11 +7,14 @@ behaviour — a code path that the real-time single-model/MME tests don't touch.
 from __future__ import annotations
 
 import json
+import logging
 import tempfile
-import time
 from pathlib import Path
 
 import pytest
+from test_utils import wait_for_status
+
+LOGGER = logging.getLogger(__name__)
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
@@ -26,7 +29,7 @@ def test_batch_transform_json(
     boto_session,
     sagemaker_session,
     sagemaker_role_arn,
-    inference_image_uri,
+    image_uri,
 ):
     """End-to-end batch transform on JSON: 3 single-record files, verify 2x output."""
     # Late imports so pytest --collect-only works without the SDK.
@@ -76,7 +79,7 @@ def test_batch_transform_json(
         Model.create(
             model_name=model_name,
             primary_container=ContainerDefinition(
-                image=inference_image_uri,
+                image=image_uri,
                 model_data_url=model_data,
             ),
             execution_role_arn=sagemaker_role_arn,
@@ -109,22 +112,23 @@ def test_batch_transform_json(
                 ),
                 session=boto_session,
             )
-            terminal = {"Completed", "Failed", "Stopped"}
-            deadline = time.time() + 45 * 60  # 45 min ceiling
-            while True:
+            def _get_transform_status():
+                job.refresh()
+                return getattr(job, "transform_job_status", None)
+
+            completed = wait_for_status(
+                "Completed",
+                wait_periods=90,
+                period_length=30,
+                get_status_method=_get_transform_status,
+            )
+            if not completed:
                 job.refresh()
                 status = getattr(job, "transform_job_status", None)
-                if status in terminal:
-                    break
-                if time.time() > deadline:
-                    raise TimeoutError(
-                        f"TransformJob {job_name} still in status {status!r} after 45 min"
-                    )
-                time.sleep(30)
-            assert status == "Completed", (
-                f"TransformJob failed: status={status!r} "
-                f"failure_reason={getattr(job, 'failure_reason', None)!r}"
-            )
+                assert False, (
+                    f"TransformJob failed: status={status!r} "
+                    f"failure_reason={getattr(job, 'failure_reason', None)!r}"
+                )
 
             # 5. Download output objects and assert predictions.
             resp = s3.list_objects_v2(
@@ -156,5 +160,5 @@ def test_batch_transform_json(
             # Best-effort model cleanup; TransformJob is a completed record.
             try:
                 Model.get(model_name=model_name, session=boto_session).delete()
-            except Exception:
-                pass
+            except Exception as e:
+                LOGGER.warning(f"Cleanup Model {model_name} failed: {e}")

@@ -19,7 +19,6 @@ from test_utils import random_suffix_name
 def test_custom_inference_py_handlers(
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     with tempfile.TemporaryDirectory(prefix="tf220-inference-py-") as workdir:
         tar_path = build_sample_model(
@@ -37,7 +36,6 @@ def test_custom_inference_py_handlers(
             model_data_url=model_data,
             name_prefix="tf220-inference-py",
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         # Customer sends 2 rows; input_handler prepends 1 marker row → 3 rows
         # returned by TFS; output_handler wraps the response with a marker key.

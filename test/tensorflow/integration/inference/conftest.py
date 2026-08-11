@@ -1,44 +1,23 @@
 """Pytest fixtures for TF 2.20 inference integration tests on SageMaker.
 
 Uses SageMaker Python SDK v3 resource layer (Model.create -> EndpointConfig ->
-Endpoint -> endpoint.invoke). Fixtures defer AWS calls to test-execution time
-so `pytest --collect-only` works without credentials.
+Endpoint -> endpoint.invoke). Relies on parent test/conftest.py for image_uri,
+region, and aws_session fixtures (passed via --image-uri / --region CLI args).
 """
 
 from __future__ import annotations
 
+import logging
 import os
 
 import pytest
+from test_utils import random_suffix_name
+from test_utils.constants import SAGEMAKER_ROLE
 
-
-@pytest.fixture(scope="session")
-def aws_region() -> str:
-    """AWS region for SageMaker operations. Defaults to us-west-2."""
-    return os.environ.get("AWS_REGION", "us-west-2")
-
-
-@pytest.fixture(scope="session")
-def sagemaker_role_arn() -> str:
-    """SageMaker execution role ARN. Skips the test if not set."""
-    arn = os.environ.get("SM_ROLE_ARN")
-    if not arn:
-        pytest.skip("SM_ROLE_ARN not set")
-    return arn
-
-
-@pytest.fixture(scope="session")
-def inference_image_uri() -> str:
-    """ECR URI for the TF 2.20 inference image under test. Skips if not set."""
-    uri = os.environ.get("TEST_IMAGE_URI")
-    if not uri:
-        pytest.skip("TEST_IMAGE_URI not set")
-    return uri
-
+LOGGER = logging.getLogger(__name__)
 
 # SM instance-type map keyed on the image's device_type. GPU is ml.g6.4xlarge
-# to match the CI account's provisioned hosting fleet (ml.g5.xlarge is not
-# hosted here and fails CreateEndpoint with CannotStartContainerError).
+# to match the CI account's provisioned hosting fleet.
 _SM_INSTANCE_TYPE_BY_DEVICE = {
     "cpu": "ml.c5.xlarge",
     "gpu": "ml.g6.4xlarge",
@@ -54,11 +33,11 @@ def sm_instance_type() -> str:
 
 
 @pytest.fixture(scope="session")
-def boto_session(aws_region: str):
+def boto_session(region):
     """boto3 session bound to the configured region."""
     import boto3
 
-    return boto3.Session(region_name=aws_region)
+    return boto3.Session(region_name=region)
 
 
 @pytest.fixture(scope="session")
@@ -69,6 +48,21 @@ def sagemaker_session(boto_session):
     return Session(boto_session=boto_session)
 
 
+@pytest.fixture(scope="session")
+def sagemaker_role_arn(aws_session) -> str:
+    """Resolve SAGEMAKER_ROLE constant to full ARN via AWSSessionManager."""
+    return aws_session.resolve_role_arn(SAGEMAKER_ROLE)
+
+
+def _cleanup(resources, boto_session):
+    """Best-effort delete for a list of (resource_cls, get_kwargs) tuples (None-safe)."""
+    for resource_cls, get_kwargs in resources:
+        if any(v is None for v in get_kwargs.values()):
+            continue
+        try:
+            resource_cls.get(session=boto_session, **get_kwargs).delete()
+        except Exception as e:
+            LOGGER.warning(f"Cleanup {resource_cls.__name__} failed: {e}")
 
 
 @pytest.fixture
@@ -76,17 +70,24 @@ def deploy_endpoint(
     boto_session,
     sagemaker_session,
     sagemaker_role_arn,
-    inference_image_uri,
+    image_uri,
     sm_instance_type,
-    cleanup_endpoint,
 ):
-    """Deploy a SageMaker endpoint; returns (endpoint, endpoint_name, model_name).
+    """Deploy a SageMaker endpoint; yields (endpoint, endpoint_name, model_name).
 
-    Cleanup is registered BEFORE any AWS create call so a mid-flight failure
-    (Model.create, EndpointConfig.create, Endpoint.create, wait_for_status)
-    still gets torn down — otherwise a wait_for_status raise would skip a
-    call-site cleanup and leak billing.
+    Uses try/finally so partially-created resources are always torn down —
+    even if deployment fails mid-flight (prevents billing leaks).
     """
+    from sagemaker.core.resources import (
+        ContainerDefinition,
+        Endpoint,
+        EndpointConfig,
+        Model,
+        ProductionVariant,
+    )
+
+    model = endpoint_config = endpoint = None
+    endpoint_name = model_name = None
 
     def _deploy(
         *,
@@ -95,24 +96,13 @@ def deploy_endpoint(
         container_env: dict | None = None,
         name_prefix: str = "tf220-inference",
     ):
-        from sagemaker.core.resources import (
-            ContainerDefinition,
-            Endpoint,
-            EndpointConfig,
-            Model,
-            ProductionVariant,
-        )
-
-        from test_utils import random_suffix_name
+        nonlocal model, endpoint_config, endpoint, endpoint_name, model_name
 
         endpoint_name = random_suffix_name(name_prefix, 63)
         model_name = random_suffix_name(f"{name_prefix}-model", 63)
 
-        # Register cleanup BEFORE any AWS mutation.
-        cleanup_endpoint(endpoint_name, model_name=model_name)
-
         container_kwargs = {
-            "image": inference_image_uri,
+            "image": image_uri,
             "model_data_url": model_data_url,
         }
         if mode == "MultiModel":
@@ -120,14 +110,14 @@ def deploy_endpoint(
         if container_env:
             container_kwargs["environment"] = dict(container_env)
 
-        Model.create(
+        model = Model.create(
             model_name=model_name,
             primary_container=ContainerDefinition(**container_kwargs),
             execution_role_arn=sagemaker_role_arn,
             session=boto_session,
         )
 
-        EndpointConfig.create(
+        endpoint_config = EndpointConfig.create(
             endpoint_config_name=endpoint_name,
             production_variants=[
                 ProductionVariant(
@@ -148,39 +138,14 @@ def deploy_endpoint(
         endpoint.wait_for_status("InService")
         return endpoint, endpoint_name, model_name
 
-    return _deploy
-
-
-@pytest.fixture
-def cleanup_endpoint(boto_session):
-    """Yield-style fixture that tears down endpoint, endpoint config, and model."""
-    registered: list[dict] = []
-
-    def _register(endpoint_name: str, model_name: str | None = None) -> None:
-        registered.append({"endpoint_name": endpoint_name, "model_name": model_name})
-
-    yield _register
-
-    # Import lazily so collection works without the SDK installed.
-    from sagemaker.core.resources import Endpoint, EndpointConfig, Model
-
-    for item in registered:
-        endpoint_name = item["endpoint_name"]
-        model_name = item["model_name"]
-
-        # Endpoint config name == endpoint name in our deploy flow.
-        for resource_cls, get_kwargs in (
-            (Endpoint, {"endpoint_name": endpoint_name}),
-            (EndpointConfig, {"endpoint_config_name": endpoint_name}),
-        ):
-            try:
-                resource_cls.get(session=boto_session, **get_kwargs).delete()
-            except Exception:
-                # Best-effort teardown: swallow NotFound / already-deleted.
-                pass
-
-        if model_name:
-            try:
-                Model.get(model_name=model_name, session=boto_session).delete()
-            except Exception:
-                pass
+    try:
+        yield _deploy
+    finally:
+        _cleanup(
+            [
+                (Endpoint, {"endpoint_name": endpoint_name}),
+                (EndpointConfig, {"endpoint_config_name": endpoint_name}),
+                (Model, {"model_name": model_name}),
+            ],
+            boto_session,
+        )

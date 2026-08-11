@@ -9,7 +9,6 @@ the libcudnn on the image is ABI-compatible with the TFS binary.
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 
 import pytest
@@ -18,19 +17,12 @@ from .resources.build_sample_model import build_conv_sample_model
 from .resources.helpers import read_predictions, upload_tarball
 from test_utils import random_suffix_name
 
-# Explicit skipif so the skip decision is visible at collection time.
-_device = os.environ.get("SM_DEVICE_TYPE", "").lower()
-assert _device in {"cpu", "gpu"}, f"SM_DEVICE_TYPE must be 'cpu' or 'gpu'; got {_device!r}"
-pytestmark = pytest.mark.skipif(
-    _device != "gpu",
-    reason="cuDNN Conv2D smoke requires SM_DEVICE_TYPE=gpu (workflow sets this for GPU device-type only)",
-)
+pytestmark = pytest.mark.gpu
 
 
 def test_conv2d_gpu_predict(
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     """Deploy a 117-param Conv2D SavedModel; prove cuDNN executes at request time."""
     with tempfile.TemporaryDirectory(prefix="tf220-conv-") as workdir:
@@ -44,7 +36,6 @@ def test_conv2d_gpu_predict(
             model_data_url=model_data,
             name_prefix="tf220-conv-gpu",
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         # (1, 8, 8, 3) all-ones payload. Model pins Conv2D/Dense to
         # constant weights => single correct answer (108.0). See

@@ -21,7 +21,6 @@ from test_utils import random_suffix_name
 def test_nginx_and_gunicorn_env_tuning(
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     """Deploy with non-default nginx/gunicorn env vars — must serve correctly.
 
@@ -50,7 +49,6 @@ def test_nginx_and_gunicorn_env_tuning(
                 "SAGEMAKER_GUNICORN_LOGLEVEL": "warning",
             },
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
         result = endpoint.invoke(

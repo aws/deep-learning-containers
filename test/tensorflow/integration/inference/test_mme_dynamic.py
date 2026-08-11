@@ -24,7 +24,6 @@ def test_mme_target_model_not_found(
     boto_session,
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     """Invoke with a target_model that isn't in the MME S3 prefix — must 4xx."""
     with tempfile.TemporaryDirectory(prefix="tf220-mme-miss-") as workdir:
@@ -44,7 +43,6 @@ def test_mme_target_model_not_found(
             mode="MultiModel",
             name_prefix="tf220-mme-miss",
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
         with pytest.raises(ClientError) as excinfo:
@@ -64,7 +62,6 @@ def test_mme_late_dynamic_load(
     boto_session,
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     """Deploy MME with one model, upload a second after InService, invoke it."""
     with tempfile.TemporaryDirectory(prefix="tf220-mme-late-") as workdir:
@@ -84,7 +81,6 @@ def test_mme_late_dynamic_load(
             mode="MultiModel",
             name_prefix="tf220-mme-late",
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         # Sanity check: existing model responds.
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})

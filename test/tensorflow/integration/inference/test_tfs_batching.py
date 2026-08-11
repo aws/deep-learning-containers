@@ -20,7 +20,6 @@ from test_utils import random_suffix_name
 def test_tfs_batching_enabled_wire_contract(
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     """Batching env vars set -> endpoint still responds correctly."""
     with tempfile.TemporaryDirectory(prefix="tf220-batching-") as workdir:
@@ -42,7 +41,6 @@ def test_tfs_batching_enabled_wire_contract(
                 "SAGEMAKER_TFS_MAX_ENQUEUED_BATCHES": "10000",
             },
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
         result = endpoint.invoke(

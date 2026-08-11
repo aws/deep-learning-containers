@@ -26,25 +26,12 @@ def _values_from_predictions(predictions) -> list:
 
 
 def test_mme_two_models(
-    boto_session,
     sagemaker_session,
-    sagemaker_role_arn,
-    inference_image_uri,
-    sm_instance_type,
-    cleanup_endpoint,
+    deploy_endpoint,
 ):
-    from sagemaker.core.resources import (
-        ContainerDefinition,
-        Endpoint,
-        EndpointConfig,
-        Model,
-        ProductionVariant,
-    )
-
     with tempfile.TemporaryDirectory(prefix="tf220-mme-") as workdir:
         workdir_path = Path(workdir)
 
-        # Two models with different multipliers, each in its own subdir.
         model1_dir = workdir_path / "m1"
         model2_dir = workdir_path / "m2"
         model1_tar = build_sample_model(
@@ -58,51 +45,18 @@ def test_mme_two_models(
         run_id = random_suffix_name("mme", 63)
         s3_key_prefix = f"tf220-inference-tests/mme-models/{run_id}"
 
-        # Upload both under the shared MME prefix.
         sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
         sagemaker_session.upload_data(path=model2_tar, bucket=bucket, key_prefix=s3_key_prefix)
         s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
 
-        endpoint_name = random_suffix_name("tf220-mme", 63)
-        model_name = random_suffix_name("tf220-mme-model", 63)
-        cleanup_endpoint(endpoint_name, model_name=model_name)
-
-        # 1. Multi-model SM Model: mode="MultiModel" + S3 prefix in model_data_url.
-        Model.create(
-            model_name=model_name,
-            primary_container=ContainerDefinition(
-                image=inference_image_uri,
-                mode="MultiModel",
-                model_data_url=s3_model_prefix,
-            ),
-            execution_role_arn=sagemaker_role_arn,
-            session=boto_session,
+        endpoint, endpoint_name, model_name = deploy_endpoint(
+            model_data_url=s3_model_prefix,
+            mode="MultiModel",
+            name_prefix="tf220-mme",
         )
-
-        # 2. Endpoint config + endpoint.
-        EndpointConfig.create(
-            endpoint_config_name=endpoint_name,
-            production_variants=[
-                ProductionVariant(
-                    variant_name="AllTraffic",
-                    model_name=model_name,
-                    initial_instance_count=1,
-                    instance_type=sm_instance_type,
-                ),
-            ],
-            session=boto_session,
-        )
-
-        endpoint = Endpoint.create(
-            endpoint_name=endpoint_name,
-            endpoint_config_name=endpoint_name,
-            session=boto_session,
-        )
-        endpoint.wait_for_status("InService")
 
         payload = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
 
-        # 3. Invoke each by name (target_model -> X-Amzn-SageMaker-Target-Model).
         resp1 = endpoint.invoke(
             body=payload,
             content_type="application/json",

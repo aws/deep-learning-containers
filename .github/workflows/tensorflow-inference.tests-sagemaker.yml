@@ -73,11 +73,14 @@ jobs:
       - name: Run SageMaker inference tests
         env:
           PYTHONPATH: ${{ github.workspace }}/test
-          TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
-          SM_ROLE_ARN: arn:aws:iam::${{ needs.preflight.outputs.aws-account-id }}:role/SageMakerRole
-          # Overrides conftest's us-west-2 default so endpoints land in the CI region.
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          # Selects SM endpoint instance type (cpu -> ml.c5.xlarge, gpu -> ml.g6.4xlarge).
           SM_DEVICE_TYPE: ${{ inputs.device-type }}
         run: |
-          pytest test/tensorflow/integration/inference/ -v
+          MARK_FILTER=""
+          if [ "${{ inputs.device-type }}" = "cpu" ]; then
+            MARK_FILTER="-m not gpu"
+          fi
+          python3 -m pytest -v --tb=short -rA \
+            --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            --region ${{ vars.AWS_REGION }} \
+            $MARK_FILTER \
+            test/tensorflow/integration/inference/

@@ -33,7 +33,6 @@ _NUM_CONCURRENT_INVOKES = 8
 def test_mme_concurrent_invoke_distinct_models(
     sagemaker_session,
     deploy_endpoint,
-    cleanup_endpoint,
 ):
     """Deploy MME with N models, fire N*K concurrent invokes across all
     target_models, assert each returns its own model's multiplier."""
@@ -76,7 +75,6 @@ def test_mme_concurrent_invoke_distinct_models(
             },
             name_prefix="tf220-mme-conc",
         )
-        cleanup_endpoint(endpoint_name, model_name=model_name)
 
         # Round-robin (filename, expected) across N*K invokes.
         payload_body = json.dumps({"instances": [[1.0, 2.0, 3.0]]})
