@@ -2,18 +2,17 @@
 #
 # smoke-test: model serving + inference validation. Both entries serve the same
 # Ornith-1.0-9B (Q4_K_M) GGUF and assert /health + a chat completion — CPU-only
-# on the codebuild fleet, GPU-offloaded on the runner-scale-set.
+# on the x86 build fleet, GPU-offloaded on the single-GPU (L4) build fleet.
 #
 # Entries are gated to an arch+device via required_image_pattern:
-#   - x86 CPU images → codebuild-fleet (x86-build-runner), no GPU.
-#   - x86 GPU images → runner-scale-sets on a single-GPU runner.
-# arm64 CPU model tests are deferred until an arm64 CodeBuild fleet exists
-# (same infra follow-up that gates the arm64 build).
+#   - x86 CPU images → x86-build-runner, no GPU.
+#   - x86 GPU images → x86-g6xl-runner (1x L4), docker_gpus: all.
+# arm64 CPU model tests are deferred until an arm64 CodeBuild model-test fleet
+# exists (same infra follow-up that gates the arm64 build).
 #
-# codebuild-fleet runners (CPU):
-#   x86-build-runner = m6a.8xlarge (32 vCPU / 128 GiB)
-# runner-scale-sets (GPU):
-#   gpu-l4-1gpu-runners = 1x L4 (24 GiB)
+# codebuild-fleet runners:
+#   x86-build-runner = m6a.8xlarge (32 vCPU / 128 GiB), CPU only
+#   x86-g6xl-runner  = g6.xlarge (1x L4, 24 GiB VRAM)
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 
@@ -29,12 +28,13 @@ smoke-test:
         device_type: cpu
         arch_type: x86
 
-  runner-scale-sets:
     # x86 GPU (CUDA) smoke test: same model, offloaded to the GPU
-    # (--n-gpu-layers 999) to exercise the CUDA backend.
+    # (--n-gpu-layers 999) to exercise the CUDA backend. Runs on the single-GPU
+    # L4 build fleet with docker_gpus: all (matches sglang/vllm GPU model tests).
     - name: "ornith-1.0-9b-q4_k_m"
       s3_model: "ornith-1.0-9b-q4_k_m.gguf.tar.gz"
-      runner_label: "gpu-l4-1gpu-runners"
+      fleet: "x86-g6xl-runner"
+      docker_gpus: "all"
       extra_args: "--ctx-size 4096 --n-gpu-layers 999"
       required_image_pattern:
         device_type: gpu

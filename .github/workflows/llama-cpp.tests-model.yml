@@ -27,7 +27,6 @@ jobs:
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
       codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
-      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
     steps:
       - uses: actions/checkout@v6
 
@@ -88,8 +87,13 @@ jobs:
       - name: Start container
         run: |
           docker pull ${{ needs.preflight.outputs.image-uri }}
-          # CPU container — no --gpus (GPU images use the GPU model-test job below).
-          CONTAINER_ID=$(docker run -d -it --entrypoint /bin/bash \
+          # GPU entries set docker_gpus (e.g. "all") so the CUDA backend is
+          # exercised on the L4 build fleet; CPU entries leave it empty.
+          GPUS_FLAG=""
+          if [ -n "${{ matrix.docker_gpus }}" ]; then
+            GPUS_FLAG="--gpus ${{ matrix.docker_gpus }}"
+          fi
+          CONTAINER_ID=$(docker run -d -it ${GPUS_FLAG} --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
             -v /dlc-models:/models \
             ${{ needs.preflight.outputs.image-uri }})
@@ -113,64 +117,3 @@ jobs:
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-
-  # GPU model tests run on self-hosted GPU runner-scale-sets (llama.cpp CUDA
-  # images). Model is downloaded to the pod host, then copied into the
-  # container started with --gpus so llama-server offloads to the GPU.
-  test-model-runner-scale-sets:
-    name: test-model (${{ matrix.name }})
-    if: ${{ needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.runner-scale-sets-matrix)[0] != null }}
-    needs: [preflight]
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.preflight.outputs.runner-scale-sets-matrix) }}
-    runs-on: ${{ matrix.runner_label }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: ECR authenticate
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Download model from S3
-        uses: ./.github/actions/download-model
-        id: model
-        with:
-          s3-path: ${{ matrix.s3_path }}
-          model-name: ${{ matrix.name }}
-
-      - name: Start container
-        run: |
-          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
-          echo "Pod GPU UUIDs: ${POD_GPUS}"
-          docker pull ${{ needs.preflight.outputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus "\"device=${POD_GPUS}\"" --entrypoint /bin/bash \
-            --ipc=host --shm-size=10g \
-            ${{ needs.preflight.outputs.image-uri }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      - name: Copy files into container
-        run: |
-          docker exec ${CONTAINER_ID} mkdir -p /models
-          docker cp /dlc-models/${{ matrix.name }} ${CONTAINER_ID}:/models/${{ matrix.name }}
-          TEST_SCRIPT="${{ matrix.test_script || 'llama_cpp_model_smoke_test.sh' }}"
-          docker cp "test/llama_cpp/scripts/${TEST_SCRIPT}" ${CONTAINER_ID}:/models/
-
-      - name: Run model smoke test
-        run: |
-          TEST_SCRIPT="${{ matrix.test_script || 'llama_cpp_model_smoke_test.sh' }}"
-          docker exec ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
-            "/models/${{ matrix.name }}" \
-            "${{ matrix.name }}" \
-            ${{ matrix.extra_args }}
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker stop ${CONTAINER_ID} 2>/dev/null || true
-          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
-          kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
