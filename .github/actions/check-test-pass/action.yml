@@ -1,0 +1,102 @@
+name: 'Check test pass'
+description: >
+  Decide whether a test suite can be skipped for a given image build.
+  Outputs `skip=true|false` plus two content hashes.
+
+inputs:
+  image-uri:
+    description: 'Image build to test (prefer digest-pinned ref).'
+    required: true
+  suite:
+    description: 'Name of test suite (key in .github/config/test-suites.yml).'
+    required: true
+  platform:
+    description: 'Platform manifest to hash.'
+    required: false
+    default: 'linux/amd64'
+  aws-region:
+    description: 'Region for ECR registry login used to read the image config.'
+    required: true
+  aws-account-id:
+    description: 'Account ID of the ECR registry holding the image (for docker login).'
+    required: true
+  ci-images-table-account-id:
+    description: 'Account ID hosting the dlc-ci-images DynamoDB table.'
+    required: true
+
+outputs:
+  skip:
+    description: 'true if the suite may be skipped, false otherwise.'
+    value: ${{ steps.decide.outputs.skip }}
+  image-content-hash:
+    description: 'Computed hash of the image build layer digests.'
+    value: ${{ steps.decide.outputs.image-content-hash }}
+  suite-code-hash:
+    description: 'Computed hash of the test suite file content.'
+    value: ${{ steps.decide.outputs.suite-code-hash }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup dependencies
+      shell: bash
+      run: pip install --quiet boto3 pyyaml
+
+    - name: ECR login
+      uses: ./.github/actions/ecr-authenticate
+      with:
+        aws-account-id: ${{ inputs.aws-account-id }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Decide skip
+      id: decide
+      shell: bash
+      env:
+        IMAGE_URI: ${{ inputs.image-uri }}
+        SUITE: ${{ inputs.suite }}
+        PLATFORM: ${{ inputs.platform }}
+        CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
+      run: |
+        set -uo pipefail
+        SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/image_test_skip"
+
+        # Check skip-eligibility
+        ELIGIBLE=$(python3 "$SCRIPTS/hash_suite_code.py" --suite "$SUITE" --eligible-only)
+        if [[ "$ELIGIBLE" != "true" ]]; then
+          echo "Suite '$SUITE' is not skip-eligible — running."
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "image-content-hash=" >> "$GITHUB_OUTPUT"
+          echo "suite-code-hash=" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        # Compute suite_code_hash.
+        SUITE_CODE_HASH=$(python3 "$SCRIPTS/hash_suite_code.py" --suite "$SUITE") || {
+          echo "::warning::suite_code_hash failed for '$SUITE' — running."
+          echo "skip=false" >> "$GITHUB_OUTPUT"; exit 0
+        }
+        echo "suite-code-hash=$SUITE_CODE_HASH" >> "$GITHUB_OUTPUT"
+
+        # Compute image_content_hash.
+        IMAGE_CONTENT_HASH=$(python3 "$SCRIPTS/hash_image_content.py" \
+          --image-uri "$IMAGE_URI" --platform "$PLATFORM") || {
+          echo "::warning::image_content_hash failed for '$IMAGE_URI' — running."
+          echo "skip=false" >> "$GITHUB_OUTPUT"; exit 0
+        }
+        echo "image-content-hash=$IMAGE_CONTENT_HASH" >> "$GITHUB_OUTPUT"
+
+        if python3 "$SCRIPTS/ci_images_store.py" check \
+          --image-content-hash "$IMAGE_CONTENT_HASH" \
+          --suite "$SUITE" \
+          --suite-code-hash "$SUITE_CODE_HASH"; then
+          echo "skip=true" >> "$GITHUB_OUTPUT"
+          {
+            echo "### ⏭️ Test skipped: cached PASS"
+            echo "Suite \`$SUITE\` already passed on this image content + test code."
+            echo ""
+            echo "- image_content_hash: \`$IMAGE_CONTENT_HASH\`"
+            echo "- suite_code_hash: \`$SUITE_CODE_HASH\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+        fi
