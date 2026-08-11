@@ -46,3 +46,7 @@ if [ -d "vllm" ] && [ ! -d "src/vllm" ]; then
   mkdir -p src
   mv vllm src/vllm
 fi
+# Ensure vllm_source is importable for tests (editable install if pyproject.toml exists)
+if [ -f "pyproject.toml" ]; then
+  uv pip install $UV_FLAGS -e . --no-build-isolation --no-deps --torch-backend=auto 2>/dev/null || true
+fi
