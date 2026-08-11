@@ -19,11 +19,18 @@ RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
   || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
 
 COPY scripts/docker/vllm/amzn2023/patches/ /tmp/patches/
-RUN cd /src && \
-    for p in /tmp/patches/*.patch; do \
-      [ -f "$p" ] && [ "$(basename "$p")" != ".gitkeep" ] && \
-        git apply "$p" && echo "Applied $(basename $p)"; \
-    done; true
+# Fail hard on a patch that does not apply. The previous form ended in `; true` to tolerate
+# an unmatched glob when no patches exist, but that also swallowed genuine apply failures,
+# yielding a green build with an unpatched image -- detectable only by inspecting the source.
+# Skip non-existent paths explicitly instead, so "no patches" stays fine and "patch is stale
+# against VLLM_REF" stops the build. Matters because VLLM_REF moves.
+RUN cd /src \
+  && for p in /tmp/patches/*.patch; do \
+       [ -f "$p" ] || continue; \
+       echo "Applying $(basename "$p")"; \
+       git apply --verbose "$p" || exit 1; \
+     done \
+  && echo "all patches applied"
 
 # Generate source manifest
 RUN echo "vLLM AL2023 Image Source Manifest" >/src/SOURCE_MANIFEST \
@@ -71,7 +78,13 @@ COPY --from=source /src/ ./
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build/cuda.txt \
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
+# 10.3 is B300 (SM103); without it there is no SM103 cubin and no 10.0+PTX to JIT from.
+# The value below is only a fallback: image configs set build.torch_cuda_arch_list, which
+# resolve_build_args.py forwards verbatim (this ARG is lower-case, and Docker build args are
+# case-sensitive, so the key is exempt from that script's upper-casing). It must come from the
+# config rather than only from here, because the wheel cache key is computed on the CI runner
+# from the config -- an arch list the runner cannot see would not invalidate a stale wheel.
+ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 10.3 12.0'
 ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 
 ARG max_jobs=32
@@ -89,7 +102,8 @@ ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${FRAMEWORK
 # --- Pre-built wheel support ---
 # Fetch wheels from S3 into docker/vllm/prebuilt_wheels/ BEFORE docker build:
 #   bash scripts/docker/vllm/amzn2023/fetch_cached_wheels.sh cu130 v0.24.0
-# The directory is empty by default so COPY always succeeds.
+# The directory holds only a .gitkeep by default, so COPY always succeeds -- git cannot track
+# an empty directory, and without that placeholder this COPY fails on a clean clone.
 COPY docker/vllm/prebuilt_wheels/ /tmp/prebuilt_wheels/
 
 # --- Build options ---
@@ -137,7 +151,7 @@ RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace
   && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/tmp/nccl-override.txt \
   && export UV_OVERRIDE=/tmp/nccl-override.txt \
   && export LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LIBRARY_PATH}" \
-  && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
+  && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a 10.3a' \
   && tools/ep_kernels/install_python_libraries.sh \
     --workspace /tmp/ep_kernels_workspace \
     --mode wheel \
