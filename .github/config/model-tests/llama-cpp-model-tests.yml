@@ -13,7 +13,7 @@
 # codebuild-fleet runners (CPU):
 #   x86-build-runner = m6a.8xlarge (32 vCPU / 128 GiB)
 # runner-scale-sets (GPU):
-#   x86-g6xl-runner = 1x L4 (24 GiB)
+#   gpu-l4-1gpu-runners = 1x L4 (24 GiB)
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 
@@ -34,7 +34,7 @@ smoke-test:
     # (--n-gpu-layers 999) to exercise the CUDA backend.
     - name: "ornith-1.0-9b-q4_k_m"
       s3_model: "ornith-1.0-9b-q4_k_m.gguf.tar.gz"
-      runner_label: "x86-g6xl-runner"
+      runner_label: "gpu-l4-1gpu-runners"
       extra_args: "--ctx-size 4096 --n-gpu-layers 999"
       required_image_pattern:
         device_type: gpu
