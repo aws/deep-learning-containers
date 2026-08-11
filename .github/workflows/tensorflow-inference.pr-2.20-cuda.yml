@@ -1,16 +1,16 @@
-name: "PR - TensorFlow 2.20 Inference CPU"
+name: "PR - TensorFlow Inference 2.20 CUDA"
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/tensorflow/2.20-inference-*-cpu.yml"
-      - ".github/workflows/tensorflow.pipeline-inference.yml"
-      - ".github/workflows/tensorflow.pr-2.20-inference-cpu.yml"
-      - ".github/workflows/tensorflow.tests-sagemaker-inference.yml"
-      - "docker/tensorflow/inference/2.20/Dockerfile.cpu"
-      - "docker/tensorflow/inference/2.20/cpu/**"
+      - ".github/config/image/tensorflow/2.20-inference-*-cuda.yml"
+      - ".github/workflows/tensorflow-inference.pipeline.yml"
+      - ".github/workflows/tensorflow-inference.pr-2.20-cuda.yml"
+      - ".github/workflows/tensorflow-inference.tests-sagemaker.yml"
+      - "docker/tensorflow/inference/2.20/Dockerfile.cuda"
+      - "docker/tensorflow/inference/2.20/cuda/**"
       - "scripts/docker/common/**"
       - "scripts/docker/tensorflow/**"
       - "scripts/docker/telemetry/**"
@@ -49,9 +49,9 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/tensorflow/2.20-inference-*-cpu.yml"
-              - "docker/tensorflow/inference/2.20/Dockerfile.cpu"
-              - "docker/tensorflow/inference/2.20/cpu/**"
+              - ".github/config/image/tensorflow/2.20-inference-*-cuda.yml"
+              - "docker/tensorflow/inference/2.20/Dockerfile.cuda"
+              - "docker/tensorflow/inference/2.20/cuda/**"
               - "scripts/docker/common/**"
               - "scripts/docker/tensorflow/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
@@ -81,7 +81,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/tensorflow/2.20-inference-*-cpu.yml"
+          pattern: ".github/config/image/tensorflow/2.20-inference-*-cuda.yml"
 
   pipeline:
     needs: [check-changes, discover]
@@ -89,7 +89,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.discover.outputs.configs) }}
-    uses: ./.github/workflows/tensorflow.pipeline-inference.yml
+    uses: ./.github/workflows/tensorflow-inference.pipeline.yml
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}

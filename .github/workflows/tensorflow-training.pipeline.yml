@@ -1,4 +1,4 @@
-name: "Pipeline - TensorFlow"
+name: "Pipeline - TensorFlow Training"
 
 on:
   workflow_call:
@@ -135,7 +135,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/tensorflow.tests-unit.yml
+    uses: ./.github/workflows/tensorflow-training.tests-unit.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -147,7 +147,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/tensorflow.tests-single-gpu.yml
+    uses: ./.github/workflows/tensorflow-training.tests-single-gpu.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
@@ -159,7 +159,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/tensorflow.tests-sagemaker.yml
+    uses: ./.github/workflows/tensorflow-training.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}

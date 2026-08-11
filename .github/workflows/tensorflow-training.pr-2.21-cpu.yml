@@ -1,23 +1,21 @@
-name: "PR - TensorFlow 2.21 CUDA"
+name: "PR - TensorFlow Training 2.21 CPU"
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/tensorflow/2.21-*-cuda.yml"
-      - ".github/workflows/tensorflow.pipeline.yml"
-      - ".github/workflows/tensorflow.pr-2.21-cuda.yml"
-      - ".github/workflows/tensorflow.tests-sagemaker.yml"
-      - ".github/workflows/tensorflow.tests-single-gpu.yml"
-      - ".github/workflows/tensorflow.tests-unit.yml"
-      - "docker/tensorflow/2.21/Dockerfile.cuda"
-      - "docker/tensorflow/2.21/cuda/**"
+      - ".github/config/image/tensorflow/2.21-*-cpu.yml"
+      - ".github/workflows/tensorflow-training.pipeline.yml"
+      - ".github/workflows/tensorflow-training.pr-2.21-cpu.yml"
+      - ".github/workflows/tensorflow-training.tests-sagemaker.yml"
+      - ".github/workflows/tensorflow-training.tests-unit.yml"
+      - "docker/tensorflow/2.21/Dockerfile.cpu"
+      - "docker/tensorflow/2.21/cpu/**"
       - "scripts/docker/common/**"
       - "scripts/docker/tensorflow/**"
       - "scripts/docker/telemetry/**"
       - "test/tensorflow/integration/sagemaker/**"
-      - "test/tensorflow/single_gpu/**"
       - "test/tensorflow/unit/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/tensorflow/**"
@@ -45,7 +43,6 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
@@ -55,9 +52,9 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/tensorflow/2.21-*-cuda.yml"
-              - "docker/tensorflow/2.21/Dockerfile.cuda"
-              - "docker/tensorflow/2.21/cuda/**"
+              - ".github/config/image/tensorflow/2.21-*-cpu.yml"
+              - "docker/tensorflow/2.21/Dockerfile.cpu"
+              - "docker/tensorflow/2.21/cpu/**"
               - "scripts/docker/common/**"
               - "scripts/docker/tensorflow/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
@@ -65,8 +62,6 @@ jobs:
               - "test/tensorflow/integration/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
-            single-gpu-test-change:
-              - "test/tensorflow/single_gpu/**"
             telemetry-test-change:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
@@ -83,7 +78,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/tensorflow/2.21-*-cuda.yml"
+          pattern: ".github/config/image/tensorflow/2.21-*-cpu.yml"
 
   pipeline:
     needs: [check-changes, discover]
@@ -91,14 +86,13 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.discover.outputs.configs) }}
-    uses: ./.github/workflows/tensorflow.pipeline.yml
+    uses: ./.github/workflows/tensorflow-training.pipeline.yml
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}

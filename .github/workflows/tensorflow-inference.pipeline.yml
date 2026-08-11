@@ -115,14 +115,14 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   # SageMaker integration tests — TF DLC is SM-only. Separate reusable from
-  # tensorflow.tests-sagemaker.yml (which targets training).
+  # tensorflow-training.tests-sagemaker.yml (which targets training).
   sagemaker-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
     needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/tensorflow.tests-sagemaker-inference.yml
+    uses: ./.github/workflows/tensorflow-inference.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}

@@ -1,22 +1,20 @@
-name: "PR - TensorFlow 2.21 CPU"
+name: "PR - TensorFlow Inference 2.20 CPU"
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/tensorflow/2.21-*-cpu.yml"
-      - ".github/workflows/tensorflow.pipeline.yml"
-      - ".github/workflows/tensorflow.pr-2.21-cpu.yml"
-      - ".github/workflows/tensorflow.tests-sagemaker.yml"
-      - ".github/workflows/tensorflow.tests-unit.yml"
-      - "docker/tensorflow/2.21/Dockerfile.cpu"
-      - "docker/tensorflow/2.21/cpu/**"
+      - ".github/config/image/tensorflow/2.20-inference-*-cpu.yml"
+      - ".github/workflows/tensorflow-inference.pipeline.yml"
+      - ".github/workflows/tensorflow-inference.pr-2.20-cpu.yml"
+      - ".github/workflows/tensorflow-inference.tests-sagemaker.yml"
+      - "docker/tensorflow/inference/2.20/Dockerfile.cpu"
+      - "docker/tensorflow/inference/2.20/cpu/**"
       - "scripts/docker/common/**"
       - "scripts/docker/tensorflow/**"
       - "scripts/docker/telemetry/**"
-      - "test/tensorflow/integration/sagemaker/**"
-      - "test/tensorflow/unit/**"
+      - "test/tensorflow/integration/inference/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/tensorflow/**"
       - "test/telemetry/**"
@@ -44,7 +42,6 @@ jobs:
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
-      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -52,21 +49,27 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/tensorflow/2.21-*-cpu.yml"
-              - "docker/tensorflow/2.21/Dockerfile.cpu"
-              - "docker/tensorflow/2.21/cpu/**"
+              - ".github/config/image/tensorflow/2.20-inference-*-cpu.yml"
+              - "docker/tensorflow/inference/2.20/Dockerfile.cpu"
+              - "docker/tensorflow/inference/2.20/cpu/**"
               - "scripts/docker/common/**"
               - "scripts/docker/tensorflow/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
+              # Integration-test changes must trigger a rebuild — otherwise the
+              # build is skipped, the prod ECR tag doesn't exist for this new
+              # family, and sagemaker-test skips cleanly (parent turns green).
+              - "test/tensorflow/integration/inference/**"
+              # Sanity edits must trigger a rebuild too, otherwise the sanity job
+              # runs against a prod tag that doesn't exist for this new family
+              # and reports green without the edited test running.
+              - "test/sanity/**"
             sagemaker-test-change:
-              - "test/tensorflow/integration/sagemaker/**"
+              - "test/tensorflow/integration/inference/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
-            unit-test-change:
-              - "test/tensorflow/unit/**"
 
   discover:
     needs: [gatekeeper]
@@ -78,7 +81,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/tensorflow/2.21-*-cpu.yml"
+          pattern: ".github/config/image/tensorflow/2.20-inference-*-cpu.yml"
 
   pipeline:
     needs: [check-changes, discover]
@@ -86,7 +89,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.discover.outputs.configs) }}
-    uses: ./.github/workflows/tensorflow.pipeline.yml
+    uses: ./.github/workflows/tensorflow-inference.pipeline.yml
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
@@ -94,7 +97,6 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
-      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false
     secrets: inherit
