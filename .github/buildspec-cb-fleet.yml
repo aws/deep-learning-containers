@@ -21,16 +21,19 @@ phases:
           *)             YQ_ARCH=amd64; JQ_ARCH=amd64 ;;
         esac
 
+      # Guard on "runs successfully", not just "on PATH": a fleet image may
+      # ship a pre-baked binary for the wrong arch, which command -v would
+      # accept but which fails at exec time (arm64 fleet + x86 binary).
       - echo "Installing yq (${YQ_ARCH}) ..."
       - |
-        if ! command -v yq &> /dev/null; then
+        if ! yq --version &> /dev/null; then
           wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}
           chmod +x /usr/local/bin/yq
         fi
 
       - echo "Installing jq (${JQ_ARCH}) ..."
       - |
-        if ! command -v jq &> /dev/null; then
+        if ! jq --version &> /dev/null; then
           wget -qO /usr/local/bin/jq https://github.com/jqlang/jq/releases/latest/download/jq-linux-${JQ_ARCH}
           chmod +x /usr/local/bin/jq
         fi
