@@ -47,7 +47,6 @@ jobs:
               - ".github/config/image/base/cu132-*.yml"
               - "docker/base/cu132/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/telemetry/**"
               - "test/security/data/ecr_scan_allowlist/base/**"
             sanity-test-change:
               - "test/sanity/**"
