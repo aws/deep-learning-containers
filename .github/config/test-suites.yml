@@ -1,0 +1,138 @@
+# Test-skip suite configuration.
+#
+# One entry per test suite. Drives the content-addressed test-skip store, which
+# lets CI skip a suite whose exact test code already passed on a given image build.
+# Per suite:
+#   skip_eligible: whether a test suite can be skipped at all. Set to false
+#     for suites whose result depends on mutable external state
+#   code_paths: repo-relative globs for the files that make up the suite. Their
+#     combined contents produce the suite_code_hash. Editing any matched file
+#     changes the hash and invalidates the cached pass, forcing the suite to re-run.
+
+suites:
+  sanity:
+    skip_eligible: true
+    code_paths:
+      - test/sanity/**
+
+  security:
+    skip_eligible: false
+    code_paths:
+      - test/security/**
+
+  telemetry:
+    skip_eligible: true
+    code_paths:
+      - test/telemetry/**
+
+  efa:
+    skip_eligible: true
+    code_paths:
+      - test/efa/**
+
+  pytorch/unit:
+    skip_eligible: true
+    code_paths:
+      - test/pytorch/unit/**
+
+  pytorch/single_gpu:
+    skip_eligible: true
+    code_paths:
+      - test/pytorch/single_gpu/**
+
+  pytorch/multi_gpu:
+    skip_eligible: true
+    code_paths:
+      - test/pytorch/multi_gpu/**
+
+  pytorch/multi_node:
+    skip_eligible: true
+    code_paths:
+      - test/pytorch/multi_node/**
+
+  pytorch/integration/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/pytorch/integration/sagemaker/**
+
+  ray/ec2:
+    skip_eligible: true
+    code_paths:
+      - test/ray/ec2/**
+      - test/ray/utils.py
+      - test/ray/test_ffmpeg_codecs.sh
+      - test/ray/test_ffmpeg_gpu.sh
+
+  ray/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/ray/sagemaker/**
+      - test/ray/utils.py
+      - test/ray/test_ffmpeg_codecs.sh
+      - test/ray/test_ffmpeg_gpu.sh
+
+  ray/ffmpeg:
+    skip_eligible: true
+    code_paths:
+      - test/ray/test_ffmpeg_codecs.sh
+      - test/ray/test_ffmpeg_gpu.sh
+
+  vllm/upstream:
+    skip_eligible: true
+    code_paths:
+      - test/vllm/**
+
+  vllm/model:
+    skip_eligible: true
+    code_paths:
+      - test/vllm/**
+
+  vllm/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/vllm/sagemaker/**
+
+  sglang/upstream:
+    skip_eligible: true
+    code_paths:
+      - test/sglang/**
+
+  sglang/model:
+    skip_eligible: true
+    code_paths:
+      - test/sglang/**
+
+  sglang/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/sglang/sagemaker/**
+
+  vllm-omni/model:
+    skip_eligible: true
+    code_paths:
+      - test/vllm-omni/**
+
+  vllm-omni/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/vllm-omni/sagemaker/**
+
+  openfold3/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/openfold3/sagemaker/**
+
+  xgboost/container:
+    skip_eligible: true
+    code_paths:
+      - test/xgboost/container/**
+
+  xgboost/e2e:
+    skip_eligible: true
+    code_paths:
+      - test/xgboost/e2e/**
+
+  xgboost/benchmarks:
+    skip_eligible: true
+    code_paths:
+      - test/xgboost/benchmarks/**
