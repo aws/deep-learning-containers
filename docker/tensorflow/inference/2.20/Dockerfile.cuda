@@ -132,9 +132,7 @@ ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/lib"
 # Models dir
 RUN mkdir -p ${MODEL_BASE_PATH}
 
-# License file (S3 bucket pre-provisioned for tensorflow-2.20)
-RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TFS_SHORT_VERSION}/license.txt" \
- || echo "tensorflow-${TFS_SHORT_VERSION}/license.txt not yet provisioned in aws-dlc-licenses bucket; placeholder emitted" >/license.txt
+RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TFS_SHORT_VERSION}/license.txt"
 
 WORKDIR /
 
