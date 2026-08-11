@@ -10,7 +10,7 @@ metadata:
   arch_type: "x86"
   device_type: "gpu"
   job_type: "inference"
-  prod_image: "whisperx:3.8.6-ec2-gpu-cuda-amzn2023"
+  prod_image: "whisperx:3.8.6-cu128-amzn2023"
 
 build:
   dockerfile: "docker/whisperx/Dockerfile.amzn2023"
@@ -24,9 +24,9 @@ build:
   dlc_minor_version: "0"
 
 release:
-  release: false
+  release: true
   force_release: false
-  public_registry: false
-  private_registry: false
+  public_registry: true
+  private_registry: true
   enable_soci: false
   environment: "production"
