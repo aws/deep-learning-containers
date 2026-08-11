@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "ray"
-  framework_version: "2.56.1"
+  framework_version: "2.57.0"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
@@ -18,7 +18,7 @@ build:
   target: "ray-ec2-cpu"
   python_version: "3.13.12"
   dlc_major_version: "1"
-  dlc_minor_version: "3"
+  dlc_minor_version: "4"
 
 release:
   release: true
