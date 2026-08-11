@@ -209,15 +209,28 @@ def _retrieve_cuda():
     return cuda_version
 
 
-def _retrieve_os():
-    version = ""
+def _retrieve_os(os_release_path="/etc/os-release"):
+    """Return "<ID><VERSION_ID>" from os-release, e.g. "amzn2023" or "ubuntu24.04".
+
+    Values in os-release may be quoted ('ID="amzn"') or bare ('ID=ubuntu'), and
+    VERSION_ID is not always dotted ("2023" on Amazon Linux 2023), so strip the
+    quotes and take both values verbatim. This mirrors
+    `source /etc/os-release && echo "${ID}${VERSION_ID}"` and matches the
+    os_version naming used in .github/config/image (amzn2023, ubuntu24.04).
+    """
     name = ""
-    with open("/etc/os-release", "r") as f:
-        for line in f.readlines():
-            if re.match(r"^ID=\w+$", line):
-                name = re.search(r"^ID=(\w+)$", line).group(1)
-            if re.match(r'^VERSION_ID="\d+\.\d+"$', line):
-                version = re.search(r'^VERSION_ID="(\d+\.\d+)"$', line).group(1)
+    version = ""
+    try:
+        with open(os_release_path, "r") as f:
+            for line in f:
+                key, _, value = line.strip().partition("=")
+                value = value.strip().strip('"').strip("'")
+                if key == "ID":
+                    name = value
+                elif key == "VERSION_ID":
+                    version = value
+    except OSError as e:
+        logging.error(f"Failed to read {os_release_path}: {e}")
     return name + version
 
 
