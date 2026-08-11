@@ -30,7 +30,7 @@ build:
   gdrcopy_version: "2.6"
   torch_cuda_arch_list: "9.0;10.0;10.3"
   dlc_major_version: "1"
-  dlc_minor_version: "4"
+  dlc_minor_version: "3"
 
 release:
   release: true
