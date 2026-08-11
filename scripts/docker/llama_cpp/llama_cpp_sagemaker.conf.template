@@ -31,13 +31,15 @@ server {
     location = /invocations {
         proxy_pass http://llama_cpp_upstream/v1/chat/completions;
         proxy_set_header Host $host;
-        proxy_set_header Content-Type $content_type;
+        # HTTP/1.1 upstream so streamed (SSE) chat completions flush correctly.
+        proxy_http_version 1.1;
         proxy_buffering off;
     }
 
     location / {
         proxy_pass http://llama_cpp_upstream;
         proxy_set_header Host $host;
+        proxy_http_version 1.1;
         proxy_buffering off;
     }
 }

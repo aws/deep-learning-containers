@@ -62,10 +62,8 @@ jobs:
       - id: parse
         run: |
           echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
-          # Build fleet is arch-keyed: x86 (cpu + cuda) builds on the dedicated
-          # x86 llama.cpp CodeBuild fleet (the CUDA toolkit comes from the devel
-          # base image — no GPU needed at build time); arm64 builds natively on
-          # the shared Graviton4 CodeBuild fleet (c8g.16xlarge).
+          # Arch-keyed build fleet: x86 CPU+CUDA both build on the x86 fleet (CUDA
+          # toolkit from the devel base — no build-time GPU); arm64 on Graviton4.
           ARCH=$(yq '.metadata.arch_type' '${{ inputs.config-file }}')
           if [ "${ARCH}" = "arm64" ]; then
             echo "build-fleet=arm64-graviton4-build-runner" >> $GITHUB_OUTPUT

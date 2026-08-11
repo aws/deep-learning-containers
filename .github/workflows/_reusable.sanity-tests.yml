@@ -85,9 +85,10 @@ jobs:
   sanity-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
+    # arm64 images can only be exec'd on an arm64 fleet; x86 stays on default.
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:${{ needs.preflight.outputs.arch-type == 'arm64' && 'arm64-graviton4-build-runner' || 'default-runner' }}
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6
@@ -213,9 +214,10 @@ jobs:
   sanity-sagemaker:
     if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.customer-type == 'sagemaker' }}
     needs: [preflight]
+    # arm64 images can only be exec'd on an arm64 fleet; x86 stays on default.
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:${{ needs.preflight.outputs.arch-type == 'arm64' && 'arm64-graviton4-build-runner' || 'default-runner' }}
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6

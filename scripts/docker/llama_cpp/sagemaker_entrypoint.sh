@@ -1,17 +1,8 @@
 #!/usr/bin/env bash
-# SageMaker entrypoint for the llama.cpp DLC.
-#
-# SageMaker inference requires GET /ping and POST /invocations on port 8080.
-# llama-server (a C++ binary) exposes only /health and OpenAI-compatible routes
-# and has no way to add those aliases, so we front it with an nginx reverse
-# proxy: llama-server binds 127.0.0.1:8081, nginx serves 0.0.0.0:8080 and maps
-#   GET  /ping        -> llama-server /health
-#   POST /invocations -> llama-server /v1/chat/completions
-#
-# Extra server args come from SM_LLAMA_CPP_* env vars (SageMaker Model env),
-# lowercased with underscores turned into dashes, e.g.
-#   SM_LLAMA_CPP_CTX_SIZE=4096 -> --ctx-size 4096
-#   SM_LLAMA_CPP_VERBOSE=true  -> --verbose
+# SageMaker entrypoint: llama-server binds 127.0.0.1:8081, nginx serves :8080 and
+# maps GET /ping -> /health, POST /invocations -> /v1/chat/completions.
+# Server flags come from SM_LLAMA_CPP_* env vars (lowercased, _ -> -), e.g.
+# SM_LLAMA_CPP_CTX_SIZE=4096 -> --ctx-size 4096; SM_LLAMA_CPP_VERBOSE=true -> --verbose.
 set -euo pipefail
 
 bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
@@ -23,12 +14,17 @@ SERVE_PORT="${SM_LLAMA_CPP_PORT:-8080}"
 PREFIX="SM_LLAMA_CPP_"
 ARGS=()
 
-# Resolve the model: honor an explicit SM_LLAMA_CPP_MODEL, else pick the single
-# .gguf under the SageMaker model dir.
+# Resolve the model: honor an explicit SM_LLAMA_CPP_MODEL, else pick the first
+# .gguf under the SageMaker model dir. Pure-shell glob (2 levels deep) — the
+# slim runtime image ships no `find`.
 if [ -n "${SM_LLAMA_CPP_MODEL:-}" ]; then
   ARGS+=(--model "${SM_LLAMA_CPP_MODEL}")
 else
-  gguf_file="$(find "${MODEL_DIR}" -maxdepth 2 -name '*.gguf' 2>/dev/null | head -n1 || true)"
+  gguf_file=""
+  shopt -s nullglob 2>/dev/null || true
+  for candidate in "${MODEL_DIR}"/*.gguf "${MODEL_DIR}"/*/*.gguf; do
+    [ -f "${candidate}" ] && { gguf_file="${candidate}"; break; }
+  done
   if [ -n "${gguf_file}" ]; then
     echo "INFO: auto-detected GGUF model ${gguf_file}"
     ARGS+=(--model "${gguf_file}")

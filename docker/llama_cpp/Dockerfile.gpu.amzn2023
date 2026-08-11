@@ -1,13 +1,11 @@
-# =============================================================================
-# STAGE 0: builder — compile llama.cpp (CUDA) from a pinned upstream ref
-# =============================================================================
-# x86-64 CUDA-inference build on the NVIDIA CUDA devel base (has nvcc + headers).
-# GGML_CUDA=ON + GGML_CPU_ALL_VARIANTS=ON + GGML_BACKEND_DL=ON gives ONE image
-# that carries the CUDA backend AND every x86 microarch CPU backend
-# (SSE4.2/AVX/AVX2/AVX512/AMX) as dlopen-able .so files. ggml picks the CUDA
-# backend when a GPU is visible and falls back to the best CPU backend
-# otherwise, all dispatched at runtime. No GPU is required to build.
-FROM nvidia/cuda:13.0.2-devel-amzn2023 AS builder
+# CUDA base version (forwarded from config metadata.cuda_version as --build-arg).
+ARG CUDA_VERSION=13.0.2
+
+# STAGE 0: builder — compile llama.cpp (x86-64 CUDA) from a pinned ref.
+# One image carries the CUDA backend + every x86 CPU microarch backend as
+# loadable .so, dispatched at runtime (GPU if visible, else best CPU). The devel
+# base provides nvcc/headers, so no GPU is needed at build time.
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
 
 # Pin the upstream ref for reproducible builds.
 ARG LLAMA_CPP_REF=b10075
@@ -25,10 +23,8 @@ RUN git clone https://github.com/ggml-org/llama.cpp.git \
   && git checkout ${LLAMA_CPP_REF}
 
 WORKDIR /src/llama.cpp/build
-# GGML_CUDA=ON builds the CUDA backend; GGML_NATIVE=OFF + GGML_CPU_ALL_VARIANTS=ON
-# + GGML_BACKEND_DL=ON build all x86 CPU variants as loadable fallback backends.
-# --allow-shlib-undefined lets the CPU-variant .so files link against symbols
-# resolved at load time (matches the upstream CUDA build recipe).
+# CUDA backend + all x86 CPU variants as loadable fallbacks. --allow-shlib-undefined
+# lets the CPU-variant .so link against load-time symbols (upstream CUDA recipe).
 RUN cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
   -DGGML_CUDA=ON \
@@ -40,14 +36,12 @@ RUN cmake .. \
   -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined \
   && cmake --build . --config Release -j ${BUILD_PARALLEL} --target llama-server llama-cli llama-bench
 
-# =============================================================================
-# STAGE 1: runtime — slim CUDA runtime image with the server + shared libs
-# =============================================================================
-FROM nvidia/cuda:13.0.2-runtime-amzn2023 AS runtime
+# STAGE 1: runtime — slim CUDA runtime image with the server + shared libs.
+ARG CUDA_VERSION=13.0.2
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 
 ARG PYTHON="python3"
-# Re-declared here (ARGs don't cross build stages) so OSS-compliance tracking
-# below can record the built llama.cpp ref.
+# Re-declared: ARGs don't cross build stages (used by OSS tracking below).
 ARG LLAMA_CPP_REF=b10075
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -64,33 +58,25 @@ ENV DEBIAN_FRONTEND=noninteractive \
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
-  libgomp libcurl openblas shadow-utils \
+  libgomp libcurl curl-minimal openblas shadow-utils \
   python3 python3-pip \
-  # The CUDA base ships an older cuda-compat than AL2023 has; upgrade it to
-  # clear CVE-2026-24193 / CVE-2025-33219 (not flagged under --security).
+  # Upgrade cuda-compat (CUDA base ships an older one) to clear
+  # CVE-2026-24193 / CVE-2025-33219, which --security does not flag.
   && dnf upgrade -y cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf \
   # bash_telemetry.sh calls `python`; AL2023 ships only `python3`, so alias it.
   && ln -sf /usr/bin/python3 /usr/bin/python
 
-# setup_oss_compliance.sh needs `requests`; the telemetry script needs
-# `botocore` and `packaging`. None ship in the slim AL2023 runtime.
-# Second step force-upgrades urllib3 to 2.6.x: botocore's py3.9 pin (<1.27)
-# otherwise leaves urllib3 1.26.x, which carries 3 HIGH CVEs. 2.6.3 works
-# with botocore at runtime and leaves only CVE-2026-44432 (allowlisted);
-# urllib3 2.7 (the full fix) needs py>=3.10, absent on AL2023's system python.
+# requests (OSS compliance) + botocore/packaging (telemetry) are missing from the
+# slim runtime. Pin urllib3 to 2.6.x: botocore would otherwise drag in 1.26.x
+# (3 HIGH CVEs); 2.7 (full fix) needs py>=3.10, absent on AL2023's system python.
 RUN pip3 install --no-cache-dir requests botocore packaging \
   && pip3 install --no-cache-dir "urllib3>=2.5,<2.7"
 
-# Binaries + the .so files llama.cpp produces (libllama, libggml*, the CUDA
-# backend libggml-cuda.so, and the per-microarch libggml-cpu-*.so CPU backend
-# variants for runtime dispatch).
+# Binaries + llama.cpp .so files (libllama, libggml*, libggml-cuda, CPU backends).
 COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/
 ENV PATH="/opt/llama.cpp/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/opt/llama.cpp/bin:${LD_LIBRARY_PATH}"
-
-# Faster HF model pulls at run time.
-ENV HF_HUB_ENABLE_HF_TRANSFER=1
 
 # Telemetry, common scripts, and OSS compliance (DLC convention).
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -110,8 +96,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} \
-  # Track llama.cpp itself (built from source) for OSS compliance — its binaries
-  # and libggml*/libllama shared objects under /opt/llama.cpp are otherwise untracked.
+  # Track the source-built llama.cpp for OSS compliance (not covered by the scan above).
   && printf '\n** llama.cpp; version %s -- https://github.com/ggml-org/llama.cpp\n' "${LLAMA_CPP_REF}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nllama.cpp %s https://github.com/ggml-org/llama.cpp/archive/%s.tar.gz\n' "${LLAMA_CPP_REF}" "${LLAMA_CPP_REF}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm setup_oss_compliance.sh \
@@ -133,11 +118,8 @@ RUN chmod +x /usr/bin/serve
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/serve"]
 
-# ====================== sagemaker ===================================
-# SageMaker inference requires GET /ping and POST /invocations on 8080.
-# llama-server (a C++ binary) exposes only /health and OpenAI-compatible
-# routes, so we front it with an nginx reverse proxy that maps those two
-# SageMaker paths onto llama-server. See sagemaker_entrypoint.sh.
+# SageMaker variant: nginx fronts llama-server, mapping GET /ping -> /health and
+# POST /invocations -> /v1/chat/completions (see sagemaker_entrypoint.sh).
 FROM runtime AS llama-cpp-sagemaker
 
 ARG CACHE_REFRESH=0

@@ -29,6 +29,7 @@ jobs:
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       job-type: ${{ steps.parse.outputs.job-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
     steps:
       - uses: actions/checkout@v6
 
@@ -56,13 +57,15 @@ jobs:
           echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "job-type=$(yq '.metadata.job_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "arch-type=$(yq '.metadata.arch_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
   telemetry-environment:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
+    # arm64 images can only be exec'd on an arm64 fleet; x86 stays on default.
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:${{ needs.preflight.outputs.arch-type == 'arm64' && 'arm64-graviton4-build-runner' || 'default-runner' }}
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6
@@ -96,9 +99,10 @@ jobs:
   telemetry-instance:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
+    # arm64 images can only be exec'd on an arm64 fleet; x86 stays on default.
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:${{ needs.preflight.outputs.arch-type == 'arm64' && 'arm64-graviton4-build-runner' || 'default-runner' }}
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6

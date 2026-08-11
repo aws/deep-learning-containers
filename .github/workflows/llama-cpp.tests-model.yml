@@ -87,8 +87,7 @@ jobs:
       - name: Start container
         run: |
           docker pull ${{ needs.preflight.outputs.image-uri }}
-          # GPU entries set docker_gpus (e.g. "all") so the CUDA backend is
-          # exercised on the L4 build fleet; CPU entries leave it empty.
+          # GPU entries set docker_gpus=all for CUDA; CPU entries leave it empty.
           GPUS_FLAG=""
           if [ -n "${{ matrix.docker_gpus }}" ]; then
             GPUS_FLAG="--gpus ${{ matrix.docker_gpus }}"

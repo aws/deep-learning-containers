@@ -1,14 +1,9 @@
-"""Integration test for the llama.cpp SageMaker DLC endpoint — SageMaker SDK v3.
+"""Integration test for the llama.cpp SageMaker DLC endpoint (SageMaker SDK v3).
 
-llama.cpp is CPU-only and serves quantized GGUF models. llama-server itself
-exposes only /health + OpenAI-compatible routes, so the SageMaker image fronts
-it with an nginx proxy that maps GET /ping -> /health and
-POST /invocations -> /v1/chat/completions. This test deploys a real endpoint on
-a CPU instance and exercises that proxy path end to end.
-
-The model is pulled from HuggingFace at container start via llama-server's
---hf-repo/--hf-file (the entrypoint maps SM_LLAMA_CPP_HF_REPO / SM_LLAMA_CPP_HF_FILE),
-so no model artifact needs to be staged in S3.
+Deploys a real CPU endpoint and exercises the nginx proxy path end to end
+(GET /ping -> /health, POST /invocations -> /v1/chat/completions). The model is
+pulled from HuggingFace at container start via SM_LLAMA_CPP_HF_REPO/_HF_FILE, so
+nothing needs to be staged in S3.
 """
 
 import json
@@ -37,7 +32,12 @@ def hf_file(request):
 
 
 @pytest.fixture(scope="function")
-def instance_type(request):
+def instance_type(request, image_uri):
+    # arm64 images must deploy to a Graviton instance; the parametrized x86
+    # default (ml.c6i.*) would fail to start an arm64 container. Map to the
+    # equivalent Graviton (ml.c7g.*) when the image under test is arm64.
+    if "arm64" in image_uri:
+        return "ml.c7g.2xlarge"
     return request.param
 
 
