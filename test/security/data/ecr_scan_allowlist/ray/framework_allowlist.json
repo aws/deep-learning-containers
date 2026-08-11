@@ -36,7 +36,7 @@
     },
     {
         "vulnerability_id": "CVE-2026-69244",
-        "reason": "needed by ray-train (still on ray 2.55.x, ships aiohttp 3.14.1); ray-serve DLC pins aiohttp>=3.14.3 directly. Drop when ray-train bumps to ray>=2.57.",
+        "reason": "aiohttp 3.14.1 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, fix requires aiohttp>=3.14.3 which is not yet vendored by any released ray",
         "review_by": "2026-10-03"
     }
 ]
