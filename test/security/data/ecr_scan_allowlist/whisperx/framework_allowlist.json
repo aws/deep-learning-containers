@@ -48,5 +48,10 @@
         "vulnerability_id": "CVE-2025-23308",
         "reason": "cuda-toolkit-config-common comes from the nvidia/cuda:12.8.2-*-amzn2023 base image; the fix requires the CUDA 13 toolkit (>=13.0.48), which conflicts with the image's CUDA 12.8 contract (torch cu128 wheels). The vulnerable nvdisasm tool is a developer utility not invoked at inference time. Tracked against a future CUDA 13 base migration.",
         "review_by": "2026-10-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-58659",
+        "reason": "lightning is a transitive dependency pulled by pyannote.audio 4.0.7 (its diarization pipeline); it is not imported by the whisperx serving code. The fix (commit d710d68) is on the lightning master branch only and has not shipped in any release: 2.6.5 is the latest published version on PyPI and is the pinned version, so no version bump can remediate this. The vulnerable _load_state path is reached only via LightningModule.load_from_checkpoint on an untrusted, attacker-crafted .ckpt; the container's diarization weights are baked from the trusted CI models bucket, not loaded from untrusted input at inference time. Tracked for the first lightning release > 2.6.5 that contains the fix.",
+        "review_by": "2026-10-13"
     }
 ]

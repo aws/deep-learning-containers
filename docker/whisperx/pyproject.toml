@@ -22,6 +22,12 @@ dependencies = [
 # torch/torchaudio come from the PyTorch CUDA 12.8 index, not PyPI. `explicit`
 # keeps every other package on PyPI; only the mapped packages use this index.
 [tool.uv]
+# Force transitive deps above their vulnerable resolved versions. aiohttp is
+# pulled by fsspec[http]; 3.14.3 fixes CVE-2026-69244 (OOB heap read in the C
+# response parser) with no API change.
+override-dependencies = [
+    "aiohttp>=3.14.3",
+]
 
 [[tool.uv.index]]
 name = "pytorch-cu128"
