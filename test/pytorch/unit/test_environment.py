@@ -1,5 +1,7 @@
 """Verify environment variables, critical binaries, and NCCL/EFA setup."""
 
+"""Add comment to trigger dorny/paths-filter"""
+
 import ctypes
 import os
 import shutil

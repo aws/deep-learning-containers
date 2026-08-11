@@ -55,7 +55,18 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Check test skip
+        id: skip
+        uses: ./.github/actions/check-test-pass
+        with:
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+          suite: pytorch/unit
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
+
       - name: ECR login
+        if: steps.skip.outputs.skip != 'true'
         uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
@@ -63,6 +74,7 @@ jobs:
           image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Run unit tests
+        if: steps.skip.outputs.skip != 'true'
         run: |
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
             -v $(pwd):/workdir --workdir /workdir \
@@ -72,3 +84,12 @@ jobs:
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
             pytest /workdir/test/pytorch/unit/ -v
           docker kill ${CONTAINER_ID}
+
+      - name: Record test pass
+        if: success() && steps.skip.outputs.skip != 'true'
+        uses: ./.github/actions/record-test-pass
+        with:
+          suite: pytorch/unit
+          image-content-hash: ${{ steps.skip.outputs.image-content-hash }}
+          suite-code-hash: ${{ steps.skip.outputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
