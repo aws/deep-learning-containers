@@ -28,7 +28,7 @@ runs:
         SUITE_CODE_HASH: ${{ inputs.suite-code-hash }}
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
       run: |
-        uv venv --python 3.12
+        uv venv --python 3.12 --clear
         source .venv/bin/activate
         uv pip install boto3
         bash "${{ github.action_path }}/record_pass.sh"
