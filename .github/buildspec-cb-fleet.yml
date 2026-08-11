@@ -13,17 +13,25 @@ phases:
           uv self update
         fi
 
-      - echo "Installing yq ..."
+      # Resolve the fleet's CPU arch so tool downloads work on both the x86
+      # fleets and the arm64 (Graviton) fleet.
+      - |
+        case "$(uname -m)" in
+          aarch64|arm64) YQ_ARCH=arm64; JQ_ARCH=arm64 ;;
+          *)             YQ_ARCH=amd64; JQ_ARCH=amd64 ;;
+        esac
+
+      - echo "Installing yq (${YQ_ARCH}) ..."
       - |
         if ! command -v yq &> /dev/null; then
-          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_${YQ_ARCH}
           chmod +x /usr/local/bin/yq
         fi
 
-      - echo "Installing jq ..."
+      - echo "Installing jq (${JQ_ARCH}) ..."
       - |
         if ! command -v jq &> /dev/null; then
-          wget -qO /usr/local/bin/jq https://github.com/jqlang/jq/releases/latest/download/jq-linux-amd64
+          wget -qO /usr/local/bin/jq https://github.com/jqlang/jq/releases/latest/download/jq-linux-${JQ_ARCH}
           chmod +x /usr/local/bin/jq
         fi
 
