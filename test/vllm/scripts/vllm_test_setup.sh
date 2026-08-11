@@ -24,12 +24,12 @@ fi
 
 # delete old test dependencies file and regen
 rm -f "${TEST_TXT}"
-uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
+uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu128 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
 # dev.txt may live under requirements/ or requirements/dev/ in newer vLLM
 if [ -f vllm_source/requirements/dev.txt ]; then
-  uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt --torch-backend=auto
+  uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt --torch-backend=auto 2>/dev/null || uv pip install $UV_FLAGS -r "${TEST_TXT}" --torch-backend=auto
 elif [ -f vllm_source/requirements/dev/cuda.txt ]; then
-  uv pip install $UV_FLAGS -r vllm_source/requirements/dev/cuda.txt --torch-backend=auto
+  uv pip install $UV_FLAGS -r vllm_source/requirements/dev/cuda.txt --torch-backend=auto 2>/dev/null || uv pip install $UV_FLAGS -r "${TEST_TXT}" --torch-backend=auto
 else
   # fallback: install test requirements directly
   uv pip install $UV_FLAGS -r "${TEST_TXT}" --torch-backend=auto
