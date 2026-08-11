@@ -1,39 +1,18 @@
 name: 'Record test pass'
 description: >
-  Write a PASS row to the dlc-ci-images table after a test suite fully passes.
-
-  Prefer passing the hashes computed by check-test-pass (its `image-content-hash`
-  / `suite-code-hash` outputs) so read and write key on identical values. If they
-  are omitted, this action recomputes them (needs image-uri + ECR auth inputs).
+  Write a PASS row to the dlc-ci-images table after a test suite fully passes,
+  so future runs on the same image content + test code can skip it.
 
 inputs:
   suite:
-    description: 'Suite name — key in .github/config/test-suites.yml and the DynamoDB SK.'
+    description: 'Name of the test suite.'
     required: true
   image-content-hash:
-    description: 'image_content_hash from check-test-pass. If empty, recomputed from image-uri.'
-    required: false
-    default: ''
+    description: "Hash of the image's ordered layer diff ids (passed from check-test-pass)."
+    required: true
   suite-code-hash:
-    description: 'suite_code_hash from check-test-pass. If empty, recomputed from the repo.'
-    required: false
-    default: ''
-  image-uri:
-    description: 'Image reference under test — required only if image-content-hash is empty.'
-    required: false
-    default: ''
-  platform:
-    description: 'Platform manifest to hash (used only on recompute).'
-    required: false
-    default: 'linux/amd64'
-  aws-region:
-    description: 'Region for the ECR registry login (used only on recompute).'
-    required: false
-    default: ''
-  aws-account-id:
-    description: 'Account ID of the ECR registry (used only on recompute).'
-    required: false
-    default: ''
+    description: "Hash of the test suite's files (passed from check-test-pass)."
+    required: true
   ci-images-table-account-id:
     description: 'Account ID hosting the dlc-ci-images DynamoDB table.'
     required: true
@@ -43,15 +22,7 @@ runs:
   steps:
     - name: Setup record dependencies
       shell: bash
-      run: pip install --quiet boto3 pyyaml
-
-    # Only needed when recomputing the image content hash from the URI.
-    - name: ECR login
-      if: ${{ inputs.image-content-hash == '' && inputs.image-uri != '' }}
-      uses: ./.github/actions/ecr-authenticate
-      with:
-        aws-account-id: ${{ inputs.aws-account-id }}
-        aws-region: ${{ inputs.aws-region }}
+      run: pip install --quiet boto3
 
     - name: Record PASS
       shell: bash
@@ -59,29 +30,13 @@ runs:
         SUITE: ${{ inputs.suite }}
         IMAGE_CONTENT_HASH: ${{ inputs.image-content-hash }}
         SUITE_CODE_HASH: ${{ inputs.suite-code-hash }}
-        IMAGE_URI: ${{ inputs.image-uri }}
-        PLATFORM: ${{ inputs.platform }}
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
       run: |
         set -euo pipefail
         SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/image_test_skip"
 
-        # Recompute either hash if not supplied by check-test-pass.
-        if [[ -z "$SUITE_CODE_HASH" ]]; then
-          SUITE_CODE_HASH=$(python3 "$SCRIPTS/hash_suite_code.py" --suite "$SUITE")
-        fi
-        if [[ -z "$IMAGE_CONTENT_HASH" ]]; then
-          if [[ -z "$IMAGE_URI" ]]; then
-            echo "::error::record-test-pass needs image-content-hash or image-uri."
-            exit 1
-          fi
-          IMAGE_CONTENT_HASH=$(python3 "$SCRIPTS/hash_image_content.py" \
-            --image-uri "$IMAGE_URI" --platform "$PLATFORM")
-        fi
-
-        # Never write a row with an empty key
         if [[ -z "$IMAGE_CONTENT_HASH" || -z "$SUITE_CODE_HASH" ]]; then
-          echo "::error::refusing to record with empty hash (image='$IMAGE_CONTENT_HASH' suite_code='$SUITE_CODE_HASH')."
+          echo "::error::image has empty hash (image='$IMAGE_CONTENT_HASH' suite_code='$SUITE_CODE_HASH')."
           exit 1
         fi
 
