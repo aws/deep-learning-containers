@@ -520,14 +520,16 @@ class PythonServiceResource:
                     try:
                         info = json.loads(
                             requests.get(
-                                uri.format(tfs_instance_status[0].rest_port, model)
+                                uri.format(tfs_instance_status[0].rest_port, model),
+                                timeout=5,
                             ).content
                         )
                         models_info[model] = info
-                    except ValueError as e:
+                    except (ValueError, requests.exceptions.RequestException) as e:
                         log.exception("exception handling request: {}".format(e))
                         res.status = falcon.HTTP_500
                         res.body = json.dumps({"error": str(e)}).encode("utf-8")
+                        return
                 res.status = falcon.HTTP_200
                 res.body = json.dumps(models_info)
             else:
@@ -544,12 +546,12 @@ class PythonServiceResource:
                     port = self._mme_tfs_instances_status[model_name][0].rest_port
                     uri = "http://localhost:{}/v1/models/{}".format(port, model_name)
                     try:
-                        info = json.loads(requests.get(uri).content)
+                        info = json.loads(requests.get(uri, timeout=5).content)
                         res.status = falcon.HTTP_200
                         res.body = json.dumps({"model": info}).encode("utf-8")
-                    except (ValueError, TypeError) as e:
+                    except (ValueError, TypeError, requests.exceptions.RequestException) as e:
                         log.exception("exception handling GET models request.")
-                        res.status = falcon.HTTP_500
+                        res.status = falcon.HTTP_504 if isinstance(e, requests.exceptions.Timeout) else falcon.HTTP_500
                         res.body = json.dumps({"error": str(e)}).encode("utf-8")
 
     def on_delete(self, req, res, model_name):  # pylint: disable=W0613
