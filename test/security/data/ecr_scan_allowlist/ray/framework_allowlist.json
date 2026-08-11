@@ -33,5 +33,10 @@
         "vulnerability_id": "GHSA-r7wm-3cxj-wff9",
         "reason": "jackson-core 2.18.6 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
         "review_by": "2026-10-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-69244",
+        "reason": "needed by ray-train (still on ray 2.55.x, ships aiohttp 3.14.1); ray-serve DLC pins aiohttp>=3.14.3 directly. Drop when ray-train bumps to ray>=2.57.",
+        "review_by": "2026-10-03"
     }
 ]
