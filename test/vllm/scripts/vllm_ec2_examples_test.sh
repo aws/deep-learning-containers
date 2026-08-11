@@ -3,7 +3,7 @@ set -eux
 
 nvidia-smi
 cd vllm_source/examples
-pip install tensorizer # for tensorizer test
+uv pip install --system tensorizer # for tensorizer test
 
 # vLLM 0.18.0 moved basic scripts from offline_inference/basic/ to basic/offline_inference/
 if [ -d "basic/offline_inference" ]; then

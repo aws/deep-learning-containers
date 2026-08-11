@@ -9,7 +9,8 @@ fi
 
 # lightning is quarantined on PyPI — remove terratorch (which depends on it)
 # from test requirements before resolution. Upstream fixed in vllm#41376.
-find vllm_source/requirements -name "*.in" -exec sed -i -E '/(terratorch|lightning)/Id' {} +
+find vllm_source/requirements -name "*.in" -exec sed -i -E '/(terratorch|lightning)/Id' {} + 2>/dev/null || true
+find vllm_source/requirements -name "*.txt" -exec sed -i -E '/(terratorch|lightning)/Id' {} + 2>/dev/null || true
 
 # Upstream PR #39024 (merged Apr 2026) moved requirements/{build,test}.{in,txt}
 # into requirements/{build,test}/{cuda,rocm,cpu,xpu}.{in,txt}. Pick whichever
@@ -44,11 +45,20 @@ else
   uv pip install $UV_FLAGS pytest pytest-asyncio --torch-backend=auto
 fi
 uv pip install $UV_FLAGS pytest pytest-asyncio
-uv pip install $UV_FLAGS -e vllm_source/tests/vllm_test_utils
+if [ -d "vllm_source/tests/vllm_test_utils" ]; then
+  uv pip install $UV_FLAGS -e vllm_source/tests/vllm_test_utils
+else
+  echo "WARNING: vllm_test_utils not found, skipping"
+fi
 uv pip install $UV_FLAGS hf_transfer
 cd vllm_source
 # vLLM may already use src/ layout; only move if needed
 if [ -d "vllm" ] && [ ! -d "src/vllm" ]; then
   mkdir -p src
   mv vllm src/vllm
+fi
+
+# vLLM 0.27+ may have moved vllm_test_utils location
+if [ ! -d "tests/vllm_test_utils" ]; then
+  echo "WARNING: tests/vllm_test_utils not found, skipping editable install"
 fi
