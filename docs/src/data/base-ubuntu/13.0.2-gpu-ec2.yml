@@ -1,11 +1,12 @@
 framework: Base
+ecr_repository: base
 version: "13.0.2"
 accelerator: gpu
 python: py313
 cuda: cu130
 os: ubuntu22.04
 platform: ec2
-ga: "2025-10-22"
+ga: "2026-02-09"
 eop: "2026-10-22"
 public_registry: true
 

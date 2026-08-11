@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "ray"
-  framework_version: "2.55.1"
+  framework_version: "2.56.1"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
@@ -19,7 +19,7 @@ build:
   python_version: "3.13.12"
   cuda_version: "12.9.1"
   dlc_major_version: "1"
-  dlc_minor_version: "2"
+  dlc_minor_version: "3"
 
 release:
   release: true

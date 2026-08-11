@@ -4,6 +4,36 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v2.2.0 — 2026-08-03
+
+**Tags:** `server-cuda-v2.2` · `server-sagemaker-cuda-v2.2`
+
+**vLLM source:** [d223c90](https://github.com/vllm-project/vllm/commit/d223c900d85224c02f2162ee2c757a769e99f519) (`0.26.0+amzn2023.d223c900`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.15.post1 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.26.0** — minor version bump from 0.24.0 (v2.1); ~1264 upstream commits
+  ([compare](https://github.com/vllm-project/vllm/compare/7b3d595...d223c90))
+- **FlashInfer 0.6.15.post1** — upgraded from 0.6.12
+- **DeepEP [d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)** — EPv2/GIN backend; requires NCCL ≥
+  2.30.4 (image now pins `nvidia-nccl-cu13==2.30.7`)
+- **Inkling** — piecewise CUDA graph, MTP speculative decoding, LoRA, and NVFP4 support
+- **Performance** — DeepSeek-V4 routing-kernel and `fused_topk_bias` speedups; per-KV-cache-group attention backends; fp32 `lm_head` via `head_dtype`
+
+### New Model Support
+
+- Cosmos3 Edge Reasoner, TranslateGemma-12b-it, and `BertForMaskedLM`
+
+### Notes
+
+- On CUDA 13, NCCL ships as a separate wheel (not bundled in `torch/lib`); the DeepEP build and runtime venv are both pinned to the same NCCL
+  (`2.30.7`) so the compiled wheel and runtime match.
+
+* * *
+
 ## v2.1.0 — 2026-07-02
 
 **Tags:** `server-cuda-v2.1` · `server-sagemaker-cuda-v2.1`

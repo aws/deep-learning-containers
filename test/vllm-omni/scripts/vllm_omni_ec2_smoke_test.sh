@@ -28,8 +28,12 @@ echo "Route: ${ROUTE}"
 echo "Content-Type: ${CONTENT_TYPE}"
 echo "Validate: ${VALIDATE}"
 
-# Wait for server
-for i in $(seq 1 300); do
+# Wait for server. vLLM 0.26.0 starts slower than 0.21.0rc1: full
+# CompilationMode.VLLM_COMPILE (inductor) with enforce_eager=False, plus the
+# two-stage omni init (stage1 Code2Wav only begins after stage0 finishes) can
+# push readiness just past the old 300s budget for TTS models on a single L4.
+# 600s matches the omni benchmark script's budget.
+for i in $(seq 1 600); do
     if curl -s http://localhost:${PORT}/health >/dev/null 2>&1; then
         echo "Server ready after ${i}s"
         break

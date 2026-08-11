@@ -3,7 +3,7 @@ image:
   description: "Base devel GPU image with CUDA 12.9.1, Python 3.13, and build tools on AL2023"
 
 metadata:
-  framework: "base_dlc"
+  framework: "base"
   framework_version: "12.9.1"
   os_version: "amzn2023"
   customer_type: "ec2"
@@ -18,7 +18,7 @@ build:
   target: "devel"
   python_version: "3.13.12"
   cuda_version: "12.9.1"
-  uv_version: "0.11.17"
+  uv_version: "0.11.33"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

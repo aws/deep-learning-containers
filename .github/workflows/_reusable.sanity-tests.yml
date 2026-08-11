@@ -38,6 +38,9 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       transformers-version: ${{ steps.parse.outputs.transformers-version }}
       target: ${{ steps.parse.outputs.target }}
+      nccl-version: ${{ steps.parse.outputs.nccl-version }}
+      efa-version: ${{ steps.parse.outputs.efa-version }}
+      gdrcopy-version: ${{ steps.parse.outputs.gdrcopy-version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -75,6 +78,9 @@ jobs:
           echo "contributor=$(yq '.metadata.contributor // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "transformers-version=$(yq '.build.transformers_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "target=$(yq '.build.target // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "nccl-version=$(yq '.build.nccl_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "efa-version=$(yq '.build.efa_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "gdrcopy-version=$(yq '.build.gdrcopy_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
   sanity-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
@@ -125,12 +131,27 @@ jobs:
             ${{ needs.preflight.outputs.image-uri }}
 
       - name: Run base image checks
-        if: needs.preflight.outputs.framework == 'base_dlc'
+        if: needs.preflight.outputs.framework == 'base'
         run: |
           PYTHON_SHORT=$(echo '${{ needs.preflight.outputs.python-version }}' | cut -d. -f1,2)
           CUDA_SHORT=$(echo '${{ needs.preflight.outputs.cuda-version }}' | cut -d. -f1,2)
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh \
             "${PYTHON_SHORT}" "${CUDA_SHORT}"
+
+      # Base devel images vend the NCCL/GDRCopy/EFA stack; runtime images do not.
+      # Gated on the version pins being present so a base variant built without
+      # the stack doesn't fail this step.
+      - name: Run NCCL / GDRCopy / EFA install checks
+        if: |
+          needs.preflight.outputs.framework == 'base' &&
+          needs.preflight.outputs.nccl-version != '' &&
+          needs.preflight.outputs.efa-version != '' &&
+          needs.preflight.outputs.gdrcopy-version != ''
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_nccl_efa_gdrcopy.sh \
+            "${{ needs.preflight.outputs.nccl-version }}" \
+            "${{ needs.preflight.outputs.efa-version }}" \
+            "${{ needs.preflight.outputs.gdrcopy-version }}"
 
       - name: Run inference engine checks
         if: |
@@ -246,9 +267,9 @@ jobs:
             --transformers-version "${{ needs.preflight.outputs.transformers-version }}"
 
   # TODO: Change to device_type == 'gpu' when other GPU frameworks need this job.
-  # Move the base_dlc condition to the CUDA test step specifically.
+  # Move the base condition to the CUDA test step specifically.
   sanity-gpu:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.framework == 'base_dlc' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.framework == 'base' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -276,3 +297,13 @@ jobs:
           CUDA_SHORT=$(echo '${{ needs.preflight.outputs.cuda-version }}' | cut -d. -f1,2)
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/cuda_${{ needs.preflight.outputs.target }}_test.sh \
             "${CUDA_SHORT}"
+
+      # Functional NCCL check — compiles against the image's own nccl.h/libnccl
+      # and runs a real all-reduce. devel only (needs nvcc + NCCL headers).
+      # Single-node: EFA/Libfabric transport is covered by test/efa/test_efa.py.
+      - name: Run single-node NCCL test
+        if: |
+          needs.preflight.outputs.target == 'devel' &&
+          needs.preflight.outputs.nccl-version != ''
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/nccl_single_node_test.sh

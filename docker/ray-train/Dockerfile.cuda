@@ -134,9 +134,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   DLC_CONTAINER_TYPE=training \
   CUDA_HOME=/usr/local/cuda \
   # EFA/NCCL runtime defaults (NCCL falls back to TCP when EFA is absent).
+  # NCCL_SOCKET_IFNAME is intentionally NOT set here: install_efa writes the
+  # exclusion default NCCL_SOCKET_IFNAME=^docker0,lo to /etc/nccl.conf, which
+  # auto-detects on any host. Hardcoding eth0 broke non-K8s hosts (Slurm/EC2 use
+  # ens6/enp40s0). Per-platform overrides still work (e.g. EKS manifest sets eth0).
   FI_PROVIDER=efa \
   FI_LOG_LEVEL=warn \
-  NCCL_SOCKET_IFNAME=eth0 \
   NCCL_DEBUG=INFO
 
 # cuda-nvcc/cudart-devel for nccl-tests; wget for KubeRay's default health probes.

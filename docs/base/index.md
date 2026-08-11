@@ -3,7 +3,7 @@
 Lightweight Base Docker images with NVIDIA CUDA and Python pre-installed on Amazon Linux 2023. Use them as the `FROM` for your own AI/ML images, or as
 a quick interactive environment for prototyping. Built and patched continuously by {{ aws }}.
 
-## Images
+## Image Variants
 
 | Variant | Image | CUDA | Use Case |
 | --- | --- | --- | --- |
@@ -11,18 +11,20 @@ a quick interactive environment for prototyping. Built and patched continuously 
 | Devel, CUDA 12.9 | `public.ecr.aws/deep-learning-containers/base:devel-cu129-amzn2023` | 12.9.1 | Compile CUDA code — adds `nvcc`, headers, gcc, cmake |
 | Runtime, CUDA 13.0 | `public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023` | 13.0.2 | Same as cu129 but on CUDA 13 |
 | Devel, CUDA 13.0 | `public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023` | 13.0.2 | Same as cu129 but on CUDA 13 |
+| Runtime, CUDA 13.2 | `public.ecr.aws/deep-learning-containers/base:runtime-cu132-amzn2023` | 13.2.1 | Same as cu130 but on CUDA 13.2 |
+| Devel, CUDA 13.2 | `public.ecr.aws/deep-learning-containers/base:devel-cu132-amzn2023` | 13.2.1 | Same as cu130 but on CUDA 13.2 — also bundles the multi-node stack (GDRCopy, NCCL, EFA) |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/base). For private ECR URIs, see
 [Image Access](../get_started/index.md).
 
 ## What's Included
 
-All four variants share the same core stack:
+All variants share the same core stack:
 
 - **Amazon Linux 2023** with continuous security patching
 - **Python 3.13.12** built from source with hardening flags, available as `python` / `python3`
 - **uv** package manager, pre-installed at `/usr/local/bin/uv`
-- **NVIDIA CUDA Toolkit** (12.9.1 for cu129, 13.0.2 for cu130), based on the upstream `nvidia/cuda:*-amzn2023` images
+- **NVIDIA CUDA Toolkit** based on the upstream `nvidia/cuda:*-amzn2023` images
 
 The **devel** variants additionally include the full CUDA Toolkit (`nvcc`, headers, libraries) plus `gcc`, `gcc-c++`, `cmake`, `automake`, `autoconf`,
 `git`, `make`, and `tar` — sufficient for compiling CUDA C/C++ code or wheels with native extensions.
@@ -72,11 +74,13 @@ docker run --rm -it --gpus all \
 
 Inside the container, `python`, `pip`, `uv`, and (in the devel variant) `nvcc` are on the `PATH`. CUDA libraries are installed at `/usr/local/cuda`.
 
-## Choosing cu129 vs cu130
+## Choosing cu129 vs cu130 vs cu132
 
 - **cu129 (CUDA 12.9):** use when your stack is pinned to CUDA 12.x — most current PyTorch wheels (cu128/cu129) are compatible.
-- **cu130 (CUDA 13.0):** use when you want CUDA 13.x compatibility (e.g., to match the vLLM-Omni DLC, which is built on CUDA 13). Some older NVIDIA
-  drivers may need the bundled `cuda-compat-13-0` forward-compat layer to run CUDA 13 binaries.
+- **cu130 (CUDA 13.0):** use when you want CUDA 13.x compatibility. Some older NVIDIA drivers may need the bundled `cuda-compat-13-0` forward-compat
+  layer to run CUDA 13 binaries.
+- **cu132 (CUDA 13.2):** use when you want the latest CUDA 13.2 toolkit. Some older NVIDIA drivers may need the bundled `cuda-compat-13-2`
+  forward-compat layer to run CUDA 13.2 binaries.
 
 CUDA major versions are not interchangeable at runtime — pick the variant that matches the GPU drivers on your target hosts.
 
@@ -86,5 +90,5 @@ These images are curated builds:
 
 - **Built from upstream `nvidia/cuda:*-amzn2023` images** — we add Python compiled from source, OSS license metadata, and security patches.
 - **Continuously patched** — security updates from {{ aws }} and NVIDIA are applied on every build.
-- **Versioned by CUDA release** — each tag encodes its CUDA version (`cu129`, `cu130`). New CUDA releases get a new tag; existing tags stay on their
-  pinned CUDA release across minor patches.
+- **Versioned by CUDA release** — each tag encodes its CUDA version (e.g. `cu132`). New CUDA releases get a new tag; existing tags stay on their
+  pinned CUDA release across minor patches. A dated immutable variant (e.g. `runtime-cu132-amzn2023-20260731`) is also published per release.

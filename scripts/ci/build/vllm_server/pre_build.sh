@@ -40,6 +40,10 @@ CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
 VLLM_REF=$(yq '.build.vllm_ref' "$CONFIG_FILE")
 FRAMEWORK_VERSION=$(yq '.metadata.framework_version' "$CONFIG_FILE")
 USE_SCCACHE=$(yq '.build.use_sccache // "false"' "$CONFIG_FILE")
+# Part of the wheel cache key: a wheel is only reusable if it was compiled for the
+# same CUDA arches. Empty when the config does not pin one (the Dockerfile ARG
+# default then applies, and the hash is unchanged from before this key existed).
+TORCH_CUDA_ARCH_LIST_CFG=$(yq '.build.torch_cuda_arch_list // ""' "$CONFIG_FILE")
 
 # Prepare build context directories
 mkdir -p docker/vllm/prebuilt_wheels docker/vllm/sccache-cache
@@ -47,7 +51,7 @@ mkdir -p docker/vllm/prebuilt_wheels docker/vllm/sccache-cache
 # Fetch cached wheel
 WHEEL_HIT="false"
 echo "Fetching cached vLLM wheel..."
-if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --cuda-version "$CUDA_VERSION" --vllm-ref "$VLLM_REF" --framework-version "$FRAMEWORK_VERSION" --bucket "$BUCKET"; then
+if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --cuda-version "$CUDA_VERSION" --vllm-ref "$VLLM_REF" --framework-version "$FRAMEWORK_VERSION" --arch-list "$TORCH_CUDA_ARCH_LIST_CFG" --bucket "$BUCKET"; then
   WHEEL_HIT="true"
   echo "Wheel cache hit"
 else

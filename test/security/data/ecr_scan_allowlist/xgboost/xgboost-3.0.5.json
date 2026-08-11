@@ -658,5 +658,55 @@
         "vulnerability_id": "CVE-2022-49267",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime. MMC sysfs sprintf() overflow not reachable; no MMC subsystem in container.",
         "review_by": "2026-10-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43414",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the qla2xxx scsi double-free is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2026-11-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38617",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-222.242 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the net/packet ring race is not a runtime attack surface for this image. Exploit reported by Inspector but requires local kernel-level access on the host, not reachable from within the container.",
+        "review_by": "2026-11-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39993",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-224.244 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the media/rc use-after-free is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2026-11-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-40018",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-224.244 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the ipvs ftp netns cleanup bug is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2026-11-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38477",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-222.242 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the sch_qfq aggregate race is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2026-11-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23272",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the nf_tables set nelems bug is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2026-11-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-40215",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-227.247 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the xfrm ipcomp tunnel deletion bug is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2026-11-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38083",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-220.240 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the net_sched prio_tune race is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2026-11-02"
+    },
+    {
+        "vulnerability_id": "CVE-2024-46787",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-219.239 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the userfaultfd huge-PMD race is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2026-10-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54876",
+        "reason": "openssl 3.6.3 in the bundled miniconda3 environment. No fix is installable: per the upstream advisory of 2026-08-05 the project did not issue releases for this issue, so the nominal fixed versions 3.6.4 (for the 3.6 branch) and 4.0.2 are both unreleased and exist only as git commits. No openssl-3.6.4 or openssl-4.0.2 tag exists upstream and conda-forge tops out at 3.6.3 / 4.0.1, so the scanner's openssl>=4.0.2 pin is unsatisfiable; moving to 4.0.1 would not help since 4.0.1 is itself in the affected range. Upstream severity is Low (the High here is the NVD-derived score), impact is a client-side memory-leak DoS, and OCSP response checking is off by default and never enabled by the training or serving paths. No exploit available. Note the 3.6 branch reaches end-of-life on 2026-11-01, so if 3.6.4 does not ship the durable fix is moving this environment to the 3.5 LTS line, which is unaffected.",
+        "review_by": "2026-09-30"
     }
 ]

@@ -1,4 +1,5 @@
 framework: Base
+ecr_repository: base
 version: "12.8.1"
 accelerator: gpu
 python: py312
