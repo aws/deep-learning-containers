@@ -31,27 +31,4 @@ runs:
         IMAGE_CONTENT_HASH: ${{ inputs.image-content-hash }}
         SUITE_CODE_HASH: ${{ inputs.suite-code-hash }}
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
-      run: |
-        set -euo pipefail
-        SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/image_test_skip"
-
-        if [[ -z "$IMAGE_CONTENT_HASH" || -z "$SUITE_CODE_HASH" ]]; then
-          echo "::error::image has empty hash (image='$IMAGE_CONTENT_HASH' suite_code='$SUITE_CODE_HASH')."
-          exit 1
-        fi
-
-        # The suite has already passed
-        if python3 "$SCRIPTS/ci_images_store.py" record \
-          --image-content-hash "$IMAGE_CONTENT_HASH" \
-          --suite "$SUITE" \
-          --suite-code-hash "$SUITE_CODE_HASH"; then
-          {
-            echo "### ✅ Recorded test PASS"
-            echo "Suite \`$SUITE\` passed and was cached."
-            echo ""
-            echo "- image_content_hash: \`$IMAGE_CONTENT_HASH\`"
-            echo "- suite_code_hash: \`$SUITE_CODE_HASH\`"
-          } >> "$GITHUB_STEP_SUMMARY"
-        else
-          echo "::warning::Failed to record PASS for '$SUITE' (cache write) — suite still passed."
-        fi
+      run: bash "${{ github.action_path }}/record_pass.sh"
