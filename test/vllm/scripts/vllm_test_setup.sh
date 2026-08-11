@@ -12,6 +12,11 @@ fi
 find vllm_source/requirements -name "*.in" -exec sed -i -E '/(terratorch|lightning)/Id' {} + 2>/dev/null || true
 find vllm_source/requirements -name "*.txt" -exec sed -i -E '/(terratorch|lightning)/Id' {} + 2>/dev/null || true
 
+# Snapshot base image runtime libs to restore after test deps install; test reqs
+# transitively clobber flashinfer<->tvm-ffi (crashes EngineCore) and dual-install cupy.
+PROTECTED_PKGS="apache-tvm-ffi cupy-cuda13x cupy-cuda12x flashinfer-python flashinfer-jit-cache"
+BASE_FREEZE="$(uv pip freeze $UV_FLAGS 2>/dev/null || true)"
+
 # Upstream PR #39024 (merged Apr 2026) moved requirements/{build,test}.{in,txt}
 # into requirements/{build,test}/{cuda,rocm,cpu,xpu}.{in,txt}. Pick whichever
 # layout the checked-out vllm_source has.
@@ -51,6 +56,29 @@ else
   echo "WARNING: vllm_test_utils not found, skipping"
 fi
 uv pip install $UV_FLAGS hf_transfer
+
+# Restore base image pins for PROTECTED_PKGS if test deps changed them, and drop
+# any package the test deps added that the base image didn't have (e.g. cupy-cuda12x).
+if [ -n "${BASE_FREEZE}" ]; then
+  cur_freeze="$(uv pip freeze $UV_FLAGS 2>/dev/null || true)"
+  for pkg in ${PROTECTED_PKGS}; do
+    # Match name with either hyphen or underscore separators (freeze may use either)
+    pkg_re="^$(printf '%s' "${pkg}" | sed 's/[-_]/[-_]/g')=="
+    base_pin="$(printf '%s\n' "${BASE_FREEZE}" | grep -iE "${pkg_re}" || true)"
+    cur_pin="$(printf '%s\n' "${cur_freeze}" | grep -iE "${pkg_re}" || true)"
+    if [ -z "${base_pin}" ]; then
+      # Not in base image; remove if a test dep added it (avoids conflicting stack).
+      if [ -n "${cur_pin}" ]; then
+        echo "Removing ${pkg} (not present in base image): ${cur_pin}"
+        uv pip uninstall $UV_FLAGS "${pkg}" || true
+      fi
+    elif [ "${base_pin}" != "${cur_pin}" ]; then
+      echo "Restoring base image pin for ${pkg}: ${cur_pin:-<none>} -> ${base_pin}"
+      uv pip install $UV_FLAGS "${base_pin}"
+    fi
+  done
+fi
+
 cd vllm_source
 # vLLM may already use src/ layout; only move if needed
 if [ -d "vllm" ] && [ ! -d "src/vllm" ]; then
