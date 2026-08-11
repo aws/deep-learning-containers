@@ -38,10 +38,6 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: Setup dependencies
-      shell: bash
-      run: pip install --quiet boto3 pyyaml
-
     - name: ECR login
       uses: ./.github/actions/ecr-authenticate
       with:
@@ -56,4 +52,8 @@ runs:
         SUITE: ${{ inputs.suite }}
         PLATFORM: ${{ inputs.platform }}
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
-      run: bash "${{ github.action_path }}/decide_skip.sh"
+      run: |
+        uv venv --python 3.12
+        source .venv/bin/activate
+        uv pip install boto3 pyyaml
+        bash "${{ github.action_path }}/decide_skip.sh"

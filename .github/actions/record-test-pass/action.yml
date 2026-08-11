@@ -20,10 +20,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup record dependencies
-      shell: bash
-      run: pip install --quiet boto3
-
     - name: Record PASS
       shell: bash
       env:
@@ -31,4 +27,8 @@ runs:
         IMAGE_CONTENT_HASH: ${{ inputs.image-content-hash }}
         SUITE_CODE_HASH: ${{ inputs.suite-code-hash }}
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
-      run: bash "${{ github.action_path }}/record_pass.sh"
+      run: |
+        uv venv --python 3.12
+        source .venv/bin/activate
+        uv pip install boto3
+        bash "${{ github.action_path }}/record_pass.sh"
