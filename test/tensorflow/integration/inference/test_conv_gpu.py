@@ -16,6 +16,7 @@ import pytest
 
 from .resources.build_sample_model import build_conv_sample_model
 from .resources.helpers import read_predictions, upload_tarball
+from test_utils import random_suffix_name
 
 # Explicit skipif so the skip decision is visible at collection time.
 _device = os.environ.get("SM_DEVICE_TYPE", "").lower()
@@ -29,7 +30,6 @@ pytestmark = pytest.mark.skipif(
 def test_conv2d_gpu_predict(
     sagemaker_session,
     deploy_endpoint,
-    unique_name,
     cleanup_endpoint,
 ):
     """Deploy a 117-param Conv2D SavedModel; prove cuDNN executes at request time."""
@@ -38,7 +38,7 @@ def test_conv2d_gpu_predict(
         model_data = upload_tarball(
             sagemaker_session,
             tar_path,
-            key_prefix=f"tf220-inference-tests/conv-gpu/{unique_name('run')}",
+            key_prefix=f"tf220-inference-tests/conv-gpu/{random_suffix_name('run', 63)}",
         )
         endpoint, endpoint_name, model_name = deploy_endpoint(
             model_data_url=model_data,

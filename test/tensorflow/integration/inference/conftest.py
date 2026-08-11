@@ -8,8 +8,6 @@ so `pytest --collect-only` works without credentials.
 from __future__ import annotations
 
 import os
-import time
-from uuid import uuid4
 
 import pytest
 
@@ -71,18 +69,6 @@ def sagemaker_session(boto_session):
     return Session(boto_session=boto_session)
 
 
-@pytest.fixture
-def unique_name():
-    """Returns a callable producing collision-resistant resource names.
-
-    Usage:
-        name = unique_name("tf220-single")
-    """
-
-    def _make(prefix: str) -> str:
-        return f"{prefix}-{int(time.time())}-{uuid4().hex[:6]}"
-
-    return _make
 
 
 @pytest.fixture
@@ -92,7 +78,6 @@ def deploy_endpoint(
     sagemaker_role_arn,
     inference_image_uri,
     sm_instance_type,
-    unique_name,
     cleanup_endpoint,
 ):
     """Deploy a SageMaker endpoint; returns (endpoint, endpoint_name, model_name).
@@ -118,8 +103,10 @@ def deploy_endpoint(
             ProductionVariant,
         )
 
-        endpoint_name = unique_name(name_prefix)
-        model_name = unique_name(f"{name_prefix}-model")
+        from test_utils import random_suffix_name
+
+        endpoint_name = random_suffix_name(name_prefix, 63)
+        model_name = random_suffix_name(f"{name_prefix}-model", 63)
 
         # Register cleanup BEFORE any AWS mutation.
         cleanup_endpoint(endpoint_name, model_name=model_name)

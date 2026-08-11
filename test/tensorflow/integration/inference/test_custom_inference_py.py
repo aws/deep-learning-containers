@@ -13,12 +13,12 @@ import pytest
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import CUSTOM_INFERENCE_PY, upload_tarball
+from test_utils import random_suffix_name
 
 
 def test_custom_inference_py_handlers(
     sagemaker_session,
     deploy_endpoint,
-    unique_name,
     cleanup_endpoint,
 ):
     with tempfile.TemporaryDirectory(prefix="tf220-inference-py-") as workdir:
@@ -30,7 +30,7 @@ def test_custom_inference_py_handlers(
         model_data = upload_tarball(
             sagemaker_session,
             tar_path,
-            key_prefix=f"tf220-inference-tests/inference-py/{unique_name('run')}",
+            key_prefix=f"tf220-inference-tests/inference-py/{random_suffix_name('run', 63)}",
         )
 
         endpoint, endpoint_name, model_name = deploy_endpoint(

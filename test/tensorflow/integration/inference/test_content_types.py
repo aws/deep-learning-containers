@@ -13,12 +13,12 @@ import pytest
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
+from test_utils import random_suffix_name
 
 
 def test_csv_content_type_multi_column(
     sagemaker_session,
     deploy_endpoint,
-    unique_name,
     cleanup_endpoint,
 ):
     """Two rows, three numeric columns each; assert 2x output."""
@@ -27,7 +27,7 @@ def test_csv_content_type_multi_column(
         model_data = upload_tarball(
             sagemaker_session,
             tar_path,
-            key_prefix=f"tf220-inference-tests/csv/{unique_name('run')}",
+            key_prefix=f"tf220-inference-tests/csv/{random_suffix_name('run', 63)}",
         )
         endpoint, endpoint_name, model_name = deploy_endpoint(
             model_data_url=model_data,

@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from .resources.build_sample_model import build_sample_model
+from test_utils import random_suffix_name
 
 
 def _values_from_predictions(predictions) -> list:
@@ -30,7 +31,6 @@ def test_mme_two_models(
     sagemaker_role_arn,
     inference_image_uri,
     sm_instance_type,
-    unique_name,
     cleanup_endpoint,
 ):
     from sagemaker.core.resources import (
@@ -55,7 +55,7 @@ def test_mme_two_models(
         )
 
         bucket = sagemaker_session.default_bucket()
-        run_id = unique_name("mme")
+        run_id = random_suffix_name("mme", 63)
         s3_key_prefix = f"tf220-inference-tests/mme-models/{run_id}"
 
         # Upload both under the shared MME prefix.
@@ -63,8 +63,8 @@ def test_mme_two_models(
         sagemaker_session.upload_data(path=model2_tar, bucket=bucket, key_prefix=s3_key_prefix)
         s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
 
-        endpoint_name = unique_name("tf220-mme")
-        model_name = unique_name("tf220-mme-model")
+        endpoint_name = random_suffix_name("tf220-mme", 63)
+        model_name = random_suffix_name("tf220-mme-model", 63)
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
         # 1. Multi-model SM Model: mode="MultiModel" + S3 prefix in model_data_url.

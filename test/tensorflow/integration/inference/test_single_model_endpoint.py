@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 
 from .resources.build_sample_model import build_sample_model
+from test_utils import random_suffix_name
 
 
 def test_single_model_predict(
@@ -21,7 +22,6 @@ def test_single_model_predict(
     sagemaker_role_arn,
     inference_image_uri,
     sm_instance_type,
-    unique_name,
     cleanup_endpoint,
 ):
     from sagemaker.core.resources import (
@@ -40,15 +40,15 @@ def test_single_model_predict(
 
         # Upload via SDK v3 helper Session.
         bucket = sagemaker_session.default_bucket()
-        key_prefix = f"tf220-inference-tests/{Path(tar_path).stem}-{unique_name('single')}"
+        key_prefix = f"tf220-inference-tests/{Path(tar_path).stem}-{random_suffix_name('single', 63)}"
         model_data = sagemaker_session.upload_data(
             path=tar_path,
             bucket=bucket,
             key_prefix=key_prefix,
         )
 
-        endpoint_name = unique_name("tf220-single")
-        model_name = unique_name("tf220-single-model")
+        endpoint_name = random_suffix_name("tf220-single", 63)
+        model_name = random_suffix_name("tf220-single-model", 63)
         cleanup_endpoint(endpoint_name, model_name=model_name)
 
         # 1. SM Model pointing at our DLC image + uploaded SavedModel.

@@ -17,13 +17,13 @@ from botocore.exceptions import ClientError
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import read_predictions
+from test_utils import random_suffix_name
 
 
 def test_mme_target_model_not_found(
     boto_session,
     sagemaker_session,
     deploy_endpoint,
-    unique_name,
     cleanup_endpoint,
 ):
     """Invoke with a target_model that isn't in the MME S3 prefix — must 4xx."""
@@ -35,7 +35,7 @@ def test_mme_target_model_not_found(
             tar_filename="model1.tar.gz",
         )
         bucket = sagemaker_session.default_bucket()
-        s3_key_prefix = f"tf220-inference-tests/mme-miss/{unique_name('run')}"
+        s3_key_prefix = f"tf220-inference-tests/mme-miss/{random_suffix_name('run', 63)}"
         sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
         s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
 
@@ -64,7 +64,6 @@ def test_mme_late_dynamic_load(
     boto_session,
     sagemaker_session,
     deploy_endpoint,
-    unique_name,
     cleanup_endpoint,
 ):
     """Deploy MME with one model, upload a second after InService, invoke it."""
@@ -76,7 +75,7 @@ def test_mme_late_dynamic_load(
             tar_filename="model1.tar.gz",
         )
         bucket = sagemaker_session.default_bucket()
-        s3_key_prefix = f"tf220-inference-tests/mme-late/{unique_name('run')}"
+        s3_key_prefix = f"tf220-inference-tests/mme-late/{random_suffix_name('run', 63)}"
         sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
         s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
 

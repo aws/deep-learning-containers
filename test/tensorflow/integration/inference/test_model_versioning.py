@@ -14,12 +14,12 @@ import pytest
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import read_predictions, upload_tarball
+from test_utils import random_suffix_name
 
 
 def test_two_version_saved_model(
     sagemaker_session,
     deploy_endpoint,
-    unique_name,
     cleanup_endpoint,
 ):
     with tempfile.TemporaryDirectory(prefix="tf220-versions-") as workdir:
@@ -32,7 +32,7 @@ def test_two_version_saved_model(
         model_data = upload_tarball(
             sagemaker_session,
             tar_path,
-            key_prefix=f"tf220-inference-tests/versions/{unique_name('run')}",
+            key_prefix=f"tf220-inference-tests/versions/{random_suffix_name('run', 63)}",
         )
         endpoint, endpoint_name, model_name = deploy_endpoint(
             model_data_url=model_data,

@@ -24,6 +24,7 @@ import pytest
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import read_predictions
+from test_utils import random_suffix_name
 
 _NUM_MODELS = 3
 _NUM_CONCURRENT_INVOKES = 8
@@ -32,7 +33,6 @@ _NUM_CONCURRENT_INVOKES = 8
 def test_mme_concurrent_invoke_distinct_models(
     sagemaker_session,
     deploy_endpoint,
-    unique_name,
     cleanup_endpoint,
 ):
     """Deploy MME with N models, fire N*K concurrent invokes across all
@@ -56,7 +56,7 @@ def test_mme_concurrent_invoke_distinct_models(
 
         # Upload all under a shared MME S3 prefix.
         bucket = sagemaker_session.default_bucket()
-        run_id = unique_name("mme-conc")
+        run_id = random_suffix_name("mme-conc", 63)
         s3_key_prefix = f"tf220-inference-tests/mme-conc/{run_id}"
         for _filename, _mult, tar_path in models:
             sagemaker_session.upload_data(

@@ -15,6 +15,7 @@ import pytest
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
+from test_utils import random_suffix_name
 
 # Always CPU — CreateTransformJob wire is device-agnostic, and CI accounts
 # have zero TransformJob GPU quota by default.
@@ -26,7 +27,6 @@ def test_batch_transform_json(
     sagemaker_session,
     sagemaker_role_arn,
     inference_image_uri,
-    unique_name,
 ):
     """End-to-end batch transform on JSON: 3 single-record files, verify 2x output."""
     # Late imports so pytest --collect-only works without the SDK.
@@ -44,7 +44,7 @@ def test_batch_transform_json(
     )
 
     bucket = sagemaker_session.default_bucket()
-    run_id = unique_name("batch")
+    run_id = random_suffix_name("batch", 63)
 
     with tempfile.TemporaryDirectory(prefix="tf220-batch-") as workdir:
         workdir_path = Path(workdir)
@@ -71,8 +71,8 @@ def test_batch_transform_json(
         s3_output = f"s3://{bucket}/tf220-inference-tests/batch/{run_id}/output/"
 
         # 3. Create model.
-        model_name = unique_name("tf220-batch-model")
-        job_name = unique_name("tf220-batch-job")
+        model_name = random_suffix_name("tf220-batch-model", 63)
+        job_name = random_suffix_name("tf220-batch-job", 63)
         Model.create(
             model_name=model_name,
             primary_container=ContainerDefinition(
