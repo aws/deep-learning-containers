@@ -26,6 +26,10 @@ jobs:
       image-uri: ${{ steps.image.outputs.image-uri }}
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
+      # Test-skip decision (computed once, consumed by the test + record jobs).
+      skip: ${{ steps.skip.outputs.skip }}
+      image-content-hash: ${{ steps.skip.outputs.image-content-hash }}
+      suite-code-hash: ${{ steps.skip.outputs.suite-code-hash }}
     steps:
       - uses: actions/checkout@v6
 
@@ -45,8 +49,19 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+      - name: Check test skip
+        if: steps.check.outputs.exists == 'true'
+        id: skip
+        uses: ./.github/actions/check-test-pass
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+          suite: pytorch/single_gpu
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
+
   single-gpu-test:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.skip != 'true' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -76,3 +91,30 @@ jobs:
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
             pytest /workdir/test/pytorch/single_gpu/ -v
           docker kill ${CONTAINER_ID}
+
+  single-gpu-record:
+    # Record a PASS row for `pytorch/single_gpu` only after the test job succeeds
+    # on a MISS. `!cancelled()` keeps this from being auto-skipped; the result
+    # check blocks recording a failed run; the skip guard blocks re-recording on
+    # a HIT (the test job was gated off).
+    needs: [preflight, single-gpu-test]
+    if: >-
+      !cancelled() &&
+      needs.preflight.outputs.skip == 'false' &&
+      needs.preflight.outputs.image-content-hash != '' &&
+      needs.preflight.outputs.suite-code-hash != '' &&
+      needs.single-gpu-test.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Record test pass
+        uses: ./.github/actions/record-test-pass
+        with:
+          suite: pytorch/single_gpu
+          image-content-hash: ${{ needs.preflight.outputs.image-content-hash }}
+          suite-code-hash: ${{ needs.preflight.outputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
