@@ -68,7 +68,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install -r test/requirements.txt -r test/tensorflow/integration/inference/requirements.txt
+          python3 -m pip install -r test/requirements.txt -r test/tensorflow/integration/inference/requirements.txt
 
       - name: Run SageMaker inference tests
         env:
