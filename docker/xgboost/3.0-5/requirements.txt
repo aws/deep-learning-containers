@@ -27,7 +27,7 @@ sagemaker-containers==2.8.6.post2
 sagemaker-inference==1.5.5
 scikit-learn==1.5.2
 scipy==1.15.0
-setuptools<81
+setuptools<85
 urllib3==1.26.20
 Werkzeug==0.15.6
 wheel==0.46.2
