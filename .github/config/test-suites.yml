@@ -2,12 +2,12 @@
 #
 # One entry per test suite. Drives the content-addressed test-skip store, which
 # lets CI skip a suite whose exact test code already passed on a given image build.
+# To add or change the definition of a test suite for the test-skip store, simply
+# add or change the file paths for the desired test suite here.
 # Per suite:
-#   skip_eligible: whether a test suite can be skipped at all. Set to false
-#     for suites whose result depends on mutable external state
+#   skip_eligible: whether a test suite can be skipped at all.
 #   code_paths: repo-relative globs for the files that make up the suite. Their
-#     combined contents produce the suite_code_hash. Editing any matched file
-#     changes the hash and invalidates the cached pass, forcing the suite to re-run.
+#     combined contents produce the suite_code_hash.
 
 suites:
   sanity:

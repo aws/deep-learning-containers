@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Compute image_content_hash for a pushed image with no layer pull.
 
-We read the config via `docker buildx imagetools inspect --format '{{json
-.Image}}'`, which resolves the reference in the registry and returns the image
+Read the config, resolve the reference in the registry, and return the image
 config JSON, then hash its rootfs.diff_ids. DLC builds single-platform x86-64
 images, so we expect a single config and verify its os/architecture matches
 --platform.
