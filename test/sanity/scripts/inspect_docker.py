@@ -60,3 +60,6 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+# ci: benchmark trigger (test-skip cold run) - safe to remove

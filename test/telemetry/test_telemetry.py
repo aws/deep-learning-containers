@@ -181,3 +181,6 @@ def test_opt_in(conn, telemetry_container):
     assert telemetry_file_exists(conn, container_name), (
         "Telemetry did not fire when OPT_OUT_TRACKING is unset"
     )
+
+
+# ci: benchmark trigger (test-skip cold run) - safe to remove
