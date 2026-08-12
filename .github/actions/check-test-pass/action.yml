@@ -53,7 +53,7 @@ runs:
         PLATFORM: ${{ inputs.platform }}
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
       run: |
-        uv venv --python 3.12
+        uv venv --python 3.12 --clear
         source .venv/bin/activate
         uv pip install boto3 pyyaml
         bash "${{ github.action_path }}/decide_skip.sh"
