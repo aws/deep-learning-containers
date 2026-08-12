@@ -24,3 +24,6 @@ GPU_PACKAGES = [
 @pytest.mark.parametrize("package", GPU_PACKAGES)
 def test_import_gpu(package):
     importlib.import_module(package)
+
+
+# ci: benchmark trigger (single_gpu test-skip cold run) - safe to remove
