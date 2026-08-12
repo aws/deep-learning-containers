@@ -22,7 +22,8 @@ fi
 if python3 "$SCRIPTS/ci_images_store.py" record \
   --image-content-hash "$IMAGE_CONTENT_HASH" \
   --suite "$SUITE" \
-  --suite-code-hash "$SUITE_CODE_HASH"; then
+  --suite-code-hash "$SUITE_CODE_HASH" \
+  --ci-image-tag "${CI_IMAGE_TAG:-}"; then
   {
     echo "### ✅ Recorded test PASS"
     echo "Suite \`$SUITE\` passed and was cached."

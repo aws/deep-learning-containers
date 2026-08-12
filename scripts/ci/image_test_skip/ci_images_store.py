@@ -66,22 +66,24 @@ def check_test_skip(image_content_hash, suite, suite_code_hash, client=None):
     return hit
 
 
-def record_test_pass(image_content_hash, suite, suite_code_hash, client=None, now=None):
+def record_test_pass(
+    image_content_hash, suite, suite_code_hash, client=None, now=None, ci_image_tag=None
+):
     """Write the PASS row for a fully-passed suite."""
     client = client or _client()
     sk = sort_key(suite, suite_code_hash)
     now = now if now is not None else time.time()
     passed_at = datetime.fromtimestamp(now, tz=timezone.utc).isoformat()
     ttl = int(now) + TEST_ROW_TTL_SECONDS
-    client.put_item(
-        TableName=table_arn(),
-        Item={
-            "image_content_hash": {"S": image_content_hash},
-            "sort_key": {"S": sk},
-            "passed_at": {"S": passed_at},
-            "ttl": {"N": str(ttl)},
-        },
-    )
+    item = {
+        "image_content_hash": {"S": image_content_hash},
+        "sort_key": {"S": sk},
+        "passed_at": {"S": passed_at},
+        "ttl": {"N": str(ttl)},
+    }
+    if ci_image_tag:
+        item["ci_image_tag"] = {"S": ci_image_tag}
+    client.put_item(TableName=table_arn(), Item=item)
     LOG.info("recorded PASS for suite=%s hash=%s sk=%s", suite, image_content_hash, sk)
 
 
@@ -95,7 +97,12 @@ def main(argv=None):
     common.add_argument("--suite-code-hash", required=True)
 
     sub.add_parser("check", parents=[common], help="Exit 0 to skip, 1 to run.")
-    sub.add_parser("record", parents=[common], help="Record a PASS row.")
+    record = sub.add_parser("record", parents=[common], help="Record a PASS row.")
+    record.add_argument(
+        "--ci-image-tag",
+        default=None,
+        help="CI image tag for the image build being tested.",
+    )
 
     args = parser.parse_args(argv)
 
@@ -104,7 +111,12 @@ def main(argv=None):
         return 0 if skip else 1
 
     if args.command == "record":
-        record_test_pass(args.image_content_hash, args.suite, args.suite_code_hash)
+        record_test_pass(
+            args.image_content_hash,
+            args.suite,
+            args.suite_code_hash,
+            ci_image_tag=args.ci_image_tag,
+        )
         return 0
 
     return 1

@@ -40,6 +40,16 @@ def dynamo():
             yield client
 
 
+def _get_row(client):
+    return client.get_item(
+        TableName=store.table_arn(),
+        Key={
+            "image_content_hash": {"S": HASH},
+            "sort_key": {"S": store.sort_key(SUITE, CODE_HASH)},
+        },
+    )["Item"]
+
+    
 def test_sort_key_format():
     assert store.sort_key("sanity", "sha256:7c1e") == "TEST#sanity#sha256:7c1e"
 
@@ -72,3 +82,19 @@ def test_check_cli_exits_zero_on_hit(dynamo):
 def test_check_cli_exits_nonzero_on_miss(dynamo):
     argv = ["check", "--image-content-hash", HASH, "--suite", SUITE, "--suite-code-hash", CODE_HASH]
     assert store.main(argv) != 0
+
+
+def test_record_writes_ci_image_tag_attribute(dynamo):
+    ci_image_tag = "sglang-ec2-amzn2023-0.5.12.dlc1-gpu-py312-cu130-pr-123"
+    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo, ci_image_tag=ci_image_tag)
+    assert _get_row(dynamo)["ci_image_tag"]["S"] == ci_image_tag
+
+
+def test_record_omits_ci_image_tag_when_not_given(dynamo):
+    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
+    assert "ci_image_tag" not in _get_row(dynamo)
+
+
+def test_record_omits_ci_image_tag_when_empty_string(dynamo):
+    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo, ci_image_tag="")
+    assert "ci_image_tag" not in _get_row(dynamo)
