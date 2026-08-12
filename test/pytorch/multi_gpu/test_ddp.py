@@ -61,3 +61,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# ci: benchmark trigger (multi_gpu test-skip cold run) - safe to remove
