@@ -120,8 +120,7 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   # Multi-node EFA/NCCL over Libfabric — devel only (runtime has no NCCL/EFA
-  # stack). Opt-in: launches 2x p4d.24xlarge, so it's off by default and enabled
-  # via workflow_dispatch or by a caller passing run-efa-test: true.
+  # stack). Opt-in: launches 2x p4d.24xlarge, so it's off by default.
   efa-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.target == 'devel' && needs.ci-config.outputs.device-type == 'gpu' }}
     needs: [build, ci-config]
