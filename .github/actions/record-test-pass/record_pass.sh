@@ -13,8 +13,13 @@ set -euo pipefail
 SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/image_test_skip"
 
 if [[ -z "$IMAGE_CONTENT_HASH" || -z "$SUITE_CODE_HASH" ]]; then
-  echo "::error::image has empty hash (image='$IMAGE_CONTENT_HASH' suite_code='$SUITE_CODE_HASH')."
-  exit 1
+  # Best-effort cache write: an empty hash means the skip check couldn't compute
+  # one (e.g. a transient registry read failure). The suite still passed, so warn
+  # and exit 0 rather than failing the workflow — matching the write-failure
+  # branch below. The record job's `if` also guards against this, so reaching
+  # here should be rare.
+  echo "::warning::Skipping cache write for '$SUITE': empty hash (image='$IMAGE_CONTENT_HASH' suite_code='$SUITE_CODE_HASH') — suite still passed."
+  exit 0
 fi
 
 if python3 "$SCRIPTS/ci_images_store.py" record \

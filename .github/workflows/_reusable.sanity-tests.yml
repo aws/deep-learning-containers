@@ -41,6 +41,10 @@ jobs:
       nccl-version: ${{ steps.parse.outputs.nccl-version }}
       efa-version: ${{ steps.parse.outputs.efa-version }}
       gdrcopy-version: ${{ steps.parse.outputs.gdrcopy-version }}
+      # Test-skip decision (computed once, shared by every sanity job below).
+      skip: ${{ steps.skip.outputs.skip }}
+      image-content-hash: ${{ steps.skip.outputs.image-content-hash }}
+      suite-code-hash: ${{ steps.skip.outputs.suite-code-hash }}
     steps:
       - uses: actions/checkout@v6
 
@@ -82,8 +86,21 @@ jobs:
           echo "efa-version=$(yq '.build.efa_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "gdrcopy-version=$(yq '.build.gdrcopy_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
+      # One skip decision for the whole `sanity` suite. Every sanity job gates on
+      # `skip != 'true'`; the record job writes one PASS row after they all pass.
+      - name: Check test skip
+        if: steps.check.outputs.exists == 'true'
+        id: skip
+        uses: ./.github/actions/check-test-pass
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+          suite: sanity
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
+
   sanity-test:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.skip != 'true' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -211,7 +228,7 @@ jobs:
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
 
   sanity-sagemaker:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.customer-type == 'sagemaker' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.skip != 'true' && needs.preflight.outputs.customer-type == 'sagemaker' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -257,7 +274,7 @@ jobs:
   # TODO: Change to device_type == 'gpu' when other GPU frameworks need this job.
   # Move the base condition to the CUDA test step specifically.
   sanity-gpu:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.framework == 'base' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.skip != 'true' && needs.preflight.outputs.framework == 'base' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -295,3 +312,34 @@ jobs:
           needs.preflight.outputs.nccl-version != ''
         run: |
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/nccl_single_node_test.sh
+
+  sanity-record:
+    # Record ONE PASS row for `sanity`, only after every sanity job that ran has
+    # passed, on a MISS. sanity-sagemaker / sanity-gpu are conditional (may be
+    # skipped for a given image), so `!cancelled()` is required to keep this job
+    # from being auto-skipped, and the sibling jobs are checked for `!= failure`
+    # (skipped is fine) rather than `== success`. The skip guard avoids
+    # re-recording on a HIT (all sanity jobs were gated off).
+    needs: [preflight, sanity-test, sanity-sagemaker, sanity-gpu]
+    if: >-
+      !cancelled() &&
+      needs.preflight.outputs.skip == 'false' &&
+      needs.preflight.outputs.image-content-hash != '' &&
+      needs.preflight.outputs.suite-code-hash != '' &&
+      needs.sanity-test.result == 'success' &&
+      needs.sanity-sagemaker.result != 'failure' &&
+      needs.sanity-gpu.result != 'failure'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Record test pass
+        uses: ./.github/actions/record-test-pass
+        with:
+          suite: sanity
+          image-content-hash: ${{ needs.preflight.outputs.image-content-hash }}
+          suite-code-hash: ${{ needs.preflight.outputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}

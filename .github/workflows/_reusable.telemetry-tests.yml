@@ -29,6 +29,10 @@ jobs:
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       job-type: ${{ steps.parse.outputs.job-type }}
+      # Test-skip decision (computed once, shared by every test job below).
+      skip: ${{ steps.skip.outputs.skip }}
+      image-content-hash: ${{ steps.skip.outputs.image-content-hash }}
+      suite-code-hash: ${{ steps.skip.outputs.suite-code-hash }}
     steps:
       - uses: actions/checkout@v6
 
@@ -57,8 +61,21 @@ jobs:
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "job-type=$(yq '.metadata.job_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
+      # One skip decision for the whole `telemetry` suite. Both test jobs gate on
+      # `skip != 'true'`; the record job writes one PASS row after both pass.
+      - name: Check test skip
+        if: steps.check.outputs.exists == 'true'
+        id: skip
+        uses: ./.github/actions/check-test-pass
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+          suite: telemetry
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
+
   telemetry-environment:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.skip != 'true' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -94,7 +111,7 @@ jobs:
           fi
 
   telemetry-instance:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.skip != 'true' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -120,3 +137,31 @@ jobs:
             --framework-version "${{ needs.preflight.outputs.framework-version }}" \
             --container-type "${{ needs.preflight.outputs.job-type }}" \
             --region "${{ vars.AWS_REGION }}"
+
+  telemetry-record:
+    # Record ONE PASS row for `telemetry`, only after BOTH test jobs succeed on a
+    # MISS. `!cancelled()` lets this evaluate its own conditions rather than being
+    # auto-skipped; the result checks ensure no partial-pass record; the skip
+    # guard avoids re-recording on a HIT (test jobs were gated off).
+    needs: [preflight, telemetry-environment, telemetry-instance]
+    if: >-
+      !cancelled() &&
+      needs.preflight.outputs.skip == 'false' &&
+      needs.preflight.outputs.image-content-hash != '' &&
+      needs.preflight.outputs.suite-code-hash != '' &&
+      needs.telemetry-environment.result == 'success' &&
+      needs.telemetry-instance.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Record test pass
+        uses: ./.github/actions/record-test-pass
+        with:
+          suite: telemetry
+          image-content-hash: ${{ needs.preflight.outputs.image-content-hash }}
+          suite-code-hash: ${{ needs.preflight.outputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
