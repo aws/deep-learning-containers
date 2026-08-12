@@ -82,8 +82,18 @@ cp "${PREFERENCES}" "${TEST_TXT}"
 uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
 uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt --torch-backend=auto
 uv pip install $UV_FLAGS pytest pytest-asyncio
-uv pip install $UV_FLAGS -e vllm_source/tests/vllm_test_utils
+# vllm_test_utils may be a package or may not exist in newer versions
+if [ -d vllm_source/tests/vllm_test_utils ]; then
+  uv pip install $UV_FLAGS -e vllm_source/tests/vllm_test_utils
+fi
 uv pip install $UV_FLAGS hf_transfer
 cd vllm_source
-mkdir src
-mv vllm src/vllm
+# vLLM ≥0.27 already uses src/vllm layout; only move if old layout detected
+if [ -d "vllm" ] && [ ! -d "src/vllm" ]; then
+  mkdir -p src
+  mv vllm src/vllm
+fi
+# Ensure vllm_source is importable for tests (editable install if pyproject.toml exists)
+if [ -f "pyproject.toml" ]; then
+  uv pip install $UV_FLAGS -e . --no-build-isolation --no-deps --torch-backend=auto 2>/dev/null || true
+fi
