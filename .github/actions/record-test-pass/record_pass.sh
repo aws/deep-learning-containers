@@ -12,6 +12,13 @@ set -euo pipefail
 
 SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/image_test_skip"
 
+# Suites with skip_eligible=false are always run. Don't write them to the store.
+ELIGIBLE=$(python3 "$SCRIPTS/hash_suite_code.py" --suite "$SUITE" --eligible-only) || ELIGIBLE=""
+if [[ "$ELIGIBLE" != "true" ]]; then
+  echo "Suite '$SUITE' is not skip-eligible — not recording a PASS row."
+  exit 0
+fi
+
 if [[ -z "$IMAGE_CONTENT_HASH" || -z "$SUITE_CODE_HASH" ]]; then
   echo "::warning::Skipping cache write for '$SUITE': empty hash" \
        "(image='$IMAGE_CONTENT_HASH' suite_code='$SUITE_CODE_HASH')" \

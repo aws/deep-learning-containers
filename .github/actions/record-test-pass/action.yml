@@ -35,5 +35,5 @@ runs:
       run: |
         uv venv --python 3.12 --clear
         source .venv/bin/activate
-        uv pip install boto3
+        uv pip install boto3 pyyaml
         bash "${{ github.action_path }}/record_pass.sh"
