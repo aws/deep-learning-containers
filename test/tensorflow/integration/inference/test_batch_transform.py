@@ -12,13 +12,12 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from test_utils import wait_for_status
-
-LOGGER = logging.getLogger(__name__)
+from test_utils import random_suffix_name, wait_for_status
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
-from test_utils import random_suffix_name
+
+LOGGER = logging.getLogger(__name__)
 
 # Always CPU — CreateTransformJob wire is device-agnostic, and CI accounts
 # have zero TransformJob GPU quota by default.
@@ -112,6 +111,7 @@ def test_batch_transform_json(
                 ),
                 session=boto_session,
             )
+
             def _get_transform_status():
                 job.refresh()
                 return getattr(job, "transform_job_status", None)

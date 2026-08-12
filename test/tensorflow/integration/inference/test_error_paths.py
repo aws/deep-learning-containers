@@ -12,10 +12,10 @@ import tempfile
 
 import pytest
 from botocore.exceptions import ClientError
+from test_utils import random_suffix_name
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
-from test_utils import random_suffix_name
 
 
 @pytest.fixture(scope="module")

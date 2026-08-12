@@ -14,10 +14,10 @@ from pathlib import Path
 
 import pytest
 from botocore.exceptions import ClientError
+from test_utils import random_suffix_name
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import read_predictions
-from test_utils import random_suffix_name
 
 
 def test_mme_target_model_not_found(

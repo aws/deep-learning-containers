@@ -21,10 +21,10 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from test_utils import random_suffix_name
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import read_predictions
-from test_utils import random_suffix_name
 
 _NUM_MODELS = 3
 _NUM_CONCURRENT_INVOKES = 8

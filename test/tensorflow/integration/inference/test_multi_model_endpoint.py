@@ -11,9 +11,9 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from test_utils import random_suffix_name
 
 from .resources.build_sample_model import build_sample_model
-from test_utils import random_suffix_name
 
 
 def _values_from_predictions(predictions) -> list:
