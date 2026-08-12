@@ -551,7 +551,11 @@ class PythonServiceResource:
                         res.body = json.dumps({"model": info}).encode("utf-8")
                     except (ValueError, TypeError, requests.exceptions.RequestException) as e:
                         log.exception("exception handling GET models request.")
-                        res.status = falcon.HTTP_504 if isinstance(e, requests.exceptions.Timeout) else falcon.HTTP_500
+                        res.status = (
+                            falcon.HTTP_504
+                            if isinstance(e, requests.exceptions.Timeout)
+                            else falcon.HTTP_500
+                        )
                         res.body = json.dumps({"error": str(e)}).encode("utf-8")
 
     def on_delete(self, req, res, model_name):  # pylint: disable=W0613
