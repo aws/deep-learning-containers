@@ -33,19 +33,11 @@ def sm_instance_type() -> str:
 
 
 @pytest.fixture(scope="session")
-def boto_session(region):
-    """boto3 session bound to the configured region."""
-    import boto3
-
-    return boto3.Session(region_name=region)
-
-
-@pytest.fixture(scope="session")
-def sagemaker_session(boto_session):
+def sagemaker_session(aws_session):
     """SageMaker SDK v3 session (default_bucket / upload_data)."""
     from sagemaker.core.helper.session_helper import Session
 
-    return Session(boto_session=boto_session)
+    return Session(boto_session=aws_session.session)
 
 
 @pytest.fixture(scope="session")
@@ -54,20 +46,20 @@ def sagemaker_role_arn(aws_session) -> str:
     return aws_session.resolve_role_arn(SAGEMAKER_ROLE)
 
 
-def _cleanup(resources, boto_session):
+def _cleanup(resources, session):
     """Best-effort delete for a list of (resource_cls, get_kwargs) tuples (None-safe)."""
     for resource_cls, get_kwargs in resources:
         if any(v is None for v in get_kwargs.values()):
             continue
         try:
-            resource_cls.get(session=boto_session, **get_kwargs).delete()
+            resource_cls.get(session=session, **get_kwargs).delete()
         except Exception as e:
             LOGGER.warning(f"Cleanup {resource_cls.__name__} failed: {e}")
 
 
 @pytest.fixture
 def deploy_endpoint(
-    boto_session,
+    aws_session,
     sagemaker_session,
     sagemaker_role_arn,
     image_uri,
@@ -86,6 +78,7 @@ def deploy_endpoint(
         ProductionVariant,
     )
 
+    session = aws_session.session
     model = endpoint_config = endpoint = None
     endpoint_name = model_name = None
 
@@ -114,7 +107,7 @@ def deploy_endpoint(
             model_name=model_name,
             primary_container=ContainerDefinition(**container_kwargs),
             execution_role_arn=sagemaker_role_arn,
-            session=boto_session,
+            session=session,
         )
 
         endpoint_config = EndpointConfig.create(
@@ -127,13 +120,13 @@ def deploy_endpoint(
                     instance_type=sm_instance_type,
                 ),
             ],
-            session=boto_session,
+            session=session,
         )
 
         endpoint = Endpoint.create(
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
-            session=boto_session,
+            session=session,
         )
         endpoint.wait_for_status("InService")
         return endpoint, endpoint_name, model_name
@@ -147,5 +140,5 @@ def deploy_endpoint(
                 (EndpointConfig, {"endpoint_config_name": endpoint_name}),
                 (Model, {"model_name": model_name}),
             ],
-            boto_session,
+            session,
         )

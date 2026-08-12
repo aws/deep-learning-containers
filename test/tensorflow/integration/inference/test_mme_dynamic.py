@@ -21,7 +21,6 @@ from .resources.helpers import read_predictions
 
 
 def test_mme_target_model_not_found(
-    boto_session,
     sagemaker_session,
     deploy_endpoint,
 ):
@@ -59,7 +58,6 @@ def test_mme_target_model_not_found(
 
 
 def test_mme_late_dynamic_load(
-    boto_session,
     sagemaker_session,
     deploy_endpoint,
 ):

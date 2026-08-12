@@ -25,7 +25,7 @@ BATCH_TRANSFORM_INSTANCE_TYPE = "ml.c5.xlarge"
 
 
 def test_batch_transform_json(
-    boto_session,
+    aws_session,
     sagemaker_session,
     sagemaker_role_arn,
     image_uri,
@@ -65,7 +65,7 @@ def test_batch_transform_json(
         for i, row in enumerate([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]):
             (input_dir / f"row_{i}.json").write_text(json.dumps({"instances": [row]}))
 
-        s3 = boto_session.client("s3")
+        s3 = aws_session.session.client("s3")
         input_prefix = f"tf220-inference-tests/batch/{run_id}/input"
         for f in input_dir.iterdir():
             s3.upload_file(str(f), bucket, f"{input_prefix}/{f.name}")
@@ -82,7 +82,7 @@ def test_batch_transform_json(
                 model_data_url=model_data,
             ),
             execution_role_arn=sagemaker_role_arn,
-            session=boto_session,
+            session=aws_session.session,
         )
 
         try:
@@ -109,7 +109,7 @@ def test_batch_transform_json(
                     instance_type=BATCH_TRANSFORM_INSTANCE_TYPE,
                     instance_count=1,
                 ),
-                session=boto_session,
+                session=aws_session.session,
             )
 
             def _get_transform_status():
@@ -159,6 +159,6 @@ def test_batch_transform_json(
         finally:
             # Best-effort model cleanup; TransformJob is a completed record.
             try:
-                Model.get(model_name=model_name, session=boto_session).delete()
+                Model.get(model_name=model_name, session=aws_session.session).delete()
             except Exception as e:
                 LOGGER.warning(f"Cleanup Model {model_name} failed: {e}")
