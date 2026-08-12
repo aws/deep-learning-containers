@@ -20,7 +20,7 @@ jobs:
   preflight:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
+        fleet:default-runner
         buildspec-override:true
     outputs:
       image-uri: ${{ steps.image.outputs.image-uri }}
@@ -65,7 +65,7 @@ jobs:
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
+        fleet:default-runner
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6
@@ -102,7 +102,7 @@ jobs:
       needs.unit-test.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
+        fleet:default-runner
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6
