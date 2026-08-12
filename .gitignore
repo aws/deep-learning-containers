@@ -20,6 +20,7 @@ tutorials/
 docker/xgboost/prebuilt.whl
 docker/tei/*/cpu/tei-src/
 docker/tei/*/gpu/tei-src/
+docker/whisperx/pyannote-diarization.tar.gz
 
 # tmp
 .github/archive

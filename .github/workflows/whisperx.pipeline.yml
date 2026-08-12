@@ -1,4 +1,4 @@
-name: "Pipeline - Base"
+name: "Pipeline - WhisperX"
 
 on:
   workflow_call:
@@ -21,26 +21,31 @@ on:
         required: false
         type: boolean
         default: true
+      run-unit-test:
+        description: "Run CPU-only unit tests"
+        required: false
+        type: boolean
+        default: true
       run-security-test:
         description: "Run security tests"
         required: false
         type: boolean
-        default: false
+        default: true
       run-telemetry-test:
         description: "Run telemetry tests"
         required: false
         type: boolean
         default: true
-      run-efa-test:
-        description: "Run multi-node EFA/NCCL tests (launches 2x p4d.24xlarge)"
+      run-ec2-test:
+        description: "Run EC2 functional tests (gated to ec2 configs)"
         required: false
         type: boolean
-        default: false
-      efa-instance-type:
-        description: "EFA-enabled instance type for the EFA test"
+        default: true
+      run-sagemaker-test:
+        description: "Run SageMaker endpoint tests (gated to sagemaker configs)"
         required: false
-        type: string
-        default: "p4d.24xlarge"
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -55,14 +60,12 @@ jobs:
   ci-config:
     runs-on: ubuntu-latest
     outputs:
-      device-type: ${{ steps.parse.outputs.device-type }}
-      target: ${{ steps.parse.outputs.target }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
     steps:
       - uses: actions/checkout@v6
       - id: parse
         run: |
-          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
-          echo "target=$(yq '.build.target // ""' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
 
   build:
     if: ${{ inputs.build }}
@@ -73,7 +76,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
-    timeout-minutes: 720
+    timeout-minutes: 120
     outputs:
       image-uri: ${{ steps.build.outputs.image-uri }}
     steps:
@@ -97,6 +100,19 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  unit-test:
+    # CPU-only, image-independent tests — no `needs: [build]` so they run
+    # immediately in parallel with the image build and still report even if the
+    # build fails (they never consume the image; image-uri is unused).
+    if: ${{ inputs.run-unit-test }}
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/whisperx.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ''
+
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
     needs: [build]
@@ -119,19 +135,27 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  # Multi-node EFA/NCCL over Libfabric — devel only (runtime has no NCCL/EFA
-  # stack). Opt-in: launches 2x p4d.24xlarge, so it's off by default.
-  efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.target == 'devel' && needs.ci-config.outputs.device-type == 'gpu' }}
+  ec2-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-ec2-test && needs.ci-config.outputs.customer-type == 'ec2' }}
     needs: [build, ci-config]
     concurrency:
-      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: false
-    uses: ./.github/workflows/_reusable.efa-tests.yml
+      group: ${{ github.workflow }}-ec2-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/whisperx.tests-ec2.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      efa-instance-type: ${{ inputs.efa-instance-type }}
+
+  sagemaker-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
+    needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/whisperx.tests-sagemaker.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   release-gate:
     if: >-
@@ -141,7 +165,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, efa-test]
+    needs: [build, sanity-test, unit-test, security-test, telemetry-test, ec2-test, sagemaker-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -173,15 +197,13 @@ jobs:
     secrets: inherit
 
   notify-failure:
-    # Notify Slack immediately when an auto-release/dispatch-release run fails.
-    # Guarded on release context so PR runs never notify.
     if: >-
       failure() &&
       github.ref == 'refs/heads/main' &&
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [build, sanity-test, security-test, telemetry-test, efa-test, release-gate, release]
+    needs: [build, sanity-test, unit-test, security-test, telemetry-test, ec2-test, sagemaker-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
