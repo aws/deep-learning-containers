@@ -13,8 +13,10 @@ set -euo pipefail
 SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/image_test_skip"
 
 if [[ -z "$IMAGE_CONTENT_HASH" || -z "$SUITE_CODE_HASH" ]]; then
-  echo "::error::image has empty hash (image='$IMAGE_CONTENT_HASH' suite_code='$SUITE_CODE_HASH')."
-  exit 1
+  echo "::warning::Skipping cache write for '$SUITE': empty hash" \
+       "(image='$IMAGE_CONTENT_HASH' suite_code='$SUITE_CODE_HASH')" \
+       "— suite still passed."
+  exit 0
 fi
 
 if python3 "$SCRIPTS/ci_images_store.py" record \
