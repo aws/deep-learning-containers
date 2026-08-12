@@ -67,3 +67,5 @@ def test_mnist_distributed_cpu():
         ],
         job_name_prefix="pt-mnist-gloo",
     )
+
+# ci: benchmark trigger (integration/sagemaker test-skip cold run) - safe to remove

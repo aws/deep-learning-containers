@@ -26,6 +26,10 @@ jobs:
       image-uri: ${{ steps.image.outputs.image-uri }}
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
+      # Test-skip decision (computed once, consumed by the test + record jobs).
+      skip: ${{ steps.skip.outputs.skip }}
+      image-content-hash: ${{ steps.skip.outputs.image-content-hash }}
+      suite-code-hash: ${{ steps.skip.outputs.suite-code-hash }}
     steps:
       - uses: actions/checkout@v6
 
@@ -45,9 +49,20 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+      - name: Check test skip
+        if: steps.check.outputs.exists == 'true'
+        id: skip
+        uses: ./.github/actions/check-test-pass
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+          suite: pytorch/integration/sagemaker
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
+
   sagemaker-test:
     # Launches remote SageMaker training jobs — no GPU needed on the runner.
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.skip != 'true' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -86,3 +101,30 @@ jobs:
           cd test/
           PYTHONPATH=$(pwd):$PYTHONPATH python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             ${{ steps.select.outputs.test-file }}
+
+  sagemaker-record:
+    # Record a PASS row for `pytorch/integration/sagemaker` only after the test
+    # job succeeds on a MISS. `!cancelled()` keeps this from being auto-skipped;
+    # the result check blocks recording a failed run; the skip guard blocks
+    # re-recording on a HIT (the test job was gated off).
+    needs: [preflight, sagemaker-test]
+    if: >-
+      !cancelled() &&
+      needs.preflight.outputs.skip == 'false' &&
+      needs.preflight.outputs.image-content-hash != '' &&
+      needs.preflight.outputs.suite-code-hash != '' &&
+      needs.sagemaker-test.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Record test pass
+        uses: ./.github/actions/record-test-pass
+        with:
+          suite: pytorch/integration/sagemaker
+          image-content-hash: ${{ needs.preflight.outputs.image-content-hash }}
+          suite-code-hash: ${{ needs.preflight.outputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
