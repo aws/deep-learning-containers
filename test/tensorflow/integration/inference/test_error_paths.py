@@ -13,13 +13,14 @@ import tempfile
 import pytest
 from botocore.exceptions import ClientError
 from test_utils import random_suffix_name
+from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
 
 
 @pytest.fixture(scope="module")
-def error_endpoint(sagemaker_session, aws_session, sagemaker_role_arn, image_uri, sm_instance_type):
+def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
     """Deploy a single endpoint shared across all error-path parametrized tests."""
     import logging
 
@@ -51,7 +52,7 @@ def error_endpoint(sagemaker_session, aws_session, sagemaker_role_arn, image_uri
                 image=image_uri,
                 model_data_url=model_data,
             ),
-            execution_role_arn=sagemaker_role_arn,
+            execution_role_arn=aws_session.resolve_role_arn(SAGEMAKER_ROLE),
             session=session,
         )
         EndpointConfig.create(
@@ -62,6 +63,7 @@ def error_endpoint(sagemaker_session, aws_session, sagemaker_role_arn, image_uri
                     model_name=model_name,
                     initial_instance_count=1,
                     instance_type=sm_instance_type,
+                    inference_ami_version=INFERENCE_AMI_VERSION_CU12,
                 ),
             ],
             session=session,

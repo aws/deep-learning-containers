@@ -12,7 +12,7 @@ import os
 
 import pytest
 from test_utils import random_suffix_name
-from test_utils.constants import SAGEMAKER_ROLE
+from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
 
 LOGGER = logging.getLogger(__name__)
 
@@ -40,12 +40,6 @@ def sagemaker_session(aws_session):
     return Session(boto_session=aws_session.session)
 
 
-@pytest.fixture(scope="session")
-def sagemaker_role_arn(aws_session) -> str:
-    """Resolve SAGEMAKER_ROLE constant to full ARN via AWSSessionManager."""
-    return aws_session.resolve_role_arn(SAGEMAKER_ROLE)
-
-
 def _cleanup(resources, session):
     """Best-effort delete for a list of (resource_cls, get_kwargs) tuples (None-safe)."""
     for resource_cls, get_kwargs in resources:
@@ -61,7 +55,6 @@ def _cleanup(resources, session):
 def deploy_endpoint(
     aws_session,
     sagemaker_session,
-    sagemaker_role_arn,
     image_uri,
     sm_instance_type,
 ):
@@ -79,6 +72,7 @@ def deploy_endpoint(
     )
 
     session = aws_session.session
+    role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
     model = endpoint_config = endpoint = None
     endpoint_name = model_name = None
 
@@ -106,7 +100,7 @@ def deploy_endpoint(
         model = Model.create(
             model_name=model_name,
             primary_container=ContainerDefinition(**container_kwargs),
-            execution_role_arn=sagemaker_role_arn,
+            execution_role_arn=role_arn,
             session=session,
         )
 
@@ -118,6 +112,7 @@ def deploy_endpoint(
                     model_name=model_name,
                     initial_instance_count=1,
                     instance_type=sm_instance_type,
+                    inference_ami_version=INFERENCE_AMI_VERSION_CU12,
                 ),
             ],
             session=session,

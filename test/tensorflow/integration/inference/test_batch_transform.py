@@ -13,6 +13,7 @@ from pathlib import Path
 
 import pytest
 from test_utils import random_suffix_name, wait_for_status
+from test_utils.constants import SAGEMAKER_ROLE
 
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
@@ -27,7 +28,7 @@ BATCH_TRANSFORM_INSTANCE_TYPE = "ml.c5.xlarge"
 def test_batch_transform_json(
     aws_session,
     sagemaker_session,
-    sagemaker_role_arn,
+
     image_uri,
 ):
     """End-to-end batch transform on JSON: 3 single-record files, verify 2x output."""
@@ -81,7 +82,7 @@ def test_batch_transform_json(
                 image=image_uri,
                 model_data_url=model_data,
             ),
-            execution_role_arn=sagemaker_role_arn,
+            execution_role_arn=aws_session.resolve_role_arn(SAGEMAKER_ROLE),
             session=aws_session.session,
         )
 
