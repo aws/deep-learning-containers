@@ -2,26 +2,29 @@ name: "PR - WhisperX AL2023"
 
 on:
   workflow_dispatch:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - ".github/config/image/whisperx/*.yml"
-      - ".github/workflows/whisperx.pipeline.yml"
-      - ".github/workflows/whisperx.pr-amzn2023.yml"
-      - ".github/workflows/whisperx.tests-ec2.yml"
-      - ".github/workflows/whisperx.tests-sagemaker.yml"
-      - ".github/workflows/whisperx.tests-unit.yml"
-      - "docker/whisperx/**"
-      - "scripts/docker/whisperx/**"
-      - "scripts/docker/common/**"
-      - "scripts/docker/telemetry/**"
-      - "scripts/ci/build/whisperx/**"
-      - "test/sanity/**"
-      - "test/telemetry/**"
-      - "test/whisperx/**"
-      - "test/security/data/ecr_scan_allowlist/whisperx/**"
-      - "!docs/**"
+  # TEMP DISABLED on the whisperx-gamma-test branch (do-not-merge): the
+  # pull_request trigger is commented out so the normal PR CI does not run
+  # alongside the gamma-test workflow. Uncomment to restore before merging.
+  # pull_request:
+  #   branches: [main]
+  #   types: [opened, reopened, synchronize]
+  #   paths:
+  #     - ".github/config/image/whisperx/*.yml"
+  #     - ".github/workflows/whisperx.pipeline.yml"
+  #     - ".github/workflows/whisperx.pr-amzn2023.yml"
+  #     - ".github/workflows/whisperx.tests-ec2.yml"
+  #     - ".github/workflows/whisperx.tests-sagemaker.yml"
+  #     - ".github/workflows/whisperx.tests-unit.yml"
+  #     - "docker/whisperx/**"
+  #     - "scripts/docker/whisperx/**"
+  #     - "scripts/docker/common/**"
+  #     - "scripts/docker/telemetry/**"
+  #     - "scripts/ci/build/whisperx/**"
+  #     - "test/sanity/**"
+  #     - "test/telemetry/**"
+  #     - "test/whisperx/**"
+  #     - "test/security/data/ecr_scan_allowlist/whisperx/**"
+  #     - "!docs/**"
 
 permissions:
   contents: read
