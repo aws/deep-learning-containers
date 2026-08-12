@@ -19,8 +19,21 @@ from .resources.helpers import upload_tarball
 
 
 @pytest.fixture(scope="module")
-def error_endpoint(sagemaker_session, deploy_endpoint):
+def error_endpoint(sagemaker_session, aws_session, sagemaker_role_arn, image_uri, sm_instance_type):
     """Deploy a single endpoint shared across all error-path parametrized tests."""
+    import logging
+
+    from sagemaker.core.resources import (
+        ContainerDefinition,
+        Endpoint,
+        EndpointConfig,
+        Model,
+        ProductionVariant,
+    )
+
+    LOGGER = logging.getLogger(__name__)
+    session = aws_session.session
+
     with tempfile.TemporaryDirectory(prefix="tf220-errors-") as workdir:
         tar_path = build_sample_model(output_dir=workdir, multiplier=2.0)
         model_data = upload_tarball(
@@ -28,11 +41,50 @@ def error_endpoint(sagemaker_session, deploy_endpoint):
             tar_path,
             key_prefix=f"tf220-inference-tests/errors/{random_suffix_name('run', 63)}",
         )
-        endpoint, endpoint_name, model_name = deploy_endpoint(
-            model_data_url=model_data,
-            name_prefix="tf220-errors",
+
+        endpoint_name = random_suffix_name("tf220-errors", 63)
+        model_name = random_suffix_name("tf220-errors-model", 63)
+
+        Model.create(
+            model_name=model_name,
+            primary_container=ContainerDefinition(
+                image=image_uri,
+                model_data_url=model_data,
+            ),
+            execution_role_arn=sagemaker_role_arn,
+            session=session,
         )
-        yield endpoint
+        EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=model_name,
+                    initial_instance_count=1,
+                    instance_type=sm_instance_type,
+                ),
+            ],
+            session=session,
+        )
+        endpoint = Endpoint.create(
+            endpoint_name=endpoint_name,
+            endpoint_config_name=endpoint_name,
+            session=session,
+        )
+        endpoint.wait_for_status("InService")
+
+        try:
+            yield endpoint
+        finally:
+            for resource_cls, kwargs in [
+                (Endpoint, {"endpoint_name": endpoint_name}),
+                (EndpointConfig, {"endpoint_config_name": endpoint_name}),
+                (Model, {"model_name": model_name}),
+            ]:
+                try:
+                    resource_cls.get(session=session, **kwargs).delete()
+                except Exception as e:
+                    LOGGER.warning(f"Cleanup {resource_cls.__name__} failed: {e}")
 
 
 def _status(err: ClientError) -> int:
