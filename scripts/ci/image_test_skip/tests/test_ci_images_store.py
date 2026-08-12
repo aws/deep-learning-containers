@@ -49,7 +49,7 @@ def _get_row(client):
         },
     )["Item"]
 
-    
+
 def test_sort_key_format():
     assert store.sort_key("sanity", "sha256:7c1e") == "TEST#sanity#sha256:7c1e"
 

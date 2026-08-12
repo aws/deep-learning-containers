@@ -16,7 +16,7 @@ LOG = logging.getLogger(__name__)
 
 TABLE_NAME = "dlc-ci-images"
 TABLE_REGION = "us-west-2"
-# 3 day TTL for TEST rows for unforseen edge cases. Layer caches are currently 
+# 3 day TTL for TEST rows for unforeseen edge cases. Layer caches are currently
 # set to refresh every 1 day in .github/actions/build-image/action.yml.
 # Test caches will thus be available for min{CACHE_REFRESH, TEST_ROW_TTL} = 1 day.
 TEST_ROW_TTL_SECONDS = 3 * 24 * 60 * 60
