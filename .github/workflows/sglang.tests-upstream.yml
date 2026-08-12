@@ -38,6 +38,10 @@ jobs:
       image-exists: ${{ steps.check.outputs.exists }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       sglang-ref: ${{ steps.parse.outputs.sglang-ref }}
+      # Test-skip decision (computed once, consumed by the test + record jobs).
+      skip: ${{ steps.skip.outputs.skip }}
+      image-content-hash: ${{ steps.skip.outputs.image-content-hash }}
+      suite-code-hash: ${{ steps.skip.outputs.suite-code-hash }}
     steps:
       - uses: actions/checkout@v6
 
@@ -65,8 +69,19 @@ jobs:
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "sglang-ref=$(yq '.build.sglang_ref // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
+      - name: Check test skip
+        if: steps.check.outputs.exists == 'true'
+        id: skip
+        uses: ./.github/actions/check-test-pass
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+          suite: sglang/upstream
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}
+
   srt-backend-test:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.skip != 'true' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -140,3 +155,30 @@ jobs:
               exit 1
             fi
           '
+
+  srt-backend-record:
+    # Record a PASS row for `sglang/upstream` only after the test job succeeds on
+    # a MISS. `!cancelled()` keeps this from being auto-skipped; the result check
+    # blocks recording a failed run; the skip guard blocks re-recording on a HIT
+    # (the test job was gated off).
+    needs: [preflight, srt-backend-test]
+    if: >-
+      !cancelled() &&
+      needs.preflight.outputs.skip == 'false' &&
+      needs.preflight.outputs.image-content-hash != '' &&
+      needs.preflight.outputs.suite-code-hash != '' &&
+      needs.srt-backend-test.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Record test pass
+        uses: ./.github/actions/record-test-pass
+        with:
+          suite: sglang/upstream
+          image-content-hash: ${{ needs.preflight.outputs.image-content-hash }}
+          suite-code-hash: ${{ needs.preflight.outputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.DB_ACCOUNT_ID }}

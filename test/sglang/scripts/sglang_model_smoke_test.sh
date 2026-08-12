@@ -65,3 +65,5 @@ else
   echo "=== FAILED: ${MODEL_NAME} - empty or invalid response ==="
   exit 1
 fi
+
+# ci: benchmark trigger (sglang/upstream test-skip cold run) - safe to remove
