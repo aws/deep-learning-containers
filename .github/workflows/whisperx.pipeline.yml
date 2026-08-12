@@ -158,13 +158,19 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   release-gate:
+    # Production path: main + autorelease/dispatch-release (not .pr).
+    # Gamma-test path: any pull_request — the check step below hard-guards this
+    # to environment=gamma only, so a PR can never trigger a production release.
     if: >-
-      github.ref == 'refs/heads/main' &&
-      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
-      !contains(github.workflow_ref, '.pr') &&
       inputs.release &&
       !failure() && !cancelled() &&
-      needs.build.result == 'success'
+      needs.build.result == 'success' &&
+      (
+        (github.ref == 'refs/heads/main' &&
+          (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+          !contains(github.workflow_ref, '.pr'))
+        || github.event_name == 'pull_request'
+      )
     needs: [build, sanity-test, unit-test, security-test, telemetry-test, ec2-test, sagemaker-test]
     runs-on: ubuntu-latest
     outputs:
@@ -177,6 +183,12 @@ jobs:
         run: |
           SHOULD_RELEASE=$(yq '.release.release' "${{ inputs.config-file }}")
           ENVIRONMENT=$(yq '.release.environment' "${{ inputs.config-file }}")
+          # Safety guard: off main (e.g. a PR gamma test), ONLY gamma may
+          # release — never production/preprod — regardless of the config.
+          if [[ "${{ github.ref }}" != "refs/heads/main" && "${ENVIRONMENT}" != "gamma" ]]; then
+            echo "::notice::Refusing '${ENVIRONMENT}' release off non-main ref (${{ github.ref }}); only gamma is permitted here."
+            SHOULD_RELEASE=false
+          fi
           echo "should-release=${SHOULD_RELEASE}" >> $GITHUB_OUTPUT
           echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
       - id: spec

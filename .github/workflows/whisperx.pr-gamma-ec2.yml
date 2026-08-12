@@ -1,0 +1,41 @@
+name: "PR Gamma Test - WhisperX EC2 AL2023"
+
+# TEST-ONLY workflow (whisperx-gamma-test branch): triggers a gamma release of
+# the EC2 image from the PR so the release path can be validated before going to
+# production. The pipeline release-gate only permits gamma (never production)
+# off main. Do NOT merge this workflow to main.
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/whisperx/ec2-amzn2023.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/whisperx.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      release: true
+    secrets: inherit
