@@ -15,6 +15,7 @@ from botocore.exceptions import ClientError
 from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
 
+from .conftest import _cleanup
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
 
@@ -22,8 +23,6 @@ from .resources.helpers import upload_tarball
 @pytest.fixture(scope="module")
 def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
     """Deploy a single endpoint shared across all error-path parametrized tests."""
-    import logging
-
     from sagemaker.core.resources import (
         ContainerDefinition,
         Endpoint,
@@ -32,7 +31,6 @@ def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
         ProductionVariant,
     )
 
-    LOGGER = logging.getLogger(__name__)
     session = aws_session.session
 
     with tempfile.TemporaryDirectory(prefix="tf220-errors-") as workdir:
@@ -79,13 +77,7 @@ def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
         try:
             yield endpoint
         finally:
-            for resource in [endpoint, endpoint_config, model_obj]:
-                if resource is None:
-                    continue
-                try:
-                    resource.delete()
-                except Exception as e:
-                    LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
+            _cleanup([endpoint, endpoint_config, model_obj])
 
 
 def _status(err: ClientError) -> int:

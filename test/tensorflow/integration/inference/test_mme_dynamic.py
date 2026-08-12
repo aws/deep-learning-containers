@@ -17,7 +17,7 @@ from botocore.exceptions import ClientError
 from test_utils import random_suffix_name
 
 from .resources.build_sample_model import build_sample_model
-from .resources.helpers import read_predictions
+from .resources.helpers import read_predictions, upload_tarball
 
 
 def test_mme_target_model_not_found(
@@ -34,7 +34,7 @@ def test_mme_target_model_not_found(
         )
         bucket = sagemaker_session.default_bucket()
         s3_key_prefix = f"tf220-inference-tests/mme-miss/{random_suffix_name('run', 63)}"
-        sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
+        upload_tarball(sagemaker_session, model1_tar, key_prefix=s3_key_prefix)
         s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
 
         endpoint, endpoint_name, model_name = deploy_endpoint(
@@ -71,7 +71,7 @@ def test_mme_late_dynamic_load(
         )
         bucket = sagemaker_session.default_bucket()
         s3_key_prefix = f"tf220-inference-tests/mme-late/{random_suffix_name('run', 63)}"
-        sagemaker_session.upload_data(path=model1_tar, bucket=bucket, key_prefix=s3_key_prefix)
+        upload_tarball(sagemaker_session, model1_tar, key_prefix=s3_key_prefix)
         s3_model_prefix = f"s3://{bucket}/{s3_key_prefix}/"
 
         endpoint, endpoint_name, model_name = deploy_endpoint(
@@ -96,7 +96,7 @@ def test_mme_late_dynamic_load(
             multiplier=3.0,
             tar_filename="model2.tar.gz",
         )
-        sagemaker_session.upload_data(path=model2_tar, bucket=bucket, key_prefix=s3_key_prefix)
+        upload_tarball(sagemaker_session, model2_tar, key_prefix=s3_key_prefix)
 
         r2 = endpoint.invoke(
             body=payload,

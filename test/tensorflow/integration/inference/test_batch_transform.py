@@ -28,7 +28,6 @@ BATCH_TRANSFORM_INSTANCE_TYPE = "ml.c5.xlarge"
 def test_batch_transform_json(
     aws_session,
     sagemaker_session,
-
     image_uri,
 ):
     """End-to-end batch transform on JSON: 3 single-record files, verify 2x output."""

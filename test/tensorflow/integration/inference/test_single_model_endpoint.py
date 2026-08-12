@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import json
 import tempfile
-from pathlib import Path
 
 import pytest
 from test_utils import random_suffix_name
 
 from .resources.build_sample_model import build_sample_model
+from .resources.helpers import read_predictions, upload_tarball
 
 
 def test_single_model_predict(
@@ -26,14 +26,10 @@ def test_single_model_predict(
             multiplier=2.0,
         )
 
-        bucket = sagemaker_session.default_bucket()
-        key_prefix = (
-            f"tf220-inference-tests/{Path(tar_path).stem}-{random_suffix_name('single', 63)}"
-        )
-        model_data = sagemaker_session.upload_data(
-            path=tar_path,
-            bucket=bucket,
-            key_prefix=key_prefix,
+        model_data = upload_tarball(
+            sagemaker_session,
+            tar_path,
+            key_prefix=f"tf220-inference-tests/single/{random_suffix_name('run', 63)}",
         )
 
         endpoint, endpoint_name, model_name = deploy_endpoint(
@@ -46,16 +42,5 @@ def test_single_model_predict(
             content_type="application/json",
             accept="application/json",
         )
-        response = json.loads(result.body.read().decode("utf-8"))
-
-        assert "predictions" in response, f"missing predictions key in {response!r}"
-        predictions = response["predictions"]
-        assert predictions and isinstance(predictions, list)
-
-        first = predictions[0]
-        if isinstance(first, dict) and "output" in first:
-            values = first["output"]
-        else:
-            values = first
-
+        values = read_predictions(result)
         assert values == pytest.approx([2.0, 4.0, 6.0]), f"got {values!r}"

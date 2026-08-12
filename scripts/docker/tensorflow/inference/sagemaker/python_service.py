@@ -68,7 +68,7 @@ def default_handler(data, context):
     data = data.read().decode("utf-8")
     if not isinstance(data, str):
         data = json.loads(data)
-    response = requests.post(context.rest_uri, data=data)
+    response = requests.post(context.rest_uri, data=data, timeout=60)
     return response.content, context.accept_header
 
 
@@ -505,7 +505,7 @@ class PythonServiceResource:
 
         def handler(data, context):
             processed_input = custom_input_handler(data, context)
-            response = requests.post(context.rest_uri, data=processed_input)
+            response = requests.post(context.rest_uri, data=processed_input, timeout=60)
             return custom_output_handler(response, context)
 
         return handler
