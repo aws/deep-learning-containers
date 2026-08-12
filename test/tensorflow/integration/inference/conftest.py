@@ -40,15 +40,15 @@ def sagemaker_session(aws_session):
     return Session(boto_session=aws_session.session)
 
 
-def _cleanup(resources, session):
-    """Best-effort delete for a list of (resource_cls, get_kwargs) tuples (None-safe)."""
-    for resource_cls, get_kwargs in resources:
-        if any(v is None for v in get_kwargs.values()):
+def _cleanup(resources):
+    """Best-effort delete for a list of v3 resource objects (None-safe)."""
+    for resource in resources:
+        if resource is None:
             continue
         try:
-            resource_cls.get(session=session, **get_kwargs).delete()
+            resource.delete()
         except Exception as e:
-            LOGGER.warning(f"Cleanup {resource_cls.__name__} failed: {e}")
+            LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
 
 
 @pytest.fixture
@@ -74,7 +74,6 @@ def deploy_endpoint(
     session = aws_session.session
     role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
     model = endpoint_config = endpoint = None
-    endpoint_name = model_name = None
 
     def _deploy(
         *,
@@ -83,7 +82,7 @@ def deploy_endpoint(
         container_env: dict | None = None,
         name_prefix: str = "tf220-inference",
     ):
-        nonlocal model, endpoint_config, endpoint, endpoint_name, model_name
+        nonlocal model, endpoint_config, endpoint
 
         endpoint_name = random_suffix_name(name_prefix, 63)
         model_name = random_suffix_name(f"{name_prefix}-model", 63)
@@ -129,11 +128,4 @@ def deploy_endpoint(
     try:
         yield _deploy
     finally:
-        _cleanup(
-            [
-                (Endpoint, {"endpoint_name": endpoint_name}),
-                (EndpointConfig, {"endpoint_config_name": endpoint_name}),
-                (Model, {"model_name": model_name}),
-            ],
-            session,
-        )
+        _cleanup([endpoint, endpoint_config, model])

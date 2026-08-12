@@ -46,7 +46,8 @@ def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
         endpoint_name = random_suffix_name("tf220-errors", 63)
         model_name = random_suffix_name("tf220-errors-model", 63)
 
-        Model.create(
+        model_obj = endpoint_config = endpoint = None
+        model_obj = Model.create(
             model_name=model_name,
             primary_container=ContainerDefinition(
                 image=image_uri,
@@ -55,7 +56,7 @@ def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
             execution_role_arn=aws_session.resolve_role_arn(SAGEMAKER_ROLE),
             session=session,
         )
-        EndpointConfig.create(
+        endpoint_config = EndpointConfig.create(
             endpoint_config_name=endpoint_name,
             production_variants=[
                 ProductionVariant(
@@ -78,15 +79,13 @@ def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
         try:
             yield endpoint
         finally:
-            for resource_cls, kwargs in [
-                (Endpoint, {"endpoint_name": endpoint_name}),
-                (EndpointConfig, {"endpoint_config_name": endpoint_name}),
-                (Model, {"model_name": model_name}),
-            ]:
+            for resource in [endpoint, endpoint_config, model_obj]:
+                if resource is None:
+                    continue
                 try:
-                    resource_cls.get(session=session, **kwargs).delete()
+                    resource.delete()
                 except Exception as e:
-                    LOGGER.warning(f"Cleanup {resource_cls.__name__} failed: {e}")
+                    LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
 
 
 def _status(err: ClientError) -> int:
