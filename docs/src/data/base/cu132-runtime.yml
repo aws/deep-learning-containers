@@ -6,7 +6,7 @@ cuda: cu132
 os: amzn2023
 platform: ec2
 ga: "2026-07-31"
-eop: "2027-07-31"
+eop: "2029-06-30"
 public_registry: true
 
 tags:

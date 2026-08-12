@@ -245,6 +245,7 @@ def parse_args():
             "huggingface-vllm",
             "huggingface-pytorch-training",
             "llama_cpp",
+            "whisperx",
         ],
         help="framework of container image.",
         required=True,

@@ -5,6 +5,8 @@ python: py313
 cuda: cu129
 os: amzn2023
 platform: ec2
+ga: "2026-06-15"
+eop: "2028-06-30"
 public_registry: true
 
 tags:
