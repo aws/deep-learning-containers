@@ -315,30 +315,30 @@ def is_model_ready(response):
 
 
 def wait_for_model_ready(url, timeout_seconds):
-    try:
-        while timeout_seconds > 0:
-            response = requests.get(url, timeout=0.1)
-            log.info(
-                f"wait_for_model_ready response status_code : {response.status_code} "
-                f"response : {json.loads(response.content)} timeout in : {timeout_seconds}s"
-            )
-            if response.status_code != 200:
-                return False
-            if is_model_ready(response):
-                return True
-            timeout_seconds -= 1
-        return False
-    except requests.exceptions.RequestException:
-        return False
+    deadline = time.monotonic() + timeout_seconds
+    while time.monotonic() < deadline:
+        try:
+            response = requests.get(url, timeout=1)
+        except requests.exceptions.RequestException as e:
+            log.info("model not reachable yet: %s", e)
+            time.sleep(1)
+            continue
+        if response.status_code == 200 and is_model_ready(response):
+            return True
+        log.info("model not ready yet: status=%s", response.status_code)
+        time.sleep(1)
+    return False
 
 
 def retry_from_timeout(timeout_seconds, backoff_factor):
-    retry_count = 1
-    retry_time = 0
-    while retry_time < timeout_seconds:
-        retry_count += 1
-        retry_time += backoff_factor * (2 ** (retry_count + 1))
-    return retry_count
+    if backoff_factor <= 0:
+        return 0
+    retries, elapsed = 0, 0.0
+    while True:
+        nxt = elapsed + backoff_factor * (2**retries)
+        if nxt > timeout_seconds:
+            return retries
+        elapsed, retries = nxt, retries + 1
 
 
 def get_cpu_memory_util():

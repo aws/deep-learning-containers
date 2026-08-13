@@ -188,10 +188,22 @@ function json_lines_request(r, data) {
     tfs_json_request(r, builder.join(''))
 }
 
+function split_csv_fields(line) {
+    var fields = [], cur = '', inq = false;
+    for (var i = 0; i < line.length; i++) {
+        var c = line[i];
+        if (c === '"') {
+            if (inq && i + 1 < line.length && line[i + 1] === '"') { cur += '"'; i++; }
+            else { inq = !inq; }
+        } else if (c === ',' && !inq) { fields.push(cur); cur = ''; }
+        else { cur += c; }
+    }
+    fields.push(cur);
+    return fields;
+}
+
 function csv_request(r) {
     var data = r.requestText
-    // look for initial quote or numeric-only data in 1st field
-    var needs_quotes = data.search(/^\s*("|[\d.Ee+\-]+.*)/) != 0
     var lines = data.trim().split(/\r?\n/)
     var builder = []
     builder.push('{"instances":[')
@@ -199,22 +211,24 @@ function csv_request(r) {
     for (var i = 0; i < lines.length; i++) {
         var line = lines[i].trim()
         if (line) {
-            var line_builder = []
-            // Only wrap line in brackets if there are multiple columns.
-            // If there's only one column and it has a string with a comma,
-            // the input will be wrapped in an extra set of brackets.
-            var has_multiple_columns = line.search(',') != -1
+            var fields = split_csv_fields(line)
+            var has_multiple_columns = fields.length > 1
+            var needs_quotes = fields.length > 0 && isNaN(Number(fields[0]))
 
+            var line_builder = []
             if (has_multiple_columns) {
                 line_builder.push('[')
             }
 
-            if (needs_quotes) {
-                line_builder.push('"')
-                line_builder.push(line.replace(/"/g, '\\"').replace(/,/g, '","'))
-                line_builder.push('"')
-            } else {
-                line_builder.push(line)
+            for (var j = 0; j < fields.length; j++) {
+                if (j > 0) line_builder.push(',')
+                if (needs_quotes) {
+                    line_builder.push('"')
+                    line_builder.push(fields[j].replace(/\\/g, '\\\\').replace(/"/g, '\\"'))
+                    line_builder.push('"')
+                } else {
+                    line_builder.push(fields[j])
+                }
             }
 
             if (has_multiple_columns) {

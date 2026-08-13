@@ -24,6 +24,7 @@ import logging  # noqa: E402
 import os  # noqa: E402
 import pickle  # noqa: E402
 import random  # noqa: E402
+import re  # noqa: E402
 import shutil  # noqa: E402
 import signal  # noqa: E402
 import subprocess  # noqa: E402
@@ -271,15 +272,11 @@ class PythonServiceResource:
                 ),
             }
 
+    _MODEL_NAME_RE = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\Z")
+
     @staticmethod
     def _is_bad_model_name(model_name):
-        return (
-            not model_name
-            or "/" in model_name
-            or "\x00" in model_name
-            or model_name in (".", "..")
-            or model_name.startswith(".")
-        )
+        return not model_name or not PythonServiceResource._MODEL_NAME_RE.match(model_name)
 
     def _reject_bad_model_name(self, res, model_name):
         """Return True and write a 400 response if model_name is unsafe."""
