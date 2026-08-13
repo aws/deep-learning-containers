@@ -38,8 +38,13 @@ def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type, 
             output_dir=workdir,
             multiplier=2.0,
             code_files={
-                "inference.py": "def input_handler(data, context):\n"
-                "    return data.read().decode('utf-8')\n"
+                "inference.py": (
+                    "def input_handler(data, context):\n"
+                    "    return data.read().decode('utf-8')\n"
+                    "\n"
+                    "def output_handler(response, context):\n"
+                    "    return response.content, context.accept_header\n"
+                ),
             },
         )
         model_data = upload_tarball(

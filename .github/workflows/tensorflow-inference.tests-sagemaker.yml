@@ -50,6 +50,7 @@ jobs:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
   sagemaker-test:
+    timeout-minutes: 90
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
     runs-on:
