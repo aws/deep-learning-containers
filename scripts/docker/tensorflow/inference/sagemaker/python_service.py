@@ -172,7 +172,7 @@ class PythonServiceResource:
                     model_name, model_index
                 )
                 log.info("tensorflow serving model config: \n%s\n", tfs_config)
-                os.makedirs(os.path.dirname(tfs_config_file))
+                os.makedirs(os.path.dirname(tfs_config_file), exist_ok=True)
                 with open(tfs_config_file, "w", encoding="utf8") as f:
                     f.write(tfs_config)
 

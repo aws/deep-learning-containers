@@ -34,6 +34,7 @@ CUSTOM_ATTRIBUTES_HEADER = "X-Amzn-SageMaker-Custom-Attributes"
 # Validation for user-supplied tfs-* attributes that get interpolated into the
 # TFS REST URI. Without these, an attacker-controlled Custom-Attributes header
 # could redirect the request to an arbitrary path on the local TFS server.
+_TFS_MODEL_NAME_RE = re.compile(r"\A[A-Za-z0-9][A-Za-z0-9._-]{0,254}\Z")
 _TFS_MODEL_VERSION_RE = re.compile(r"^\d+$")
 _TFS_ALLOWED_METHODS = frozenset({"predict", "classify", "regress"})
 
@@ -75,6 +76,8 @@ def make_tfs_uri(port, attributes, default_model_name, model_name=None):
     tfs_model_version = attributes.get("tfs-model-version")
     tfs_method = attributes.get("tfs-method", "predict")
 
+    if not _TFS_MODEL_NAME_RE.match(tfs_model_name or ""):
+        raise ValueError("invalid tfs-model-name")
     if tfs_model_version is not None and not _TFS_MODEL_VERSION_RE.match(tfs_model_version):
         raise ValueError("invalid tfs-model-version: must be a positive integer")
     if tfs_method not in _TFS_ALLOWED_METHODS:
@@ -286,17 +289,13 @@ def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
                 tfs_url, timeout_seconds, retry_count
             )
         )
-        response = session.get(tfs_url, timeout=0.1)
-        log.info(
-            f"tfs response status_code: {response.status_code} with content : {json.loads(response.content)}"
-        )
+        response = session.get(tfs_url, timeout=5)
+        log.info("tfs response status_code: %s", response.status_code)
+        if response.status_code == 200 and is_model_ready(response):
+            return
         end = time.time()
-        if response.status_code == 200:
-            if is_model_ready(response):
-                return
-            elif wait_for_model_ready(tfs_url, timeout_seconds - int(end - start)):
-                return
-
+        if wait_for_model_ready(tfs_url, timeout_seconds - int(end - start)):
+            return
         raise MultiModelException(408, "Timed out after {} seconds".format(timeout_seconds), pid)
     except (
         ConnectionRefusedError,

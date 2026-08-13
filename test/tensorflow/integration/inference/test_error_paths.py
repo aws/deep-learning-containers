@@ -34,7 +34,14 @@ def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type, 
     session = aws_session.session
 
     with tempfile.TemporaryDirectory(prefix="tf220-errors-") as workdir:
-        tar_path = build_sample_model(output_dir=workdir, multiplier=2.0)
+        tar_path = build_sample_model(
+            output_dir=workdir,
+            multiplier=2.0,
+            code_files={
+                "inference.py": "def input_handler(data, context):\n"
+                "    return data.read().decode('utf-8')\n"
+            },
+        )
         model_data = upload_tarball(
             sagemaker_session,
             tar_path,

@@ -51,9 +51,9 @@ def test_mme_target_model_not_found(
                 accept="application/json",
                 target_model="does_not_exist.tar.gz",
             )
-        status = excinfo.value.response.get("ResponseMetadata", {}).get("HTTPStatusCode", 0)
-        assert 400 <= status < 500, (
-            f"expected 4xx on unknown target_model, got status {status}: {excinfo.value.response!r}"
+        status = int(excinfo.value.response.get("OriginalStatusCode", 0))
+        assert status == 404, (
+            f"expected 404 for unknown target_model, got {status}: {excinfo.value.response!r}"
         )
 
 

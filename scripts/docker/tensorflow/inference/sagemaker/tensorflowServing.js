@@ -15,6 +15,7 @@ function invocations(r) {
 
 function ping(r) {
     var uri = make_tfs_uri(r, false)
+    if (uri === null) return
 
     function callback (reply) {
         if (reply.status == 200 && reply.responseText.includes('"AVAILABLE"')) {
@@ -36,6 +37,7 @@ function ping_without_model(r) {
     // also return 200 in unlikely case our request was really valid
 
     var uri = make_tfs_uri(r, true)
+    if (uri === null) return
     var options = {
         method: 'POST',
         body: '{"instances": "invalid"}'
@@ -65,6 +67,7 @@ function return_error(r, code, message) {
 
 function tfs_json_request(r, json) {
     var uri = make_tfs_uri(r, true)
+    if (uri === null) return
     var options = {
         method: 'POST',
         body: json
@@ -92,18 +95,33 @@ function tfs_json_request(r, json) {
 
 }
 
+var TFS_MODEL_NAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,254}$/
+var TFS_VERSION_RE = /^[0-9]+$/
+var TFS_METHODS = ['predict', 'classify', 'regress']
+
 function make_tfs_uri(r, with_method) {
     var attributes = parse_custom_attributes(r)
-
-    var uri = tfs_base_uri + attributes['tfs-model-name']
+    var name = attributes['tfs-model-name']
+    if (!TFS_MODEL_NAME_RE.test(name)) {
+        return_error(r, 400, 'invalid tfs-model-name')
+        return null
+    }
+    var uri = tfs_base_uri + name
     if ('tfs-model-version' in attributes) {
+        if (!TFS_VERSION_RE.test(attributes['tfs-model-version'])) {
+            return_error(r, 400, 'invalid tfs-model-version')
+            return null
+        }
         uri += '/versions/' + attributes['tfs-model-version']
     }
-
     if (with_method) {
-        uri += ':' + (attributes['tfs-method'] || 'predict')
+        var m = attributes['tfs-method'] || 'predict'
+        if (TFS_METHODS.indexOf(m) < 0) {
+            return_error(r, 400, 'invalid tfs-method')
+            return null
+        }
+        uri += ':' + m
     }
-
     return uri
 }
 
