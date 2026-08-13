@@ -52,3 +52,42 @@ def test_csv_content_type_multi_column(
         assert _values(rows[1]) == pytest.approx([8.0, 10.0, 12.0]), (
             f"row 2 got {_values(rows[1])!r}"
         )
+
+
+def test_csv_mixed_type_produces_valid_error(
+    sagemaker_session,
+    deploy_endpoint,
+):
+    """Mixed numeric+string CSV exercises the quoted-field path in csv_request.
+
+    The model expects float input, so TFS will reject the string columns — but
+    the test verifies the njs CSV serializer produces valid JSON (triggering a
+    proper TFS 400) rather than emitting invalid JSON that crashes the request.
+    """
+    from botocore.exceptions import ClientError
+
+    with tempfile.TemporaryDirectory(prefix="tf220-csv-mixed-") as workdir:
+        tar_path = build_sample_model(output_dir=workdir, multiplier=2.0)
+        model_data = upload_tarball(
+            sagemaker_session,
+            tar_path,
+            key_prefix=f"tf220-inference-tests/csv-mixed/{random_suffix_name('run', 63)}",
+        )
+        endpoint, endpoint_name, model_name = deploy_endpoint(
+            model_data_url=model_data,
+            name_prefix="tf220-csv-mix",
+        )
+
+        # Mixed row: numeric + string + quoted field with embedded comma.
+        csv_payload = b'1.0,hello,"world,earth"\n'
+        with pytest.raises(ClientError) as excinfo:
+            endpoint.invoke(
+                body=csv_payload,
+                content_type="text/csv",
+                accept="application/json",
+            )
+        # TFS should return 400 (bad tensor type), not 500 (invalid JSON parse).
+        status = int(excinfo.value.response.get("OriginalStatusCode", 0))
+        assert 400 <= status < 500, (
+            f"expected 4xx from TFS on string input to numeric model, got {status}"
+        )
