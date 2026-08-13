@@ -454,20 +454,6 @@ class PythonServiceResource:
                 res.body = json.dumps({"error": str(ve)}).encode("utf-8")
                 return
 
-        content_type = (req.content_type or "").split(";")[0].strip().lower()
-        _SUPPORTED_CONTENT_TYPES = {
-            "application/json",
-            "application/jsonlines",
-            "application/jsons",
-            "text/csv",
-        }
-        if content_type and content_type not in _SUPPORTED_CONTENT_TYPES:
-            res.status = falcon.HTTP_415
-            res.body = json.dumps(
-                {"error": "Unsupported Media Type: {}".format(content_type)}
-            ).encode("utf-8")
-            return
-
         try:
             res.status = falcon.HTTP_200
             handlers = self._handlers
@@ -488,6 +474,19 @@ class PythonServiceResource:
                 log.info(
                     "Model-specific inference script and universal inference script both do not exist, using default handlers."
                 )
+                content_type = (req.content_type or "").split(";")[0].strip().lower()
+                _SUPPORTED_CONTENT_TYPES = {
+                    "application/json",
+                    "application/jsonlines",
+                    "application/jsons",
+                    "text/csv",
+                }
+                if content_type and content_type not in _SUPPORTED_CONTENT_TYPES:
+                    res.status = falcon.HTTP_415
+                    res.body = json.dumps(
+                        {"error": "Unsupported Media Type: {}".format(content_type)}
+                    ).encode("utf-8")
+                    return
             res.body, res.content_type = handlers(data, context)
         except falcon.HTTPError:
             raise

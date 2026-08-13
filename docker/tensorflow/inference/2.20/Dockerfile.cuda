@@ -89,9 +89,10 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
     procps-ng \
-    gcc gcc-c++ make git \
+    # gcc/make/devel: serve.py pip-installs customer requirements.txt at start.
+    gcc gcc-c++ make \
     tar gzip xz which findutils util-linux \
-    libpng-devel freetype-devel zlib-devel \
+    libpng freetype zlib \
     libcublas-${CUDA_MAJOR_MINOR} libcufft-${CUDA_MAJOR_MINOR} \
     libcurand-${CUDA_MAJOR_MINOR} libcusolver-${CUDA_MAJOR_MINOR} \
     libcusparse-${CUDA_MAJOR_MINOR} libnvjpeg-${CUDA_MAJOR_MINOR} \

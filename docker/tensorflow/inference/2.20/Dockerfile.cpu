@@ -77,9 +77,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
   procps-ng \
-  gcc gcc-c++ make git \
+  # gcc/make/devel: serve.py pip-installs customer requirements.txt at start.
+  gcc gcc-c++ make \
   tar gzip xz which findutils util-linux \
-  libpng-devel freetype-devel zlib-devel \
+  libpng freetype zlib \
   openssl unzip jq curl wget \
   && dnf clean all
 

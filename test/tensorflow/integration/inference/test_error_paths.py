@@ -105,7 +105,7 @@ def _original_message(err: ClientError) -> str:
     [
         ("malformed-json", b"{ this is not valid json", "application/json", 400),
         ("empty-body", b"", "application/json", 400),
-        ("unsupported-content-type", b"anything at all", "application/x-unsupported-mimetype", 415),
+        ("unsupported-content-type", b"anything at all", "application/x-unsupported-mimetype", 400),
         (
             "wrong-tensor-shape",
             json.dumps({"instances": "not_a_list_of_lists"}).encode("utf-8"),
