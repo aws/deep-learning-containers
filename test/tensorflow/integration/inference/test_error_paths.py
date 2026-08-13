@@ -21,7 +21,7 @@ from .resources.helpers import upload_tarball
 
 
 @pytest.fixture(scope="module")
-def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
+def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type, sm_device_type):
     """Deploy a single endpoint shared across all error-path parametrized tests."""
     from sagemaker.core.resources import (
         ContainerDefinition,
@@ -62,7 +62,11 @@ def error_endpoint(sagemaker_session, aws_session, image_uri, sm_instance_type):
                     model_name=model_name,
                     initial_instance_count=1,
                     instance_type=sm_instance_type,
-                    inference_ami_version=INFERENCE_AMI_VERSION_CU12,
+                    **(
+                        {"inference_ami_version": INFERENCE_AMI_VERSION_CU12}
+                        if sm_device_type == "gpu"
+                        else {}
+                    ),
                 ),
             ],
             session=session,

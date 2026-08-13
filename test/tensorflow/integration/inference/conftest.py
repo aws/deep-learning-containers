@@ -25,11 +25,17 @@ _SM_INSTANCE_TYPE_BY_DEVICE = {
 
 
 @pytest.fixture(scope="session")
-def sm_instance_type() -> str:
-    """SM endpoint instance type from SM_DEVICE_TYPE (cpu|gpu)."""
+def sm_device_type() -> str:
+    """Device type from SM_DEVICE_TYPE env var (cpu|gpu). Fail-closed on misconfig."""
     device = os.environ.get("SM_DEVICE_TYPE", "").lower()
     assert device in {"cpu", "gpu"}, f"SM_DEVICE_TYPE must be 'cpu' or 'gpu'; got {device!r}."
-    return _SM_INSTANCE_TYPE_BY_DEVICE[device]
+    return device
+
+
+@pytest.fixture(scope="session")
+def sm_instance_type(sm_device_type) -> str:
+    """SM endpoint instance type derived from device type."""
+    return _SM_INSTANCE_TYPE_BY_DEVICE[sm_device_type]
 
 
 @pytest.fixture(scope="session")
@@ -57,6 +63,7 @@ def deploy_endpoint(
     sagemaker_session,
     image_uri,
     sm_instance_type,
+    sm_device_type,
 ):
     """Deploy a SageMaker endpoint; yields (endpoint, endpoint_name, model_name).
 
@@ -103,17 +110,18 @@ def deploy_endpoint(
             session=session,
         )
 
+        variant_kwargs = dict(
+            variant_name="AllTraffic",
+            model_name=model_name,
+            initial_instance_count=1,
+            instance_type=sm_instance_type,
+        )
+        if sm_device_type == "gpu":
+            variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
+
         endpoint_config = EndpointConfig.create(
             endpoint_config_name=endpoint_name,
-            production_variants=[
-                ProductionVariant(
-                    variant_name="AllTraffic",
-                    model_name=model_name,
-                    initial_instance_count=1,
-                    instance_type=sm_instance_type,
-                    inference_ami_version=INFERENCE_AMI_VERSION_CU12,
-                ),
-            ],
+            production_variants=[ProductionVariant(**variant_kwargs)],
             session=session,
         )
 
