@@ -94,21 +94,22 @@ def _original_message(err: ClientError) -> str:
 
 
 @pytest.mark.parametrize(
-    "scenario_id, body, content_type",
+    "scenario_id, body, content_type, expected_status",
     [
-        ("malformed-json", b"{ this is not valid json", "application/json"),
-        ("empty-body", b"", "application/json"),
-        ("unsupported-content-type", b"anything at all", "application/x-unsupported-mimetype"),
+        ("malformed-json", b"{ this is not valid json", "application/json", 400),
+        ("empty-body", b"", "application/json", 400),
+        ("unsupported-content-type", b"anything at all", "application/x-unsupported-mimetype", 415),
         (
             "wrong-tensor-shape",
             json.dumps({"instances": "not_a_list_of_lists"}).encode("utf-8"),
             "application/json",
+            400,
         ),
     ],
     ids=["malformed-json", "empty-body", "unsupported-content-type", "wrong-tensor-shape"],
 )
-def test_error_scenario(error_endpoint, scenario_id, body, content_type):
-    """Each scenario asserts the container returns 4xx/5xx, not 200 or raw nginx HTML."""
+def test_error_scenario(error_endpoint, scenario_id, body, content_type, expected_status):
+    """Each scenario asserts the container returns the expected error status."""
     with pytest.raises(ClientError) as excinfo:
         error_endpoint.invoke(
             body=body,
@@ -116,7 +117,7 @@ def test_error_scenario(error_endpoint, scenario_id, body, content_type):
             accept="application/json",
         )
     status = _original_status(excinfo.value)
-    assert 400 <= status < 600, f"[{scenario_id}] expected 4xx/5xx, got {status}"
+    assert status == expected_status, f"[{scenario_id}] expected {expected_status}, got {status}"
 
     response_body = _original_message(excinfo.value)
     assert "<html" not in response_body.lower(), (

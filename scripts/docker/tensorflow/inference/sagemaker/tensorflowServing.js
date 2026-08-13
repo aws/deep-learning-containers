@@ -213,7 +213,6 @@ function csv_request(r) {
         if (line) {
             var fields = split_csv_fields(line)
             var has_multiple_columns = fields.length > 1
-            var needs_quotes = fields.length > 0 && isNaN(Number(fields[0]))
 
             var line_builder = []
             if (has_multiple_columns) {
@@ -222,12 +221,13 @@ function csv_request(r) {
 
             for (var j = 0; j < fields.length; j++) {
                 if (j > 0) line_builder.push(',')
-                if (needs_quotes) {
+                var field = fields[j].trim()
+                if (field === '' || isNaN(Number(field))) {
                     line_builder.push('"')
-                    line_builder.push(fields[j].replace(/\\/g, '\\\\').replace(/"/g, '\\"'))
+                    line_builder.push(field.replace(/\\/g, '\\\\').replace(/"/g, '\\"'))
                     line_builder.push('"')
                 } else {
-                    line_builder.push(fields[j])
+                    line_builder.push(field)
                 }
             }
 
