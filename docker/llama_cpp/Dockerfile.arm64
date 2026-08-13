@@ -1,6 +1,9 @@
 ARG BASE_REF=2023
 
-# STAGE 0: builder — compile llama.cpp (x86-64 CPU) from a pinned upstream ref.
+# STAGE 0: builder — compile llama.cpp (aarch64/Graviton CPU) from a pinned ref.
+# Graviton3 baseline (-mcpu=neoverse-v1); one image is portable across
+# Graviton3/4/5 because llama.cpp repacks quantized weights to the CPU-optimal
+# int8 layout at load time, picking up newer-gen kernels at runtime.
 FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS builder
 
 # Pin the upstream ref for reproducible builds.
@@ -19,12 +22,13 @@ RUN git clone https://github.com/ggml-org/llama.cpp.git \
   && git checkout ${LLAMA_CPP_REF}
 
 WORKDIR /src/llama.cpp/build
-# Build every x86 microarch backend (SSE4.2..AMX) as loadable .so, dispatched at
-# runtime, so one image is portable across Haswell..Sapphire Rapids.
+# -mcpu=neoverse-v1 via CMAKE flags, NOT GGML_CPU_ARM_ARCH (which emits -march=,
+# rejected by GCC for CPU names). Graviton3 baseline; portable via runtime repack.
 RUN cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
   -DGGML_NATIVE=OFF \
-  -DGGML_CPU_ALL_VARIANTS=ON \
+  -DCMAKE_C_FLAGS="-mcpu=neoverse-v1" \
+  -DCMAKE_CXX_FLAGS="-mcpu=neoverse-v1" \
   -DGGML_BACKEND_DL=ON \
   -DGGML_OPENMP=ON \
   -DLLAMA_CURL=ON \
@@ -36,8 +40,11 @@ FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS runtime
 ARG PYTHON="python3"
 # Re-declared: ARGs don't cross build stages (used by OSS tracking below).
 ARG LLAMA_CPP_REF=b10075
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \

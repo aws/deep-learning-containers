@@ -1,10 +1,11 @@
-ARG BASE_REF=2023
+# CUDA base version (forwarded from config metadata.cuda_version as --build-arg).
+ARG CUDA_VERSION=13.0.2
 
-# STAGE 0: builder — compile llama.cpp (aarch64/Graviton CPU) from a pinned ref.
-# Graviton3 baseline (-mcpu=neoverse-v1); one image is portable across
-# Graviton3/4/5 because llama.cpp repacks quantized weights to the CPU-optimal
-# int8 layout at load time, picking up newer-gen kernels at runtime.
-FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS builder
+# STAGE 0: builder — compile llama.cpp (x86-64 CUDA) from a pinned ref.
+# One image carries the CUDA backend + every x86 CPU microarch backend as
+# loadable .so, dispatched at runtime (GPU if visible, else best CPU). The devel
+# base provides nvcc/headers, so no GPU is needed at build time.
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
 
 # Pin the upstream ref for reproducible builds.
 ARG LLAMA_CPP_REF=b10075
@@ -22,26 +23,31 @@ RUN git clone https://github.com/ggml-org/llama.cpp.git \
   && git checkout ${LLAMA_CPP_REF}
 
 WORKDIR /src/llama.cpp/build
-# -mcpu=neoverse-v1 via CMAKE flags, NOT GGML_CPU_ARM_ARCH (which emits -march=,
-# rejected by GCC for CPU names). Graviton3 baseline; portable via runtime repack.
+# CUDA backend + all x86 CPU variants as loadable fallbacks. --allow-shlib-undefined
+# lets the CPU-variant .so link against load-time symbols (upstream CUDA recipe).
 RUN cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_CUDA=ON \
   -DGGML_NATIVE=OFF \
-  -DCMAKE_C_FLAGS="-mcpu=neoverse-v1" \
-  -DCMAKE_CXX_FLAGS="-mcpu=neoverse-v1" \
+  -DGGML_CPU_ALL_VARIANTS=ON \
   -DGGML_BACKEND_DL=ON \
   -DGGML_OPENMP=ON \
   -DLLAMA_CURL=ON \
+  -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined \
   && cmake --build . --config Release -j ${BUILD_PARALLEL} --target llama-server llama-cli llama-bench
 
-# STAGE 1: runtime — slim image with just the server + shared libs.
-FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS runtime
+# STAGE 1: runtime — slim CUDA runtime image with the server + shared libs.
+ARG CUDA_VERSION=13.0.2
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 
 ARG PYTHON="python3"
 # Re-declared: ARGs don't cross build stages (used by OSS tracking below).
 ARG LLAMA_CPP_REF=b10075
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
@@ -51,9 +57,15 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8
 
+# Expose the CUDA compute + utility driver libraries to the container at runtime.
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   libgomp libcurl curl-minimal openblas shadow-utils \
   python3 python3-pip \
+  # Upgrade cuda-compat (CUDA base ships an older one) to clear
+  # CVE-2026-24193 / CVE-2025-33219, which --security does not flag.
+  && dnf upgrade -y cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf \
   # bash_telemetry.sh calls `python`; AL2023 ships only `python3`, so alias it.
   && ln -sf /usr/bin/python3 /usr/bin/python
@@ -64,7 +76,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
 RUN pip3 install --no-cache-dir requests botocore packaging \
   && pip3 install --no-cache-dir "urllib3>=2.5,<2.7"
 
-# Binaries + llama.cpp .so files (libllama, libggml*, per-microarch backends).
+# Binaries + llama.cpp .so files (libllama, libggml*, libggml-cuda, CPU backends).
 COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/
 ENV PATH="/opt/llama.cpp/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/opt/llama.cpp/bin:${LD_LIBRARY_PATH}"

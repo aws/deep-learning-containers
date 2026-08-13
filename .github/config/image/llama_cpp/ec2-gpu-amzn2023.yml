@@ -13,7 +13,7 @@ metadata:
   prod_image: "llama-cpp:server-cuda-v1"
 
 build:
-  dockerfile: "docker/llama_cpp/Dockerfile.gpu.amzn2023"
+  dockerfile: "docker/llama_cpp/Dockerfile.gpu"
   target: "llama-cpp-ec2"
   python_version: "3.12"
   cuda_version: "13.0.2"
