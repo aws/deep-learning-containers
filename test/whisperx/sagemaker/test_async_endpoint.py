@@ -45,7 +45,7 @@ from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-INSTANCE_TYPE = "ml.g6.xlarge"
+INSTANCE_TYPE = "ml.g4dn.xlarge"
 MAX_CONCURRENT_INVOCATIONS = 1
 # Generous: startup warms the Whisper model + diarization pipeline before /ping.
 STARTUP_HEALTH_CHECK_TIMEOUT = 1200
