@@ -1,0 +1,73 @@
+name: 'Check test skips'
+description: >
+  Batch test-skip gate. Compute the image content hash, test suite hash, and
+  read the dlc-ci-images cache for every skip-eligible suite in a single query.
+  Runs once per pipeline so skippable suites never need to provision a test runner.
+
+inputs:
+  image-uri:
+    description: 'Image URI (uses prod image if empty).'
+    required: false
+    default: ''
+  config-file:
+    description: 'Path to image config YAML (used for the prod-image fallback).'
+    required: true
+  suite-map:
+    description: 'JSON object mapping each test to its test-suites.yml key.'
+    required: true
+  ci-aws-account-id:
+    description: 'CI ECR account ID.'
+    required: true
+  prod-aws-account-id:
+    description: 'Prod ECR account ID (for the prod-image fallback).'
+    required: true
+  ci-images-table-account-id:
+    description: 'Account ID hosting the dlc-ci-images DynamoDB table.'
+    required: true
+  aws-region:
+    description: 'AWS region for ECR + the dlc-ci-images table.'
+    required: false
+    default: 'us-west-2'
+
+outputs:
+  skips:
+    description: 'JSON object: test suite -> true | false. {} means run all.'
+    value: ${{ steps.gate.outputs.skips }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve image URI
+      id: image
+      uses: ./.github/actions/resolve-image-uri
+      with:
+        image-uri: ${{ inputs.image-uri }}
+        ci-aws-account-id: ${{ inputs.ci-aws-account-id }}
+        prod-aws-account-id: ${{ inputs.prod-aws-account-id }}
+        aws-region: ${{ inputs.aws-region }}
+        config-file: ${{ inputs.config-file }}
+
+    - name: ECR authenticate
+      uses: ./.github/actions/ecr-authenticate
+      with:
+        aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Compute skips
+      id: gate
+      shell: bash
+      env:
+        CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
+        CI_IMAGES_TABLE_REGION: ${{ inputs.aws-region }}
+        RESOLVED_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+        SUITE_MAP: ${{ inputs.suite-map }}
+      run: |
+        uv venv --python 3.12 --clear
+        source .venv/bin/activate
+        uv pip install boto3 pyyaml
+        SKIPS=$(python3 "${{ github.action_path }}/gate.py" \
+          --image-uri "$RESOLVED_IMAGE_URI" \
+          --suite-map "$SUITE_MAP" \
+          --repo-root "$(git rev-parse --show-toplevel)") || SKIPS='{}'
+        [ -n "$SKIPS" ] || SKIPS='{}'
+        echo "skips=$SKIPS" >> "$GITHUB_OUTPUT"

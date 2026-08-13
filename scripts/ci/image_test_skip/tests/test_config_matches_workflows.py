@@ -1,13 +1,14 @@
 """Consistency check: every suite a workflow invokes must exist in test-suites.yml."""
 
 import importlib.util
+import json
 from pathlib import Path
 
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
-TEST_SKIP_ACTIONS = ("check-test-pass", "record-test-pass")
+TEST_SKIP_ACTIONS = ("check-test-skips", "record-test-pass")
 
 MODULE_PATH = Path(__file__).resolve().parent.parent / "hash_suite_code.py"
 spec = importlib.util.spec_from_file_location("hash_suite_code", MODULE_PATH)
@@ -31,6 +32,26 @@ def _uses_test_skip_action(step):
     return isinstance(uses, str) and any(a in uses for a in TEST_SKIP_ACTIONS)
 
 
+def _suites_from_step(step):
+    """Yield the literal suite names a step references, from `suite` or `suite-map` (skipping ${{ }} expressions)."""
+    with_ = step.get("with") or {}
+
+    suite = with_.get("suite")
+    if isinstance(suite, str) and "${{" not in suite:
+        yield suite
+
+    suite_map = with_.get("suite-map")
+    if isinstance(suite_map, str) and "${{" not in suite_map:
+        try:
+            mapping = json.loads(suite_map)
+        except (ValueError, TypeError):
+            mapping = None
+        if isinstance(mapping, dict):
+            for value in mapping.values():
+                if isinstance(value, str):
+                    yield value
+
+
 def collect_invoked_suites():
     """Return [(workflow_file, suite), ...] for every literal suite a step invokes."""
     invoked = []
@@ -42,12 +63,8 @@ def collect_invoked_suites():
         for step in _iter_steps(workflow):
             if not _uses_test_skip_action(step):
                 continue
-            suite = (step.get("with") or {}).get("suite")
-            if not isinstance(suite, str):
-                continue
-            if "${{" in suite:  # expression-driven; can't resolve statically
-                continue
-            invoked.append((wf_path.name, suite))
+            for suite in _suites_from_step(step):
+                invoked.append((wf_path.name, suite))
     return invoked
 
 
@@ -67,9 +84,9 @@ WF_LITERAL = """
 jobs:
   t:
     steps:
-      - uses: ./.github/actions/check-test-pass
+      - uses: ./.github/actions/check-test-skips
         with:
-          suite: pytorch/single_gpu
+          suite-map: '{"single_gpu":"pytorch/single_gpu"}'
       - uses: ./.github/actions/record-test-pass
         with:
           suite: sanity
@@ -82,9 +99,12 @@ WF_EXPRESSION = """
 jobs:
   t:
     steps:
-      - uses: ./.github/actions/check-test-pass
+      - uses: ./.github/actions/record-test-pass
         with:
           suite: ${{ matrix.suite }}
+      - uses: ./.github/actions/check-test-skips
+        with:
+          suite-map: ${{ steps.x.outputs.map }}
 """
 
 
@@ -92,16 +112,13 @@ def _invoked_from_text(text):
     workflow = yaml.safe_load(text)
     out = []
     for step in _iter_steps(workflow):
-        if not _uses_test_skip_action(step):
-            continue
-        suite = (step.get("with") or {}).get("suite")
-        if isinstance(suite, str) and "${{" not in suite:
-            out.append(suite)
+        if _uses_test_skip_action(step):
+            out.extend(_suites_from_step(step))
     return out
 
 
 def test_scan_collects_literal_suites_from_test_skip_steps_only():
-    # Picks up both actions' suites; ignores the unrelated ecr-authenticate step.
+    # ignores the unrelated ecr-authenticate step.
     assert _invoked_from_text(WF_LITERAL) == ["pytorch/single_gpu", "sanity"]
 
 

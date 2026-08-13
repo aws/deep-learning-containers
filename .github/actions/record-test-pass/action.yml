@@ -8,10 +8,10 @@ inputs:
     description: 'Name of the test suite.'
     required: true
   image-content-hash:
-    description: "Hash of the image's ordered layer diff ids (passed from check-test-pass)."
+    description: "Hash of the image's ordered layer diff ids."
     required: true
   suite-code-hash:
-    description: "Hash of the test suite's files (passed from check-test-pass)."
+    description: "Hash of the test suite's files."
     required: true
   ci-image-tag:
     description: 'CI image tag for the image build being tested.'

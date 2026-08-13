@@ -17,6 +17,8 @@ spec.loader.exec_module(store)
 HASH = "sha256:abc123"
 SUITE = "pytorch/single_gpu"
 CODE_HASH = "sha256:def456"
+OTHER_SUITE = "sanity"
+OTHER_CODE_HASH = "sha256:ghi789"
 
 
 @pytest.fixture
@@ -54,36 +56,6 @@ def test_sort_key_format():
     assert store.sort_key("sanity", "sha256:7c1e") == "TEST#sanity#sha256:7c1e"
 
 
-def test_miss_when_no_row(dynamo):
-    assert store.check_test_skip(HASH, SUITE, CODE_HASH, client=dynamo) is False
-
-
-def test_record_then_hit(dynamo):
-    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
-    assert store.check_test_skip(HASH, SUITE, CODE_HASH, client=dynamo) is True
-
-
-def test_hit_requires_matching_code_hash(dynamo):
-    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
-    assert store.check_test_skip(HASH, SUITE, "sha256:other", client=dynamo) is False
-
-
-def test_hit_requires_matching_image_hash(dynamo):
-    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
-    assert store.check_test_skip("sha256:different", SUITE, CODE_HASH, client=dynamo) is False
-
-
-def test_check_cli_exits_zero_on_hit(dynamo):
-    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
-    argv = ["check", "--image-content-hash", HASH, "--suite", SUITE, "--suite-code-hash", CODE_HASH]
-    assert store.main(argv) == 0
-
-
-def test_check_cli_exits_nonzero_on_miss(dynamo):
-    argv = ["check", "--image-content-hash", HASH, "--suite", SUITE, "--suite-code-hash", CODE_HASH]
-    assert store.main(argv) != 0
-
-
 def test_record_writes_ci_image_tag_attribute(dynamo):
     ci_image_tag = "sglang-ec2-amzn2023-0.5.12.dlc1-gpu-py312-cu130-pr-123"
     store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo, ci_image_tag=ci_image_tag)
@@ -98,3 +70,39 @@ def test_record_omits_ci_image_tag_when_not_given(dynamo):
 def test_record_omits_ci_image_tag_when_empty_string(dynamo):
     store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo, ci_image_tag="")
     assert "ci_image_tag" not in _get_row(dynamo)
+
+
+def test_check_test_skip_empty_input_returns_empty(dynamo):
+    assert store.check_test_skip(HASH, {}, client=dynamo) == set()
+
+
+def test_check_test_skip_all_miss_returns_empty(dynamo):
+    result = store.check_test_skip(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+    assert result == set()
+
+
+def test_check_test_skip_returns_only_recorded_suites(dynamo):
+    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
+    # OTHER_SUITE is not recorded, so only SUITE should come back as a hit.
+    result = store.check_test_skip(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+    assert result == {SUITE}
+
+
+def test_check_test_skip_returns_multiple_hits(dynamo):
+    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
+    store.record_test_pass(HASH, OTHER_SUITE, OTHER_CODE_HASH, client=dynamo)
+    result = store.check_test_skip(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+    assert result == {SUITE, OTHER_SUITE}
+
+
+def test_check_test_skip_respects_code_hash(dynamo):
+    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
+    # Same suite, different code hash -> no hit.
+    result = store.check_test_skip(HASH, {SUITE: "sha256:changed"}, client=dynamo)
+    assert result == set()
+
+
+def test_check_test_skip_respects_image_hash(dynamo):
+    store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
+    result = store.check_test_skip("sha256:different", {SUITE: CODE_HASH}, client=dynamo)
+    assert result == set()

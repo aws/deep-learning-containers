@@ -38,32 +38,36 @@ def _client():
     return boto3.client("dynamodb", region_name=region)
 
 
-def check_test_skip(image_content_hash, suite, suite_code_hash, client=None):
-    """Return True iff this suite may be skipped (a matching PASS row exists)."""
-    client = client or _client()
-    sk = sort_key(suite, suite_code_hash)
-    try:
-        resp = client.get_item(
-            TableName=table_arn(),
-            Key={
-                "image_content_hash": {"S": image_content_hash},
-                "sort_key": {"S": sk},
-            },
-            ConsistentRead=True,
-        )
-    except (ClientError, BotoCoreError) as e:
-        LOG.warning("test-skip read failed (%s); running suite %s", e, suite)
-        return False
+def check_test_skip(image_content_hash, suite_code_hashes, client=None):
+    """Return the set of suites that may be skipped, in one BatchGetItem.
 
-    hit = "Item" in resp
+    ``suite_code_hashes`` maps suite name -> its suite_code_hash. A suite is in
+    the returned set iff a matching PASS row exists.
+    """
+    if not suite_code_hashes:
+        return set()
+    client = client or _client()
+    arn = table_arn()
+    sk_to_suite = {sort_key(s, h): s for s, h in suite_code_hashes.items()}
+    keys = [
+        {"image_content_hash": {"S": image_content_hash}, "sort_key": {"S": sk}}
+        for sk in sk_to_suite
+    ]
+    try:
+        resp = client.batch_get_item(RequestItems={arn: {"Keys": keys, "ConsistentRead": True}})
+    except (ClientError, BotoCoreError) as e:
+        LOG.warning("batch test-skip read failed (%s); running all suites", e)
+        return set()
+
+    hits = {item["sort_key"]["S"] for item in resp.get("Responses", {}).get(arn, [])}
+    skippable = {sk_to_suite[sk] for sk in hits if sk in sk_to_suite}
     LOG.info(
-        "test-skip %s for suite=%s hash=%s sk=%s",
-        "HIT (skip)" if hit else "MISS (run)",
-        suite,
+        "batch test-skip: %d/%d suites skippable for hash=%s",
+        len(skippable),
+        len(suite_code_hashes),
         image_content_hash,
-        sk,
     )
-    return hit
+    return skippable
 
 
 def record_test_pass(
@@ -96,7 +100,6 @@ def main(argv=None):
     common.add_argument("--suite", required=True)
     common.add_argument("--suite-code-hash", required=True)
 
-    sub.add_parser("check", parents=[common], help="Exit 0 to skip, 1 to run.")
     record = sub.add_parser("record", parents=[common], help="Record a PASS row.")
     record.add_argument(
         "--ci-image-tag",
@@ -105,10 +108,6 @@ def main(argv=None):
     )
 
     args = parser.parse_args(argv)
-
-    if args.command == "check":
-        skip = check_test_skip(args.image_content_hash, args.suite, args.suite_code_hash)
-        return 0 if skip else 1
 
     if args.command == "record":
         record_test_pass(
