@@ -116,6 +116,7 @@ COPY --from=builder-base /opt/venv /opt/venv
 RUN CUDNN_HOME=$(/opt/venv/bin/python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") \
  && cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ \
  && cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ \
+ && rm -rf ${CUDNN_HOME}/lib ${CUDNN_HOME}/include \
  && ldconfig
 
 # TF Serving binary from the upstream devel image.
