@@ -54,9 +54,7 @@ def lock(path=DEFAULT_LOCK_FILE, poll_interval=0.05, timeout=60.0):
     remaining = timeout
 
     if not _LOCAL.acquire(timeout=remaining):
-        raise TimeoutError(
-            "timed out acquiring in-process MME lock after {}s".format(timeout)
-        )
+        raise TimeoutError("timed out acquiring in-process MME lock after {}s".format(timeout))
     try:
         if _LOCK_FH is None:
             _LOCK_FH = open(path, "a+", encoding="utf8")
@@ -71,9 +69,7 @@ def lock(path=DEFAULT_LOCK_FILE, poll_interval=0.05, timeout=60.0):
                     raise
                 if time.time() >= deadline:
                     raise TimeoutError(
-                        "timed out acquiring MME file lock at {} after {}s".format(
-                            path, timeout
-                        )
+                        "timed out acquiring MME file lock at {} after {}s".format(path, timeout)
                     )
                 time.sleep(poll_interval)
         try:
