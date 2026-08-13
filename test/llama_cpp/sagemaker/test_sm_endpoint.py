@@ -33,9 +33,6 @@ def hf_file(request):
 
 @pytest.fixture(scope="function")
 def instance_type(request, image_uri):
-    # arm64 images must deploy to a Graviton instance; the parametrized x86
-    # default (ml.c6i.*) would fail to start an arm64 container. Map to the
-    # equivalent Graviton (ml.c7g.*) when the image under test is arm64.
     if "arm64" in image_uri:
         return "ml.c7g.2xlarge"
     return request.param
