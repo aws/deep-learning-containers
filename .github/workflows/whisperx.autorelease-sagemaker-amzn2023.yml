@@ -35,6 +35,4 @@ jobs:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
       release: true
-      # ECR vulnerability scan runs on the PR; skip it on the release path.
-      run-security-test: false
     secrets: inherit
