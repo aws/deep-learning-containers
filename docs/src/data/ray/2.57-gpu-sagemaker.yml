@@ -1,10 +1,11 @@
 framework: Ray
-version: "2.55"
-accelerator: cpu
+version: "2.57"
+accelerator: gpu
 python: py313
+cuda: cu129
 os: amzn2023
 platform: sagemaker
 public_registry: true
 
 tags:
-  - "serve-ml-sagemaker-cpu-v1.1"
+  - "serve-ml-sagemaker-cuda-v1"
