@@ -347,10 +347,8 @@ class PythonServiceResource:
                 log.info(f"Failed to load model : {model_name}, Starting to cleanup...")
                 self._delete_model(model_name)
                 self._remove_model_config(model_name)
-                # F-6: setdefault(...).append(...) above ran on the failure branch too
-                # (response carries a pid). Without this pop, retrying the load returns
-                # a permanent 409 "already loaded" in this worker.
                 self._mme_tfs_instances_status.pop(model_name, None)
+                self._update_ports_available()
                 self._upload_mme_instance_status()
             else:
                 self._upload_mme_instance_status()
@@ -477,6 +475,8 @@ class PythonServiceResource:
                     "Model-specific inference script and universal inference script both do not exist, using default handlers."
                 )
             res.body, res.content_type = handlers(data, context)
+        except falcon.HTTPError:
+            raise
         except Exception as e:  # pylint: disable=broad-except
             log.exception("exception handling request: {}".format(e))
             res.status = falcon.HTTP_500

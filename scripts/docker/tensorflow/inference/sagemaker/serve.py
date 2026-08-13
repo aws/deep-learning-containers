@@ -371,11 +371,16 @@ class ServiceManager(object):
     def _stop(self, *args):  # pylint: disable=W0613
         self._state = "stopping"
         log.info("stopping services")
-        for name, proc in (("nginx", self._nginx), ("gunicorn", self._gunicorn)):
+        # nginx: SIGQUIT for graceful shutdown (drains in-flight requests).
+        # gunicorn/tfs: SIGTERM for fast shutdown.
+        for name, proc, sig in (
+            ("nginx", self._nginx, signal.SIGQUIT),
+            ("gunicorn", self._gunicorn, signal.SIGTERM),
+        ):
             if proc is None or proc.poll() is not None:
                 continue
             try:
-                os.kill(proc.pid, signal.SIGTERM)
+                os.kill(proc.pid, sig)
             except OSError:
                 log.warning("could not signal %s", name)
         for tfs in self._tfs or []:
