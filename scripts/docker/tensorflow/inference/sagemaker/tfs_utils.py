@@ -307,10 +307,11 @@ def wait_for_model(rest_port, model_name, timeout_seconds, pid=None):
 
 
 def is_model_ready(response):
-    versions = json.loads(response.content)["model_version_status"]
-    if all(version["state"] == "AVAILABLE" for version in versions):
-        return True
-    return False
+    try:
+        versions = json.loads(response.content)["model_version_status"]
+        return all(version["state"] == "AVAILABLE" for version in versions)
+    except (ValueError, KeyError, TypeError):
+        return False
 
 
 def wait_for_model_ready(url, timeout_seconds):
