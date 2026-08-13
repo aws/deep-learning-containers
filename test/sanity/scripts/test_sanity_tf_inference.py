@@ -15,6 +15,7 @@ import subprocess
 import unittest
 
 DEVICE = os.environ.get("EXPECTED_DEVICE", "").lower()
+assert DEVICE in {"cpu", "gpu"}, f"EXPECTED_DEVICE must be cpu|gpu, got {DEVICE!r}"
 CUSTOMER = os.environ.get("EXPECTED_CUSTOMER", "").lower()
 FRAMEWORK = os.environ.get("EXPECTED_FRAMEWORK", "").lower()
 
