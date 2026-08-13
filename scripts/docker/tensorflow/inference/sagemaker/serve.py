@@ -15,6 +15,7 @@ import os
 import re
 import signal
 import subprocess
+import time
 from contextlib import contextmanager
 
 import boto3
@@ -370,29 +371,36 @@ class ServiceManager(object):
     def _stop(self, *args):  # pylint: disable=W0613
         self._state = "stopping"
         log.info("stopping services")
-        try:
-            os.kill(self._nginx.pid, signal.SIGQUIT)
-        except OSError:
-            pass
-        try:
-            if self._gunicorn:
-                os.kill(self._gunicorn.pid, signal.SIGTERM)
-        except OSError:
-            pass
-        try:
-            for tfs in self._tfs:
+        for name, proc in (("nginx", self._nginx), ("gunicorn", self._gunicorn)):
+            if proc is None or proc.poll() is not None:
+                continue
+            try:
+                os.kill(proc.pid, signal.SIGTERM)
+            except OSError:
+                log.warning("could not signal %s", name)
+        for tfs in self._tfs or []:
+            if tfs is None or tfs.poll() is not None:
+                continue
+            try:
                 os.kill(tfs.pid, signal.SIGTERM)
-        except OSError:
-            pass
+            except OSError:
+                log.warning("could not signal tfs pid %s", tfs.pid)
 
         self._state = "stopped"
         log.info("stopped")
 
-    def _wait_for_gunicorn(self):
-        while True:
+    def _wait_for_gunicorn(self, timeout_seconds=30):
+        deadline = time.monotonic() + timeout_seconds
+        while time.monotonic() < deadline:
             if os.path.exists("/tmp/gunicorn.sock"):
                 log.info("gunicorn server is ready!")
                 return
+            if self._gunicorn is not None and self._gunicorn.poll() is not None:
+                raise RuntimeError(
+                    "gunicorn exited during startup: rc={}".format(self._gunicorn.returncode)
+                )
+            time.sleep(0.1)
+        raise RuntimeError("gunicorn did not create /tmp/gunicorn.sock in time")
 
     def _wait_for_tfs(self):
         for i in range(self._tfs_instance_count):

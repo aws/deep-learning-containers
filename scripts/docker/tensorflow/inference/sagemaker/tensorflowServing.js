@@ -2,11 +2,11 @@ var tfs_base_uri = '/tfs/v1/models/'
 var custom_attributes_header = 'X-Amzn-SageMaker-Custom-Attributes'
 
 function invocations(r) {
-    var ct = r.headersIn['Content-Type']
+    var ct = (r.headersIn['Content-Type'] || '').split(';')[0].trim().toLowerCase()
 
-    if ('application/json' == ct || 'application/jsonlines' == ct || 'application/jsons' == ct) {
+    if (ct === 'application/json' || ct === 'application/jsonlines' || ct === 'application/jsons') {
         json_request(r)
-    } else if ('text/csv' == ct) {
+    } else if (ct === 'text/csv') {
         csv_request(r)
     } else {
         return_error(r, 415, 'Unsupported Media Type: ' + (ct || 'Unknown'))
@@ -55,8 +55,9 @@ function ping_without_model(r) {
 }
 
 function return_error(r, code, message) {
+    r.headersOut['Content-Type'] = 'application/json'
     if (message) {
-        r.return(code, '{"error": "' + message + '"}')
+        r.return(code, JSON.stringify({error: String(message)}))
     } else {
         r.return(code)
     }
@@ -78,10 +79,10 @@ function tfs_json_request(r, json) {
         }
 
         if (accept != undefined) {
-            var content_types = accept.trim().replace(" ", "").split(",")
-            if (content_types.includes('application/jsonlines') || content_types.includes('application/json')) {
+            var content_types = accept.split(',').map(function(s) { return s.trim(); })
+            if (content_types.indexOf('application/jsonlines') !== -1 || content_types.indexOf('application/json') !== -1) {
                 body = body.replace(/\n/g, '')
-                r.headersOut['Content-Type'] = content_types[0]
+                r.headersOut['Content-Type'] = 'application/json'
             }
         }
         r.return(reply.status, body)

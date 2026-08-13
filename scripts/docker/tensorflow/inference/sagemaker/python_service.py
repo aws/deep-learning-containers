@@ -60,16 +60,14 @@ MME_TFS_INSTANCE_STATUS_FILE = "/sagemaker/tfs_instance.pickle"
 
 
 def default_handler(data, context):
-    """A default inference request handler that directly send post request to TFS rest port with
-    un-processed data and return un-processed response
-    :param data: input data
-    :param context: context instance that contains tfs_rest_uri
-    :return: inference response from TFS model server
-    """
+    """Send POST to TFS rest port; propagate TFS error status to the caller."""
     data = data.read().decode("utf-8")
-    if not isinstance(data, str):
-        data = json.loads(data)
     response = requests.post(context.rest_uri, data=data, timeout=60)
+    if response.status_code != 200:
+        raise falcon.HTTPError(
+            str(response.status_code),
+            description=response.content.decode("utf-8", "replace"),
+        )
     return response.content, context.accept_header
 
 
@@ -198,8 +196,17 @@ class PythonServiceResource:
                 )
                 log.info("MME starts tensorflow serving with command: {}".format(cmd))
                 p = subprocess.Popen(cmd.split())
-
-                tfs_utils.wait_for_model(rest_port, model_name, self._tfs_wait_time_seconds, p.pid)
+                try:
+                    tfs_utils.wait_for_model(
+                        rest_port, model_name, self._tfs_wait_time_seconds, p.pid
+                    )
+                except BaseException:
+                    p.kill()
+                    try:
+                        p.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        log.error("tfs pid %s did not exit after SIGKILL", p.pid)
+                    raise
 
                 log.info("started tensorflow serving (pid: %d)", p.pid)
 
@@ -503,6 +510,11 @@ class PythonServiceResource:
         def handler(data, context):
             processed_input = custom_input_handler(data, context)
             response = requests.post(context.rest_uri, data=processed_input, timeout=60)
+            if response.status_code != 200:
+                raise falcon.HTTPError(
+                    str(response.status_code),
+                    description=response.content.decode("utf-8", "replace"),
+                )
             return custom_output_handler(response, context)
 
         return handler
@@ -543,15 +555,19 @@ class PythonServiceResource:
                     port = self._mme_tfs_instances_status[model_name][0].rest_port
                     uri = "http://localhost:{}/v1/models/{}".format(port, model_name)
                     try:
-                        info = json.loads(requests.get(uri, timeout=5).content)
-                        res.status = falcon.HTTP_200
-                        res.body = json.dumps({"model": info}).encode("utf-8")
-                    except (ValueError, TypeError, requests.exceptions.RequestException) as e:
+                        r = requests.get(uri, timeout=5)
+                        if r.status_code != 200:
+                            res.status = str(r.status_code)
+                            res.body = r.content
+                        else:
+                            res.status = falcon.HTTP_200
+                            res.body = json.dumps({"model": json.loads(r.content)}).encode("utf-8")
+                    except requests.exceptions.RequestException as e:
                         log.exception("exception handling GET models request.")
                         res.status = (
                             falcon.HTTP_504
                             if isinstance(e, requests.exceptions.Timeout)
-                            else falcon.HTTP_500
+                            else falcon.HTTP_502
                         )
                         res.body = json.dumps({"error": str(e)}).encode("utf-8")
 
