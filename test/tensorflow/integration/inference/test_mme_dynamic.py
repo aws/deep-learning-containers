@@ -51,9 +51,14 @@ def test_mme_target_model_not_found(
                 accept="application/json",
                 target_model="does_not_exist.tar.gz",
             )
-        status = int(excinfo.value.response.get("OriginalStatusCode", 0))
-        assert status == 404, (
-            f"expected 404 for unknown target_model, got {status}: {excinfo.value.response!r}"
+        err = excinfo.value.response
+        # SageMaker's MME agent attempts to download the model from S3 before
+        # forwarding to the container. A non-existent target_model yields a
+        # ValidationError (model data not found) at the platform level.
+        error_code = err.get("Error", {}).get("Code", "")
+        http_status = err.get("ResponseMetadata", {}).get("HTTPStatusCode", 0)
+        assert error_code == "ValidationError" or 400 <= http_status < 500, (
+            f"expected ValidationError or 4xx for unknown target_model, got: {err!r}"
         )
 
 
