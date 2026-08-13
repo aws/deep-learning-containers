@@ -221,13 +221,14 @@ function csv_request(r) {
 
             for (var j = 0; j < fields.length; j++) {
                 if (j > 0) line_builder.push(',')
-                var field = fields[j].trim()
-                if (field === '' || isNaN(Number(field))) {
-                    line_builder.push('"')
-                    line_builder.push(field.replace(/\\/g, '\\\\').replace(/"/g, '\\"'))
-                    line_builder.push('"')
+                var raw = fields[j]
+                var probe = raw.trim()
+                if (probe !== '' && /^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?$/.test(probe)) {
+                    line_builder.push(probe)
                 } else {
-                    line_builder.push(field)
+                    line_builder.push('"')
+                    line_builder.push(raw.replace(/\\/g, '\\\\').replace(/"/g, '\\"'))
+                    line_builder.push('"')
                 }
             }
 
