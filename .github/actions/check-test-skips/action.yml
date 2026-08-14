@@ -72,3 +72,23 @@ runs:
           --repo-root "$(git rev-parse --show-toplevel)")
         [ -n "$SKIPS" ] || SKIPS='{}'
         echo "skips=$SKIPS" >> "$GITHUB_OUTPUT"
+
+    - name: Report cache hits
+      shell: bash
+      env:
+        SKIPS: ${{ steps.gate.outputs.skips }}
+      run: |
+        HITS=$(printf '%s' "$SKIPS" | jq -r 'to_entries[] | select(.value) | .key' 2>/dev/null || true)
+        {
+          if [ -n "$HITS" ]; then
+            echo "### ✅ Test-pass cache hit"
+            echo "The following suites will be skipped (no test runner provisioned):"
+            printf '%s\n' "$HITS" | sed 's/^/- /'
+          else
+            echo "### Test-skip gate"
+            echo "No cache hits — all checked suites will run."
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+        if [ -n "$HITS" ]; then
+          echo "::notice title=✅ Test-skip cache hits::$(printf '%s' "$HITS" | paste -sd, -)"
+        fi
