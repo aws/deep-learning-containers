@@ -89,6 +89,11 @@ def test_unknown_suite_raises(repo):
         hsc.hash_suite_code(repo, "does-not-exist")
 
 
+def test_suite_matching_no_files_raises(repo):
+    with pytest.raises(ValueError):
+        hsc.hash_suite_code(repo, "security")
+
+
 def test_is_skip_eligible(repo):
     assert hsc.is_skip_eligible(repo, "suitea") is True
     assert hsc.is_skip_eligible(repo, "security") is False

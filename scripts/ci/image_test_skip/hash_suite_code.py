@@ -50,13 +50,18 @@ def resolve_files(repo_root, code_paths):
 def hash_suite_code(repo_root, suite):
     """Return the suite_code_hash (``sha256:<hex>``) for one suite.
 
-    Raises KeyError if the suite is not in the config.
+    Raises KeyError if the suite is not in the config, or ValueError if its
+    code_paths match no files.
     """
     suites = load_config(repo_root)
     if suite not in suites:
         raise KeyError(f"unknown suite: {suite!r} (not in {CONFIG_REL})")
     code_paths = suites[suite].get("code_paths", [])
     files = resolve_files(repo_root, code_paths)
+    if not files:
+        raise ValueError(
+            f"suite {suite!r} matched no files (code_paths={code_paths!r})"
+        )
 
     digest = hashlib.sha256()
     repo_root = Path(repo_root)
@@ -97,7 +102,7 @@ def main(argv=None):
         return 0
     try:
         print(hash_suite_code(args.repo_root, args.suite))
-    except KeyError as e:
+    except (KeyError, ValueError) as e:
         print(str(e), file=sys.stderr)
         return 2
     return 0
