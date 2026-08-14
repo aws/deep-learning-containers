@@ -80,14 +80,15 @@ runs:
       run: |
         HITS=$(printf '%s' "$SKIPS" | jq -r 'to_entries[] | select(.value) | .key' 2>/dev/null || true)
         {
-          echo "### Test-skip gate"
           if [ -n "$HITS" ]; then
-            echo "Cache hit — these suites are skipped (no test runner provisioned):"
-            printf '%s\n' "$HITS" | sed 's/^/- /'
+            echo "### ✅ Test-skip cache hit"
+            echo "These suites are skipped (no test runner provisioned):"
+            printf '%s\n' "$HITS" | sed 's/^/- ✅ /'
           else
+            echo "### Test-skip gate"
             echo "No cache hits — all checked suites will run."
           fi
         } >> "$GITHUB_STEP_SUMMARY"
         if [ -n "$HITS" ]; then
-          echo "::notice title=Test-skip cache hits::$(printf '%s' "$HITS" | paste -sd, -)"
+          echo "::notice title=✅ Test-skip cache hits::$(printf '%s' "$HITS" | paste -sd, -)"
         fi
