@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "llama_cpp"
-  framework_version: "1.0.0+b10075"
+  framework_version: "1.0.0+b10433"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "arm64"
@@ -16,7 +16,7 @@ build:
   dockerfile: "docker/llama_cpp/Dockerfile.arm64"
   target: "llama-cpp-ec2"
   python_version: "3.12"
-  llama_cpp_ref: "b10075"
+  llama_cpp_ref: "b10433"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

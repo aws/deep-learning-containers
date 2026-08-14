@@ -7,7 +7,7 @@ ARG BASE_REF=2023
 FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS builder
 
 # Pin the upstream ref for reproducible builds.
-ARG LLAMA_CPP_REF=b10075
+ARG LLAMA_CPP_REF=b10433
 ARG BUILD_PARALLEL=16
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
@@ -38,8 +38,9 @@ RUN cmake .. \
 FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS runtime
 
 ARG PYTHON="python3"
+ARG PYTHON_VERSION=3.12
 # Re-declared: ARGs don't cross build stages (used by OSS tracking below).
-ARG LLAMA_CPP_REF=b10075
+ARG LLAMA_CPP_REF=b10433
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 LABEL maintainer="Amazon AI"
@@ -56,16 +57,15 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   libgomp libcurl curl-minimal openblas shadow-utils \
-  python3 python3-pip \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip \
   && dnf clean all && rm -rf /var/cache/dnf \
-  # bash_telemetry.sh calls `python`; AL2023 ships only `python3`, so alias it.
-  && ln -sf /usr/bin/python3 /usr/bin/python
+  && alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
+  && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
+  && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
+  && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf /usr/bin/yum
 
-# requests (OSS compliance) + botocore/packaging (telemetry) are missing from the
-# slim runtime. Pin urllib3 to 2.6.x: botocore would otherwise drag in 1.26.x
-# (3 HIGH CVEs); 2.7 (full fix) needs py>=3.10, absent on AL2023's system python.
-RUN pip3 install --no-cache-dir requests botocore packaging \
-  && pip3 install --no-cache-dir "urllib3>=2.5,<2.7"
+RUN ${PYTHON} -m pip install --no-cache-dir requests botocore packaging \
+  && ${PYTHON} -m pip install --no-cache-dir "urllib3>=2.7.0"
 
 # Binaries + llama.cpp .so files (libllama, libggml*, per-microarch backends).
 COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/
@@ -103,8 +103,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 FROM runtime AS llama-cpp-ec2
 
 ARG CACHE_REFRESH=0
+ARG PYTHON_VERSION=3.12
 RUN dnf upgrade -y --security --releasever latest \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3
 
 COPY ./scripts/docker/llama_cpp/dockerd_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
@@ -117,11 +119,13 @@ ENTRYPOINT ["/usr/bin/serve"]
 FROM runtime AS llama-cpp-sagemaker
 
 ARG CACHE_REFRESH=0
+ARG PYTHON_VERSION=3.12
 # nginx = reverse proxy; gettext = envsubst (renders the nginx conf template).
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   nginx gettext \
   && dnf upgrade -y --security --releasever latest \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3
 
 COPY ./scripts/docker/llama_cpp/llama_cpp_sagemaker.conf.template /etc/nginx/llama_cpp_sagemaker.conf.template
 COPY ./scripts/docker/llama_cpp/sagemaker_entrypoint.sh /usr/bin/serve

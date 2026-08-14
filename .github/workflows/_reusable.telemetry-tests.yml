@@ -123,4 +123,5 @@ jobs:
             --framework "${{ needs.preflight.outputs.framework }}" \
             --framework-version "${{ needs.preflight.outputs.framework-version }}" \
             --container-type "${{ needs.preflight.outputs.job-type }}" \
+            --arch-type "${{ needs.preflight.outputs.arch-type }}" \
             --region "${{ vars.AWS_REGION }}"
