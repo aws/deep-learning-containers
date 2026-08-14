@@ -47,7 +47,7 @@ from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-INSTANCE_TYPE = "ml.g6.xlarge"
+INSTANCE_TYPE = "ml.g4dn.xlarge"
 STARTUP_HEALTH_CHECK_TIMEOUT = 900
 DEPLOY_TIMEOUT = 1800
 

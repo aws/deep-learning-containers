@@ -39,8 +39,8 @@ from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-# Single L4 GPU; matches WhisperX VRAM needs.
-INSTANCE_TYPE = "ml.g6.xlarge"
+# Single T4 GPU (16 GB) — cheaper and more available than L4.
+INSTANCE_TYPE = "ml.g4dn.xlarge"
 # Startup warms the pinned Whisper model + diarization pipeline before /ping
 # returns 200, so InService already implies the (tiny) model is resident.
 STARTUP_HEALTH_CHECK_TIMEOUT = 900
