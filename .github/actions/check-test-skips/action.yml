@@ -12,8 +12,8 @@ inputs:
   config-file:
     description: 'Path to image config YAML (used for the prod-image fallback).'
     required: true
-  suite-map:
-    description: 'JSON object mapping each test to its test-suites.yml key.'
+  suites:
+    description: 'JSON array of test suites to check for this pipeline.'
     required: true
   ci-aws-account-id:
     description: 'CI ECR account ID.'
@@ -60,14 +60,15 @@ runs:
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
         CI_IMAGES_TABLE_REGION: ${{ inputs.aws-region }}
         RESOLVED_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
-        SUITE_MAP: ${{ inputs.suite-map }}
+        SUITES: ${{ inputs.suites }}
       run: |
+        set +e
         uv venv --python 3.12 --clear
         source .venv/bin/activate
         uv pip install boto3 pyyaml
         SKIPS=$(python3 "${{ github.action_path }}/gate.py" \
           --image-uri "$RESOLVED_IMAGE_URI" \
-          --suite-map "$SUITE_MAP" \
-          --repo-root "$(git rev-parse --show-toplevel)") || SKIPS='{}'
+          --suites "$SUITES" \
+          --repo-root "$(git rev-parse --show-toplevel)")
         [ -n "$SKIPS" ] || SKIPS='{}'
         echo "skips=$SKIPS" >> "$GITHUB_OUTPUT"

@@ -3,7 +3,7 @@
 
 Usage:
     python3 gate.py --image-uri <ref> --repo-root <path> \
-        --suite-map '{"sanity":"sanity","upstream":"sglang/upstream"}'
+        --suites '["sanity", "sglang/upstream", "sglang/model"]'
 """
 
 import argparse
@@ -25,35 +25,25 @@ def _load_helpers(repo_root):
     return hash_image_content, hash_suite_code, ci_images_store
 
 
-def compute_skips(repo_root, image_uri, suite_map, platform=DEFAULT_PLATFORM):
-    """Return {test: skip_bool} for the skip-eligible tests in suite_map."""
+def compute_skips(repo_root, image_uri, suites, platform=DEFAULT_PLATFORM):
+    """Return {test: skip_bool} for the skip-eligible test suites."""
     hash_image_content, hash_suite_code, store = _load_helpers(repo_root)
-    
-    eligible = [
-        (test, suite)
-        for test, suite in suite_map.items()
-        if hash_suite_code.is_skip_eligible(repo_root, suite)
-    ]
+    eligible = [s for s in dict.fromkeys(suites) if hash_suite_code.is_skip_eligible(repo_root, s)]
     if not eligible:
         return {}
 
     image_content_hash = hash_image_content.compute_image_content_hash(image_uri, platform=platform)
-
-    # Several tests may share one suite; hash each distinct suite once.
-    suite_code_hashes = {}
-    for _, suite in eligible:
-        if suite not in suite_code_hashes:
-            suite_code_hashes[suite] = hash_suite_code.hash_suite_code(repo_root, suite)
+    suite_code_hashes = {s: hash_suite_code.hash_suite_code(repo_root, s) for s in eligible}
 
     skippable = store.check_test_skip(image_content_hash, suite_code_hashes)
-    return {test: (suite in skippable) for test, suite in eligible}
+    return {s: (s in skippable) for s in eligible}
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Batch test-skip gate.")
     parser.add_argument("--image-uri", required=True, help="Resolved image reference to hash.")
     parser.add_argument(
-        "--suite-map", required=True, help="JSON object: test -> test-suites.yml key."
+        "--suites", required=True, help="JSON array of test-suites.yml keys to check."
     )
     parser.add_argument("--repo-root", default=".", help="Repo checkout root.")
     parser.add_argument(
@@ -62,8 +52,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     try:
-        suite_map = json.loads(args.suite_map)
-        skips = compute_skips(args.repo_root, args.image_uri, suite_map, args.platform)
+        suites = json.loads(args.suites)
+        if not isinstance(suites, list):
+            raise ValueError(f"--suites must be a JSON array, got {type(suites).__name__}")
+        skips = compute_skips(args.repo_root, args.image_uri, suites, args.platform)
     except Exception as e:  # fail open — never let the gate suppress a real test
         print(f"::warning::test-skip gate failed ({e}); running all suites", file=sys.stderr)
         print("{}")

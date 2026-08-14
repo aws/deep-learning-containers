@@ -33,23 +33,21 @@ def _uses_test_skip_action(step):
 
 
 def _suites_from_step(step):
-    """Yield the literal suite names a step references, from `suite` or `suite-map` (skipping ${{ }} expressions)."""
+    """Yield the literal suite names a step references, from `suite` or `suites` (skipping ${{ }} expressions)."""
     with_ = step.get("with") or {}
 
     suite = with_.get("suite")
     if isinstance(suite, str) and "${{" not in suite:
         yield suite
 
-    suite_map = with_.get("suite-map")
-    if isinstance(suite_map, str) and "${{" not in suite_map:
+    suites = with_.get("suites")
+    if isinstance(suites, str) and "${{" not in suites:
         try:
-            mapping = json.loads(suite_map)
+            parsed = json.loads(suites)
         except (ValueError, TypeError):
-            mapping = None
-        if isinstance(mapping, dict):
-            for value in mapping.values():
-                if isinstance(value, str):
-                    yield value
+            parsed = None
+        if isinstance(parsed, list):
+            yield from (s for s in parsed if isinstance(s, str))
 
 
 def collect_invoked_suites():
@@ -86,7 +84,7 @@ jobs:
     steps:
       - uses: ./.github/actions/check-test-skips
         with:
-          suite-map: '{"single_gpu":"pytorch/single_gpu"}'
+          suites: '["pytorch/single_gpu"]'
       - uses: ./.github/actions/record-test-pass
         with:
           suite: sanity
@@ -104,7 +102,7 @@ jobs:
           suite: ${{ matrix.suite }}
       - uses: ./.github/actions/check-test-skips
         with:
-          suite-map: ${{ steps.x.outputs.map }}
+          suites: ${{ steps.x.outputs.suites }}
 """
 
 
