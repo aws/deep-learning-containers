@@ -1,8 +1,8 @@
 # Supported Models
 
 Each container serves a **single Whisper model**, pinned at launch through the `WHISPERX_DEFAULT_MODEL` environment variable (default `large-v2`).
-Word-level alignment (wav2vec2) and speaker diarization (pyannote) run on top of that model's output. The request `model` field is ignored — to serve a
-different model, launch another container. See [Configuration](../configuration.md) for all launch options.
+Word-level alignment (wav2vec2) and speaker diarization (pyannote) run on top of that model's output. The request `model` field is ignored — to serve
+a different model, launch another container. See [Configuration](../configuration.md) for all launch options.
 
 ## Whisper Models
 
@@ -12,8 +12,8 @@ different model, launch another container. See [Configuration](../configuration.
 | Model | `WHISPERX_DEFAULT_MODEL` | Notes |
 | --- | --- | --- |
 | Tiny | `tiny` | Fastest, lowest accuracy |
-| Base | `base` | |
-| Small | `small` | |
+| Base | `base` |  |
+| Small | `small` |  |
 | Medium | `medium` | Balanced speed and accuracy |
 | Large v2 | `large-v2` | **Default** |
 | Large v3 | `large-v3` | Latest large model |
@@ -33,8 +33,8 @@ On top of transcription, WhisperX adds two stages:
 
 ## Custom / BYO Models
 
-To serve a fine-tuned or private Whisper model, provide it as a **flat faster-whisper (CTranslate2) directory** — the CTranslate2 files must sit at the
-root so faster-whisper loads the path directly:
+To serve a fine-tuned or private Whisper model, provide it as a **flat faster-whisper (CTranslate2) directory** — the CTranslate2 files must sit at
+the root so faster-whisper loads the path directly:
 
 ```text
 faster-whisper-model/
@@ -45,7 +45,8 @@ faster-whisper-model/
 └── preprocessor_config.json
 ```
 
-The exact files vary by model and by the CTranslate2 converter version; what matters is that these files sit at the root of the directory (or tar archive), not in a nested subfolder.
+The exact files vary by model and by the CTranslate2 converter version; what matters is that these files sit at the root of the directory (or tar
+archive), not in a nested subfolder.
 
 - **{{ ec2_short }}** — mount the directory and point `WHISPERX_DEFAULT_MODEL` at the mount:
 

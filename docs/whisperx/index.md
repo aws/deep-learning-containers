@@ -43,6 +43,6 @@ The request is a `multipart/form-data` file upload, not a JSON body. See [EC2 De
 These images are curated builds tracking the [WhisperX](https://github.com/m-bain/whisperX) project:
 
 - **Built from upstream releases** — images track WhisperX releases, each gated by our regression test suite before publication.
-- **Regression-tested** — validated for transcription, word alignment, and diarization on {{ ec2_short }} and {{ sagemaker }} on every release.
-  See [Supported Models](models/index.md).
+- **Regression-tested** — validated for transcription, word alignment, and diarization on {{ ec2_short }} and {{ sagemaker }} on every release. See
+  [Supported Models](models/index.md).
 - **Security-patched** — continuously maintained with security patches from {{ aws }} on an Amazon Linux 2023 base.

@@ -1,7 +1,7 @@
 # Configuration
 
-All tuning is set at container launch via `WHISPERX_*` environment variables. There are no per-request tuning fields — the HTTP API takes an audio file
-plus a small set of output-shaping form fields (see [Request Fields](#request-fields)). These variables are read once at startup into immutable
+All tuning is set at container launch via `WHISPERX_*` environment variables. There are no per-request tuning fields — the HTTP API takes an audio
+file plus a small set of output-shaping form fields (see [Request Fields](#request-fields)). These variables are read once at startup into immutable
 settings; pass them with `-e` on {{ ec2_short }} or via the container `Environment` on {{ sagemaker }}.
 
 Boolean variables accept `1`, `true`, `yes`, or `on` (case-insensitive) as true; anything else is false.
@@ -85,10 +85,10 @@ Form fields on `POST /v1/audio/transcriptions` and `POST /invocations` (identica
 
 ## Known Limitations
 
-- **Inference is serialized to one request per container.** A single WhisperX pipeline is not concurrency-safe, so `WHISPERX_MAX_CONCURRENT_REQUESTS` is
-  clamped to 1. Up to `WHISPERX_MAX_QUEUE` (default 2) requests queue while one runs; further requests are shed immediately with HTTP 503
-  `"server busy: inference queue full"`. The default in-flight ceiling is **1 running + 2 queued = 3**. Scale throughput by running **more containers**,
-  not by raising concurrency.
+- **Inference is serialized to one request per container.** A single WhisperX pipeline is not concurrency-safe, so `WHISPERX_MAX_CONCURRENT_REQUESTS`
+  is clamped to 1. Up to `WHISPERX_MAX_QUEUE` (default 2) requests queue while one runs; further requests are shed immediately with HTTP 503
+  `"server busy: inference queue full"`. The default in-flight ceiling is **1 running + 2 queued = 3**. Scale throughput by running **more
+  containers**, not by raising concurrency.
 - **Upload size is capped** at `WHISPERX_MAX_UPLOAD_BYTES` (default 100 MiB); larger uploads are rejected with HTTP 413.
 - **`task=translate` cannot word-align or diarize.** Translated English text cannot be aligned to the source-language audio; a `diarize=true` request
   with `WHISPERX_TASK=translate` returns HTTP 422.

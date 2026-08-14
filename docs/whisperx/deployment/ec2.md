@@ -88,11 +88,11 @@ curl http://localhost:8000/v1/audio/transcriptions \
   -F "response_format=verbose_json"
 ```
 
-**What works offline, and what to pre-cache:** The pyannote diarization pipeline is baked into the image and the VAD segmentation model ships inside the
-WhisperX wheel, so both work with no network. Per-language **wav2vec2 aligners do not ship in the image** — they download lazily from HuggingFace on the
-first word-timestamp **or diarize** request. With `HF_HUB_OFFLINE=1` and no cached aligner, those requests fail for an uncached language. So
-fully-offline **segment-level transcription** works out of the box, but offline **word timestamps or diarization** require pre-caching the aligner into
-`HF_HOME` (or pinning one with `WHISPERX_ALIGN_MODEL`) before going offline.
+**What works offline, and what to pre-cache:** The pyannote diarization pipeline is baked into the image and the VAD segmentation model ships inside
+the WhisperX wheel, so both work with no network. Per-language **wav2vec2 aligners do not ship in the image** — they download lazily from HuggingFace
+on the first word-timestamp **or diarize** request. With `HF_HUB_OFFLINE=1` and no cached aligner, those requests fail for an uncached language. So
+fully-offline **segment-level transcription** works out of the box, but offline **word timestamps or diarization** require pre-caching the aligner
+into `HF_HOME` (or pinning one with `WHISPERX_ALIGN_MODEL`) before going offline.
 
 ## Configuration and Limits
 
