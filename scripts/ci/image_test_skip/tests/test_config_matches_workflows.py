@@ -121,6 +121,4 @@ def test_gate_accessors_are_configured_and_gated():
                 problems.append((wf_path.name, key, "not in test-suites.yml"))
             elif key not in gate_suites:
                 problems.append((wf_path.name, key, "not in the gate's suites list"))
-    assert not problems, (A job that is skippable was not checked by test-skip-gate: {problems}
-        f""
-    )
+    assert not problems, f"A job that is skippable was not checked by test-skip-gate: {problems}"
