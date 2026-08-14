@@ -1,6 +1,6 @@
 name: "Pipeline - PyTorch"
 
-# ci: no-op bump to re-trigger the test-skip gate run
+# ci: no-op bump to re-trigger the test-skip gate run (2 — expect unit-test to skip)
 
 on:
   workflow_call:
