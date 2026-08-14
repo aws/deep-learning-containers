@@ -1,5 +1,6 @@
 """Verify key Python packages import successfully."""
 
+# ci: no-op change to exercise the test-skip gate
 import importlib
 
 import pytest

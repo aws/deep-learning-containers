@@ -96,9 +96,22 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-suffix: ${{ inputs.tag-suffix }}
 
-  sanity-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+  # Batched test-skip gate: one cache query up front so skippable suites never
+  # provision a test runner. security is omitted here — it is never skipped.
+  test-skip-gate:
+    if: ${{ always() && !failure() && !cancelled() }}
     needs: [build]
+    uses: ./.github/workflows/_reusable.test-skip-gate.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      suites: >-
+        ["sanity", "telemetry", "sglang/upstream", "sglang/model",
+        "sglang/sagemaker", "efa"]
+
+  sanity-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test && !fromJSON(needs.test-skip-gate.outputs.skips)['sanity'] }}
+    needs: [build, test-skip-gate]
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -119,8 +132,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test && !fromJSON(needs.test-skip-gate.outputs.skips)['telemetry'] }}
+    needs: [build, test-skip-gate]
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -130,8 +143,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   upstream-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
-    needs: [build]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test && !fromJSON(needs.test-skip-gate.outputs.skips)['sglang/upstream'] }}
+    needs: [build, test-skip-gate]
     concurrency:
       group: ${{ github.workflow }}-upstream-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -142,8 +155,8 @@ jobs:
     secrets: inherit
 
   model-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test }}
-    needs: [build]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test && !fromJSON(needs.test-skip-gate.outputs.skips)['sglang/model'] }}
+    needs: [build, test-skip-gate]
     concurrency:
       group: ${{ github.workflow }}-model-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -154,8 +167,8 @@ jobs:
     secrets: inherit
 
   sagemaker-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' && !fromJSON(needs.test-skip-gate.outputs.skips)['sglang/sagemaker'] }}
+    needs: [build, ci-config, test-skip-gate]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -165,8 +178,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
-    needs: [build]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && !fromJSON(needs.test-skip-gate.outputs.skips)['efa'] }}
+    needs: [build, test-skip-gate]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
