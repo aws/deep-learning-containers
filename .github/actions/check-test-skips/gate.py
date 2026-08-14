@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ci: no-op bump — expect unit-test to skip from cache, no other suite to run
 """Batch test-skip gate.
 
 Usage:
