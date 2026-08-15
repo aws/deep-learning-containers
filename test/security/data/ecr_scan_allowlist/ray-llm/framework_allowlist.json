@@ -58,5 +58,10 @@
         "vulnerability_id": "CVE-2026-55574",
         "reason": "vllm 0.22.0 — fixed in 0.24.0 (structured_outputs.regex ReDoS from user-supplied regex); vllm pin is set by ray[llm] 2.56.1 and cannot be bumped independently",
         "review_by": "2026-11-01"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54399",
+        "reason": "httpcore5 5.0.2 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-11-11"
     }
 ]

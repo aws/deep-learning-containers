@@ -4,10 +4,11 @@
 # Ray Serve + vLLM on the base cu130 image. Supports single-node and multi-node
 # LLM serving under KubeRay via ray.serve.llm.build_openai_app.
 #
-# The base image already ships Python 3.13.12, uv, EFA 1.49.0, NCCL 2.29.7, and
-# GDRCopy 2.6 (see docker/base/cu130/Dockerfile), so this file just layers on
-# the Python stack, shell tools vLLM needs at runtime, and a pass-through
-# entrypoint compatible with KubeRay's rayStartParams-driven ray start.
+# The base image ships Python 3.13.12 and uv. EFA + OFI NCCL + OpenMPI are
+# installed on top for multi-node inference (NCCL over libfabric). This file
+# also layers on the Python stack, shell tools vLLM needs at runtime, and a
+# pass-through entrypoint compatible with KubeRay's rayStartParams-driven
+# ray start.
 #
 # Config build: block is the source of truth for pins; ARG defaults are local-
 # build fallbacks.
@@ -20,6 +21,7 @@ ARG PYTHON_VERSION=3.13
 ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK_VERSION=2.56.1
 ARG VLLM_VERSION=0.22.0
+ARG EFA_VERSION=1.47.0
 
 # Base DLCs (we own them). devel for the venv build stage, runtime for output.
 ARG BUILDER_BASE_IMAGE=public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023
@@ -53,6 +55,7 @@ ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 ARG FRAMEWORK_VERSION
 ARG VLLM_VERSION
+ARG EFA_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 
@@ -98,6 +101,11 @@ ENV CC=/usr/bin/gcc \
 
 # Python venv from builder
 COPY --from=builder-venv /opt/venv /opt/venv
+
+# EFA + OpenMPI + OFI NCCL + libfabric. Without this, NCCL falls back to plain
+# TCP over eth0 and EFA hardware on the node goes unused.
+COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
+RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
 # Security patch after all installers so every OS package is covered.
 RUN dnf upgrade -y --security --releasever latest \
