@@ -3,40 +3,22 @@
 # Execute telemetry script if it exists, suppress errors
 bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
 
-PREFIX="SM_VLLM_"
-ARG_PREFIX="--"
-
-ARGS=(--port 8080)
-
-# Auto-detect model if SM_VLLM_MODEL is not set
-if [ -z "${SM_VLLM_MODEL}" ]; then
-    if [ -d "/opt/ml/model" ] && [ "$(ls -A /opt/ml/model 2>/dev/null)" ]; then
-        echo "INFO: SM_VLLM_MODEL not set, auto-detected model at /opt/ml/model"
-        ARGS+=(--model /opt/ml/model)
-    elif [ -n "${HF_MODEL_ID}" ]; then
-        echo "INFO: SM_VLLM_MODEL not set, using HF_MODEL_ID=${HF_MODEL_ID}"
-        ARGS+=(--model "${HF_MODEL_ID}")
-    else
-        echo "WARNING: No model specified. Set SM_VLLM_MODEL, HF_MODEL_ID, or mount a model to /opt/ml/model."
-    fi
+# Translate SM_VLLM_* env vars (and the model-source ladder) into CLI arguments.
+# The helper emits NUL-delimited tokens, so values containing spaces or newlines stay
+# intact and multi-value flags such as --lora-modules get one token per value.
+ARGS_FILE=$(mktemp)
+trap 'rm -f "${ARGS_FILE}"' EXIT
+if ! python3 /usr/local/bin/sagemaker_args.py >"${ARGS_FILE}"; then
+    echo "ERROR: failed to build vLLM arguments from SM_VLLM_* environment variables" >&2
+    exit 1
 fi
-
-while IFS='=' read -r key value; do
-    arg_name=$(echo "${key#"${PREFIX}"}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
-
-    # Handle boolean flags: true -> flag only, false -> skip entirely
-    lower_value=$(echo "$value" | tr '[:upper:]' '[:lower:]')
-    if [ "$lower_value" = "true" ]; then
-        ARGS+=("${ARG_PREFIX}${arg_name}")
-    elif [ "$lower_value" = "false" ]; then
-        continue
-    else
-        ARGS+=("${ARG_PREFIX}${arg_name}")
-        if [ -n "$value" ]; then
-            ARGS+=("$value")
-        fi
-    fi
-done < <(env | grep "^${PREFIX}")
+ARGS=()
+while IFS= read -r -d '' token; do
+    ARGS+=("${token}")
+done <"${ARGS_FILE}"
+# Remove now rather than on EXIT: the trap never fires because we exec below.
+rm -f "${ARGS_FILE}"
+trap - EXIT
 
 # Add SageMaker routing middleware to dispatch /invocations to the correct
 # vllm-omni endpoint (e.g. /v1/audio/speech for TTS)

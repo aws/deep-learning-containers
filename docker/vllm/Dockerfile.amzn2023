@@ -428,6 +428,7 @@ RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=Fal
 
 COPY ./scripts/docker/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 COPY ./scripts/docker/vllm/sagemaker_serve.py /usr/local/bin/sagemaker_serve.py
+COPY ./scripts/docker/vllm/sagemaker_args.py /usr/local/bin/sagemaker_args.py
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
 

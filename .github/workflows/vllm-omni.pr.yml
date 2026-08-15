@@ -9,14 +9,19 @@ on:
       - ".github/config/model-tests/vllm-omni-model-tests.yml"
       - ".github/workflows/vllm-omni.pipeline.yml"
       - ".github/workflows/vllm-omni.pr.yml"
+      - ".github/workflows/vllm.tests-unit.yml"
       - "docker/vllm_omni/Dockerfile.amzn2023"
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "scripts/docker/vllm/omni_*"
+      # Shared with vLLM: the SM_VLLM_* argument helper baked into the omni image
+      - "scripts/docker/vllm/sagemaker_args.py"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/vllm_omni/**"
       - "test/telemetry/**"
       - "test/vllm-omni/**"
+      # CPU-only unit tests that cover the shared omni entrypoint
+      - "test/vllm/test_sagemaker_args.py"
       - "!docs/**"
 
 permissions:
@@ -42,6 +47,7 @@ jobs:
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -53,6 +59,7 @@ jobs:
               - "docker/vllm_omni/Dockerfile.amzn2023"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/omni_*"
+              - "scripts/docker/vllm/sagemaker_args.py"
               - "test/security/data/ecr_scan_allowlist/vllm_omni/**"
               - "test/vllm-omni/**"
             model-test-change:
@@ -65,6 +72,11 @@ jobs:
             telemetry-test-change:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
+            unit-test-change:
+              - "scripts/docker/vllm/omni_*"
+              - "scripts/docker/vllm/sagemaker_args.py"
+              - "test/vllm/test_sagemaker_args.py"
+              - ".github/workflows/vllm.tests-unit.yml"
 
   discover:
     needs: [gatekeeper]
@@ -90,6 +102,7 @@ jobs:
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
