@@ -72,3 +72,29 @@ jobs:
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
             pytest /workdir/test/pytorch/unit/ -v
           docker kill ${CONTAINER_ID}
+
+      # Reached only if the tests above passed — record a PASS row so a later
+      # run on the same image content + test code can skip this suite.
+      - name: Compute test-skip hashes
+        id: hashes
+        env:
+          IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
+        run: |
+          uv venv --python 3.12 --clear
+          source .venv/bin/activate
+          uv pip install pyyaml
+          SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/image_test_skip"
+          {
+            echo "image-content-hash=$(python3 "$SCRIPTS/hash_image_content.py" --image-uri "$IMAGE_URI")"
+            echo "suite-code-hash=$(python3 "$SCRIPTS/hash_suite_code.py" --suite pytorch/unit)"
+            echo "ci-image-tag=${IMAGE_URI##*:}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Record test pass
+        uses: ./.github/actions/record-test-pass
+        with:
+          suite: pytorch/unit
+          image-content-hash: ${{ steps.hashes.outputs.image-content-hash }}
+          suite-code-hash: ${{ steps.hashes.outputs.suite-code-hash }}
+          ci-image-tag: ${{ steps.hashes.outputs.ci-image-tag }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

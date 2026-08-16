@@ -204,6 +204,9 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSC
 COPY scripts/docker/pytorch/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# ci: build-path demo — new final rootfs layer to change image_content_hash (cheap: all prior layers cache-hit)
+RUN echo "ci-build-path-demo" >/etc/dlc_ci_marker
+
 # PATH and LD_LIBRARY_PATH
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:${PATH}" \
   LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
