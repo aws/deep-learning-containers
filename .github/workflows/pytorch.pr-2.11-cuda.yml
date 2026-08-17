@@ -104,9 +104,11 @@ jobs:
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
-      # TEMPORARY: force EFA-test-only run (no build, all other tests off).
+      # TEMPORARY: force a build + EFA-test-only run (all other tests off).
+      # build must be true so the rebuilt image includes the newly-baked
+      # broadcast_perf binary (the prod image only ships all_reduce_perf).
       # Revert this block before merge to restore change-based gating.
-      build: false
+      build: true
       run-efa-test: true
       run-multi-gpu-test: false   # NOTE: Temporarily disable test due to CI resource contention
       run-multi-node-test: false  # NOTE: Temporarily disable test due to CI resource contention

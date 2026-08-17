@@ -168,8 +168,10 @@ RUN CUDART=$(ls /usr/local/cuda/lib64/libcudart.so.* | head -1) \
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
-# NCCL tests binary (all_reduce_perf) — used by CI EFA tests and available to
-# customers for verifying EFA/NCCL connectivity before training.
+# NCCL tests binaries (all_reduce_perf, broadcast_perf) — used by CI EFA tests
+# and available to customers for verifying EFA/NCCL connectivity before training.
+# `make` builds every collective; broadcast_perf is needed to catch the
+# aws-ofi-nccl broadcast hang (P490455835) alongside the all-reduce check.
 RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
     if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
       ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
@@ -179,6 +181,7 @@ RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl._
     cd nccl-tests-master && \
     make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=${NCCL_HOME} CUDA_HOME=/usr/local/cuda && \
     cp build/all_reduce_perf /usr/local/bin/all_reduce_perf && \
+    cp build/broadcast_perf /usr/local/bin/broadcast_perf && \
     cd / && rm -rf /tmp/nccl-tests-master
 
 
