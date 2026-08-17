@@ -409,6 +409,9 @@ RUN dnf upgrade -y --security --releasever latest \
 COPY ./scripts/docker/sglang/dockerd_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
+# no-op comment change: re-trigger CI to validate the test-skip read/skip path.
+# Comments are not build instructions, so image content (diff_ids) is unchanged
+# and the previously-recorded PASS rows should produce a cache hit + skip.
 # test-skip e2e validation: final-layer marker to force a new image_content_hash
 # so the rebuild produces a distinct content hash for the test-skip cache write.
 RUN echo "test-skip-e2e-v2" >/etc/dlc_test_skip_marker
