@@ -1,4 +1,4 @@
-name: Reusable Test-Skip Gate
+name: Reusable Check Test-Pass
 
 on:
   workflow_call:
@@ -19,24 +19,24 @@ on:
     outputs:
       skips:
         description: "JSON object: test suite -> true | false. {} means run all."
-        value: ${{ jobs.gate.outputs.skips }}
+        value: ${{ jobs.check.outputs.skips }}
 
 permissions:
   contents: read
 
 jobs:
-  gate:
+  check:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
     outputs:
-      skips: ${{ steps.gate.outputs.skips || '{}' }}
+      skips: ${{ steps.check.outputs.skips || '{}' }}
     steps:
       - uses: actions/checkout@v6
-      - id: gate
+      - id: check
         continue-on-error: true
-        uses: ./.github/actions/check-test-skips
+        uses: ./.github/actions/check-test-pass
         with:
           image-uri: ${{ inputs.image-uri }}
           config-file: ${{ inputs.config-file }}

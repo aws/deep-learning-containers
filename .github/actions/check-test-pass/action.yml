@@ -1,8 +1,7 @@
 name: 'Check test skips'
 description: >
-  Batch test-skip gate. Compute the image content hash, test suite hash, and
-  read the dlc-ci-images cache for every skip-eligible suite in a single query.
-  Runs once per pipeline so skippable suites never need to provision a test runner.
+  Compute the image content hash, test suite hash, and query the dlc-ci-images
+  table for every skip-eligible suite in a single query.
 
 inputs:
   image-uri:
@@ -31,8 +30,8 @@ inputs:
 
 outputs:
   skips:
-    description: 'JSON object: test suite -> true | false. {} means run all.'
-    value: ${{ steps.gate.outputs.skips }}
+    description: 'JSON object: test suite -> true (skip) | false (run). {} means run all.'
+    value: ${{ steps.check.outputs.skips }}
 
 runs:
   using: composite
@@ -54,7 +53,7 @@ runs:
         aws-region: ${{ inputs.aws-region }}
 
     - name: Compute skips
-      id: gate
+      id: check
       shell: bash
       env:
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
@@ -66,7 +65,7 @@ runs:
         uv venv --python 3.12 --clear
         source .venv/bin/activate
         uv pip install boto3 pyyaml
-        SKIPS=$(python3 "${{ github.action_path }}/gate.py" \
+        SKIPS=$(python3 "${{ github.action_path }}/check_test_pass.py" \
           --image-uri "$RESOLVED_IMAGE_URI" \
           --suites "$SUITES" \
           --repo-root "$(git rev-parse --show-toplevel)")
@@ -76,7 +75,7 @@ runs:
     - name: Report cache hits
       shell: bash
       env:
-        SKIPS: ${{ steps.gate.outputs.skips }}
+        SKIPS: ${{ steps.check.outputs.skips }}
       run: |
         HITS=$(printf '%s' "$SKIPS" | jq -r 'to_entries[] | select(.value) | .key' 2>/dev/null || true)
         {
@@ -85,7 +84,7 @@ runs:
             echo "The following suites will be skipped (no test runner provisioned):"
             printf '%s\n' "$HITS" | sed 's/^/- /'
           else
-            echo "### Test-skip gate"
+            echo "### Test-skip cache check"
             echo "No cache hits — all checked suites will run."
           fi
         } >> "$GITHUB_STEP_SUMMARY"

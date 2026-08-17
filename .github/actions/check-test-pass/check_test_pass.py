@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Batch test-skip gate.
+"""Batch test-pass check.
+
+Checks for skip-eligible suites and returns which ones already passed for
+the current image content hash.
 
 Usage:
-    python3 gate.py --image-uri <ref> --repo-root <path> \
+    python3 check_test_pass.py --image-uri <ref> --repo-root <path> \
         --suites '["sanity", "sglang/upstream", "sglang/model"]'
 """
 
@@ -16,13 +19,13 @@ DEFAULT_PLATFORM = "linux/amd64"
 
 def _load_helpers(repo_root):
     """Import the shared test-skip modules from the repo checkout."""
-    scripts_dir = Path(repo_root) / "scripts" / "ci" / "image_test_skip"
+    scripts_dir = Path(repo_root) / "scripts" / "ci" / "test_skip"
     sys.path.insert(0, str(scripts_dir))
-    import ci_images_store
+    import test_skip_db
     import hash_image_content
     import hash_suite_code
 
-    return hash_image_content, hash_suite_code, ci_images_store
+    return hash_image_content, hash_suite_code, test_skip_db
 
 
 def compute_skips(repo_root, image_uri, suites, platform=DEFAULT_PLATFORM):
@@ -35,7 +38,7 @@ def compute_skips(repo_root, image_uri, suites, platform=DEFAULT_PLATFORM):
     image_content_hash = hash_image_content.compute_image_content_hash(image_uri, platform=platform)
     suite_code_hashes = {s: hash_suite_code.hash_suite_code(repo_root, s) for s in eligible}
 
-    skippable = store.check_test_skip(image_content_hash, suite_code_hashes)
+    skippable = store.check_test_pass(image_content_hash, suite_code_hashes)
     return {s: (s in skippable) for s in eligible}
 
 

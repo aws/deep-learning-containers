@@ -18,7 +18,7 @@ from pathlib import Path
 
 import yaml
 
-# scripts/ci/image_test_skip/hash_suite_code.py -> repo root is three parents up.
+# scripts/ci/test_skip/hash_suite_code.py -> repo root is three parents up.
 DEFAULT_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 CONFIG_REL = ".github/config/test-suites.yml"
 

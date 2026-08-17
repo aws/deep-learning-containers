@@ -9,7 +9,7 @@ import boto3
 import pytest
 from moto import mock_aws
 
-MODULE_PATH = Path(__file__).resolve().parent.parent / "ci_images_store.py"
+MODULE_PATH = Path(__file__).resolve().parent.parent / "test_skip_db.py"
 spec = importlib.util.spec_from_file_location("store", MODULE_PATH)
 store = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(store)
@@ -72,37 +72,37 @@ def test_record_omits_ci_image_tag_when_empty_string(dynamo):
     assert "ci_image_tag" not in _get_row(dynamo)
 
 
-def test_check_test_skip_empty_input_returns_empty(dynamo):
-    assert store.check_test_skip(HASH, {}, client=dynamo) == set()
+def test_check_test_pass_empty_input_returns_empty(dynamo):
+    assert store.check_test_pass(HASH, {}, client=dynamo) == set()
 
 
-def test_check_test_skip_all_miss_returns_empty(dynamo):
-    result = store.check_test_skip(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+def test_check_test_pass_all_miss_returns_empty(dynamo):
+    result = store.check_test_pass(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
     assert result == set()
 
 
-def test_check_test_skip_returns_only_recorded_suites(dynamo):
+def test_check_test_pass_returns_only_recorded_suites(dynamo):
     store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
     # OTHER_SUITE is not recorded, so only SUITE should come back as a hit.
-    result = store.check_test_skip(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+    result = store.check_test_pass(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
     assert result == {SUITE}
 
 
-def test_check_test_skip_returns_multiple_hits(dynamo):
+def test_check_test_pass_returns_multiple_hits(dynamo):
     store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
     store.record_test_pass(HASH, OTHER_SUITE, OTHER_CODE_HASH, client=dynamo)
-    result = store.check_test_skip(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+    result = store.check_test_pass(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
     assert result == {SUITE, OTHER_SUITE}
 
 
-def test_check_test_skip_respects_code_hash(dynamo):
+def test_check_test_pass_respects_code_hash(dynamo):
     store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
     # Same suite, different code hash -> no hit.
-    result = store.check_test_skip(HASH, {SUITE: "sha256:changed"}, client=dynamo)
+    result = store.check_test_pass(HASH, {SUITE: "sha256:changed"}, client=dynamo)
     assert result == set()
 
 
-def test_check_test_skip_respects_image_hash(dynamo):
+def test_check_test_pass_respects_image_hash(dynamo):
     store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
-    result = store.check_test_skip("sha256:different", {SUITE: CODE_HASH}, client=dynamo)
+    result = store.check_test_pass("sha256:different", {SUITE: CODE_HASH}, client=dynamo)
     assert result == set()

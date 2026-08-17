@@ -7,10 +7,10 @@
 #
 # Output: writes the PASS row to DynamoDB and a summary to $GITHUB_STEP_SUMMARY
 #
-# Requires: python3, and scripts/ci/image_test_skip/ci_images_store.py
+# Requires: python3, and scripts/ci/test_skip/test_skip_db.py
 set -euo pipefail
 
-SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/image_test_skip"
+SCRIPTS="$(git rev-parse --show-toplevel)/scripts/ci/test_skip"
 
 # Suites with skip_eligible=false are always run. Don't write them to the store.
 ELIGIBLE=$(python3 "$SCRIPTS/hash_suite_code.py" --suite "$SUITE" --eligible-only) || ELIGIBLE=""
@@ -26,7 +26,7 @@ if [[ -z "$IMAGE_CONTENT_HASH" || -z "$SUITE_CODE_HASH" ]]; then
   exit 0
 fi
 
-if python3 "$SCRIPTS/ci_images_store.py" record \
+if python3 "$SCRIPTS/test_skip_db.py" record \
   --image-content-hash "$IMAGE_CONTENT_HASH" \
   --suite "$SUITE" \
   --suite-code-hash "$SUITE_CODE_HASH" \

@@ -38,7 +38,7 @@ def _client():
     return boto3.client("dynamodb", region_name=region)
 
 
-def check_test_skip(image_content_hash, suite_code_hashes, client=None):
+def check_test_pass(image_content_hash, suite_code_hashes, client=None):
     """Return the set of suites that may be skipped, in one BatchGetItem.
 
     ``suite_code_hashes`` maps suite name -> its suite_code_hash. A suite is in

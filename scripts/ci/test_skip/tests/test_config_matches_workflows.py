@@ -8,13 +8,13 @@ from pathlib import Path
 import yaml
 
 # Extract the suite name out of the GitHub Actions expression, e.g.
-# fromJSON(needs.test-skip-gate.outputs.skips)['pytorch/unit'] -> pytorch/unit
+# fromJSON(needs.check.outputs.skips)['pytorch/unit'] -> pytorch/unit
 _ACCESSOR_RE = re.compile(r"outputs\.skips\)\s*(?:\[\s*['\"]([^'\"]+)['\"]\s*\]|\.([A-Za-z_]\w*))")
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
-TEST_SKIP_ACTIONS = ("check-test-skips", "record-test-pass")
-GATE_WORKFLOW = "_reusable.test-skip-gate.yml"
+TEST_SKIP_ACTIONS = ("check-test-pass", "record-test-pass")
+CHECK_WORKFLOW = "_reusable.check-test-pass.yml"
 
 MODULE_PATH = Path(__file__).resolve().parent.parent / "hash_suite_code.py"
 spec = importlib.util.spec_from_file_location("hash_suite_code", MODULE_PATH)
@@ -56,19 +56,19 @@ def _suites_from_step(step):
             yield from (s for s in parsed if isinstance(s, str))
 
 
-def _gate_suites(workflow):
-    """Return the set of suites the gate is asked to check."""
+def _check_suites(workflow):
+    """Return the set of suites the check job is asked to check."""
     suites = set()
     jobs = workflow.get("jobs", {}) if isinstance(workflow, dict) else {}
     for job in jobs.values():
         uses = job.get("uses", "") if isinstance(job, dict) else ""
-        if isinstance(uses, str) and GATE_WORKFLOW in uses:
+        if isinstance(uses, str) and CHECK_WORKFLOW in uses:
             suites.update(_suites_from_step(job))
     return suites
 
 
-def _gate_accessor_keys(workflow):
-    """Yield suite keys read from the gate output in any job `if:` condition."""
+def _check_accessor_keys(workflow):
+    """Yield suite keys read from the check output in any job `if:` condition."""
     jobs = workflow.get("jobs", {}) if isinstance(workflow, dict) else {}
     for job in jobs.values():
         cond = job.get("if") if isinstance(job, dict) else None
@@ -91,7 +91,7 @@ def collect_invoked_suites():
                 continue
             for suite in _suites_from_step(step):
                 invoked.append((wf_path.name, suite))
-        for suite in _gate_suites(workflow):
+        for suite in _check_suites(workflow):
             invoked.append((wf_path.name, suite))
     return invoked
 
@@ -106,8 +106,8 @@ def test_invoked_suites_are_configured():
     )
 
 
-def test_gate_accessors_are_configured_and_gated():
-    """Every `skips[...]` key in a job `if:` must be a real suite AND one the gate checks."""
+def test_check_accessors_are_configured_and_checked():
+    """Every `skips[...]` key in a job `if:` must be a real suite AND one the check job checks."""
     configured = set(hsc.load_config(REPO_ROOT))
     problems = []
     for wf_path in sorted(WORKFLOWS_DIR.glob("*.yml")):
@@ -115,10 +115,10 @@ def test_gate_accessors_are_configured_and_gated():
             workflow = yaml.safe_load(wf_path.read_text())
         except yaml.YAMLError:
             continue
-        gate_suites = _gate_suites(workflow)
-        for key in _gate_accessor_keys(workflow):
+        check_suites = _check_suites(workflow)
+        for key in _check_accessor_keys(workflow):
             if key not in configured:
                 problems.append((wf_path.name, key, "not in test-suites.yml"))
-            elif key not in gate_suites:
-                problems.append((wf_path.name, key, "not in the gate's suites list"))
-    assert not problems, f"A job that is skippable was not checked by test-skip-gate: {problems}"
+            elif key not in check_suites:
+                problems.append((wf_path.name, key, "not in the check job's suites list"))
+    assert not problems, f"A job that is skippable was not checked by the check job: {problems}"
