@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -52,6 +53,20 @@ def compute_skips(repo_root, image_uri, suites, platform=DEFAULT_PLATFORM):
     return skips, image_content_hash, suite_code_hashes
 
 
+def _emit_outputs(skips, image_content_hash, suite_code_hashes):
+    """Write the action outputs to $GITHUB_OUTPUT."""
+    github_output = os.getenv("GITHUB_OUTPUT")
+    if not github_output:
+        return
+    lines = [
+        f"skips={json.dumps(skips, separators=(',', ':'))}",
+        f"image-content-hash={image_content_hash}",
+        f"suite-code-hashes={json.dumps(suite_code_hashes, separators=(',', ':'))}",
+    ]
+    with open(github_output, "a") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Batch test-pass check.")
     parser.add_argument("--image-uri", required=True, help="Resolved image reference to hash.")
@@ -73,24 +88,10 @@ def main(argv=None):
         )
     except Exception as e:
         print(f"::warning::test-pass check failed ({e}); running all suites", file=sys.stderr)
-        print(
-            json.dumps(
-                {"skips": {}, "image_content_hash": "", "suite_code_hashes": {}},
-                separators=(",", ":"),
-            )
-        )
+        _emit_outputs({}, "", {})
         return 0
 
-    print(
-        json.dumps(
-            {
-                "skips": skips,
-                "image_content_hash": image_content_hash,
-                "suite_code_hashes": suite_code_hashes,
-            },
-            separators=(",", ":"),
-        )
-    )
+    _emit_outputs(skips, image_content_hash, suite_code_hashes)
     return 0
 
 

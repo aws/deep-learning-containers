@@ -71,16 +71,10 @@ runs:
         uv venv --python 3.12 --clear
         source .venv/bin/activate
         uv pip install boto3 pyyaml
-        RESULT=$(python3 "${{ github.action_path }}/check_test_pass.py" \
+        python3 "${{ github.action_path }}/check_test_pass.py" \
           --image-uri "$RESOLVED_IMAGE_URI" \
           --suites "$SUITES" \
-          --repo-root "$(git rev-parse --show-toplevel)")
-        [ -n "$RESULT" ] || RESULT='{"skips":{},"image_content_hash":"","suite_code_hashes":{}}'
-        {
-          echo "skips=$(printf '%s' "$RESULT" | jq -c '.skips')"
-          echo "image-content-hash=$(printf '%s' "$RESULT" | jq -r '.image_content_hash')"
-          echo "suite-code-hashes=$(printf '%s' "$RESULT" | jq -c '.suite_code_hashes')"
-        } >> "$GITHUB_OUTPUT"
+          --repo-root "$(git rev-parse --show-toplevel)"
 
     - name: Report cache hits
       shell: bash
