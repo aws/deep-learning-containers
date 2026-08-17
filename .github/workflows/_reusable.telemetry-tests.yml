@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        description: "Image content hash from the test-skip check. Empty disables the cache write."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "suite_code_hash for the telemetry suite. Empty disables the cache write."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -125,3 +135,26 @@ jobs:
             --container-type "${{ needs.preflight.outputs.job-type }}" \
             --arch-type "${{ needs.preflight.outputs.arch-type }}" \
             --region "${{ vars.AWS_REGION }}"
+
+  # Record a PASS row in dlc-ci-images once the telemetry suite fully passes, so a
+  # future run on the same image content + test code can skip it. Gated on the
+  # hashes being present (the caller only passes them for skip-eligible runs) and
+  # the image existing; no-ops for callers that don't opt in.
+  record-pass:
+    if: >-
+      always() && !failure() && !cancelled() &&
+      needs.preflight.outputs.image-exists == 'true' &&
+      inputs.image-content-hash != '' && inputs.suite-code-hash != ''
+    needs: [preflight, telemetry-environment, telemetry-instance]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: telemetry
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}
