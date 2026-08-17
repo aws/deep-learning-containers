@@ -4,6 +4,48 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v2.3.0 — 2026-08-17
+
+**Tags:** `server-cuda-v2.3` · `server-sagemaker-cuda-v2.3`
+
+**vLLM source:** [4bdc8a7](https://github.com/vllm-project/vllm/commit/4bdc8a788d2e2ce9165d552b3d4d8b72604626bf) (`0.27.0+amzn2023.4bdc8a78`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.16.post3 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.27.0** — minor version bump from 0.26.0 (v2.2); ~255 upstream commits
+  ([compare](https://github.com/vllm-project/vllm/compare/d223c90...v0.27.0))
+- **Kimi K3** — first release carrying Kimi K3: native model support and kernels plus Rust/Python frontends
+  ([#50000](https://github.com/vllm-project/vllm/pull/50000)), compressed-tensors quantized checkpoints
+  ([#50500](https://github.com/vllm-project/vllm/pull/50500)), and shardable shared experts
+  ([#50656](https://github.com/vllm-project/vllm/pull/50656))
+- **FlashInfer 0.6.16.post3** — upgraded from 0.6.15.post1
+- **NVIDIA B300 (SM103)** — build now targets arch `10.3`, so the vLLM and DeepEP wheels ship SM103 cubins
+- **New models** — K-EXAONE-2.0-750B-A37B ([#50524](https://github.com/vllm-project/vllm/pull/50524)), jina-embeddings-v5-text-nano
+  ([#50688](https://github.com/vllm-project/vllm/pull/50688)), Qwen3.5 dense and MoE ([#50210](https://github.com/vllm-project/vllm/pull/50210)), and
+  Inkling FP8 ([#48876](https://github.com/vllm-project/vllm/pull/48876))
+
+### Changes
+
+- **Frontend** — `cache_salt` in the Anthropic Messages API ([#49498](https://github.com/vllm-project/vllm/pull/49498)); Cohere chat v2 API
+  ([#47189](https://github.com/vllm-project/vllm/pull/47189)); `diarized_json` for MOSS-Transcribe-Diarize
+  ([#48543](https://github.com/vllm-project/vllm/pull/48543)); disaggregated-serving detokenization streaming
+  ([#47301](https://github.com/vllm-project/vllm/pull/47301))
+- **Speculative decoding** — multi-layer MTP speculator ([#48892](https://github.com/vllm-project/vllm/pull/48892))
+- **Quantization** — ModelOpt W4A16 `--linear-backend` ([#50273](https://github.com/vllm-project/vllm/pull/50273)); W4A16 MoE / MXFP4 support
+  ([#47124](https://github.com/vllm-project/vllm/pull/47124))
+- **Bugfixes** — 56 upstream fixes, including Kimi-K3 MoE/EP correctness, Qwen3.5 transformers 5.x compatibility
+  ([#50704](https://github.com/vllm-project/vllm/pull/50704)), and Mamba prefill chunk alignment
+  ([#51113](https://github.com/vllm-project/vllm/pull/51113))
+
+### New Tested Models
+
+- **Baidu Unlimited-OCR** (`UnlimitedOCRForCausalLM`) — 3B MoE document-OCR VLM; added as a smoke test on g6.xl
+
+* * *
+
 ## v2.2.0 — 2026-08-03
 
 **Tags:** `server-cuda-v2.2` · `server-sagemaker-cuda-v2.2`

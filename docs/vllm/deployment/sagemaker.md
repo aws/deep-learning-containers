@@ -190,7 +190,7 @@ async def custom_invoke(request: Request) -> Response:
 
 ## Notes
 
-- GPU deployments require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 12.9 images. See
+- GPU deployments require `inference_ami_version` — the default SageMaker host AMI has incompatible NVIDIA drivers for CUDA 13.0 images. See
   [ProductionVariant API reference](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_ProductionVariant.html) for valid values.
 - Any `SM_VLLM_*` environment variable is converted to a `--<name>` vLLM server argument (e.g., `SM_VLLM_MAX_MODEL_LEN=4096` →
   `--max-model-len 4096`).
