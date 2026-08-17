@@ -60,6 +60,31 @@
         "review_by": "2026-10-22"
     },
     {
+        "vulnerability_id": "CVE-2026-56853",
+        "reason": "go/stdlib 1.25.10 in mooncake/libetcd_wrapper.so, net/http ReadHeaderTimeout not applied to the HTTP/2 preface read, unpatchable without mooncake rebuild with Go 1.26.6+",
+        "review_by": "2026-10-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56862",
+        "reason": "go/stdlib 1.25.10 in mooncake/libetcd_wrapper.so, crypto/tls KeyUpdate flood DoS, unpatchable without mooncake rebuild with Go 1.26.6+",
+        "review_by": "2026-10-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56859",
+        "reason": "go/stdlib 1.25.10 in mooncake/libetcd_wrapper.so, encoding/xml DecodeElement depth-counter reset leading to stack exhaustion, unpatchable without mooncake rebuild with Go 1.26.6+",
+        "review_by": "2026-10-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-33818",
+        "reason": "go/stdlib 1.25.10 in mooncake/libetcd_wrapper.so, stack exhaustion unmarshalling deeply nested recursive structures, unpatchable without mooncake rebuild with Go 1.26.6+",
+        "review_by": "2026-10-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-39821",
+        "reason": "go/stdlib 1.25.10 in mooncake/libetcd_wrapper.so, idna ToASCII/ToUnicode accepting Punycode labels that decode to ASCII-only names, unpatchable without mooncake rebuild with Go 1.26.6+",
+        "review_by": "2026-10-17"
+    },
+    {
         "vulnerability_id": "RUSTSEC-2026-0195",
         "reason": "quick-xml vendored in uv binary, unbounded namespace allocation DoS, fixed in uv>=0.11.32 (Cargo.lock quick-xml 0.41.0); auto-resolves on next image rebuild via curl|sh unpinned install — prune once next scan is clean",
         "review_by": "2026-10-22"
