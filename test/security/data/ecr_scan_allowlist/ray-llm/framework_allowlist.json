@@ -1,1 +1,37 @@
-[]
+[
+    {
+        "vulnerability_id": "CVE-2026-34478",
+        "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-11-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-34480",
+        "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-11-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54513",
+        "reason": "jackson-databind 2.18.6 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-11-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54512",
+        "reason": "jackson-databind 2.18.6 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-11-17"
+    },
+    {
+        "vulnerability_id": "GHSA-r7wm-3cxj-wff9",
+        "reason": "jackson-core 2.18.6 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-11-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54399",
+        "reason": "httpcore5 5.0.2 bundled in ray_dist.jar, cannot patch without upstream ray rebuild",
+        "review_by": "2026-11-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "torch 2.9.1 pinned in vllm's benchmarks/requirements.txt spec file (not installed). Our runtime torch is 2.11.0 which is past the fix. Scanner reads the spec text and flags it. Cannot patch without vllm rebuild removing the stale spec.",
+        "review_by": "2026-11-17"
+    }
+]
