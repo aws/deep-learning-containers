@@ -54,6 +54,7 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
     - NCCL uses Libfabric ("Using network Libfabric")
     - NCCL uses GDRDMA on p4d/p5 ("NET/Libfabric/0/GDRDMA")
     - all_reduce bandwidth >= 3 GB/s on the 1 GiB message size
+    - NCCL broadcast completes across nodes without hanging
     """
 
     # On success, run_on_container returns silently and the script's stdout
@@ -112,6 +113,18 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             MASTER_CONTAINER_NAME,
             master_conn,
             f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
+            timeout=DEFAULT_TIMEOUT,
+        )
+
+        # Broadcast repro for P490455835: aws-ofi-nccl 1.18.0 (EFA 1.47.0, the
+        # PyTorch 2.11 image) hangs on NCCL broadcast. On a buggy image this
+        # step blocks until run_on_container's timeout fires; on a fixed image
+        # (EFA >= 1.49.0 / aws-ofi-nccl 1.20.0) it completes in well under it.
+        _step(
+            "nccl_broadcast",
+            MASTER_CONTAINER_NAME,
+            master_conn,
+            f"/test/efa/scripts/nccl_broadcast.sh {HOSTS_FILE_LOCATION} 2",
             timeout=DEFAULT_TIMEOUT,
         )
 

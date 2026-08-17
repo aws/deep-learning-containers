@@ -1,8 +1,8 @@
 #!/bin/bash
-# Build NVIDIA nccl-tests' all_reduce_perf at test time.
+# Build NVIDIA nccl-tests' all_reduce_perf and broadcast_perf at test time.
 #
 # Mirrors master's test/dlc_tests/container_tests/bin/efa/build_all_reduce_perf.sh:
-# the binary is NOT baked into images (PyTorch DLC included) — it's compiled
+# the binaries are NOT baked into images (PyTorch DLC included) — they're compiled
 # inside the test container on every run. Works because the test container
 # runs on a p4d.24xlarge (~1TB RAM) which absorbs nccl-tests' template-heavy
 # verifiable.cu compile.
@@ -13,8 +13,8 @@
 #   the install_efa.sh path leaves build-essential in place.
 set -ex
 
-if [ -x /usr/local/bin/all_reduce_perf ]; then
-    echo "all_reduce_perf already present at /usr/local/bin/all_reduce_perf"
+if [ -x /usr/local/bin/all_reduce_perf ] && [ -x /usr/local/bin/broadcast_perf ]; then
+    echo "all_reduce_perf and broadcast_perf already present in /usr/local/bin"
     exit 0
 fi
 
@@ -105,9 +105,12 @@ cd nccl-tests
 make -j1 MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" \
     CUDA_HOME=/usr/local/cuda NVCC_GENCODE="${NVCC_GENCODE}" CXXSTD="-std=c++17"
 cp build/all_reduce_perf /usr/local/bin/all_reduce_perf
+cp build/broadcast_perf /usr/local/bin/broadcast_perf
 cd /tmp
 rm -rf nccl-tests
 
-/usr/local/bin/all_reduce_perf --help >/dev/null 2>&1 || \
-    { ldd /usr/local/bin/all_reduce_perf; exit 1; }
-echo "Built /usr/local/bin/all_reduce_perf"
+for binary in all_reduce_perf broadcast_perf; do
+    "/usr/local/bin/${binary}" --help >/dev/null 2>&1 || \
+        { ldd "/usr/local/bin/${binary}"; exit 1; }
+    echo "Built /usr/local/bin/${binary}"
+done
