@@ -29,6 +29,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 from deep_learning_container import REGION_MAPPING as TELEMETRY_REGION_MAPPING
+from packaging.version import Version
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -107,7 +108,14 @@ def test_s3_query_bucket_url(
     assert params["x-instance-id"][0] == instance_id
     assert params["x-framework"][0] == framework
     if framework_version:
-        assert params["x-framework_version"][0] == framework_version
+        # Test-only/telemetry-only PRs skip the build and test the released prod
+        # image, whose baked-in version can legitimately lag config during the
+        # window between a version bump and its release. Allow the image to lag
+        # config; a version AHEAD of config still fails (stale image / bad config).
+        reported = params["x-framework_version"][0]
+        assert Version(reported) <= Version(framework_version), (
+            f"x-framework_version {reported} is ahead of config {framework_version}"
+        )
     assert params["x-container_type"][0] == container_type
     assert f"/dlc-containers-{instance_id}.txt" in parsed.path
 

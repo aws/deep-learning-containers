@@ -1,5 +1,6 @@
-"""Unit tests for Ray Serve SageMaker adapter header forwarding."""
+"""Unit tests for Ray Serve SageMaker adapter."""
 
+import importlib
 import os
 import sys
 from unittest.mock import AsyncMock
@@ -202,3 +203,76 @@ class TestResponseHeaderForwarding:
             )
 
         assert "x-internal-debug" not in response.headers
+
+
+class TestBackendTimeoutConfig:
+    """RAYSERVE_BACKEND_TIMEOUT env var controls the httpx proxy timeout."""
+
+    def _reload(self):
+        import sagemaker_serve
+
+        return importlib.reload(sagemaker_serve)
+
+    def test_default_is_300(self, monkeypatch):
+        monkeypatch.delenv("RAYSERVE_BACKEND_TIMEOUT", raising=False)
+        mod = self._reload()
+        assert mod.RAYSERVE_BACKEND_TIMEOUT == 300
+
+    def test_env_var_override(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_TIMEOUT", "1800")
+        mod = self._reload()
+        assert mod.RAYSERVE_BACKEND_TIMEOUT == 1800
+
+    def test_zero_rejected(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_TIMEOUT", "0")
+        with pytest.raises(ValueError, match="positive"):
+            self._reload()
+
+    def test_negative_rejected(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_TIMEOUT", "-5")
+        with pytest.raises(ValueError, match="positive"):
+            self._reload()
+
+    def test_non_integer_rejected(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_TIMEOUT", "abc")
+        with pytest.raises(ValueError):
+            self._reload()
+
+    def test_fractional_rejected(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_TIMEOUT", "300.5")
+        with pytest.raises(ValueError):
+            self._reload()
+
+
+class TestBackendUrlValidation:
+    """RAYSERVE_BACKEND_URL must be a well-formed http(s) URL."""
+
+    def _reload(self):
+        import sagemaker_serve
+
+        return importlib.reload(sagemaker_serve)
+
+    def test_default_url(self, monkeypatch):
+        monkeypatch.delenv("RAYSERVE_BACKEND_URL", raising=False)
+        mod = self._reload()
+        assert mod.RAYSERVE_URL == "http://127.0.0.1:8000"
+
+    def test_custom_url_accepted(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_URL", "https://ray.internal:9000")
+        mod = self._reload()
+        assert mod.RAYSERVE_URL == "https://ray.internal:9000"
+
+    def test_missing_scheme_rejected(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_URL", "127.0.0.1:8000")
+        with pytest.raises(ValueError, match="invalid"):
+            self._reload()
+
+    def test_non_http_scheme_rejected(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_URL", "ftp://ray:8000")
+        with pytest.raises(ValueError, match="invalid"):
+            self._reload()
+
+    def test_empty_string_rejected(self, monkeypatch):
+        monkeypatch.setenv("RAYSERVE_BACKEND_URL", "")
+        with pytest.raises(ValueError, match="invalid"):
+            self._reload()

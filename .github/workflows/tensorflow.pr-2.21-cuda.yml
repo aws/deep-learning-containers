@@ -16,6 +16,7 @@ on:
       - "scripts/docker/common/**"
       - "scripts/docker/tensorflow/**"
       - "scripts/docker/telemetry/**"
+      - "test/efa/**"
       - "test/tensorflow/integration/sagemaker/**"
       - "test/tensorflow/single_gpu/**"
       - "test/tensorflow/unit/**"
@@ -43,6 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
@@ -61,6 +63,8 @@ jobs:
               - "scripts/docker/common/**"
               - "scripts/docker/tensorflow/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
+            efa-test-change:
+              - "test/efa/**"
             sagemaker-test-change:
               - "test/tensorflow/integration/sagemaker/**"
             sanity-test-change:
@@ -98,6 +102,7 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}

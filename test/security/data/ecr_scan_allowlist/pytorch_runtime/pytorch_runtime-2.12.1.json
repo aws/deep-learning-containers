@@ -1,0 +1,7 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-69247",
+        "reason": "cryptography 50.0.0 fix blocked by mlflow<3.15 transitive constraint (mlflow>=3.9.0,<3.15 requires cryptography<50). Bumped floor to >=49.0.0 to close CVE-2026-69249; will drop this entry once mlflow relaxes the cryptography upper bound and >=50.0.0 becomes installable.",
+        "review_by": "2026-11-10"
+    }
+]

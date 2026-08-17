@@ -3,7 +3,7 @@
 Lightweight Base Docker images with NVIDIA CUDA and Python pre-installed on Amazon Linux 2023. Use them as the `FROM` for your own AI/ML images, or as
 a quick interactive environment for prototyping. Built and patched continuously by {{ aws }}.
 
-## Images
+## Image Variants
 
 | Variant | Image | CUDA | Use Case |
 | --- | --- | --- | --- |
@@ -19,7 +19,7 @@ All images are also available on the [ECR Public Gallery](https://gallery.ecr.aw
 
 ## What's Included
 
-All four variants share the same core stack:
+All variants share the same core stack:
 
 - **Amazon Linux 2023** with continuous security patching
 - **Python 3.13.12** built from source with hardening flags, available as `python` / `python3`
@@ -77,8 +77,8 @@ Inside the container, `python`, `pip`, `uv`, and (in the devel variant) `nvcc` a
 ## Choosing cu129 vs cu130 vs cu132
 
 - **cu129 (CUDA 12.9):** use when your stack is pinned to CUDA 12.x — most current PyTorch wheels (cu128/cu129) are compatible.
-- **cu130 (CUDA 13.0):** use when you want CUDA 13.0 compatibility (e.g., to match the vLLM-Omni DLC, which is built on CUDA 13). Some older NVIDIA
-  drivers may need the bundled `cuda-compat-13-0` forward-compat layer to run CUDA 13 binaries.
+- **cu130 (CUDA 13.0):** use when you want CUDA 13.x compatibility. Some older NVIDIA drivers may need the bundled `cuda-compat-13-0` forward-compat
+  layer to run CUDA 13 binaries.
 - **cu132 (CUDA 13.2):** use when you want the latest CUDA 13.2 toolkit. Some older NVIDIA drivers may need the bundled `cuda-compat-13-2`
   forward-compat layer to run CUDA 13.2 binaries.
 
@@ -91,4 +91,4 @@ These images are curated builds:
 - **Built from upstream `nvidia/cuda:*-amzn2023` images** — we add Python compiled from source, OSS license metadata, and security patches.
 - **Continuously patched** — security updates from {{ aws }} and NVIDIA are applied on every build.
 - **Versioned by CUDA release** — each tag encodes its CUDA version (e.g. `cu132`). New CUDA releases get a new tag; existing tags stay on their
-  pinned CUDA release across minor patches.
+  pinned CUDA release across minor patches. A dated immutable variant (e.g. `runtime-cu132-amzn2023-20260731`) is also published per release.

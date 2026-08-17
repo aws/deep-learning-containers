@@ -35,10 +35,11 @@ build:
   dlc_minor_version: "0"
 
 release:
-  # Not yet releasable — AWS infra support for this image family is pending.
-  release: false
+  # Gamma-testing the release before production.
+  # Flip environment back to "production" after gamma validates.
+  release: true
   force_release: false
   public_registry: false
   private_registry: true
   enable_soci: false
-  environment: "production"
+  environment: "gamma"

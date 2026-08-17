@@ -1,5 +1,5 @@
 # Table Configuration - Scikit-Learn
-note: "ECR account IDs for Scikit-Learn vary by region. See [Region Availability](../reference/region_availability.md#sagemaker-xgboost-and-scikit-learn) for your region's account ID."
+note: "ECR account IDs for Scikit-Learn vary by region. See [Region Availability](../reference/region_availability.md#sagemaker-algorithm-registry-xgboost-scikit-learn-huggingface-tei) for your region's account ID."
 columns:
   - field: framework_version
     header: "Framework"

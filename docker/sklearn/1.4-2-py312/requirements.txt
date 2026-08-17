@@ -1,7 +1,7 @@
 boto3==1.28.57
 botocore>=1.31.57,<1.32.0
 certifi
-cryptography==46.0.7
+cryptography==50.0.0
 Flask==1.1.1
 gevent==23.9.1
 gunicorn==23.0.0
