@@ -1,18 +1,12 @@
 """Unit tests for the dlc-ci-images test-skip store read/write."""
 
-import importlib.util
 import os
-from pathlib import Path
 from unittest import mock
 
 import boto3
 import pytest
+import test_skip_db as store
 from moto import mock_aws
-
-MODULE_PATH = Path(__file__).resolve().parent.parent / "test_skip_db.py"
-spec = importlib.util.spec_from_file_location("store", MODULE_PATH)
-store = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(store)
 
 HASH = "sha256:abc123"
 SUITE = "pytorch/single_gpu"

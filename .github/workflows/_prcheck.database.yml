@@ -1,0 +1,33 @@
+name: Database Unit Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/ci/test_skip/**"
+      - "test/db/**"
+      - ".github/config/test-suites.yml"
+      - ".github/workflows/_prcheck.database.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  database-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install pytest boto3 moto pyyaml
+
+      # loads only test/db conftest and excludes the container-test 
+      # harness (which imports test_utils and is not needed here).
+      - name: Run database unit tests
+        run: python -m pytest test/db --confcutdir test/db -v

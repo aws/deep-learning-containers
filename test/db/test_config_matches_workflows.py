@@ -1,25 +1,20 @@
 """Consistency check: every suite a workflow invokes must exist in test-suites.yml."""
 
-import importlib.util
 import json
 import re
 from pathlib import Path
 
+import hash_suite_code as suite_hasher
 import yaml
 
 # Extract the suite name out of the GitHub Actions expression, e.g.
 # fromJSON(needs.check.outputs.skips)['pytorch/unit'] -> pytorch/unit
 _ACCESSOR_RE = re.compile(r"outputs\.skips\)\s*(?:\[\s*['\"]([^'\"]+)['\"]\s*\]|\.([A-Za-z_]\w*))")
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 TEST_SKIP_ACTIONS = ("check-test-pass", "record-test-pass")
 CHECK_WORKFLOW = "_reusable.check-test-pass.yml"
-
-MODULE_PATH = Path(__file__).resolve().parent.parent / "hash_suite_code.py"
-spec = importlib.util.spec_from_file_location("hash_suite_code", MODULE_PATH)
-hsc = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(hsc)
 
 
 def _iter_steps(workflow):
@@ -97,7 +92,7 @@ def collect_invoked_suites():
 
 
 def test_invoked_suites_are_configured():
-    configured = set(hsc.load_config(REPO_ROOT))
+    configured = set(suite_hasher.load_config(REPO_ROOT))
     invoked = collect_invoked_suites()
     unknown = [(wf, s) for wf, s in invoked if s not in configured]
     assert not unknown, (
@@ -108,7 +103,7 @@ def test_invoked_suites_are_configured():
 
 def test_check_accessors_are_configured_and_checked():
     """Every `skips[...]` key in a job `if:` must be a real suite AND one the check job checks."""
-    configured = set(hsc.load_config(REPO_ROOT))
+    configured = set(suite_hasher.load_config(REPO_ROOT))
     problems = []
     for wf_path in sorted(WORKFLOWS_DIR.glob("*.yml")):
         try:
