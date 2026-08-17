@@ -105,7 +105,9 @@ def test_main_emits_compact_json(monkeypatch, capsys):
             {"sanity": "h1", "pytorch/unit": "h2"},
         ),
     )
-    rc = check_test_pass.main(["--image-uri", "img", "--suites", '["sanity"]', "--repo-root", "/repo"])
+    rc = check_test_pass.main(
+        ["--image-uri", "img", "--suites", '["sanity"]', "--repo-root", "/repo"]
+    )
     out = capsys.readouterr().out.strip()
     assert rc == 0
     result = json.loads(out)

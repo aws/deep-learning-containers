@@ -21,9 +21,9 @@ def _load_helpers(repo_root):
     """Import the shared test-skip modules from the repo checkout."""
     scripts_dir = Path(repo_root) / "scripts" / "ci" / "test_skip"
     sys.path.insert(0, str(scripts_dir))
-    import test_skip_db
     import hash_image_content
     import hash_suite_code
+    import test_skip_db
 
     return hash_image_content, hash_suite_code, test_skip_db
 
@@ -45,7 +45,9 @@ def compute_skips(repo_root, image_uri, suites, platform=DEFAULT_PLATFORM):
         except (KeyError, ValueError) as e:
             print(f"::warning::skipping test-pass check for {s!r} ({e})", file=sys.stderr)
 
-    skippable = store.check_test_pass(image_content_hash, suite_code_hashes) if suite_code_hashes else set()
+    skippable = (
+        store.check_test_pass(image_content_hash, suite_code_hashes) if suite_code_hashes else set()
+    )
     skips = {s: (s in skippable) for s in suite_code_hashes}
     return skips, image_content_hash, suite_code_hashes
 
@@ -53,9 +55,13 @@ def compute_skips(repo_root, image_uri, suites, platform=DEFAULT_PLATFORM):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Batch test-pass check.")
     parser.add_argument("--image-uri", required=True, help="Resolved image reference to hash.")
-    parser.add_argument("--suites", required=True, help="JSON array of test-suites.yml keys to check.")
+    parser.add_argument(
+        "--suites", required=True, help="JSON array of test-suites.yml keys to check."
+    )
     parser.add_argument("--repo-root", default=".", help="Repo checkout root.")
-    parser.add_argument("--platform", default=DEFAULT_PLATFORM, help=f"Platform (default {DEFAULT_PLATFORM}).")
+    parser.add_argument(
+        "--platform", default=DEFAULT_PLATFORM, help=f"Platform (default {DEFAULT_PLATFORM})."
+    )
     args = parser.parse_args(argv)
 
     try:
@@ -67,13 +73,24 @@ def main(argv=None):
         )
     except Exception as e:
         print(f"::warning::test-pass check failed ({e}); running all suites", file=sys.stderr)
-        print(json.dumps({"skips": {}, "image_content_hash": "", "suite_code_hashes": {}}, separators=(",", ":")))
+        print(
+            json.dumps(
+                {"skips": {}, "image_content_hash": "", "suite_code_hashes": {}},
+                separators=(",", ":"),
+            )
+        )
         return 0
 
-    print(json.dumps(
-        {"skips": skips, "image_content_hash": image_content_hash, "suite_code_hashes": suite_code_hashes},
-        separators=(",", ":"),
-    ))
+    print(
+        json.dumps(
+            {
+                "skips": skips,
+                "image_content_hash": image_content_hash,
+                "suite_code_hashes": suite_code_hashes,
+            },
+            separators=(",", ":"),
+        )
+    )
     return 0
 
 

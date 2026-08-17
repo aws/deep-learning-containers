@@ -77,21 +77,27 @@ def test_check_test_pass_empty_input_returns_empty(dynamo):
 
 
 def test_check_test_pass_all_miss_returns_empty(dynamo):
-    result = store.check_test_pass(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+    result = store.check_test_pass(
+        HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo
+    )
     assert result == set()
 
 
 def test_check_test_pass_returns_only_recorded_suites(dynamo):
     store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
     # OTHER_SUITE is not recorded, so only SUITE should come back as a hit.
-    result = store.check_test_pass(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+    result = store.check_test_pass(
+        HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo
+    )
     assert result == {SUITE}
 
 
 def test_check_test_pass_returns_multiple_hits(dynamo):
     store.record_test_pass(HASH, SUITE, CODE_HASH, client=dynamo)
     store.record_test_pass(HASH, OTHER_SUITE, OTHER_CODE_HASH, client=dynamo)
-    result = store.check_test_pass(HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo)
+    result = store.check_test_pass(
+        HASH, {SUITE: CODE_HASH, OTHER_SUITE: OTHER_CODE_HASH}, client=dynamo
+    )
     assert result == {SUITE, OTHER_SUITE}
 
 

@@ -59,9 +59,7 @@ def hash_suite_code(repo_root, suite):
     code_paths = suites[suite].get("code_paths", [])
     files = resolve_files(repo_root, code_paths)
     if not files:
-        raise ValueError(
-            f"suite {suite!r} matched no files (code_paths={code_paths!r})"
-        )
+        raise ValueError(f"suite {suite!r} matched no files (code_paths={code_paths!r})")
 
     digest = hashlib.sha256()
     repo_root = Path(repo_root)
