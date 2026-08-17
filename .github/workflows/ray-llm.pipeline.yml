@@ -36,6 +36,16 @@ on:
         required: false
         type: boolean
         default: true
+      run-eks-multi-node-test:
+        description: "Run multi-node EKS integration test (KubeRay RayService, TP=2 across 2 nodes)"
+        required: false
+        type: boolean
+        default: true
+      run-efa-test:
+        description: "Run EFA integration test"
+        required: false
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -109,6 +119,28 @@ jobs:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     uses: ./.github/workflows/ray-llm.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  eks-multi-node-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-eks-multi-node-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-eks-multi-node-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/ray-llm.tests-eks-multi-node.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  efa-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.efa-tests.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}

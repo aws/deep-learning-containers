@@ -40,6 +40,8 @@ jobs:
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
+      eks-multi-node-test-change: ${{ steps.changes.outputs.eks-multi-node-test-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -59,6 +61,10 @@ jobs:
               - "test/telemetry/**"
             unit-test-change:
               - "test/ray-llm/unit/**"
+            eks-multi-node-test-change:
+              - "test/ray-llm/eks-multi-node/**"
+            efa-test-change:
+              - "test/efa/**"
 
   discover:
     needs: [gatekeeper]
@@ -87,5 +93,7 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       # run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
+      run-eks-multi-node-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.eks-multi-node-test-change == 'true' }}
+      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
     secrets: inherit
