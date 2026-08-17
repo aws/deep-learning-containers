@@ -96,9 +96,21 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-suffix: ${{ inputs.tag-suffix }}
 
-  sanity-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+  # Content-addressed test-skip check: computes the image_content_hash and each
+  # suite's suite_code_hash, then reads dlc-ci-images to see which suites already
+  # passed on this exact image content + test code. Outputs gate the test jobs.
+  check-test-skip:
+    if: ${{ always() && !failure() && !cancelled() && (inputs.run-sanity-test || inputs.run-telemetry-test) }}
     needs: [build]
+    uses: ./.github/workflows/_reusable.check-test-pass.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      suites: '["sanity","telemetry"]'
+
+  sanity-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test && !fromJSON(needs.check-test-skip.outputs.skips || '{}')['sanity'] }}
+    needs: [build, check-test-skip]
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -106,6 +118,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check-test-skip.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check-test-skip.outputs.suite-code-hashes || '{}')['sanity'] }}
 
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
@@ -119,8 +133,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test && !fromJSON(needs.check-test-skip.outputs.skips || '{}')['telemetry'] }}
+    needs: [build, check-test-skip]
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -128,6 +142,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check-test-skip.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check-test-skip.outputs.suite-code-hashes || '{}')['telemetry'] }}
 
   upstream-tests:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
