@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        description: "Image content hash from the test-skip check. Empty disables the cache write."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "suite_code_hash for the sanity suite. Empty disables the cache write."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -309,3 +319,26 @@ jobs:
           needs.preflight.outputs.nccl-version != ''
         run: |
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/nccl_single_node_test.sh
+
+  # Record a PASS row in dlc-ci-images once the sanity suite fully passes, so a
+  # future run on the same image content + test code can skip it. Gated on the
+  # hashes being present (the caller only passes them for skip-eligible runs) and
+  # the image existing; no-ops for callers that don't opt in.
+  record-pass:
+    if: >-
+      always() && !failure() && !cancelled() &&
+      needs.preflight.outputs.image-exists == 'true' &&
+      inputs.image-content-hash != '' && inputs.suite-code-hash != ''
+    needs: [preflight, sanity-test, sanity-sagemaker, sanity-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: sanity
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}
