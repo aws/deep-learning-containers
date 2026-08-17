@@ -122,6 +122,8 @@ jobs:
       run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
-      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
+      # TEMPORARY: disabled to free p4d capacity while validating the PyTorch
+      # 2.11 EFA broadcast fix (P490455835). Revert to restore change-based gating.
+      run-efa-test: false
       release: false
     secrets: inherit
