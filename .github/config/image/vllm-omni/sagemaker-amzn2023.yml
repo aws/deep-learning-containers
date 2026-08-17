@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "vllm_omni"
-  framework_version: "0.21.0rc1"
+  framework_version: "0.26.0"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -18,15 +18,15 @@ build:
   target: "vllm-omni-sagemaker-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  vllm_ref: "v0.21.0"
-  vllm_omni_version: "0.21.0rc1"
-  flashinfer_version: "0.6.8.post1"
+  vllm_ref: "v0.26.0"
+  vllm_omni_version: "0.26.0"
+  flashinfer_version: "0.6.14"
   deepep_commit_hash: "73b6ea4"
   efa_version: "1.47.0"
-  torch_cuda_arch_list: "7.5;8.0;8.6;8.9;9.0;10.0;11.0;12.0+PTX"
+  torch_cuda_arch_list: "7.5;8.0;8.6;8.9;9.0;10.0;11.0;12.0"
   install_kv_connectors: "true"
   dlc_major_version: "1"
-  dlc_minor_version: "4"
+  dlc_minor_version: "5"
   use_sccache: "true"
 
 release:

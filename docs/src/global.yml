@@ -67,6 +67,7 @@ display_names:
 
     # Repositories
     base: "Base"
+    base-ubuntu: "Base (Ubuntu)"
     ray: "Ray"
     sagemaker-scikit-learn: "Scikit-Learn"
     sagemaker-xgboost: "XGBoost"
@@ -184,6 +185,7 @@ framework_groups:
 # =============================================================================
 table_order:
   - base
+  - base-ubuntu
   - ray
   - sglang
   - sglang-server

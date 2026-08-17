@@ -10,8 +10,8 @@ columns:
     header: "Accelerator"
   - field: platform
     header: "Platform"
-  - field: example_url
-    header: "Example URL"
+  - field: example_uri
+    header: "Example URI"
 
 tiebreakers:
   - platform_sorter

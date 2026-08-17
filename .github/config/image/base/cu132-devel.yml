@@ -3,7 +3,7 @@ image:
   description: "Base devel GPU image with CUDA 13.2.1, Python 3.13, build tools, and the NCCL/EFA stack on AL2023"
 
 metadata:
-  framework: "base_dlc"
+  framework: "base"
   framework_version: "13.2.1"
   os_version: "amzn2023"
   customer_type: "ec2"

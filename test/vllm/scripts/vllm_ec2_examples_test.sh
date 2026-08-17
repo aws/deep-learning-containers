@@ -6,7 +6,10 @@ cd vllm_source/examples
 pip install tensorizer # for tensorizer test
 
 # vLLM 0.18.0 moved basic scripts from offline_inference/basic/ to basic/offline_inference/
-if [ -d "basic/offline_inference" ]; then
+# vLLM 0.27.0+ moved them to generate/offline_inference/
+if [ -d "generate/offline_inference" ]; then
+  BASIC_DIR="generate/offline_inference"
+elif [ -d "basic/offline_inference" ]; then
   BASIC_DIR="basic/offline_inference"
 else
   BASIC_DIR="offline_inference/basic"

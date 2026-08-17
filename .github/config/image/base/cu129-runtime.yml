@@ -3,7 +3,7 @@ image:
   description: "Base runtime GPU image with CUDA 12.9.1 and Python 3.13 on AL2023"
 
 metadata:
-  framework: "base_dlc"
+  framework: "base"
   framework_version: "12.9.1"
   os_version: "amzn2023"
   customer_type: "ec2"

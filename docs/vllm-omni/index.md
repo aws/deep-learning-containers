@@ -36,6 +36,8 @@ In addition to vLLM-Omni and its core stack (PyTorch, CUDA 13.0, NCCL, Python 3.
 - **[runai-model-streamer](https://github.com/run-ai/runai-model-streamer)** — stream model weights directly from S3 or GCS
 - **[EFA](https://aws.amazon.com/hpc/efa/) and [OpenMPI](https://www.open-mpi.org/)** — high-throughput multi-node networking on supported instances
 - **espeak-ng and ffmpeg** — system-level dependencies for TTS phonemizer and audio/video encoding
+- **[s3tokenizer](https://github.com/xingchensong/S3Tokenizer)** — speech tokenizer required by CosyVoice3 (hard-imported at model load in vLLM-Omni
+  0.26.0)
 
 The {{ sm_short }} image additionally includes a routing middleware that dispatches `/invocations` to omni-specific routes (TTS, image, video, etc.)
 via the `CustomAttributes` header. See [{{ sagemaker }} Deployment](deployment/sagemaker.md).

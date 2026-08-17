@@ -3,7 +3,7 @@ image:
   description: "SGLang for SageMaker (Ubuntu, upstream base image)"
 metadata:
   framework: "sglang"
-  framework_version: "0.5.16"
+  framework_version: "0.5.17"
   os_version: "ubuntu24.04"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -14,7 +14,7 @@ metadata:
 build:
   dockerfile: "docker/sglang/Dockerfile"
   target: "sglang-sagemaker"
-  base_image: "lmsysorg/sglang:v0.5.16"
+  base_image: "lmsysorg/sglang:v0.5.17"
   python_version: "3.12"
   cuda_version: "13.0.3"
   efa_version: "1.48.0"

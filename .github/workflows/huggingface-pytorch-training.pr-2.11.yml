@@ -12,7 +12,7 @@ on:
       - "scripts/docker/huggingface/pytorch/**"
       - "scripts/docker/telemetry/**"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/huggingface-pytorch/**"
+      - "test/security/data/ecr_scan_allowlist/huggingface-pytorch-training/**"
       - "test/telemetry/**"
       - "test/pytorch/integration/sagemaker/**"
       - "!docs/**"
@@ -49,7 +49,7 @@ jobs:
               - ".github/config/image/huggingface-pytorch-training/2.11-*.yml"
               - "docker/huggingface/pytorch/**"
               - "scripts/docker/huggingface/pytorch/**"
-              - "test/security/data/ecr_scan_allowlist/huggingface-pytorch/**"
+              - "test/security/data/ecr_scan_allowlist/huggingface-pytorch-training/**"
             sanity-test-change:
               - "test/sanity/**"
             sagemaker-test-change:

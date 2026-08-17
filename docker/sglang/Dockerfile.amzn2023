@@ -261,8 +261,10 @@ RUN rm -rf /sgl-workspace/sglang/sgl-model-gateway \
   /sgl-workspace/sglang/.git \
   /sgl-workspace/sglang/rust
 
-# Copy sglang-router binary
+# Copy sglang binaries
 COPY --from=builder /usr/local/bin/sglang-router /usr/local/bin/sglang-router
+COPY --from=builder /usr/local/bin/sglang /usr/local/bin/sglang
+COPY --from=builder /usr/local/bin/killall_sglang /usr/local/bin/killall_sglang
 
 # Copy GDRCopy runtime libs
 COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/

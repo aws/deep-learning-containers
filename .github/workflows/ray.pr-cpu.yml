@@ -100,6 +100,7 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-ffmpeg-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ffmpeg-test-change == 'true' }}
       run-serve-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.serve-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}

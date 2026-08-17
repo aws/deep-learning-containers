@@ -1,2 +1,7 @@
+# Experimental async HTTP/2 client for the SageMaker Bidirectional Streaming
+# API (InvokeEndpointWithBidirectionalStream). Not on PyPI — installed from the
+# awslabs monorepo subdirectory. Pinned per the SDK's own "strictly pin for
+# non-experimental use" guidance. Used by the bidi WebSocket endpoint test.
+aws-sdk-sagemaker-runtime-http2 @ git+https://github.com/awslabs/aws-sdk-python.git@main#subdirectory=clients/aws-sdk-sagemaker-runtime-http2
 sagemaker>=3.0.0
 starlette

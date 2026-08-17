@@ -8,6 +8,10 @@ EXTRA_BUILD_ARGS (space-separated list of key names) for build_image.sh.
 Reserved keys (not forwarded as --build-arg):
   dockerfile, target
 
+Keys in PRESERVE_CASE_KEYS are forwarded verbatim instead of upper-cased, for
+Dockerfiles that declare a lower-case ARG. Docker build-args are case-sensitive,
+so an upper-cased name silently fails to bind to a lower-case ARG.
+
 Usage in GitHub Actions:
   - name: Resolve build args
     run: python3 scripts/ci/resolve_build_args.py --config-file ${{ env.CONFIG_FILE }}
@@ -25,6 +29,11 @@ import subprocess
 import sys
 
 RESERVED_KEYS = {"dockerfile", "target"}
+
+# Keys whose Dockerfile ARG is lower-case, so the name must not be upper-cased.
+# vLLM's upstream setup.py reads TORCH_CUDA_ARCH_LIST from the environment, which
+# the Dockerfile sets from a lower-case `ARG torch_cuda_arch_list`.
+PRESERVE_CASE_KEYS = {"torch_cuda_arch_list"}
 
 
 def load_yaml(path):
@@ -63,7 +72,7 @@ def main():
     for key, value in build.items():
         if key in RESERVED_KEYS:
             continue
-        env_key = key.upper()
+        env_key = key if key in PRESERVE_CASE_KEYS else key.upper()
         keys.append(env_key)
 
         if github_env:

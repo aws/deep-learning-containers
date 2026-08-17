@@ -116,8 +116,23 @@ class ImageConfig:
         return f"{self.get('framework', '')} {self.get('version', '')}"
 
     @property
-    def display_example_url(self) -> str:
-        """Example ECR URL for table display."""
+    def display_base_framework(self) -> str:
+        """Framework column for the Base tables: 'CUDA <version> [<variant>]'.
+
+        The CUDA toolkit version replaces the 'Base' label, and the variant
+        (Devel/Runtime) — taken from the trailing word of the `framework` field
+        (e.g. 'Base Devel') — is appended after the version. Ubuntu images whose
+        `framework` is just 'Base' render without a variant suffix.
+        """
+        version = self.get("version", "")
+        parts = self.get("framework", "").split()
+        variant = parts[-1] if len(parts) > 1 else ""
+        label = f"CUDA {version}"
+        return f"{label} {variant}" if variant else label
+
+    @property
+    def display_example_uri(self) -> str:
+        """Example ECR URI for table display."""
         account = self.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
         return f"`{build_ecr_uri(account, self.ecr_repository, self.display_tag)}`"
 

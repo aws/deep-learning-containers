@@ -16,7 +16,6 @@ on:
       - "docker/sklearn/resources/**"
       - "scripts/ci/build/sklearn/**"
       - "scripts/docker/common/**"
-      - "scripts/docker/telemetry/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/sklearn/**"
       - "test/sklearn/**"
@@ -59,7 +58,6 @@ jobs:
               - "docker/sklearn/resources/**"
               - "scripts/ci/build/sklearn/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/telemetry/**"
               - "test/security/data/ecr_scan_allowlist/sklearn/**"
             integ-test-change:
               - "test/sklearn/**"

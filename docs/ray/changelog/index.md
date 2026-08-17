@@ -4,6 +4,27 @@ Changelog for the Ray Serve DLC images.
 
 * * *
 
+## v1.4.0 — 2026-08-12
+
+**Tags:** `serve-ml-cuda-v1.4` · `serve-ml-cpu-v1.4` · `serve-ml-sagemaker-cuda-v1.4` · `serve-ml-sagemaker-cpu-v1.4`
+
+### Changes
+
+- Upgraded Ray from 2.56.1 to 2.57.0
+- Added `RAYSERVE_BACKEND_TIMEOUT` to tune the adapter's internal request timeout to the Ray Serve backend
+
+* * *
+
+## v1.3.0 — 2026-08-05
+
+**Tags:** `serve-ml-cuda-v1.3` · `serve-ml-cpu-v1.3` · `serve-ml-sagemaker-cuda-v1.3` · `serve-ml-sagemaker-cpu-v1.3`
+
+### Changes
+
+- Upgraded Ray from 2.55.1 to 2.56.1
+
+* * *
+
 ## v1.2.0 — 2026-06-02
 
 **Tags:** `serve-ml-cuda-v1.2` · `serve-ml-cpu-v1.2` · `serve-ml-sagemaker-cuda-v1.2` · `serve-ml-sagemaker-cpu-v1.2`

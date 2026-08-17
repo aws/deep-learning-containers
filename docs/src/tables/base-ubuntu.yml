@@ -1,0 +1,12 @@
+# Table Configuration - Base (Ubuntu)
+columns:
+  - field: base_framework
+    header: "Framework"
+  - field: python
+    header: "Python"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: example_uri
+    header: "Example URI"

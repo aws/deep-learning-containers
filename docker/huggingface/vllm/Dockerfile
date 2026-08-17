@@ -23,9 +23,9 @@ RUN uv pip install --system \
   "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
   "hf-xet==${HF_XET_VERSION}" \
   "grpcio>=1.79.3" \
-  "cryptography>=48.0.1" \
+  "cryptography>=50.0.0" \
   "starlette>=1.3.1" \
-  "aiohttp>=3.14.1" \
+  "aiohttp>=3.14.3" \
   && uv cache clean \
   && rm -rf /tmp/uv*
 
@@ -70,6 +70,10 @@ ARG FFMPEG_TAG=n8.1
 # Patch OS CVEs carried by the ubuntu22.04 base (openssl, mesa, ...). Hold
 # cuda/nvidia/libnv packages first so the broad upgrade can't bump the toolkit
 # or driver (same pattern as docker/vllm).
+# ffmpeg is cloned shallow and tag-pinned from the GitHub mirror rather than
+# git.ffmpeg.org: n8.1 is the same commit on both (a65b3bf), the mirror does not
+# 502 mid-clone the way git.ffmpeg.org did on PR #6480, and --depth 1 drops the
+# full history. Same form as docker/ray/Dockerfile.{cpu,cuda}.
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
@@ -82,9 +86,8 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     libvpx-dev \
     libx264-dev \
     libx265-dev \
-  && git clone https://git.ffmpeg.org/ffmpeg.git /tmp/ffmpeg \
+  && git clone --depth 1 --branch "${FFMPEG_TAG}" https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
-  && git checkout "${FFMPEG_TAG}" \
   && ./configure \
     --prefix=/usr/local \
     --disable-debug \

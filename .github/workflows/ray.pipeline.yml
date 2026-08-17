@@ -31,6 +31,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-unit-test:
+        description: "Run unit tests"
+        required: false
+        type: boolean
+        default: true
       run-ffmpeg-test:
         description: "Run FFmpeg tests"
         required: false
@@ -124,6 +129,17 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  unit-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
+    needs: [build, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/ray.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   ffmpeg-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-ffmpeg-test }}
     needs: [build, ci-config]
@@ -165,7 +181,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, ffmpeg-test, serve-test, sagemaker-test]
+    needs: [build, sanity-test, security-test, telemetry-test, unit-test, ffmpeg-test, serve-test, sagemaker-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}

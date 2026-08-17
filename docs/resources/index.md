@@ -11,6 +11,7 @@
 ## Security
 
 - [Security Overview](../security/index.md)
+- [CVE Patching SLA](../security/cve-patching-sla.md)
 - [Data Protection](../security/data-protection.md)
 - [Identity and Access Management](../security/identity-and-access-management.md)
 - [Monitoring and Usage Tracking](../security/logging-and-monitoring.md)
