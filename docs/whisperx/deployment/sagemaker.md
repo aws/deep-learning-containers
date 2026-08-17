@@ -1,8 +1,8 @@
 # Amazon SageMaker AI Deployment
 
-The {{ sagemaker }} image (`3.8.6-cu128-amzn2023-sagemaker`) serves on **port 8080** and exposes `POST /invocations`. The endpoint expects
-`multipart/form-data`: the client builds the multipart body — the audio as the `file` part plus optional string form fields — and SageMaker passes the
-`ContentType` header (including the boundary) through to the container unchanged.
+The {{ sagemaker }} image serves on **port 8080** and exposes `POST /invocations`. The endpoint expects `multipart/form-data`: the client builds the
+multipart body — the audio as the `file` part plus optional string form fields — and SageMaker passes the `ContentType` header (including the
+boundary) through to the container unchanged.
 
 Both examples below use `boto3` because the payload is multipart. Every GPU variant must set `InferenceAmiVersion` — see [Notes](#notes).
 
@@ -22,9 +22,10 @@ import uuid
 
 sm = boto3.client("sagemaker")
 smrt = boto3.client("sagemaker-runtime")
+REGION = boto3.session.Session().region_name
 
 ROLE_ARN = "arn:aws:iam::<account_id>:role/<SageMakerRole>"
-IMAGE_URI = "public.ecr.aws/deep-learning-containers/whisperx:3.8.6-cu128-amzn2023-sagemaker"
+IMAGE_URI = f"763104351884.dkr.ecr.{REGION}.amazonaws.com/whisperx:3.8.6-cu128-amzn2023-sagemaker"
 NAME = "whisperx-realtime"
 
 
@@ -109,7 +110,7 @@ s3 = boto3.client("s3")
 REGION = boto3.session.Session().region_name
 ACCOUNT = boto3.client("sts").get_caller_identity()["Account"]
 ROLE_ARN = "arn:aws:iam::<account_id>:role/<SageMakerRole>"
-IMAGE_URI = "public.ecr.aws/deep-learning-containers/whisperx:3.8.6-cu128-amzn2023-sagemaker"
+IMAGE_URI = f"763104351884.dkr.ecr.{REGION}.amazonaws.com/whisperx:3.8.6-cu128-amzn2023-sagemaker"
 NAME = "whisperx-async"
 # The AmazonSageMakerFullAccess role can only access buckets whose name contains "sagemaker"
 BUCKET = f"sagemaker-{REGION}-{ACCOUNT}"
@@ -131,7 +132,10 @@ sm.create_endpoint_config(
         "ContainerStartupHealthCheckTimeoutInSeconds": 1200,
     }],
     AsyncInferenceConfig={
-        "OutputConfig": {"S3OutputPath": f"s3://{BUCKET}/whisperx-async-output/"},
+        "OutputConfig": {
+            "S3OutputPath": f"s3://{BUCKET}/whisperx-async-output/",
+            "S3FailurePath": f"s3://{BUCKET}/whisperx-async-failure/",
+        },
         # Match the container's single-worker limit
         "ClientConfig": {"MaxConcurrentInvocationsPerInstance": 1},
     },
@@ -154,13 +158,20 @@ resp = smrt.invoke_endpoint_async(
     ContentType=content_type,
 )
 
-# Poll the returned S3 output location for the JSON result
+# Poll the output location for the result; also check the failure location so a
+# failed job surfaces an error instead of looping forever
 out_bucket, out_key = resp["OutputLocation"].replace("s3://", "").split("/", 1)
+fail_bucket, fail_key = resp["FailureLocation"].replace("s3://", "").split("/", 1)
 while True:
     try:
         result = s3.get_object(Bucket=out_bucket, Key=out_key)
         print(json.loads(result["Body"].read()))
         break
+    except s3.exceptions.NoSuchKey:
+        pass
+    try:
+        err = s3.get_object(Bucket=fail_bucket, Key=fail_key)
+        raise RuntimeError(f"async inference failed: {err['Body'].read().decode()}")
     except s3.exceptions.NoSuchKey:
         time.sleep(5)
 

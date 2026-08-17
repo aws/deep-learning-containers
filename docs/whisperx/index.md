@@ -17,12 +17,12 @@ All images are also available on the [ECR Public Gallery](https://gallery.ecr.aw
 
 ## What's Included
 
-In addition to WhisperX and its core stack (PyTorch 2.8, CUDA 12.8, Python 3.12), the images bundle:
+In addition to WhisperX and its PyTorch/CUDA runtime stack, the images bundle:
 
-- **[faster-whisper](https://github.com/SYSTRAN/faster-whisper) 1.2.1** — Whisper inference engine backed by CTranslate2
-- **[CTranslate2](https://github.com/OpenNMT/CTranslate2) 4.8.0** — the optimized runtime that executes the Whisper models
+- **[faster-whisper](https://github.com/SYSTRAN/faster-whisper)** — Whisper inference engine backed by CTranslate2
+- **[CTranslate2](https://github.com/OpenNMT/CTranslate2)** — the optimized runtime that executes the Whisper models
 - **wav2vec2 forced alignment** — per-word timestamps from phoneme-level alignment models, applied on top of the transcript
-- **[pyannote.audio](https://github.com/pyannote/pyannote-audio) 4.0.7** — speaker diarization pipeline, baked into the image for offline use
+- **[pyannote.audio](https://github.com/pyannote/pyannote-audio)** — speaker diarization pipeline, pre-baked into the image
 - **ffmpeg** — audio decoding for any input container or codec
 - **[FastAPI](https://fastapi.tiangolo.com/) + [uvicorn](https://www.uvicorn.org/)** — the OpenAI-compatible HTTP server
 

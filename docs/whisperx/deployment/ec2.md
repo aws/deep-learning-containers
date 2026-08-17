@@ -61,38 +61,57 @@ curl http://localhost:8000/v1/audio/transcriptions \
 Requesting `srt`/`vtt` forces word-level alignment. The subtitle knobs (`max_line_width`, `max_line_count`, `highlight_words`) apply only to `srt` and
 `vtt` output and are ignored for `json`, `text`, and `verbose_json`.
 
-## Offline / Air-Gapped Usage
+## WhisperX CLI (Batch Transcription)
 
-There is **no one-shot CLI or batch mode**. The entrypoint always starts the HTTP server, so `docker run <image> transcribe file.wav` is **not**
-supported. To run without network access, pre-stage a model on the host, launch the server with the HuggingFace hub blocked, then POST to the local
-endpoint.
+The image also bundles the upstream [`whisperx`](https://github.com/m-bain/whisperX) command-line tool for one-off or batch file transcription. The
+default entrypoint starts the HTTP server, so **override the entrypoint** to run the CLI instead. Mount an input and an output directory, and point
+`--output_dir` (`-o`) at the mounted output — otherwise transcripts are written inside the container and lost when it exits.
 
-1. Stage a flat faster-whisper (CTranslate2) model directory on the host — see [Custom / BYO Models](../models/index.md#custom-byo-models).
-2. Launch with the model mounted and offline enforcement on:
+The CLI's defaults differ from the server: `--model` defaults to `small` (pass `--model large-v2` to match the server) and `--output_format` defaults
+to `all` (`srt`, `vtt`, `txt`, `tsv`, `json`, `aud`).
 
-```bash
-docker run -d --gpus all --shm-size=2g -p 8000:8000 \
-  -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
-  -e WHISPERX_DEFAULT_MODEL=/opt/ml/model \
-  -v /path/to/local/model:/opt/ml/model:ro \
-  public.ecr.aws/deep-learning-containers/whisperx:3.8.6-cu128-amzn2023
-```
-
-3. Wait for readiness and transcribe against the local endpoint:
+On a GPU host with a current NVIDIA driver:
 
 ```bash
-until curl -sf http://localhost:8000/ping > /dev/null; do sleep 5; done
-
-curl http://localhost:8000/v1/audio/transcriptions \
-  -F "file=@audio.wav" \
-  -F "response_format=verbose_json"
+docker run --rm --gpus all \
+  -v "$PWD/audio:/audio:ro" \
+  -v "$PWD/out:/out" \
+  --entrypoint whisperx \
+  public.ecr.aws/deep-learning-containers/whisperx:3.8.6-cu128-amzn2023 \
+  /audio/meeting.wav \
+  --model large-v2 \
+  --language en \
+  --output_dir /out \
+  --output_format srt
 ```
 
-**What works offline, and what to pre-cache:** The pyannote diarization pipeline is baked into the image and the VAD segmentation model ships inside
-the WhisperX wheel, so both work with no network. Per-language **wav2vec2 aligners do not ship in the image** — they download lazily from HuggingFace
-on the first word-timestamp **or diarize** request. With `HF_HUB_OFFLINE=1` and no cached aligner, those requests fail for an uncached language. So
-fully-offline **segment-level transcription** works out of the box, but offline **word timestamps or diarization** require pre-caching the aligner
-into `HF_HOME` (or pinning one with `WHISPERX_ALIGN_MODEL`) before going offline.
+**With speaker diarization on GPU.** Point `--diarize_model` at the diarization pipeline baked into the image to diarize with no HuggingFace token or
+network access. Overriding the entrypoint skips the automatic CUDA forward-compatibility step, so on GPU hosts whose NVIDIA driver predates the
+image's CUDA 12.8 runtime, source the compat script first (a no-op on current drivers):
+
+```bash
+docker run --rm --gpus all \
+  -v "$PWD/audio:/audio:ro" \
+  -v "$PWD/out:/out" \
+  --entrypoint bash \
+  public.ecr.aws/deep-learning-containers/whisperx:3.8.6-cu128-amzn2023 -lc '
+    export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-}"
+    source /opt/whisperx/start_cuda_compat.sh
+    whisperx /audio/meeting.wav \
+      --model large-v2 \
+      --device cuda --compute_type float16 --batch_size 16 \
+      --output_dir /out --output_format all \
+      --diarize --diarize_model /opt/models/pyannote/speaker-diarization-community-1 \
+      --min_speakers 1 --max_speakers 5
+  '
+```
+
+- **Model downloads are ephemeral.** The Whisper model and wav2vec2 aligners download to the in-image cache (`HF_HOME=/opt/models/hf`) and are lost
+  when the container exits. Mount a volume at `/opt/models/hf` to persist them across runs — do not mount over `/opt/models`, which would hide the
+  baked diarization pipeline.
+- **Default `--diarize` needs a token.** Without `--diarize_model`, the CLI downloads the gated `pyannote/speaker-diarization-community-1` model from
+  HuggingFace and requires `--hf_token <token>`; the baked path above avoids both.
+- Run `--entrypoint whisperx <image> --help` to list every flag.
 
 ## Configuration and Limits
 

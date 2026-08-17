@@ -1,10 +1,10 @@
 # Changelog
 
-Changelog for the Amazon Linux 2023-based WhisperX images (`3.8.6-cu128-amzn2023`, `3.8.6-cu128-amzn2023-sagemaker`).
+Changelog for the Amazon Linux 2023-based WhisperX images.
 
 * * *
 
-## v1.0.0 — 2026-08-14
+## WhisperX 3.8.6 — 2026-08-14
 
 <!-- Release date is provisional; confirm at publish. -->
 

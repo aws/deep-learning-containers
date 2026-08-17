@@ -12,7 +12,7 @@ Boolean variables accept `1`, `true`, `yes`, or `on` (case-insensitive) as true;
 | --- | --- | --- |
 | `WHISPERX_DEFAULT_MODEL` | `large-v2` | Whisper model served by the container — a faster-whisper model id (`tiny`, `large-v3`, …) or a local directory path |
 | `WHISPERX_SERVED_MODEL_NAME` | *(unset)* | Client-facing alias advertised by `GET /v1/models` (e.g. `whisper-1` for OpenAI-SDK drop-in). Does not change inference |
-| `WHISPERX_COMPUTE_TYPE` | `float16` (GPU) / `int8` (CPU) | CTranslate2 compute type |
+| `WHISPERX_COMPUTE_TYPE` | `float16` | CTranslate2 compute type |
 | `WHISPERX_BATCH_SIZE` | `16` | faster-whisper batch size |
 | `WHISPERX_VAD_METHOD` | `pyannote` | Voice-activity-detection backend |
 | `WHISPERX_TASK` | `transcribe` | `transcribe` or `translate` (translate outputs English and cannot word-align — see [Known Limitations](#known-limitations)) |
@@ -64,7 +64,7 @@ Boolean variables accept `1`, `true`, `yes`, or `on` (case-insensitive) as true;
 | `HF_HUB_OFFLINE` | `0` | Set `1` to block all HuggingFace network access |
 | `TRANSFORMERS_OFFLINE` | `0` | Set `1` to block Transformers network access |
 
-See [Offline / Air-Gapped Usage](deployment/ec2.md#offline-air-gapped-usage) for the offline workflow.
+To run without network access, stage a model locally and set these to `1` — see [Custom / BYO Models](models/index.md#custom-byo-models).
 
 ## Request Fields
 

@@ -60,8 +60,6 @@ docker run --gpus all -p 8000:8000 \
 - **{{ sagemaker }}** — package the same flat directory as a `model.tar.gz` (CTranslate2 files at the archive root) and pass it via `ModelDataUrl`.
   The entrypoint auto-detects it at `/opt/ml/model`. See [Specifying the Model](../deployment/sagemaker.md#specifying-the-model).
 
-For fully offline use, see [Offline / Air-Gapped Usage](../deployment/ec2.md#offline-air-gapped-usage).
-
 ## Attribution
 
 The container redistributes the [pyannote.audio](https://github.com/pyannote/pyannote-audio) `speaker-diarization-community-1` pipeline and its

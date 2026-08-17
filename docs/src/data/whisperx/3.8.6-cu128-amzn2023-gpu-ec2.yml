@@ -8,5 +8,9 @@ os: amzn2023
 platform: default
 public_registry: true
 
+# Support policy
+ga: "2026-05-25"
+eop: "2027-05-25"
+
 tags:
   - "3.8.6-cu128-amzn2023"
