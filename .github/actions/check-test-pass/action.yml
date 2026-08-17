@@ -32,6 +32,12 @@ outputs:
   skips:
     description: 'JSON object: test suite -> true (skip) | false (run). {} means run all.'
     value: ${{ steps.check.outputs.skips }}
+  image-content-hash:
+    description: "Computed image content hash (reused by the record path)."
+    value: ${{ steps.check.outputs.image-content-hash }}
+  suite-code-hashes:
+    description: "JSON map: suite -> suite_code_hash computed by the check."
+    value: ${{ steps.check.outputs.suite-code-hashes }}
 
 runs:
   using: composite
@@ -65,12 +71,16 @@ runs:
         uv venv --python 3.12 --clear
         source .venv/bin/activate
         uv pip install boto3 pyyaml
-        SKIPS=$(python3 "${{ github.action_path }}/check_test_pass.py" \
+        RESULT=$(python3 "${{ github.action_path }}/check_test_pass.py" \
           --image-uri "$RESOLVED_IMAGE_URI" \
           --suites "$SUITES" \
           --repo-root "$(git rev-parse --show-toplevel)")
-        [ -n "$SKIPS" ] || SKIPS='{}'
-        echo "skips=$SKIPS" >> "$GITHUB_OUTPUT"
+        [ -n "$RESULT" ] || RESULT='{"skips":{},"image_content_hash":"","suite_code_hashes":{}}'
+        {
+          echo "skips=$(printf '%s' "$RESULT" | jq -c '.skips')"
+          echo "image-content-hash=$(printf '%s' "$RESULT" | jq -r '.image_content_hash')"
+          echo "suite-code-hashes=$(printf '%s' "$RESULT" | jq -c '.suite_code_hashes')"
+        } >> "$GITHUB_OUTPUT"
 
     - name: Report cache hits
       shell: bash

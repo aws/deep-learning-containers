@@ -44,7 +44,7 @@ def test_non_eligible_suites_are_omitted(monkeypatch):
         code_hashes=CODE_HASHES,
         skippable=[],
     )
-    skips = check_test_pass.compute_skips("/repo", "img:uri", SGLANG_SUITES)
+    skips, _, _ = check_test_pass.compute_skips("/repo", "img:uri", SGLANG_SUITES)
     assert "security" not in skips
     assert set(skips) == ELIGIBLE
 
@@ -57,7 +57,7 @@ def test_skippable_suites_map_to_true(monkeypatch):
         code_hashes=CODE_HASHES,
         skippable={"sanity", "sglang/model"},
     )
-    skips = check_test_pass.compute_skips("/repo", "img:uri", SGLANG_SUITES)
+    skips, _, _ = check_test_pass.compute_skips("/repo", "img:uri", SGLANG_SUITES)
     assert skips == {"sanity": True, "sglang/upstream": False, "sglang/model": True}
 
 
@@ -65,7 +65,7 @@ def test_no_eligible_suites_returns_empty(monkeypatch):
     _fake_helpers(
         monkeypatch, eligible=set(), image_hash="sha256:img", code_hashes={}, skippable=[]
     )
-    assert check_test_pass.compute_skips("/repo", "img:uri", SGLANG_SUITES) == {}
+    assert check_test_pass.compute_skips("/repo", "img:uri", SGLANG_SUITES) == ({}, "", {})
 
 
 def test_check_test_pass_receives_deduped_code_hashes(monkeypatch):
@@ -92,15 +92,24 @@ def test_main_fails_open_on_error(monkeypatch, capsys):
     )
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert out == "{}"
+    assert json.loads(out) == {"skips": {}, "image_content_hash": "", "suite_code_hashes": {}}
 
 
 def test_main_emits_compact_json(monkeypatch, capsys):
     monkeypatch.setattr(
-        check_test_pass, "compute_skips", lambda *a, **k: {"sanity": True, "pytorch/unit": False}
+        check_test_pass,
+        "compute_skips",
+        lambda *a, **k: (
+            {"sanity": True, "pytorch/unit": False},
+            "sha256:img",
+            {"sanity": "h1", "pytorch/unit": "h2"},
+        ),
     )
     rc = check_test_pass.main(["--image-uri", "img", "--suites", '["sanity"]', "--repo-root", "/repo"])
     out = capsys.readouterr().out.strip()
     assert rc == 0
-    assert json.loads(out) == {"sanity": True, "pytorch/unit": False}
+    result = json.loads(out)
+    assert result["skips"] == {"sanity": True, "pytorch/unit": False}
+    assert result["image_content_hash"] == "sha256:img"
+    assert result["suite_code_hashes"] == {"sanity": "h1", "pytorch/unit": "h2"}
     assert " " not in out  # compact, single-line for $GITHUB_OUTPUT

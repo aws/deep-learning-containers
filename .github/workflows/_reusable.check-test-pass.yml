@@ -18,8 +18,14 @@ on:
         type: string
     outputs:
       skips:
-        description: "JSON object: test suite -> true | false. {} means run all."
+        description: "JSON object: test suite -> true (skip) | false (run). {} means run all."
         value: ${{ jobs.check.outputs.skips }}
+      image-content-hash:
+        description: "Computed image content hash."
+        value: ${{ jobs.check.outputs.image-content-hash }}
+      suite-code-hashes:
+        description: "JSON map: suite -> suite_code_hash."
+        value: ${{ jobs.check.outputs.suite-code-hashes }}
 
 permissions:
   contents: read
@@ -32,6 +38,8 @@ jobs:
         buildspec-override:true
     outputs:
       skips: ${{ steps.check.outputs.skips || '{}' }}
+      image-content-hash: ${{ steps.check.outputs.image-content-hash }}
+      suite-code-hashes: ${{ steps.check.outputs.suite-code-hashes || '{}' }}
     steps:
       - uses: actions/checkout@v6
       - id: check
