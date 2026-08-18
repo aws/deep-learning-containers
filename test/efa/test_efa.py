@@ -14,11 +14,13 @@ Usage:
 
 import os
 
+import pytest
 from test_utils.efa_helpers import (
     DEFAULT_TIMEOUT,
     HOSTS_FILE_LOCATION,
     MASTER_CONTAINER_NAME,
     WORKER_CONTAINER_NAME,
+    NoCapacityError,
     efa_instances,
     run_on_container,
 )
@@ -74,106 +76,112 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         print(f"========== /{name} (exit={r.exited}) ==========\n")
         return r
 
-    with efa_instances(
-        image_uri=image_uri,
-        instance_type=EFA_INSTANCE_TYPE,
-        container_entrypoint=EFA_CONTAINER_ENTRYPOINT,
-        container_cmd=EFA_CONTAINER_CMD,
-    ) as (
-        master_conn,
-        worker_conn,
-        aws_session,
-    ):
-        # No-op for PyTorch DLCs (binary is preinstalled); apt-installs
-        # libnccl-dev (if missing) and compiles nccl-tests for vLLM Ubuntu.
-        # verifiable.cu is template-heavy and the build legitimately takes
-        # ~13 min, hence the larger timeout vs DEFAULT_TIMEOUT (600s).
-        for name, conn in (
-            (MASTER_CONTAINER_NAME, master_conn),
-            (WORKER_CONTAINER_NAME, worker_conn),
-        ):
-            _step(
-                f"setup_nccl_tests:{name}",
-                name,
-                conn,
-                "/test/efa/scripts/setup_nccl_tests.sh",
-                timeout=1500,
-            )
-
-        _step(
-            "efa_sanity",
-            MASTER_CONTAINER_NAME,
+    # NoCapacityError from launch retries → skip with warning, so ICE doesn't
+    # block release; real test failures still propagate and block as usual.
+    try:
+        with efa_instances(
+            image_uri=image_uri,
+            instance_type=EFA_INSTANCE_TYPE,
+            container_entrypoint=EFA_CONTAINER_ENTRYPOINT,
+            container_cmd=EFA_CONTAINER_CMD,
+        ) as (
             master_conn,
-            "/test/efa/scripts/efa_sanity.sh",
-        )
-
-        _step(
-            "nccl_allreduce",
-            MASTER_CONTAINER_NAME,
-            master_conn,
-            f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
-            timeout=DEFAULT_TIMEOUT,
-        )
-
-        if not RUN_NIXL_TESTS:
-            return
-
-        # Smoke: LIBFABRIC plugin loads and binds to the EFA libfabric provider.
-        # Cheap regression catch for nixl-cu* wheel packaging issues.
-        _step(
-            "nixl:libfabric_smoke",
-            MASTER_CONTAINER_NAME,
-            master_conn,
-            "python3 /test/efa/scripts/nixl_libfabric_smoke.py",
-        )
-
-        if not RUN_NIXL_DISAGG:
-            return
-
-        # Disaggregated prefill/decode across both nodes with NIXL+LIBFABRIC.
-        # The worker's private IP is already in the MPI hosts file written by
-        # the fixture (line 1 = localhost, line 2 = "<worker_ip> slots=N").
-        # run_on_container wraps the cmd in bash -c '<cmd>', so any single
-        # quotes inside cmd break the wrapping. Read the raw hosts file
-        # contents back and parse here, avoiding shell quoting entirely.
-        # File format: "localhost slots=N\n<worker_ip> slots=N".
-        hosts_contents = run_on_container(
-            MASTER_CONTAINER_NAME,
-            master_conn,
-            f"cat {HOSTS_FILE_LOCATION}",
-        ).stdout
-        worker_ip = hosts_contents.splitlines()[1].split()[0]
-        print(f"NIXL: parsed worker_ip={worker_ip} from hosts file")
-
-        _step(
-            "nixl:decode_launch",
-            WORKER_CONTAINER_NAME,
             worker_conn,
-            f"/test/efa/scripts/nixl_disagg_pd_decode.sh {NIXL_MODEL}",
-        )
-        # Always dump prefill/decode/proxy logs from inside the containers —
-        # they only live on the master/worker container filesystems and are
-        # gone once the fixture terminates the EC2 instances. Wrap in
-        # try/finally so the dump fires even when the orchestrator fails
-        # (which is the case where we need them most).
-        try:
+            aws_session,
+        ):
+            # No-op for PyTorch DLCs (binary is preinstalled); apt-installs
+            # libnccl-dev (if missing) and compiles nccl-tests for vLLM Ubuntu.
+            # verifiable.cu is template-heavy and the build legitimately takes
+            # ~13 min, hence the larger timeout vs DEFAULT_TIMEOUT (600s).
+            for name, conn in (
+                (MASTER_CONTAINER_NAME, master_conn),
+                (WORKER_CONTAINER_NAME, worker_conn),
+            ):
+                _step(
+                    f"setup_nccl_tests:{name}",
+                    name,
+                    conn,
+                    "/test/efa/scripts/setup_nccl_tests.sh",
+                    timeout=1500,
+                )
+
             _step(
-                "nixl:disagg_pd_orchestrator",
+                "efa_sanity",
                 MASTER_CONTAINER_NAME,
                 master_conn,
-                f"/test/efa/scripts/nixl_disagg_pd.sh {worker_ip} {NIXL_MODEL}",
-                timeout=NIXL_DISAGG_TIMEOUT,
+                "/test/efa/scripts/efa_sanity.sh",
             )
-        finally:
-            for name, container, conn, log_path in (
-                ("prefill", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/prefill.log"),
-                ("proxy", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/proxy.log"),
-                ("decode", WORKER_CONTAINER_NAME, worker_conn, "/test/efa/logs/decode.log"),
-            ):
-                print(f"\n========== {name} log ({log_path}) ==========")
-                try:
-                    r = run_on_container(container, conn, f"cat {log_path}", warn=True)
-                    print(r.stdout if r.stdout else "(empty)")
-                except Exception as e:  # noqa: BLE001
-                    print(f"(could not read: {e})")
-                print(f"========== /{name} log ==========\n")
+
+            _step(
+                "nccl_allreduce",
+                MASTER_CONTAINER_NAME,
+                master_conn,
+                f"/test/efa/scripts/nccl_allreduce.sh {HOSTS_FILE_LOCATION} 2",
+                timeout=DEFAULT_TIMEOUT,
+            )
+
+            if not RUN_NIXL_TESTS:
+                return
+
+            # Smoke: LIBFABRIC plugin loads and binds to the EFA libfabric provider.
+            # Cheap regression catch for nixl-cu* wheel packaging issues.
+            _step(
+                "nixl:libfabric_smoke",
+                MASTER_CONTAINER_NAME,
+                master_conn,
+                "python3 /test/efa/scripts/nixl_libfabric_smoke.py",
+            )
+
+            if not RUN_NIXL_DISAGG:
+                return
+
+            # Disaggregated prefill/decode across both nodes with NIXL+LIBFABRIC.
+            # The worker's private IP is already in the MPI hosts file written by
+            # the fixture (line 1 = localhost, line 2 = "<worker_ip> slots=N").
+            # run_on_container wraps the cmd in bash -c '<cmd>', so any single
+            # quotes inside cmd break the wrapping. Read the raw hosts file
+            # contents back and parse here, avoiding shell quoting entirely.
+            # File format: "localhost slots=N\n<worker_ip> slots=N".
+            hosts_contents = run_on_container(
+                MASTER_CONTAINER_NAME,
+                master_conn,
+                f"cat {HOSTS_FILE_LOCATION}",
+            ).stdout
+            worker_ip = hosts_contents.splitlines()[1].split()[0]
+            print(f"NIXL: parsed worker_ip={worker_ip} from hosts file")
+
+            _step(
+                "nixl:decode_launch",
+                WORKER_CONTAINER_NAME,
+                worker_conn,
+                f"/test/efa/scripts/nixl_disagg_pd_decode.sh {NIXL_MODEL}",
+            )
+            # Always dump prefill/decode/proxy logs from inside the containers —
+            # they only live on the master/worker container filesystems and are
+            # gone once the fixture terminates the EC2 instances. Wrap in
+            # try/finally so the dump fires even when the orchestrator fails
+            # (which is the case where we need them most).
+            try:
+                _step(
+                    "nixl:disagg_pd_orchestrator",
+                    MASTER_CONTAINER_NAME,
+                    master_conn,
+                    f"/test/efa/scripts/nixl_disagg_pd.sh {worker_ip} {NIXL_MODEL}",
+                    timeout=NIXL_DISAGG_TIMEOUT,
+                )
+            finally:
+                for name, container, conn, log_path in (
+                    ("prefill", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/prefill.log"),
+                    ("proxy", MASTER_CONTAINER_NAME, master_conn, "/test/efa/logs/proxy.log"),
+                    ("decode", WORKER_CONTAINER_NAME, worker_conn, "/test/efa/logs/decode.log"),
+                ):
+                    print(f"\n========== {name} log ({log_path}) ==========")
+                    try:
+                        r = run_on_container(container, conn, f"cat {log_path}", warn=True)
+                        print(r.stdout if r.stdout else "(empty)")
+                    except Exception as e:  # noqa: BLE001
+                        print(f"(could not read: {e})")
+                    print(f"========== /{name} log ==========\n")
+    except NoCapacityError as e:
+        print(f"::warning title=EFA test skipped::{e}")
+        pytest.skip(f"EFA test skipped due to capacity: {e}")

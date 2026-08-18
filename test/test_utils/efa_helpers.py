@@ -32,6 +32,10 @@ EFA_EIP_ALLOCATED_AT_TAG_KEY = "dlc-efa-test-allocated-at"
 EFA_STALE_AGE_MINUTES = 180
 
 
+class NoCapacityError(Exception):
+    """Raised when EFA instances cannot be launched due to capacity exhaustion."""
+
+
 def get_efa_devices(conn):
     """Get list of EFA device paths on an instance."""
     result = conn.run("ls -d /dev/infiniband/uverbs* 2>/dev/null || true")
@@ -355,10 +359,9 @@ def launch_efa_instances(
                 )
                 time.sleep(wait)
                 continue
-            raise RuntimeError(
+            raise NoCapacityError(
                 f"No capacity reservations with >= {count} available {instance_type} instances "
-                f"after {max_retries} attempts. Check reservation status and retry when "
-                f"capacity is available."
+                f"after {max_retries} attempts."
             )
 
         for reservation in reservations:
@@ -397,9 +400,9 @@ def launch_efa_instances(
             )
             time.sleep(wait)
 
-    raise RuntimeError(
-        f"Failed to launch {instance_type} from any capacity reservation. "
-        f"Tried {len(reservations)} reservation(s)."
+    raise NoCapacityError(
+        f"Failed to launch {instance_type} from any of {len(reservations)} capacity "
+        f"reservation(s) after {max_retries} attempts."
     )
 
 
