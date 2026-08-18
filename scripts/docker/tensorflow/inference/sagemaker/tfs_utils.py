@@ -41,11 +41,13 @@ _TFS_ALLOWED_METHODS = frozenset({"predict", "classify", "regress"})
 Context = namedtuple(
     "Context",
     "model_name, model_version, method, rest_uri, grpc_port, channel, "
-    "custom_attributes, request_content_type, accept_header, content_length",
+    "custom_attributes, request_content_type, accept_header, content_length, timeout",
 )
 
 
-def parse_request(req, rest_port, grpc_port, default_model_name, model_name=None, channel=None):
+def parse_request(
+    req, rest_port, grpc_port, default_model_name, model_name=None, channel=None, timeout=60
+):
     tfs_attributes = parse_tfs_custom_attributes(req)
     tfs_uri = make_tfs_uri(rest_port, tfs_attributes, default_model_name, model_name)
 
@@ -63,6 +65,7 @@ def parse_request(req, rest_port, grpc_port, default_model_name, model_name=None
         req.get_header("Content-Type") or DEFAULT_CONTENT_TYPE,
         req.get_header("Accept") or DEFAULT_ACCEPT_HEADER,
         req.content_length,
+        timeout,
     )
 
     data = req.stream

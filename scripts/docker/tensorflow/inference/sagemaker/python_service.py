@@ -65,7 +65,7 @@ def default_handler(data, context):
     response = requests.post(context.rest_uri, data=data, timeout=context.timeout)
     if response.status_code != 200:
         raise falcon.HTTPError(
-            str(response.status_code),
+            falcon.code_to_http_status(response.status_code),
             description=response.content.decode("utf-8", "replace"),
         )
     return response.content, context.accept_header
@@ -396,7 +396,7 @@ class PythonServiceResource:
                 ):
                     with lock():
                         self._sync_local_mme_instance_status()
-                        self._sync_model_handlers()
+                    self._sync_model_handlers()
 
                 if model_name not in self._mme_tfs_instances_status:
                     res.status = falcon.HTTP_404
@@ -423,6 +423,7 @@ class PythonServiceResource:
                             grpc_port,
                             self._tfs_default_model_name,
                             model_name=model_name,
+                            timeout=self._tfs_wait_time_seconds,
                         )
                     except ValueError as ve:
                         # make_tfs_uri raises ValueError on bad tfs-* custom attributes;
@@ -445,6 +446,7 @@ class PythonServiceResource:
                     grpc_port,
                     self._tfs_default_model_name,
                     channel=self._channels[grpc_port],
+                    timeout=self._tfs_wait_time_seconds,
                 )
             except ValueError as ve:
                 # make_tfs_uri raises ValueError on bad tfs-* custom attributes;
@@ -526,7 +528,7 @@ class PythonServiceResource:
             )
             if response.status_code != 200:
                 raise falcon.HTTPError(
-                    str(response.status_code),
+                    falcon.code_to_http_status(response.status_code),
                     description=response.content.decode("utf-8", "replace"),
                 )
             return custom_output_handler(response, context)
