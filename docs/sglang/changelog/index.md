@@ -15,7 +15,9 @@ Changelog for the Amazon Linux 2023-based SGLang images (`server-cuda`, `server-
 ### Highlights
 
 - Bumped SGLang to `0.5.17` (upstream commit `2948168`)
-- **Kimi-K3 support** (2.8T MoE, MXFP4) on the AL2023 image ([#6514](https://github.com/aws/deep-learning-containers/pull/6514)) — added `cuda-nvrtc-devel` so Kimi-K3's JIT-compiled MoE kernels build at first use (the runtime previously died in FlashInfer autotune with "ninja: build stopped"), plus a compile-and-link probe that fails the build rather than the model server on a future toolkit-layout change
+- **Kimi-K3 support** (2.8T MoE, MXFP4) on the AL2023 image ([#6514](https://github.com/aws/deep-learning-containers/pull/6514)) — added
+  `cuda-nvrtc-devel` so Kimi-K3's JIT-compiled MoE kernels build at first use (the runtime previously died in FlashInfer autotune with "ninja: build
+  stopped"), plus a compile-and-link probe that fails the build rather than the model server on a future toolkit-layout change
 - Upgraded stack: sgl-kernel `0.4.5`, FlashInfer `0.6.15.post1`, Mooncake `0.3.12.post1`
 
 * * *
