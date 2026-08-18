@@ -46,6 +46,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-upstream-test:
+        description: "Run vLLM upstream regression + cuda tests"
+        required: false
+        type: boolean
+        default: true
       release:
         description: "Run release job after tests pass"
         required: false
@@ -141,6 +146,17 @@ jobs:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
     uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  upstream-tests:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-upstream-tests-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/ray-llm.tests-upstream.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}

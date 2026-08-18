@@ -96,7 +96,10 @@ echo "Workers: ${WORKER_PODS[*]}"
 echo "=== Port-forwarding head :8000 (Serve) + :8265 (dashboard) ==="
 kubectl port-forward -n "${NAMESPACE}" "pod/${HEAD_POD}" 8000:8000 8265:8265 >/tmp/pf.log 2>&1 &
 PORT_FORWARD_PID=$!
-sleep 5
+for _ in $(seq 1 30); do
+    curl -sf --max-time 2 http://127.0.0.1:8265/api/serve/applications/ >/dev/null 2>&1 && break
+    sleep 2
+done
 
 echo "=== Sharding check A: Serve config API reports TP=${EXPECTED_TP} + STRICT_SPREAD ==="
 TP=$(curl -sf --max-time 10 http://127.0.0.1:8265/api/serve/applications/ \

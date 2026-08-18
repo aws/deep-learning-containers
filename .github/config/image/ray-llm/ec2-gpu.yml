@@ -22,6 +22,7 @@ build:
   python_short_version: "3.13"
   cuda_version: "13.0.2"
   vllm_version: "0.25.1"
+  vllm_ref: "v0.25.1"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
