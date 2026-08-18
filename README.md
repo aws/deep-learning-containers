@@ -30,6 +30,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/08/17]** [SGLang Server v1.3 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.3` · SageMaker: `server-sagemaker-cuda-v1.3` · SGLang `0.5.17` (up from 0.5.14); Kimi-K3 (2.8T MoE, MXFP4) support; sgl-kernel 0.4.5, FlashInfer 0.6.15.post1, Mooncake 0.3.12.post1.
 - **[2026/08/14]** [WhisperX v3.8.6 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/whisperx) — EC2: `3.8.6-cu128-amzn2023` · SageMaker: `3.8.6-cu128-amzn2023-sagemaker` · Initial release: speech transcription with word-level alignment (wav2vec2) and speaker diarization (pyannote) through an OpenAI-compatible API on CUDA 12.8 / Python 3.12; real-time and asynchronous SageMaker endpoints.
 - **[2026/08/12]** [Ray v1.4 (2.57.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2: `serve-ml-cuda-v1.4` · `serve-ml-cpu-v1.4` · SageMaker: `serve-ml-sagemaker-cuda-v1.4` · `serve-ml-sagemaker-cpu-v1.4` · Ray `2.57.0` (up from 2.56.1).
 - **[2026/08/07]** [vLLM-Omni v1.5 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.5` · SageMaker: `omni-sagemaker-cuda-v1.5` · vLLM-Omni `0.26.0` (up from 0.21.0rc1) on vLLM v0.26.0 with the new Rust frontend; SageMaker bidirectional WebSocket streaming (`InvokeEndpointWithBidirectionalStream`) for low-latency TTS and realtime sessions; FlashInfer 0.6.14; s3tokenizer bundled for CosyVoice3.
