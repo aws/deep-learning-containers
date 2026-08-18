@@ -20,6 +20,7 @@ spec:
                 tensor_parallel_size: 2
                 max_model_len: 4096
                 dtype: bfloat16
+                gpu_memory_utilization: 0.85
               deployment_config:
                 num_replicas: 1
               placement_group_config:
