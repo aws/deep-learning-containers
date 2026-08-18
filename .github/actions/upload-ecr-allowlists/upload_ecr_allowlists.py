@@ -2,8 +2,13 @@
 """Upload per-image framework allowlists to S3.
 
 Reads .github/config/image/*.yml to discover released images, looks up each
-image's SHA in ECR, reads the framework's allowlist from the repo, and uploads
+image's SHA in ECR, reads the image's allowlist from the repo, and uploads
 to s3://$SCANNER_ALLOWLIST_S3_BUCKET/<sha>/ecr_allowlist.json.
+
+Allowlist resolution mirrors ecr_scan.py (merged in order):
+  1. test/security/data/ecr_scan_allowlist/global_allowlist.json
+  2. test/security/data/ecr_scan_allowlist/<framework>/framework_allowlist.json
+  3. test/security/data/ecr_scan_allowlist/<framework>/<framework>-<version>.json
 
 Usage:
     python3 upload_ecr_allowlists.py              # all images
@@ -33,6 +38,10 @@ ECR_ACCOUNT = os.environ.get("ECR_ACCOUNT_ID", "")
 ECR_ACCOUNT_SAGEMAKER = os.environ.get("ECR_ACCOUNT_ID_SAGEMAKER", "") or ECR_ACCOUNT
 ECR_REGION = os.environ.get("AWS_REGION", "us-west-2")
 S3_BUCKET = os.environ.get("SCANNER_ALLOWLIST_S3_BUCKET", "")
+
+# Allowlist file names — must stay in sync with ecr_scan.py.
+GLOBAL_ALLOWLIST_FILE = "global_allowlist.json"
+FRAMEWORK_ALLOWLIST_FILE = "framework_allowlist.json"
 
 # Frameworks whose ECR repositories live in the SageMaker built-in algorithm account.
 # sklearn ships two framework names: "sklearn" (1.9+) and the legacy "sklearn_1_4_2_py312"
@@ -94,36 +103,40 @@ def get_image_sha(ecr_client, ecr_account, repo, tag):
 
 
 def load_framework_allowlist(framework, framework_version=""):
-    """Read the framework's allowlist from the repo, merging 3 levels.
+    """Read the merged allowlist for an image from the repo.
 
-    Mirrors ecr_scan.py:load_allowlist() — shared framework_allowlist.json
-    plus optional version-specific <framework>-<version>.json.
+    Mirrors ecr_scan.py:load_allowlist(), merging 3 levels least-specific first:
+      1. global_allowlist.json                          (every framework)
+      2. <framework>/framework_allowlist.json           (framework)
+      3. <framework>/<framework>-<version>.json         (version-specific)
+
+    Missing files are skipped rather than aborting the merge: the global level
+    on its own is a valid allowlist, so an image whose framework has no
+    allowlist directory — or an empty one — still gets the global entries.
     """
-    base_path = ALLOWLIST_DIR / framework / "framework_allowlist.json"
-    if not base_path.exists():
-        return None
-    try:
-        entries = json.loads(base_path.read_text())
-        if not isinstance(entries, list):
-            LOG.warning(f"allowlist for {framework} is not a list")
-            return None
-    except Exception as e:
-        LOG.warning(f"can't read allowlist for {framework}: {e}")
-        return None
+    paths = [ALLOWLIST_DIR / GLOBAL_ALLOWLIST_FILE]
+    if framework:
+        if not (ALLOWLIST_DIR / framework).is_dir():
+            LOG.warning(f"  no allowlist directory for framework '{framework}'")
+        paths.append(ALLOWLIST_DIR / framework / FRAMEWORK_ALLOWLIST_FILE)
+        if framework_version:
+            paths.append(ALLOWLIST_DIR / framework / f"{framework}-{framework_version}.json")
 
-    # Merge version-specific allowlist if it exists
-    if framework_version:
-        version_path = ALLOWLIST_DIR / framework / f"{framework}-{framework_version}.json"
-        if version_path.exists():
-            try:
-                version_entries = json.loads(version_path.read_text())
-                if isinstance(version_entries, list):
-                    entries = entries + version_entries
-                    LOG.info(
-                        f"  merged {len(version_entries)} version-specific entries from {version_path.name}"
-                    )
-            except Exception as e:
-                LOG.warning(f"  can't read version-specific allowlist {version_path.name}: {e}")
+    entries = []
+    for path in paths:
+        if not path.exists():
+            continue
+        try:
+            file_entries = json.loads(path.read_text())
+        except Exception as e:
+            LOG.warning(f"  can't read allowlist {path.name}: {e}")
+            continue
+        if not isinstance(file_entries, list):
+            LOG.warning(f"  allowlist {path.name} is not a list")
+            continue
+        if file_entries:
+            LOG.info(f"  merged {len(file_entries)} entries from {path.name}")
+        entries.extend(file_entries)
 
     return entries
 
@@ -133,18 +146,19 @@ def convert_to_scanner_format(entries):
 
     Scanner reads: {"<package_key>": [{"vulnerability_id": ..., "reason_to_ignore": ...}, ...]}
     We use a single key "framework_allowlist" wrapping all entries.
+
+    A CVE listed at more than one level is emitted once, keeping the most
+    specific reason (version-specific over framework over global).
     """
-    normalized = []
+    normalized = {}
     for entry in entries:
         if not isinstance(entry, dict) or "vulnerability_id" not in entry:
             continue
-        normalized.append(
-            {
-                "vulnerability_id": entry["vulnerability_id"],
-                "reason_to_ignore": entry.get("reason", ""),
-            }
-        )
-    return {"framework_allowlist": normalized}
+        normalized[entry["vulnerability_id"]] = {
+            "vulnerability_id": entry["vulnerability_id"],
+            "reason_to_ignore": entry.get("reason", ""),
+        }
+    return {"framework_allowlist": list(normalized.values())}
 
 
 def upload_to_s3(s3_client, sha, data, dry_run=False):
@@ -225,13 +239,8 @@ def main():
             continue
 
         entries = load_framework_allowlist(framework, framework_version)
-        if entries is None:
-            LOG.warning(f"  skip: no allowlist dir for framework '{framework}'")
-            skipped += 1
-            continue
-
         if not entries:
-            LOG.info("  skip: allowlist is empty")
+            LOG.info("  skip: merged allowlist is empty")
             skipped += 1
             continue
 
