@@ -1,25 +1,16 @@
-#!/usr/bin/env python3
 """Compute suite_code_hash for a test suite.
 
 suite_code_hash is sha256 over the file set from .github/config/test-suites.yml —
 each file's repo-relative path plus its bytes, sorted by path so the result is
 order-independent. Editing, adding, moving, or removing a captured file changes
 the hash.
-
-Usage:
-    python3 hash_suite_code.py --suite pytorch/single_gpu
-    python3 hash_suite_code.py --suite sanity --repo-root /path/to/repo
 """
 
-import argparse
 import hashlib
-import sys
 from pathlib import Path
 
 import yaml
 
-# scripts/ci/test_skip/hash_suite_code.py -> repo root is three parents up.
-DEFAULT_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 CONFIG_REL = ".github/config/test-suites.yml"
 
 
@@ -79,32 +70,3 @@ def is_skip_eligible(repo_root, suite):
     """
     suite_cfg = load_config(repo_root).get(suite)
     return bool(suite_cfg and suite_cfg.get("skip_eligible"))
-
-
-def main(argv=None):
-    parser = argparse.ArgumentParser(description="Compute suite_code_hash for a test suite.")
-    parser.add_argument("--suite", required=True, help="Suite name (key in test-suites.yml).")
-    parser.add_argument(
-        "--repo-root",
-        default=str(DEFAULT_REPO_ROOT),
-        help="Repo root (defaults to the checkout containing this script).",
-    )
-    parser.add_argument(
-        "--eligible-only",
-        action="store_true",
-        help="Print skip_eligible (true|false) for the suite instead of its hash.",
-    )
-    args = parser.parse_args(argv)
-    if args.eligible_only:
-        print("true" if is_skip_eligible(args.repo_root, args.suite) else "false")
-        return 0
-    try:
-        print(hash_suite_code(args.repo_root, args.suite))
-    except (KeyError, ValueError) as e:
-        print(str(e), file=sys.stderr)
-        return 2
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

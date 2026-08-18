@@ -1,17 +1,13 @@
-#!/usr/bin/env python3
 """dlc-ci-images test-skip cache: read (check skip) and write (record pass)."""
 
-import argparse
 import logging
 import os
-import sys
 import time
 from datetime import datetime, timezone
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 LOG = logging.getLogger(__name__)
 
 TABLE_NAME = "dlc-ci-images"
@@ -89,37 +85,3 @@ def record_test_pass(
         item["ci_image_tag"] = {"S": ci_image_tag}
     client.put_item(TableName=table_arn(), Item=item)
     LOG.info("recorded PASS for suite=%s hash=%s sk=%s", suite, image_content_hash, sk)
-
-
-def main(argv=None):
-    parser = argparse.ArgumentParser(description="dlc-ci-images test-skip cache read/write.")
-    sub = parser.add_subparsers(dest="command", required=True)
-
-    common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--image-content-hash", required=True)
-    common.add_argument("--suite", required=True)
-    common.add_argument("--suite-code-hash", required=True)
-
-    record = sub.add_parser("record", parents=[common], help="Record a PASS row.")
-    record.add_argument(
-        "--ci-image-tag",
-        default=None,
-        help="CI image tag for the image build being tested.",
-    )
-
-    args = parser.parse_args(argv)
-
-    if args.command == "record":
-        record_test_pass(
-            args.image_content_hash,
-            args.suite,
-            args.suite_code_hash,
-            ci_image_tag=args.ci_image_tag,
-        )
-        return 0
-
-    return 1
-
-
-if __name__ == "__main__":
-    sys.exit(main())

@@ -33,7 +33,8 @@ runs:
         CI_IMAGE_TAG: ${{ inputs.ci-image-tag }}
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
       run: |
+        set +e
         uv venv --python 3.12 --clear
         source .venv/bin/activate
         uv pip install boto3 pyyaml
-        bash "${{ github.action_path }}/record_pass.sh"
+        python3 "${{ github.action_path }}/record_pass.py"

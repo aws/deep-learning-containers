@@ -63,35 +63,11 @@ runs:
       shell: bash
       env:
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
-        CI_IMAGES_TABLE_REGION: ${{ inputs.aws-region }}
-        RESOLVED_IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+        IMAGE_URI: ${{ steps.image.outputs.image-uri }}
         SUITES: ${{ inputs.suites }}
       run: |
         set +e
         uv venv --python 3.12 --clear
         source .venv/bin/activate
         uv pip install boto3 pyyaml
-        python3 "${{ github.action_path }}/check_test_pass.py" \
-          --image-uri "$RESOLVED_IMAGE_URI" \
-          --suites "$SUITES" \
-          --repo-root "$(git rev-parse --show-toplevel)"
-
-    - name: Report cache hits
-      shell: bash
-      env:
-        SKIPS: ${{ steps.check.outputs.skips }}
-      run: |
-        HITS=$(printf '%s' "$SKIPS" | jq -r 'to_entries[] | select(.value) | .key' 2>/dev/null || true)
-        {
-          if [ -n "$HITS" ]; then
-            echo "### ✅ Test-pass cache hit"
-            echo "The following suites will be skipped (no test runner provisioned):"
-            printf '%s\n' "$HITS" | sed 's/^/- /'
-          else
-            echo "### Test-skip cache check"
-            echo "No cache hits — all checked suites will run."
-          fi
-        } >> "$GITHUB_STEP_SUMMARY"
-        if [ -n "$HITS" ]; then
-          echo "::notice title=✅ Test-skip cache hits::$(printf '%s' "$HITS" | paste -sd, -)"
-        fi
+        python3 "${{ github.action_path }}/check_test_pass.py"

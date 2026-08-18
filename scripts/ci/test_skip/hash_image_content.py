@@ -1,20 +1,14 @@
-#!/usr/bin/env python3
 """Compute image_content_hash for a pushed image with no layer pull.
 
 Read the config, resolve the reference in the registry, and return the image
 config JSON, then hash its rootfs.diff_ids. DLC builds single-platform x86-64
-images, so we expect a single config and verify its os/architecture matches
---platform.
-
-Usage:
-    python3 hash_image_content.py --image-uri <ref> [--platform linux/amd64]
+images, so we expect a single config and verify its os/architecture matches the
+requested platform.
 """
 
-import argparse
 import hashlib
 import json
 import subprocess
-import sys
 
 DEFAULT_PLATFORM = "linux/amd64"
 
@@ -98,24 +92,3 @@ def compute_image_content_hash(image_uri, platform=DEFAULT_PLATFORM):
     inspect_json = _inspect_image_config(image_uri)
     diff_ids = extract_diff_ids(inspect_json, platform=platform)
     return hash_diff_ids(diff_ids)
-
-
-def main(argv=None):
-    parser = argparse.ArgumentParser(
-        description="Compute image_content_hash from a pushed image (no layer pull)."
-    )
-    parser.add_argument(
-        "--image-uri", required=True, help="ECR image reference (prefer digest-pinned)."
-    )
-    parser.add_argument(
-        "--platform",
-        default=DEFAULT_PLATFORM,
-        help=f"Platform to hash (default {DEFAULT_PLATFORM}).",
-    )
-    args = parser.parse_args(argv)
-    print(compute_image_content_hash(args.image_uri, platform=args.platform))
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
