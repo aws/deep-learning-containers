@@ -1,9 +1,10 @@
 """Compute image_content_hash for a pushed image with no layer pull.
 
 Read the config, resolve the reference in the registry, and return the image
-config JSON, then hash its rootfs.diff_ids. DLC builds single-platform x86-64
-images, so we expect a single config and verify its os/architecture matches the
-requested platform.
+config JSON, then hash its rootfs.diff_ids together with the runtime config
+(Env, Cmd, Entrypoint, Labels, ...). The build timestamps (top-level ``created``
+and ``history`` timestamps) are excluded so the hash is stable across rebuilds of
+identical content.
 """
 
 import hashlib
@@ -17,15 +18,21 @@ class PlatformNotFoundError(Exception):
     """Raised when the image's platform does not match the requested one."""
 
 
-def hash_diff_ids(diff_ids):
-    """sha256 of the ordered diff_ids list (``sha256:<hex>``)."""
+def content_hash(diff_ids, config):
+    """sha256 of the ordered (diff_ids, config) pair (``sha256:<hex>``).
+
+    ``config`` is the OCI image config object (Env, Cmd, Entrypoint, WorkingDir,
+    User, Labels, etc.). Build timestamps (``created`` and ``history``) are
+    not part of this pair, so identical content hashes the same across rebuilds.
+    """
     if not diff_ids:
         raise ValueError("empty diff_ids — refusing to emit a content hash")
-    digest = hashlib.sha256()
-    for diff_id in diff_ids:
-        digest.update(diff_id.encode("utf-8"))
-        digest.update(b"\n")
-    return f"sha256:{digest.hexdigest()}"
+    canonical = json.dumps(
+        {"diff_ids": diff_ids, "config": config or {}},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return f"sha256:{hashlib.sha256(canonical.encode('utf-8')).hexdigest()}"
 
 
 def _diff_ids_from_config(config):
@@ -52,8 +59,8 @@ def _assert_platform_matches(config, platform):
         )
 
 
-def extract_diff_ids(inspect_json, platform=DEFAULT_PLATFORM):
-    """Extract diff_ids from a single-platform `imagetools inspect` config."""
+def _parse_config_payload(inspect_json, platform=DEFAULT_PLATFORM):
+    """Parse `imagetools inspect` output into one validated single-platform config."""
     payload = json.loads(inspect_json)
     if not isinstance(payload, dict):
         raise ValueError("unexpected imagetools inspect output (not an object)")
@@ -61,7 +68,12 @@ def extract_diff_ids(inspect_json, platform=DEFAULT_PLATFORM):
         raise ValueError("expected a single image config (got no config fields)")
 
     _assert_platform_matches(payload, platform)
-    return _diff_ids_from_config(payload)
+    return payload
+
+
+def extract_diff_ids(inspect_json, platform=DEFAULT_PLATFORM):
+    """Extract diff_ids from a single-platform `imagetools inspect` config."""
+    return _diff_ids_from_config(_parse_config_payload(inspect_json, platform))
 
 
 def _inspect_image_config(image_uri):
@@ -89,6 +101,7 @@ def _inspect_image_config(image_uri):
 
 def compute_image_content_hash(image_uri, platform=DEFAULT_PLATFORM):
     """Compute the image_content_hash for a pushed image reference."""
-    inspect_json = _inspect_image_config(image_uri)
-    diff_ids = extract_diff_ids(inspect_json, platform=platform)
-    return hash_diff_ids(diff_ids)
+    payload = _parse_config_payload(_inspect_image_config(image_uri), platform=platform)
+    diff_ids = _diff_ids_from_config(payload)
+    config = payload.get("config") or {}
+    return content_hash(diff_ids, config)

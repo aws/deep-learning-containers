@@ -1,8 +1,8 @@
 """Unit tests for hash_image_content.
 
-image_content_hash = sha256 of the ordered list of RootFS.Layers DiffIDs, read
-from the pushed image's registry config (no layer pull). These tests exercise
-the pure hashing + parsing core.
+image_content_hash = sha256 over the ordered RootFS.Layers DiffIDs and the
+runtime config (Env, Cmd, Entrypoint, Labels, ...), read from the pushed image's
+registry config (no layer pull). These tests exercise the pure hashing + parsing core.
 """
 
 import json
@@ -18,28 +18,28 @@ DIFF_IDS = [
 ]
 
 
-def test_hash_of_diff_ids_is_deterministic():
-    h1 = image_hasher.hash_diff_ids(DIFF_IDS)
-    h2 = image_hasher.hash_diff_ids(DIFF_IDS)
+def test_content_hash_is_deterministic():
+    h1 = image_hasher.content_hash(DIFF_IDS, {})
+    h2 = image_hasher.content_hash(DIFF_IDS, {})
     assert h1 == h2
     assert h1.startswith("sha256:")
 
 
 def test_hash_is_order_sensitive():
     reordered = [DIFF_IDS[1], DIFF_IDS[0], DIFF_IDS[2]]
-    assert image_hasher.hash_diff_ids(DIFF_IDS) != image_hasher.hash_diff_ids(reordered)
+    assert image_hasher.content_hash(DIFF_IDS, {}) != image_hasher.content_hash(reordered, {})
 
 
 def test_hash_changes_when_a_layer_changes():
     changed = DIFF_IDS[:-1] + [
         "sha256:dddd000000000000000000000000000000000000000000000000000000000000"
     ]
-    assert image_hasher.hash_diff_ids(DIFF_IDS) != image_hasher.hash_diff_ids(changed)
+    assert image_hasher.content_hash(DIFF_IDS, {}) != image_hasher.content_hash(changed, {})
 
 
 def test_empty_diff_ids_raises():
     with pytest.raises(ValueError):
-        image_hasher.hash_diff_ids([])
+        image_hasher.content_hash([], {})
 
 
 def test_extract_diff_ids_from_single_platform_config():
@@ -84,9 +84,36 @@ def test_single_config_without_platform_fields_proceeds():
 
 
 def test_compute_end_to_end_with_stubbed_inspect(monkeypatch):
-    config = {"rootfs": {"type": "layers", "diff_ids": DIFF_IDS}}
-    monkeypatch.setattr(image_hasher, "_inspect_image_config", lambda uri: json.dumps(config))
+    payload = {
+        "config": {"Env": ["PATH=/usr/bin"], "Cmd": ["/bin/sh"]},
+        "rootfs": {"type": "layers", "diff_ids": DIFF_IDS},
+    }
+    monkeypatch.setattr(image_hasher, "_inspect_image_config", lambda uri: json.dumps(payload))
     got = image_hasher.compute_image_content_hash(
         "123.dkr.ecr.us-west-2.amazonaws.com/ci:tag", platform="linux/amd64"
     )
-    assert got == image_hasher.hash_diff_ids(DIFF_IDS)
+    assert got == image_hasher.content_hash(DIFF_IDS, payload["config"])
+
+
+def test_hash_ignores_build_timestamps(monkeypatch):
+    """created + history are build timestamps: two rebuilds with identical
+    content (same diff_ids + config) must hash the same regardless of them."""
+    base = {
+        "config": {"Env": ["PATH=/usr/bin"], "Cmd": ["/bin/sh"]},
+        "rootfs": {"type": "layers", "diff_ids": DIFF_IDS},
+    }
+    first = {
+        **base,
+        "created": "2026-08-18T15:51:20.705516406-07:00",
+        "history": [{"created": "2026-08-18T15:51:20.705516406-07:00", "created_by": "RUN x"}],
+    }
+    second = {
+        **base,
+        "created": "2026-08-18T15:59:59.000000000-07:00",
+        "history": [{"created": "2026-08-18T15:59:59.000000000-07:00", "created_by": "RUN x"}],
+    }
+    monkeypatch.setattr(image_hasher, "_inspect_image_config", lambda uri: json.dumps(first))
+    h_first = image_hasher.compute_image_content_hash("img:tag", platform="linux/amd64")
+    monkeypatch.setattr(image_hasher, "_inspect_image_config", lambda uri: json.dumps(second))
+    h_second = image_hasher.compute_image_content_hash("img:tag", platform="linux/amd64")
+    assert h_first == h_second
