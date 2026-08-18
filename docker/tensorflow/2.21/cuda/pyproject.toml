@@ -20,6 +20,7 @@ dependencies = [
     "pyasn1>=0.6.4",  # CVE-2026-59885 + CVE-2026-59886 (HIGH)
     "keras>=3.15.0",  # CVE-2026-12481 (CRITICAL) + CVE-2026-12484 (HIGH)
     "jupyterlab>=4.6.0",  # GHSA-pppj-hq3g-57pj + GHSA-gx64-gj6p-pc4c (HIGH)
+    "sqlparse>=0.6.0",  # CVE-2026-71491 + CVE-2026-54284 + CVE-2026-59893 (HIGH)
     "numpy>=2.1,<2.5",
     "requests",
     "packaging",

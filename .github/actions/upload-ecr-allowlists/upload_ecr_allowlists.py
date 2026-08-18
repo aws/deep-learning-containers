@@ -93,39 +93,42 @@ def get_image_sha(ecr_client, ecr_account, repo, tag):
     return None
 
 
-def load_framework_allowlist(framework, framework_version=""):
-    """Read the framework's allowlist from the repo, merging 3 levels.
-
-    Mirrors ecr_scan.py:load_allowlist() — shared framework_allowlist.json
-    plus optional version-specific <framework>-<version>.json.
-    """
-    base_path = ALLOWLIST_DIR / framework / "framework_allowlist.json"
-    if not base_path.exists():
-        return None
+def _read_entries(path):
+    """Return list of entries from a JSON file, or [] if missing/invalid."""
+    if not path.exists():
+        return []
     try:
-        entries = json.loads(base_path.read_text())
-        if not isinstance(entries, list):
-            LOG.warning(f"allowlist for {framework} is not a list")
-            return None
+        entries = json.loads(path.read_text())
     except Exception as e:
-        LOG.warning(f"can't read allowlist for {framework}: {e}")
-        return None
-
-    # Merge version-specific allowlist if it exists
-    if framework_version:
-        version_path = ALLOWLIST_DIR / framework / f"{framework}-{framework_version}.json"
-        if version_path.exists():
-            try:
-                version_entries = json.loads(version_path.read_text())
-                if isinstance(version_entries, list):
-                    entries = entries + version_entries
-                    LOG.info(
-                        f"  merged {len(version_entries)} version-specific entries from {version_path.name}"
-                    )
-            except Exception as e:
-                LOG.warning(f"  can't read version-specific allowlist {version_path.name}: {e}")
-
+        LOG.warning(f"  can't read {path.name}: {e}")
+        return []
+    if not isinstance(entries, list):
+        LOG.warning(f"  {path.name} is not a list")
+        return []
     return entries
+
+
+def load_framework_allowlist(framework, framework_version=""):
+    """Read and merge the 3-level allowlist for a framework.
+
+    Mirrors ecr_scan.py:load_allowlist() — global + framework + version-specific,
+    deduped by vulnerability_id (first-seen wins). Missing files are skipped.
+    """
+    paths = [ALLOWLIST_DIR / "global_allowlist.json"]
+    if framework:
+        paths.append(ALLOWLIST_DIR / framework / "framework_allowlist.json")
+        if framework_version:
+            paths.append(ALLOWLIST_DIR / framework / f"{framework}-{framework_version}.json")
+
+    seen = set()
+    merged = []
+    for path in paths:
+        for entry in _read_entries(path):
+            vid = entry.get("vulnerability_id") if isinstance(entry, dict) else None
+            if vid and vid not in seen:
+                seen.add(vid)
+                merged.append(entry)
+    return merged
 
 
 def convert_to_scanner_format(entries):
@@ -225,13 +228,8 @@ def main():
             continue
 
         entries = load_framework_allowlist(framework, framework_version)
-        if entries is None:
-            LOG.warning(f"  skip: no allowlist dir for framework '{framework}'")
-            skipped += 1
-            continue
-
         if not entries:
-            LOG.info("  skip: allowlist is empty")
+            LOG.info("  skip: no allowlist entries (global + framework + version all empty)")
             skipped += 1
             continue
 
