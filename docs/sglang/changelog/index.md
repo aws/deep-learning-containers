@@ -8,7 +8,7 @@ Changelog for the Amazon Linux 2023-based SGLang images (`server-cuda`, `server-
 
 **Tags:** `server-cuda-v1.3` · `server-sagemaker-cuda-v1.3`
 
-**SGLang source:** [2948168](https://github.com/sgl-project/sglang/commit/29481685462732237d80d86076d6563e1f658102) (`0.5.17+dlc1`)
+**SGLang source:** [2948168](https://github.com/sgl-project/sglang/commit/29481685462732237d80d86076d6563e1f658102) (`0.5.17+amzn2023.2948168`)
 
 **Bundled versions:** CUDA 13.0.3 · Python 3.12 · PyTorch 2.11.0 · sgl-kernel 0.4.5 · FlashInfer 0.6.15.post1 · Mooncake 0.3.12.post1 · NCCL 2.30.4
 
