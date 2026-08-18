@@ -119,9 +119,7 @@ class PythonServiceResource:
         self._tfs_intra_op_parallelism = os.environ.get("SAGEMAKER_TFS_INTRA_OP_PARALLELISM", 0)
         self._tfs_instance_count = int(os.environ.get("SAGEMAKER_TFS_INSTANCE_COUNT", 1))
         self._gunicorn_workers = int(os.environ.get("SAGEMAKER_GUNICORN_WORKERS", 1))
-        self._tfs_wait_time_seconds = int(
-            os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 55 // self._tfs_instance_count)
-        )
+        self._tfs_wait_time_seconds = int(os.environ.get("SAGEMAKER_TFS_WAIT_TIME_SECONDS", 60))
 
     def on_post(self, req, res, model_name=None):
         if model_name or "invocations" in req.uri:

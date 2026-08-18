@@ -79,12 +79,7 @@ jobs:
           SM_DEVICE_TYPE: ${{ inputs.device-type }}
         run: |
           source .venv/bin/activate
-          MARK_FILTER=()
-          if [ "${{ inputs.device-type }}" = "cpu" ]; then
-            MARK_FILTER=(-m "not gpu")
-          fi
           python3 -m pytest -v --tb=short -rA -n 4 --dist loadfile \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
             --region ${{ vars.AWS_REGION }} \
-            "${MARK_FILTER[@]}" \
             test/tensorflow/integration/inference/
