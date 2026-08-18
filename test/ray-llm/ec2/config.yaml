@@ -1,7 +1,10 @@
 # Ray Serve LLM config for the EC2 single-GPU integration test.
-# Weights are bind-mounted at /opt/ml/model.
+# Weights are bind-mounted at /opt/ml/weights.
 #
 # Full model: mistralai/Ministral-8B-Instruct-2410
+http_options:
+  host: 0.0.0.0
+  port: 8000
 applications:
   - name: llm
     import_path: ray.serve.llm:build_openai_app
@@ -10,7 +13,7 @@ applications:
       llm_configs:
         - model_loading_config:
             model_id: ministral
-            model_source: /opt/ml/model
+            model_source: /opt/ml/weights
           engine_kwargs:
             dtype: bfloat16
             max_model_len: 8192

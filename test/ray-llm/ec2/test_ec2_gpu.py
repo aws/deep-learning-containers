@@ -5,13 +5,10 @@ compatible endpoints, and validates response schema.
 """
 
 import logging
-import os
-import sys
 
 import requests
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from common import REQUEST_TIMEOUT, container  # noqa: E402, F401 (fixture)
+REQUEST_TIMEOUT = 120
 
 LOGGER = logging.getLogger(__name__)
 

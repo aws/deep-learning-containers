@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 SERVE_PORT = 8000
-HEALTH_TIMEOUT = 600
+HEALTH_TIMEOUT = 900
 HEALTH_INTERVAL = 5
 REQUEST_TIMEOUT = 120
 
@@ -27,16 +27,28 @@ CONFIG_YAML = os.path.join(SCRIPT_DIR, "config.yaml")
 
 
 def start_container(image_uri, model_dir):
-    """Start Ray Serve container with the model + repo-side config.yaml mounted."""
+    """Start Ray Serve container with the model + repo-side config.yaml mounted.
+
+    Model weights live at /opt/ml/weights, config at /opt/ml/config/config.yaml —
+    non-overlapping mount points to avoid file-inside-ro-dir portability issues.
+    """
     cmd = [
-        "docker", "run", "-d",
-        "--gpus", "all",
+        "docker",
+        "run",
+        "-d",
+        "--gpus",
+        "all",
         "--shm-size=8g",
-        "-p", f"{SERVE_PORT}:{SERVE_PORT}",
-        "-v", f"{model_dir}:/opt/ml/model:ro",
-        "-v", f"{CONFIG_YAML}:/opt/ml/model/config.yaml:ro",
-        "-e", "RAY_SERVE_HTTP_HOST=0.0.0.0",
+        "-p",
+        f"{SERVE_PORT}:{SERVE_PORT}",
+        "-v",
+        f"{model_dir}:/opt/ml/weights:ro",
+        "-v",
+        f"{CONFIG_YAML}:/opt/ml/config/config.yaml:ro",
         image_uri,
+        "serve",
+        "run",
+        "/opt/ml/config/config.yaml",
     ]
     LOGGER.info(f"Starting container: {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
@@ -63,7 +75,8 @@ def wait_for_health(port=SERVE_PORT, timeout=HEALTH_TIMEOUT, interval=HEALTH_INT
 def get_container_logs(container_id):
     result = subprocess.run(
         ["docker", "logs", "--tail", "200", container_id],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
     return result.stdout + result.stderr
 
