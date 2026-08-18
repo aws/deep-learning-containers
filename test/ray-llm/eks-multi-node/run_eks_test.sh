@@ -25,10 +25,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVICE_NAME=$(yq '.metadata.name' "${SCRIPT_DIR}/rayservice.yml")
 
 cleanup() {
-    echo "=== Cleanup: killing port-forward ==="
-    if [[ -n "${PORT_FORWARD_PID:-}" ]]; then
-        kill "${PORT_FORWARD_PID}" 2>/dev/null || true
-    fi
     echo "=== Cleanup: deleting RayService ${SERVICE_NAME} ==="
     kubectl delete rayservice "${SERVICE_NAME}" -n "${NAMESPACE}" --ignore-not-found=true --timeout=180s || true
     kubectl wait --for=delete pod -l "ray.io/cluster" -n "${NAMESPACE}" --timeout=240s 2>/dev/null || true
@@ -93,35 +89,15 @@ WORKER_PODS=($(kubectl get pods -l "ray.io/cluster=${CLUSTER_NAME},ray.io/node-t
 echo "Head: ${HEAD_POD}"
 echo "Workers: ${WORKER_PODS[*]}"
 
-echo "=== Port-forwarding head :8000 (Serve) + :8265 (dashboard) ==="
-kubectl port-forward -n "${NAMESPACE}" "pod/${HEAD_POD}" 8000:8000 8265:8265 >/tmp/pf.log 2>&1 &
-PORT_FORWARD_PID=$!
-PF_READY=""
-for i in $(seq 1 60); do
-    if curl -sf --max-time 2 http://127.0.0.1:8265/api/serve/applications/ >/dev/null 2>&1; then
-        echo "port-forward reachable on :8265 after ${i} attempt(s)"
-        PF_READY=1
-        break
-    fi
-    sleep 2
-done
-if [[ -z "${PF_READY}" ]]; then
-    echo "FAIL: port-forward did not become reachable on :8265 within 120s"
-    echo "--- kubectl port-forward log ---"; cat /tmp/pf.log 2>&1 | tail -30
-    echo "--- head pod state ---"
-    kubectl get pod -n "${NAMESPACE}" "${HEAD_POD}" -o wide 2>&1
-    kubectl describe pod -n "${NAMESPACE}" "${HEAD_POD}" 2>&1 | tail -30
-    echo "--- head pod ports (should show 8265 listening) ---"
-    kubectl exec -n "${NAMESPACE}" "${HEAD_POD}" -c ray-head -- bash -c 'for p in 6379 8265 8000 52365; do (echo > /dev/tcp/127.0.0.1/$p) 2>/dev/null && echo "$p OPEN" || echo "$p CLOSED"; done' 2>&1
-    echo "--- ray status from head ---"
-    kubectl exec -n "${NAMESPACE}" "${HEAD_POD}" -c ray-head -- ray status 2>&1 | head -30
-    exit 1
-fi
+head_curl() {
+    kubectl exec -n "${NAMESPACE}" "${HEAD_POD}" -c ray-head -- curl "$@"
+}
 
 echo "=== Sharding check A: Serve config API reports TP=${EXPECTED_TP} + STRICT_SPREAD ==="
-CONFIG_JSON=$(curl -sf --retry 5 --retry-connrefused --retry-delay 2 --max-time 10 http://127.0.0.1:8265/api/serve/applications/) || {
-    echo "FAIL: could not fetch Serve config API"
-    echo "--- port-forward log ---"; cat /tmp/pf.log 2>&1 | tail -20
+CONFIG_JSON=$(head_curl -sf --retry 5 --retry-connrefused --retry-delay 2 --max-time 10 \
+    http://127.0.0.1:8265/api/serve/applications/) || {
+    echo "FAIL: could not fetch Serve config API from inside head pod"
+    kubectl describe pod -n "${NAMESPACE}" "${HEAD_POD}" 2>&1 | tail -30
     exit 1
 }
 TP=$(echo "${CONFIG_JSON}" | jq -r '.applications.qwen.deployed_app_config.args.llm_configs[0].engine_kwargs.tensor_parallel_size')
@@ -171,7 +147,7 @@ for w in "${WORKER_PODS[@]}"; do
 done
 
 echo "=== GET /v1/models ==="
-MODELS=$(curl -sf --max-time 10 http://127.0.0.1:8000/v1/models)
+MODELS=$(head_curl -sf --max-time 10 http://127.0.0.1:8000/v1/models)
 echo "${MODELS}"
 echo "${MODELS}" | grep -q "${MODEL_ID}" || { echo "FAIL: ${MODEL_ID} not in /v1/models"; exit 1; }
 
@@ -189,14 +165,14 @@ validate_response() {
 }
 
 echo "=== POST /v1/completions ==="
-RESPONSE=$(curl -sf --max-time 60 -X POST http://127.0.0.1:8000/v1/completions \
+RESPONSE=$(head_curl -sf --max-time 60 -X POST http://127.0.0.1:8000/v1/completions \
     -H "Content-Type: application/json" \
     -d "{\"model\":\"${MODEL_ID}\",\"prompt\":\"Hello, how are you?\",\"max_tokens\":100,\"temperature\":0.7}")
 echo "${RESPONSE}"
 validate_response "${RESPONSE}" "/v1/completions"
 
 echo "=== POST /v1/chat/completions ==="
-RESPONSE=$(curl -sf --max-time 60 -X POST http://127.0.0.1:8000/v1/chat/completions \
+RESPONSE=$(head_curl -sf --max-time 60 -X POST http://127.0.0.1:8000/v1/chat/completions \
     -H "Content-Type: application/json" \
     -d "{\"model\":\"${MODEL_ID}\",\"messages\":[{\"role\":\"user\",\"content\":\"What are the benefits of using FSx Lustre with EKS?\"}],\"max_tokens\":100,\"temperature\":0.7}")
 echo "${RESPONSE}"
