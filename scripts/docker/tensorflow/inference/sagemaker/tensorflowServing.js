@@ -102,7 +102,7 @@ var TFS_METHODS = ['predict', 'classify', 'regress']
 function make_tfs_uri(r, with_method) {
     var attributes = parse_custom_attributes(r)
     var name = attributes['tfs-model-name']
-    if (!TFS_MODEL_NAME_RE.test(name)) {
+    if (attributes['_name_from_header'] && !TFS_MODEL_NAME_RE.test(name)) {
         return_error(r, 400, 'invalid tfs-model-name')
         return null
     }
@@ -129,6 +129,7 @@ function parse_custom_attributes(r) {
     var attributes = {}
     var kv_pattern = /tfs-[a-z\-]+=[^,]+/g
     var header = r.headersIn[custom_attributes_header]
+    var name_from_header = false
     if (header) {
         var matches = header.match(kv_pattern)
         if (matches) {
@@ -136,6 +137,7 @@ function parse_custom_attributes(r) {
                 var kv = matches[i].split('=')
                 if (kv.length === 2) {
                     attributes[kv[0]] = kv[1]
+                    if (kv[0] === 'tfs-model-name') name_from_header = true
                 }
             }
         }
@@ -153,6 +155,7 @@ function parse_custom_attributes(r) {
         }
     }
 
+    attributes['_name_from_header'] = name_from_header
     return attributes
 }
 

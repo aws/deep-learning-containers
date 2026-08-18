@@ -396,6 +396,21 @@ class PythonServiceResource:
                 ):
                     with lock():
                         self._sync_local_mme_instance_status()
+                        # If the model is still present but its TFS child is dead, evict it
+                        # so the MME frontend can re-issue a LoadModel.
+                        if model_name in self._mme_tfs_instances_status and not self._check_pid(
+                            self._mme_tfs_instances_status[model_name][0].pid
+                        ):
+                            log.error(
+                                "TFS for model %s is dead (pid %s); evicting",
+                                model_name,
+                                self._mme_tfs_instances_status[model_name][0].pid,
+                            )
+                            self._delete_model(model_name)
+                            self._remove_model_config(model_name)
+                            self._mme_tfs_instances_status.pop(model_name, None)
+                            self._update_ports_available()
+                            self._upload_mme_instance_status()
                     self._sync_model_handlers()
 
                 if model_name not in self._mme_tfs_instances_status:
