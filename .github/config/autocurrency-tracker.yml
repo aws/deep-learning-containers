@@ -39,3 +39,15 @@ frameworks:
       - path: "docker/sglang/Dockerfile"
         base_image_template: "lmsysorg/sglang:v{version}"
     version_detection: true
+
+  huggingface-vllm:
+    github_repo: "vllm-project/vllm"
+    tag_prefix: "v"
+    config_files:
+      - path: ".github/config/image/huggingface-vllm/sagemaker.yml"
+        prod_image_template: "huggingface-vllm:{major}.{minor}-gpu-py312-cu130-ubuntu22.04"
+        base_image_template: "public.ecr.aws/deep-learning-containers/vllm:{version}-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0"
+    dockerfiles:
+      - path: "docker/huggingface/vllm/Dockerfile"
+        base_image_template: "public.ecr.aws/deep-learning-containers/vllm:{version}-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0"
+    version_detection: true

@@ -103,6 +103,7 @@ OS=$(yq '.os_version' "$RELEASE_SPEC")
 PLATFORM=$(yq '.customer_type' "$RELEASE_SPEC")
 DEVICE=$(yq '.device_type' "$RELEASE_SPEC")
 PUBLIC_REGISTRY=$(yq '.public_registry' "$RELEASE_SPEC")
+TRANSFORMERS=$(yq '.transformers_version // ""' "$RELEASE_SPEC")
 
 TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
 
@@ -160,31 +161,38 @@ echo "============================================================"
 
 display_name=$(get_display_name "$FRAMEWORK")
 
-tags=$(generate_tags "$VERSION" "$DEVICE" "$PYTHON" "$CUDA" "$OS" "$PLATFORM")
-tag1=$(echo "$tags" | sed -n '1p')
-tag2=$(echo "$tags" | sed -n '2p')
-tag3=$(echo "$tags" | sed -n '3p')
-tag4=$(echo "$tags" | sed -n '4p')
+# HuggingFace-contributed images carry transformers_version in the release spec
+# and publish transformers-scoped tags (e.g.
+# 0.27.1-transformers5.10.2-gpu-py312-cu130-ubuntu22.04); the AWS-scheme tags
+# from generate_tags do not exist in those ECR repos. The docs convention for
+# these families is the single canonical tag.
+if [[ -n "${TRANSFORMERS}" && "${TRANSFORMERS}" != "null" ]]; then
+  tags="${VERSION}-transformers${TRANSFORMERS}-${DEVICE}-${PYTHON}-${CUDA}-${OS}"
+else
+  tags=$(generate_tags "$VERSION" "$DEVICE" "$PYTHON" "$CUDA" "$OS" "$PLATFORM")
+fi
 
 output_dir="$(dirname "$OUTPUT_FILE")"
 mkdir -p "$output_dir"
 
-cat > "$OUTPUT_FILE" <<EOF
-framework: ${display_name}
-version: "${VERSION}"
-accelerator: ${DEVICE}
-python: ${PYTHON}
-cuda: ${CUDA}
-os: ${OS}
-platform: ${PLATFORM}
-public_registry: ${PUBLIC_REGISTRY}
-
-tags:
-  - "${tag1}"
-  - "${tag2}"
-  - "${tag3}"
-  - "${tag4}"
-EOF
+{
+  echo "framework: ${display_name}"
+  echo "version: \"${VERSION}\""
+  echo "accelerator: ${DEVICE}"
+  echo "python: ${PYTHON}"
+  echo "cuda: ${CUDA}"
+  if [[ -n "${TRANSFORMERS}" && "${TRANSFORMERS}" != "null" ]]; then
+    echo "transformers: \"${TRANSFORMERS}\""
+  fi
+  echo "os: ${OS}"
+  echo "platform: ${PLATFORM}"
+  echo "public_registry: ${PUBLIC_REGISTRY}"
+  echo ""
+  echo "tags:"
+  while IFS= read -r tag; do
+    echo "  - \"${tag}\""
+  done <<< "${tags}"
+} > "$OUTPUT_FILE"
 
 echo "✅ Generated docs data file: ${OUTPUT_FILE}"
 cat "$OUTPUT_FILE"
