@@ -96,16 +96,36 @@ echo "Workers: ${WORKER_PODS[*]}"
 echo "=== Port-forwarding head :8000 (Serve) + :8265 (dashboard) ==="
 kubectl port-forward -n "${NAMESPACE}" "pod/${HEAD_POD}" 8000:8000 8265:8265 >/tmp/pf.log 2>&1 &
 PORT_FORWARD_PID=$!
-for _ in $(seq 1 30); do
-    curl -sf --max-time 2 http://127.0.0.1:8265/api/serve/applications/ >/dev/null 2>&1 && break
+PF_READY=""
+for i in $(seq 1 60); do
+    if curl -sf --max-time 2 http://127.0.0.1:8265/api/serve/applications/ >/dev/null 2>&1; then
+        echo "port-forward reachable on :8265 after ${i} attempt(s)"
+        PF_READY=1
+        break
+    fi
     sleep 2
 done
+if [[ -z "${PF_READY}" ]]; then
+    echo "FAIL: port-forward did not become reachable on :8265 within 120s"
+    echo "--- kubectl port-forward log ---"; cat /tmp/pf.log 2>&1 | tail -30
+    echo "--- head pod state ---"
+    kubectl get pod -n "${NAMESPACE}" "${HEAD_POD}" -o wide 2>&1
+    kubectl describe pod -n "${NAMESPACE}" "${HEAD_POD}" 2>&1 | tail -30
+    echo "--- head pod ports (should show 8265 listening) ---"
+    kubectl exec -n "${NAMESPACE}" "${HEAD_POD}" -c ray-head -- bash -c 'for p in 6379 8265 8000 52365; do (echo > /dev/tcp/127.0.0.1/$p) 2>/dev/null && echo "$p OPEN" || echo "$p CLOSED"; done' 2>&1
+    echo "--- ray status from head ---"
+    kubectl exec -n "${NAMESPACE}" "${HEAD_POD}" -c ray-head -- ray status 2>&1 | head -30
+    exit 1
+fi
 
 echo "=== Sharding check A: Serve config API reports TP=${EXPECTED_TP} + STRICT_SPREAD ==="
-TP=$(curl -sf --max-time 10 http://127.0.0.1:8265/api/serve/applications/ \
-    | jq -r '.applications.qwen.deployed_app_config.args.llm_configs[0].engine_kwargs.tensor_parallel_size')
-STRATEGY=$(curl -sf --max-time 10 http://127.0.0.1:8265/api/serve/applications/ \
-    | jq -r '.applications.qwen.deployed_app_config.args.llm_configs[0].placement_group_config.strategy')
+CONFIG_JSON=$(curl -sf --retry 5 --retry-connrefused --retry-delay 2 --max-time 10 http://127.0.0.1:8265/api/serve/applications/) || {
+    echo "FAIL: could not fetch Serve config API"
+    echo "--- port-forward log ---"; cat /tmp/pf.log 2>&1 | tail -20
+    exit 1
+}
+TP=$(echo "${CONFIG_JSON}" | jq -r '.applications.qwen.deployed_app_config.args.llm_configs[0].engine_kwargs.tensor_parallel_size')
+STRATEGY=$(echo "${CONFIG_JSON}" | jq -r '.applications.qwen.deployed_app_config.args.llm_configs[0].placement_group_config.strategy')
 echo "tensor_parallel_size=${TP} strategy=${STRATEGY}"
 [[ "${TP}" == "${EXPECTED_TP}" && "${STRATEGY}" == "STRICT_SPREAD" ]] || {
     echo "FAIL: Serve config API did not report TP=${EXPECTED_TP} + STRICT_SPREAD"; exit 1;
