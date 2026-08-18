@@ -1,5 +1,5 @@
 framework: SGLang
-version: "0.5.14+amzn2023.bc8b3ab"
+version: "0.5.14+dlc1"
 ecr_repository: sglang
 accelerator: gpu
 python: py312
