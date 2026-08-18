@@ -118,7 +118,6 @@ RUN CUDNN_HOME=$(/opt/venv/bin/python -c "import nvidia.cudnn; print(nvidia.cudn
  && cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ \
  && rm -rf ${CUDNN_HOME}/lib ${CUDNN_HOME}/include \
  && rm -rf /opt/venv/lib/python3.12/site-packages/nvidia/cublas \
-           /opt/venv/lib/python3.12/site-packages/nvidia/cuda_nvrtc \
  && ldconfig
 
 # TF Serving binary from the upstream devel image.
