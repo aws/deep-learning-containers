@@ -14,13 +14,11 @@ on:
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "scripts/docker/vllm/omni_*"
-      # Shared with vLLM: the SM_VLLM_* argument helper baked into the omni image
       - "scripts/docker/vllm/sagemaker_args.py"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/vllm_omni/**"
       - "test/telemetry/**"
       - "test/vllm-omni/**"
-      # CPU-only unit tests that cover the shared omni entrypoint
       - "test/vllm/test_sagemaker_args.py"
       - "!docs/**"
 

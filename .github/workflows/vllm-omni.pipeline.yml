@@ -103,11 +103,6 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   unit-test:
-    # CPU-only, image-independent tests — no `needs: [build]` so they run
-    # immediately in parallel with the image build and still report even if the
-    # build fails (they never consume the image; image-uri is unused).
-    # Shared with vLLM: omni_sagemaker_entrypoint.sh and the SM_VLLM_* argument
-    # helper it calls both live under scripts/docker/vllm/.
     if: ${{ inputs.run-unit-test }}
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}

@@ -187,13 +187,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
         return {self.model_key: val}
 
     def _populate_model_dir(self):
-        """Put a file in the real model dir, removing it again after the test.
-
-        Auto-detection reads the directory the image resolves at runtime (vLLM does it
-        in the arg helper the entrypoint calls, SGLang in the entrypoint itself), so the
-        only way to exercise it is to populate the real path. Anything the image already
-        ships there is left untouched.
-        """
+        """Put a file in the real model dir, removing it again after the test."""
         try:
             os.makedirs(self.MODEL_DIR, exist_ok=True)
         except OSError as e:
@@ -270,8 +264,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
 
         Flags declared nargs='+' in vLLM (--lora-modules, --served-model-name, ...) read
         each value as its own argv token; collapsing the array into a single token makes
-        them unusable (ticket V2323183393). Only images whose entrypoint delegates to the
-        arg helper do this expansion.
+        them unusable. Only images whose entrypoint delegates to the arg helper do this expansion.
         """
         if "sagemaker_args.py" not in self.content:
             self.skipTest("entrypoint does not expand JSON list values")
@@ -493,11 +486,6 @@ class TestEntrypointContract(unittest.TestCase):
         has_vllm = "vllm.entrypoints.openai.api_server" in content or "vllm serve" in content
         has_sglang = "sglang.launch_server" in content
         self.assertTrue(has_vllm or has_sglang, "Entrypoint does not invoke vllm or sglang server")
-
-    # The port-8080 default is asserted behaviorally by
-    # TestEntrypointArgHandling.test_default_port, which runs the entrypoint and reads
-    # the generated args. Grepping the entrypoint text for "8080" only worked while the
-    # default was spelled inline in the shell script.
 
     def test_ec2_entrypoint_exists_and_executable(self):
         """EC2 entrypoint must exist and be executable (if present)."""

@@ -58,11 +58,11 @@ def value_of(argv, flag):
     return values
 
 
-# --- the reported bug: multiple LoRA modules -------------------------------------
+# --- test SM_VLLM_LORA_MODULES -------------------------------------
 
 
 def test_json_array_of_objects_becomes_one_token_per_adapter():
-    """V2323183393: `[{...},{...},{...}]` must reach vLLM as three argv tokens."""
+    """`[{...},{...},{...}]` must reach vLLM as three argv tokens."""
     adapters = [
         {"name": "translation-v1", "path": "/opt/ml/model/loras/translation-v1"},
         {"name": "translation-v2", "path": "/opt/ml/model/loras/translation-v2"},
@@ -71,13 +71,11 @@ def test_json_array_of_objects_becomes_one_token_per_adapter():
     argv = build({"SM_VLLM_LORA_MODULES": json.dumps(adapters)})
     tokens = value_of(argv, "--lora-modules")
     assert len(tokens) == 3
-    # Each token must independently satisfy vLLM's LoRAParserAction: json.loads to a
-    # mapping it can splat into LoRAModulePath(**d).
     assert [json.loads(t) for t in tokens] == adapters
 
 
 def test_whitespace_separated_json_objects_become_separate_tokens():
-    """The format copied from vLLM's CLI docs: `'{...}' '{...}'` in one env var."""
+    """`'{...}' '{...}' '{...}'` must reach vLLM as three argv tokens."""
     argv = build(
         {"SM_VLLM_LORA_MODULES": '{"name":"a","path":"/loras/a"} {"name":"b","path":"/loras/b"}'}
     )
@@ -147,7 +145,7 @@ def test_middleware_keeps_value_as_single_token():
     assert value_of(argv, "--middleware") == ["my_module.MyMiddleware"]
 
 
-# --- JSON-object flags: the V2245238423 regression guard ------------------------
+# --- single JSON-object flags ------------------------
 
 
 def test_single_json_object_value_is_preserved_verbatim():
@@ -268,6 +266,4 @@ def test_no_model_source_emits_no_model_flag(tmp_path):
 def test_entrypoint_invokes_the_helper(entrypoint):
     text = entrypoint.read_text()
     assert "sagemaker_args.py" in text, f"{entrypoint.name} no longer calls the helper"
-    # NUL-delimited read is what keeps values containing spaces/newlines intact, and
-    # `read -d ''` (unlike `mapfile -d`) works on bash < 4.4.
     assert "while IFS= read -r -d '' token" in text

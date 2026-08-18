@@ -1,13 +1,7 @@
 """Translate SM_VLLM_* environment variables into vLLM server CLI arguments.
 
 SageMaker passes configuration as environment variables, so the entrypoint has to
-turn ``SM_VLLM_TENSOR_PARALLEL_SIZE=8`` into ``--tensor-parallel-size 8``. Doing that
-in shell used to collapse every value into a single argv token, which made flags
-declared ``nargs="+"`` impossible to use: ``--lora-modules`` (and ~20 other
-list-typed config fields such as --served-model-name and --custom-ops) need one argv
-token per value, and a single token like ``[{...},{...}]`` fails inside vLLM's
-``LoRAParserAction``.
-
+turn ``SM_VLLM_TENSOR_PARALLEL_SIZE=8`` into ``--tensor-parallel-size 8``.
 The translation mirrors what vLLM already does for ``--config file.yaml`` in
 ``vllm/utils/argparse_utils.py``:
 
@@ -57,12 +51,7 @@ def flag_for(env_key: str) -> str:
 
 
 def as_token(element: Any) -> str:
-    """Render one element of a JSON array as a single argv token.
-
-    Nested objects/arrays are re-serialized compactly so they survive as JSON (vLLM
-    parses --lora-modules elements with ``json.loads``); scalars become plain strings,
-    with booleans lowercased to the spelling vLLM's parsers accept.
-    """
+    """Render one element of a JSON array as a single argv token."""
     if isinstance(element, (dict, list)):
         return json.dumps(element, separators=(",", ":"))
     if isinstance(element, bool):
@@ -73,11 +62,10 @@ def as_token(element: Any) -> str:
 
 
 def json_object_sequence(value: str) -> Optional[List[dict]]:
-    """Parse ``{...} {...}`` (the spelling vLLM's own CLI takes) into its objects.
+    """Parse ``{...} {...}`` into its objects.
 
     Returns None if the string is not a whitespace-separated run of JSON objects, so
-    callers can fall back to passing the value through untouched. A Jinja template
-    such as ``{% for m in messages %}`` lands here and is correctly rejected.
+    callers can fall back to passing the value through untouched.
     """
     decoder = json.JSONDecoder()
     objects: List[dict] = []
@@ -116,7 +104,7 @@ def tokens_for(flag: str, value: str) -> Optional[List[str]]:
         try:
             parsed = json.loads(stripped)
         except ValueError:
-            return [value]  # not valid JSON: let vLLM report the original value
+            return [value]
         if isinstance(parsed, list):
             if not parsed:
                 return None
@@ -127,8 +115,7 @@ def tokens_for(flag: str, value: str) -> Optional[List[str]]:
         objects = json_object_sequence(stripped)
         if objects is not None and len(objects) > 1:
             return [json.dumps(obj, separators=(",", ":")) for obj in objects]
-        # A single JSON object is passed through verbatim rather than re-serialized so
-        # its exact spelling reaches vLLM.
+        # A single JSON object is passed through verbatim
         return [value]
 
     return [value]

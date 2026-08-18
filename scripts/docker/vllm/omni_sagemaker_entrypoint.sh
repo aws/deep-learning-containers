@@ -16,7 +16,6 @@ ARGS=()
 while IFS= read -r -d '' token; do
     ARGS+=("${token}")
 done <"${ARGS_FILE}"
-# Remove now rather than on EXIT: the trap never fires because we exec below.
 rm -f "${ARGS_FILE}"
 trap - EXIT
 
