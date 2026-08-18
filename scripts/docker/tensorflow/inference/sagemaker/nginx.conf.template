@@ -33,7 +33,6 @@ http {
     client_body_buffer_size 100m;
     subrequest_output_buffer_size 100m;
 
-    set $tfs_version "%TFS_VERSION%";
     set $default_tfs_model "%TFS_DEFAULT_MODEL_NAME%";
 
     location /tfs {

@@ -62,7 +62,7 @@ MME_TFS_INSTANCE_STATUS_FILE = "/sagemaker/tfs_instance.pickle"
 def default_handler(data, context):
     """Send POST to TFS rest port; propagate TFS error status to the caller."""
     data = data.read().decode("utf-8")
-    response = requests.post(context.rest_uri, data=data, timeout=60)
+    response = requests.post(context.rest_uri, data=data, timeout=context.timeout)
     if response.status_code != 200:
         raise falcon.HTTPError(
             str(response.status_code),
@@ -391,12 +391,11 @@ class PythonServiceResource:
     def _handle_invocation_post(self, req, res, model_name=None):
         if SAGEMAKER_MULTI_MODEL_ENABLED:
             if model_name:
-                if self._gunicorn_workers > 1:
-                    if model_name not in self._mme_tfs_instances_status or not self._check_pid(
-                        self._mme_tfs_instances_status[model_name][0].pid
-                    ):
-                        with lock():
-                            self._sync_local_mme_instance_status()
+                if model_name not in self._mme_tfs_instances_status or not self._check_pid(
+                    self._mme_tfs_instances_status[model_name][0].pid
+                ):
+                    with lock():
+                        self._sync_local_mme_instance_status()
                         self._sync_model_handlers()
 
                 if model_name not in self._mme_tfs_instances_status:
@@ -522,7 +521,9 @@ class PythonServiceResource:
 
         def handler(data, context):
             processed_input = custom_input_handler(data, context)
-            response = requests.post(context.rest_uri, data=processed_input, timeout=60)
+            response = requests.post(
+                context.rest_uri, data=processed_input, timeout=context.timeout
+            )
             if response.status_code != 200:
                 raise falcon.HTTPError(
                     str(response.status_code),

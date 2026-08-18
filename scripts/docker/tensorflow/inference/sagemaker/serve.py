@@ -49,7 +49,6 @@ class ServiceManager(object):
         self._gunicorn_command = None
         self._gunicorn_env = None
         self._enable_python_service = False
-        self._tfs_version = os.environ.get("SAGEMAKER_TFS_VERSION", "1.13")
         self._nginx_http_port = os.environ.get("SAGEMAKER_BIND_TO_PORT", "8080")
         self._nginx_loglevel = os.environ.get("SAGEMAKER_TFS_NGINX_LOGLEVEL", "error")
         self._tfs_default_model_name = os.environ.get("SAGEMAKER_TFS_DEFAULT_MODEL_NAME", "None")
@@ -291,7 +290,6 @@ class ServiceManager(object):
         pattern = re.compile(r"%(\w+)%")
 
         template_values = {
-            "TFS_VERSION": self._tfs_version,
             "TFS_UPSTREAM": self._create_nginx_tfs_upstream(),
             "TFS_DEFAULT_MODEL_NAME": self._tfs_default_model_name,
             "NGINX_HTTP_PORT": self._nginx_http_port,

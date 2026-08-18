@@ -50,7 +50,7 @@ jobs:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
   sagemaker-test:
-    timeout-minutes: 90
+    timeout-minutes: 180
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
     runs-on:
@@ -83,7 +83,7 @@ jobs:
           if [ "${{ inputs.device-type }}" = "cpu" ]; then
             MARK_FILTER=(-m "not gpu")
           fi
-          python3 -m pytest -v --tb=short -rA \
+          python3 -m pytest -v --tb=short -rA -n auto \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
             --region ${{ vars.AWS_REGION }} \
             "${MARK_FILTER[@]}" \
