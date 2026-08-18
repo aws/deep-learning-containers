@@ -24,8 +24,7 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 - **FlashInfer 0.6.16.post3** — upgraded from 0.6.15.post1
 - **NVIDIA B300 (SM103)** — build now targets arch `10.3`, so the vLLM and DeepEP wheels ship SM103 cubins
 - **New models** — K-EXAONE-2.0-750B-A37B ([#50524](https://github.com/vllm-project/vllm/pull/50524)), jina-embeddings-v5-text-nano
-  ([#50688](https://github.com/vllm-project/vllm/pull/50688)), Qwen3.5 dense and MoE ([#50210](https://github.com/vllm-project/vllm/pull/50210)), and
-  Inkling FP8 ([#48876](https://github.com/vllm-project/vllm/pull/48876))
+  ([#50688](https://github.com/vllm-project/vllm/pull/50688)), and Qwen3.5 dense and MoE ([#50210](https://github.com/vllm-project/vllm/pull/50210))
 
 ### Changes
 
@@ -35,7 +34,7 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
   ([#47301](https://github.com/vllm-project/vllm/pull/47301))
 - **Speculative decoding** — multi-layer MTP speculator ([#48892](https://github.com/vllm-project/vllm/pull/48892))
 - **Quantization** — ModelOpt W4A16 `--linear-backend` ([#50273](https://github.com/vllm-project/vllm/pull/50273)); W4A16 MoE / MXFP4 support
-  ([#47124](https://github.com/vllm-project/vllm/pull/47124))
+  ([#47124](https://github.com/vllm-project/vllm/pull/47124)); dynamic FP8 for Inkling ([#48876](https://github.com/vllm-project/vllm/pull/48876))
 - **Bugfixes** — 56 upstream fixes, including Kimi-K3 MoE/EP correctness, Qwen3.5 transformers 5.x compatibility
   ([#50704](https://github.com/vllm-project/vllm/pull/50704)), and Mamba prefill chunk alignment
   ([#51113](https://github.com/vllm-project/vllm/pull/51113))
