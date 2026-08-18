@@ -36,6 +36,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-ec2-test:
+        description: "Run EC2 single-GPU integration test (docker run, TP=1)"
+        required: false
+        type: boolean
+        default: true
       run-eks-multi-node-test:
         description: "Run multi-node EKS integration test (KubeRay RayService, TP=2 across 2 nodes)"
         required: false
@@ -57,6 +62,18 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      device-type: ${{ steps.parse.outputs.device-type }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
   build:
     if: ${{ inputs.build }}
     concurrency:
@@ -123,9 +140,20 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  ec2-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-ec2-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
+    needs: [ci-config, build]
+    concurrency:
+      group: ${{ github.workflow }}-ec2-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/ray-llm.tests-ec2.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   eks-multi-node-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-eks-multi-node-test }}
-    needs: [build]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-eks-multi-node-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
+    needs: [ci-config, build]
     concurrency:
       group: ${{ github.workflow }}-eks-multi-node-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -135,8 +163,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
-    needs: [build]
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
+    needs: [ci-config, build]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
