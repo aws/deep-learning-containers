@@ -41,6 +41,25 @@ COPY docker/tensorflow/inference/2.20/cuda/pyproject.toml docker/tensorflow/infe
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact
 
+# Extract the GPU libraries that TFS's C++ binary links dynamically, and prune
+# their multi-hundred-MB pip wheels from the venv IN THIS STAGE. Pruning here is
+# load-bearing for image size: runtime-base COPYs the whole venv, so a wheel left
+# in place ships in the COPY layer regardless of any later `rm` (a `rm` in a
+# downstream RUN only writes a whiteout — it reclaims nothing from the base layer).
+#   - cuDNN: staged onto the loader path; not provided by any AL2023 RPM.
+#   - cuda_nvrtc: staged too — cuDNN's runtime-compiled fusion engines dlopen
+#     libnvrtc.so.12, and site-packages is on no loader path, so the wheel alone
+#     would be dead weight.
+#   - cublas: wheel dropped entirely; runtime-base installs libcublas-<ver> RPM.
+RUN CUDNN_HOME=$(/opt/venv/bin/python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") \
+ && NVRTC_HOME=$(/opt/venv/bin/python -c "import nvidia.cuda_nvrtc; print(nvidia.cuda_nvrtc.__path__[0])") \
+ && NVIDIA_DIR=$(dirname ${CUDNN_HOME}) \
+ && mkdir -p /opt/cuda-stage/lib /opt/cuda-stage/include \
+ && cp ${CUDNN_HOME}/include/*.h /opt/cuda-stage/include/ \
+ && cp ${CUDNN_HOME}/lib/libcudnn*.so* /opt/cuda-stage/lib/ \
+ && cp ${NVRTC_HOME}/lib/libnvrtc*.so* /opt/cuda-stage/lib/ \
+ && rm -rf ${CUDNN_HOME}/lib ${CUDNN_HOME}/include ${NVRTC_HOME}/lib ${NVIDIA_DIR}/cublas
+
 
 # ── Stage: builder-oss (generates license files in isolation) ───────────────
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
@@ -107,18 +126,14 @@ RUN dnf install -y --releasever latest --allowerasing \
   nginx-mod-njs-${NJS_VERSION} \
   && dnf clean all
 
-# Copy venv from builder-base
+# Copy the (already-pruned) venv and the staged cuDNN/nvrtc libraries. Both come
+# from builder-base, where the wheels were removed before this COPY — so the
+# duplicate payload never lands in any layer. TFS's GPU binary links
+# libcudnn*.so dynamically; the CUDA runtime base ships CUDA but NOT cuDNN.
 COPY --from=builder-base /opt/venv /opt/venv
-
-# Stage cuDNN from the pip-installed nvidia-cudnn-cu12 wheel. The CUDA runtime
-# base ships CUDA but NOT cuDNN, and TFS's GPU binary links libcudnn*.so
-# dynamically — missing => first Conv/RNN op fails at request time.
-RUN CUDNN_HOME=$(/opt/venv/bin/python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])") \
- && cp ${CUDNN_HOME}/include/*.h /usr/local/cuda/include/ \
- && cp ${CUDNN_HOME}/lib/libcudnn*.so* /usr/local/cuda/lib64/ \
- && rm -rf ${CUDNN_HOME}/lib ${CUDNN_HOME}/include \
- && rm -rf /opt/venv/lib/python3.12/site-packages/nvidia/cublas \
- && ldconfig
+COPY --from=builder-base /opt/cuda-stage/lib/ /usr/local/cuda/lib64/
+COPY --from=builder-base /opt/cuda-stage/include/ /usr/local/cuda/include/
+RUN ldconfig
 
 # TF Serving binary from the upstream devel image.
 COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/local/bin/tensorflow_model_server
@@ -152,6 +167,8 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.9
 
+# Informational: not read by the container itself (the old serve.py _tfs_version
+# chain that consumed it has been removed); retained as image metadata.
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
 ENV PATH="$PATH:/sagemaker"
 
@@ -232,7 +249,6 @@ RUN set -eux \
         -e 's|%NGINX_HTTP_PORT%|8080|g' \
         -e 's|%PROXY_READ_TIMEOUT%|60|g' \
         -e 's|%TFS_UPSTREAM%|server 127.0.0.1:8501|g' \
-        -e 's|%TFS_VERSION%|2|g' \
         -e 's|%TFS_DEFAULT_MODEL_NAME%|model|g' \
         -e 's|%FORWARD_PING_REQUESTS%|return 200|g' \
         -e 's|%FORWARD_INVOCATION_REQUESTS%|return 200|g' \

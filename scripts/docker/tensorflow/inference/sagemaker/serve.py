@@ -16,7 +16,6 @@ import re
 import signal
 import subprocess
 import time
-from contextlib import contextmanager
 
 import boto3
 import tfs_utils
@@ -102,10 +101,6 @@ class ServiceManager(object):
         if _enable_batching not in ["true", "false"]:
             raise ValueError("SAGEMAKER_TFS_ENABLE_BATCHING must be 'true' or 'false'")
         self._tfs_enable_batching = _enable_batching == "true"
-
-        if _enable_multi_model_endpoint not in ["true", "false"]:
-            raise ValueError("SAGEMAKER_MULTI_MODEL must be 'true' or 'false'")
-        self._tfs_enable_multi_model_endpoint = _enable_multi_model_endpoint == "true"
 
         self._use_gunicorn = self._enable_python_service or self._tfs_enable_multi_model_endpoint
 
@@ -196,7 +191,6 @@ class ServiceManager(object):
 
     def _setup_gunicorn(self):
         python_path_content = []
-        python_path_option = ""
 
         bucket = os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET", None)
         prefix = os.environ.get("SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX", None)
@@ -208,7 +202,6 @@ class ServiceManager(object):
             lib_path_exists = os.path.exists(PYTHON_LIB_PATH)
             requirements_exists = os.path.exists(REQUIREMENTS_PATH)
             python_path_content = [CODE_DIR]
-            python_path_option = "--pythonpath "  # noqa: F841
 
             if lib_path_exists:
                 python_path_content.append(PYTHON_LIB_PATH)
@@ -411,18 +404,6 @@ class ServiceManager(object):
                 self._tfs_rest_ports[i], self._tfs_default_model_name, self._tfs_wait_time_seconds
             )
 
-    @contextmanager
-    def _timeout(self, seconds):
-        def _raise_timeout_error(signum, frame):
-            raise TimeoutError("time out after {} seconds".format(seconds))
-
-        try:
-            signal.signal(signal.SIGALRM, _raise_timeout_error)
-            signal.alarm(seconds)
-            yield
-        finally:
-            signal.alarm(0)
-
     def _is_tfs_process(self, pid):
         for p in self._tfs:
             if p.pid == pid:
@@ -520,8 +501,7 @@ class ServiceManager(object):
             self._setup_gunicorn()
             self._start_gunicorn()
             # make sure gunicorn is up
-            with self._timeout(seconds=self._gunicorn_timeout_seconds):
-                self._wait_for_gunicorn()
+            self._wait_for_gunicorn(timeout_seconds=self._gunicorn_timeout_seconds)
 
         self._start_nginx()
         self._state = "started"

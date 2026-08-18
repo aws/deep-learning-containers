@@ -75,12 +75,21 @@ def parse_request(
 def make_tfs_uri(port, attributes, default_model_name, model_name=None):
     log.info("sagemaker tfs attributes: \n{}".format(attributes))
 
-    tfs_model_name = model_name or attributes.get("tfs-model-name", default_model_name)
+    header_model_name = attributes.get("tfs-model-name")
+    tfs_model_name = model_name or header_model_name or default_model_name
     tfs_model_version = attributes.get("tfs-model-version")
     tfs_method = attributes.get("tfs-method", "predict")
 
-    if not _TFS_MODEL_NAME_RE.match(tfs_model_name or ""):
+    # Only the header value is customer-controlled, so only it needs the regex.
+    # `model_name` is already validated at load time (python_service's
+    # _reject_bad_model_name) and `default_model_name` is server-derived from the
+    # model directory basename -- validating those would 400 every invocation for
+    # a model dir whose name is legal to TFS but outside this regex. Mirrors the
+    # `_name_from_header` gate in tensorflowServing.js.
+    if header_model_name is not None and not _TFS_MODEL_NAME_RE.match(header_model_name):
         raise ValueError("invalid tfs-model-name")
+    if not tfs_model_name:
+        raise ValueError("no model name available: set tfs-model-name or a default model")
     if tfs_model_version is not None and not _TFS_MODEL_VERSION_RE.match(tfs_model_version):
         raise ValueError("invalid tfs-model-version: must be a positive integer")
     if tfs_method not in _TFS_ALLOWED_METHODS:

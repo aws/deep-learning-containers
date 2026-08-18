@@ -106,7 +106,12 @@ def test_error_scenario(error_endpoint, scenario_id, body, content_type):
         f"[{scenario_id}] expected 4xx/5xx, got {status}: {excinfo.value.response!r}"
     )
 
-    response_body = _original_message(excinfo.value)
-    assert "<html" not in response_body.lower(), (
-        f"[{scenario_id}] endpoint leaked nginx HTML: {response_body[:200]!r}"
-    )
+    # The HTML-leak check is only meaningful when the request actually reached
+    # the container. When SageMaker rejects it earlier (e.g. the platform's own
+    # ValidationError), OriginalMessage is absent -- asserting on "" would pass
+    # vacuously, hiding the case where the container was never exercised.
+    if "OriginalMessage" in excinfo.value.response:
+        response_body = _original_message(excinfo.value)
+        assert "<html" not in response_body.lower(), (
+            f"[{scenario_id}] endpoint leaked nginx HTML: {response_body[:200]!r}"
+        )
