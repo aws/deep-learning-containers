@@ -7,7 +7,6 @@ behaviour — a code path that the real-time single-model/MME tests don't touch.
 from __future__ import annotations
 
 import json
-import logging
 import tempfile
 from pathlib import Path
 
@@ -15,10 +14,9 @@ import pytest
 from test_utils import random_suffix_name, wait_for_status
 from test_utils.constants import SAGEMAKER_ROLE
 
+from .conftest import _cleanup
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
-
-LOGGER = logging.getLogger(__name__)
 
 # Always CPU — CreateTransformJob wire is device-agnostic, and CI accounts
 # have zero TransformJob GPU quota by default.
@@ -65,27 +63,28 @@ def test_batch_transform_json(
         for i, row in enumerate([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]):
             (input_dir / f"row_{i}.json").write_text(json.dumps({"instances": [row]}))
 
-        s3 = aws_session.session.client("s3")
         input_prefix = f"tf220-inference-tests/batch/{run_id}/input"
         for f in input_dir.iterdir():
-            s3.upload_file(str(f), bucket, f"{input_prefix}/{f.name}")
+            aws_session.s3.upload_file(str(f), bucket, f"{input_prefix}/{f.name}")
         s3_input = f"s3://{bucket}/{input_prefix}/"
         s3_output = f"s3://{bucket}/tf220-inference-tests/batch/{run_id}/output/"
 
         # 3. Create model.
         model_name = random_suffix_name("tf220-batch-model", 63)
         job_name = random_suffix_name("tf220-batch-job", 63)
-        Model.create(
-            model_name=model_name,
-            primary_container=ContainerDefinition(
-                image=image_uri,
-                model_data_url=model_data,
-            ),
-            execution_role_arn=aws_session.resolve_role_arn(SAGEMAKER_ROLE),
-            session=aws_session.session,
-        )
+        model = None
 
         try:
+            model = Model.create(
+                model_name=model_name,
+                primary_container=ContainerDefinition(
+                    image=image_uri,
+                    model_data_url=model_data,
+                ),
+                execution_role_arn=aws_session.resolve_role_arn(SAGEMAKER_ROLE),
+                session=aws_session.session,
+            )
+
             # 4. TransformJob has no wait_for_status in SDK v3 — poll refresh().
             job = TransformJob.create(
                 transform_job_name=job_name,
@@ -131,7 +130,7 @@ def test_batch_transform_json(
                 )
 
             # 5. Download output objects and assert predictions.
-            resp = s3.list_objects_v2(
+            resp = aws_session.s3.list_objects_v2(
                 Bucket=bucket,
                 Prefix=f"tf220-inference-tests/batch/{run_id}/output/",
             )
@@ -146,7 +145,9 @@ def test_batch_transform_json(
                 "row_2.json.out": [14.0, 16.0, 18.0],
             }
             for key in objects:
-                body = s3.get_object(Bucket=bucket, Key=key)["Body"].read().decode("utf-8")
+                body = (
+                    aws_session.s3.get_object(Bucket=bucket, Key=key)["Body"].read().decode("utf-8")
+                )
                 parsed = json.loads(body)
                 predictions = parsed.get("predictions", [])
                 assert predictions, f"empty predictions in {key}: {body!r}"
@@ -158,7 +159,4 @@ def test_batch_transform_json(
                 )
         finally:
             # Best-effort model cleanup; TransformJob is a completed record.
-            try:
-                Model.get(model_name=model_name, session=aws_session.session).delete()
-            except Exception as e:
-                LOGGER.warning(f"Cleanup Model {model_name} failed: {e}")
+            _cleanup([model])

@@ -9,6 +9,7 @@ the libcudnn on the image is ABI-compatible with the TFS binary.
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 
 import pytest
@@ -17,8 +18,12 @@ from test_utils import random_suffix_name
 from .resources.build_sample_model import build_conv_sample_model
 from .resources.helpers import read_predictions, upload_tarball
 
+pytestmark = pytest.mark.skipif(
+    os.environ.get("SM_DEVICE_TYPE", "").lower() != "gpu",
+    reason="GPU-only test (requires SM_DEVICE_TYPE=gpu)",
+)
 
-@pytest.mark.gpu
+
 def test_conv2d_gpu_predict(
     sagemaker_session,
     deploy_endpoint,

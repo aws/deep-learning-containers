@@ -208,7 +208,7 @@ class ServiceManager(object):
         if self._enable_python_service:
             lib_path_exists = os.path.exists(PYTHON_LIB_PATH)
             requirements_exists = os.path.exists(REQUIREMENTS_PATH)
-            python_path_content = ["/opt/ml/model/code"]
+            python_path_content = [CODE_DIR]
             python_path_option = "--pythonpath "  # noqa: F841
 
             if lib_path_exists:

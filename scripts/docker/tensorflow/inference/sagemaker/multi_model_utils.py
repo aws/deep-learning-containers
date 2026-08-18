@@ -13,7 +13,6 @@
 import errno
 import fcntl
 import logging
-import signal
 import threading
 import time
 from contextlib import contextmanager
@@ -81,19 +80,6 @@ def lock(path=DEFAULT_LOCK_FILE, poll_interval=0.05, timeout=60.0):
                 log.error("failed to release MME file lock: %s", e)
     finally:
         _LOCAL.release()
-
-
-@contextmanager
-def timeout(seconds=60):
-    def _raise_timeout_error(signum, frame):
-        raise Exception(408, "Timed out after {} seconds".format(seconds))
-
-    try:
-        signal.signal(signal.SIGALRM, _raise_timeout_error)
-        signal.alarm(seconds)
-        yield
-    finally:
-        signal.alarm(0)
 
 
 class MultiModelException(Exception):

@@ -1,6 +1,11 @@
 name: "Auto Release - TensorFlow Inference 2.20 SageMaker"
 
 on:
+  # No `schedule:` yet — the image config is still `environment: gamma`, so a
+  # cron here would autorelease into gamma on a schedule. The Tue/Thu 17:30 UTC
+  # cron (matching tensorflow-training.autorelease-2.21-sagemaker.yml) is added
+  # in the same PR that flips 2.20-inference-sagemaker-{cpu,cuda}.yml to
+  # `environment: production`.
   workflow_dispatch:
 
 concurrency:

@@ -84,7 +84,7 @@ class TfsInstanceStatus:
 class PythonServiceResource:
     def __init__(self):
         if SAGEMAKER_MULTI_MODEL_ENABLED:
-            self._mme_tfs_instances_status: dict[str, [TfsInstanceStatus]] = {}
+            self._mme_tfs_instances_status: dict[str, list[TfsInstanceStatus]] = {}
             self._tfs_ports = self._parse_sagemaker_port_range_mme(SAGEMAKER_TFS_PORT_RANGE)
             self._tfs_available_ports = self._parse_sagemaker_port_range_mme(
                 SAGEMAKER_TFS_PORT_RANGE
@@ -533,56 +533,72 @@ class PythonServiceResource:
         return handler
 
     def on_get(self, req, res, model_name=None):  # pylint: disable=W0613
+        # Snapshot the model -> rest_port map under the lock, then do all network
+        # I/O unlocked. lock() combines an in-process greenlet lock with an fcntl
+        # file lock, so it serializes every model-management call across all
+        # gunicorn workers; holding it across N x 5s of requests.get() would
+        # stall POST/DELETE /models behind a routine listing (and lock() itself
+        # raises TimeoutError after 60s).
         with lock():
             self._sync_local_mme_instance_status()
             if model_name is None:
-                models_info = {}
-                uri = "http://localhost:{}/v1/models/{}"
-                for model, tfs_instance_status in self._mme_tfs_instances_status.items():
-                    try:
-                        info = json.loads(
-                            requests.get(
-                                uri.format(tfs_instance_status[0].rest_port, model),
-                                timeout=5,
-                            ).content
-                        )
-                        models_info[model] = info
-                    except (ValueError, requests.exceptions.RequestException) as e:
-                        log.exception("exception handling request: {}".format(e))
-                        res.status = falcon.HTTP_500
-                        res.body = json.dumps({"error": str(e)}).encode("utf-8")
-                        return
-                res.status = falcon.HTTP_200
-                res.body = json.dumps(models_info)
+                port_by_model = {
+                    model: statuses[0].rest_port
+                    for model, statuses in self._mme_tfs_instances_status.items()
+                    if statuses
+                }
             else:
                 if self._reject_bad_model_name(res, model_name):
                     return
-                if model_name not in self._mme_tfs_instances_status:
-                    res.status = falcon.HTTP_404
-                    res.body = json.dumps(
-                        {"error": "Model {} is not loaded yet.".format(model_name)}
-                    ).encode("utf-8")
-                else:
-                    # Value is a list of TfsInstanceStatus (see _load_model);
-                    # pick the first instance's rest_port.
-                    port = self._mme_tfs_instances_status[model_name][0].rest_port
-                    uri = "http://localhost:{}/v1/models/{}".format(port, model_name)
-                    try:
-                        r = requests.get(uri, timeout=5)
-                        if r.status_code != 200:
-                            res.status = str(r.status_code)
-                            res.body = r.content
-                        else:
-                            res.status = falcon.HTTP_200
-                            res.body = json.dumps({"model": json.loads(r.content)}).encode("utf-8")
-                    except requests.exceptions.RequestException as e:
-                        log.exception("exception handling GET models request.")
-                        res.status = (
-                            falcon.HTTP_504
-                            if isinstance(e, requests.exceptions.Timeout)
-                            else falcon.HTTP_502
-                        )
-                        res.body = json.dumps({"error": str(e)}).encode("utf-8")
+                statuses = self._mme_tfs_instances_status.get(model_name)
+                port_by_model = {model_name: statuses[0].rest_port} if statuses else None
+
+        if model_name is None:
+            models_info = {}
+            uri = "http://localhost:{}/v1/models/{}"
+            for model, port in port_by_model.items():
+                try:
+                    info = json.loads(
+                        requests.get(
+                            uri.format(port, model),
+                            timeout=5,
+                        ).content
+                    )
+                    models_info[model] = info
+                except (ValueError, requests.exceptions.RequestException) as e:
+                    log.exception("exception handling request: {}".format(e))
+                    res.status = falcon.HTTP_500
+                    res.body = json.dumps({"error": str(e)}).encode("utf-8")
+                    return
+            res.status = falcon.HTTP_200
+            res.body = json.dumps(models_info)
+        else:
+            if port_by_model is None:
+                res.status = falcon.HTTP_404
+                res.body = json.dumps(
+                    {"error": "Model {} is not loaded yet.".format(model_name)}
+                ).encode("utf-8")
+            else:
+                # Value is a list of TfsInstanceStatus (see _load_model);
+                # pick the first instance's rest_port.
+                port = port_by_model[model_name]
+                uri = "http://localhost:{}/v1/models/{}".format(port, model_name)
+                try:
+                    r = requests.get(uri, timeout=5)
+                    if r.status_code != 200:
+                        res.status = falcon.code_to_http_status(r.status_code)
+                        res.body = r.content
+                    else:
+                        res.status = falcon.HTTP_200
+                        res.body = json.dumps({"model": json.loads(r.content)}).encode("utf-8")
+                except requests.exceptions.RequestException as e:
+                    log.exception("exception handling GET models request.")
+                    res.status = (
+                        falcon.HTTP_504
+                        if isinstance(e, requests.exceptions.Timeout)
+                        else falcon.HTTP_502
+                    )
+                    res.body = json.dumps({"error": str(e)}).encode("utf-8")
 
     def on_delete(self, req, res, model_name):  # pylint: disable=W0613
         if self._reject_bad_model_name(res, model_name):

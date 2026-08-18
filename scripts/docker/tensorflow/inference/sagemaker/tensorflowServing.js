@@ -145,7 +145,7 @@ function parse_custom_attributes(r) {
     if (!attributes['tfs-model-name']) {
         var uri_pattern = /\/models\/[^,]+\/invoke/g
         var model_name = r.uri.match(uri_pattern)
-        if (model_name[0]) {
+        if (model_name && model_name[0]) {
             model_name = r.uri.replace('/models/', '').replace('/invoke', '')
             attributes['tfs-model-name'] = model_name
         } else {
