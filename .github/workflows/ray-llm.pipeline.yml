@@ -152,8 +152,9 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   eks-multi-node-test:
+    # Fail-fast: skip the multi-node run if ec2-test already failed.
     if: ${{ always() && !failure() && !cancelled() && inputs.run-eks-multi-node-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
-    needs: [ci-config, build]
+    needs: [ci-config, build, ec2-test]
     concurrency:
       group: ${{ github.workflow }}-eks-multi-node-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false

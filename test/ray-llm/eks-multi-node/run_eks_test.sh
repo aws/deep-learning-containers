@@ -34,6 +34,13 @@ trap cleanup EXIT
 echo "=== Configuring kubectl for ${EKS_CLUSTER} ==="
 aws eks update-kubeconfig --name "${EKS_CLUSTER}" --region "${AWS_REGION}"
 
+# Pre-delete any stale RayService from a prior aborted run. The CodeBuild
+# role has create/delete but not patch, so kubectl apply would fail if the
+# resource already exists.
+echo "=== Pre-cleanup any stale RayService ${SERVICE_NAME} ==="
+kubectl delete rayservice "${SERVICE_NAME}" -n "${NAMESPACE}" --ignore-not-found=true --timeout=180s || true
+kubectl wait --for=delete pod -l "ray.io/cluster" -n "${NAMESPACE}" --timeout=240s 2>/dev/null || true
+
 echo "=== Applying RayService manifest ==="
 envsubst '${IMAGE_URI} ${RAY_VERSION}' < "${SCRIPT_DIR}/rayservice.yml" | kubectl apply -f -
 
