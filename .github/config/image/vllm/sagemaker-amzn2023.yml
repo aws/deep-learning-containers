@@ -18,9 +18,6 @@ build:
   target: "vllm-sagemaker-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  # Preview pin: adds Muse Glimmer model support (vllm-project/vllm#51655),
-  # not yet in any released tag. Nearest ancestor tag: v0.26.1rc0.
-  # Kept in lockstep with ec2-amzn2023.yml -- same Dockerfile.
   vllm_ref: "6adad08767583f52eb4d2122111af0bf638ed5e6"
   flashinfer_version: "0.6.15.post1"
   deepep_commit_hash: "d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb"
