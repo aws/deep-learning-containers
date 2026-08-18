@@ -15,23 +15,17 @@ import os
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "scripts" / "ci" / "test_skip"))
+
+import hash_image_content  # noqa: E402
+import hash_suite_code  # noqa: E402
+import test_skip_db  # noqa: E402
+
 DEFAULT_PLATFORM = "linux/amd64"
-
-
-def _load_helpers(repo_root):
-    """Import the shared test-skip modules from the repo checkout."""
-    scripts_dir = Path(repo_root) / "scripts" / "ci" / "test_skip"
-    sys.path.insert(0, str(scripts_dir))
-    import hash_image_content
-    import hash_suite_code
-    import test_skip_db
-
-    return hash_image_content, hash_suite_code, test_skip_db
 
 
 def compute_skips(repo_root, image_uri, suites, platform=DEFAULT_PLATFORM):
     """Return (skips, image_content_hash, suite_code_hashes) for the eligible suites."""
-    hash_image_content, hash_suite_code, store = _load_helpers(repo_root)
     eligible = [s for s in dict.fromkeys(suites) if hash_suite_code.is_skip_eligible(repo_root, s)]
     # Skip the image hash + DB call and run everything.
     if not eligible:
@@ -47,7 +41,9 @@ def compute_skips(repo_root, image_uri, suites, platform=DEFAULT_PLATFORM):
             print(f"::warning::skipping test-pass check for {s!r} ({e})", file=sys.stderr)
 
     skippable = (
-        store.check_test_pass(image_content_hash, suite_code_hashes) if suite_code_hashes else set()
+        test_skip_db.check_test_pass(image_content_hash, suite_code_hashes)
+        if suite_code_hashes
+        else set()
     )
     skips = {s: (s in skippable) for s in suite_code_hashes}
     return skips, image_content_hash, suite_code_hashes
