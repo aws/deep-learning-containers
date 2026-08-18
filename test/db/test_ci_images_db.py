@@ -5,7 +5,7 @@ from unittest import mock
 
 import boto3
 import pytest
-import test_skip_db as store
+import ci_images_db as store
 from moto import mock_aws
 
 HASH = "sha256:abc123"

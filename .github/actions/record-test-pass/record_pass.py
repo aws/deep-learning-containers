@@ -13,7 +13,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "scripts" / "ci" / "test_skip"))
 
 import hash_suite_code  # noqa: E402
-import test_skip_db  # noqa: E402
+import ci_images_db  # noqa: E402
 
 
 def _write_summary(lines):
@@ -50,7 +50,7 @@ def main():
         return 0
 
     try:
-        test_skip_db.record_test_pass(
+        ci_images_db.record_test_pass(
             image_content_hash, suite, suite_code_hash, ci_image_tag=ci_image_tag
         )
     except Exception as e:

@@ -17,7 +17,7 @@ sys.path.insert(0, str(REPO_ROOT / "scripts" / "ci" / "test_skip"))
 
 import hash_image_content  # noqa: E402
 import hash_suite_code  # noqa: E402
-import test_skip_db  # noqa: E402
+import ci_images_db  # noqa: E402
 
 DEFAULT_PLATFORM = "linux/amd64"
 
@@ -39,7 +39,7 @@ def compute_skips(image_uri, suites, platform=DEFAULT_PLATFORM):
             print(f"::warning::skipping test-pass check for {s!r} ({e})", file=sys.stderr)
 
     skippable = (
-        test_skip_db.check_test_pass(image_content_hash, suite_code_hashes)
+        ci_images_db.check_test_pass(image_content_hash, suite_code_hashes)
         if suite_code_hashes
         else set()
     )
