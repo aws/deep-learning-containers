@@ -1,4 +1,4 @@
-name: "Pipeline - TensorFlow"
+name: "Pipeline - TensorFlow Inference"
 
 on:
   workflow_call:
@@ -31,23 +31,8 @@ on:
         required: false
         type: boolean
         default: true
-      run-unit-test:
-        description: "Run unit tests"
-        required: false
-        type: boolean
-        default: true
-      run-single-gpu-test:
-        description: "Run single-GPU tests (skipped for CPU images)"
-        required: false
-        type: boolean
-        default: true
       run-sagemaker-test:
         description: "Run SageMaker integration tests"
-        required: false
-        type: boolean
-        default: true
-      run-efa-test:
-        description: "Run EFA tests (skipped for CPU images)"
         required: false
         type: boolean
         default: true
@@ -129,52 +114,19 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
-  unit-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
-    needs: [build]
-    concurrency:
-      group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/tensorflow.tests-unit.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
-  # Single-GPU tests — only for GPU images
-  single-gpu-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-single-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config]
-    concurrency:
-      group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/tensorflow.tests-single-gpu.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
-  # SageMaker integration tests — only for sagemaker images (TF DLC is SM-only)
+  # SageMaker integration tests — TF DLC is SM-only. Separate reusable from
+  # tensorflow-training.tests-sagemaker.yml (which targets training).
   sagemaker-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
     needs: [build, ci-config]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/tensorflow.tests-sagemaker.yml
+    uses: ./.github/workflows/tensorflow-inference.tests-sagemaker.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
-  # EFA tests — only for GPU EC2 images (2-node p4d NCCL+EFA all_reduce_perf)
-  efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
-    needs: [build, ci-config]
-    concurrency:
-      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: false
-    uses: ./.github/workflows/_reusable.efa-tests.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      device-type: ${{ needs.ci-config.outputs.device-type }}
 
   release-gate:
     if: >-
@@ -184,7 +136,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, sagemaker-test, efa-test]
+    needs: [build, sanity-test, security-test, telemetry-test, sagemaker-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
