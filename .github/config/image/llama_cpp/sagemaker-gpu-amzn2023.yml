@@ -18,7 +18,7 @@ build:
   target: "llama-cpp-sagemaker"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  llama_cpp_ref: "b10433"
+  llama_cpp_ref: "9b05354ec6fb58b4e665e9a39ebc40285c015638"  # llama.cpp release b10433
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
