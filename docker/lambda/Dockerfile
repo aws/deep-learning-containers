@@ -564,6 +564,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   libcurand-devel-13-0 libcublas-devel-13-0 libcusolver-devel-13-0 libcusparse-devel-13-0 \
   && dnf upgrade -y --releasever=latest \
   && dnf clean all && rm -rf /var/cache/dnf
+COPY --from=builder-base-devel /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so
 COPY --from=builder-sglang-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
@@ -646,6 +647,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   libcurand-devel-13-0 libcublas-devel-13-0 libcusolver-devel-13-0 libcusparse-devel-13-0 \
   && dnf upgrade -y --releasever=latest \
   && dnf clean all && rm -rf /var/cache/dnf
+COPY --from=builder-base-devel /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so
 COPY --from=builder-vllm-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
