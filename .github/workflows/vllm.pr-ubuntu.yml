@@ -10,21 +10,18 @@ on:
       - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
       - ".github/workflows/vllm.pipeline.yml"
       - ".github/workflows/vllm.pr-ubuntu.yml"
+      - ".github/workflows/vllm.tests-unit.yml"
       - "docker/vllm/Dockerfile"
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "scripts/docker/vllm/**"
-      # omni_* scripts belong to vllm_omni only
       - "!scripts/docker/vllm/omni_*"
       - "test/efa/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/vllm/**"
       - "test/telemetry/**"
       - "test/vllm/sagemaker/**"
-      # Scripts the Ubuntu pipeline runs: ubuntu/ SageMaker example script, the
-      # amzn2023/ smoke scripts (shared by model-tests for both OSes), and the
-      # OS-agnostic top-level shared scripts (setup/regression/cuda + the shared
-      # EC2 example script). Excludes amzn2023-only SageMaker example script.
+      - "test/vllm/test_*.py"
       - "test/vllm/scripts/ubuntu/**"
       - "test/vllm/scripts/amzn2023/**"
       - "test/vllm/scripts/vllm_test_setup.sh"
@@ -58,6 +55,7 @@ jobs:
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
       upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -84,6 +82,10 @@ jobs:
             telemetry-test-change:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
+            unit-test-change:
+              - "scripts/docker/vllm/**"
+              - "test/vllm/test_*.py"
+              - ".github/workflows/vllm.tests-unit.yml"
             upstream-test-change:
               - "test/vllm/scripts/ubuntu/**"
               - "test/vllm/scripts/vllm_test_setup.sh"
@@ -115,6 +117,7 @@ jobs:
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
