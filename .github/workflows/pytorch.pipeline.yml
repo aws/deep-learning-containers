@@ -219,7 +219,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, multi-gpu-test, multi-node-gpu-test, efa-test]
+    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, multi-gpu-test, multi-node-gpu-test, sagemaker-test, efa-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}

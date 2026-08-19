@@ -114,6 +114,8 @@ class TestEntrypointArgHandling(unittest.TestCase):
         "/usr/bin/serve",
     ]
 
+    MODEL_DIR = "/opt/ml/model"
+
     def setUp(self):
         # Find the sagemaker entrypoint
         for path in self.ENTRYPOINT_CANDIDATES:
@@ -127,6 +129,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
             self.skipTest("No SageMaker entrypoint found")
         with open(self.SAGEMAKER_ENTRYPOINT) as f:
             content = f.read()
+        self.content = content
         # Detect framework from entrypoint content
         if "SM_SGLANG_" in content:
             self.prefix = "SM_SGLANG_"
@@ -137,7 +140,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
             self.model_key = "SM_VLLM_MODEL"
             self.model_flag = "--model"
 
-    def _get_args(self, env_vars, mount_model_dir=False):
+    def _get_args(self, env_vars):
         """Run entrypoint in dry-run mode and capture the generated args."""
         with open(self.SAGEMAKER_ENTRYPOINT) as f:
             script = f.read()
@@ -166,12 +169,6 @@ class TestEntrypointArgHandling(unittest.TestCase):
                 del env[k]
         env.update(env_vars)
 
-        if mount_model_dir:
-            os.makedirs("/tmp/fake_model", exist_ok=True)
-            with open("/tmp/fake_model/config.json", "w") as f:
-                f.write("{}")
-            script = script.replace("/opt/ml/model", "/tmp/fake_model")
-
         result = subprocess.run(
             ["bash", "-c", script],
             capture_output=True,
@@ -188,6 +185,19 @@ class TestEntrypointArgHandling(unittest.TestCase):
     def _model_env(self, val="x"):
         """Return env dict with model set to avoid unrelated warnings."""
         return {self.model_key: val}
+
+    def _populate_model_dir(self):
+        """Put a file in the real model dir, removing it again after the test."""
+        try:
+            os.makedirs(self.MODEL_DIR, exist_ok=True)
+        except OSError as e:
+            self.skipTest(f"cannot populate {self.MODEL_DIR}: {e}")
+        marker = os.path.join(self.MODEL_DIR, "config.json")
+        if os.path.exists(marker):
+            return
+        with open(marker, "w") as f:
+            f.write("{}")
+        self.addCleanup(os.remove, marker)
 
     def test_string_value(self):
         """Model path env var -> --model/--model-path <value>"""
@@ -242,14 +252,40 @@ class TestEntrypointArgHandling(unittest.TestCase):
         self.assertEqual(args[idx + 1], "8080")
 
     def test_model_autodetect(self):
-        """When model env var is unset but /opt/ml/model exists, auto-detect it."""
-        if self.prefix == "SM_SGLANG_":
-            # SGLang already defaults --model-path to /opt/ml/model
-            args = self._get_args({}, mount_model_dir=True)
-            self.assertIn("--model-path", args)
-        else:
-            args = self._get_args({}, mount_model_dir=True)
-            self.assertIn("--model", args)
+        """When model env var is unset but /opt/ml/model is populated, auto-detect it."""
+        self._populate_model_dir()
+        args = self._get_args({})
+        self.assertIn(self.model_flag, args)
+        idx = args.index(self.model_flag)
+        self.assertEqual(args[idx + 1], self.MODEL_DIR)
+
+    def test_json_list_expands_to_one_token_per_element(self):
+        """A JSON array value must become one argv token per element.
+
+        Flags declared nargs='+' in vLLM (--lora-modules, --served-model-name, ...) read
+        each value as its own argv token; collapsing the array into a single token makes
+        them unusable. Only images whose entrypoint delegates to the arg helper do this expansion.
+        """
+        if "sagemaker_args.py" not in self.content:
+            self.skipTest("entrypoint does not expand JSON list values")
+        env = self._model_env()
+        env[f"{self.prefix}LORA_MODULES"] = (
+            '[{"name":"lora-a","path":"/loras/a"},{"name":"lora-b","path":"/loras/b"}]'
+        )
+        args = self._get_args(env)
+        self.assertIn("--lora-modules", args)
+        idx = args.index("--lora-modules")
+        values = []
+        for arg in args[idx + 1 :]:
+            if arg.startswith("--"):
+                break
+            values.append(arg)
+        self.assertEqual(len(values), 2, f"--lora-modules should get 2 argv tokens, got {values}")
+        self.assertEqual(
+            [json.loads(v)["name"] for v in values],
+            ["lora-a", "lora-b"],
+            f"each token must stay a parseable LoRA object: {values}",
+        )
 
     def test_hf_model_id_fallback(self):
         """When model env var unset and no /opt/ml/model, fall back to HF_MODEL_ID."""
@@ -450,15 +486,6 @@ class TestEntrypointContract(unittest.TestCase):
         has_vllm = "vllm.entrypoints.openai.api_server" in content or "vllm serve" in content
         has_sglang = "sglang.launch_server" in content
         self.assertTrue(has_vllm or has_sglang, "Entrypoint does not invoke vllm or sglang server")
-
-    def test_sagemaker_entrypoint_default_port_8080(self):
-        """SageMaker entrypoint must default to port 8080."""
-        ep = self._find_sagemaker_entrypoint()
-        if not ep:
-            self.skipTest("Not a SageMaker image")
-        with open(ep) as f:
-            content = f.read()
-        self.assertIn("8080", content, "Default port 8080 not found in entrypoint")
 
     def test_ec2_entrypoint_exists_and_executable(self):
         """EC2 entrypoint must exist and be executable (if present)."""
