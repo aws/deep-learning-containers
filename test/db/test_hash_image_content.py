@@ -36,6 +36,17 @@ def test_hash_changes_when_a_layer_changes():
     assert image_hasher.content_hash(DIFF_IDS, {}) != image_hasher.content_hash(changed, {})
 
 
+def test_hash_changes_when_config_changes():
+    """Config participates in the hash: a metadata-only change (Env, Labels)
+    with identical diff_ids still moves the hash."""
+    base = {"Env": ["PATH=/usr/bin"], "Labels": {"com.example.build": "1"}}
+    env_changed = {"Env": ["PATH=/usr/bin", "FOO=bar"], "Labels": {"com.example.build": "1"}}
+    label_changed = {"Env": ["PATH=/usr/bin"], "Labels": {"com.example.build": "2"}}
+    baseline = image_hasher.content_hash(DIFF_IDS, base)
+    assert baseline != image_hasher.content_hash(DIFF_IDS, env_changed)
+    assert baseline != image_hasher.content_hash(DIFF_IDS, label_changed)
+
+
 def test_empty_diff_ids_raises():
     with pytest.raises(ValueError):
         image_hasher.content_hash([], {})
