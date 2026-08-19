@@ -34,7 +34,7 @@ def main():
 
     # Suites with skip_eligible=false are always run — never record them.
     try:
-        eligible = hash_suite_code.is_skip_eligible(REPO_ROOT, suite)
+        eligible = hash_suite_code.is_skip_eligible(suite)
     except Exception as e:
         print(f"::warning::could not read suite config for {suite!r} ({e}) — not recording.")
         return 0

@@ -10,7 +10,7 @@ import pytest
 
 
 @pytest.fixture
-def repo(tmp_path):
+def repo(tmp_path, monkeypatch):
     """A fake repo root with a test-suites.yml and a small test tree."""
     (tmp_path / ".github" / "config").mkdir(parents=True)
     (tmp_path / "test" / "suitea" / "sub").mkdir(parents=True)
@@ -35,74 +35,75 @@ def repo(tmp_path):
         "    code_paths:\n"
         "      - test/security/**\n"
     )
+    monkeypatch.setattr(suite_hasher, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(suite_hasher, "CONFIG_PATH", tmp_path / suite_hasher.CONFIG_REL)
+    monkeypatch.setattr(suite_hasher, "_suites", None)
     return tmp_path
 
 
 def test_hash_is_deterministic(repo):
-    h1 = suite_hasher.hash_suite_code(repo, "suitea")
-    h2 = suite_hasher.hash_suite_code(repo, "suitea")
+    h1 = suite_hasher.hash_suite_code("suitea")
+    h2 = suite_hasher.hash_suite_code("suitea")
     assert h1 == h2
     assert h1.startswith("sha256:")
 
 
 def test_hash_changes_when_a_captured_file_changes(repo):
-    before = suite_hasher.hash_suite_code(repo, "suitea")
+    before = suite_hasher.hash_suite_code("suitea")
     (repo / "test" / "suitea" / "a.py").write_text("print('changed')\n")
-    after = suite_hasher.hash_suite_code(repo, "suitea")
+    after = suite_hasher.hash_suite_code("suitea")
     assert before != after
 
 
 def test_hash_changes_when_a_file_is_added_to_the_subtree(repo):
-    before = suite_hasher.hash_suite_code(repo, "suitea")
+    before = suite_hasher.hash_suite_code("suitea")
     (repo / "test" / "suitea" / "sub" / "new.py").write_text("print('new')\n")
-    after = suite_hasher.hash_suite_code(repo, "suitea")
+    after = suite_hasher.hash_suite_code("suitea")
     assert before != after
 
 
 def test_hash_changes_when_a_captured_file_is_removed(repo):
-    before = suite_hasher.hash_suite_code(repo, "suitea")
+    before = suite_hasher.hash_suite_code("suitea")
     (repo / "test" / "suitea" / "sub" / "b.py").unlink()
-    after = suite_hasher.hash_suite_code(repo, "suitea")
+    after = suite_hasher.hash_suite_code("suitea")
     assert before != after
 
 
 def test_unrelated_suite_change_does_not_affect_hash(repo):
-    before = suite_hasher.hash_suite_code(repo, "suitea")
+    before = suite_hasher.hash_suite_code("suitea")
     (repo / "test" / "suiteb" / "c.py").write_text("print('unrelated')\n")
-    after = suite_hasher.hash_suite_code(repo, "suitea")
+    after = suite_hasher.hash_suite_code("suitea")
     assert before == after
 
 
 def test_distinct_suites_hash_differently(repo):
-    assert suite_hasher.hash_suite_code(repo, "suitea") != suite_hasher.hash_suite_code(
-        repo, "suiteb"
-    )
+    assert suite_hasher.hash_suite_code("suitea") != suite_hasher.hash_suite_code("suiteb")
 
 
 def test_unknown_suite_raises(repo):
     with pytest.raises(KeyError):
-        suite_hasher.hash_suite_code(repo, "does-not-exist")
+        suite_hasher.hash_suite_code("does-not-exist")
 
 
 def test_suite_matching_no_files_raises(repo):
     with pytest.raises(ValueError):
-        suite_hasher.hash_suite_code(repo, "security")
+        suite_hasher.hash_suite_code("security")
 
 
 def test_is_skip_eligible(repo):
-    assert suite_hasher.is_skip_eligible(repo, "suitea") is True
-    assert suite_hasher.is_skip_eligible(repo, "security") is False
+    assert suite_hasher.is_skip_eligible("suitea") is True
+    assert suite_hasher.is_skip_eligible("security") is False
 
 
 def test_unknown_suite_is_not_skip_eligible(repo):
-    assert suite_hasher.is_skip_eligible(repo, "does-not-exist") is False
+    assert suite_hasher.is_skip_eligible("does-not-exist") is False
 
 
 def test_moving_a_file_changes_hash(repo):
-    before = suite_hasher.hash_suite_code(repo, "suitea")
+    before = suite_hasher.hash_suite_code("suitea")
     src = repo / "test" / "suitea" / "a.py"
     content = src.read_text()
     src.unlink()
     (repo / "test" / "suitea" / "renamed.py").write_text(content)
-    after = suite_hasher.hash_suite_code(repo, "suitea")
+    after = suite_hasher.hash_suite_code("suitea")
     assert before != after

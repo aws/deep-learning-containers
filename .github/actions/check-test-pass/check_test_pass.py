@@ -24,7 +24,7 @@ DEFAULT_PLATFORM = "linux/amd64"
 
 def compute_skips(image_uri, suites, platform=DEFAULT_PLATFORM):
     """Return (skips, image_content_hash, suite_code_hashes) for the eligible suites."""
-    eligible = [s for s in dict.fromkeys(suites) if hash_suite_code.is_skip_eligible(REPO_ROOT, s)]
+    eligible = [s for s in dict.fromkeys(suites) if hash_suite_code.is_skip_eligible(s)]
     # Skip the image hash + DB call and run everything.
     if not eligible:
         return {}, "", {}
@@ -34,7 +34,7 @@ def compute_skips(image_uri, suites, platform=DEFAULT_PLATFORM):
     suite_code_hashes = {}
     for s in eligible:
         try:
-            suite_code_hashes[s] = hash_suite_code.hash_suite_code(REPO_ROOT, s)
+            suite_code_hashes[s] = hash_suite_code.hash_suite_code(s)
         except (KeyError, ValueError) as e:
             print(f"::warning::skipping test-pass check for {s!r} ({e})", file=sys.stderr)
 

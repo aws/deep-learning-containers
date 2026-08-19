@@ -5,6 +5,7 @@ import re
 from pathlib import Path
 
 import hash_suite_code as suite_hasher
+import pytest
 import yaml
 
 # Extract the suite name out of the GitHub Actions expression, e.g.
@@ -15,6 +16,16 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 TEST_SKIP_ACTIONS = ("check-test-pass", "record-test-pass")
 CHECK_WORKFLOW = "_reusable.check-test-pass.yml"
+
+
+@pytest.fixture(autouse=True)
+def _fresh_suite_config():
+    """Drop hash_suite_code's cached config so these tests always read the real
+    test-suites.yml. Without this, they rely on no other test leaving a fake config
+    in the module-level cache."""
+    suite_hasher._suites = None
+    yield
+    suite_hasher._suites = None
 
 
 def _iter_steps(workflow):
@@ -92,7 +103,7 @@ def collect_invoked_suites():
 
 
 def test_invoked_suites_are_configured():
-    configured = set(suite_hasher.load_config(REPO_ROOT))
+    configured = set(suite_hasher.load_config())
     invoked = collect_invoked_suites()
     unknown = [(wf, s) for wf, s in invoked if s not in configured]
     assert not unknown, (
@@ -103,7 +114,7 @@ def test_invoked_suites_are_configured():
 
 def test_check_accessors_are_configured_and_checked():
     """Every `skips[...]` key in a job `if:` must be a real suite AND one the check job checks."""
-    configured = set(suite_hasher.load_config(REPO_ROOT))
+    configured = set(suite_hasher.load_config())
     problems = []
     for wf_path in sorted(WORKFLOWS_DIR.glob("*.yml")):
         try:
