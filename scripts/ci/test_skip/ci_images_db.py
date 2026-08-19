@@ -1,16 +1,16 @@
 """dlc-ci-images test-skip cache: read (check skip) and write (record pass).
 
 Limitation: hash_image_content hashes only what is baked into the image (layers +
-config). It cannot see inputs the image references but does not embed. For example, 
+config). It cannot see inputs the image references but does not embed. For example,
 if a container pulls content when it runs (e.g. an entrypoint that runs ``aws s3 cp``
 / ``curl``, or a test that downloads a model), that content is never in a layer,
 so a change to it does not change this hash. Similarly, build-time fetches can be
 served from a stale layer cache. ``RUN aws s3 cp ...`` bakes the bytes into a layer,
 at build time. Since Docker keys its layer cache on the *instruction string* and not
-the fetched content, an unchanged ``RUN`` reuses the old layer and never re-pulls. 
+the fetched content, an unchanged ``RUN`` reuses the old layer and never re-pulls.
 The hash then matches that (stale) image, so the test may skip.
 
-It is also bounded: the daily ``CACHE_REFRESH`` build-arg (see .github/actions/build-image) 
+It is also bounded: the daily ``CACHE_REFRESH`` build-arg (see .github/actions/build-image)
 busts layers caches ~daily, and once the content actually lands in a rebuilt layer the
 diff_id (and this hash) change, so tests re-run. Additionally, TEST rows have bounded TTL,
 so stale prod images are only skipped for the length of the row TTL (currently 3 days).

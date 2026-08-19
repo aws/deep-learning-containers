@@ -4,8 +4,8 @@ import os
 from unittest import mock
 
 import boto3
-import pytest
 import ci_images_db as store
+import pytest
 from moto import mock_aws
 
 HASH = "sha256:abc123"

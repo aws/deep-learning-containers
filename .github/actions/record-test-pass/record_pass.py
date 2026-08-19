@@ -12,8 +12,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "scripts" / "ci" / "test_skip"))
 
-import hash_suite_code  # noqa: E402
 import ci_images_db  # noqa: E402
+import hash_suite_code  # noqa: E402
 
 
 def _write_summary(lines):

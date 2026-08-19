@@ -27,7 +27,7 @@ jobs:
       - name: Install test dependencies
         run: pip install pytest boto3 moto pyyaml
 
-      # loads only test/db conftest and excludes the container-test 
+      # loads only test/db conftest and excludes the container-test
       # harness (which imports test_utils and is not needed here).
       - name: Run database unit tests
         run: python -m pytest test/db --confcutdir test/db -v

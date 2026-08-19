@@ -74,7 +74,9 @@ def test_unrelated_suite_change_does_not_affect_hash(repo):
 
 
 def test_distinct_suites_hash_differently(repo):
-    assert suite_hasher.hash_suite_code(repo, "suitea") != suite_hasher.hash_suite_code(repo, "suiteb")
+    assert suite_hasher.hash_suite_code(repo, "suitea") != suite_hasher.hash_suite_code(
+        repo, "suiteb"
+    )
 
 
 def test_unknown_suite_raises(repo):
