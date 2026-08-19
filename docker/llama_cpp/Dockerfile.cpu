@@ -4,7 +4,7 @@ ARG BASE_REF=2023
 FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS builder
 
 # Pin the upstream ref for reproducible builds.
-# llama.cpp release b10433 (https://github.com/ggml-org/llama.cpp/releases/tag/b10433)
+# b10433
 ARG LLAMA_CPP_REF=9b05354ec6fb58b4e665e9a39ebc40285c015638
 ARG BUILD_PARALLEL=16
 
@@ -37,7 +37,7 @@ FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS runtime
 ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 # Re-declared: ARGs don't cross build stages (used by OSS tracking below).
-# llama.cpp release b10433 (https://github.com/ggml-org/llama.cpp/releases/tag/b10433)
+# b10433
 ARG LLAMA_CPP_REF=9b05354ec6fb58b4e665e9a39ebc40285c015638
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
