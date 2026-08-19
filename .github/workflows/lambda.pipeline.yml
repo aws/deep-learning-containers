@@ -39,8 +39,18 @@ on:
         required: false
         type: boolean
         default: true
+      run-ric-topology-test:
+        description: "Run real-Lambda RIC concurrency-mode topology tests"
+        required: false
+        type: boolean
+        default: true
       run-sglang-upstream-test:
         description: "Run the upstream SGLang suite (sglang variant only)"
+        required: false
+        type: boolean
+        default: false
+      run-vllm-upstream-test:
+        description: "Run the upstream vLLM suite (vllm variant only)"
         required: false
         type: boolean
         default: false
@@ -173,13 +183,10 @@ jobs:
           else
             echo "multimode=false" >> $GITHUB_OUTPUT
           fi
-          # Serving engines (sglang, vllm) ship a shared-server + proxy handler;
-          # they get an extra end-to-end serving test via the real RIC entrypoint.
-          if [[ "$TARGET" == *sglang* || "$TARGET" == *vllm* ]]; then
-            echo "serving=true" >> $GITHUB_OUTPUT
-          else
-            echo "serving=false" >> $GITHUB_OUTPUT
-          fi
+          # Serving engine
+          if [[ "$TARGET" == *vllm* ]]; then echo "engine=vllm" >> $GITHUB_OUTPUT;
+          elif [[ "$TARGET" == *sglang* ]]; then echo "engine=sglang" >> $GITHUB_OUTPUT;
+          else echo "engine=none" >> $GITHUB_OUTPUT; fi
 
       - name: Run GPU validation tests
         if: steps.check.outputs.exists == 'true'
@@ -189,16 +196,12 @@ jobs:
             ${{ steps.image.outputs.image-uri }} \
             -m pytest ${{ steps.config.outputs.tests }} -v
 
-      - name: Run serving + RIC topology test
-        if: steps.check.outputs.exists == 'true' && steps.config.outputs.serving == 'true'
+      - name: Run RIE topology test
+        if: steps.check.outputs.exists == 'true' && steps.config.outputs.multimode == 'true'
         run: |
-          chmod +x test/lambda/ric_topology_check.sh
-          if [[ "${{ steps.config.outputs.multimode }}" == "true" ]]; then
-            MODES="thread process hybrid"
-          else
-            MODES="single"
-          fi
-          bash test/lambda/ric_topology_check.sh ${{ steps.image.outputs.image-uri }} 4 "${MODES}"
+          chmod +x test/lambda/single_gpu/rie_topology_check.sh
+          bash test/lambda/single_gpu/rie_topology_check.sh \
+            ${{ steps.image.outputs.image-uri }} 8 "thread process hybrid" "${{ steps.config.outputs.engine }}"
 
       - name: Verify runtime concurrency-mode override
         if: steps.check.outputs.exists == 'true' && steps.config.outputs.multimode == 'true'
@@ -213,6 +216,85 @@ jobs:
               -m pytest /test/unit/test_lambda_runtime.py::test_ric_resolves_container_env -v
             echo "::endgroup::"
           done
+
+  lambdaric-topology-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-ric-topology-test && contains(inputs.config-file, 'preview') }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-real-ric-topology-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve base image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ needs.build.outputs.image-uri || '' }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check base image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Classify engine
+        if: steps.check.outputs.exists == 'true'
+        id: cfg
+        run: |
+          TARGET=$(yq '.build.target // ""' "${{ inputs.config-file }}")
+          if [[ "$TARGET" == *vllm* ]]; then echo "engine=vllm" >> "$GITHUB_OUTPUT";
+          elif [[ "$TARGET" == *sglang* ]]; then echo "engine=sglang" >> "$GITHUB_OUTPUT";
+          else echo "engine=none" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Build + push test-overlay image
+        if: steps.check.outputs.exists == 'true'
+        id: overlay
+        env:
+          BASE_URI: ${{ steps.image.outputs.image-uri }}
+          BASE_ACCT: ${{ steps.image.outputs.aws-account-id }}
+          CI_ACCT: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          REGION: ${{ vars.AWS_REGION }}
+        run: |
+          set -euo pipefail
+          BASE_TAG="${BASE_URI##*:}"
+          OVERLAY_URI="${CI_ACCT}.dkr.ecr.${REGION}.amazonaws.com/ci:${BASE_TAG}-rictest"
+          # pull base from its resolved account (CI on build; PROD on test-against-prod)
+          aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${BASE_ACCT}.dkr.ecr.${REGION}.amazonaws.com"
+          aws ecr get-login-password --region "$REGION" | docker login --username AWS --password-stdin "${CI_ACCT}.dkr.ecr.${REGION}.amazonaws.com"
+          docker build --progress=plain -f test/lambda/platform/Dockerfile.test \
+            --build-arg BASE_IMAGE="$BASE_URI" -t "$OVERLAY_URI" test/lambda/platform
+          docker push "$OVERLAY_URI"
+          echo "overlay-uri=$OVERLAY_URI" >> "$GITHUB_OUTPUT"
+
+      - name: Register preview lambda-sdk model
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          set -euo pipefail
+          aws s3 cp s3://dlc-cicd-wheels/lambda-sdk/lambda-2015-03-31.normal.json /tmp/lambda-sdk-model.json
+          aws configure add-model --service-name lambda-sdk --service-model file:///tmp/lambda-sdk-model.json
+
+      - name: Setup python deps
+        if: steps.check.outputs.exists == 'true'
+        run: uv pip install --system --quiet boto3
+
+      - name: Run real-Lambda RIC topology test
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          python3 test/lambda/platform/run_topology.py \
+            --image "${{ steps.overlay.outputs.overlay-uri }}" \
+            --region "${{ vars.AWS_REGION }}" \
+            --capacity-provider-arn "${{ vars.LMI_CAPACITY_PROVIDER_ARN }}" \
+            --execution-role-arn "${{ vars.LMI_EXECUTION_ROLE_ARN }}" \
+            --engine "${{ steps.cfg.outputs.engine }}"
 
   sglang-upstream-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-sglang-upstream-test }}
@@ -231,6 +313,17 @@ jobs:
         registered/core/test_basic_sanity_eagle3.py
         registered/core/test_basic_sanity_dflash.py
 
+  vllm-upstream-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-vllm-upstream-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-vllm-upstream-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/vllm.tests-upstream.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   release-gate:
     if: >-
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/lambda') &&
@@ -239,7 +332,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, validation-test, sglang-upstream-test]
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, lambdaric-topology-test, sglang-upstream-test, vllm-upstream-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -279,7 +372,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [build, sanity-test, security-test, telemetry-test, validation-test, sglang-upstream-test, release-gate, release]
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, lambdaric-topology-test, sglang-upstream-test, vllm-upstream-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

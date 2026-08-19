@@ -1,0 +1,7 @@
+# Thin test overlay: released/CI Lambda preview image + the RIC-topology test
+# handler. Keeps the base image's RIC/entrypoint; only overrides the handler CMD.
+# Build: docker build -f Dockerfile.test --build-arg BASE_IMAGE=<uri> -t <tag> .
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+COPY test_handler.py /var/task/test_handler.py
+CMD ["test_handler.handler"]

@@ -36,5 +36,6 @@ jobs:
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
+      run-vllm-upstream-test: true
       release: true
     secrets: inherit

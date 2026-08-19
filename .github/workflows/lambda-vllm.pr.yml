@@ -8,6 +8,7 @@ on:
       - ".github/config/image/lambda/vllm/*.yml"
       - ".github/workflows/lambda.pipeline.yml"
       - ".github/workflows/lambda-vllm.pr.yml"
+      - ".github/workflows/vllm.tests-upstream.yml"
       - "docker/lambda/**"
       - "scripts/docker/lambda/vllm/**"
       - "scripts/common/**"
@@ -40,6 +41,7 @@ jobs:
       validation-test-change: ${{ steps.changes.outputs.validation-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -60,6 +62,8 @@ jobs:
             telemetry-test-change:
               - "scripts/telemetry/**"
               - "test/telemetry/**"
+            upstream-test-change:
+              - ".github/workflows/vllm.tests-upstream.yml"
 
   discover:
     needs: [gatekeeper]
@@ -88,5 +92,6 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-validation-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
+      run-vllm-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       release: false
     secrets: inherit
