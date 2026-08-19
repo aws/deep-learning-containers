@@ -42,4 +42,5 @@ jobs:
             whisperx/test_server_options.py \
             whisperx/test_transcribe_behavior.py \
             whisperx/test_subtitle_format.py \
-            whisperx/test_sagemaker_entrypoint_model_resolution.py
+            whisperx/test_sagemaker_entrypoint_model_resolution.py \
+            whisperx/test_start_cuda_compat.py
