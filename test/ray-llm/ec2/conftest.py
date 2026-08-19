@@ -58,17 +58,13 @@ def start_container(image_uri, model_dir):
 
 
 def wait_for_health(port=SERVE_PORT, timeout=HEALTH_TIMEOUT, interval=HEALTH_INTERVAL):
-    """Wait until the LLM app is actually ready to serve, not just the Serve proxy.
-
-    /-/healthz returns 200 as soon as the Ray Serve HTTP proxy is up, well before
-    the deployed application finishes loading (vLLM weight load + CUDA graph
-    capture takes minutes). Polling /v1/models is the real app-readiness signal.
-    """
-    endpoint = f"http://localhost:{port}/v1/models"
+    """Poll a 1-token completion until it returns 200 — real inference readiness."""
+    endpoint = f"http://localhost:{port}/v1/completions"
+    payload = {"model": "ministral", "prompt": "ready?", "max_tokens": 1}
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            resp = requests.get(endpoint, timeout=5)
+            resp = requests.post(endpoint, json=payload, timeout=30)
             if resp.status_code == 200:
                 LOGGER.info("Ray Serve LLM app is ready")
                 return
