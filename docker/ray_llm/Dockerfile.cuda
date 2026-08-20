@@ -1,20 +1,7 @@
-# ============================================================================
-# Ray LLM DLC — Amazon Linux 2023 (CUDA 13.0), online LLM serving
-#
-# Ray Serve + vLLM on the base cu130 image. Supports single-node and multi-node
-# LLM serving under KubeRay via ray.serve.llm.build_openai_app.
-#
-# The base image ships Python 3.13.12 and uv. EFA + OFI NCCL + OpenMPI are
-# installed on top for multi-node inference (NCCL over libfabric). This file
-# also layers on the Python stack, shell tools vLLM needs at runtime, and a
-# pass-through entrypoint compatible with KubeRay's rayStartParams-driven
-# ray start.
-#
-# Config build: block is the source of truth for pins; ARG defaults are local-
-# build fallbacks.
-# ============================================================================
+# Ray LLM DLC — Ray Serve + vLLM on the cu130 base image for LLM inference
+# on EC2 and multi-node EKS via KubeRay. Config build: block is the source
+# of truth for pins; ARG defaults are local-build fallbacks.
 
-# ── Global ARGs ─────────────────────────────────────────────────────────────
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG PYTHON_VERSION=3.13
@@ -124,7 +111,9 @@ COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICEN
 COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
-RUN echo "ray-haproxy 2.8.25 https://amazon-source-code-downloads.s3.us-east-1.amazonaws.com/deep-learning-containers/ray-haproxy-2.8.25.tar.gz" >>/root/THIRD_PARTY_SOURCE_CODE_URLS
+RUN V=$(pip show ray-haproxy | awk '/^Version:/{print $2}') \
+  && echo "ray-haproxy $V https://github.com/ray-project/ray-haproxy/archive/refs/tags/v$V.tar.gz" \
+    >>/root/THIRD_PARTY_SOURCE_CODE_URLS
 
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
   LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
