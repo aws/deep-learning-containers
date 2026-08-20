@@ -105,7 +105,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\nray-haproxy 2.8.25 https://amazon-source-code-downloads.s3.us-east-1.amazonaws.com/deep-learning-containers/ray-haproxy-2.8.25.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && HAPROXY_VERSION=$(pip show ray-haproxy | awk '/^Version:/{print $2}') \
+  && printf '\nray-haproxy %s https://github.com/ray-project/ray-haproxy/archive/refs/tags/v%s.tar.gz\n' "$HAPROXY_VERSION" "$HAPROXY_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
