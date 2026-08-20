@@ -106,6 +106,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && HAPROXY_VERSION=$(pip show ray-haproxy | awk '/^Version:/{print $2}') \
+  && [ -n "$HAPROXY_VERSION" ] || { echo "ray-haproxy not installed" >&2; exit 1; } \
   && printf '\nray-haproxy %s https://github.com/ray-project/ray-haproxy/archive/refs/tags/v%s.tar.gz\n' "$HAPROXY_VERSION" "$HAPROXY_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
