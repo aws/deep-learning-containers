@@ -68,14 +68,20 @@ def _run(tmp_path, *, compat_present: bool, driver_version: str | None):
     script_copy.write_text(SCRIPT.read_text().replace(_PROBE_PATH, str(compat_lib)))
 
     # Simulate driver detection with a fake nvidia-smi on PATH. This test assumes a
-    # CPU host where /proc/driver/nvidia/version is absent, so nvidia-smi (or its
-    # absence, for driver_version=None) is the only detection signal.
+    # CPU host where /proc/driver/nvidia/version is absent, so nvidia-smi is the
+    # only detection signal. We ALWAYS install a stub (bin_dir is first on PATH) so
+    # the host's real nvidia-smi cannot leak in: CI CPU runners ship an nvidia-smi
+    # that, with no GPU, prints an error to stdout that would masquerade as a driver
+    # version. driver_version=None installs a stub that emits nothing and fails,
+    # i.e. the "no driver detected" (empty version) case.
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    nvidia_smi = bin_dir / "nvidia-smi"
     if driver_version is not None:
-        nvidia_smi = bin_dir / "nvidia-smi"
         nvidia_smi.write_text(f'#!/bin/sh\necho "{driver_version}"\n')
-        nvidia_smi.chmod(nvidia_smi.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    else:
+        nvidia_smi.write_text("#!/bin/sh\nexit 1\n")
+    nvidia_smi.chmod(nvidia_smi.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
     # Source the copy exactly as the entrypoints do: under `set -euo pipefail`, with
     # LD_LIBRARY_PATH pre-seeded. We deliberately omit LD_LIBRARY_PATH from env so the
@@ -136,3 +142,22 @@ def test_compat_absent_skips(tmp_path):
     out = cp.stdout + cp.stderr
     assert cp.returncode == 0, out
     assert "package not found" in out
+
+
+def test_failing_nvidia_smi_does_not_abort(tmp_path):
+    """A broken nvidia-smi (present but no GPU) prints a multi-word error string as
+    the "version"; quoting the verlte args must keep that from tripping ``set -u``,
+    and compat is still skipped. Mirrors CPU hosts that ship nvidia-smi without a
+    working driver (e.g. the CI CPU runner).
+    """
+    cp = _run(
+        tmp_path,
+        compat_present=True,
+        driver_version="NVIDIA-SMI has failed because it could not communicate with the driver",
+    )
+    out = cp.stdout + cp.stderr
+    assert cp.returncode == 0, out
+    assert "REACHED_END" in out
+    assert "unbound variable" not in out
+    # A non-version string is not < the compat max, so compat is not prepended.
+    assert "/usr/local/cuda/compat" not in _ldlp_line(out), out
