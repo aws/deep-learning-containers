@@ -1,8 +1,7 @@
 # Amazon SageMaker AI Deployment
 
-Use the TensorFlow Serving DLC to host SavedModel artifacts on {{ sagemaker }} real-time endpoints, serverless endpoints, and batch transform jobs.
-The images bundle `tensorflow_model_server`, nginx, and the SageMaker TensorFlow Serving handler stack, so no custom container code is required for
-the common case.
+Use the TensorFlow Serving DLC to host SavedModel artifacts on {{ sagemaker }} real-time endpoints and batch transform jobs. The images bundle
+`tensorflow_model_server`, nginx, and the SageMaker TensorFlow Serving handler stack, so no custom container code is required for the common case.
 
 The TensorFlow Serving 2.20 DLC is a **SageMaker-only** release — there is no EC2 or EKS variant of this image.
 
@@ -240,10 +239,13 @@ Batching is off by default. Turning it on trades latency for throughput and is m
 
 ## Notes
 
-- The image serves {{ sm_short }} traffic on port 8080 via nginx. TensorFlow Serving's own gRPC (8500) and REST (8501) ports are container-local —
-  they are not reachable through a {{ sm_short }} endpoint.
+- The image serves {{ sm_short }} traffic on port 8080 via nginx. TensorFlow Serving's own gRPC and REST ports are container-local and are not
+  reachable through a {{ sm_short }} endpoint. They are also assigned at container start — a single-model container uses gRPC 9000 and REST 8501,
+  while multi-model endpoints and `SAGEMAKER_TFS_INSTANCE_COUNT` greater than one allocate port pairs from `SAGEMAKER_SAFE_PORT_RANGE`. Read
+  `context.grpc_port` and `context.rest_uri` in your handler instead of hardcoding a port.
 - If your `inference.py` needs the `tensorflow` Python package (e.g. to build `tf.Example` protos), add it to `code/requirements.txt`. The framework
-  wheel is deliberately not preinstalled; only the `tensorflow-serving-api` gRPC stubs are.
+  wheel is deliberately not preinstalled; only the TensorFlow Serving gRPC stubs are (`tensorflow-serving-api-gpu` in the GPU image,
+  `tensorflow-serving-api` in the CPU image).
 - For a baseline driver/AMI compatible with these CUDA 12.9 images, use a current {{ sm_short }} inference instance — the image is labelled
   `com.amazonaws.sagemaker.inference.cuda.verified_versions=12.9` and the entrypoint applies CUDA forward compatibility automatically when the host
   driver is older.

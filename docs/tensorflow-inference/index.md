@@ -25,7 +25,8 @@ TensorFlow Serving 2.20 is a **SageMaker-only** release — there is no EC2 or E
 
 The GPU image includes:
 
-- **TensorFlow Serving 2.20.0** — the `tensorflow_model_server` binary, plus the matching `tensorflow-serving-api` gRPC stubs
+- **TensorFlow Serving 2.20.0** — the `tensorflow_model_server` binary, plus the matching gRPC stubs (`tensorflow-serving-api-gpu` in the GPU image,
+  `tensorflow-serving-api` in the CPU image)
 - **CUDA 12.9.1** with **cuDNN 9.24.0.43** (`nvidia-cudnn-cu12`)
 - **nginx 1.30.3** with the **njs 0.9.9** module — terminates {{ sm_short }} traffic on port 8080 and routes it to TensorFlow Serving or to the Python
   handler
@@ -45,11 +46,16 @@ workload, and the model server does not need the Python framework to load a Save
 | Port | Purpose |
 | --- | --- |
 | 8080 | nginx — {{ sm_short }} `POST /invocations` and `GET /ping` |
-| 8500 | TensorFlow Serving gRPC API |
-| 8501 | TensorFlow Serving REST API |
+| 8501 | TensorFlow Serving REST API (container-local) |
+| assigned at start | TensorFlow Serving gRPC API (container-local) |
 
-On {{ sagemaker }} only port 8080 is reachable. The image declares the `com.amazonaws.sagemaker.capabilities.accept-bind-to-port` capability, so
+On {{ sagemaker }} only the HTTP port is reachable. The image declares the `com.amazonaws.sagemaker.capabilities.accept-bind-to-port` capability, so
 {{ sm_short }} may assign a different HTTP port via `SAGEMAKER_BIND_TO_PORT` — for example when the container runs behind an inference pipeline.
+
+The TensorFlow Serving ports are chosen when the container starts, so do not hardcode them. A single-model container uses gRPC 9000 and REST 8501.
+When several model server processes run — multi-model endpoints, or `SAGEMAKER_TFS_INSTANCE_COUNT` greater than one — non-overlapping gRPC and REST
+port pairs are allocated from the range {{ sm_short }} supplies in `SAGEMAKER_SAFE_PORT_RANGE`. An `inference.py` handler should always read
+`context.grpc_port` and `context.rest_uri` rather than assuming a fixed port.
 
 ## Multi-Model Endpoints
 
@@ -71,7 +77,7 @@ These images are curated builds tracking the [TensorFlow Serving](https://github
 - **Reproducible** — Python dependencies pinned via `pyproject.toml` + `uv.lock` for every image variant
 - **Security-patched** — continuously maintained with security patches from {{ aws }} on an Amazon Linux 2023 base
 
-TensorFlow Serving 2.20 is the first TensorFlow inference DLC on Amazon Linux 2023 and Python 3.12. Prior TensorFlow inference DLCs shipped on Ubuntu
-with earlier Python versions; this release moves the base OS and interpreter forward alongside the model server.
+TensorFlow Serving 2.20 is the first TensorFlow inference DLC on Amazon Linux 2023. Prior TensorFlow inference DLCs shipped on Ubuntu; this release
+moves the base OS forward alongside the model server.
 
 For deployment walkthroughs, see [{{ sagemaker }} Deployment](deployment/sagemaker.md).

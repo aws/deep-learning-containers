@@ -20,5 +20,5 @@ Changelog for the Amazon Linux 2023-based TensorFlow Serving SageMaker inference
 - nginx 1.30.3 with the njs 0.9.9 module fronting the model server on port 8080
 - Multi-model endpoints supported (`SAGEMAKER_MULTI_MODEL=true`), including per-model `inference.py` handlers
 - Server-side batching, thread-pool sizing, and multiple model server processes configurable via `SAGEMAKER_TFS_*` environment variables
-- The `tensorflow` framework wheel, EFA, OpenMPI, and NCCL are intentionally excluded — only the `tensorflow-serving-api` gRPC stubs ship, keeping the
-  image small
+- The `tensorflow` framework wheel, EFA, OpenMPI, and NCCL are intentionally excluded — only the TensorFlow Serving gRPC stubs ship
+  (`tensorflow-serving-api-gpu` on GPU, `tensorflow-serving-api` on CPU), keeping the image small
