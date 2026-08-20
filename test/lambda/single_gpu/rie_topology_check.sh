@@ -98,6 +98,25 @@ for MODE in ${MODES}; do
     hybrid) EXP_PROCS="${VCPUS}" ;;
   esac
 
+  # Boot every worker before measuring. In process/hybrid mode the RIC brings its
+  # worker processes up lazily, and on a small host not all are ready at once — RIE
+  # then answers a concurrent burst with "no idle runtimes". Fire cheap concurrent
+  # probes and retry until all N workers respond, so the measured burst below reflects
+  # the real topology instead of a half-warmed one.
+  warm=0
+  for attempt in $(seq 1 20); do
+    wtmp=$(mktemp -d)
+    for i in $(seq 1 "${N}"); do
+      ( curl -s -m 30 "${INVOKE_URL}" -d '{"action":"get_pid","sleep":1}' > "${wtmp}/${i}.json" ) &
+    done
+    wait
+    warm=$(grep -l '"pid"' "${wtmp}"/*.json 2>/dev/null | wc -l | tr -d ' ')
+    rm -rf "${wtmp}"
+    [ "${warm}" -ge "${N}" ] && break
+    sleep 3
+  done
+  echo "warmup: ${warm}/${N} workers ready after ${attempt} attempt(s)"
+
   # Fire N concurrent invokes; each reports the worker's pid/tid (and ok for engines).
   tmp=$(mktemp -d)
   for i in $(seq 1 "${N}"); do
