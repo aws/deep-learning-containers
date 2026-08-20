@@ -67,13 +67,8 @@ def _run(tmp_path, *, compat_present: bool, driver_version: str | None):
     script_copy = tmp_path / "start_cuda_compat.sh"
     script_copy.write_text(SCRIPT.read_text().replace(_PROBE_PATH, str(compat_lib)))
 
-    # Simulate driver detection with a fake nvidia-smi on PATH. This test assumes a
-    # CPU host where /proc/driver/nvidia/version is absent, so nvidia-smi is the
-    # only detection signal. We ALWAYS install a stub (bin_dir is first on PATH) so
-    # the host's real nvidia-smi cannot leak in: CI CPU runners ship an nvidia-smi
-    # that, with no GPU, prints an error to stdout that would masquerade as a driver
-    # version. driver_version=None installs a stub that emits nothing and fails,
-    # i.e. the "no driver detected" (empty version) case.
+    # Always stub nvidia-smi (bin_dir is first on PATH) so a host's real one can't
+    # leak in; driver_version=None => an empty-output stub (the "no driver" case).
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     nvidia_smi = bin_dir / "nvidia-smi"

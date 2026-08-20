@@ -25,12 +25,8 @@ if [ -f /usr/local/cuda/compat/libcuda.so.1 ]; then
     NVIDIA_DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader --id=0 2>/dev/null || true)
   fi
   echo "Current installed NVIDIA driver version is ${NVIDIA_DRIVER_VERSION}"
-  # No driver detected (CPU host / undetectable): leave LD_LIBRARY_PATH untouched —
-  # compat only bridges an OLD driver, and there is nothing to bridge. This guard is
-  # load-bearing: the entrypoints `source` this under `set -u`, and an empty version
-  # passed unquoted to verlte collapses to a single arg, tripping an unbound-$2 abort
-  # in verlte that kills the entrypoint before uvicorn. Quote the args for the same
-  # reason (defense in depth if a driver version ever contains whitespace).
+  # Skip when no driver is detected (CPU host): an empty version passed unquoted to
+  # verlte trips an unbound-$2 abort under `set -u`. Quoting hardens the same call.
   if [ -z "$NVIDIA_DRIVER_VERSION" ]; then
     echo "Skipping CUDA compat setup as no NVIDIA driver was detected"
   elif verlte "$NVIDIA_DRIVER_VERSION" "$CUDA_COMPAT_MAX_DRIVER_VERSION"; then
