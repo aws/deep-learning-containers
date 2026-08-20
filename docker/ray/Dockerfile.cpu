@@ -28,7 +28,8 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Build FFmpeg from source
-RUN git clone --depth 1 --branch n8.0.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
+ARG FFMPEG_VERSION=n8.0.1
+RUN git clone --depth 1 --branch ${FFMPEG_VERSION} https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
   && ./configure --prefix=/opt/ffmpeg --enable-shared --disable-static --disable-doc \
   && make -j$(nproc) \
@@ -68,6 +69,7 @@ ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK="ray"
 ARG FRAMEWORK_VERSION="2.56.1"
 ARG CONTAINER_TYPE="inference"
+ARG FFMPEG_VERSION=n8.0.1
 
 # Copy Python and packages from builder
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
@@ -101,10 +103,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash setup_oss_compliance.sh python \
-  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFmpeg; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg %s https://github.com/FFmpeg/FFmpeg/tree/%s\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe %s https://github.com/FFmpeg/FFmpeg/tree/%s\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && HAPROXY_VERSION=$(pip show ray-haproxy | awk '/^Version:/{print $2}') \
   && [ -n "$HAPROXY_VERSION" ] || { echo "ray-haproxy not installed" >&2; exit 1; } \
   && printf '\nray-haproxy %s https://github.com/ray-project/ray-haproxy/archive/refs/tags/v%s.tar.gz\n' "$HAPROXY_VERSION" "$HAPROXY_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
