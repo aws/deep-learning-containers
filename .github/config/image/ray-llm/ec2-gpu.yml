@@ -3,15 +3,15 @@ image:
   description: "Ray Serve + vLLM for online LLM serving on EC2 (GPU, single- and multi-node under KubeRay)"
 
 metadata:
-  framework: "ray-llm"
+  framework: "ray_llm"
   framework_version: "2.57.0"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
   device_type: "gpu"
   job_type: "inference"
-  container_type: "llm"
-  prod_image: "ray:llm-cuda"
+  container_type: "serve-llm"
+  prod_image: "ray:serve-llm-cuda"
 
 build:
   dockerfile: "docker/ray-llm/Dockerfile.cuda"
@@ -26,7 +26,7 @@ build:
   dlc_minor_version: "0"
 
 release:
-  release: true
+  release: false
   force_release: false
   public_registry: false
   private_registry: true

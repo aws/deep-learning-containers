@@ -241,7 +241,7 @@ def parse_args():
             "sglang_server",
             "lambda",
             "ray",
-            "ray-llm",
+            "ray_llm",
             "vllm_omni",
             "huggingface-vllm",
             "huggingface-pytorch-training",

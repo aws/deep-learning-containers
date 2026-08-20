@@ -62,7 +62,7 @@ ARG DLC_MINOR_VERSION
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
-LABEL framework="ray-llm"
+LABEL framework="ray_llm"
 LABEL framework_version="${FRAMEWORK_VERSION}"
 LABEL vllm_version="${VLLM_VERSION}"
 
@@ -124,6 +124,8 @@ COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICEN
 COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
+RUN echo "ray-haproxy 2.8.25 https://amazon-source-code-downloads.s3.us-east-1.amazonaws.com/deep-learning-containers/ray-haproxy-2.8.25.tar.gz" >>/root/THIRD_PARTY_SOURCE_CODE_URLS
+
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
   LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
@@ -135,7 +137,7 @@ ARG FRAMEWORK_VERSION
 # Telemetry
 COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-ARG FRAMEWORK="ray-llm"
+ARG FRAMEWORK="ray_llm"
 ARG CONTAINER_TYPE="inference"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
@@ -148,10 +150,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # Pass-through entrypoint: CUDA forward-compat check, then exec the command.
-# Lets KubeRay's rayStartParams-driven `ray start` run unmodified. Same pattern
-# as ray-train — see scripts/docker/ray-llm/entrypoint.sh.
+# Lets KubeRay's rayStartParams-driven `ray start` run unmodified.
+COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY scripts/docker/ray-llm/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh /usr/local/bin/entrypoint.sh
 
 # Ray cluster essentials: gcs 6379 (head↔worker), dashboard 8265 (KubeRay probes + UI).
 # Customer manifests declare additional containerPorts they need (serve 8000, etc.).
