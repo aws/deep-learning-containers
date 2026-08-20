@@ -82,4 +82,39 @@ jobs:
           cd test/
           python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
-            whisperx/ec2
+            whisperx/ec2 --ignore=whisperx/ec2/test_ec2_cpu.py
+
+  ec2-cpu:
+    # Not gated on device-type: the whisperx image is device_type gpu, and this
+    # job validates that it still starts and serves when run on a CPU-only host.
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    timeout-minutes: 40
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/whisperx/ec2/requirements.txt
+
+      - name: Run EC2 CPU tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
+            --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            whisperx/ec2/test_ec2_cpu.py

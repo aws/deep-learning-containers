@@ -6,7 +6,11 @@ import pytest
 
 LOGGER = logging.getLogger(__name__)
 
-TELEMETRY_INSTANCE_TYPE = "m5.xlarge"
+TELEMETRY_INSTANCE_TYPE = {"x86": "m5.xlarge", "arm64": "m7g.xlarge"}
+AMI_SSM_PARAMETER = {
+    "x86": "/aws/service/deeplearning/ami/x86_64/base-with-single-cuda-amazon-linux-2023/latest/ami-id",
+    "arm64": "/aws/service/deeplearning/ami/arm64/base-with-single-cuda-amazon-linux-2023/latest/ami-id",
+}
 DOCKER_RUN = "docker run -d -it --rm"
 DOCKER_EXEC = "docker exec"
 DOCKER_RM = "docker rm -f"
@@ -16,6 +20,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework", required=True)
     parser.addoption("--framework-version", required=True)
     parser.addoption("--container-type", required=True)
+    parser.addoption("--arch-type", default="x86")
 
 
 @pytest.fixture(scope="session")
@@ -34,10 +39,16 @@ def container_type(request):
 
 
 @pytest.fixture(scope="session")
-def ec2_instance(request, aws_session):
-    """Launch an EC2 instance for the test session, tear down after."""
-    ami_id = aws_session.get_latest_ami()
-    LOGGER.info(f"Setting up EC2 instance: ami={ami_id}, type={TELEMETRY_INSTANCE_TYPE}")
+def arch_type(request):
+    return request.config.getoption("--arch-type")
+
+
+@pytest.fixture(scope="session")
+def ec2_instance(request, aws_session, arch_type):
+    """Launch an EC2 instance (arch-matched to the image) for the session, tear down after."""
+    ami_id = aws_session.get_latest_ami(parameter=AMI_SSM_PARAMETER[arch_type])
+    instance_type = TELEMETRY_INSTANCE_TYPE[arch_type]
+    LOGGER.info(f"Setting up EC2 instance: arch={arch_type}, ami={ami_id}, type={instance_type}")
 
     key_name, key_path = None, None
     instance_id = None
@@ -47,7 +58,7 @@ def ec2_instance(request, aws_session):
         sg_id = aws_session.create_ssh_security_group()
         instance_id = aws_session.launch_instance(
             ami_id=ami_id,
-            instance_type=TELEMETRY_INSTANCE_TYPE,
+            instance_type=instance_type,
             key_name=key_name,
             instance_name="telemetry-test",
             security_group_ids=[sg_id],

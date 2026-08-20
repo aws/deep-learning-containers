@@ -1,0 +1,7 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-69247",
+        "reason": "cryptography 48.x pkcs7_decrypt vulnerability. Fix requires cryptography>=50.0.0 but mlflow<=3.15.1 caps cryptography<50. Bumped to >=49.0.0 (fixes CVE-2026-69249). Awaiting mlflow release that relaxes the cap.",
+        "review_by": "2026-11-12"
+    }
+]

@@ -111,6 +111,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && rm -rf /tmp/*
 
 COPY ./scripts/docker/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/docker/vllm/sagemaker_args.py /usr/local/bin/sagemaker_args.py
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

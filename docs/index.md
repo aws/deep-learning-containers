@@ -60,6 +60,14 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     [vLLM-Omni Guide](vllm-omni/index.md)
 
+-   **Transcribe Speech**
+
+    ---
+
+    Transcribe, align, and diarize audio with WhisperX on EC2 or Amazon SageMaker AI.
+
+    [WhisperX Guide](whisperx/index.md)
+
 -   **Serve ML Models**
 
     ---

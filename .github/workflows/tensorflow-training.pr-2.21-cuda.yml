@@ -1,4 +1,4 @@
-name: "PR - TensorFlow 2.21 CUDA"
+name: "PR - TensorFlow Training 2.21 CUDA"
 
 on:
   pull_request:
@@ -6,11 +6,11 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/tensorflow/2.21-*-cuda.yml"
-      - ".github/workflows/tensorflow.pipeline.yml"
-      - ".github/workflows/tensorflow.pr-2.21-cuda.yml"
-      - ".github/workflows/tensorflow.tests-sagemaker.yml"
-      - ".github/workflows/tensorflow.tests-single-gpu.yml"
-      - ".github/workflows/tensorflow.tests-unit.yml"
+      - ".github/workflows/tensorflow-training.pipeline.yml"
+      - ".github/workflows/tensorflow-training.pr-2.21-cuda.yml"
+      - ".github/workflows/tensorflow-training.tests-sagemaker.yml"
+      - ".github/workflows/tensorflow-training.tests-single-gpu.yml"
+      - ".github/workflows/tensorflow-training.tests-unit.yml"
       - "docker/tensorflow/2.21/Dockerfile.cuda"
       - "docker/tensorflow/2.21/cuda/**"
       - "scripts/docker/common/**"
@@ -95,7 +95,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.discover.outputs.configs) }}
-    uses: ./.github/workflows/tensorflow.pipeline.yml
+    uses: ./.github/workflows/tensorflow-training.pipeline.yml
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}

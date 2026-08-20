@@ -1,8 +1,8 @@
-name: "Auto Release - TensorFlow 2.21 SageMaker"
+name: "Auto Release - WhisperX SageMaker AL2023"
 
 on:
   schedule:
-    - cron: '30 17 * * 2,4'
+    - cron: '30 18 * * 2,4'
   workflow_dispatch:
 
 concurrency:
@@ -22,7 +22,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/tensorflow/2.21-sagemaker-*.yml"
+          pattern: ".github/config/image/whisperx/sagemaker-amzn2023.yml"
 
   pipeline:
     needs: [discover]
@@ -30,7 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.discover.outputs.configs) }}
-    uses: ./.github/workflows/tensorflow.pipeline.yml
+    uses: ./.github/workflows/whisperx.pipeline.yml
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
