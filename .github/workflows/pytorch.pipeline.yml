@@ -130,7 +130,7 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
       image-content-hash: ${{ needs.check.outputs.image-content-hash }}
-      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes)['sanity'] || '' }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sanity'] || '' }}
 
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
