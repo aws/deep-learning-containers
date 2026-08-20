@@ -34,27 +34,6 @@ INVOKE_URL="http://localhost:${PORT}/2015-03-31/functions/function/invocations"
 HANDLER_SRC="$(cd "$(dirname "$0")/../platform" && pwd)/test_handler.py"
 RC=0
 
-# JSON helpers (python3 is guaranteed on the build fleet; jq is not). Each reads
-# one JSON doc from stdin — an invoke body — and never trips on a malformed one.
-json_ready() {  # exit 0 if the body carries a real pid (probe) or ok==true (engine)
-  python3 -c 'import sys,json
-try: d=json.load(sys.stdin)
-except Exception: sys.exit(1)
-sys.exit(0 if isinstance(d,dict) and (d.get("pid") is not None or d.get("ok") is True) else 1)'
-}
-json_pair() {  # print "<pid> <tid>" when pid is present, else nothing
-  python3 -c 'import sys,json
-try: d=json.load(sys.stdin)
-except Exception: sys.exit(0)
-if isinstance(d,dict) and d.get("pid") is not None: print(d["pid"], d.get("tid"))'
-}
-json_ok() {  # exit 0 if the body reports ok==true (engine returned a completion)
-  python3 -c 'import sys,json
-try: d=json.load(sys.stdin)
-except Exception: sys.exit(1)
-sys.exit(0 if isinstance(d,dict) and d.get("ok") is True else 1)'
-}
-
 MODEL_MOUNT=""
 if [ "${ENGINE}" = "none" ]; then
   PAYLOAD='{"action":"get_pid","sleep":3}'
@@ -100,7 +79,7 @@ for MODE in ${MODES}; do
   ready=0
   for _ in $(seq 1 $((READY_TIMEOUT / 5))); do
     RESP=$(curl -s -m 30 "${INVOKE_URL}" -d "${READY_PAYLOAD}" 2>/dev/null)
-    if printf '%s' "${RESP}" | json_ready 2>/dev/null; then ready=1; break; fi
+    if echo "${RESP}" | jq -e '(.pid != null) or (.ok == true)' >/dev/null 2>&1; then ready=1; break; fi
     sleep 5
   done
   if [ "${ready}" != "1" ]; then
@@ -129,9 +108,9 @@ for MODE in ${MODES}; do
   # Parse per-file so one truncated/timed-out response can't corrupt the rest.
   PAIRS=""; OK_COUNT=0
   for f in "${tmp}"/*.json; do
-    p=$(json_pair < "$f" 2>/dev/null)
+    p=$(jq -r 'select(.pid!=null) | "\(.pid) \(.tid)"' "$f" 2>/dev/null)
     [ -n "$p" ] && PAIRS+="${p}"$'\n'
-    [ "${ENGINE}" != "none" ] && json_ok < "$f" 2>/dev/null && OK_COUNT=$((OK_COUNT + 1))
+    [ "${ENGINE}" != "none" ] && jq -e '.ok==true' "$f" >/dev/null 2>&1 && OK_COUNT=$((OK_COUNT + 1))
   done
   PAIRS=$(printf '%s' "${PAIRS}" | sort -u)                                  # dedupe -> distinct (pid,tid)
   HANDLERS=$(printf '%s\n' "${PAIRS}" | grep -c '[0-9]')                      # distinct concurrent handlers
