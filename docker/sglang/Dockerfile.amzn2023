@@ -489,9 +489,14 @@ RUN dnf upgrade -y --security --releasever latest \
 COPY ./scripts/docker/sglang/dockerd_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
-# test-skip e2e validation: final-layer marker to force a new image_content_hash
-# so the rebuild produces a distinct content hash for the test-skip cache write.
+# test-skip e2e validation: marker layer UNCHANGED from the recorded run, so the
+# image content (diff_ids + OCI config) is byte-identical to the last build.
 RUN echo "test-skip-e2e-v3" >/etc/dlc_test_skip_marker
+
+# test-skip e2e: unused ARG — changes the Dockerfile (so the PR triggers a build)
+# without touching image content (ARGs aren't baked into diff_ids or the OCI
+# config), so this rebuild is a cache HIT and sanity/telemetry should SKIP.
+ARG TEST_SKIP_CACHE_HIT_PROBE=v3-hit-1
 
 ENTRYPOINT ["/usr/bin/serve"]
 
