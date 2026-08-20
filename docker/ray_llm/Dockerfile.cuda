@@ -36,7 +36,7 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-COPY docker/ray-llm/pyproject.toml docker/ray-llm/uv.lock /tmp/build/
+COPY docker/ray_llm/pyproject.toml docker/ray_llm/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
@@ -152,7 +152,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 # Pass-through entrypoint: CUDA forward-compat check, then exec the command.
 # Lets KubeRay's rayStartParams-driven `ray start` run unmodified.
 COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-COPY scripts/docker/ray-llm/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/docker/ray_llm/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh /usr/local/bin/entrypoint.sh
 
 # Ray cluster essentials: gcs 6379 (head↔worker), dashboard 8265 (KubeRay probes + UI).

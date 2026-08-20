@@ -14,7 +14,7 @@ metadata:
   prod_image: "ray:serve-llm-cuda"
 
 build:
-  dockerfile: "docker/ray-llm/Dockerfile.cuda"
+  dockerfile: "docker/ray_llm/Dockerfile.cuda"
   target: "ec2"
   builder_base_image: "public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023"
   base_image: "public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023"

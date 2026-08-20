@@ -8,9 +8,9 @@ on:
       - ".github/config/image/ray-llm/*-gpu.yml"
       - ".github/workflows/ray-llm.pipeline.yml"
       - ".github/workflows/ray-llm.pr-gpu.yml"
-      - "docker/ray-llm/**"
+      - "docker/ray_llm/**"
       - "scripts/docker/common/**"
-      - "scripts/docker/ray-llm/**"
+      - "scripts/docker/ray_llm/**"
       - "scripts/docker/telemetry/**"
       - "test/ray-llm/**"
       - "test/sanity/**"
@@ -51,9 +51,9 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/ray-llm/*-gpu.yml"
-              - "docker/ray-llm/**"
+              - "docker/ray_llm/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/ray-llm/**"
+              - "scripts/docker/ray_llm/**"
               - "test/security/data/ecr_scan_allowlist/ray-llm/**"
             sanity-test-change:
               - "test/sanity/**"
