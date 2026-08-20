@@ -10,7 +10,9 @@ import yaml
 
 # Extract the suite name out of the GitHub Actions expression, e.g.
 # fromJSON(needs.check.outputs.skips)['pytorch/unit'] -> pytorch/unit
-_ACCESSOR_RE = re.compile(r"outputs\.skips\)\s*(?:\[\s*['\"]([^'\"]+)['\"]\s*\]|\.([A-Za-z_]\w*))")
+_ACCESSOR_RE = re.compile(
+    r"outputs\.skips(?:\s*\|\|\s*'[^']*')?\s*\)\s*(?:\[\s*['\"]([^'\"]+)['\"]\s*\]|\.([A-Za-z_]\w*))"
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
