@@ -94,6 +94,10 @@ schedules:
     workflow: sglang.autorelease-ec2-ubuntu.yml
     gpu: heavy
 
+  - cron: "30 20 * * 2,4"
+    workflow: tensorflow-inference.autorelease-2.20-sagemaker.yml
+    gpu: light
+
   - cron: "00 21 * * 2,4"
     workflow: ray.autorelease-sagemaker.yml
     gpu: light
