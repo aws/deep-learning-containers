@@ -9,6 +9,7 @@ ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK_VERSION=2.57.0
 ARG VLLM_VERSION=0.25.1
 ARG EFA_VERSION=1.47.0
+ARG CUDA_VERSION=13.0.2
 
 # Base DLCs (we own them). devel for the venv build stage, runtime for output.
 ARG BUILDER_BASE_IMAGE=public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023
@@ -43,6 +44,7 @@ ARG PYTHON_SHORT_VERSION
 ARG FRAMEWORK_VERSION
 ARG VLLM_VERSION
 ARG EFA_VERSION
+ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 
@@ -75,7 +77,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # - libcurand-devel: FlashInfer JIT-compiles its sampling kernel on first use
 #   (top-k/top-p), which #includes curand.h. Missing header → RuntimeError from
 #   ninja, EngineCore fails to start, Ray Serve loops on replica init.
-RUN CUDA_MAJOR_MINOR=$(echo "13.0" | tr '.' '-') \
+RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
     shadow-utils tar gzip curl wget which findutils util-linux gcc gcc-c++ make \
     cuda-nvcc-${CUDA_MAJOR_MINOR} cuda-cudart-devel-${CUDA_MAJOR_MINOR} \

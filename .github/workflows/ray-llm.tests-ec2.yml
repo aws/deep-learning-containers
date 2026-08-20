@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+env:
+  MODEL_NAME: "ministral-8b"
+  MODEL_S3_PATH: "s3://dlc-cicd-models/ray-llm/ministral-8b.tar.gz"
+
 jobs:
   preflight:
     runs-on:
@@ -67,8 +71,8 @@ jobs:
         id: model
         uses: ./.github/actions/download-model
         with:
-          s3-path: s3://dlc-cicd-models/ray-llm/ministral-8b.tar.gz
-          model-name: ministral-8b
+          s3-path: ${{ env.MODEL_S3_PATH }}
+          model-name: ${{ env.MODEL_NAME }}
 
       - name: Install test dependencies
         run: |

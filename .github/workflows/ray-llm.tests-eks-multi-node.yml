@@ -16,6 +16,11 @@ on:
 permissions:
   contents: read
 
+env:
+  KUBECTL_VERSION: "1.35.0"
+  EKS_CLUSTER: "dlc-shared-cluster"
+  AWS_REGION: ${{ vars.AWS_REGION }}
+
 jobs:
   preflight:
     runs-on:
@@ -72,14 +77,12 @@ jobs:
 
       - name: Install kubectl
         run: |
-          curl -fsSL "https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+          curl -fsSL "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
           chmod +x /usr/local/bin/kubectl
 
       - name: Run EKS multi-node integration test
         env:
           IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
           RAY_VERSION: ${{ needs.preflight.outputs.framework-version }}
-          EKS_CLUSTER: "dlc-shared-cluster"
-          AWS_REGION: ${{ vars.AWS_REGION }}
         run: |
           bash test/ray-llm/eks-multi-node/run_eks_test.sh
