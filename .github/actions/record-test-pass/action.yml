@@ -1,0 +1,40 @@
+name: 'Record test pass'
+description: >
+  Write a PASS row to the dlc-ci-images table after a test suite fully passes,
+  so future runs on the same image content + test code can skip it.
+
+inputs:
+  suite:
+    description: 'Name of the test suite.'
+    required: true
+  image-content-hash:
+    description: "Hash of the image's ordered layer diff ids."
+    required: true
+  suite-code-hash:
+    description: "Hash of the test suite's files."
+    required: true
+  ci-image-tag:
+    description: 'CI image tag for the image build being tested.'
+    required: false
+    default: ''
+  ci-images-table-account-id:
+    description: 'Account ID hosting the dlc-ci-images DynamoDB table.'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Record PASS
+      shell: bash
+      env:
+        SUITE: ${{ inputs.suite }}
+        IMAGE_CONTENT_HASH: ${{ inputs.image-content-hash }}
+        SUITE_CODE_HASH: ${{ inputs.suite-code-hash }}
+        CI_IMAGE_TAG: ${{ inputs.ci-image-tag }}
+        CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
+      run: |
+        set +e
+        uv venv --python 3.12 --clear
+        source .venv/bin/activate
+        uv pip install boto3 pyyaml
+        python3 "${{ github.action_path }}/record_pass.py"
