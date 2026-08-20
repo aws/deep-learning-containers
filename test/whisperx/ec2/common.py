@@ -141,17 +141,19 @@ def stop_container(container_id):
 # ---------------------------------------------------------------------------
 
 
-def make_container_fixture(device, docker_run_flags=None):
+def make_container_fixture(device, docker_run_flags=None, env=None):
     """Create the container fixture: start container, health-check, cleanup.
 
     Yields a dict with container_id and port for the test to use. On a health
     timeout the container logs are dumped and the container is removed before
-    failing, so failures point directly at an image/server problem.
+    failing, so failures point directly at an image/server problem. Optional
+    `env` is forwarded to `docker run` as `-e K=V` flags (e.g. pin a fast-warming
+    served model with {"WHISPERX_DEFAULT_MODEL": "tiny"}).
     """
 
     @pytest.fixture(scope="function")
     def container(image_uri):
-        container_id, port = start_container(image_uri, device, docker_run_flags)
+        container_id, port = start_container(image_uri, device, docker_run_flags, env=env)
         try:
             wait_for_health(port=port)
         except TimeoutError:
