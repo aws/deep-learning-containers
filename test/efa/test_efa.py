@@ -116,7 +116,7 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             timeout=DEFAULT_TIMEOUT,
         )
 
-        # Broadcast repro for P490455835: aws-ofi-nccl 1.18.0 (EFA 1.47.0, the
+        # Broadcast repro: aws-ofi-nccl 1.18.0 (EFA 1.47.0, the
         # PyTorch 2.11 image) hangs on NCCL broadcast. On a buggy image this
         # step blocks until run_on_container's timeout fires; on a fixed image
         # (EFA >= 1.49.0 / aws-ofi-nccl 1.20.0) it completes in well under it.
