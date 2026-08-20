@@ -68,9 +68,8 @@ IMAGE_NAMES="$(mktemp)"
 sed -E 's/==.*//' "${IMAGE_FREEZE}" | canon | sort -u > "${IMAGE_NAMES}"
 
 if [ -f "${TEST_TXT}" ]; then
-  # Upstream pins, for packages the image does not already ship.
   grep -E '^[A-Za-z0-9._-]+==' "${TEST_TXT}" \
-    | sed -E '/(terratorch|lightning)/Id' \
+    | sed -E '/(terratorch|lightning|fastrlock)/Id' \
     | while IFS= read -r line; do
         name="$(printf '%s' "${line}" | sed -E 's/==.*//' | canon)"
         grep -qxF "${name}" "${IMAGE_NAMES}" || printf '%s\n' "${line}"
