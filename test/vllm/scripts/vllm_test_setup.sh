@@ -79,7 +79,8 @@ fi
 cat "${IMAGE_FREEZE}" >> "${PREFERENCES}"
 
 cp "${PREFERENCES}" "${TEST_TXT}"
-uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
+PYVER="$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version "${PYVER}" --prerelease=if-necessary
 uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt --torch-backend=auto
 uv pip install $UV_FLAGS pytest pytest-asyncio
 # vllm_test_utils may be a package or may not exist in newer versions
