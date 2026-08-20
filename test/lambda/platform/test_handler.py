@@ -15,6 +15,7 @@ Actions (JSON event `{"action": ...}`):
 """
 
 import importlib
+import json
 import os
 import subprocess
 import threading
@@ -61,6 +62,12 @@ def _valid_completion(resp):
 
 
 def handler(event, context):
+    # The multi-mode concurrency RIC delivers the event as raw bytes; the standard
+    # RIC delivers a parsed dict. Normalize so every action below sees a dict (mirrors
+    # the baked serving handlers, which do the same for their request bodies).
+    if isinstance(event, (bytes, bytearray, str)):
+        event = json.loads(event or "{}")
+
     action = event.get("action") if isinstance(event, dict) else None
 
     if action == "echo":
