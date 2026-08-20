@@ -11,5 +11,5 @@ public_registry: true
 tags:
   - "2.20.0-cpu-py312-amzn2023-sagemaker"
   - "2.20-cpu-py312-amzn2023-sagemaker-v1"
-  - "2.20.0-cpu-py312-sagemaker"
-  - "2.20-cpu-py312-sagemaker"
+  - "2.20.0-cpu-py312"
+  - "2.20-cpu-py312"
