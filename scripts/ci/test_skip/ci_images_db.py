@@ -6,7 +6,7 @@ config object, read from the pushed image's registry config. suite_code_hash
 
 Every OCI image config carries three required top-level fields: ``architecture``, ``os``,
 and ``rootfs``. The rest are optional and appear only when non-empty -- the ``config`` object
-(runtime execution parameters), plus ``created``, ``history`` (both non-deterministic) and others. 
+(runtime execution parameters), plus ``created``, ``history`` (both non-deterministic) and others.
 For more info, see: https://github.com/opencontainers/image-spec/blob/main/config.md#properties
 
 Both a filesystem change (RUN/COPY/ADD) and a config change (ENV/LABEL/CMD/...) change the
@@ -38,12 +38,12 @@ Limitations
   *instruction string* and not the fetched content, an unchanged ``RUN`` reuses the old layer
   and never re-pulls. The hash then matches that (stale) image, so the test may skip.
 - Test caching is bounded by the daily ``CACHE_REFRESH`` build-arg (see .github/actions/build-image).
-  This busts layers caches ~daily, and once the content actually lands in a rebuilt layer the diff_id
+  This busts layer caches ~daily, and once the content actually lands in a rebuilt layer the diff_id
   (and the hash) change, so all tests re-run. Additionally, TEST rows have bounded TTL, so prod images
   are only skipped for the length of the row TTL (currently 3 days).
 - Files for each test suite do not include shared helpers such as test/test_utils. This is a deliberate
   choice that trades some test coverage for more cache hits. Including shared test infrastructure means
-  a change to a test_util invalidates the entire cache. This is adjustable by modifying test_suites.yml.
+  a change to a test_util invalidates the entire cache. This is adjustable by modifying test-suites.yml.
 """
 
 import logging
