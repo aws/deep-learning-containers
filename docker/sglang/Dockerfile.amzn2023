@@ -498,6 +498,13 @@ RUN echo "test-skip-e2e-v3" >/etc/dlc_test_skip_marker
 # config), so this rebuild is a cache HIT and sanity/telemetry should SKIP.
 ARG TEST_SKIP_CACHE_HIT_PROBE=v3-hit-1
 
+# test-skip e2e: ENV change — adds no filesystem layer (diff_ids unchanged) but
+# alters the OCI image config (config.Env), which the content hash now folds in
+# -> new image_content_hash -> cache MISS. Validates the config-folded hash:
+# sanity/telemetry must RE-RUN + re-record here (sagemaker stage is untouched,
+# so that config should still HIT + skip).
+ENV DLC_TEST_SKIP_PROBE=env-change-1
+
 ENTRYPOINT ["/usr/bin/serve"]
 
 # ====================== sagemaker =========================================
