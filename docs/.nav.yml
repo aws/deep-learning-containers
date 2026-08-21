@@ -10,8 +10,7 @@ nav:
     - WhisperX: whisperx
     - llama.cpp: llama-cpp
     - PyTorch: pytorch
-    - TensorFlow Training: tensorflow
-    - TensorFlow Inference: tensorflow-inference
+    - TensorFlow: tensorflow
     - Base: base
   - Blog Posts: tutorials
   - Resources:

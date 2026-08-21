@@ -15,7 +15,7 @@ environment variables and an optional `inference.py`.
 | {{ sagemaker }} | CPU | `public.ecr.aws/deep-learning-containers/tensorflow-inference:2.20-cpu-py312-amzn2023-sagemaker` |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/tensorflow-inference). For private ECR
-URIs, see [Image Access](../get_started/index.md).
+URIs, see [Image Access](../../get_started/index.md).
 
 The `2.20.0-*` fully-qualified tags (e.g. `2.20.0-gpu-py312-cu129-amzn2023-sagemaker`) are also published and pin to the same image digest.
 
