@@ -19,8 +19,9 @@ Changelog for the Amazon Linux 2023-based llama.cpp images.
   `/v1/models`).
 - Three hardware targets: **x86 CPU**, **x86 NVIDIA GPU (CUDA 13.0.2)**, and **AWS Graviton (ARM64) CPU** — each in an {{ ec2_short }} and an
   {{ sagemaker }} flavor (port 8080).
-- x86 CPU image bundles every microarchitecture backend (SSE4.2 → AVX-512/AMX) with runtime dispatch; Graviton image tuned for Neoverse-V1.
+- The x86 CPU image bundles every microarchitecture backend (SSE4.2 → AVX-512/AMX) with runtime dispatch, and the Graviton image is tuned for
+  Neoverse-V1.
 - {{ sagemaker }} images front `llama-server` with nginx (`/ping` → `/health`, `/invocations` → `/v1/chat/completions`) and are configured via
   `SM_LLAMA_CPP_*` environment variables.
-- Built from upstream llama.cpp with `LLAMA_CURL=ON` for direct HuggingFace model downloads; `llama-cli` and `llama-bench` also included.
+- Built from upstream llama.cpp with `LLAMA_CURL=ON` for direct HuggingFace model downloads. `llama-cli` and `llama-bench` are included too.
 - Built on Python 3.12.

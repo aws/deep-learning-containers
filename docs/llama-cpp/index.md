@@ -8,7 +8,8 @@ Run large language models efficiently on x86 CPUs, NVIDIA GPUs, or AWS Graviton 
 ## Images
 
 The images ship for three hardware targets — x86 CPU, x86 NVIDIA GPU (CUDA), and Graviton (ARM64, CPU) — each in an {{ ec2_short }} and an
-{{ sagemaker }} flavor. x86 images live in the `llama-cpp` repository; Graviton images live in `llama-cpp-arm64`. Every image serves on port **8080**.
+{{ sagemaker }} flavor. The x86 images live in the `llama-cpp` repository, and the Graviton images live in `llama-cpp-arm64`. Every image serves on
+port **8080**.
 
 | Platform | Architecture | Device | Image |
 | --- | --- | --- | --- |
@@ -30,8 +31,8 @@ Each image is a from-source build of the upstream [llama.cpp](https://github.com
 - **`llama-server`** — the OpenAI-compatible HTTP inference server (the default entrypoint)
 - **`llama-cli`** and **`llama-bench`** — the interactive CLI and the benchmarking tool, on `PATH` for one-off use
 - **libcurl-enabled build** (`LLAMA_CURL=ON`) — load a model directly from a HuggingFace repo at startup
-- **Portable CPU dispatch** — the x86 CPU image bundles every microarchitecture backend (SSE4.2 through AVX-512/AMX) and selects the fastest at
-  runtime; the Graviton image is tuned for Neoverse-V1 and runs across Graviton3/4
+- **Portable CPU dispatch** — the x86 CPU image bundles every microarchitecture backend (SSE4.2 through AVX-512/AMX) and picks the fastest one at
+  runtime, while the Graviton image is tuned for Neoverse-V1 and runs across Graviton3 and Graviton4
 - **CUDA 13.0.2 runtime** (GPU image only) with automatic `cuda-compat` for forward compatibility
 
 ## API Endpoints
@@ -48,8 +49,8 @@ Each image is a from-source build of the upstream [llama.cpp](https://github.com
 | `POST /invocations` | {{ sm_short }} alias → `/v1/chat/completions` |
 | `GET /ping` | {{ sm_short }} readiness alias → `/health` |
 
-On {{ sagemaker }} the container is fronted by nginx, which maps `GET /ping` to `/health` and `POST /invocations` to `/v1/chat/completions`; every
-other path is proxied to `llama-server` unchanged, so the full `/v1/*` API stays reachable. See [EC2 Deployment](deployment/ec2.md) and
+On {{ sagemaker }} the container sits behind nginx, which maps `GET /ping` to `/health` and `POST /invocations` to `/v1/chat/completions`. Every other
+path is proxied straight through to `llama-server`, so the full `/v1/*` API stays reachable. See [EC2 Deployment](deployment/ec2.md) and
 [{{ sagemaker }} Deployment](deployment/sagemaker.md) for examples, and [Configuration](configuration.md) for every launch option.
 
 ## How We Build

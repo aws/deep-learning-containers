@@ -7,26 +7,28 @@ quantization (`Q4_K_M`, `Q5_K_M`, `Q8_0`, `F16`, …).
 The container ships **no baked-in model** — you supply a GGUF at launch. There are three ways to provide one:
 
 1. **Mount a local GGUF** — a file on {{ ec2_short }}, or a `model.tar.gz` staged via `ModelDataUrl` on {{ sagemaker }}.
-2. **Download from HuggingFace at startup** — point the server at a HuggingFace repo + file; it fetches the GGUF on first boot (requires network
-   egress).
+2. **Download from HuggingFace at startup** — point the server at a HuggingFace repo and file, and it downloads the GGUF the first time the container
+   boots. This path needs network access.
 3. **Pass a model URL** — any URL `llama-server` accepts (the build enables libcurl).
 
 ## Getting GGUF Models
 
-Thousands of pre-quantized GGUF models are published on the [HuggingFace Hub](https://huggingface.co/models?library=gguf) (for example, the
-[`ggml-org`](https://huggingface.co/ggml-org) and [`bartowski`](https://huggingface.co/bartowski) collections). To convert and quantize your own
-weights, use the `convert_hf_to_gguf.py` and `llama-quantize` tooling from the [llama.cpp](https://github.com/ggml-org/llama.cpp) repository.
+Thousands of ready-to-run GGUF models are already published on the [HuggingFace Hub](https://huggingface.co/models?library=gguf). The
+[ggml-org](https://huggingface.co/ggml-org) and [bartowski](https://huggingface.co/bartowski) collections are good places to start. If you would
+rather convert your own weights, the llama.cpp repository ships the tooling to do it:
+[`convert_hf_to_gguf.py`](https://github.com/ggml-org/llama.cpp/blob/master/convert_hf_to_gguf.py) turns a HuggingFace model into a GGUF file, and
+[`llama-quantize`](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize) shrinks it to the quantization you want.
 
-Pick a quantization to fit your hardware: smaller quants (`Q4_K_M`) reduce memory and increase throughput at a small quality cost; larger quants
-(`Q8_0`, `F16`) preserve quality but need more RAM/VRAM.
+Choose a quantization that fits your hardware. A smaller quant such as `Q4_K_M` uses less memory and runs faster, at a small cost to quality. A larger
+one such as `Q8_0` or `F16` keeps more of the original quality but needs more RAM or VRAM.
 
 ## Choosing a Hardware Target
 
 | Target | Image repository / tag | Notes |
 | --- | --- | --- |
-| x86 CPU | `llama-cpp:server-cpu-v1` | Any modern x86 instance; best microarchitecture backend selected at runtime |
-| x86 GPU (CUDA) | `llama-cpp:server-cuda-v1` | NVIDIA GPU; offload layers with `--n-gpu-layers` (see [Configuration](../configuration.md)) |
-| Graviton (ARM64) CPU | `llama-cpp-arm64:server-cpu-v1` | AWS Graviton3/4; tuned for Neoverse-V1. `--n-gpu-layers` does not apply |
+| x86 CPU | `llama-cpp:server-cpu-v1` | Runs on any modern x86 instance and picks the best microarchitecture backend at runtime |
+| x86 GPU (CUDA) | `llama-cpp:server-cuda-v1` | Needs an NVIDIA GPU — offload layers with `--n-gpu-layers` (see [Configuration](../configuration.md)) |
+| Graviton (ARM64) CPU | `llama-cpp-arm64:server-cpu-v1` | Runs on AWS Graviton3/4, tuned for Neoverse-V1. `--n-gpu-layers` does not apply here |
 
 The `-sagemaker-` tags are the {{ sagemaker }} counterparts of the same three targets.
 
@@ -39,8 +41,8 @@ The `-sagemaker-` tags are the {{ sagemaker }} counterparts of the same three ta
   2. **`/opt/ml/model`** — the first `*.gguf` staged via `ModelDataUrl` is auto-detected (searched up to two directory levels deep).
   3. **`SM_LLAMA_CPP_HF_REPO` / `SM_LLAMA_CPP_HF_FILE`** — download the GGUF from HuggingFace at startup.
 
-For a **multi-part (sharded) GGUF**, provide every shard and point the server at the first shard (`…-00001-of-0000N.gguf`); llama.cpp loads the rest
-automatically.
+For a **multi-part (sharded) GGUF**, provide every shard and point the server at the first one (`…-00001-of-0000N.gguf`). llama.cpp finds and loads
+the rest automatically.
 
 ## Offline / Air-Gapped
 

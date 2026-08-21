@@ -53,7 +53,7 @@ sm.create_endpoint_config(
         "VariantName": "AllTraffic",
         "ModelName": NAME,
         "InitialInstanceCount": 1,
-        "InstanceType": "ml.c6i.2xlarge",  # CPU; use ml.c7g.2xlarge for the ARM64 image
+        "InstanceType": "ml.c6i.2xlarge",  # CPU — use ml.c7g.2xlarge for the ARM64 image
         "ContainerStartupHealthCheckTimeoutInSeconds": 600,
     }],
 )
@@ -89,12 +89,12 @@ ARM64 instance such as `ml.c7g.2xlarge`. For the **GPU** image, use `llama-cpp:s
 ## Notes
 
 - **Configuration is via `SM_LLAMA_CPP_*` env vars.** Any `SM_LLAMA_CPP_FOO_BAR=value` becomes `llama-server --foo-bar value` (a value of `true`
-  becomes a bare flag; `false` is omitted). `SM_LLAMA_CPP_MODEL`, `SM_LLAMA_CPP_MODEL_DIR`, and `SM_LLAMA_CPP_PORT` are handled specially — see
+  becomes a bare flag, and `false` is dropped). `SM_LLAMA_CPP_MODEL`, `SM_LLAMA_CPP_MODEL_DIR`, and `SM_LLAMA_CPP_PORT` are handled specially — see
   [Configuration](../configuration.md).
 - **GPU variants need a recent driver AMI.** The GPU image ships the CUDA 13.0.2 runtime, which is newer than the default {{ sagemaker }} host AMI
   driver. Pin a recent GPU inference AMI via `InferenceAmiVersion` (for example `al2-ami-sagemaker-inference-gpu-3-1` or newer) on the production
   variant, and set `SM_LLAMA_CPP_N_GPU_LAYERS` to offload layers.
 - **Generous startup timeout.** The server binds only after the model finishes loading (or downloading), so set
-  `ContainerStartupHealthCheckTimeoutInSeconds` to at least 600 seconds; larger models or slow downloads may need more.
+  `ContainerStartupHealthCheckTimeoutInSeconds` to at least 600 seconds. Larger models or slow downloads may need more.
 
 For all configuration options, see [Configuration](../configuration.md).
