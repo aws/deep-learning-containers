@@ -1,0 +1,175 @@
+name: "Pipeline - Ray LLM"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      tag-suffix:
+        description: "CI tag suffix (run_id or pr-NUMBER)"
+        required: true
+        type: string
+      build:
+        description: "Whether to build the image (false = skip build, test against prod)"
+        required: false
+        type: boolean
+        default: true
+      run-sanity-test:
+        description: "Run sanity tests"
+        required: false
+        type: boolean
+        default: true
+      run-security-test:
+        description: "Run security tests"
+        required: false
+        type: boolean
+        default: false
+      run-telemetry-test:
+        description: "Run telemetry tests"
+        required: false
+        type: boolean
+        default: false
+      run-unit-test:
+        description: "Run unit tests"
+        required: false
+        type: boolean
+        default: true
+      run-ec2-test:
+        description: "Run EC2 single-GPU integration test (docker run, TP=1)"
+        required: false
+        type: boolean
+        default: true
+      run-eks-multi-node-test:
+        description: "Run multi-node EKS integration test (KubeRay RayService, TP=2 across 2 nodes)"
+        required: false
+        type: boolean
+        default: true
+      run-efa-test:
+        description: "Run EFA integration test"
+        required: false
+        type: boolean
+        default: true
+      release:
+        description: "Run release job after tests pass"
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      image-uri:
+        description: "Built image URI (empty if build was skipped)"
+        value: ${{ jobs.build.outputs.image-uri }}
+
+jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      device-type: ${{ steps.parse.outputs.device-type }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
+  build:
+    if: ${{ inputs.build }}
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-raytrain-build-runner
+        buildspec-override:true
+    timeout-minutes: 90
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: build
+        uses: ./.github/actions/build-image
+        with:
+          config-file: ${{ inputs.config-file }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-suffix: ${{ inputs.tag-suffix }}
+
+  sanity-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.sanity-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  security-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.security-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  telemetry-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.telemetry-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  unit-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/ray-llm.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  ec2-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-ec2-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
+    needs: [ci-config, build]
+    concurrency:
+      group: ${{ github.workflow }}-ec2-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/ray-llm.tests-ec2.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  eks-multi-node-test:
+    # Fail-fast: skip the multi-node run if ec2-test already failed.
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-eks-multi-node-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
+    needs: [ci-config, build, ec2-test]
+    concurrency:
+      group: ${{ github.workflow }}-eks-multi-node-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/ray-llm.tests-eks-multi-node.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  efa-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
+    needs: [ci-config, build]
+    concurrency:
+      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
