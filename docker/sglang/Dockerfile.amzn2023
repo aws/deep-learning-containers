@@ -1,5 +1,6 @@
 ARG CUDA_REF=13.0.3
 
+# sanity test-skip e2e validation marker (comment-only, content-neutral)
 # =============================================================================
 # STAGE 0: builder — compile sglang and all native dependencies from source
 # =============================================================================
