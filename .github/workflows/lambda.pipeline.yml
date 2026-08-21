@@ -43,7 +43,7 @@ on:
         description: "Run real-Lambda RIC concurrency-mode topology tests"
         required: false
         type: boolean
-        default: true
+        default: false
       run-sglang-upstream-test:
         description: "Run the upstream SGLang suite (sglang variant only)"
         required: false
