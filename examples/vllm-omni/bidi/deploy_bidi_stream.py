@@ -11,7 +11,11 @@ Transport: boto3 has no bidirectional API — this uses the experimental
 `aws_sdk_sagemaker_runtime_http2` client (needs Python >= 3.12). Install it with:
 
     pip install "sagemaker>=3.0.0" boto3 \
-      "git+https://github.com/awslabs/aws-sdk-python.git#subdirectory=clients/aws-sdk-sagemaker-runtime-http2"
+      "git+https://github.com/awslabs/aws-sdk-python.git@aws-sdk-sagemaker-runtime-http2/v0.10.0#subdirectory=clients/aws-sdk-sagemaker-runtime-http2"
+
+This example targets the pinned v0.10.0 client API. If you are on v0.9.0 or
+earlier, the config class was `Config` (built synchronously) — see the commented
+old-SDK alternate in make_bidi_client() for that construction.
 
 Fill in EXECUTION_ROLE_ARN (a SageMaker execution role in your account) before running.
 """
@@ -44,9 +48,9 @@ SPEECH_STREAM_PATH = "v1/audio/speech/stream"
 BIDI_ENDPOINT_URI = f"https://runtime.sagemaker.{REGION}.amazonaws.com:8443"
 
 
-def make_bidi_client():
+async def make_bidi_client():
     from aws_sdk_sagemaker_runtime_http2.client import AsyncSageMakerRuntimeHTTP2Client
-    from aws_sdk_sagemaker_runtime_http2.config import Config, SigV4AuthScheme
+    from aws_sdk_sagemaker_runtime_http2.config import AsyncSageMakerRuntimeHTTP2Config
     from smithy_aws_core.identity import EnvironmentCredentialsResolver
 
     # The experimental HTTP/2 SDK signs with EnvironmentCredentialsResolver, which
@@ -65,15 +69,35 @@ def make_bidi_client():
         os.environ["AWS_SESSION_TOKEN"] = frozen.token
     os.environ.setdefault("AWS_REGION", REGION)
 
-    scheme = SigV4AuthScheme(service="sagemaker")
-    return AsyncSageMakerRuntimeHTTP2Client(
-        config=Config(
-            endpoint_uri=BIDI_ENDPOINT_URI,
-            region=REGION,
-            auth_schemes={scheme.scheme_id: scheme},
-            aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
-        )
+    # Build the client. The two blocks below differ ONLY by which SDK version you
+    # installed (see the pip line in the module docstring).
+    #
+    # Old SDK (v0.9.0 and earlier): the config class was `Config`, built
+    # synchronously, and the SigV4 auth scheme had to be wired up by hand. If you
+    # pin the older client (…@aws-sdk-sagemaker-runtime-http2/v0.9.0), make this
+    # function non-async (`def make_bidi_client()`), drop the `await` at the call
+    # site, and use this instead of the block below:
+    #
+    #     from aws_sdk_sagemaker_runtime_http2.config import Config, SigV4AuthScheme
+    #     scheme = SigV4AuthScheme(service="sagemaker")
+    #     return AsyncSageMakerRuntimeHTTP2Client(
+    #         config=Config(
+    #             endpoint_uri=BIDI_ENDPOINT_URI,
+    #             region=REGION,
+    #             auth_schemes={scheme.scheme_id: scheme},
+    #             aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
+    #         )
+    #     )
+    #
+    # New SDK (v0.10.0+, the pinned default): config is async-resolved and
+    # SigV4-for-sagemaker is the built-in default auth scheme, so we only override
+    # the bidi endpoint (:8443), region, and the env-based credentials resolver.
+    config = await AsyncSageMakerRuntimeHTTP2Config.resolve(
+        endpoint_uri=BIDI_ENDPOINT_URI,
+        region=REGION,
+        aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
     )
+    return AsyncSageMakerRuntimeHTTP2Client(config=config)
 
 
 async def _send_json(stream, obj):
@@ -97,7 +121,7 @@ async def stream_tts(endpoint_name, text, deadline_s=180):
         ResponseStreamEventPayloadPart,
     )
 
-    client = make_bidi_client()
+    client = await make_bidi_client()
     inp = InvokeEndpointWithBidirectionalStreamInput(
         endpoint_name=endpoint_name, model_invocation_path=SPEECH_STREAM_PATH
     )
