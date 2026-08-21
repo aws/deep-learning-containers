@@ -29,6 +29,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/efa/**
+      - test/test_utils/efa_helpers.py
 
   pytorch/unit:
     skip_eligible: true
