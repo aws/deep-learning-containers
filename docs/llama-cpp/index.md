@@ -20,7 +20,8 @@ The images ship for three hardware targets — x86 CPU, x86 NVIDIA GPU (CUDA), a
 | {{ sagemaker }} | ARM64 (Graviton) | CPU | `public.ecr.aws/deep-learning-containers/llama-cpp-arm64:server-sagemaker-cpu-v1` |
 
 All images are also available on the ECR Public Gallery ([llama-cpp](https://gallery.ecr.aws/deep-learning-containers/llama-cpp),
-[llama-cpp-arm64](https://gallery.ecr.aws/deep-learning-containers/llama-cpp-arm64)). For private ECR URIs, see [Image Access](../get_started/index.md).
+[llama-cpp-arm64](https://gallery.ecr.aws/deep-learning-containers/llama-cpp-arm64)). For private ECR URIs, see
+[Image Access](../get_started/index.md).
 
 ## What's Included
 

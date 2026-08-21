@@ -1,7 +1,8 @@
 # EC2 Deployment
 
 The container runs the upstream `llama-server` on port 8080. On {{ ec2_short }} you supply the model and any tuning as **`llama-server` arguments**
-appended to `docker run` — the entrypoint forwards them straight through. See [Configuration](../configuration.md) for the options the DLC adds on top.
+appended to `docker run` — the entrypoint forwards them straight through. See [Configuration](../configuration.md) for the options the DLC adds on
+top.
 
 The server is **unauthenticated by default** and binds `0.0.0.0`. Run it inside a private network (security group / VPC), and set `LLAMA_API_KEY` to
 require a bearer token — see [Authentication](#authentication).
@@ -54,8 +55,8 @@ docker run -d --gpus all -p 8080:8080 \
   --ctx-size 4096
 ```
 
-The entrypoint activates CUDA forward-compatibility automatically when the host NVIDIA driver is older than the CUDA 13.0.2 runtime requires — no extra
-flag needed. If the container starts without a visible GPU it falls back to the CPU backend.
+The entrypoint activates CUDA forward-compatibility automatically when the host NVIDIA driver is older than the CUDA 13.0.2 runtime requires — no
+extra flag needed. If the container starts without a visible GPU it falls back to the CPU backend.
 
 ## Graviton (ARM64)
 

@@ -2,13 +2,12 @@
 
 llama.cpp is configured differently on the two platforms:
 
-- **{{ ec2_short }}** — pass native `llama-server` flags as container arguments; a small set of DLC environment variables control auth and the upstream
-  port.
+- **{{ ec2_short }}** — pass native `llama-server` flags as container arguments; a small set of DLC environment variables control auth and the
+  upstream port.
 - **{{ sagemaker }}** — set `SM_LLAMA_CPP_*` environment variables on the container; the entrypoint translates them into `llama-server` flags.
 
-The complete, authoritative flag list is the upstream
-[`llama-server` documentation](https://github.com/ggml-org/llama.cpp/tree/master/tools/server) — this page covers the DLC-specific surface and the
-flags most users need.
+The complete, authoritative flag list is the upstream [`llama-server` documentation](https://github.com/ggml-org/llama.cpp/tree/master/tools/server) —
+this page covers the DLC-specific surface and the flags most users need.
 
 ## EC2 Environment Variables
 

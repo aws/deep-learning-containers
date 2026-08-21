@@ -15,8 +15,8 @@ Changelog for the Amazon Linux 2023-based llama.cpp images.
 ### Highlights
 
 - Initial release of llama.cpp inference containers on Amazon Linux 2023.
-- Serves quantized GGUF models through the upstream `llama-server` OpenAI-compatible API (`/v1/chat/completions`, `/v1/completions`,
-  `/v1/embeddings`, `/v1/models`).
+- Serves quantized GGUF models through the upstream `llama-server` OpenAI-compatible API (`/v1/chat/completions`, `/v1/completions`, `/v1/embeddings`,
+  `/v1/models`).
 - Three hardware targets: **x86 CPU**, **x86 NVIDIA GPU (CUDA 13.0.2)**, and **AWS Graviton (ARM64) CPU** — each in an {{ ec2_short }} and an
   {{ sagemaker }} flavor (port 8080).
 - x86 CPU image bundles every microarchitecture backend (SSE4.2 → AVX-512/AMX) with runtime dispatch; Graviton image tuned for Neoverse-V1.

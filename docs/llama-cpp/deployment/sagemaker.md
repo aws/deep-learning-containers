@@ -77,10 +77,9 @@ sm.delete_endpoint_config(EndpointConfigName=NAME)
 sm.delete_model(ModelName=NAME)
 ```
 
-To deploy the **Graviton** image, swap `IMAGE_URI` to
-`763104351884.dkr.ecr.{REGION}.amazonaws.com/llama-cpp-arm64:server-sagemaker-cpu-v1` and use an ARM64 instance such as `ml.c7g.2xlarge`. For the
-**GPU** image, use `llama-cpp:server-sagemaker-cuda-v1`, a GPU instance (e.g. `ml.g6.2xlarge`), add `SM_LLAMA_CPP_N_GPU_LAYERS: "999"` to offload all
-layers, and pin a GPU driver AMI — see [Notes](#notes).
+To deploy the **Graviton** image, swap `IMAGE_URI` to `763104351884.dkr.ecr.{REGION}.amazonaws.com/llama-cpp-arm64:server-sagemaker-cpu-v1` and use an
+ARM64 instance such as `ml.c7g.2xlarge`. For the **GPU** image, use `llama-cpp:server-sagemaker-cuda-v1`, a GPU instance (e.g. `ml.g6.2xlarge`), add
+`SM_LLAMA_CPP_N_GPU_LAYERS: "999"` to offload all layers, and pin a GPU driver AMI — see [Notes](#notes).
 
 ## Streaming
 
