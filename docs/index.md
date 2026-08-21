@@ -72,9 +72,9 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     ---
 
-    Deploy any ML model with Ray Serve on EC2 or Amazon SageMaker AI — NLP, vision, audio, and tabular.
+    Deploy any ML model — NLP, vision, audio, and tabular — with Ray Serve on EC2 or Amazon SageMaker AI, or TensorFlow SavedModels with TensorFlow Serving on Amazon SageMaker AI.
 
-    [Ray Guide](ray/index.md)
+    [Ray Guide](ray/index.md) · [TensorFlow Inference Guide](tensorflow/inference/index.md)
 
 -   **Train Models**
 
@@ -82,7 +82,7 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     Run distributed training with PyTorch or TensorFlow on GPU or CPU, with EFA and NCCL pre-installed for multi-node workloads.
 
-    [PyTorch Guide](pytorch/index.md) · [TensorFlow Guide](tensorflow/index.md)
+    [PyTorch Guide](pytorch/index.md) · [TensorFlow Training Guide](tensorflow/training/index.md)
 
 -   **Build Your Own Image**
 

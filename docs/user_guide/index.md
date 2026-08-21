@@ -8,5 +8,6 @@ Choose a framework to get started:
 - **[Ray](../ray/index.md)** — deploy any ML model with Ray Serve (NLP, vision, audio, tabular)
 - **[WhisperX](../whisperx/index.md)** — transcribe, align, and diarize speech on {{ ec2_short }} or {{ sagemaker }}
 - **[PyTorch](../pytorch/index.md)** — distributed training with EFA, NCCL, flash-attn, and DeepSpeed pre-installed
-- **[TensorFlow](../tensorflow/index.md)** — training on {{ sagemaker }} with EFA-capable multi-node support on Amazon Linux 2023
+- **[TensorFlow Training](../tensorflow/training/index.md)** — training on {{ sagemaker }} with EFA-capable multi-node support on Amazon Linux 2023
+- **[TensorFlow Inference](../tensorflow/inference/index.md)** — serve TensorFlow SavedModels with TensorFlow Serving on {{ sagemaker }}
 - **[Base](../base/index.md)** — lightweight CUDA + Python images for building your own AI/ML container
