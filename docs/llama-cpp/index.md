@@ -32,7 +32,7 @@ Each image is a from-source build of the upstream [llama.cpp](https://github.com
 - **`llama-cli`** and **`llama-bench`** — the interactive CLI and the benchmarking tool, on `PATH` for one-off use
 - **libcurl-enabled build** (`LLAMA_CURL=ON`) — load a model directly from a HuggingFace repo at startup
 - **Portable CPU dispatch** — the x86 CPU image bundles every microarchitecture backend (SSE4.2 through AVX-512/AMX) and picks the fastest one at
-  runtime, while the Graviton image is tuned for Neoverse-V1 and runs across Graviton3 and Graviton4
+  runtime, while the Graviton image is tuned for Neoverse-V1 and runs across Graviton3 and newer (Graviton3, Graviton4, and Graviton5)
 - **CUDA 13.0.2 runtime** (GPU image only) with automatic `cuda-compat` for forward compatibility
 
 ## API Endpoints
