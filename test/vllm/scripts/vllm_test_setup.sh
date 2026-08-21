@@ -68,9 +68,8 @@ IMAGE_NAMES="$(mktemp)"
 sed -E 's/==.*//' "${IMAGE_FREEZE}" | canon | sort -u > "${IMAGE_NAMES}"
 
 if [ -f "${TEST_TXT}" ]; then
-  # Upstream pins, for packages the image does not already ship.
   grep -E '^[A-Za-z0-9._-]+==' "${TEST_TXT}" \
-    | sed -E '/(terratorch|lightning)/Id' \
+    | sed -E '/(terratorch|lightning|fastrlock)/Id' \
     | while IFS= read -r line; do
         name="$(printf '%s' "${line}" | sed -E 's/==.*//' | canon)"
         grep -qxF "${name}" "${IMAGE_NAMES}" || printf '%s\n' "${line}"
@@ -79,7 +78,8 @@ fi
 cat "${IMAGE_FREEZE}" >> "${PREFERENCES}"
 
 cp "${PREFERENCES}" "${TEST_TXT}"
-uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version 3.12 --prerelease=if-necessary
+PYVER="$(python -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
+uv pip compile "${TEST_IN}" -o "${TEST_TXT}" --index-strategy unsafe-best-match --torch-backend cu130 --python-platform x86_64-manylinux_2_28 --python-version "${PYVER}" --prerelease=if-necessary
 uv pip install $UV_FLAGS -r vllm_source/requirements/dev.txt --torch-backend=auto
 uv pip install $UV_FLAGS pytest pytest-asyncio
 # vllm_test_utils may be a package or may not exist in newer versions

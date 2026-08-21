@@ -564,9 +564,13 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   libcurand-devel-13-0 libcublas-devel-13-0 libcusolver-devel-13-0 libcusparse-devel-13-0 \
   && dnf upgrade -y --releasever=latest \
   && dnf clean all && rm -rf /var/cache/dnf
+COPY --from=builder-base-devel /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so
 COPY --from=builder-sglang-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
+# uv: the upstream test suite's setup script compiles + installs test deps into the
+# image's Python env via uv. It is a test-only tool (not used at serving runtime).
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/sglang_entrypoint.sh /sglang_entrypoint.sh
 COPY ./scripts/docker/lambda/sglang/handler.py /var/task/handler.py
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
@@ -646,9 +650,13 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   libcurand-devel-13-0 libcublas-devel-13-0 libcusolver-devel-13-0 libcusparse-devel-13-0 \
   && dnf upgrade -y --releasever=latest \
   && dnf clean all && rm -rf /var/cache/dnf
+COPY --from=builder-base-devel /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so
 COPY --from=builder-vllm-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
+# uv: the upstream test suite's setup script compiles + installs test deps into the
+# image's Python env via uv. It is a test-only tool (not used at serving runtime).
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/vllm_entrypoint.sh /vllm_entrypoint.sh
 COPY ./scripts/docker/lambda/vllm/handler.py /var/task/handler.py
 RUN chmod +x /vllm_entrypoint.sh \
