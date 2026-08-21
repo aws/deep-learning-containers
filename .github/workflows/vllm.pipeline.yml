@@ -112,7 +112,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity"]'
+      suites: '["sanity", "vllm/upstream", "vllm/model", "vllm/sagemaker"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -160,8 +160,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   upstream-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-upstream-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm/upstream'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-upstream-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -169,11 +169,13 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['vllm/upstream'] || '' }}
     secrets: inherit
 
   model-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-model-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm/model'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-model-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -181,11 +183,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['vllm/model'] || '' }}
     secrets: inherit
 
   sagemaker-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sagemaker-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.customer-type == 'sagemaker' &&
+          fromJSON(needs.check.outputs.skips || '{}')['vllm/sagemaker'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -193,6 +201,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['vllm/sagemaker'] || '' }}
 
   efa-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
