@@ -111,6 +111,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/vllm-omni/**
+      - .github/config/model-tests/vllm-omni-model-tests.yml
 
   vllm-omni/sagemaker:
     skip_eligible: true
