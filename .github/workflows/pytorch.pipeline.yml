@@ -117,7 +117,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity"]'
+      suites: '["sanity", "pytorch/unit", "pytorch/single_gpu", "pytorch/multi_gpu", "pytorch/multi_node", "pytorch/integration/sagemaker"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -156,8 +156,8 @@ jobs:
 
   # Unit tests — CPU-only runner, works for both CPU and GPU images
   unit-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-unit-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['pytorch/unit'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -165,11 +165,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/unit'] || '' }}
 
   # Single-GPU tests — only for GPU images
   single-gpu-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-single-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-single-gpu-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          fromJSON(needs.check.outputs.skips || '{}')['pytorch/single_gpu'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -177,11 +183,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/single_gpu'] || '' }}
 
   # Multi-GPU tests — only for GPU images
   multi-gpu-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-multi-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-multi-gpu-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          fromJSON(needs.check.outputs.skips || '{}')['pytorch/multi_gpu'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-multi-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -189,11 +201,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/multi_gpu'] || '' }}
 
   # Multi-node GPU tests — only for GPU images
   multi-node-gpu-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-multi-node-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-multi-node-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          fromJSON(needs.check.outputs.skips || '{}')['pytorch/multi_node'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-multi-node-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -201,6 +219,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/multi_node'] || '' }}
 
   # EFA on ec2 only — sagemaker is the same build (+extra args), so EFA is identical.
   efa-test:
@@ -216,8 +236,12 @@ jobs:
 
   # SageMaker training tests — only for sagemaker images (launches remote SM jobs)
   sagemaker-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sagemaker-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.customer-type == 'sagemaker' &&
+          fromJSON(needs.check.outputs.skips || '{}')['pytorch/integration/sagemaker'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -225,6 +249,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/integration/sagemaker'] || '' }}
 
   release-gate:
     if: >-
