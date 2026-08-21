@@ -55,6 +55,11 @@ suites:
     code_paths:
       - test/pytorch/integration/sagemaker/**
 
+  ray/unit:
+    skip_eligible: true
+    code_paths:
+      - test/ray/unit/**
+
   ray/ec2:
     skip_eligible: true
     code_paths:
