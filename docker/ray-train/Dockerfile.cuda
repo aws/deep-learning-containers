@@ -161,7 +161,11 @@ RUN ldconfig
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
-# NCCL tests binary (all_reduce_perf) — pinned for reproducible builds.
+# NCCL tests binaries (all_reduce_perf, broadcast_perf) — pinned for
+# reproducible builds. `make` builds every collective; broadcast_perf is
+# needed by the shared EFA broadcast test (P490455835). Baking both keeps
+# setup_nccl_tests.sh's guard short-circuiting instead of falling through to
+# its dnf path, which has no libnccl-devel on this wheel-based image.
 ARG NCCL_TESTS_VERSION=2.19.6
 RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") && \
     if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
@@ -172,6 +176,7 @@ RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl._
     cd nccl-tests-${NCCL_TESTS_VERSION} && \
     make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=${NCCL_HOME} CUDA_HOME=/usr/local/cuda && \
     cp build/all_reduce_perf /usr/local/bin/all_reduce_perf && \
+    cp build/broadcast_perf /usr/local/bin/broadcast_perf && \
     cd / && rm -rf /tmp/nccl-tests-${NCCL_TESTS_VERSION}
 
 # Security patch — after all installers so every OS package is covered.
