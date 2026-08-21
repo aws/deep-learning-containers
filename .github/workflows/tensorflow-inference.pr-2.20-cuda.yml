@@ -12,7 +12,7 @@ on:
       - "docker/tensorflow/inference/2.20/Dockerfile.cuda"
       - "docker/tensorflow/inference/2.20/cuda/**"
       - "scripts/docker/common/**"
-      - "scripts/docker/tensorflow/**"
+      - "scripts/docker/tensorflow/inference/**"
       - "scripts/docker/telemetry/**"
       - "test/tensorflow/integration/inference/**"
       - "test/sanity/**"
@@ -53,7 +53,7 @@ jobs:
               - "docker/tensorflow/inference/2.20/Dockerfile.cuda"
               - "docker/tensorflow/inference/2.20/cuda/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/tensorflow/**"
+              - "scripts/docker/tensorflow/inference/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
               # Integration-test changes must trigger a rebuild — otherwise the
               # build is skipped, the prod ECR tag doesn't exist for this new

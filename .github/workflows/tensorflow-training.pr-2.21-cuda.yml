@@ -11,10 +11,10 @@ on:
       - ".github/workflows/tensorflow-training.tests-sagemaker.yml"
       - ".github/workflows/tensorflow-training.tests-single-gpu.yml"
       - ".github/workflows/tensorflow-training.tests-unit.yml"
-      - "docker/tensorflow/2.21/Dockerfile.cuda"
-      - "docker/tensorflow/2.21/cuda/**"
+      - "docker/tensorflow/training/2.21/Dockerfile.cuda"
+      - "docker/tensorflow/training/2.21/cuda/**"
       - "scripts/docker/common/**"
-      - "scripts/docker/tensorflow/**"
+      - "scripts/docker/tensorflow/training/**"
       - "scripts/docker/telemetry/**"
       - "test/efa/**"
       - "test/tensorflow/integration/sagemaker/**"
@@ -58,10 +58,10 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/tensorflow/2.21-*-cuda.yml"
-              - "docker/tensorflow/2.21/Dockerfile.cuda"
-              - "docker/tensorflow/2.21/cuda/**"
+              - "docker/tensorflow/training/2.21/Dockerfile.cuda"
+              - "docker/tensorflow/training/2.21/cuda/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/tensorflow/**"
+              - "scripts/docker/tensorflow/training/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
             efa-test-change:
               - "test/efa/**"

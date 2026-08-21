@@ -13,7 +13,7 @@ metadata:
   prod_image: "tensorflow-training:2.21-gpu-py312-cu129-amzn2023-sagemaker-v1"
 
 build:
-  dockerfile: "docker/tensorflow/2.21/Dockerfile.cuda"
+  dockerfile: "docker/tensorflow/training/2.21/Dockerfile.cuda"
   target: "sagemaker"
   python_version: "3.12"
   cuda_version: "12.9.1"
