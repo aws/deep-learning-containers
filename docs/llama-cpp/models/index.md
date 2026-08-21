@@ -52,5 +52,5 @@ The container runs with no network access **only when the GGUF is provided local
 ## Full Reference
 
 - [llama.cpp](https://github.com/ggml-org/llama.cpp)
-- [`llama-server` documentation](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
+- [llama-server documentation](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
 - [GGUF format](https://github.com/ggml-org/ggml/blob/master/docs/gguf.md)
