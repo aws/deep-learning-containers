@@ -1,7 +1,9 @@
-# Table Configuration - HuggingFace Llama.cpp
+# Table Configuration - llama.cpp (AMZN2023)
 columns:
   - field: framework_version
     header: "Framework"
+  - field: python
+    header: "Python"
   - field: cuda
     header: "CUDA"
   - field: accelerator

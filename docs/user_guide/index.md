@@ -7,6 +7,7 @@ Choose a framework to get started:
 - **[TEI](../tei/index.md)** — serve text embedding, reranker, and classification models with Text Embeddings Inference on {{ sagemaker }}
 - **[Ray](../ray/index.md)** — deploy any ML model with Ray Serve (NLP, vision, audio, tabular)
 - **[WhisperX](../whisperx/index.md)** — transcribe, align, and diarize speech on {{ ec2_short }} or {{ sagemaker }}
+- **[llama.cpp](../llama-cpp/index.md)** — serve quantized GGUF models on x86 CPU, NVIDIA GPU, or Graviton (ARM64) with the OpenAI-compatible llama-server API
 - **[PyTorch](../pytorch/index.md)** — distributed training with EFA, NCCL, flash-attn, and DeepSpeed pre-installed
 - **[TensorFlow](../tensorflow/index.md)** — training on {{ sagemaker }} with EFA-capable multi-node support on Amazon Linux 2023
 - **[Base](../base/index.md)** — lightweight CUDA + Python images for building your own AI/ML container
