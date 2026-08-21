@@ -17,7 +17,7 @@ Thousands of ready-to-run GGUF models are already published on the [HuggingFace 
 [ggml-org](https://huggingface.co/ggml-org) and [bartowski](https://huggingface.co/bartowski) collections are good places to start. If you would
 rather convert your own weights, the llama.cpp repository ships the tooling to do it:
 [`convert_hf_to_gguf.py`](https://github.com/ggml-org/llama.cpp/blob/master/convert_hf_to_gguf.py) turns a HuggingFace model into a GGUF file, and
-[`llama-quantize`](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize) shrinks it to the quantization you want.
+[`llama-quantize`](https://github.com/ggml-org/llama.cpp/blob/master/tools/quantize/README.md) shrinks it to the quantization you want.
 
 Choose a quantization that fits your hardware. A smaller quant such as `Q4_K_M` uses less memory and runs faster, at a small cost to quality. A larger
 one such as `Q8_0` or `F16` keeps more of the original quality but needs more RAM or VRAM.
@@ -52,5 +52,5 @@ The container runs with no network access **only when the GGUF is provided local
 ## Full Reference
 
 - [llama.cpp](https://github.com/ggml-org/llama.cpp)
-- [`llama-server` documentation](https://github.com/ggml-org/llama.cpp/tree/master/tools/server)
+- [`llama-server` documentation](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
 - [GGUF format](https://github.com/ggml-org/ggml/blob/master/docs/gguf.md)

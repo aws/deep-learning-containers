@@ -6,8 +6,9 @@ llama.cpp is configured differently on the two platforms:
   the upstream port.
 - **{{ sagemaker }}** — set `SM_LLAMA_CPP_*` environment variables on the container, and the entrypoint translates them into `llama-server` flags.
 
-The complete, authoritative flag list is the upstream [`llama-server` documentation](https://github.com/ggml-org/llama.cpp/tree/master/tools/server) —
-this page covers the DLC-specific surface and the flags most users need.
+The complete, authoritative flag list is the upstream
+[`llama-server` documentation](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md) — this page covers the DLC-specific surface
+and the flags most users need.
 
 ## EC2 Environment Variables
 
@@ -67,5 +68,5 @@ The DLC sets **no defaults** for concurrency, threads, batch size, or context si
 
 ## Full Reference
 
-- [`llama-server` documentation](https://github.com/ggml-org/llama.cpp/tree/master/tools/server)
+- [`llama-server` documentation](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
 - [llama.cpp](https://github.com/ggml-org/llama.cpp)
