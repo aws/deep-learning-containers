@@ -28,7 +28,7 @@ one such as `Q8_0` or `F16` keeps more of the original quality but needs more RA
 | --- | --- | --- |
 | x86 CPU | `llama-cpp:server-cpu-v1` | Runs on any modern x86 instance and picks the best microarchitecture backend at runtime |
 | x86 GPU (CUDA) | `llama-cpp:server-cuda-v1` | Needs an NVIDIA GPU — offload layers with `--n-gpu-layers` (see [Configuration](../configuration.md)) |
-| Graviton (ARM64) CPU | `llama-cpp-arm64:server-cpu-v1` | Runs on AWS Graviton3 and newer (Graviton3/4/5), tuned for Neoverse-V1. `--n-gpu-layers` does not apply here |
+| Graviton (ARM64) CPU | `llama-cpp-arm64:server-cpu-v1` | Built for the Graviton3 (Neoverse-V1) baseline and forward-compatible with newer Graviton generations. `--n-gpu-layers` does not apply here |
 
 The `-sagemaker-` tags are the {{ sagemaker }} counterparts of the same three targets.
 
