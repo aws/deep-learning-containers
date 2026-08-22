@@ -1,5 +1,5 @@
 image:
-  name: "tensorflow-2.21-sagemaker-cuda"
+  name: "tensorflow-2.21-training-sagemaker-cuda"
   description: "TensorFlow 2.21 CUDA training for SageMaker"
 
 metadata:

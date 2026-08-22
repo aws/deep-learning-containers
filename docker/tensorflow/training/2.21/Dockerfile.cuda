@@ -2,7 +2,7 @@
 # TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CUDA 12.9.1)
 # Multi-stage: builder-base → builder-oss → runtime-base → sagemaker
 # Build args are passed by the build-image action from the image config's
-# build: block (.github/config/image/tensorflow/2.21-sagemaker-cuda.yml).
+# build: block (.github/config/image/tensorflow/2.21-training-sagemaker-cuda.yml).
 # ============================================================================
 
 ARG DLC_MAJOR_VERSION=1

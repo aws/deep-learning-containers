@@ -1,5 +1,5 @@
 image:
-  name: "tensorflow-2.21-sagemaker-cpu"
+  name: "tensorflow-2.21-training-sagemaker-cpu"
   description: "TensorFlow 2.21 CPU training for SageMaker"
 
 metadata:
