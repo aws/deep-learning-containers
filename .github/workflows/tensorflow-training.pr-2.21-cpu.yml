@@ -13,7 +13,12 @@ on:
       - "docker/tensorflow/training/2.21/Dockerfile.cpu"
       - "docker/tensorflow/training/2.21/cpu/**"
       - "scripts/docker/common/**"
-      - "scripts/docker/tensorflow/training/**"
+      # Broad on purpose: the whole tensorflow subtree triggers this workflow so a
+      # newly-added script can never merge with no TF CI. The per-family narrowing
+      # lives in build-change below, which is what gates the expensive build.
+      # Shared TF scripts belong in scripts/docker/common/**, not at the
+      # scripts/docker/tensorflow/ root.
+      - "scripts/docker/tensorflow/**"
       - "scripts/docker/telemetry/**"
       - "test/tensorflow/integration/training/**"
       - "test/tensorflow/unit/**"
