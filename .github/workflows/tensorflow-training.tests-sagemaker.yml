@@ -1,4 +1,4 @@
-name: Reusable TensorFlow SageMaker Tests
+name: Reusable TensorFlow Training SageMaker Tests
 
 on:
   workflow_call:
@@ -70,7 +70,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install -r test/requirements.txt -r test/tensorflow/integration/sagemaker/requirements.txt
+          pip install -r test/requirements.txt -r test/tensorflow/integration/training/requirements.txt
 
       - name: Run SageMaker training tests
         env:
@@ -78,13 +78,13 @@ jobs:
           SM_ROLE_ARN: arn:aws:iam::${{ needs.preflight.outputs.aws-account-id }}:role/SageMakerRole
         run: |
           if [ "${{ needs.preflight.outputs.device-type }}" = "gpu" ]; then
-            pytest test/tensorflow/integration/sagemaker/test_mnist_cuda.py -v \
+            pytest test/tensorflow/integration/training/test_mnist_cuda.py -v \
               --image-uri "${{ needs.preflight.outputs.image-uri }}"
           else
             pytest \
-              test/tensorflow/integration/sagemaker/test_mnist_cpu.py \
-              test/tensorflow/integration/sagemaker/test_experiments_cpu.py \
-              test/tensorflow/integration/sagemaker/test_tuning_cpu.py \
+              test/tensorflow/integration/training/test_mnist_cpu.py \
+              test/tensorflow/integration/training/test_experiments_cpu.py \
+              test/tensorflow/integration/training/test_tuning_cpu.py \
               -v \
               --image-uri "${{ needs.preflight.outputs.image-uri }}"
           fi
