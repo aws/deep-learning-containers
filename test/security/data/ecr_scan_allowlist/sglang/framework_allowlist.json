@@ -63,5 +63,15 @@
         "vulnerability_id": "GHSA-36hh-v3qg-5jq4",
         "reason": "pyo3 0.23.5 in upstream sglang sglang-grpc Cargo.lock, cannot patch without upstream sglang rebuild",
         "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "CVE-2025-3538",
+        "reason": "github.com/golang/protobuf embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
+        "review_by": "2026-09-10"
+    },
+    {
+        "vulnerability_id": "GHSA-jg38-cpq8-9gfr",
+        "reason": "onnx embedded in upstream sglang base image, not exploitable in inference serving context",
+        "review_by": "2026-09-10"
     }
 ]
