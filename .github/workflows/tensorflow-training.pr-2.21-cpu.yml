@@ -5,17 +5,22 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/tensorflow/2.21-*-cpu.yml"
+      - ".github/config/image/tensorflow/2.21-training-*-cpu.yml"
       - ".github/workflows/tensorflow-training.pipeline.yml"
       - ".github/workflows/tensorflow-training.pr-2.21-cpu.yml"
       - ".github/workflows/tensorflow-training.tests-sagemaker.yml"
       - ".github/workflows/tensorflow-training.tests-unit.yml"
-      - "docker/tensorflow/2.21/Dockerfile.cpu"
-      - "docker/tensorflow/2.21/cpu/**"
+      - "docker/tensorflow/training/2.21/Dockerfile.cpu"
+      - "docker/tensorflow/training/2.21/cpu/**"
       - "scripts/docker/common/**"
+      # Broad on purpose: the whole tensorflow subtree triggers this workflow so a
+      # newly-added script can never merge with no TF CI. The per-family narrowing
+      # lives in build-change below, which is what gates the expensive build.
+      # Shared TF scripts belong in scripts/docker/common/**, not at the
+      # scripts/docker/tensorflow/ root.
       - "scripts/docker/tensorflow/**"
       - "scripts/docker/telemetry/**"
-      - "test/tensorflow/integration/sagemaker/**"
+      - "test/tensorflow/integration/training/**"
       - "test/tensorflow/unit/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/tensorflow/**"
@@ -52,14 +57,14 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/tensorflow/2.21-*-cpu.yml"
-              - "docker/tensorflow/2.21/Dockerfile.cpu"
-              - "docker/tensorflow/2.21/cpu/**"
+              - ".github/config/image/tensorflow/2.21-training-*-cpu.yml"
+              - "docker/tensorflow/training/2.21/Dockerfile.cpu"
+              - "docker/tensorflow/training/2.21/cpu/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/tensorflow/**"
+              - "scripts/docker/tensorflow/training/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
             sagemaker-test-change:
-              - "test/tensorflow/integration/sagemaker/**"
+              - "test/tensorflow/integration/training/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -78,7 +83,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/tensorflow/2.21-*-cpu.yml"
+          pattern: ".github/config/image/tensorflow/2.21-training-*-cpu.yml"
 
   pipeline:
     needs: [check-changes, discover]
