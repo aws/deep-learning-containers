@@ -36,22 +36,22 @@ RUN pip install \
 
 # patch CVEs
 RUN pip install \
-  "aiohttp>=3.11.18" \
-  "black>=25.1.0" \
-  "certifi>=2025.1.31" \
-  "diffusers>=0.32.2" \
-  "lxml>=5.3.2" \
-  "pillow>=11.2.1" \
-  "pyasn1>=0.6.1" \
-  "python_multipart>=0.0.20" \
+  "aiohttp>=3.14.0" \
+  "black>=26.3.1" \
+  "certifi>=2025.6.15" \
+  "diffusers>=0.38.0" \
+  "lxml>=6.1.0" \
+  "pillow>=12.1.1" \
+  "pyasn1>=0.6.3" \
+  "python_multipart>=0.0.22" \
   "requests>=2.32.4" \
   "setuptools>=78.1.1" \
-  "starlette>=0.46.2" \
+  "starlette>=1.3.1" \
   "tornado>=6.5.1" \
   "transformers>=4.52.4" \
   "urllib3>=2.4.0" \
   "xgrammar>=0.1.32" \
-  "zipp>=3.21.0"
+  "zipp>=3.22.0"
 
 # Copy artifacts
 # ===============
