@@ -115,6 +115,14 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             timeout=DEFAULT_TIMEOUT,
         )
 
+        _step(
+            "nccl_broadcast",
+            MASTER_CONTAINER_NAME,
+            master_conn,
+            f"/test/efa/scripts/nccl_broadcast.sh {HOSTS_FILE_LOCATION} 2",
+            timeout=DEFAULT_TIMEOUT,
+        )
+
         if not RUN_NIXL_TESTS:
             return
 
