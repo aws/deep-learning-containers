@@ -1,3 +1,4 @@
+# no-op: verify the vllm/sagemaker test-skip cache (record + hit) against the prod image
 """Integration test for serving endpoint with vLLM DLC — SageMaker SDK v3"""
 
 import json
