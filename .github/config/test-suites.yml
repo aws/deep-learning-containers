@@ -136,3 +136,8 @@ suites:
     skip_eligible: true
     code_paths:
       - test/xgboost/benchmarks/**
+
+  tensorflow-inference/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/integration/inference/**
