@@ -1,3 +1,4 @@
+# no-op: verify the tei/sagemaker test-skip cache (record + hit) against the prod image
 import argparse
 import json
 import logging
