@@ -1,3 +1,4 @@
+# no-op: verify the openfold3/sagemaker test-skip cache (record + hit) against the prod image
 """OpenFold3 SageMaker async-inference integration tests.
 
 Uses the SageMaker Python SDK v3. Launches a real async inference endpoint and
