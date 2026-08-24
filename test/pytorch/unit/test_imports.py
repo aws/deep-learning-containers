@@ -1,3 +1,4 @@
+# no-op: verify the pytorch/unit test-skip cache (record + hit) against the prod image
 """Verify key Python packages import successfully."""
 
 import importlib
