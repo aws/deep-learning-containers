@@ -46,15 +46,15 @@ workload, and the model server does not need the Python framework to load a Save
 | Port | Purpose |
 | --- | --- |
 | 8080 | nginx — {{ sm_short }} `POST /invocations` and `GET /ping` |
-| 8501 | TensorFlow Serving REST API (container-local) |
-| assigned at start | TensorFlow Serving gRPC API (container-local) |
+| 8501 by default | TensorFlow Serving REST API (container-local) |
+| 9000 by default | TensorFlow Serving gRPC API (container-local) |
 
 On {{ sagemaker }} only the HTTP port is reachable. The image declares the `com.amazonaws.sagemaker.capabilities.accept-bind-to-port` capability, so
 {{ sm_short }} may assign a different HTTP port via `SAGEMAKER_BIND_TO_PORT` — for example when the container runs behind an inference pipeline.
 
-The TensorFlow Serving ports are chosen when the container starts, so do not hardcode them. A single-model container uses gRPC 9000 and REST 8501.
-When several model server processes run — multi-model endpoints, or `SAGEMAKER_TFS_INSTANCE_COUNT` greater than one — non-overlapping gRPC and REST
-port pairs are allocated from the range {{ sm_short }} supplies in `SAGEMAKER_SAFE_PORT_RANGE`. An `inference.py` handler should always read
+The TensorFlow Serving ports are chosen when the container starts, so do not hardcode them. When {{ sm_short }} supplies a `SAGEMAKER_SAFE_PORT_RANGE`
+— for example behind an inference pipeline — non-overlapping gRPC and REST port pairs are allocated from that range, one pair per
+`SAGEMAKER_TFS_INSTANCE_COUNT`. Otherwise the defaults gRPC 9000 and REST 8501 are used. An `inference.py` handler should always read
 `context.grpc_port` and `context.rest_uri` rather than assuming a fixed port.
 
 ## Multi-Model Endpoints
@@ -74,6 +74,7 @@ The GPU image entrypoint detects host NVIDIA driver versions older than the bund
 These images are curated builds tracking the [TensorFlow Serving](https://github.com/tensorflow/serving) project:
 
 - **Built from the upstream TensorFlow Serving release** — the model server binary is taken from the official `tensorflow/serving:2.20.0-devel` image
+  (`2.20.0-devel-gpu` for the GPU variant)
 - **Reproducible** — Python dependencies pinned via `pyproject.toml` + `uv.lock` for every image variant
 - **Security-patched** — continuously maintained with security patches from {{ aws }} on an Amazon Linux 2023 base
 

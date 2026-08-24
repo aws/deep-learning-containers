@@ -122,18 +122,18 @@ model.delete()
 
 ## Request Formats
 
-All traffic reaches the container as `POST /invocations` on port 8080. When no `inference.py` is supplied, the default handler forwards the request
-body to the TensorFlow Serving REST API and returns its response unchanged, so the payload is the standard `predict` body (`instances` for row format,
-`inputs` for columnar format).
+All traffic reaches the container as `POST /invocations` on port 8080. When no `inference.py` is supplied, the request is forwarded to the TensorFlow
+Serving REST API by nginx. A body that is already a `predict` request (`instances` for row format, `inputs` for columnar format) is passed through as
+is; a bare payload is wrapped into an `instances` request first, as shown below.
 
 The default handler accepts these content types:
 
 | `Content-Type` | Notes |
 | --- | --- |
-| `application/json` | TensorFlow Serving `predict` request body |
-| `application/jsons` | Concatenated JSON objects |
-| `application/jsonlines` | One JSON object per line |
-| `text/csv` | Converted to a TensorFlow Serving `instances` payload |
+| `application/json` | TensorFlow Serving `predict` request body, or a bare payload that is wrapped into an `instances` request |
+| `application/jsons` | Concatenated JSON objects, combined into an `instances` request |
+| `application/jsonlines` | One JSON object per line, combined into an `instances` request |
+| `text/csv` | Rows converted to an `instances` request |
 
 Any other content type is rejected unless your `inference.py` declares an `input_handler` that can parse it.
 
@@ -213,14 +213,18 @@ The container is tuned through environment variables passed in the model's `Envi
 | `SAGEMAKER_TFS_INTRA_OP_PARALLELISM` | TensorFlow intra-op thread pool size |
 | `SAGEMAKER_TFS_INTER_OP_PARALLELISM` | TensorFlow inter-op thread pool size |
 | `SAGEMAKER_TFS_INSTANCE_COUNT` | Number of `tensorflow_model_server` processes to run |
+| `SAGEMAKER_TFS_WAIT_TIME_SECONDS` | How long to wait for TensorFlow Serving to become ready before giving up |
 | `SAGEMAKER_TFS_FRACTIONAL_GPU_MEM_MARGIN` | GPU memory margin when running several model server processes on one GPU |
 | `SAGEMAKER_GUNICORN_WORKERS` | Worker count for the Python handler |
 | `SAGEMAKER_GUNICORN_THREADS` | Threads per handler worker |
+| `SAGEMAKER_GUNICORN_WORKER_CLASS` | Worker class for the Python handler (defaults to `gevent`) |
 | `SAGEMAKER_GUNICORN_TIMEOUT_SECONDS` | Handler worker timeout |
 | `SAGEMAKER_NGINX_PROXY_READ_TIMEOUT_SECONDS` | nginx read timeout for upstream responses |
 | `SAGEMAKER_TFS_NGINX_LOGLEVEL` | nginx error log level |
 | `SAGEMAKER_GUNICORN_LOGLEVEL` | Handler log level |
 | `SAGEMAKER_MULTI_MODEL` | Enable multi-model endpoint mode |
+| `SAGEMAKER_MULTI_MODEL_UNIVERSAL_BUCKET` | S3 bucket to download `code/` from when it is not part of the model artifact — set together with the prefix below |
+| `SAGEMAKER_MULTI_MODEL_UNIVERSAL_PREFIX` | S3 prefix for the above; setting both also enables the Python handler |
 | `SAGEMAKER_BIND_TO_PORT` | HTTP port to bind, set by {{ sm_short }} when it does not use 8080 |
 | `SAGEMAKER_BATCH` | Set by {{ sm_short }} for batch transform jobs |
 | `OMP_NUM_THREADS` | OpenMP thread count for the model server |
@@ -240,9 +244,9 @@ Batching is off by default. Turning it on trades latency for throughput and is m
 ## Notes
 
 - The image serves {{ sm_short }} traffic on port 8080 via nginx. TensorFlow Serving's own gRPC and REST ports are container-local and are not
-  reachable through a {{ sm_short }} endpoint. They are also assigned at container start — a single-model container uses gRPC 9000 and REST 8501,
-  while multi-model endpoints and `SAGEMAKER_TFS_INSTANCE_COUNT` greater than one allocate port pairs from `SAGEMAKER_SAFE_PORT_RANGE`. Read
-  `context.grpc_port` and `context.rest_uri` in your handler instead of hardcoding a port.
+  reachable through a {{ sm_short }} endpoint. They are also assigned at container start — when {{ sm_short }} supplies `SAGEMAKER_SAFE_PORT_RANGE`,
+  one non-overlapping gRPC/REST pair per `SAGEMAKER_TFS_INSTANCE_COUNT` is allocated from that range; otherwise the defaults gRPC 9000 and REST 8501
+  are used. Read `context.grpc_port` and `context.rest_uri` in your handler instead of hardcoding a port.
 - If your `inference.py` needs the `tensorflow` Python package (e.g. to build `tf.Example` protos), add it to `code/requirements.txt`. The framework
   wheel is deliberately not preinstalled; only the TensorFlow Serving gRPC stubs are (`tensorflow-serving-api-gpu` in the GPU image,
   `tensorflow-serving-api` in the CPU image).
