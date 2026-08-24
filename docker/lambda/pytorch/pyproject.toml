@@ -32,6 +32,8 @@ dependencies = [
 ]
 
 [tool.uv]
+# hydra-core is pulled transitively by sam-2; floor it to the CVE-2026-68508 fix.
+constraint-dependencies = ["hydra-core>=1.3.4"]
 
 [[tool.uv.index]]
 name = "pytorch-cu130"
