@@ -22,7 +22,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/tensorflow/2.21-sagemaker-*.yml"
+          pattern: ".github/config/image/tensorflow/2.21-training-sagemaker-*.yml"
 
   pipeline:
     needs: [discover]
