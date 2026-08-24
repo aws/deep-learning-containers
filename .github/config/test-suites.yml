@@ -132,12 +132,14 @@ suites:
     code_paths:
       - test/xgboost/e2e/**
       - test/xgboost/conftest.py  # added for --xgboost-version + fixtures
+      - test/xgboost/requirements.txt  # sagemaker client pin
 
   xgboost/benchmarks:
     skip_eligible: true
     code_paths:
       - test/xgboost/benchmarks/**
       - test/xgboost/conftest.py  # added for --xgboost-version
+      - test/xgboost/requirements.txt  # sagemaker client pin
 
   xgboost/longevity:
     skip_eligible: true
