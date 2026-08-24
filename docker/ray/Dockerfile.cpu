@@ -1,3 +1,4 @@
+# no-op: trigger a ray CPU build to verify the ray/unit + ray/ffmpeg test-skip cache (record + hit)
 # Multi-stage build for PyTorch Ray inference container (SageMaker + EC2)
 # CPU variant - Amazon Linux 2023 base
 
