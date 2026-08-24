@@ -87,10 +87,6 @@ plugins:
   - awesome-nav                                                   # .nav.yml file support
   - macros:                                                       # Variable substitution in markdown
       module_name: docs/src/macros
-  - redirects:                                                    # Preserve URLs for pages that have moved
-      redirect_maps:
-        tensorflow/deployment/sagemaker.md: tensorflow/training/deployment/sagemaker.md
-        tensorflow/changelog/index.md: tensorflow/training/changelog/index.md
 
 # === Custom Assets ===
 extra_css:
