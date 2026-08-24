@@ -1,3 +1,4 @@
+# no-op: trigger a base cu130 build to verify the telemetry test-skip cache (record + hit)
 ARG CUDA_VERSION=13.0.2
 # Short CUDA tag — also the docker/base/<dir> name (cu129, cu130, ...)
 ARG CUDA_VERSION_SHORT=cu130
