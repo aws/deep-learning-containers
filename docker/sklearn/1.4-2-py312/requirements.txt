@@ -23,7 +23,7 @@ sagemaker-inference==1.2.0
 sagemaker-training==4.8.0
 scikit-learn==1.4.2
 scipy>=1.9.0
-setuptools==80.9.0
+setuptools==83.0.0
 six==1.16.0
 urllib3==1.26.17
 Werkzeug==2.0.3
