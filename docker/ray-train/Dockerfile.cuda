@@ -197,7 +197,7 @@ ARG FRAMEWORK_VERSION
 # Telemetry
 COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-ARG FRAMEWORK="ray"
+ARG FRAMEWORK="ray_train"
 ARG CONTAINER_TYPE="training"
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
