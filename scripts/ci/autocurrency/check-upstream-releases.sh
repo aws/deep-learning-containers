@@ -204,6 +204,27 @@ for framework in ${FRAMEWORKS}; do
     echo "${framework}: New version detected! ${current_version} -> ${latest_version}"
 
     # -----------------------------------------------------------------
+    # Optional: wait for the base image to be published first.
+    # Frameworks layered on another DLC (e.g. huggingface-vllm on the AWS
+    # vLLM image) must not open an auto-update PR before the base exists —
+    # its CI build would fail until then. Skip quietly and retry on the
+    # next scheduled run.
+    # -----------------------------------------------------------------
+    wait_for_base=$(yq eval ".frameworks.${framework}.wait_for_base_image // false" "${TRACKER_FILE}")
+    if [[ "${wait_for_base}" == "true" ]]; then
+      base_template=$(yq eval ".frameworks.${framework}.config_files[0].base_image_template // \"\"" "${TRACKER_FILE}")
+      if [[ -n "${base_template}" && "${base_template}" != "null" ]]; then
+        base_image="${base_template//\{version\}/${latest_version}}"
+        echo "${framework}: wait_for_base_image — checking ${base_image}"
+        if ! base_image_exists "${base_image}"; then
+          echo "${framework}: Base image not available yet. Skipping; will retry on the next run."
+          exit 0
+        fi
+        echo "${framework}: Base image is available."
+      fi
+    fi
+
+    # -----------------------------------------------------------------
     # Check if branch already exists (idempotency guard)
     # -----------------------------------------------------------------
     branch_name="auto-update/${framework}-${latest_version}"

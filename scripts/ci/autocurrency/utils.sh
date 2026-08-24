@@ -291,3 +291,52 @@ send_release_notification() {
     return 1
   fi
 }
+
+###############################################################################
+# base_image_exists(image_ref)
+#   Checks whether a container image exists in its registry, without pulling.
+#   Supports public.ecr.aws/<repo>:<tag> via the anonymous token API.
+#
+#   Exit codes: 0 = exists, 1 = definitively absent (HTTP 404).
+#   Any lookup error (network, token, unexpected status) logs a warning and
+#   returns 0 — the gate fails open so a transient error never blocks an
+#   auto-update; only a clean 404 means "not published yet".
+#
+#   Usage: base_image_exists "public.ecr.aws/deep-learning-containers/vllm:0.27.1-gpu-py312"
+###############################################################################
+base_image_exists() {
+  local image="${1:?Usage: base_image_exists IMAGE_REF}"
+
+  case "${image}" in
+    public.ecr.aws/*)
+      local repo_tag="${image#public.ecr.aws/}"
+      local repo="${repo_tag%%:*}"
+      local tag="${repo_tag#*:}"
+
+      local token
+      token=$(curl -sf --max-time 10 "https://public.ecr.aws/token/" | jq -r '.token') || {
+        echo "Warning: could not fetch public.ecr.aws token; assuming ${image} exists" >&2
+        return 0
+      }
+
+      local http_code
+      http_code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 \
+        -H "Authorization: Bearer ${token}" \
+        -H "Accept: application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json" \
+        "https://public.ecr.aws/v2/${repo}/manifests/${tag}")
+
+      case "${http_code}" in
+        200) return 0 ;;
+        404) return 1 ;;
+        *)
+          echo "Warning: existence check for ${image} returned HTTP ${http_code}; assuming it exists" >&2
+          return 0
+          ;;
+      esac
+      ;;
+    *)
+      echo "Warning: base_image_exists does not know how to check '${image}'; assuming it exists" >&2
+      return 0
+      ;;
+  esac
+}
