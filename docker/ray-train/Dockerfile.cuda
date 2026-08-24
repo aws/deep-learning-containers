@@ -1,3 +1,4 @@
+# no-op: trigger a ray-train build to verify the efa test-skip cache (record + hit)
 # ============================================================================
 # RayTrain DLC — Amazon Linux 2023 (CUDA 13.0), multi-node distributed training
 #

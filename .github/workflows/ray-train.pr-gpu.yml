@@ -100,8 +100,8 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
-      run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
+      run-single-gpu-test: false  # test PR: disabled to keep the run efa-focused
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
-      run-eks-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.eks-test-change == 'true' }}
+      run-eks-test: false  # test PR: disabled to avoid unrelated 8-GPU eks cost
       release: false
     secrets: inherit
