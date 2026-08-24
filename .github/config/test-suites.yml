@@ -131,8 +131,17 @@ suites:
     skip_eligible: true
     code_paths:
       - test/xgboost/e2e/**
+      - test/xgboost/conftest.py  # added for --xgboost-version + fixtures
 
   xgboost/benchmarks:
     skip_eligible: true
     code_paths:
       - test/xgboost/benchmarks/**
+      - test/xgboost/conftest.py  # added for --xgboost-version
+
+  xgboost/longevity:
+    skip_eligible: true
+    code_paths:
+      - test/xgboost/container/test_longevity.py
+      - test/xgboost/container/container_helper.py
+      - test/xgboost/container/conftest.py
