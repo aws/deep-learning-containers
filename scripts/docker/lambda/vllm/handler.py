@@ -65,7 +65,6 @@ def _start_server():
     ]
     if _MAX_MODEL_LEN:
         cmd += ["--max-model-len", _MAX_MODEL_LEN]
-    # Detached from the handler's request loop; inherits the container env.
     subprocess.Popen(cmd)
 
     deadline = time.monotonic() + _TIMEOUT
@@ -79,17 +78,18 @@ def _start_server():
     raise RuntimeError(f"vLLM server did not become ready within {_TIMEOUT}s")
 
 
-# Start the shared server in the mode-appropriate place. In process/hybrid the RIC
-# runs @register_pre_fork once in the parent before workers spawn; in thread mode
-# (and standard on-demand) pre_fork does not run, so we start at module level.
 _mode = os.environ.get("AWS_LAMBDA_CONCURRENCY_MODE", "process")
 _multi = bool(os.environ.get("AWS_LAMBDA_MAX_CONCURRENCY"))
 
-if _multi and _mode in ("process", "hybrid"):
-    from awslambdaric.lambda_concurrency_hooks import register_pre_fork
+try:
+    if _multi and _mode in ("process", "hybrid"):
+        # lambda_concurrency_hooks ships only in the preview RIC.
+        from awslambdaric.lambda_concurrency_hooks import register_pre_fork
 
-    register_pre_fork(_start_server)
-else:
+        register_pre_fork(_start_server)
+    else:
+        _start_server()
+except ImportError:
     _start_server()
 
 
