@@ -1,3 +1,4 @@
+# no-op: trigger sklearn build to validate test-skip cache (record + hit)
 # ============================================================================
 # Scikit-learn DLC — Amazon Linux 2023 / Python 3.12 (CPU)
 # Multi-stage build:
