@@ -115,12 +115,18 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             timeout=DEFAULT_TIMEOUT,
         )
 
-        _step(
+        # nccl_broadcast.sh always exits 0 and prints a PASS/FAIL marker, so the
+        # full mpirun output above is preserved (not truncated by pytest's
+        # exception formatting). Assert on the marker here.
+        bcast = _step(
             "nccl_broadcast",
             MASTER_CONTAINER_NAME,
             master_conn,
             f"/test/efa/scripts/nccl_broadcast.sh {HOSTS_FILE_LOCATION} 2",
             timeout=DEFAULT_TIMEOUT,
+        )
+        assert "NCCL_BROADCAST_RESULT: PASS" in bcast.stdout, (
+            "nccl_broadcast did not pass — see the broadcast output above for the failing rank"
         )
 
         if not RUN_NIXL_TESTS:
