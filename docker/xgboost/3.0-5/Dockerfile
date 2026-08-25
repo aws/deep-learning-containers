@@ -1,3 +1,4 @@
+# no-op: trigger xgboost build to validate test-skip cache (record + hit)
 # ============================================================================
 # XGBoost DLC — Ubuntu 20.04 / Python 3.10 (CUDA 12.6)
 # Multi-stage build:
