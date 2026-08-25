@@ -21,13 +21,19 @@ fi
 mkdir -p /test/efa/logs
 BROADCAST_LOG="/test/efa/logs/nccl_broadcast.log"
 
+echo "==== python3 smoke check ===="
+python3 -c "import torch; print(torch.__version__, torch.cuda.is_available(), torch.cuda.device_count())"
+echo "==== end smoke check ===="
+
 echo "Running NCCL broadcast test across $NUM_HOSTS nodes ($WORLD_SIZE ranks total)"
 
 set +e
 timeout "$TIMEOUT_S" mpirun \
     -x FI_PROVIDER=efa -x FI_EFA_FORK_SAFE=1 -x RDMAV_FORK_SAFE=1 \
     -x NCCL_DEBUG=INFO -x MASTER_ADDR="$MASTER_ADDR" -x MASTER_PORT=29500 \
-    -x PATH -x LD_LIBRARY_PATH \
+    -x PYTHONUNBUFFERED=1 \
+    -x PATH -x LD_LIBRARY_PATH="${CUDA_HOME}/lib:${CUDA_HOME}/lib64:${LD_LIBRARY_PATH:-}" \
+    -x NCCL_SOCKET_IFNAME=^lo \
     -n "$WORLD_SIZE" -N "$NPROC_PER_NODE" --hostfile "$NUM_HOSTS_FILE" \
     --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
     python3 -u /test/efa/scripts/nccl_broadcast.py 2>&1 | tee "$BROADCAST_LOG"
