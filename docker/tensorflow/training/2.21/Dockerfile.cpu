@@ -1,3 +1,4 @@
+# no-op: trigger tensorflow-training CPU build to validate test-skip cache (record + hit)
 # ============================================================================
 # TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CPU)
 # Multi-stage: builder-base → builder-oss → runtime-base → sagemaker
