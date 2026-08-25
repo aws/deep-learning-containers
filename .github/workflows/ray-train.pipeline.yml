@@ -105,7 +105,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity", "ray-train/unit", "ray-train/single_gpu", "ray-train/eks"]'
+      suites: '["sanity", "telemetry", "ray-train/unit", "ray-train/single_gpu", "ray-train/eks"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -132,8 +132,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-telemetry-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -141,6 +141,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   unit-test:
     if: >-
