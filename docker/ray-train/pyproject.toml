@@ -24,6 +24,8 @@ dependencies = [
     "boto3>=1.35.0",
     "awscli>=1.35.0",
     "pip>=25.0",
+    # CVE-2026-69244 floor; ray[default] would otherwise resolve aiohttp 3.14.1.
+    "aiohttp>=3.14.3",
     # TODO(ray-train): evaluate adding peft/trl for LoRA / RLHF fine-tuning use
     # cases (larger image + CVE surface — deferred from v1).
     # NOTE: torchaudio is intentionally omitted — no cu130 wheel past 2.11.0, and
