@@ -85,31 +85,38 @@ jobs:
           model-name: ${{ matrix.name }}
 
       - name: Start container
+        env:
+          IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
+          DOCKER_GPUS: ${{ matrix.docker_gpus }}
         run: |
-          docker pull ${{ needs.preflight.outputs.image-uri }}
+          docker pull "${IMAGE_URI}"
           # GPU entries set docker_gpus=all for CUDA; CPU entries leave it empty.
           GPUS_FLAG=""
-          if [ -n "${{ matrix.docker_gpus }}" ]; then
-            GPUS_FLAG="--gpus ${{ matrix.docker_gpus }}"
+          if [ -n "${DOCKER_GPUS}" ]; then
+            GPUS_FLAG="--gpus ${DOCKER_GPUS}"
           fi
           CONTAINER_ID=$(docker run -d -it ${GPUS_FLAG} --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
             -v /dlc-models:/models \
-            ${{ needs.preflight.outputs.image-uri }})
+            "${IMAGE_URI}")
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Copy test script into container
+        env:
+          TEST_SCRIPT: ${{ matrix.test_script || 'llama_cpp_model_smoke_test.sh' }}
         run: |
-          TEST_SCRIPT="${{ matrix.test_script || 'llama_cpp_model_smoke_test.sh' }}"
-          docker cp "test/llama_cpp/scripts/${TEST_SCRIPT}" ${CONTAINER_ID}:/models/
+          docker cp "test/llama_cpp/scripts/${TEST_SCRIPT}" "${CONTAINER_ID}:/models/"
 
       - name: Run model smoke test
+        env:
+          TEST_SCRIPT: ${{ matrix.test_script || 'llama_cpp_model_smoke_test.sh' }}
+          MODEL_NAME: ${{ matrix.name }}
+          EXTRA_ARGS: ${{ matrix.extra_args }}
         run: |
-          TEST_SCRIPT="${{ matrix.test_script || 'llama_cpp_model_smoke_test.sh' }}"
-          docker exec ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
-            "/models/${{ matrix.name }}" \
-            "${{ matrix.name }}" \
-            ${{ matrix.extra_args }}
+          docker exec "${CONTAINER_ID}" bash "/models/${TEST_SCRIPT}" \
+            "/models/${MODEL_NAME}" \
+            "${MODEL_NAME}" \
+            ${EXTRA_ARGS}
 
       - name: Cleanup
         if: always()

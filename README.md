@@ -9,7 +9,7 @@
 
 <p align="center">
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.13-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.13-ec2.yml/badge.svg" alt="Auto Release - PyTorch 2.13"></a>
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow.autorelease-2.21-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow.autorelease-2.21-sagemaker.yml/badge.svg" alt="Auto Release - TensorFlow 2.21"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow-training.autorelease-2.21-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow-training.autorelease-2.21-sagemaker.yml/badge.svg" alt="Auto Release - TensorFlow 2.21"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - vLLM"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm-omni.autorelease-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm-omni.autorelease-ec2.yml/badge.svg" alt="Auto Release - vLLM-Omni"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/sglang.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - SGLang"></a>
@@ -30,6 +30,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/08/21]** [llama.cpp v1.0 (b10433, AL2023)](https://gallery.ecr.aws/deep-learning-containers/llama-cpp) — EC2: `server-cpu-v1` · `server-cuda-v1` · Graviton: `llama-cpp-arm64:server-cpu-v1` · SageMaker: `server-sagemaker-cpu-v1` · `server-sagemaker-cuda-v1` · `llama-cpp-arm64:server-sagemaker-cpu-v1` · Initial release: serve quantized GGUF models with the upstream `llama-server` OpenAI-compatible API on x86 CPU, NVIDIA GPU (CUDA 13.0.2), and AWS Graviton (ARM64); Python 3.12.
 - **[2026/08/17]** [SGLang Server v1.3 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.3` · SageMaker: `server-sagemaker-cuda-v1.3` · SGLang `0.5.17` (up from 0.5.14); Kimi-K3 (2.8T MoE, MXFP4) support; sgl-kernel 0.4.5, FlashInfer 0.6.15.post1, Mooncake 0.3.12.post1.
 - **[2026/08/17]** [vLLM Server v2.3 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.3` · SageMaker: `server-sagemaker-cuda-v2.3` · vLLM `0.27.0` (up from 0.26.0); Kimi K3 (native support + kernels, Rust/Python frontends); FlashInfer 0.6.16.post3; NVIDIA B300 (SM103); new models K-EXAONE-2.0-750B-A37B, jina-embeddings-v5-text-nano, Qwen3.5; dynamic FP8 for Inkling; Baidu Unlimited-OCR smoke test.
 - **[2026/08/14]** [vLLM v0.27.1 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.27.1-gpu-py312-ec2` · SageMaker: `0.27.1-gpu-py312` · Kimi K3, Qwen3.5 dense + MoE (EVS video token pruning), K-EXAONE-2.0-750B-A37B, VaultGemma, jina-embeddings-v5-text-nano.

@@ -1,0 +1,5 @@
+boto3
+pytest
+pytest-xdist
+sagemaker>=3.0.0
+tensorflow==2.21.*

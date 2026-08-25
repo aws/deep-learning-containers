@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -182,15 +192,27 @@ jobs:
       - name: Run training image sanity checks
         if: |
           needs.preflight.outputs.framework == 'pytorch_runtime' ||
-          needs.preflight.outputs.framework == 'tensorflow' ||
+          (needs.preflight.outputs.framework == 'tensorflow' && needs.preflight.outputs.job-type == 'training') ||
           needs.preflight.outputs.framework == 'xgboost' ||
-          (needs.preflight.outputs.framework == 'ray' && needs.preflight.outputs.job-type == 'training')
+          needs.preflight.outputs.framework == 'ray_train'
         run: |
           docker exec \
             -e EXPECTED_FRAMEWORK=${{ needs.preflight.outputs.framework }} \
             -e EXPECTED_DEVICE=${{ needs.preflight.outputs.device-type }} \
             -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
             ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_training.py
+
+      - name: Run TF inference image sanity checks
+        if: |
+          needs.preflight.outputs.framework == 'tensorflow' &&
+          needs.preflight.outputs.job-type == 'inference'
+        run: |
+          docker exec \
+            -e EXPECTED_FRAMEWORK=${{ needs.preflight.outputs.framework }} \
+            -e EXPECTED_DEVICE=${{ needs.preflight.outputs.device-type }} \
+            -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
+            -e EXPECTED_TFS_VERSION=${{ needs.preflight.outputs.framework-version }} \
+            ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_tf_inference.py
 
       # TEI opts out: no Python in the container (upstream is a Rust-only image),
       # and the S3-hosted generate_oss_compliance.sh script only handles Ubuntu / AL,
@@ -297,3 +319,23 @@ jobs:
           needs.preflight.outputs.nccl-version != ''
         run: |
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/nccl_single_node_test.sh
+
+  # Record a PASS row in the ci-images-table if the test passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          needs.sanity-test.result == 'success' }}
+    needs: [sanity-test, sanity-sagemaker, sanity-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: sanity
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

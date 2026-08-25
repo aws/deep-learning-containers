@@ -78,6 +78,8 @@ display_names:
     vllm-arm64: "vLLM ARM64"
     vllm-omni: "vLLM-Omni"
     whisperx: "WhisperX"
+    llama-cpp: "llama.cpp"
+    llama-cpp-arm64: "llama.cpp ARM64"
     pytorch-training: "PyTorch Training"
     pytorch-training-arm64: "PyTorch Training ARM64"
     pytorch-inference: "PyTorch Inference"
@@ -177,6 +179,9 @@ framework_groups:
   vllm:
     - vllm
     - vllm-arm64
+  llama-cpp:
+    - llama-cpp
+    - llama-cpp-arm64
 
 # =============================================================================
 # Table Order
@@ -195,6 +200,8 @@ table_order:
   - vllm-arm64
   - vllm-omni
   - whisperx
+  - llama-cpp
+  - llama-cpp-arm64
   - pytorch
   - pytorch-training
   - pytorch-inference

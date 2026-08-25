@@ -1,0 +1,99 @@
+name: "Ray LLM - EC2 Single-GPU Integration Tests"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+env:
+  MODEL_NAME: "ministral-8b"
+  MODEL_S3_PATH: "s3://dlc-cicd-models/ray-llm/ministral-8b.tar.gz"
+
+jobs:
+  preflight:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+      image-exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+  ec2-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Download model
+        id: model
+        uses: ./.github/actions/download-model
+        with:
+          s3-path: ${{ env.MODEL_S3_PATH }}
+          model-name: ${{ env.MODEL_NAME }}
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/ray-llm/ec2/requirements.txt
+
+      - name: Run EC2 GPU integration test
+        env:
+          MODEL_DIR: ${{ steps.model.outputs.model-dir }}
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -v --tb=short -rA --log-cli-level=INFO \
+            --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            ray-llm/ec2/test_ec2_gpu.py
+
+      - name: Release model lock
+        if: always()
+        run: |
+          if [[ -n "${{ steps.model.outputs.lock-pid }}" ]]; then
+            kill "${{ steps.model.outputs.lock-pid }}" 2>/dev/null || true
+          fi

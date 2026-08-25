@@ -1,0 +1,114 @@
+apiVersion: ray.io/v1
+kind: RayService
+metadata:
+  name: ray-llm-test
+  namespace: ray-llm
+spec:
+  serviceUnhealthySecondThreshold: 1200
+  deploymentUnhealthySecondThreshold: 1200
+  serveConfigV2: |
+    applications:
+      - name: qwen
+        import_path: ray.serve.llm:build_openai_app
+        route_prefix: /
+        args:
+          llm_configs:
+            - model_loading_config:
+                model_id: qwen-14b
+                model_source: Qwen/Qwen2.5-14B-Instruct
+              engine_kwargs:
+                tensor_parallel_size: 2
+                max_model_len: 4096
+                dtype: bfloat16
+                gpu_memory_utilization: 0.85
+              deployment_config:
+                num_replicas: 1
+              placement_group_config:
+                bundles:
+                  - { CPU: 4, GPU: 1 }
+                  - { CPU: 4, GPU: 1 }
+                strategy: STRICT_SPREAD
+  rayClusterConfig:
+    rayVersion: "${RAY_VERSION}"
+    headGroupSpec:
+      rayStartParams:
+        dashboard-host: "0.0.0.0"
+        num-gpus: "0"
+      template:
+        spec:
+          nodeSelector:
+            node-type: cpu-ray-llm-head
+          tolerations:
+            - key: ray.io/head-node
+              operator: Equal
+              value: "true"
+              effect: NoSchedule
+          containers:
+            - name: ray-head
+              image: "${IMAGE_URI}"
+              imagePullPolicy: Always
+              env:
+                - { name: HF_HOME, value: /fsx/hf-cache }
+              ports:
+                - { containerPort: 6379, name: gcs }
+                - { containerPort: 8265, name: dashboard }
+                - { containerPort: 8000, name: serve }
+              resources:
+                limits:   { cpu: "4", memory: 16Gi }
+                requests: { cpu: "2", memory: 8Gi }
+              volumeMounts:
+                - { name: fsx-storage, mountPath: /fsx }
+              lifecycle:
+                preStop: { exec: { command: ["/bin/sh", "-c", "ray stop"] } }
+          volumes:
+            - name: fsx-storage
+              persistentVolumeClaim:
+                claimName: fsx-lustre-pvc
+    workerGroupSpecs:
+      - groupName: gpu-workers
+        replicas: 2
+        minReplicas: 2
+        maxReplicas: 2
+        rayStartParams:
+          num-gpus: "4"
+        template:
+          spec:
+            nodeSelector:
+              node-type: g6-ray-llm
+            tolerations:
+              - key: nvidia.com/gpu
+                operator: Equal
+                value: "true"
+                effect: NoSchedule
+              - key: aws.amazon.com/efa
+                operator: Equal
+                value: "true"
+                effect: NoSchedule
+            containers:
+              - name: ray-worker
+                image: "${IMAGE_URI}"
+                imagePullPolicy: Always
+                env:
+                  - { name: HF_HOME, value: /fsx/hf-cache }
+                  - { name: FI_PROVIDER, value: efa }
+                  - { name: FI_EFA_USE_DEVICE_RDMA, value: "1" }
+                  - { name: FI_EFA_FORK_SAFE, value: "1" }
+                  - { name: NCCL_DEBUG, value: INFO }
+                  - name: VLLM_HOST_IP
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: status.podIP
+                resources:
+                  limits:   { nvidia.com/gpu: "4", vpc.amazonaws.com/efa: "1", cpu: "40", memory: 160Gi }
+                  requests: { nvidia.com/gpu: "4", vpc.amazonaws.com/efa: "1", cpu: "40", memory: 160Gi }
+                volumeMounts:
+                  - { name: fsx-storage, mountPath: /fsx }
+                  - { name: shm, mountPath: /dev/shm }
+                lifecycle:
+                  preStop: { exec: { command: ["/bin/sh", "-c", "ray stop"] } }
+            volumes:
+              - name: fsx-storage
+                persistentVolumeClaim:
+                  claimName: fsx-lustre-pvc
+              - name: shm
+                emptyDir: { medium: Memory, sizeLimit: 8Gi }
