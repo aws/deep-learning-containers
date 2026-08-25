@@ -668,7 +668,9 @@ def efa_instances(
     `container_entrypoint` / `container_cmd` are forwarded to setup_container — see
     its docstring for when overriding the entrypoint is appropriate.
 
-    Yields (master_conn, worker_conn, aws_session) where connections are to the EC2 hosts.
+    Yields (master_conn, worker_conn, aws_session, master_private_ip) where the
+    connections are to the EC2 hosts and master_private_ip is rank 0's address
+    for torchrun's --master_addr / c10d rendezvous.
     """
     aws_session = AWSSessionManager(region=region)
     ami_id = aws_session.get_latest_ami()
@@ -772,6 +774,7 @@ def efa_instances(
 
         setup_master_ssh(master_conn)
         worker_private_ip = get_private_ip(aws_session, worker_id)
+        master_private_ip = get_private_ip(aws_session, master_id)
         master_pub_key = run_on_container(
             MASTER_CONTAINER_NAME, master_conn, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
         ).stdout.strip()
@@ -780,7 +783,7 @@ def efa_instances(
         num_gpus = get_num_gpus(master_conn)
         create_hosts_file(master_conn, worker_private_ip, num_gpus)
 
-        yield master_conn, worker_conn, aws_session
+        yield master_conn, worker_conn, aws_session, master_private_ip
 
     finally:
         if master_id:

@@ -13,6 +13,7 @@ Usage:
 """
 
 import os
+import threading
 
 from test_utils.efa_helpers import (
     DEFAULT_TIMEOUT,
@@ -83,6 +84,7 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
         master_conn,
         worker_conn,
         aws_session,
+        master_private_ip,
     ):
         # No-op for PyTorch DLCs (binary is preinstalled); apt-installs
         # libnccl-dev (if missing) and compiles nccl-tests for vLLM Ubuntu.
@@ -115,16 +117,44 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             timeout=DEFAULT_TIMEOUT,
         )
 
-        # nccl_broadcast.sh always exits 0 and prints a PASS/FAIL marker, so the
-        # full mpirun output above is preserved (not truncated by pytest's
-        # exception formatting). Assert on the marker here.
+        # torchrun runs one agent per node: rank 0 on the master hosts the
+        # rendezvous, rank 1 on the worker joins it — so they must run at the
+        # same time. Launch the worker agent in a background thread (it uses its
+        # own SSH connection, so it overlaps the master call) and the master
+        # agent in the foreground. Both scripts always exit 0 and print a
+        # PASS/FAIL marker, so the full torchrun output is preserved (not
+        # truncated by pytest's exception formatting). Assert on the master's.
+        worker_holder = {}
+
+        def _run_worker_broadcast():
+            worker_holder["result"] = run_on_container(
+                WORKER_CONTAINER_NAME,
+                worker_conn,
+                f"/test/efa/scripts/nccl_broadcast.sh 1 {master_private_ip} 2",
+                timeout=DEFAULT_TIMEOUT,
+                warn=True,
+            )
+
+        worker_thread = threading.Thread(target=_run_worker_broadcast, daemon=True)
+        worker_thread.start()
+
         bcast = _step(
             "nccl_broadcast",
             MASTER_CONTAINER_NAME,
             master_conn,
-            f"/test/efa/scripts/nccl_broadcast.sh {HOSTS_FILE_LOCATION} 2",
+            f"/test/efa/scripts/nccl_broadcast.sh 0 {master_private_ip} 2",
             timeout=DEFAULT_TIMEOUT,
         )
+
+        # Both nodes wrap torchrun in the same timeout, so the worker is done (or
+        # nearly) by the time the master returns; give it a short grace window.
+        worker_thread.join(timeout=120)
+        worker_result = worker_holder.get("result")
+        if worker_result is not None:
+            print("\n========== nccl_broadcast:worker (node_rank 1) ==========")
+            print(worker_result.stdout)
+            print("========== /nccl_broadcast:worker ==========\n")
+
         assert "NCCL_BROADCAST_RESULT: PASS" in bcast.stdout, (
             "nccl_broadcast did not pass — see the broadcast output above for the failing rank"
         )
