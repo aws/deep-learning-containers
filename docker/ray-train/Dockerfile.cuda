@@ -186,6 +186,13 @@ COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICEN
 COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
+# Attribution the generator misses; must follow the COPY above or it gets overwritten.
+RUN TQDM_VERSION=$(/opt/venv/bin/python -c "import importlib.metadata as m; print(m.version('tqdm'))") \
+  && printf '\nnccl-tests %s https://github.com/NVIDIA/nccl-tests\ntqdm %s https://github.com/tqdm/tqdm\n' \
+    "${NCCL_TESTS_VERSION}" "${TQDM_VERSION}" >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** nccl-tests; version %s -- https://github.com/NVIDIA/nccl-tests\n' "${NCCL_TESTS_VERSION}" \
+    >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
   LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
