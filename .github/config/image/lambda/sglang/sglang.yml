@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "lambda"
-  framework_version: "0.5.14+dlc1"
+  framework_version: "0.5.18+dlc1"
   os_version: "amzn2023"
   arch_type: "x86"
   device_type: "gpu"
@@ -17,8 +17,8 @@ build:
   target: "sglang-py3"
   python_version: "3.13"
   cuda_version: "13.0.3"
-  sglang_ref: "bc8b3ab1f55c60951b586d84d4aec773a6f654df"
-  sglang_kernel_version: "0.4.4"
+  sglang_ref: "71de97b264b04dcd514cf904003028aefe9775c8"
+  sglang_kernel_version: "0.4.6.post1"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
