@@ -13,6 +13,8 @@ exclude_docs: |
   /README.md
   /tutorials/README.md
   /DEVELOPMENT.md
+  # Gamma-only image — drop the next line when Ray Train ships to prod
+  /ray-train/
 
 # === Hooks ===
 hooks:
