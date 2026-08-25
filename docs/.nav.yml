@@ -8,6 +8,7 @@ nav:
     - TEI: tei
     - Ray: ray
     - WhisperX: whisperx
+    - llama.cpp: llama-cpp
     - PyTorch: pytorch
     - TensorFlow: tensorflow
     - Base: base

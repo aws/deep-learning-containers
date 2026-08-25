@@ -1,4 +1,4 @@
-name: Reusable TensorFlow Single-GPU Tests
+name: Reusable TensorFlow Training Single-GPU Tests
 
 on:
   workflow_call:
