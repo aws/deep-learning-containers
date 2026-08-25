@@ -5,7 +5,9 @@ Exercises the collective at multi-GB message size across nodes.
 """
 
 import os
+import sys
 import time
+import traceback
 
 import torch
 import torch.distributed as dist
@@ -17,6 +19,13 @@ def main():
     local_rank = int(
         os.environ.get("LOCAL_RANK", os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK", "0"))
     )
+    print(
+        f"[rank {rank}/{world_size} local={local_rank}] starting; "
+        f"MASTER_ADDR={os.environ.get('MASTER_ADDR')} MASTER_PORT={os.environ.get('MASTER_PORT')} "
+        f"visible_devices={torch.cuda.device_count()}",
+        flush=True,
+    )
+
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
     torch.cuda.set_device(local_rank)
     dev = f"cuda:{local_rank}"
@@ -41,4 +50,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception:
+        traceback.print_exc()
+        sys.stdout.flush()
+        sys.stderr.flush()
+        raise

@@ -1,6 +1,6 @@
 #!/bin/bash
 # NCCL broadcast smoke test across 2 nodes over EFA.
-set -ex
+set -eux
 
 NUM_HOSTS_FILE=$1
 NUM_HOSTS=$2
@@ -11,15 +11,15 @@ export CUDA_HOME
 
 GPU_COUNT=$(nvidia-smi -L | wc -l)
 NPROC_PER_NODE=$GPU_COUNT
-WORLD_SIZE=$(($GPU_COUNT * $NUM_HOSTS))
+WORLD_SIZE=$((GPU_COUNT * NUM_HOSTS))
 
 MASTER_ADDR=$(head -n1 "$NUM_HOSTS_FILE" | awk '{print $1}')
 if [ "$MASTER_ADDR" = "localhost" ]; then
     MASTER_ADDR=$(hostname -I | awk '{print $1}')
 fi
 
-BROADCAST_LOG="/test/efa/logs/nccl_broadcast.log"
 mkdir -p /test/efa/logs
+BROADCAST_LOG="/test/efa/logs/nccl_broadcast.log"
 
 echo "Running NCCL broadcast test across $NUM_HOSTS nodes ($WORLD_SIZE ranks total)"
 
@@ -30,8 +30,7 @@ timeout "$TIMEOUT_S" mpirun \
     -x PATH -x LD_LIBRARY_PATH \
     -n "$WORLD_SIZE" -N "$NPROC_PER_NODE" --hostfile "$NUM_HOSTS_FILE" \
     --mca pml ^cm --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
-    bash -c 'RANK=$OMPI_COMM_WORLD_RANK LOCAL_RANK=$OMPI_COMM_WORLD_LOCAL_RANK WORLD_SIZE='"$WORLD_SIZE"' python3 /test/efa/scripts/nccl_broadcast.py' \
-    2>&1 | tee "$BROADCAST_LOG"
+    python3 -u /test/efa/scripts/nccl_broadcast.py 2>&1 | tee "$BROADCAST_LOG"
 RC=${PIPESTATUS[0]}
 set -e
 
