@@ -19,8 +19,11 @@ NPROC_PER_NODE=$GPU_COUNT
 WORLD_SIZE=$((GPU_COUNT * NUM_HOSTS))
 
 MASTER_ADDR=$(head -n1 "$NUM_HOSTS_FILE" | awk '{print $1}')
-if [ "$MASTER_ADDR" = "localhost" ]; then
-    MASTER_ADDR=$(hostname -I 2>/dev/null | awk '{print $1}')
+if [ "$MASTER_ADDR" = "localhost" ] || [ -z "$MASTER_ADDR" ]; then
+    # `hostname` isn't installed in the DLC image; derive the primary private
+    # IP via a routing-table lookup (no packets sent, no DNS needed). This is
+    # the address workers use to reach rank 0's c10d TCP store.
+    MASTER_ADDR=$(python3 -c "import socket; s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM); s.connect(('8.8.8.8', 80)); print(s.getsockname()[0]); s.close()")
 fi
 
 mkdir -p /test/efa/logs
