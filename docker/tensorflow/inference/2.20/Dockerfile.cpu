@@ -1,3 +1,4 @@
+# no-op: trigger tensorflow-inference CPU build to validate test-skip cache (record + hit)
 # ============================================================================
 # TensorFlow Serving 2.20 Inference DLC — Amazon Linux 2023 (CPU)
 # Stages: builder-base -> builder-oss ; runtime-base -> sagemaker (MME-capable).
