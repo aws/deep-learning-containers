@@ -12,6 +12,11 @@ on:
       - "docker/tensorflow/inference/2.20/Dockerfile.cpu"
       - "docker/tensorflow/inference/2.20/cpu/**"
       - "scripts/docker/common/**"
+      # Broad on purpose: the whole tensorflow subtree triggers this workflow so a
+      # newly-added script can never merge with no TF CI. The per-family narrowing
+      # lives in build-change below, which is what gates the expensive build.
+      # Shared TF scripts belong in scripts/docker/common/**, not at the
+      # scripts/docker/tensorflow/ root.
       - "scripts/docker/tensorflow/**"
       - "scripts/docker/telemetry/**"
       - "test/tensorflow/integration/inference/**"
@@ -53,7 +58,7 @@ jobs:
               - "docker/tensorflow/inference/2.20/Dockerfile.cpu"
               - "docker/tensorflow/inference/2.20/cpu/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/tensorflow/**"
+              - "scripts/docker/tensorflow/inference/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
               # Integration-test changes must trigger a rebuild — otherwise the
               # build is skipped, the prod ECR tag doesn't exist for this new

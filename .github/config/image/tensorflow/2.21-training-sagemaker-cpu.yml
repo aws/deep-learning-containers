@@ -1,5 +1,5 @@
 image:
-  name: "tensorflow-2.21-sagemaker-cpu"
+  name: "tensorflow-2.21-training-sagemaker-cpu"
   description: "TensorFlow 2.21 CPU training for SageMaker"
 
 metadata:
@@ -13,7 +13,7 @@ metadata:
   prod_image: "tensorflow-training:2.21-cpu-py312-amzn2023-sagemaker-v1"
 
 build:
-  dockerfile: "docker/tensorflow/2.21/Dockerfile.cpu"
+  dockerfile: "docker/tensorflow/training/2.21/Dockerfile.cpu"
   target: "sagemaker"
   python_version: "3.12"
   tf_version: "2.21.0"
