@@ -68,6 +68,14 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     [WhisperX Guide](whisperx/index.md)
 
+-   **Serve GGUF Models on CPU or GPU**
+
+    ---
+
+    Serve quantized GGUF models with llama.cpp on x86 CPU, NVIDIA GPU, or Graviton (ARM64) — EC2 or Amazon SageMaker AI.
+
+    [llama.cpp Guide](llama-cpp/index.md)
+
 -   **Serve ML Models**
 
     ---
