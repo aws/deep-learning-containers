@@ -1,7 +1,7 @@
 apiVersion: ray.io/v1
 kind: RayCluster
 metadata:
-  name: ray-train-test
+  name: "${CLUSTER_NAME}"
   namespace: ray-train
 spec:
   rayVersion: "${RAY_VERSION}"
