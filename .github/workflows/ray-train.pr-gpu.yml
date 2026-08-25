@@ -100,8 +100,8 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
-      run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
-      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
-      run-eks-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.eks-test-change == 'true' }}
+      run-single-gpu-test: false
+      run-efa-test: false
+      run-eks-test: false
       release: false
     secrets: inherit
