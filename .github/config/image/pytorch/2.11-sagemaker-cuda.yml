@@ -25,7 +25,7 @@ build:
   deepspeed_version: "0.18.8"
   transformer_engine_version: "2.12.0"
   nccl_version: "2.26.2"
-  efa_version: "1.49.0"
+  efa_version: "1.47.0"
   gdrcopy_version: "2.4.4"
   max_jobs: "8"
   dlc_major_version: "1"

@@ -40,9 +40,16 @@ timeout "$TIMEOUT_S" mpirun \
 RC=${PIPESTATUS[0]}
 set -e
 
-echo "==================== BEGIN ${BROADCAST_LOG} ===================="
-cat "${BROADCAST_LOG}" 2>/dev/null || echo "(log missing)"
-echo "==================== END ${BROADCAST_LOG} ===================="
+# The pytest wrapper only surfaces this script's output on failure via the
+# exception's captured stdout, which is truncated to the TAIL. So emit the
+# smallest, highest-signal diagnostics LAST — a full `cat` of the NCCL-INFO
+# flooded log would push the real error out of the retained tail.
+echo "==================== high-signal broadcast diagnostics ===================="
+echo "--- rank starts / warmup / completion / errors (grep) ---"
+grep -aE "\[rank |warmup OK|broadcast completed|Traceback|Error|error:|NCCL WARN|ncclInternal|ncclSystem|Aborted|Segmentation|assert|Timeout|out of memory" "$BROADCAST_LOG" 2>/dev/null | tail -n 40 || echo "(no signal lines matched)"
+echo "--- last 40 lines of broadcast log ---"
+tail -n 40 "$BROADCAST_LOG" 2>/dev/null || echo "(log missing)"
+echo "==================== end diagnostics ===================="
 
 if [ "$RC" -eq 124 ]; then
     echo "nccl_broadcast timed out after ${TIMEOUT_S}s"
