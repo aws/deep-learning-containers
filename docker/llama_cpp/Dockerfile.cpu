@@ -1,3 +1,4 @@
+# no-op: trigger llama-cpp CPU build to validate test-skip cache (record + hit)
 ARG BASE_REF=2023
 
 # STAGE 0: builder — compile llama.cpp (x86-64 CPU) from a pinned upstream ref.
