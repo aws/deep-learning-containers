@@ -98,6 +98,21 @@ suites:
     code_paths:
       - test/ray-train/eks/**
 
+  ray-llm/unit:
+    skip_eligible: true
+    code_paths:
+      - test/ray-llm/unit/**
+
+  ray-llm/ec2:
+    skip_eligible: true
+    code_paths:
+      - test/ray-llm/ec2/**
+
+  ray-llm/eks-multi-node:
+    skip_eligible: true
+    code_paths:
+      - test/ray-llm/eks-multi-node/**
+
   vllm/upstream:
     skip_eligible: true
     code_paths:
