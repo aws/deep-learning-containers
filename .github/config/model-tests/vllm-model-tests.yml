@@ -56,11 +56,7 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --no-enable-prefix-caching"
 
-    # Tool/function-calling regression on the lightest text model. Qwen3 uses the
-    # Hermes-style chat template, so vLLM needs --tool-call-parser hermes plus the
-    # mandatory --enable-auto-tool-choice. The smoke test exercises auto/required/
-    # named tool_choice, a multi-turn tool-result round-trip, and a no-tools
-    # regression, so it catches both parser plumbing and end-to-end tool calling.
+    # Tool-calling regression: Qwen3 -> hermes parser (needs --enable-auto-tool-choice).
     - name: "qwen3.5-0.8b-tool-calling"
       s3_model: "qwen3.5-0.8b.tar.gz"
       fleet: "x86-g6xl-runner"

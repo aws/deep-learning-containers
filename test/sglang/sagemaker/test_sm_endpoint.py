@@ -58,10 +58,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                 image=image_uri,
                 environment={
                     "SM_SGLANG_MODEL_PATH": model_id,
-                    # Enable tool/function calling so the same endpoint can serve the
-                    # tool-calling regression below. Qwen3 maps to SGLang's `qwen25`
-                    # parser (Qwen25Detector); forwarded by the SM entrypoint as
-                    # --tool-call-parser qwen25.
+                    # Qwen3 -> qwen25 parser; SM entrypoint forwards as --tool-call-parser qwen25.
                     "SM_SGLANG_TOOL_CALL_PARSER": "qwen25",
                     "HF_TOKEN": hf_token,
                 },
@@ -124,10 +121,7 @@ def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
     LOGGER.info(f"Model response: {pformat(body)}")
     LOGGER.info("Inference test successful!")
 
-    # --- Tool/function-calling regression ---
-    # Verifies the SM entrypoint forwards SM_SGLANG_TOOL_CALL_PARSER as
-    # --tool-call-parser and that the endpoint emits a well-formed OpenAI tool call.
-    # tool_choice=required guarantees a tool_calls response regardless of sampling.
+    # --- Tool/function-calling regression (tool_choice=required -> deterministic call) ---
     weather_tool = {
         "type": "function",
         "function": {

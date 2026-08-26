@@ -1,13 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-# vLLM Tool-Calling Smoke Test
-# Regression coverage for OpenAI-compatible function/tool calling.
-# The tool-call parser is selected by the caller via extra_args, e.g.
-#   --enable-auto-tool-choice --tool-call-parser hermes
-# so this script stays parser- and model-agnostic; it only asserts that the
-# server emits a well-formed tool call for each supported tool_choice mode.
-#
+# vLLM Tool-Calling Smoke Test — parser selected by caller via extra_args
+# (e.g. --enable-auto-tool-choice --tool-call-parser hermes).
 # Usage: vllm_tool_calling_smoke_test.sh <model_dir> <model_name> [extra_args...]
 
 MODEL_DIR="${1:?Usage: $0 <model_dir> <model_name> [extra_args...]}"
@@ -98,17 +93,13 @@ def assert_tool_call(resp, expected_name):
     # arguments is a JSON-encoded string per the OpenAI schema.
     args = json.loads(fn["arguments"])
     assert isinstance(args, dict), f"arguments not a JSON object: {fn['arguments']}"
-    # finish_reason=tool_calls is OpenAI-standard but not contractually documented
-    # by vLLM, so warn rather than fail if it differs.
+    # finish_reason=tool_calls is OpenAI-standard but not contractually documented; warn only.
     if choice.get("finish_reason") != "tool_calls":
         print(f"  WARN: finish_reason={choice.get('finish_reason')} (expected tool_calls)")
     return fn, args
 
 
-# --- Test 1: tool_choice=auto (observational) ---
-# In auto mode there is no grammar enforcement, so a small model may answer
-# directly instead of calling the tool. Treat this as a warn-only observation;
-# the deterministic contract is covered by the required/named tests below.
+# --- Test 1: tool_choice=auto (observational, warn-only: no grammar enforcement) ---
 print("\n--- Test 1: auto tool_choice (observational) ---")
 r = chat(
     [{"role": "user", "content": "What is the weather in Paris right now?"}],
@@ -157,8 +148,7 @@ followup = chat(
         {"role": "tool", "tool_call_id": call["id"], "name": call["function"]["name"],
          "content": json.dumps({"city": "Paris", "temperature": 18, "unit": "celsius"})},
     ],
-    # Force a natural-language answer so the model summarizes the tool result
-    # instead of emitting another tool call (which would leave content empty).
+    # tool_choice=none forces a text answer instead of another tool call.
     tools=[WEATHER_TOOL], tool_choice="none",
 )
 answer = followup["choices"][0]["message"].get("content") or ""
