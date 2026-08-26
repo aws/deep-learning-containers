@@ -138,3 +138,13 @@ suites:
     skip_eligible: true
     code_paths:
       - test/xgboost/benchmarks/**
+
+  whisperx/ec2:
+    skip_eligible: true
+    code_paths:
+      - test/whisperx/ec2/**
+
+  whisperx/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/whisperx/sagemaker/**
