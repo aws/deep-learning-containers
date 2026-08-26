@@ -4,6 +4,35 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v2.4.0 — 2026-08-25
+
+**Tags:** `server-cuda-v2.4` · `server-sagemaker-cuda-v2.4`
+
+**vLLM source:** [6adad08](https://github.com/vllm-project/vllm/commit/6adad08767583f52eb4d2122111af0bf638ed5e6) (`0.27.1+amzn2023.6adad087`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.16.post3 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.27.1** — patch bump from 0.27.0 (v2.3); built from commit
+  [6adad08](https://github.com/vllm-project/vllm/commit/6adad08767583f52eb4d2122111af0bf638ed5e6)
+  ([compare](https://github.com/vllm-project/vllm/compare/v0.27.0...6adad08))
+- **Muse Glimmer** — new model support
+- **`SM_VLLM_*` multi-value argument fix (SageMaker only)** — see below
+
+### Changes
+
+- **SageMaker entrypoint — `SM_VLLM_*` argument handling** ([#6564](https://github.com/aws/deep-learning-containers/pull/6564)) — the entrypoint
+  previously built argv with one token per env var, so multi-value flags such as `--lora-modules` (declared `nargs="+"` upstream, along with ~20 other
+  list-typed fields) could never receive more than one value, and `SM_VLLM_LORA_MODULES='[{...},{...}]'` failed to parse. The entrypoint now applies
+  the same rule as vLLM's own config-file loader: a JSON array expands into one argv token per element, a JSON object stays a single token, and
+  non-JSON values pass through untouched.
+  - **Behavior change:** a JSON array in a list-typed env var such as `SM_VLLM_SERVED_MODEL_NAME='["a","b"]'` now yields two values instead of one
+    literal string.
+
+* * *
+
 ## v2.3.0 — 2026-08-17
 
 **Tags:** `server-cuda-v2.3` · `server-sagemaker-cuda-v2.3`
