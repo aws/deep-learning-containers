@@ -1,0 +1,37 @@
+[
+    {
+        "vulnerability_id": "CVE-2025-23339",
+        "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
+        "review_by": "2026-10-18"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23308",
+        "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
+        "review_by": "2026-10-18"
+    },
+    {
+        "vulnerability_id": "GHSA-r7wm-3cxj-wff9",
+        "reason": "jackson-core 2.18.8 bundled in ray_dist.jar; advisory requires >=2.22.1, which no released ray vendors yet",
+        "review_by": "2026-10-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54399",
+        "reason": "httpcore5 5.0.2 bundled in ray_dist.jar (Apache HttpComponents Core). Upstream fix in 5.5-beta2 (pre-release); no stable release yet.",
+        "review_by": "2026-10-20"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0185",
+        "reason": "quinn-proto 0.11.14 compiled into /usr/local/bin/uv (base image binary), fix requires quinn-proto>=0.11.15 which no released uv bundles yet",
+        "review_by": "2026-10-31"
+    },
+    {
+        "vulnerability_id": "CVE-2026-25800",
+        "reason": "quinn-proto 0.11.14 compiled into /usr/local/bin/uv (base image binary), fix requires quinn-proto>=0.11.15 which no released uv bundles yet",
+        "review_by": "2026-10-31"
+    },
+    {
+        "vulnerability_id": "GHSA-4w2j-m93h-cj5j",
+        "reason": "quinn-proto 0.11.14 compiled into /usr/local/bin/uv (base image binary), fix requires quinn-proto>=0.11.15 which no released uv bundles yet",
+        "review_by": "2026-10-31"
+    }
+]

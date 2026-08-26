@@ -242,6 +242,7 @@ def parse_args():
             "lambda",
             "ray",
             "ray_llm",
+            "ray_train",
             "vllm_omni",
             "huggingface-vllm",
             "huggingface-pytorch-training",
