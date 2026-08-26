@@ -146,10 +146,12 @@ suites:
     code_paths:
       - test/openfold3/sagemaker/**
 
-  xgboost/container:
+  xgboost/longevity:
     skip_eligible: true
     code_paths:
-      - test/xgboost/container/**
+      - test/xgboost/container/test_longevity.py
+      - test/xgboost/container/container_helper.py
+      - test/xgboost/container/conftest.py
 
   xgboost/e2e:
     skip_eligible: true
