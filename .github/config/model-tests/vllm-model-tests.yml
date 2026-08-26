@@ -56,11 +56,11 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --no-enable-prefix-caching"
 
-    # Tool-calling regression: Qwen3 -> hermes parser (needs --enable-auto-tool-choice).
+    # Tool-calling regression: qwen3.5 emits Qwen3-Coder XML -> qwen3_xml parser.
     - name: "qwen3.5-0.8b-tool-calling"
       s3_model: "qwen3.5-0.8b.tar.gz"
       fleet: "x86-g6xl-runner"
-      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --enable-auto-tool-choice --tool-call-parser hermes"
+      extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --enable-auto-tool-choice --tool-call-parser qwen3_xml"
       test_script: "vllm_tool_calling_smoke_test.sh"
 
     - name: "qwen3-embedding-0.6b"

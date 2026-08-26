@@ -47,11 +47,11 @@ smoke-test:
       required_image_pattern:
         os_version: "amzn2023"
 
-    # Tool-calling regression: Qwen3 -> qwen25 parser (Qwen25Detector, in 0.5.17/0.5.18).
+    # Tool-calling regression: qwen3.5 emits Qwen3-Coder XML -> qwen3_coder parser.
     - name: "qwen3.5-0.8b-tool-calling"
       s3_model: "qwen3.5-0.8b.tar.gz"
       fleet: "x86-g6xl-runner"
-      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --tool-call-parser qwen25"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --tool-call-parser qwen3_coder"
       test_script: "sglang_tool_calling_smoke_test.sh"
 
   runner-scale-sets: []

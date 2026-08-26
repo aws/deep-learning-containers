@@ -138,7 +138,7 @@ print("  PASS: named tool_choice honored")
 print("\n--- Test 4: multi-turn tool result ---")
 first = chat(
     [{"role": "user", "content": "What is the weather in Paris right now?"}],
-    tools=[WEATHER_TOOL], tool_choice="auto",
+    tools=[WEATHER_TOOL], tool_choice="required",
 )
 choice = first["choices"][0]
 call = choice["message"]["tool_calls"][0]

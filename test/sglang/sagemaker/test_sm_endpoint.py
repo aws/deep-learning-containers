@@ -58,8 +58,8 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                 image=image_uri,
                 environment={
                     "SM_SGLANG_MODEL_PATH": model_id,
-                    # Qwen3 -> qwen25 parser; SM entrypoint forwards as --tool-call-parser qwen25.
-                    "SM_SGLANG_TOOL_CALL_PARSER": "qwen25",
+                    # qwen3.5 emits Qwen3-Coder XML -> qwen3_coder parser.
+                    "SM_SGLANG_TOOL_CALL_PARSER": "qwen3_coder",
                     "HF_TOKEN": hf_token,
                 },
             ),

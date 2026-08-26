@@ -245,7 +245,7 @@ sagemaker:
       SM_VLLM_MAX_MODEL_LEN: "4096"
       SM_VLLM_DTYPE: "bfloat16"
       SM_VLLM_ENABLE_AUTO_TOOL_CHOICE: "true"
-      SM_VLLM_TOOL_CALL_PARSER: "hermes"
+      SM_VLLM_TOOL_CALL_PARSER: "qwen3_xml"
     test_cases:
       - name: "tool-calling-required"
         route: "/v1/chat/completions"
