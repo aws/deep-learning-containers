@@ -9,16 +9,15 @@ on:
       - ".github/workflows/ray-train.pipeline.yml"
       - ".github/workflows/ray-train.pr-gpu.yml"
       - "docker/ray-train/**"
-      - "scripts/ci/build/ray/**"
+      - "scripts/ci/build/ray_train/**"
       - "scripts/docker/common/**"
       - "scripts/docker/ray-train/**"
       - "scripts/docker/telemetry/**"
       - "test/ray-train/**"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/ray/**"
+      - "test/security/data/ecr_scan_allowlist/ray_train/**"
       - "test/telemetry/**"
       - "test/efa/**"
-      - "test/ray-train/eks/**"
       - "!docs/**"
 
 permissions:
@@ -55,10 +54,10 @@ jobs:
             build-change:
               - ".github/config/image/ray-train/*-gpu.yml"
               - "docker/ray-train/**"
-              - "scripts/ci/build/ray/**"
+              - "scripts/ci/build/ray_train/**"
               - "scripts/docker/common/**"
               - "scripts/docker/ray-train/**"
-              - "test/security/data/ecr_scan_allowlist/ray/**"
+              - "test/security/data/ecr_scan_allowlist/ray_train/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

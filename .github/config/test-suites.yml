@@ -29,6 +29,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/efa/**
+      - test/test_utils/efa_helpers.py
 
   pytorch/unit:
     skip_eligible: true
@@ -54,6 +55,11 @@ suites:
     skip_eligible: true
     code_paths:
       - test/pytorch/integration/sagemaker/**
+
+  ray/unit:
+    skip_eligible: true
+    code_paths:
+      - test/ray/unit/**
 
   ray/ec2:
     skip_eligible: true
@@ -126,6 +132,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/vllm-omni/**
+      - .github/config/model-tests/vllm-omni-model-tests.yml
 
   vllm-omni/sagemaker:
     skip_eligible: true
@@ -151,3 +158,13 @@ suites:
     skip_eligible: true
     code_paths:
       - test/xgboost/benchmarks/**
+
+  whisperx/ec2:
+    skip_eligible: true
+    code_paths:
+      - test/whisperx/ec2/**
+
+  whisperx/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/whisperx/sagemaker/**
