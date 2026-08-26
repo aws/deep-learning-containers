@@ -238,8 +238,6 @@ sagemaker:
   - name: "qwen3.5-0.8b-tool-calling"
     s3_model: "qwen3.5-0.8b.tar.gz"
     instance_type: "ml.g6.xlarge"
-    required_image_pattern:
-      os_version: "amzn2023"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_MAX_MODEL_LEN: "4096"
