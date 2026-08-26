@@ -47,6 +47,18 @@ smoke-test:
       required_image_pattern:
         os_version: "amzn2023"
 
+    # Tool/function-calling regression on the lightest text model. Qwen3 maps to
+    # SGLang's `qwen25` tool-call parser (the Qwen25Detector alias, present in both
+    # 0.5.17 and 0.5.18); tool_choice=required/named are driven by the default
+    # xgrammar grammar backend (no extra flag). The smoke test exercises
+    # auto/required/named tool_choice, a multi-turn tool-result round-trip, and a
+    # no-tools regression, catching both parser plumbing and end-to-end tool calling.
+    - name: "qwen3.5-0.8b-tool-calling"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-g6xl-runner"
+      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --tool-call-parser qwen25"
+      test_script: "sglang_tool_calling_smoke_test.sh"
+
   runner-scale-sets: []
 
 benchmark:
