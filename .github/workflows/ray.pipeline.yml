@@ -107,7 +107,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity", "telemetry"]'
+      suites: '["sanity", "telemetry", "ray/unit", "ray/ffmpeg", "ray/ec2", "ray/sagemaker"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -147,8 +147,8 @@ jobs:
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   unit-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
-    needs: [build, ci-config]
+    if: ${{ always() && !cancelled() && inputs.run-unit-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['ray/unit'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -156,10 +156,12 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray/unit'] || '' }}
 
   ffmpeg-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-ffmpeg-test }}
-    needs: [build, ci-config]
+    if: ${{ always() && !cancelled() && inputs.run-ffmpeg-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['ray/ffmpeg'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-ffmpeg-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -167,10 +169,16 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray/ffmpeg'] || '' }}
 
   serve-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-serve-test && needs.ci-config.outputs.customer-type == 'ec2' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-serve-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.customer-type == 'ec2' &&
+          fromJSON(needs.check.outputs.skips || '{}')['ray/ec2'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-serve-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -178,10 +186,16 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray/ec2'] || '' }}
 
   sagemaker-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sagemaker-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.customer-type == 'sagemaker' &&
+          fromJSON(needs.check.outputs.skips || '{}')['ray/sagemaker'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -189,6 +203,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray/sagemaker'] || '' }}
 
   release-gate:
     if: >-
