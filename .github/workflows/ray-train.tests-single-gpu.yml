@@ -12,6 +12,14 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -73,3 +81,23 @@ jobs:
           docker exec ${CONTAINER_ID} \
             pytest /workdir/test/ray-train/single_gpu/ -v
           docker kill ${CONTAINER_ID}
+
+  # Record a PASS row in the ci-images-table if the test passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          needs.single-gpu-test.result == 'success' }}
+    needs: [single-gpu-test]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: ray-train/single_gpu
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

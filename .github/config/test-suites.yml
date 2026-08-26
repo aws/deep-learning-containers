@@ -83,6 +83,21 @@ suites:
       - test/ray/test_ffmpeg_codecs.sh
       - test/ray/test_ffmpeg_gpu.sh
 
+  ray-train/unit:
+    skip_eligible: true
+    code_paths:
+      - test/ray-train/unit/**
+
+  ray-train/single_gpu:
+    skip_eligible: true
+    code_paths:
+      - test/ray-train/single_gpu/**
+
+  ray-train/eks:
+    skip_eligible: true
+    code_paths:
+      - test/ray-train/eks/**
+
   vllm/upstream:
     skip_eligible: true
     code_paths:

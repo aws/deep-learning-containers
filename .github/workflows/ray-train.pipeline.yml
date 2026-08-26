@@ -105,7 +105,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity", "telemetry", "efa"]'
+      suites: '["sanity", "telemetry", "efa", "ray-train/unit", "ray-train/single_gpu", "ray-train/eks"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -145,8 +145,11 @@ jobs:
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   unit-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
-    needs: [build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-unit-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['ray-train/unit'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -154,10 +157,16 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray-train/unit'] || '' }}
 
   single-gpu-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-single-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-single-gpu-test &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['ray-train/single_gpu'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -165,6 +174,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray-train/single_gpu'] || '' }}
 
   # Multi-node EFA/NCCL test (2x EFA GPU instances) — the one ec2 GPU config.
   efa-test:
@@ -185,8 +196,11 @@ jobs:
 
   # Multi-node EKS test (KubeRay RayCluster, BERT FSDP, 8 GPU across 2 nodes).
   eks-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-eks-test }}
-    needs: [build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-eks-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['ray-train/eks'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-eks-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -194,6 +208,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray-train/eks'] || '' }}
 
   release-gate:
     if: >-
