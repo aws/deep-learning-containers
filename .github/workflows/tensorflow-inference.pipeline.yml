@@ -92,7 +92,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity", "telemetry"]'
+      suites: '["sanity", "telemetry", "tensorflow-inference/sagemaker"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -134,8 +134,13 @@ jobs:
   # SageMaker integration tests — TF DLC is SM-only. Separate reusable from
   # tensorflow-training.tests-sagemaker.yml (which targets training).
   sagemaker-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() &&
+          inputs.run-sagemaker-test &&
+          needs.ci-config.outputs.customer-type == 'sagemaker' &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['tensorflow-inference/sagemaker'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -144,6 +149,8 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
       device-type: ${{ needs.ci-config.outputs.device-type }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['tensorflow-inference/sagemaker'] || '' }}
 
   release-gate:
     if: >-

@@ -56,6 +56,11 @@ suites:
     code_paths:
       - test/pytorch/integration/sagemaker/**
 
+  tensorflow-inference/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/integration/inference/**
+
   ray/unit:
     skip_eligible: true
     code_paths:
