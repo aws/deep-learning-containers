@@ -38,3 +38,15 @@ def test_llm_config_importable():
 
 def test_vllm_openai_api_server_importable():
     from vllm.entrypoints.openai import api_server  # noqa: F401
+
+
+def test_ray_dist_jar_removed():
+    import os
+
+    import ray
+
+    jars_dir = os.path.join(os.path.dirname(ray.__file__), "jars")
+    jars = (
+        [f for f in os.listdir(jars_dir) if f.endswith(".jar")] if os.path.isdir(jars_dir) else []
+    )
+    assert not jars, jars
