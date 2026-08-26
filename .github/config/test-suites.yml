@@ -113,6 +113,17 @@ suites:
     code_paths:
       - test/sglang/sagemaker/**
 
+  llama-cpp/model:
+    skip_eligible: true
+    code_paths:
+      - test/llama_cpp/scripts/**
+      - .github/config/model-tests/llama-cpp-model-tests.yml
+
+  llama-cpp/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/llama_cpp/sagemaker/**
+
   vllm-omni/model:
     skip_eligible: true
     code_paths:
@@ -144,17 +155,6 @@ suites:
     code_paths:
       - test/xgboost/benchmarks/**
 
-  llama-cpp/model:
-    skip_eligible: true
-    code_paths:
-      - test/llama_cpp/scripts/**
-      - .github/config/model-tests/llama-cpp-model-tests.yml
-
-  llama-cpp/sagemaker:
-    skip_eligible: true
-    code_paths:
-      - test/llama_cpp/sagemaker/**
-      
   whisperx/ec2:
     skip_eligible: true
     code_paths:
