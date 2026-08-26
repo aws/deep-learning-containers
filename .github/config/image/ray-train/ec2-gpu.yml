@@ -36,8 +36,7 @@ build:
 release:
   release: true
   force_release: false
-  # Gamma-only for now (private ECR, no public gallery) until v1 is signed off.
-  public_registry: false
+  public_registry: true
   private_registry: true
   enable_soci: true
-  environment: "gamma"
+  environment: "production"
