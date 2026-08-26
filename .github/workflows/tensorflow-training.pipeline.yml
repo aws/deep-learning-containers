@@ -107,7 +107,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity"]'
+      suites: '["sanity", "telemetry", "efa"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -134,8 +134,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-telemetry-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -143,6 +143,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   unit-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
@@ -181,8 +183,13 @@ jobs:
 
   # EFA tests — only for GPU EC2 images (2-node p4d NCCL+EFA all_reduce_perf)
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-efa-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.ci-config.outputs.customer-type == 'ec2' &&
+          fromJSON(needs.check.outputs.skips || '{}')['efa'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -190,6 +197,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['efa'] || '' }}
 
   release-gate:
     if: >-
