@@ -27,7 +27,7 @@ def main():
         flush=True,
     )
 
-    x = torch.empty(151693, 4096, dtype=torch.bfloat16, device=dev)
+    x = torch.empty(606772, 4096, dtype=torch.bfloat16, device=dev)
     if rank == 0:
         x.normal_()
 
