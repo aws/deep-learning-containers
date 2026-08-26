@@ -3,8 +3,10 @@ image:
   description: "Ray Train (distributed training) for EC2 instances (GPU, multi-node)"
 
 metadata:
-  framework: "ray"
-  framework_version: "2.56.0"
+  # ray_train (not ray) so security allowlist + build hooks resolve to their own
+  # dirs and edits don't trigger the Ray Serve PR workflows.
+  framework: "ray_train"
+  framework_version: "2.58.0"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
@@ -34,8 +36,7 @@ build:
 release:
   release: true
   force_release: false
-  # Gamma-only for now (private ECR, no public gallery) until v1 is signed off.
-  public_registry: false
+  public_registry: true
   private_registry: true
   enable_soci: true
-  environment: "gamma"
+  environment: "production"

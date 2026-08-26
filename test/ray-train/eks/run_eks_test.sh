@@ -20,7 +20,8 @@ TIMEOUT_READY=600
 TIMEOUT_JOB=1800
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLUSTER_NAME=$(yq '.metadata.name' "${SCRIPT_DIR}/raycluster.yml")
+# Per-run name so concurrent runs never share one RayCluster.
+export CLUSTER_NAME="ray-train-test-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
 
 cleanup() {
     echo "=== Cleanup: deleting RayCluster ${CLUSTER_NAME} ==="
@@ -34,7 +35,7 @@ echo "=== Configuring kubectl for ${EKS_CLUSTER} ==="
 aws eks update-kubeconfig --name "${EKS_CLUSTER}" --region "${AWS_REGION}"
 
 echo "=== Applying RayCluster manifest ==="
-envsubst '${IMAGE_URI} ${RAY_VERSION}' < "${SCRIPT_DIR}/raycluster.yml" | kubectl apply -f -
+envsubst '${IMAGE_URI} ${RAY_VERSION} ${CLUSTER_NAME}' < "${SCRIPT_DIR}/raycluster.yml" | kubectl apply -f -
 
 echo "=== Waiting for head pod Ready (timeout ${TIMEOUT_READY}s) ==="
 kubectl wait --for=condition=Ready pod \
