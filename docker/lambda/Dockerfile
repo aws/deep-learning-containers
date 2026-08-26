@@ -235,8 +235,9 @@ ARG USE_PREBUILT_WHEEL=0
 ENV UV_PYTHON="/var/lang/bin/python${PYTHON_VERSION}" \
   PATH="/usr/local/cuda/bin:/var/lang/bin:$PATH"
 
-# Build tooling: git (clone), gcc/g++ already present from builder-base-devel.
-RUN dnf install -y --setopt=install_weak_deps=False git \
+# Build tooling: git (clone), patch (vLLM's torch>=2.13 stable-header hotfix in
+# CMakeLists shells out to `patch`), gcc/g++ already present from builder-base-devel.
+RUN dnf install -y --setopt=install_weak_deps=False git patch \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./docker/lambda/vllm/torch-constraints.txt /tmp/torch-constraints.txt
