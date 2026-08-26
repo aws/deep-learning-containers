@@ -13,8 +13,8 @@ inputs:
   suite-code-hash:
     description: "Hash of the test suite's files."
     required: true
-  ci-image-tag:
-    description: 'CI image tag for the image build being tested.'
+  ci-image-uri:
+    description: 'Full CI image URI (…/ci:<tag>) for the image build being tested; the bare tag is stored.'
     required: false
     default: ''
   ci-images-table-account-id:
@@ -30,7 +30,7 @@ runs:
         SUITE: ${{ inputs.suite }}
         IMAGE_CONTENT_HASH: ${{ inputs.image-content-hash }}
         SUITE_CODE_HASH: ${{ inputs.suite-code-hash }}
-        CI_IMAGE_TAG: ${{ inputs.ci-image-tag }}
+        CI_IMAGE_URI: ${{ inputs.ci-image-uri }}
         CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
       run: |
         set +e
