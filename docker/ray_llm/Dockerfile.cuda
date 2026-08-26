@@ -91,9 +91,13 @@ ENV CC=/usr/bin/gcc \
 # Python venv from builder
 COPY --from=builder-venv /opt/venv /opt/venv
 
+# ray_dist.jar is for Ray Java workers, unused in this Python-only image.
+RUN rm -f /opt/venv/lib/python*/site-packages/ray/jars/ray_dist.jar
+
 # install EFA
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
-RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
+# cuda-rhel9 repo retained for test-time libnccl-devel reinstall (setup_nccl_tests.sh).
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1\ngpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-NVIDIA' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
   && bash /tmp/install_efa.sh ${EFA_VERSION} \
