@@ -27,7 +27,7 @@ def main():
         flush=True,
     )
 
-    x = torch.empty(606772, 4096, dtype=torch.bfloat16, device=dev)
+    x = torch.empty(151693, 4096, dtype=torch.bfloat16, device=dev)
     if rank == 0:
         x.normal_()
 
@@ -35,14 +35,27 @@ def main():
         s = torch.ones(1024, device=dev)
         dist.all_reduce(s)
     torch.cuda.synchronize()
+
+    # Loop broadcast + small all_reduce to churn the send-request freelist
+    # across mixed completion modes; one-shot transfers don't recycle slots.
+    iters = int(os.environ.get("BROADCAST_ITERS", "500"))
     if rank == 0:
-        print(f"warmup OK; starting {x.numel() * 2 / 1e9:.2f} GB broadcast", flush=True)
+        print(
+            f"looping {iters}x broadcast({x.numel() * 2 / 1e9:.2f} GB) + small all_reduce",
+            flush=True,
+        )
 
     t0 = time.time()
-    dist.broadcast(x, src=0)
+    for i in range(iters):
+        dist.broadcast(x, src=0)
+        s = torch.ones(1024, device=dev)
+        dist.all_reduce(s)
+        if rank == 0 and (i % 20 == 0 or i == iters - 1):
+            torch.cuda.synchronize()
+            print(f"  iter {i + 1}/{iters} ok ({time.time() - t0:.1f}s)", flush=True)
     torch.cuda.synchronize()
     if rank == 0:
-        print(f"broadcast completed in {time.time() - t0:.1f}s", flush=True)
+        print(f"broadcast completed in {time.time() - t0:.1f}s ({iters} iters)", flush=True)
     dist.destroy_process_group()
 
 
