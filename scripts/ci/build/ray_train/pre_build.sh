@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
-# ray post-build: upload source-built flash-attn/TE wheels to S3; no-op for Ray Serve.
+# ray-train pre-build: fetch cached flash-attn/TE wheels from the S3 wheel cache.
 
 set -euo pipefail
-
-if [[ "${WHEEL_CACHE_HIT:-}" == "true" ]]; then
-  echo "Wheel cache hit — skipping upload"
-  exit 0
-fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE=""
@@ -24,21 +19,30 @@ done
 FLASH_ATTN_VERSION=$(yq '.build.flash_attn_version // ""' "$CONFIG_FILE")
 TRANSFORMER_ENGINE_VERSION=$(yq '.build.transformer_engine_version // ""' "$CONFIG_FILE")
 
-# Ray Serve (no compiled wheels) — nothing to upload.
+# Ray Serve (no compiled wheels) — nothing to do.
 if [[ -z "$FLASH_ATTN_VERSION" && -z "$TRANSFORMER_ENGINE_VERSION" ]]; then
-  echo "No flash_attn/transformer_engine version in config — nothing to upload (Ray Serve)."
+  echo "No flash_attn/transformer_engine version in config — no wheel cache needed (Ray Serve)."
   exit 0
 fi
 
 CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
-DOCKERFILE=$(yq '.build.dockerfile' "$CONFIG_FILE")
+# Derive the CPython tag from python_version (3.13.12 → cp313) to scope the shared cache.
+PYTHON_VERSION=$(yq '.build.python_version' "$CONFIG_FILE")
+PYTHON_TAG="cp$(echo "$PYTHON_VERSION" | cut -d. -f1,2 | tr -d '.')"
+DEST="docker/ray-train/wheels"
+mkdir -p "$DEST"
 
 PACKAGES=()
 [[ -n "$FLASH_ATTN_VERSION" ]] && PACKAGES+=("flash-attn:${FLASH_ATTN_VERSION}")
 [[ -n "$TRANSFORMER_ENGINE_VERSION" ]] && PACKAGES+=("transformer-engine-torch:${TRANSFORMER_ENGINE_VERSION}")
 
 PACKAGES_STR=$(IFS=','; echo "${PACKAGES[*]}")
-echo "Uploading wheels to cache: ${PACKAGES_STR:-none}"
-bash "$SCRIPT_DIR/lib/upload_wheels.sh" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
-  --cuda-version "$CUDA_VERSION" --image-uri "${CI_IMAGE_URI}" \
-  --dockerfile "$DOCKERFILE" --packages "$PACKAGES_STR" || true
+echo "Fetching cached wheels: ${PACKAGES_STR:-none}"
+if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" --dest-dir "$DEST" --bucket "${WHEELS_BUCKET:-dlc-cicd-wheels}" \
+    --cuda-version "$CUDA_VERSION" --python-tag "$PYTHON_TAG" --packages "$PACKAGES_STR"; then
+  echo "WHEEL_CACHE_HIT=true" >> "${GITHUB_ENV:-/dev/null}"
+  echo "Wheel cache hit"
+else
+  echo "WHEEL_CACHE_HIT=false" >> "${GITHUB_ENV:-/dev/null}"
+  echo "Wheel cache miss — will build from source"
+fi
