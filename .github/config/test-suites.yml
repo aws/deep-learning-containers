@@ -175,6 +175,13 @@ suites:
     code_paths:
       - test/xgboost/benchmarks/**
 
+  sklearn/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/sklearn/sagemaker/**
+      - test/sklearn/conftest.py
+      - test/sklearn/requirements.txt
+
   whisperx/ec2:
     skip_eligible: true
     code_paths:
