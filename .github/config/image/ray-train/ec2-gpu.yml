@@ -6,7 +6,7 @@ metadata:
   # ray_train (not ray) so security allowlist + build hooks resolve to their own
   # dirs and edits don't trigger the Ray Serve PR workflows.
   framework: "ray_train"
-  framework_version: "2.56.0"
+  framework_version: "2.58.0"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
