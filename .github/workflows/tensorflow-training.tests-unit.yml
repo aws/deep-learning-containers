@@ -1,4 +1,4 @@
-name: Reusable TensorFlow Unit Tests
+name: Reusable TensorFlow Training Unit Tests
 
 on:
   workflow_call:

@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -205,3 +215,23 @@ jobs:
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ needs.preflight.outputs.image-uri }} 2>/dev/null || true
           rm -rf /dlc-models
+
+  # Record a PASS row in the ci-images-table if the test suite passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          needs.smoke-test.result == 'success' }}
+    needs: [smoke-test]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: vllm-omni/model
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

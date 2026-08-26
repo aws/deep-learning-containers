@@ -88,5 +88,10 @@
         "vulnerability_id": "RUSTSEC-2026-0195",
         "reason": "quick-xml vendored in uv binary, unbounded namespace allocation DoS, fixed in uv>=0.11.32 (Cargo.lock quick-xml 0.41.0); auto-resolves on next image rebuild via curl|sh unpinned install — prune once next scan is clean",
         "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "CVE-2026-73500",
+        "reason": "go.etcd.io/etcd/client/pkg/v3 in mooncake/libetcd_wrapper.so, TLS listener TCP connection exhaustion DoS, unpatchable without mooncake rebuild with etcd client >=3.7.1",
+        "review_by": "2026-10-22"
     }
 ]

@@ -111,21 +111,23 @@ def bidi_endpoint(aws_session, image_uri, model_id, instance_type):
         _cleanup([endpoint, endpoint_config, model])
 
 
-def _make_bidi_client(aws_session):
+async def _make_bidi_client(aws_session):
     """Construct the experimental async HTTP/2 SageMaker runtime client.
 
     Imported lazily so a missing/renamed experimental SDK fails this test only,
-    not collection of the whole sagemaker suite.
+    not collection of the whole sagemaker suite. As of the pinned SDK (v0.10.0)
+    the config class is AsyncSageMakerRuntimeHTTP2Config and is *async-resolved*,
+    so this is a coroutine and must run inside the event loop that drives the
+    stream. SigV4-for-sagemaker is the SDK's built-in default auth scheme, so we
+    only override the bidi endpoint (:8443), region, and env-based credentials.
     """
     from aws_sdk_sagemaker_runtime_http2.client import AsyncSageMakerRuntimeHTTP2Client
-    from aws_sdk_sagemaker_runtime_http2.config import Config, SigV4AuthScheme
+    from aws_sdk_sagemaker_runtime_http2.config import AsyncSageMakerRuntimeHTTP2Config
     from smithy_aws_core.identity import EnvironmentCredentialsResolver
 
-    scheme = SigV4AuthScheme(service="sagemaker")
-    config = Config(
+    config = await AsyncSageMakerRuntimeHTTP2Config.resolve(
         endpoint_uri=BIDI_ENDPOINT_URI,
         region=aws_session.region,
-        auth_schemes={scheme.scheme_id: scheme},
         aws_credentials_identity_resolver=EnvironmentCredentialsResolver(),
     )
     return AsyncSageMakerRuntimeHTTP2Client(config=config)
@@ -152,7 +154,7 @@ async def _send_json(stream, obj):
     await stream.input_stream.send(RequestStreamEventPayloadPart(value=part))
 
 
-async def _stream_tts(client, endpoint_name, deadline_s=180):
+async def _stream_tts(aws_session, endpoint_name, deadline_s=180):
     """Open a bidi WS to /v1/audio/speech/stream, request TTS, collect audio.
 
     Returns dict: {audio_bytes, saw_start, saw_done, error}. Reads with a single
@@ -164,6 +166,7 @@ async def _stream_tts(client, endpoint_name, deadline_s=180):
         ResponseStreamEventPayloadPart,
     )
 
+    client = await _make_bidi_client(aws_session)
     inp = InvokeEndpointWithBidirectionalStreamInput(
         endpoint_name=endpoint_name,
         model_invocation_path=SPEECH_STREAM_PATH,  # slashless
@@ -258,14 +261,13 @@ def test_vllm_omni_bidi_speech_stream(bidi_endpoint, aws_session):
         os.environ["AWS_SESSION_TOKEN"] = creds.token
     os.environ.setdefault("AWS_REGION", aws_session.region)
 
-    client = _make_bidi_client(aws_session)
-
     # First request also pays torch.compile + CUDA graph warmup, which can be
     # slow; the 180s stream deadline absorbs it. One retry covers a transient
-    # first-call warmup that overruns.
+    # first-call warmup that overruns. The client is (re)built inside each run
+    # since its config is async-resolved and must live on the run's event loop.
     result = None
     for attempt in range(2):
-        result = asyncio.run(_stream_tts(client, bidi_endpoint.endpoint_name))
+        result = asyncio.run(_stream_tts(aws_session, bidi_endpoint.endpoint_name))
         LOGGER.info(f"Bidi TTS attempt {attempt + 1}: {result}")
         if result["saw_start"] and result["audio_bytes"] > 2000 and not result["error"]:
             break
@@ -294,9 +296,8 @@ def test_vllm_omni_bidi_default_path_rejected(bidi_endpoint, aws_session):
         os.environ["AWS_SESSION_TOKEN"] = creds.token
     os.environ.setdefault("AWS_REGION", aws_session.region)
 
-    client = _make_bidi_client(aws_session)
-
     async def _probe():
+        client = await _make_bidi_client(aws_session)
         # No model_invocation_path -> default /invocations-bidirectional-stream.
         inp = InvokeEndpointWithBidirectionalStreamInput(endpoint_name=bidi_endpoint.endpoint_name)
         try:

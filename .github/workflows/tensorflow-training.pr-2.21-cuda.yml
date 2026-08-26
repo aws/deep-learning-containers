@@ -5,19 +5,24 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/tensorflow/2.21-*-cuda.yml"
+      - ".github/config/image/tensorflow/2.21-training-*-cuda.yml"
       - ".github/workflows/tensorflow-training.pipeline.yml"
       - ".github/workflows/tensorflow-training.pr-2.21-cuda.yml"
       - ".github/workflows/tensorflow-training.tests-sagemaker.yml"
       - ".github/workflows/tensorflow-training.tests-single-gpu.yml"
       - ".github/workflows/tensorflow-training.tests-unit.yml"
-      - "docker/tensorflow/2.21/Dockerfile.cuda"
-      - "docker/tensorflow/2.21/cuda/**"
+      - "docker/tensorflow/training/2.21/Dockerfile.cuda"
+      - "docker/tensorflow/training/2.21/cuda/**"
       - "scripts/docker/common/**"
+      # Broad on purpose: the whole tensorflow subtree triggers this workflow so a
+      # newly-added script can never merge with no TF CI. The per-family narrowing
+      # lives in build-change below, which is what gates the expensive build.
+      # Shared TF scripts belong in scripts/docker/common/**, not at the
+      # scripts/docker/tensorflow/ root.
       - "scripts/docker/tensorflow/**"
       - "scripts/docker/telemetry/**"
       - "test/efa/**"
-      - "test/tensorflow/integration/sagemaker/**"
+      - "test/tensorflow/integration/training/**"
       - "test/tensorflow/single_gpu/**"
       - "test/tensorflow/unit/**"
       - "test/sanity/**"
@@ -57,16 +62,16 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/tensorflow/2.21-*-cuda.yml"
-              - "docker/tensorflow/2.21/Dockerfile.cuda"
-              - "docker/tensorflow/2.21/cuda/**"
+              - ".github/config/image/tensorflow/2.21-training-*-cuda.yml"
+              - "docker/tensorflow/training/2.21/Dockerfile.cuda"
+              - "docker/tensorflow/training/2.21/cuda/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/tensorflow/**"
+              - "scripts/docker/tensorflow/training/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
             efa-test-change:
               - "test/efa/**"
             sagemaker-test-change:
-              - "test/tensorflow/integration/sagemaker/**"
+              - "test/tensorflow/integration/training/**"
             sanity-test-change:
               - "test/sanity/**"
             single-gpu-test-change:
@@ -87,7 +92,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/tensorflow/2.21-*-cuda.yml"
+          pattern: ".github/config/image/tensorflow/2.21-training-*-cuda.yml"
 
   pipeline:
     needs: [check-changes, discover]
