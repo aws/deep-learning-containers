@@ -150,7 +150,7 @@ suites:
       - test/sklearn/sagemaker/**
       - test/sklearn/conftest.py
       - test/sklearn/requirements.txt
-      
+
   whisperx/ec2:
     skip_eligible: true
     code_paths:
