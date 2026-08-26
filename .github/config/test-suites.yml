@@ -92,11 +92,13 @@ suites:
     skip_eligible: true
     code_paths:
       - test/vllm/**
+      - .github/config/model-tests/vllm-model-tests.yml
 
   vllm/sagemaker:
     skip_eligible: true
     code_paths:
       - test/vllm/sagemaker/**
+      - .github/config/model-tests/vllm-sagemaker-endpoint-tests.yml
 
   sglang/upstream:
     skip_eligible: true
