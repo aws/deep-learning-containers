@@ -88,7 +88,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity", "telemetry"]'
+      suites: '["sanity", "telemetry", "sglang/upstream"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -232,8 +232,11 @@ jobs:
           done
 
   sglang-upstream-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sglang-upstream-test }}
-    needs: [build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sglang-upstream-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['sglang/upstream'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sglang-upstream-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -241,6 +244,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sglang/upstream'] || '' }}
       # These base-a-test-1-gpu-small tests require gated meta-llama/Llama-3.1-8B,
       # which the CI HF token cannot access. The remaining suite tests are ungated.
       skip-tests: >-

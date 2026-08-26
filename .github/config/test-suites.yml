@@ -124,6 +124,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/sglang/**
+      - .github/config/model-tests/sglang-model-tests.yml
 
   sglang/sagemaker:
     skip_eligible: true
