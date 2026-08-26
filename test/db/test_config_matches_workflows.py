@@ -18,6 +18,25 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
 TEST_SKIP_ACTIONS = ("check-test-pass", "record-test-pass")
 CHECK_WORKFLOW = "_reusable.check-test-pass.yml"
+RECORD_ACTION = "record-test-pass"
+
+# Every record-test-pass call site must thread these inputs to the store write.
+# `suite` is checked separately (it's a per-suite literal, validated against
+# test-suites.yml by test_invoked_suites_are_configured). image-content-hash and
+# suite-code-hash form the row's keys; ci-image-uri is the recorded tag source;
+# ci-images-table-account-id targets the table. A caller that drops or misspells
+# any of these silently writes a broken/absent row, so pin the exact wiring.
+EXPECTED_RECORD_INPUTS = {
+    "image-content-hash": "${{ inputs.image-content-hash }}",
+    "suite-code-hash": "${{ inputs.suite-code-hash }}",
+    "ci-image-uri": "${{ inputs.image-uri }}",
+    "ci-images-table-account-id": "${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}",
+}
+
+
+def _norm(value):
+    """Collapse whitespace so GHA-expression spacing differences don't matter."""
+    return " ".join(str(value).split())
 
 
 @pytest.fixture(autouse=True)
@@ -130,3 +149,47 @@ def test_check_accessors_are_configured_and_checked():
             elif key not in check_suites:
                 problems.append((wf_path.name, key, "not in the check job's suites list"))
     assert not problems, f"A job that is skippable was not checked by the check job: {problems}"
+
+
+def _record_test_pass_steps():
+    """Yield (workflow_file, step) for every step that invokes the record-test-pass action."""
+    for wf_path in sorted(WORKFLOWS_DIR.glob("*.yml")):
+        try:
+            workflow = yaml.safe_load(wf_path.read_text())
+        except yaml.YAMLError:
+            continue
+        for step in _iter_steps(workflow):
+            uses = step.get("uses", "")
+            if isinstance(uses, str) and RECORD_ACTION in uses:
+                yield wf_path.name, step
+
+
+def test_record_test_pass_inputs_are_wired():
+    """Every record-test-pass call site must pass all store attributes, correctly wired.
+
+    ci-image-uri is `required: false` on the action, and GitHub only warns (does not
+    fail) on missing required composite-action inputs, so nothing else guarantees a
+    new suite's call site threads these. This is that guarantee.
+    """
+    problems = []
+    sites = 0
+    for wf_name, step in _record_test_pass_steps():
+        sites += 1
+        with_ = step.get("with") or {}
+
+        suite = with_.get("suite")
+        if not (isinstance(suite, str) and suite.strip()):
+            problems.append((wf_name, "suite", f"missing or empty (got {suite!r})"))
+
+        for key, expected in EXPECTED_RECORD_INPUTS.items():
+            actual = with_.get(key)
+            if actual is None:
+                problems.append((wf_name, key, "missing"))
+            elif _norm(actual) != _norm(expected):
+                problems.append((wf_name, key, f"expected {expected!r}, got {actual!r}"))
+
+    assert sites, "found no record-test-pass call sites — the step walker matched nothing"
+    assert not problems, (
+        "record-test-pass call sites must thread every store attribute correctly "
+        f"(missing/misspelled inputs write broken or tagless rows): {problems}"
+    )
