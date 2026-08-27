@@ -1,107 +1,84 @@
 # EC2 Deployment
 
-On {{ ec2_short }} there is no orchestrator to bootstrap the cluster, so you start Ray yourself: one container as the head, the rest as workers
-pointing at it. This is the simplest way to try the image, and the right choice when you are not running Kubernetes.
+There is no orchestrator on {{ ec2_short }} to bootstrap the cluster, so you start Ray yourself: one container as the head, the rest as workers
+pointing at it. The image's entrypoint `exec`s whatever command it is given, so `ray` and `python3` both work directly as the container command.
 
-The image's entrypoint runs a CUDA forward-compatibility check and then `exec`s whatever command it is given, so any `ray` invocation works directly
-as the container command.
+## Single-Node Training
 
-## Single Node, Multi-GPU
-
-For a single node, Ray Train needs no cluster setup — `ray.init()` inside the script starts a local Ray instance that sees every GPU:
+On one instance Ray needs no cluster setup — `ray.init()` inside the script starts a local Ray instance that sees every GPU:
 
 ```bash
-docker run --rm -it --gpus all --shm-size=16g --ipc=host \
+docker run --rm -it --gpus all --shm-size=16g \
   -v $(pwd):/workspace \
   public.ecr.aws/deep-learning-containers/ray:train-ml-cuda \
   python3 train.py
 ```
 
-`--shm-size=16g --ipc=host` is required — Ray's object store and PyTorch's DataLoader workers both share tensors through `/dev/shm`, and the Docker
-default of 64 MB is far too small.
+Ray's object store lives in `/dev/shm`, and Docker's 64 MB default is far too small — pass `--shm-size`, or mount the host's with
+`-v /dev/shm:/dev/shm`. Set `ScalingConfig(num_workers=<gpus_on_this_host>, use_gpu=True)` in the script to use all local GPUs.
 
-Set `ScalingConfig(num_workers=<gpus_on_this_host>, use_gpu=True)` in the script to use all local GPUs.
+## Multi-Node Training (EFA)
 
-## Multi-Node
+On EFA-capable instances (e.g., `p5.48xlarge`, `p4d.24xlarge`) the image ships EFA, the AWS NCCL OFI plugin, and GDRCopy, so collectives flow over EFA
+once the adapter is visible in the container. Pass the EFA devices through, raise the memlock limit for pinned RDMA buffers, and use host networking.
 
-Start a head container on one instance:
+Start the head on one instance:
 
 ```bash
-docker run --rm -d --name ray-head \
-  --gpus all --network host --shm-size=16g --ipc=host \
-  -v /shared:/shared \
+docker run -d --name ray-head --runtime=nvidia --gpus all \
+  --network host --ulimit memlock=-1:-1 \
+  $(for d in /dev/infiniband/uverbs*; do echo -n "--device $d "; done) \
+  -v /dev/shm:/dev/shm -v /shared:/shared \
   public.ecr.aws/deep-learning-containers/ray:train-ml-cuda \
   ray start --head --port=6379 --dashboard-host=0.0.0.0 --block
 ```
 
-Then join each worker instance to it:
+Then join each worker to it, with the same flags:
 
 ```bash
-docker run --rm -d --name ray-worker \
-  --gpus all --network host --shm-size=16g --ipc=host \
-  -v /shared:/shared \
+docker run -d --name ray-worker --runtime=nvidia --gpus all \
+  --network host --ulimit memlock=-1:-1 \
+  $(for d in /dev/infiniband/uverbs*; do echo -n "--device $d "; done) \
+  -v /dev/shm:/dev/shm -v /shared:/shared \
   public.ecr.aws/deep-learning-containers/ray:train-ml-cuda \
   ray start --address=<head_private_ip>:6379 --block
 ```
 
 `--block` keeps `ray start` in the foreground so the container's lifetime matches the Ray node's. `--network host` lets workers reach the head's GCS
-on 6379 without port mapping — the alternative is publishing 6379, 8265, and 10001 explicitly and making sure the security group allows them between
-instances.
+on 6379 without port mapping; otherwise publish 6379, 8265, and 10001 and allow them between instances in the security group.
 
-Confirm the cluster formed, then submit a job:
+Confirm the cluster formed, then submit:
 
 ```bash
 docker exec ray-head ray status
 docker exec ray-head ray job submit --address http://localhost:8265 --working-dir /shared/code -- python3 train.py
 ```
 
-Checkpoints and datasets must live on storage every node can reach — an NFS or FSx mount (shown as `/shared` above) or an `s3://` path in
-`RunConfig(storage_path=...)`. A host path that exists only on one instance fails as soon as a second node writes a checkpoint.
+Checkpoints and datasets must live on storage every node can reach — an NFS or FSx mount (`/shared` above) or an `s3://` path in
+`RunConfig(storage_path=...)`.
 
-## Multi-Node with EFA
+### Verify EFA Connectivity Before Training
 
-On EFA-capable instances (for example `p5.48xlarge` or `p4d.24xlarge`) the image already contains EFA, the AWS NCCL OFI plugin, and GDRCopy, so
-collectives flow over EFA once the adapter is visible inside the container. Pass the EFA devices through and keep host networking:
-
-```bash
-docker run --rm -d --name ray-worker \
-  --gpus all --network host --privileged \
-  --shm-size=16g --ipc=host \
-  -v /shared:/shared \
-  public.ecr.aws/deep-learning-containers/ray:train-ml-cuda \
-  ray start --address=<head_private_ip>:6379 --block
-```
-
-`FI_PROVIDER=efa` and `NCCL_DEBUG=INFO` are already set in the image. `NCCL_SOCKET_IFNAME` is deliberately **not** pinned: `/etc/nccl.conf` ships the
-exclusion default `^docker0,lo`, which auto-detects the right NIC on any host. Hardcoding `eth0` would break {{ ec2_short }} instances, whose
-interfaces are named `ens6`, `enp40s0`, and similar.
-
-### Verify EFA Connectivity First
-
-`all_reduce_perf` is at `/usr/local/bin/all_reduce_perf`. Run it across nodes before starting a real job:
+The image includes the NCCL `all_reduce_perf` binary. Run it across nodes to confirm EFA + NCCL plumbing before spending GPU-hours on a real job:
 
 ```bash
-docker exec ray-head mpirun -np 16 -N 8 -hostfile /shared/hosts.txt \
-  -x NCCL_DEBUG=INFO -x FI_PROVIDER=efa \
+docker exec ray-head mpirun -x FI_PROVIDER=efa -x FI_EFA_FORK_SAFE=1 \
+  -n 16 -N 8 --hostfile /shared/hosts.txt \
+  -x NCCL_DEBUG=INFO -x NCCL_SOCKET_IFNAME=^lo \
+  --mca btl tcp,self --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
   /usr/local/bin/all_reduce_perf -b 8 -e 1G -f 2 -g 1
 ```
 
-`NET/OFI Selected provider is efa` in the output confirms the plumbing. `NET/Socket` means NCCL fell back to TCP — check that the container ran with
-`--privileged` (or the EFA devices passed via `--device`), and that `lspci | grep -i mellanox` inside the container lists the adapter.
+Add `-x FI_EFA_USE_DEVICE_RDMA=1` on p4d and p5 instances. `NET/OFI Selected provider is efa` and `Using network Libfabric` in the output confirm the
+plumbing; `NET/Socket` means NCCL fell back to TCP.
 
-MPI launches need SSH between containers. The image ships an OpenSSH server on port 22 with a root key already generated, which is convenient for test
-clusters but should be hardened or replaced for production. Use `--network host` (or `-p 22:22`) and add your public key to
+## SSH Between Nodes
+
+Multi-node MPI launches require SSH between containers. The image ships a pre-configured OpenSSH server on port 22 that runs as `root` — useful for
+test clusters, but you should harden or replace it for production deployments. Use `--network host` (or `-p 22:22`) and add your public key to
 `/root/.ssh/authorized_keys`.
 
 ## Building on the Image
 
-`gcc`, `gcc-c++`, `make`, `cuda-nvcc`, and `cuda-cudart-devel` are installed, so CUDA extensions compile in place. Python lives in a venv at
-`/opt/venv`, already on `PATH`, with PyTorch headers under `/opt/venv/lib/python3.13/site-packages/torch/`.
-
-## Shutting Down
-
-```bash
-docker exec ray-worker ray stop
-docker exec ray-head ray stop
-docker rm -f ray-worker ray-head
-```
+The image includes `gcc`, `gcc-c++`, `make`, `cuda-nvcc`, and `cuda-cudart-devel`, so you can build CUDA extensions in-place. PyTorch headers and
+libraries are visible at `/opt/venv/lib/python3.13/site-packages/torch/`.

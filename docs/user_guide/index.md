@@ -6,8 +6,7 @@ Choose a framework to get started:
 - **[vLLM-Omni](../vllm-omni/index.md)** — serve multimodal models (TTS, image, video, audio, omni-chat)
 - **[TEI](../tei/index.md)** — serve text embedding, reranker, and classification models with Text Embeddings Inference on {{ sagemaker }}
 - **[Ray](../ray/index.md)** — deploy any ML model with Ray Serve (NLP, vision, audio, tabular)
-- **[Ray Train](../ray-train/index.md)** — multi-node distributed training with Ray Train on {{ eks_short }} (KubeRay), HyperPod-EKS, or
-  {{ ec2_short }}
+- **[Ray Train](../ray-train/index.md)** — distributed training with Ray Train on any {{ eks_short }} cluster via KubeRay, or on {{ ec2_short }}
 - **[WhisperX](../whisperx/index.md)** — transcribe, align, and diarize speech on {{ ec2_short }} or {{ sagemaker }}
 - **[llama.cpp](../llama-cpp/index.md)** — serve quantized GGUF models on x86 CPU, NVIDIA GPU, or Graviton (ARM64) with the OpenAI-compatible
   llama-server API

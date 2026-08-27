@@ -3,5 +3,4 @@ nav:
   - Deployment:
     - Amazon EKS (KubeRay): deployment/eks.md
     - EC2: deployment/ec2.md
-  - Configuration: configuration.md
   - Changelog: changelog/index.md
