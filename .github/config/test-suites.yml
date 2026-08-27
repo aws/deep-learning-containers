@@ -61,6 +61,21 @@ suites:
     code_paths:
       - test/tensorflow/integration/inference/**
 
+  tensorflow-training/unit:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/unit/**
+
+  tensorflow-training/single_gpu:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/single_gpu/**
+
+  tensorflow-training/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/integration/training/**
+
   ray/unit:
     skip_eligible: true
     code_paths:
