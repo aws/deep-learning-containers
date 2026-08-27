@@ -22,7 +22,7 @@ metadata:
   name: ray-train-cluster
   namespace: ray-train
 spec:
-  rayVersion: "2.56.0"
+  rayVersion: "2.58.0"
   headGroupSpec:
     rayStartParams:
       dashboard-host: "0.0.0.0"
@@ -99,7 +99,7 @@ kubectl get pods -l ray.io/cluster=ray-train-cluster -n ray-train -o wide
 
 A few details in the manifest matter:
 
-- **`rayVersion` must match the Ray in the image** (2.56.0). KubeRay uses it to pick default probe endpoints and startup behavior.
+- **`rayVersion` must match the Ray in the image** (2.58.0). KubeRay uses it to pick default probe endpoints and startup behavior.
 - **Do not set a container `command`** — KubeRay injects `ray start` per pod, and overriding it breaks head/worker wiring. The image's entrypoint only
   runs the CUDA forward-compatibility check and then `exec`s whatever it is given.
 - **Mount an `emptyDir` at `/tmp/ray`.** Ray writes session logs and spill files there; without a volume they land on the container's writable layer.

@@ -7,6 +7,7 @@ nav:
     - SGLang: sglang
     - TEI: tei
     - Ray: ray
+    - Ray Train: ray-train
     - WhisperX: whisperx
     - llama.cpp: llama-cpp
     - PyTorch: pytorch

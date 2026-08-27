@@ -1,9 +1,5 @@
 # Distributed Training using Ray Train DLC
 
-> **Pre-release.** The Ray Train DLC has not been released to production yet. It currently builds and publishes to a pre-release (gamma) private
-> registry only, so the tags below are **not** on the {{ ecr_public }} and cannot be pulled without internal access. This page documents the planned
-> v1 contract; remove this notice when the image ships to production.
-
 Production-ready Docker image for **multi-node, multi-GPU distributed training** with [Ray Train](https://docs.ray.io/en/latest/train/train.html) on
 {{ aws }}. Built on Amazon Linux 2023 with ongoing security patching.
 
@@ -21,8 +17,9 @@ entrypoint.
 | --- | --- | --- | --- |
 | {{ ec2_short }} / {{ eks_short }} (KubeRay) | GPU (CUDA) | `public.ecr.aws/deep-learning-containers/ray:train-ml-cuda` | 6379, 8265, 10001 |
 
-Ray Train shares the `ray` repository with the [Ray Serve DLC](../ray/index.md) and is distinguished by the `train-ml` tag prefix. Rolling and pinned
-tags are published alongside the floating tag: `train-ml-cuda-v1` and `train-ml-cuda-v1.0`. For private ECR URIs, see
+Ray Train shares the `ray` repository with the [Ray Serve DLC](../ray/index.md) and is distinguished by the `train-ml` tag prefix. Pinned tags are
+published alongside the floating one — `train-ml-cuda-v1`, `train-ml-cuda-v1.0`, and `train-ml-cuda-v1.0.0` — so pin to whichever level of stability
+you want. The image is also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/ray). For private ECR URIs, see
 [Image Access](../get_started/index.md).
 
 This image is training-scoped: `ray[serve]` is deliberately **not** installed and port 8000 is not exposed. For model serving with Ray Serve, use the
@@ -32,7 +29,7 @@ This image is training-scoped: `ray[serve]` is deliberately **not** installed an
 
 The image layers Ray on top of the full distributed-training stack, so you can launch multi-node training without building a custom image:
 
-- **[Ray](https://docs.ray.io/) 2.56.0** with the `default`, `train`, `tune`, and `data` extras — `ray[default]` is what provides the dashboard and
+- **[Ray](https://docs.ray.io/) 2.58.0** with the `default`, `train`, `tune`, and `data` extras — `ray[default]` is what provides the dashboard and
   the job-submission server that KubeRay's health probes and `ray job submit` depend on
 - **[PyTorch](https://pytorch.org/) 2.13.0** with `torchvision` 0.28.0 (CUDA 13.0 wheels)
 - **CUDA 13.0.2** with cuDNN and **NCCL 2.29.7** for multi-GPU collectives
