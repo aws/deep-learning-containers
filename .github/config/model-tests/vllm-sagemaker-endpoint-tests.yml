@@ -235,7 +235,7 @@ sagemaker:
         validate: "json_field:results.0.relevance_score"
 
   # Tool-calling regression: verifies the SM entrypoint forwards the tool-parser flags.
-  - name: "qwen3.5-0.8b-tool-calling"
+  - name: "qwen3-5-0-8b-tool-calling"
     s3_model: "qwen3.5-0.8b.tar.gz"
     instance_type: "ml.g6.xlarge"
     env:
