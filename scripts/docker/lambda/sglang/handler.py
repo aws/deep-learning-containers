@@ -19,11 +19,15 @@ Customers typically override this handler; this default lets the image serve out
 the box and gives CI a smoke target.
 
 Environment variables:
-  MODEL_ID                  HuggingFace model id or local path (default: a tiny model)
+  MODEL_ID                  HuggingFace model id, local path, or s3:// prefix (default: a tiny model)
   SGLANG_MEM_FRACTION       mem_fraction_static for the server (default: 0.8)
   SGLANG_ATTENTION_BACKEND  attention backend (default: flashinfer)
   SGLANG_TP_SIZE            tensor-parallel size (default: visible GPU count)
   SGLANG_MAX_TOTAL_TOKENS   optional cap on the KV cache token budget
+  SGLANG_LOAD_FORMAT        sglang --load-format; set runai_streamer with an s3:// MODEL_ID
+                            to stream safetensors from S3 to GPU (runai-model-streamer)
+  SERVED_MODEL_NAME         --served-model-name; the model id clients use (set this when
+                            MODEL_ID is a path/s3:// prefix so requests have a stable name)
   SGLANG_SERVER_PORT        port the in-container server binds (default: 8000)
   SGLANG_SERVER_TIMEOUT     seconds to wait for server readiness (default: 600)
 """
@@ -40,6 +44,12 @@ _MODEL_ID = os.environ.get("MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
 _MEM_FRACTION = os.environ.get("SGLANG_MEM_FRACTION", "0.8")
 _ATTENTION_BACKEND = os.environ.get("SGLANG_ATTENTION_BACKEND", "flashinfer")
 _MAX_TOTAL_TOKENS = os.environ.get("SGLANG_MAX_TOTAL_TOKENS")
+# Set SGLANG_LOAD_FORMAT=runai_streamer with MODEL_ID=s3://bucket/prefix to stream
+# safetensors from S3 into GPU memory via runai-model-streamer (no /tmp staging).
+_LOAD_FORMAT = os.environ.get("SGLANG_LOAD_FORMAT")
+# When MODEL_ID is a path/s3:// prefix, the served model name differs from it;
+# set SERVED_MODEL_NAME so clients (and this handler) address a stable model id.
+_SERVED_NAME = os.environ.get("SERVED_MODEL_NAME")
 _PORT = os.environ.get("SGLANG_SERVER_PORT", "8000")
 _TIMEOUT = int(os.environ.get("SGLANG_SERVER_TIMEOUT", "600"))
 _BASE_URL = f"http://127.0.0.1:{_PORT}"
@@ -70,6 +80,10 @@ def _start_server():
     ]
     if _MAX_TOTAL_TOKENS:
         cmd += ["--max-total-tokens", _MAX_TOTAL_TOKENS]
+    if _LOAD_FORMAT:
+        cmd += ["--load-format", _LOAD_FORMAT]
+    if _SERVED_NAME:
+        cmd += ["--served-model-name", _SERVED_NAME]
     subprocess.Popen(cmd)
 
     deadline = time.monotonic() + _TIMEOUT
@@ -110,7 +124,7 @@ def handler(event, context):
         event = json.loads(event or "{}")
 
     body = dict(event)
-    body.setdefault("model", _MODEL_ID)
+    body.setdefault("model", _SERVED_NAME or _MODEL_ID)
     path = "/v1/chat/completions" if "messages" in body else "/v1/completions"
 
     resp = requests.post(f"{_BASE_URL}{path}", json=body, timeout=_TIMEOUT)

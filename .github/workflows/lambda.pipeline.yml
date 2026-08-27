@@ -187,9 +187,9 @@ jobs:
             *cupy*)
               TESTS="$COMMON /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py" ;;
             *sglang*)
-              TESTS="$COMMON /test/unit/test_imports_sglang.py /test/single_gpu/test_sglang_inference.py" ;;
+              TESTS="$COMMON /test/unit/test_imports_sglang.py /test/unit/test_runai_streamer.py /test/single_gpu/test_sglang_inference.py" ;;
             *vllm*)
-              TESTS="$COMMON /test/unit/test_imports_vllm.py /test/single_gpu/test_vllm_inference.py" ;;
+              TESTS="$COMMON /test/unit/test_imports_vllm.py /test/unit/test_runai_streamer.py /test/single_gpu/test_vllm_inference.py" ;;
             *base*)
               TESTS="$COMMON /test/unit/test_imports_base.py" ;;
           esac
