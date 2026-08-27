@@ -23,7 +23,7 @@ MODELS_BUCKET="${MODELS_BUCKET:-dlc-cicd-models}"
 MODEL_TARBALL_S3="${MODEL_TARBALL_S3:-s3://${MODELS_BUCKET}/llm-models/qwen3-0.6b.tar.gz}"
 RAW_S3_PREFIX="${RAW_S3_PREFIX:-s3://${MODELS_BUCKET}/llm-models-safetensors/qwen3-0.6b}"
 SERVED_NAME="${SERVED_MODEL_NAME:-qwen3-0.6b}"
-PORT=9000
+PORT=8080                  # RIE listens on 8080; under --network host it binds the host directly
 INVOKE_URL="http://localhost:${PORT}/2015-03-31/functions/function/invocations"
 READY_TIMEOUT=600          # engine cold start: S3 stream + flashinfer JIT + warmup
 PAYLOAD='{"prompt":"The capital of France is","max_tokens":16}'
@@ -43,15 +43,24 @@ echo "image=${IMAGE} engine=${ENGINE} model=${RAW_S3_PREFIX} served_name=${SERVE
 
 C="runai-s3-${ENGINE}"
 docker rm -f "$C" >/dev/null 2>&1
-# Forward host AWS creds if present; on CI EC2 runners the container reads the
-# instance role via IMDS instead.
-CREDS_ENV=""
-for v in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN; do
-  [ -n "${!v:-}" ] && CREDS_ENV+=" -e ${v}"
-done
 REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-us-east-2}}"
 
-docker run -d --name "$C" --gpus all -p ${PORT}:8080 \
+# runai-model-streamer reads S3 from *inside* the container, which by default has
+# no route to the runner's credential endpoints. Share the host network so the
+# ECS container-creds endpoint (169.254.170.2) and EC2 IMDS (169.254.169.254) are
+# reachable, then forward the provider-chain env vars so boto3 in the container
+# resolves the same CI role. Vars are passed by NAME (-e VAR, no value) so nothing
+# sensitive lands in argv / CI logs; the bearer token is masked defensively.
+[ -n "${AWS_CONTAINER_CREDENTIALS_TOKEN:-}" ] && echo "::add-mask::${AWS_CONTAINER_CREDENTIALS_TOKEN}"
+CREDS_ENV=""
+for v in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN \
+         AWS_CONTAINER_CREDENTIALS_RELATIVE_URI AWS_CONTAINER_CREDENTIALS_FULL_URI \
+         AWS_CONTAINER_CREDENTIALS_TOKEN; do
+  [ -n "${!v:-}" ] && CREDS_ENV+=" -e ${v}"
+done
+
+# --network host => the RIE binds ${PORT} on the host directly (no -p mapping).
+docker run -d --name "$C" --gpus all --network host \
   -e MODEL_ID="${RAW_S3_PREFIX}" \
   -e "${ENGINE^^}_LOAD_FORMAT=runai_streamer" \
   -e SERVED_MODEL_NAME="${SERVED_NAME}" \
