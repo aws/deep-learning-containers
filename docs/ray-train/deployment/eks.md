@@ -30,6 +30,7 @@ spec:
           - name: ray-head
             image: public.ecr.aws/deep-learning-containers/ray:train-ml-cuda
             env:
+              # Skip the NVML hook on this GPU-less pod.
               - { name: NVIDIA_VISIBLE_DEVICES, value: "void" }
             ports:
               - { containerPort: 6379, name: gcs-server }
@@ -78,6 +79,10 @@ spec:
 Four details matter: `rayVersion` must match the Ray in the image; leave the container `command` unset so KubeRay can inject `ray start`; keep
 `rayStartParams.num-gpus` equal to the pod's `nvidia.com/gpu` limit, or Ray's scheduler and the kubelet will disagree about capacity; and mount a
 volume at `/tmp/ray`, where Ray writes session logs and object-store spill.
+
+`NVIDIA_VISIBLE_DEVICES=void` on the head is worth keeping. When a cluster's default containerd runtime is `nvidia`, the NVML hook runs on every pod
+and hard-fails on a GPU-less node with `failed to initialize NVML: Driver Not Loaded`. Setting it to `void` tells the runtime to skip the hook for
+that pod.
 
 Apply it and wait for the pods:
 
@@ -151,14 +156,14 @@ with Lightning, use `RayFSDPStrategy`; our multi-node regression test is a worki
 If your nodes have no route to the internet, pre-stage the dataset and model onto the shared filesystem and set `HF_HOME=/fsx/hf_cache` plus
 `HF_HUB_OFFLINE=1` in the training script.
 
-## Verifying EFA
+## Confirming EFA Is in Use
 
-Run `all_reduce_perf` inside a worker pod before committing GPU-hours to a long job:
+`NCCL_DEBUG=INFO` is set in the image, so the first collective of any job prints the transport NCCL chose. Check the job's own output:
 
 ```bash
-kubectl exec -n ray-train <worker-pod> -- \
-  bash -c 'NCCL_DEBUG=INFO /usr/local/bin/all_reduce_perf -b 8 -e 1G -f 2 -g 4'
+kubectl logs -n ray-train -l ray.io/cluster=ray-train-cluster,ray.io/node-type=worker --tail=-1 | grep -i "NET/OFI\|Libfabric"
 ```
 
-`NET/OFI Selected provider is efa` in the output confirms EFA is in use. `NET/Socket` means NCCL fell back to TCP — check that the pod requested
-`vpc.amazonaws.com/efa` and that the EFA device plugin is running.
+`NET/OFI Selected provider is efa` confirms EFA is carrying the collectives. A line reporting the `efa` provider returned an empty list, or a fall
+back to `NET/Socket`, means EFA is not plumbed through — check that the pod requested `vpc.amazonaws.com/efa`, that the EFA device plugin is running,
+and that `NCCL_SOCKET_IFNAME` matches the pod's interface (`eth0` on {{ eks_short }}).

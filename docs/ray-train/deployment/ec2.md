@@ -59,7 +59,16 @@ Checkpoints and datasets must live on storage every node can reach — an NFS or
 
 ### Verify EFA Connectivity Before Training
 
-The image includes the NCCL `all_reduce_perf` binary. Run it across nodes to confirm EFA + NCCL plumbing before spending GPU-hours on a real job:
+The image includes the NCCL `all_reduce_perf` binary. Run it across nodes to confirm EFA + NCCL plumbing before spending GPU-hours on a real job. This
+needs SSH between the containers ([below](#ssh-between-nodes)) and a hosts file listing one line per node with its GPU count:
+
+```bash
+# /shared/hosts.txt — slots must equal the GPUs per node
+localhost slots=8
+<worker_private_ip> slots=8
+```
+
+Then, from the head container — `-n` is total GPUs, `-N` is GPUs per node:
 
 ```bash
 docker exec ray-head mpirun -x FI_PROVIDER=efa -x FI_EFA_FORK_SAFE=1 \
@@ -74,9 +83,30 @@ plumbing; `NET/Socket` means NCCL fell back to TCP.
 
 ## SSH Between Nodes
 
-Multi-node MPI launches require SSH between containers. The image ships a pre-configured OpenSSH server on port 22 that runs as `root` — useful for
-test clusters, but you should harden or replace it for production deployments. Use `--network host` (or `-p 22:22`) and add your public key to
-`/root/.ssh/authorized_keys`.
+Multi-node MPI launches require SSH between containers, and the image does not start `sshd` for you — the entrypoint runs your command and nothing
+else. Because `--network host` puts the container on the host's network stack, run the container's `sshd` on a spare port (22 belongs to the host) and
+point the client at the same port.
+
+On each worker container, generate host keys, move `sshd` to 2022, authorize the head's public key, and start the daemon:
+
+```bash
+docker exec ray-worker bash -c '
+  ssh-keygen -A                                  # AL2023 ships no host keys; sshd will not start without them
+  echo "Port 2022" >> /etc/ssh/sshd_config
+  echo "<head_container_public_key>" >> /root/.ssh/authorized_keys
+  /usr/sbin/sshd && pgrep -x sshd'
+```
+
+On the head container, point the SSH client at port 2022:
+
+```bash
+docker exec ray-head bash -c '
+  printf "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile /dev/null\n  Port 2022\n" > /root/.ssh/config
+  chmod 600 /root/.ssh/config'
+```
+
+The image generates a root user keypair at `/root/.ssh/id_rsa` during the build, so you can use that as the head's key. This SSH setup runs as `root`
+and is fine for a scratch cluster; harden or replace it for production.
 
 ## Building on the Image
 
