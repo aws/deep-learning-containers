@@ -3,9 +3,9 @@
 The Ray Train DLC is a training image. Unlike a one-shot `torchrun` launch, Ray needs a cluster: you start one container as the head and the rest as
 workers pointing at it, then submit jobs to the head.
 
-## Single-Node Training
+## Single-GPU Training
 
-On one instance Ray needs no cluster setup — `ray.init()` inside the script starts a local Ray instance that sees every GPU:
+On one instance Ray needs no cluster setup — `ray.init()` inside the script starts a local Ray instance:
 
 ```bash
 docker run --rm -it --gpus all --shm-size=16g --ipc=host \
@@ -14,8 +14,24 @@ docker run --rm -it --gpus all --shm-size=16g --ipc=host \
   python3 train.py
 ```
 
-`--shm-size=16g --ipc=host` is required — Ray's object store and PyTorch's DataLoader workers both share memory through `/dev/shm`. Set
-`ScalingConfig(num_workers=<gpus_on_this_host>, use_gpu=True)` in the script to use all local GPUs.
+`--shm-size=16g --ipc=host` is required — Ray's object store and PyTorch's DataLoader workers both share memory through `/dev/shm`.
+
+## Multi-GPU Training (single node)
+
+The container command is unchanged. Ray spreads workers over the GPUs it can see, so scale by raising `num_workers` in the script rather than by
+wrapping the launch in `torchrun`:
+
+```python
+from ray.train import ScalingConfig
+from ray.train.torch import TorchTrainer
+
+trainer = TorchTrainer(
+    train_func,
+    scaling_config=ScalingConfig(num_workers=8, use_gpu=True),  # one worker per local GPU
+)
+```
+
+Ray Train handles process placement and the NCCL process group; `ray.train.torch.prepare_model()` wraps your model in DDP.
 
 ## Multi-Node Training (EFA)
 
@@ -66,9 +82,9 @@ docker exec ray-head mpirun -np 16 -N 8 -hostfile /shared/hosts.txt \
 
 ## SSH Between Nodes
 
-Multi-node MPI launches require SSH between containers. The image ships a pre-configured OpenSSH server that runs as `root` — useful for test
-clusters, but you should harden or replace it for production deployments. Start it with `/usr/sbin/sshd` (nothing starts it for you), run it on a
-spare port such as 2022 since `--network host` leaves port 22 to the host, and add your public key to `/root/.ssh/authorized_keys`.
+Multi-node MPI launches require SSH between containers. The image ships a pre-configured OpenSSH server. Start it with `/usr/sbin/sshd`, run it on a
+spare port such as 2022 (`--network host` leaves port 22 to the host), and add your public key to `/root/.ssh/authorized_keys`. The default
+configuration permits `root` login, so restrict access to your cluster's security group and supply your own keys and hardening.
 
 ## Building on the Image
 
