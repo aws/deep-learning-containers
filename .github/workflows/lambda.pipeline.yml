@@ -234,6 +234,13 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: Run runai S3 streaming test
+        if: steps.check.outputs.exists == 'true' && steps.config.outputs.engine != 'none'
+        run: |
+          chmod +x test/lambda/single_gpu/runai_s3_check.sh
+          bash test/lambda/single_gpu/runai_s3_check.sh \
+            ${{ steps.image.outputs.image-uri }} "${{ steps.config.outputs.engine }}"
+
   lambdaric-topology-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-ric-topology-test && contains(inputs.config-file, 'preview') }}
     needs: [build]
