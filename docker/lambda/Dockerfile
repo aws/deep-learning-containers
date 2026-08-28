@@ -190,6 +190,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   # bump sglang transitive deps with fixed CVEs (ECR scan): pillow, diffusers, jaraco.context
   && uv pip install --python "${UV_PYTHON}" \
      "pillow>=12.3.0" "diffusers>=0.38.0" "jaraco.context>=6.1.0" \
+  # runai-model-streamer S3 loader (not pulled by sglang[all]) — enables
+  # `--load-format runai_streamer` to stream safetensors from S3 to GPU.
+  && uv pip install --python "${UV_PYTHON}" \
+     "runai-model-streamer[s3,gcs,azure]>=0.15.7" \
   && rm -rf /tmp/sglang \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && (find /var/lang -type d -name tests -exec rm -rf {} + 2>/dev/null; true) \
@@ -317,6 +321,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
      "flashinfer-python==${FLASHINFER_VERSION}" "flashinfer-cubin==${FLASHINFER_VERSION}" \
   # bump vllm transitive deps with fixed CVEs (ECR scan) to match the other images
   && uv pip install --python "${UV_PYTHON}" "pillow>=12.3.0" \
+  # runai-model-streamer S3 loader — enables `--load-format runai_streamer`
+  # to stream safetensors from S3 to GPU (mirrors the al2023 vLLM image).
+  && uv pip install --python "${UV_PYTHON}" \
+     "runai-model-streamer[s3,gcs,azure]>=0.15.7" \
   # NOTE: do NOT delete /tmp/vllm-dist or /root/.cache/sccache — the
   # vllm-wheel-export / vllm-sccache-export scratch stages read them out of this
   # builder for the S3 cache. This is a throwaway builder (only /var/lang is copied

@@ -187,9 +187,9 @@ jobs:
             *cupy*)
               TESTS="$COMMON /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py" ;;
             *sglang*)
-              TESTS="$COMMON /test/unit/test_imports_sglang.py /test/single_gpu/test_sglang_inference.py" ;;
+              TESTS="$COMMON /test/unit/test_imports_sglang.py /test/unit/test_runai_streamer.py /test/single_gpu/test_sglang_inference.py" ;;
             *vllm*)
-              TESTS="$COMMON /test/unit/test_imports_vllm.py /test/single_gpu/test_vllm_inference.py" ;;
+              TESTS="$COMMON /test/unit/test_imports_vllm.py /test/unit/test_runai_streamer.py /test/single_gpu/test_vllm_inference.py" ;;
             *base*)
               TESTS="$COMMON /test/unit/test_imports_base.py" ;;
           esac
@@ -233,6 +233,13 @@ jobs:
               -m pytest /test/unit/test_lambda_runtime.py::test_ric_resolves_container_env -v
             echo "::endgroup::"
           done
+
+      - name: Run runai S3 streaming test
+        if: steps.check.outputs.exists == 'true' && steps.config.outputs.engine != 'none'
+        run: |
+          chmod +x test/lambda/single_gpu/runai_s3_check.sh
+          bash test/lambda/single_gpu/runai_s3_check.sh \
+            ${{ steps.image.outputs.image-uri }} "${{ steps.config.outputs.engine }}"
 
   lambdaric-topology-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-ric-topology-test && contains(inputs.config-file, 'preview') }}
