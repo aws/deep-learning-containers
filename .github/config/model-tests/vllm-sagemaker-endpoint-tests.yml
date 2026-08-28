@@ -45,9 +45,18 @@ sagemaker:
   # cannot fit the model. --trust-remote-code loads the custom
   # configuration_nemotron_h.py; --mamba-ssm-cache-dtype=float32 is required by
   # the model card to preserve accuracy (skipping it silently degrades quality).
+  # instance_type is a fallback ladder: g6e.xlarge is the cheapest fit, and the larger
+  # sizes are the same single L40S 48GB card, so they need no tensor-parallel change and
+  # serve the model identically — only the capacity pool differs. g6e.xlarge ICE'd for
+  # several days straight in us-west-2 while every g6.xlarge entry above kept passing,
+  # which is what motivated the ladder. g6.xlarge (L4 24GB) is deliberately absent: it
+  # cannot fit this model.
   - name: "nemotron-nano-12b-v2"
     s3_model: "nemotron-nano-12b-v2.tar.gz"
-    instance_type: "ml.g6e.xlarge"
+    instance_type:
+      - "ml.g6e.xlarge"
+      - "ml.g6e.2xlarge"
+      - "ml.g6e.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
