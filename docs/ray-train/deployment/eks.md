@@ -136,7 +136,9 @@ def train_func(config):
         opt.zero_grad()
         loss.backward()
         opt.step()
-        ray.train.report({"loss": loss.item()})
+
+    # Every worker must call report the same number of times — report once per epoch, not per step.
+    ray.train.report({"loss": loss.item()})
 
 
 trainer = TorchTrainer(
