@@ -1,0 +1,15 @@
+# Table Configuration - Ray Train
+note: "Ray Train images share the `ray` ECR repository with the Ray Serve images above and are identified by the `train-ml` tag prefix. See the [Ray Train guide](../ray-train/index.md)."
+columns:
+  - field: framework_version
+    header: "Framework"
+  - field: python
+    header: "Python"
+  - field: cuda
+    header: "CUDA"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: example_uri
+    header: "Example URI"

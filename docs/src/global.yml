@@ -69,6 +69,7 @@ display_names:
     base: "Base"
     base-ubuntu: "Base (Ubuntu)"
     ray: "Ray"
+    ray-train: "Ray Train"
     sagemaker-scikit-learn: "Scikit-Learn"
     sagemaker-xgboost: "XGBoost"
     sglang: "SGLang (Ubuntu)"
@@ -193,6 +194,7 @@ table_order:
   - base
   - base-ubuntu
   - ray
+  - ray-train
   - sglang
   - sglang-server
   - vllm
