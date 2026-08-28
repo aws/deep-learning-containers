@@ -109,22 +109,50 @@ kubectl exec "$HEAD_POD" -n ray-train -- \
 `--working-dir` is uploaded to the cluster, so keep it scoped to your training code. To submit from your workstation instead, run
 `kubectl port-forward -n ray-train svc/ray-train-cluster-head-svc 8265:8265` and point `--address` at `http://localhost:8265`.
 
-## Training Script
+## Working Reference
 
-[`fsdp_ray.py`](https://github.com/aws/deep-learning-containers/blob/main/test/ray-train/eks/scripts/fsdp_ray.py) is a complete, runnable reference: a
-BERT FSDP fine-tune on GLUE/CoLA across 8 GPUs using Ray Train, Ray Data, and PyTorch Lightning. It is the script this image's multi-node regression
-test runs on every release, so it stays current with the image.
+[test/ray-train/eks](https://github.com/aws/deep-learning-containers/tree/main/test/ray-train/eks) is this image's multi-node regression test, and it
+runs on every release — so unlike a doc snippet, it cannot drift from the image. It is a complete end-to-end example:
 
-It covers the pieces most Ray Train jobs need:
+| File | What it is |
+| --- | --- |
+| `raycluster.yml` | The RayCluster manifest the test applies — the same shape as the one above, with the CI cluster's node selectors |
+| `scripts/fsdp_ray.py` | A BERT FSDP fine-tune on GLUE/CoLA across 8 GPUs using Ray Train, Ray Data, and PyTorch Lightning |
+| `run_eks_test.sh` | The orchestrator: applies the manifest, waits for pods, submits the job, asserts convergence, tears down |
+
+The only thing it assumes that you have to set up yourself is the staged model and dataset, [below](#staging-the-model-and-dataset).
+
+`fsdp_ray.py` covers the pieces most Ray Train jobs need:
 
 - **`ScalingConfig(num_workers=N, use_gpu=True)`** — asks Ray for N GPU workers, which Ray places across the worker pods
 - **`RayFSDPStrategy`** with `RayLightningEnvironment` and `RayTrainReportCallback` — FSDP sharding through Lightning
 - **`RunConfig(storage_path="/fsx/ray_results")`** — checkpoints on shared storage. This must be a path every worker can write and the driver can
   read, either a shared mount such as `/fsx` or an `s3://` URI; a node-local path breaks checkpointing as soon as a second node writes
-- **`HF_HOME=/fsx/hf_cache` and `HF_HUB_OFFLINE=1`** — reads a pre-staged dataset and model from the shared filesystem, so the job needs no internet
-  access from the nodes
+- **`HF_HOME=/fsx/hf_cache` and `HF_HUB_OFFLINE=1`** — reads the model and dataset from the shared filesystem instead of downloading them
 
 For plain DDP instead of FSDP, `ray.train.torch.prepare_model()` wraps your model and moves it to the worker's GPU.
+
+### Staging the Model and Dataset
+
+Because that script sets `HF_HUB_OFFLINE=1`, it expects the model and dataset to already be in the HuggingFace cache on the shared filesystem.
+Download them once from the head pod before submitting the job:
+
+```bash
+kubectl exec "$HEAD_POD" -n ray-train -- env HF_HOME=/fsx/hf_cache python3 -c "
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from datasets import load_dataset
+AutoTokenizer.from_pretrained('bert-base-cased')
+AutoModelForSequenceClassification.from_pretrained('bert-base-cased', num_labels=2)
+load_dataset('nyu-mll/glue', 'cola')
+"
+```
+
+Every worker then reads the same cache, and the job needs no internet access from the nodes. Staging up front is worth doing for your own jobs too:
+when many workers start at once, downloading in-job makes them all pull the same files simultaneously, and a stalled or rate-limited download can hold
+up the first collective until it times out.
+
+If your nodes do have egress and you would rather download at runtime, drop `HF_HUB_OFFLINE=1` and keep `HF_HOME` pointed at the shared mount so the
+workers share one cache.
 
 ## Confirming EFA Is in Use
 
