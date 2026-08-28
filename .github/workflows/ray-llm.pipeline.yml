@@ -96,9 +96,22 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-suffix: ${{ inputs.tag-suffix }}
 
-  sanity-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+  # Check to see which tests have passed before on the given image build
+  check:
+    if: ${{ always() && !failure() && !cancelled() }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.check-test-pass.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      suites: '["sanity", "telemetry", "efa", "ray-llm/unit", "ray-llm/ec2", "ray-llm/eks-multi-node"]'
+
+  sanity-test:
+    if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -106,6 +119,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sanity'] || '' }}
 
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
@@ -119,8 +134,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-telemetry-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -128,10 +143,12 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   unit-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-unit-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['ray-llm/unit'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -139,10 +156,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray-llm/unit'] || '' }}
 
   ec2-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-ec2-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
-    needs: [ci-config, build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-ec2-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.ci-config.outputs.customer-type == 'ec2' &&
+          fromJSON(needs.check.outputs.skips || '{}')['ray-llm/ec2'] != true }}
+    needs: [ci-config, build, check]
     concurrency:
       group: ${{ github.workflow }}-ec2-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -150,11 +174,19 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray-llm/ec2'] || '' }}
 
   eks-multi-node-test:
     # Fail-fast: skip the multi-node run if ec2-test already failed.
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-eks-multi-node-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
-    needs: [ci-config, build, ec2-test]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-eks-multi-node-test &&
+          needs.build.result != 'failure' &&
+          needs.ec2-test.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.ci-config.outputs.customer-type == 'ec2' &&
+          fromJSON(needs.check.outputs.skips || '{}')['ray-llm/eks-multi-node'] != true }}
+    needs: [ci-config, build, ec2-test, check]
     concurrency:
       group: ${{ github.workflow }}-eks-multi-node-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -162,10 +194,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['ray-llm/eks-multi-node'] || '' }}
 
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
-    needs: [ci-config, build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-efa-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.ci-config.outputs.customer-type == 'ec2' &&
+          fromJSON(needs.check.outputs.skips || '{}')['efa'] != true }}
+    needs: [ci-config, build, check]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -173,6 +212,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['efa'] || '' }}
 
   release-gate:
     if: >-

@@ -1,18 +1,18 @@
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.27.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.28.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
 
 ARG FRAMEWORK=huggingface-vllm
-ARG FRAMEWORK_VERSION=0.27.1
+ARG FRAMEWORK_VERSION=0.28.0
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 
 LABEL maintainer="Hugging Face"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 
-ARG TRANSFORMERS_VERSION=5.10.2
-ARG HUGGINGFACE_HUB_VERSION=1.17.0
-ARG HF_XET_VERSION=1.5.0
+ARG TRANSFORMERS_VERSION=5.15.0
+ARG HUGGINGFACE_HUB_VERSION=1.27.0
+ARG HF_XET_VERSION=1.6.0
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends curl unzip \
@@ -67,7 +67,7 @@ RUN apt-get purge -y ffmpeg libav* || true && apt-get autoremove -y
 
 ARG FFMPEG_TAG=n8.1
 
-# Patch OS CVEs carried by the ubuntu22.04 base (openssl, mesa, ...). Hold
+# Patch OS CVEs carried by the ubuntu24.04 base (openssl, mesa, ...). Hold
 # cuda/nvidia/libnv packages first so the broad upgrade can't bump the toolkit
 # or driver (same pattern as docker/vllm).
 # ffmpeg is cloned shallow and tag-pinned from the GitHub mirror rather than

@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -80,3 +90,23 @@ jobs:
             -e EXPECTED_FRAMEWORK_VERSION=${{ needs.preflight.outputs.framework-version }} \
             ${CONTAINER_ID} pytest /workdir/test/ray-llm/unit/ -v
           docker kill ${CONTAINER_ID}
+
+  # Record a PASS row in the ci-images-table if the test passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          needs.unit-test.result == 'success' }}
+    needs: [unit-test]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: ray-llm/unit
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}
