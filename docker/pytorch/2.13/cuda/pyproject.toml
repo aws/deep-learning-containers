@@ -45,6 +45,7 @@ sagemaker = [
     "tornado>=6.5.6",  # CVE GHSA-3x9g-8vmp-wqvf, GHSA-mgf9-4vpg-hj56 (transitive)
     "cryptography>=49.0.0",  # CVE-2026-69249 (transitive; mlflow<3.15 blocks >=50.0.0 which would fix CVE-2026-69247)
     "pyasn1>=0.6.4",  # CVE-2026-59884 / CVE-2026-59885 / CVE-2026-59886 (transitive)
+    "sqlparse>=0.6.0",  # CVE-2026-59893 / CVE-2026-71491 / CVE-2026-54284 (transitive via mlflow -> mlflow-skinny)
 ]
 
 [tool.uv]
