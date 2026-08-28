@@ -84,7 +84,7 @@ docker run -d --name "$C" --gpus all --network host \
 COMPLETION=""
 for _ in $(seq 1 $((READY_TIMEOUT / 5))); do
   if curl -sf -m 5 "${HEALTH_URL}" >/dev/null 2>&1; then
-    RESP=$(curl -s -m 60 "${INVOKE_URL}" -d "${PAYLOAD}" 2>/dev/null)
+    RESP=$(curl -s -m 60 -H 'Content-Type: application/json' "${INVOKE_URL}" -d "${PAYLOAD}" 2>/dev/null)
     COMPLETION=$(printf '%s' "${RESP}" | jq -r '.choices[0].text // empty' 2>/dev/null)
     break
   fi
