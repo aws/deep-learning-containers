@@ -2,7 +2,8 @@
 
 [KubeRay](https://docs.ray.io/en/latest/cluster/kubernetes/getting-started.html) is the usual way to run this image on Kubernetes. Any {{ eks }}
 cluster with GPU nodes works. SageMaker HyperPod-EKS is a good fit — it adds node health checks and auto-resume beneath the container, and needs
-nothing extra in the image — but it is not required, and the manifest below is unchanged either way.
+nothing extra in the image — but it is not required, and the manifest below is unchanged either way. For HyperPod-specific cluster setup, see
+[Ray Train on HyperPod-EKS](https://awslabs.github.io/ai-on-sagemaker-hyperpod/docs/eks-orchestration/training-and-fine-tuning/ray-train/ray-train-readme).
 
 For multi-node training, install the [EFA device plugin](https://github.com/aws/eks-charts/tree/master/stable/aws-efa-k8s-device-plugin) so pods can
 request `vpc.amazonaws.com/efa`, and provide a shared filesystem such as
@@ -110,51 +111,20 @@ kubectl exec "$HEAD_POD" -n ray-train -- \
 
 ## Training Script
 
-`ScalingConfig(num_workers=N, use_gpu=True)` asks Ray for N GPU workers, which Ray places across the worker pods:
+[`fsdp_ray.py`](https://github.com/aws/deep-learning-containers/blob/main/test/ray-train/eks/scripts/fsdp_ray.py) is a complete, runnable reference: a
+BERT FSDP fine-tune on GLUE/CoLA across 8 GPUs using Ray Train, Ray Data, and PyTorch Lightning. It is the script this image's multi-node regression
+test runs on every release, so it stays current with the image.
 
-```python
-import ray.train
-import torch
-from ray.train import RunConfig, ScalingConfig
-from ray.train.torch import TorchTrainer
+It covers the pieces most Ray Train jobs need:
 
+- **`ScalingConfig(num_workers=N, use_gpu=True)`** — asks Ray for N GPU workers, which Ray places across the worker pods
+- **`RayFSDPStrategy`** with `RayLightningEnvironment` and `RayTrainReportCallback` — FSDP sharding through Lightning
+- **`RunConfig(storage_path="/fsx/ray_results")`** — checkpoints on shared storage. This must be a path every worker can write and the driver can
+  read, either a shared mount such as `/fsx` or an `s3://` URI; a node-local path breaks checkpointing as soon as a second node writes
+- **`HF_HOME=/fsx/hf_cache` and `HF_HUB_OFFLINE=1`** — reads a pre-staged dataset and model from the shared filesystem, so the job needs no internet
+  access from the nodes
 
-def train_func(config):
-    # Ray serializes train_func by value, so workers re-run these imports.
-    import ray.train.torch
-    import torch.nn as nn
-
-    model = ray.train.torch.prepare_model(nn.Linear(32, 1))
-    opt = torch.optim.SGD(model.parameters(), lr=0.05)
-    device = next(model.parameters()).device
-
-    for _ in range(config["steps"]):
-        x = torch.randn(128, 32, device=device)
-        y = torch.randn(128, 1, device=device)
-        loss = nn.functional.mse_loss(model(x), y)
-        opt.zero_grad()
-        loss.backward()
-        opt.step()
-
-    ray.train.report({"loss": loss.item()})
-
-
-trainer = TorchTrainer(
-    train_func,
-    train_loop_config={"steps": 100},
-    scaling_config=ScalingConfig(num_workers=8, use_gpu=True),
-    run_config=RunConfig(name="demo", storage_path="/fsx/ray_results"),
-)
-print(trainer.fit().metrics)
-```
-
-`prepare_model` wraps the model in DDP and moves it to the worker's GPU. `storage_path` must point at storage every worker can write and the driver
-can read — a shared mount such as `/fsx`, or an `s3://` URI. A node-local path breaks checkpointing as soon as a second node writes. For FSDP with
-Lightning, use `RayFSDPStrategy`; our multi-node regression test is a working example:
-[test/ray-train/eks](https://github.com/aws/deep-learning-containers/tree/main/test/ray-train/eks).
-
-If your nodes have no route to the internet, pre-stage the dataset and model onto the shared filesystem and set `HF_HOME=/fsx/hf_cache` plus
-`HF_HUB_OFFLINE=1` in the training script.
+For plain DDP instead of FSDP, `ray.train.torch.prepare_model()` wraps your model and moves it to the worker's GPU.
 
 ## Confirming EFA Is in Use
 
