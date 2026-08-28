@@ -30,7 +30,6 @@ spec:
           - name: ray-head
             image: public.ecr.aws/deep-learning-containers/ray:train-ml-cuda
             env:
-              # Skip the NVML hook on this GPU-less pod.
               - { name: NVIDIA_VISIBLE_DEVICES, value: "void" }
             ports:
               - { containerPort: 6379, name: gcs-server }
@@ -121,7 +120,7 @@ from ray.train.torch import TorchTrainer
 
 
 def train_func(config):
-    # Ray serializes train_func by value, so the workers re-run these imports.
+    # Ray serializes train_func by value, so workers re-run these imports.
     import ray.train.torch
     import torch.nn as nn
 
@@ -137,7 +136,6 @@ def train_func(config):
         loss.backward()
         opt.step()
 
-    # Every worker must call report the same number of times — report once per epoch, not per step.
     ray.train.report({"loss": loss.item()})
 
 

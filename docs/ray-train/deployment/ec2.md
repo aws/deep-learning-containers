@@ -27,7 +27,7 @@ from ray.train.torch import TorchTrainer
 
 trainer = TorchTrainer(
     train_func,
-    scaling_config=ScalingConfig(num_workers=8, use_gpu=True),  # one worker per local GPU
+    scaling_config=ScalingConfig(num_workers=8, use_gpu=True),
 )
 ```
 
