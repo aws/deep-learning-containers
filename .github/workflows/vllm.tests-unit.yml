@@ -30,7 +30,9 @@ jobs:
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
-          uv pip install pytest
+          # pyyaml: test_sm_endpoint_fallback.py loads the real endpoint-test config so
+          # the instance-type ladder is asserted against what actually ships.
+          uv pip install pytest pyyaml
 
       - name: Run vLLM unit tests (CPU-only, image-independent)
         run: |
@@ -39,4 +41,5 @@ jobs:
           # --noconftest: skip the root test/conftest.py, which imports boto3/fabric
           # (heavy AWS deps) that these image-independent tests don't need or install.
           python3 -m pytest -v --tb=short -rA --noconftest \
-            vllm/test_sagemaker_args.py
+            vllm/test_sagemaker_args.py \
+            vllm/test_sm_endpoint_fallback.py
