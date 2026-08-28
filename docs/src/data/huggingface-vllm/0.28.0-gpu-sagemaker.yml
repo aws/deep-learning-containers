@@ -1,0 +1,11 @@
+framework: vLLM
+version: "0.28.0"
+accelerator: gpu
+python: py312
+cuda: cu130
+transformers: "5.15.0"
+os: ubuntu24.04
+platform: sagemaker
+
+tags:
+  - "0.28.0-transformers5.15.0-gpu-py312-cu130-ubuntu24.04"
