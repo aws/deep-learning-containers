@@ -76,9 +76,9 @@ spec:
                 claimName: fsx-lustre-pvc
 ```
 
-Four details matter: `rayVersion` must match the Ray in the image; leave the container `command` unset so KubeRay can inject `ray start`; keep
-`rayStartParams.num-gpus` equal to the pod's `nvidia.com/gpu` limit, or Ray's scheduler and the kubelet will disagree about capacity; and mount a
-volume at `/tmp/ray`, where Ray writes session logs and object-store spill.
+Four details matter: set `rayVersion` to the Ray in the image; leave the container `command` unset so KubeRay can inject `ray start`; keep
+`rayStartParams.num-gpus` equal to the pod's `nvidia.com/gpu` limit so Ray's view of capacity matches the kubelet's; and mount a volume at `/tmp/ray`,
+where Ray writes session logs and object-store spill.
 
 `NVIDIA_VISIBLE_DEVICES=void` on the head is worth keeping. When a cluster's default containerd runtime is `nvidia`, the NVML hook runs on every pod
 and hard-fails on a GPU-less node with `failed to initialize NVML: Driver Not Loaded`. Setting it to `void` tells the runtime to skip the hook for
@@ -151,8 +151,8 @@ print(trainer.fit().metrics)
 ```
 
 `prepare_model` wraps the model in DDP and moves it to the worker's GPU. `storage_path` must point at storage every worker can write and the driver
-can read — a shared mount such as `/fsx`, or an `s3://` URI — since Ray Train fails a multi-node run that checkpoints to node-local storage. For FSDP
-with Lightning, use `RayFSDPStrategy`; our multi-node regression test is a working example:
+can read — a shared mount such as `/fsx`, or an `s3://` URI. A node-local path breaks checkpointing as soon as a second node writes. For FSDP with
+Lightning, use `RayFSDPStrategy`; our multi-node regression test is a working example:
 [test/ray-train/eks](https://github.com/aws/deep-learning-containers/tree/main/test/ray-train/eks).
 
 If your nodes have no route to the internet, pre-stage the dataset and model onto the shared filesystem and set `HF_HOME=/fsx/hf_cache` plus
