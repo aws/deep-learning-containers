@@ -1,3 +1,4 @@
+# no-op change for demo
 """Verify key Python packages import successfully."""
 
 import importlib
