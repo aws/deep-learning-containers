@@ -6,9 +6,10 @@ ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG PYTHON_VERSION=3.13
 ARG PYTHON_SHORT_VERSION=3.13
-ARG FRAMEWORK_VERSION=2.57.0
-ARG VLLM_VERSION=0.25.1
-ARG EFA_VERSION=1.47.0
+ARG FRAMEWORK_VERSION=2.58.0
+ARG VLLM_VERSION=0.26.0
+ARG EFA_VERSION=1.49.0
+ARG NCCL_TESTS_VERSION=v2.20.0
 ARG CUDA_VERSION=13.0.2
 
 # Base DLCs (we own them). devel for the venv build stage, runtime for output.
@@ -44,6 +45,7 @@ ARG PYTHON_SHORT_VERSION
 ARG FRAMEWORK_VERSION
 ARG VLLM_VERSION
 ARG EFA_VERSION
+ARG NCCL_TESTS_VERSION
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
@@ -109,6 +111,20 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
 RUN dnf upgrade -y --security --releasever latest \
   && dnf upgrade -y cuda-compat-* libcap \
   && dnf clean all
+
+# Prebuild all_reduce_perf so the CI EFA test's setup_nccl_tests.sh is a no-op.
+RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") \
+  && if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
+       ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
+     fi \
+  && cd /tmp \
+  && NCCL_TESTS_DIR="/tmp/nccl-tests-${NCCL_TESTS_VERSION#v}" \
+  && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
+  && make -C "${NCCL_TESTS_DIR}/src" BUILDDIR="${NCCL_TESTS_DIR}/build" \
+       MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" CUDA_HOME=/usr/local/cuda \
+       "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
+  && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \
+  && cd / && rm -rf "${NCCL_TESTS_DIR}"
 
 # OSS compliance
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS

@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "ray_llm"
-  framework_version: "2.57.0"
+  framework_version: "2.58.0"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
@@ -21,7 +21,8 @@ build:
   python_version: "3.13.12"
   python_short_version: "3.13"
   cuda_version: "13.0.2"
-  vllm_version: "0.25.1"
+  vllm_version: "0.26.0"
+  nccl_tests_version: "v2.20.0"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
