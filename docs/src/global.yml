@@ -200,8 +200,6 @@ image_categories:
       - base-ubuntu
   - title: "LLM Serving"
     repositories:
-      - ray
-      - ray-train
       - sglang
       - sglang-server
       - vllm
@@ -214,6 +212,8 @@ image_categories:
       - sagemaker-tritonserver
   - title: "Framework Containers"
     repositories:
+      - ray
+      - ray-train
       - pytorch
       - pytorch-training
       - pytorch-inference
