@@ -138,15 +138,5 @@
         "vulnerability_id": "CVE-2024-5206",
         "reason": "scikit-learn TfidfVectorizer stored-token data leak. Fix in 1.5.0 would change the framework version (this is the 1.4-2 image); not exploitable in the managed serving/training path.",
         "review_by": "2026-11-30"
-    },
-    {
-        "vulnerability_id": "CVE-2026-59890",
-        "reason": "setuptools: build-time packaging tool, not in the serving/training request path. A requirements bump does not persist; the sagemaker_sklearn_container install re-resolves it back to the pinned 80.9.0 (confirmed by the CI version-drift check).",
-        "review_by": "2026-11-30"
-    },
-    {
-        "vulnerability_id": "CVE-2026-24049",
-        "reason": "wheel: build-time packaging tool, not in the serving/training request path. A requirements bump does not persist; the sagemaker_sklearn_container install re-resolves it back to the pinned 0.45.1 (confirmed by the CI version-drift check).",
-        "review_by": "2026-11-30"
     }
 ]
