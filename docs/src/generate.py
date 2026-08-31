@@ -253,6 +253,25 @@ def _build_repository_section(repository: str, display_names: dict[str, str]) ->
         kept = set(kept_versions)
         images = [img for img in images if img.version in kept]
 
+    # Optionally limit distinct versions per accelerator (e.g. keep only the
+    # latest CPU image while leaving GPU/Neuron rows untouched).
+    accelerator_limits = table_config.get("accelerator_limits")
+    if accelerator_limits:
+        seen_versions: dict[str, list[str]] = {}
+        limited = []
+        for img in images:
+            limit = accelerator_limits.get(img.get("accelerator"))
+            if limit is None:
+                limited.append(img)
+                continue
+            versions = seen_versions.setdefault(img.get("accelerator"), [])
+            if img.version in versions:
+                limited.append(img)
+            elif len(versions) < limit:
+                versions.append(img.version)
+                limited.append(img)
+        images = limited
+
     # Build table
     headers = [col["header"] for col in columns]
     rows = [build_image_row(img, columns) for img in images]

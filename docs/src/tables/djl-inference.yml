@@ -1,4 +1,8 @@
 # Table Configuration - DJL Inference
+
+# Keep only the latest N images per accelerator in available_images.md.
+accelerator_limits:
+  cpu: 1
 columns:
   - field: framework_version
     header: "Framework"

@@ -1,7 +1,7 @@
 # Table Configuration - vLLM
 
 # Show only the latest N releases in available_images.md (full list on Support Policy).
-max_versions: 3
+max_versions: 5
 columns:
   - field: framework_version
     header: "Framework"
