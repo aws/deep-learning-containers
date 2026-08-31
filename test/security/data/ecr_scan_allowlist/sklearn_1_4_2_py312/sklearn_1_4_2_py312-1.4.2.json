@@ -106,22 +106,22 @@
     },
     {
         "vulnerability_id": "CVE-2026-44431",
-        "reason": "urllib3. Fix requires urllib3 2.x, blocked by the transitive dependency cap; container makes only outbound calls to trusted AWS APIs.",
+        "reason": "urllib3: fix requires urllib3 2.x, but botocore 1.31.57 (pinned via boto3 1.28.57) requires urllib3<1.27; container makes only outbound calls to trusted AWS APIs.",
         "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2023-45803",
-        "reason": "urllib3. Fix requires urllib3 2.x, blocked by the transitive dependency cap; container makes only outbound calls to trusted AWS APIs.",
+        "reason": "urllib3: fix requires urllib3 2.x, but botocore 1.31.57 (pinned via boto3 1.28.57) requires urllib3<1.27; container makes only outbound calls to trusted AWS APIs.",
         "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2024-37891",
-        "reason": "urllib3. Fix requires urllib3 2.x, blocked by the transitive dependency cap; container makes only outbound calls to trusted AWS APIs.",
+        "reason": "urllib3: fix requires urllib3 2.x, but botocore 1.31.57 (pinned via boto3 1.28.57) requires urllib3<1.27; container makes only outbound calls to trusted AWS APIs.",
         "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2025-50181",
-        "reason": "urllib3. Fix requires urllib3 2.x, blocked by the transitive dependency cap; container makes only outbound calls to trusted AWS APIs.",
+        "reason": "urllib3: fix requires urllib3 2.x, but botocore 1.31.57 (pinned via boto3 1.28.57) requires urllib3<1.27; container makes only outbound calls to trusted AWS APIs.",
         "review_by": "2026-11-30"
     },
     {
