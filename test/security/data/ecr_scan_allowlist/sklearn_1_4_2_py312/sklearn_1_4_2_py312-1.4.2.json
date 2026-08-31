@@ -141,12 +141,12 @@
     },
     {
         "vulnerability_id": "CVE-2026-59890",
-        "reason": "setuptools. Held at 80.9.0 by the sagemaker_sklearn_container / sagemaker dependency chain (installed after requirements.txt, which downgrades it); build-time packaging tool, not in the serving/training request path.",
+        "reason": "setuptools: build-time packaging tool, not in the serving/training request path. A requirements bump does not persist; the sagemaker_sklearn_container install re-resolves it back to the pinned 80.9.0 (confirmed by the CI version-drift check).",
         "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-24049",
-        "reason": "wheel. Held at 0.45.1 by the sagemaker dependency chain; build-time-only packaging tool, not in the serving/training request path.",
+        "reason": "wheel: build-time packaging tool, not in the serving/training request path. A requirements bump does not persist; the sagemaker_sklearn_container install re-resolves it back to the pinned 0.45.1 (confirmed by the CI version-drift check).",
         "review_by": "2026-11-30"
     }
 ]
