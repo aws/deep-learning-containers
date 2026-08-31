@@ -243,13 +243,11 @@ def _build_repository_section(repository: str, display_names: dict[str, str]) ->
     # keeping every row of each kept version. Older releases stay listed on the
     # Support Policy page.
     max_versions = table_config.get("max_versions")
-    truncated = False
     if max_versions:
         kept_versions = []
         for img in images:
             if img.version not in kept_versions:
                 if len(kept_versions) >= max_versions:
-                    truncated = True
                     break
                 kept_versions.append(img.version)
         kept = set(kept_versions)
@@ -269,11 +267,6 @@ def _build_repository_section(repository: str, display_names: dict[str, str]) ->
         section += f"\nThese images are also available in ECR Public Gallery: [{ecr_repo}]({url})\n"
     if table_config.get("note"):
         section += f"\n{table_config['note']}\n"
-    if truncated:
-        section += (
-            f"\nShowing the latest {max_versions} releases. "
-            f"For all supported versions, see [Support Policy](support_policy.md).\n"
-        )
     section += f"\n{render_table(headers, rows)}"
     return section
 
