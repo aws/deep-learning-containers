@@ -1,8 +1,8 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG FRAMEWORK_VERSION=0.26.0
-ARG FLASHINFER_VERSION=0.6.14
-ARG DEEPEP_COMMIT_HASH=73b6ea4
+ARG FRAMEWORK_VERSION=0.28.0
+ARG FLASHINFER_VERSION=0.6.16.post3
+ARG DEEPEP_COMMIT_HASH=d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -285,6 +285,17 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         # Force-reinstall the matching CUDA wheel so the correct nixl_ep_cpp.so
         # is installed (upstream vllm v0.21.0 fix).
         uv pip install --force-reinstall --no-deps nixl-cu${CUDA_MAJOR}; \
+        # mooncake-transfer-engine's default PyPI wheel is a CUDA 12 build (its
+        # engine.so links libcudart.so.12, absent from the CUDA 13 runtime). On
+        # CUDA 13, swap it for the same-version cuda13 variant. New in upstream
+        # vllm v0.28.0 (.buildkite/scripts/install-kv-connectors.sh).
+        if [ "${CUDA_MAJOR}" = "13" ]; then \
+            MOONCAKE_VERSION=$(uv pip show mooncake-transfer-engine 2>/dev/null | awk '/^Version:/{print $2}'); \
+            if [ -n "${MOONCAKE_VERSION}" ]; then \
+                uv pip uninstall mooncake-transfer-engine || true; \
+                uv pip install "mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION}"; \
+            fi; \
+        fi; \
     fi
 
 # Pre-download FlashInfer cubins AFTER all wheel installs (vllm wheel, EP
@@ -346,7 +357,7 @@ ENV HF_XET_HIGH_PERFORMANCE=1
 # =============================================================================
 FROM runtime AS omni-deps
 
-ARG VLLM_OMNI_VERSION=0.26.0
+ARG VLLM_OMNI_VERSION=0.28.0
 
 # System deps for omni-modality (TTS, audio, image/video)
 # Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, ffmpeg.
@@ -371,7 +382,8 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install "s3tokenizer==0.3.0
 # transformers <5.9.0 cap DROPPED in vllm-omni v0.26.0: upstream removed the
 # cap from requirements/common.txt and handles the breakage in code via
 # `transformers_keys_to_ignore_compat` (vllm_omni/model_executor/models/utils.py).
-# Requirement is now just `transformers >= 5.5.3` — resolved transitively by the
+# As of v0.28.0 the requirement is `transformers >= 5.10.1, < 5.15` (5.15 has a
+# construction regression; 5.10.0 was yanked) — resolved transitively by the
 # vllm-omni wheel install above, no explicit pin needed here.
 
 # Remove stray top-level benchmarks/ and samples/ dirs shipped by the
@@ -412,7 +424,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=5
+ARG DLC_MINOR_VERSION=7
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
