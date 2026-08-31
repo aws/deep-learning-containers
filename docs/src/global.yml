@@ -185,6 +185,78 @@ framework_groups:
     - llama-cpp-arm64
 
 # =============================================================================
+# Image Categories
+# =============================================================================
+# Groups repository tables into sections (## headings) on available_images.md.
+# Categories render in the order listed; within each category, tables render in
+# `table_order` sequence. Every repository should appear in exactly one category
+# — any repository in `table_order` left out here is emitted under a trailing
+# "Other" heading (and logged as a warning) so nothing is silently dropped.
+# =============================================================================
+image_categories:
+  - title: "Base Containers"
+    repositories:
+      - base
+      - base-ubuntu
+  - title: "LLM Serving"
+    repositories:
+      - ray
+      - ray-train
+      - sglang
+      - sglang-server
+      - vllm
+      - vllm-server
+      - vllm-arm64
+      - vllm-omni
+      - whisperx
+      - llama-cpp
+      - llama-cpp-arm64
+      - sagemaker-tritonserver
+  - title: "Framework Containers"
+    repositories:
+      - pytorch
+      - pytorch-training
+      - pytorch-inference
+      - pytorch-training-arm64
+      - pytorch-inference-arm64
+      - tensorflow-training
+      - tensorflow-inference
+      - tensorflow-inference-arm64
+      - pytorch-trcomp-training
+      - stabilityai-pytorch-inference
+  - title: "Hugging Face"
+    repositories:
+      - huggingface-pytorch-training
+      - huggingface-pytorch-inference
+      - huggingface-llamacpp
+      - huggingface-vllm
+      - huggingface-vllm-omni
+      - huggingface-sglang
+      - huggingface-tei
+      - huggingface-pytorch-trcomp-training
+      - huggingface-tensorflow-training
+      - huggingface-tensorflow-inference
+  - title: "NeuronX (Trainium / Inferentia)"
+    repositories:
+      - pytorch-training-neuronx
+      - pytorch-inference-neuronx
+      - tensorflow-inference-neuronx
+      - huggingface-vllm-inference-neuronx
+      - huggingface-pytorch-training-neuronx
+      - huggingface-pytorch-inference-neuronx
+  - title: "AutoGluon"
+    repositories:
+      - autogluon-training
+      - autogluon-inference
+  - title: "DJL Inference"
+    repositories:
+      - djl-inference
+  - title: "SageMaker Algorithm Containers"
+    repositories:
+      - sagemaker-scikit-learn
+      - sagemaker-xgboost
+
+# =============================================================================
 # Table Order
 # =============================================================================
 # Order of tables in available_images.md and support_policy.md
