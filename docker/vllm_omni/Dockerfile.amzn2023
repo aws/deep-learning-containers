@@ -46,9 +46,12 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
 # `unzip` and `perl` are new build deps in vllm v0.26.0: `unzip` for
 # tools/install_protoc.sh; `perl` for the openssl-sys crate compiled by the
-# Rust frontend (`vllm-rs`, new in v0.26.0).
+# Rust frontend (`vllm-rs`, new in v0.26.0). `patch` is new in v0.28.0: vLLM's
+# CMakeLists.txt applies cmake/patches/pytorch_stable_string.patch to torch's
+# stable headers at configure time (CMakeLists.txt:417). The upstream manylinux
+# build base ships `patch`, but the amzn2023 base does not.
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl \
+  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
