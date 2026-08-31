@@ -188,6 +188,11 @@ suites:
     code_paths:
       - test/vllm-omni/sagemaker/**
 
+  tei/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/tei/sagemaker/**
+
   openfold3/sagemaker:
     skip_eligible: true
     code_paths:
