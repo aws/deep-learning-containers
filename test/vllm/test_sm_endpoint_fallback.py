@@ -226,8 +226,9 @@ def test_falls_back_to_next_candidate_on_capacity_error(monkeypatch):
     assert result["yielded"]["endpoint_name"] == f"endpoint-{second}"
 
 
-def test_skips_instead_of_failing_when_every_candidate_is_dry(monkeypatch):
+def test_release_run_skips_when_every_candidate_is_dry(monkeypatch):
     """A capacity shortage must not block the auto-release."""
+    monkeypatch.setattr(harness, "RELEASE_RUN", True)
     cfg = _model_cfg("nemotron-nano-12b-v2")
 
     result = _drive(monkeypatch, cfg, _ice)
@@ -235,6 +236,19 @@ def test_skips_instead_of_failing_when_every_candidate_is_dry(monkeypatch):
     assert result["outcome"] == "skipped"
     assert result["attempted"] == cfg["instance_types"], "every candidate should be tried"
     assert "No SageMaker capacity" in result["reason"]
+
+
+def test_pr_run_fails_when_every_candidate_is_dry(monkeypatch):
+    """Outside a release, an exhausted ladder stays visible so a human re-triggers."""
+    monkeypatch.setattr(harness, "RELEASE_RUN", False)
+    cfg = _model_cfg("nemotron-nano-12b-v2")
+
+    result = _drive(monkeypatch, cfg, _ice)
+
+    assert result["outcome"] == "raised"
+    assert isinstance(result["error"], AssertionError)
+    assert result["attempted"] == cfg["instance_types"], "every candidate should be tried"
+    assert "No SageMaker capacity" in str(result["error"])
 
 
 def test_deploy_endpoint_cleans_up_after_capacity_failure(monkeypatch):

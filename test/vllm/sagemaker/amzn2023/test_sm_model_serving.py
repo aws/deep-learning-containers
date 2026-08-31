@@ -187,6 +187,11 @@ def _flatten_jinja(template_str):
 # or test defect, so they trigger instance-type fallback instead of failing the suite.
 _CAPACITY_TOKENS = ("InsufficientInstanceCapacity", "ResourceLimitExceeded", "CapacityError")
 
+# On an exhausted fallback ladder: release runs skip so AWS capacity cannot block the
+# auto-release, PR runs fail so a human sees it and can re-trigger. Matches the
+# openfold3 endpoint test. Set from the workflow's `release` input.
+RELEASE_RUN = os.environ.get("RELEASE_RUN", "false").lower() == "true"
+
 
 def _is_capacity_error(exc):
     """True if a deploy failed for lack of instance capacity, not a real defect."""
@@ -272,8 +277,12 @@ def deployed_model(request, image_uri):
 
     Insufficient capacity (ICE) is an AWS-side shortage, not an image defect, so it
     should not read as a test failure. Each configured instance type is tried in order
-    and the first one that reaches InService wins. If every candidate is dry, the test
-    skips rather than fails, so a capacity blip cannot block the auto-release.
+    and the first one that reaches InService wins.
+
+    If every candidate is dry, the outcome depends on the run: release runs skip, so a
+    capacity blip cannot block the auto-release, while PR runs fail so a human sees it
+    and can re-trigger. Either way the exhausted ladder is logged at error level,
+    because a skip means the model went unvalidated.
 
     No sleep between candidates: SageMaker already retries the pool internally for
     several minutes before returning ICE, so each attempt carries its own backoff.
@@ -305,10 +314,20 @@ def deployed_model(request, image_uri):
             _cleanup([endpoint, endpoint_config, model])
         return
 
-    pytest.skip(
+    # Loud on purpose: a skip here means this model went untested. Without an
+    # error-level line, a run of consecutive capacity skips reads as a green release.
+    msg = (
         f"No SageMaker capacity for {model_cfg['name']} on any of {candidates} "
         f"(ICE). Last error: {last_error}"
     )
+    LOGGER.error(f"[capacity] {msg}")
+    if RELEASE_RUN:
+        LOGGER.error(
+            f"[capacity] SKIPPING {model_cfg['name']} — this model was NOT validated "
+            f"in this release run."
+        )
+        pytest.skip(msg)
+    raise AssertionError(msg)
 
 
 def test_model_serving(deployed_model):
