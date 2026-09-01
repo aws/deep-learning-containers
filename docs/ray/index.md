@@ -1,4 +1,4 @@
-# ML Serving using Ray DLC
+# ML Serving using Ray Serve DLC
 
 Production-ready Docker images for deploying ML models with [Ray Serve](https://docs.ray.io/en/latest/serve/index.html) on {{ aws }}. Available in CPU
 and GPU variants, built on Amazon Linux 2023 with ongoing security patching.
