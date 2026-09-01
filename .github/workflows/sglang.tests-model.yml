@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -164,3 +174,24 @@ jobs:
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           kill ${{ steps.model.outputs.lock-pid }} 2>/dev/null || true
+
+  # Record a PASS row in the ci-images-table if the test passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          (needs.test-model-codebuild-fleet.result == 'success' ||
+           needs.test-model-runner-scale-sets.result == 'success') }}
+    needs: [test-model-codebuild-fleet, test-model-runner-scale-sets]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: sglang/model
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

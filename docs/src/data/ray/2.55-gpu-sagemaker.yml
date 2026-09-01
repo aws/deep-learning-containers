@@ -8,4 +8,4 @@ platform: sagemaker
 public_registry: true
 
 tags:
-  - "serve-ml-sagemaker-cuda-v1"
+  - "serve-ml-sagemaker-cuda-v1.1"

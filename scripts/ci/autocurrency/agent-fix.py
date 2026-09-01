@@ -36,6 +36,11 @@ A currency auto-update PR has failed CI. Diagnose the failure and produce minima
 - Do NOT modify files unrelated to the failure
 - ONLY edit files that are provided in the context below. If a file is not shown, do not edit it.
 - For CVE scan failures: pin a safe version in Dockerfile, or add to allowlist if vendored/unpatchable
+- Mooncake CVEs are allowlist-only, never pinned: the Go deps are statically linked into a prebuilt
+  shared object, so there is no pip package to bump. Identify them by `Package Manager` GOMOD/GOBINARY,
+  a `go/stdlib`/`golang.org/x/*`/`go.etcd.io/*`/`google.golang.org/grpc` package, or a `File paths`
+  entry like `.../mooncake/libetcd_wrapper.so`. Only an upstream mooncake-transfer-engine rebuild
+  fixes them, so the allowlist reason should name the package, its version, and that blocker.
 - For "file not found" errors: find the new path in the upstream repo
 - For build errors: check if upstream base image changed something
 
@@ -226,6 +231,7 @@ def load_context_files(framework: str, failed_jobs: list) -> dict:
             for p in [
                 f"docker/{framework}/Dockerfile",
                 f".github/config/image/{framework}/ec2-ubuntu.yml",
+                f".github/config/image/{framework}/sagemaker-ubuntu.yml",
                 f"test/security/data/ecr_scan_allowlist/{framework}/framework_allowlist.json",
             ]
             if read_file(p)
@@ -337,12 +343,43 @@ def find_match(content: str, search: str) -> tuple:
     return None, None
 
 
-def apply_blocks(blocks: list) -> tuple:
-    """Returns (modified_files, errors)."""
+def is_allowed_path(path: str, allowed_paths: set) -> bool:
+    """Security gate for LLM-supplied file paths.
+
+    A path is allowed ONLY if, after normalization, it exactly matches one
+    of the files returned by load_context_files(). This rejects absolute paths,
+    ``..`` traversal outside the repo, and any in-repo file that was never shown
+    to the model as editable (e.g. .github/workflows/*.yml).
+    """
+    if not path or os.path.isabs(path):
+        return False
+    normalized = os.path.normpath(path)
+    # normpath resolves '.'/'..' lexically; anything escaping the repo root
+    # keeps a leading '..' component and can never match an allowed path.
+    if normalized == ".." or normalized.startswith(".." + os.sep):
+        return False
+    return normalized in allowed_paths
+
+
+def apply_blocks(blocks: list, allowed_paths: set) -> tuple:
+    """Returns (modified_files, errors).
+
+    ``allowed_paths`` is the set of files the agent was given as editable
+    context (load_context_files() keys). Any block targeting a path outside this
+    set is rejected before touching the filesystem.
+    """
     modified, errors = [], []
+    normalized_allowed = {os.path.normpath(p) for p in allowed_paths}
 
     for b in blocks:
         path, search, replace = b["path"], b["search"], b["replace"]
+
+        if not is_allowed_path(path, normalized_allowed):
+            errors.append(
+                f"Path not in allowed context files, edit rejected: {path}. "
+                f"The agent may only edit files provided as context."
+            )
+            continue
 
         if not Path(path).exists():
             if not search.strip():  # Create new file
@@ -459,7 +496,7 @@ def main():
             print(f"  Response preview: {response[:200]}")
             continue
 
-        modified, errors = apply_blocks(blocks)
+        modified, errors = apply_blocks(blocks, set(context_files.keys()))
         if errors:
             retry_context = f"{len(modified)} applied, {len(errors)} failed:\n" + "\n".join(errors)
             print(f"{'Partial' if modified else 'All failed'}: {len(errors)} error(s), retrying...")

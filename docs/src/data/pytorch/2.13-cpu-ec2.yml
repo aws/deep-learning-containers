@@ -1,0 +1,13 @@
+framework: PyTorch
+version: "2.13"
+accelerator: cpu
+python: py312
+os: amzn2023
+platform: ec2
+ga: "2026-07-20"
+eop: "2027-07-20"
+public_registry: true
+
+tags:
+  - "2.13.0-cpu-amzn2023"
+  - "2.13-cpu-amzn2023"

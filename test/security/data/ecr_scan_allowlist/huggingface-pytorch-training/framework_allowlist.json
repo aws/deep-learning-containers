@@ -1,0 +1,7 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "Inspector matched torch 2.9.1 only in /opt/venv/lib/python3.12/site-packages/benchmarks/requirements.txt; the installed runtime is torch 2.11.0 from the PyTorch 2.11.0 base image, so the vulnerable package version is not present. Remove this entry when the upstream package stops shipping the stale benchmark manifest.",
+        "review_by": "2026-10-31"
+    }
+]

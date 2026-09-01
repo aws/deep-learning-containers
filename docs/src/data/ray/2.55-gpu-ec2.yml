@@ -8,4 +8,4 @@ platform: default
 public_registry: true
 
 tags:
-  - "serve-ml-cuda-v1"
+  - "serve-ml-cuda-v1.1"

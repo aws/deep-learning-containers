@@ -15,7 +15,7 @@ All images are also available on the [ECR Public Gallery](https://gallery.ecr.aw
 
 ## What's Included
 
-In addition to vLLM and its core stack (PyTorch, CUDA 12.9, NCCL, Python 3.12), the images bundle:
+In addition to vLLM and its core stack (PyTorch, CUDA 13.0, NCCL, Python 3.12), the images bundle:
 
 - **[FlashInfer](https://github.com/flashinfer-ai/flashinfer)** — fused attention kernels with precompiled cubins for fast cold start
 - **[DeepEP](https://github.com/deepseek-ai/DeepEP)** — expert-parallel kernels for large MoE models (DeepSeek, Qwen MoE)

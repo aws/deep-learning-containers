@@ -3,6 +3,11 @@ name = "dlc-base-cu130"
 version = "2.0.0"
 requires-python = "==3.13.*"
 dependencies = [
+    # botocore and packaging are required by the DLC telemetry script
+    # (scripts/docker/telemetry/deep_learning_container.py): botocore for EC2
+    # instance tagging, packaging for framework-version validation.
+    "botocore",
+    "packaging",
     "requests",
     "urllib3>=2.7.0",
 ]

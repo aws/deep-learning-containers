@@ -24,10 +24,12 @@ Fixtures from test/telemetry/conftest.py: framework, framework_version, containe
 """
 
 import logging
+import time
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 from deep_learning_container import REGION_MAPPING as TELEMETRY_REGION_MAPPING
+from packaging.version import Version
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -38,6 +40,28 @@ SLEEP_SECONDS = 10
 
 def delete_telemetry_tag(aws_session, instance_id):
     aws_session.ec2.delete_tags(Resources=[instance_id], Tags=[{"Key": TELEMETRY_TAG_KEY}])
+
+
+def set_imds_hop_limit(aws_session, instance_id, hop_limit, timeout=120):
+    """Set the IMDSv2 hop limit and wait until it is live.
+
+    modify_instance_metadata_options is asynchronous (InstanceMetadataOptions.State
+    goes pending -> applied); launching a container before it applies races the
+    telemetry script's one-shot IMDS probe and makes the test flaky.
+    """
+    aws_session.ec2.modify_instance_metadata_options(
+        InstanceId=instance_id, HttpPutResponseHopLimit=hop_limit
+    )
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        instance = aws_session.ec2.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
+            "Instances"
+        ][0]
+        options = instance["MetadataOptions"]
+        if options["State"] == "applied" and options["HttpPutResponseHopLimit"] == hop_limit:
+            return
+        time.sleep(5)
+    raise TimeoutError(f"IMDS hop_limit={hop_limit} not applied within {timeout}s")
 
 
 def telemetry_file_exists(conn, container):
@@ -84,7 +108,14 @@ def test_s3_query_bucket_url(
     assert params["x-instance-id"][0] == instance_id
     assert params["x-framework"][0] == framework
     if framework_version:
-        assert params["x-framework_version"][0] == framework_version
+        # Test-only/telemetry-only PRs skip the build and test the released prod
+        # image, whose baked-in version can legitimately lag config during the
+        # window between a version bump and its release. Allow the image to lag
+        # config; a version AHEAD of config still fails (stale image / bad config).
+        reported = params["x-framework_version"][0]
+        assert Version(reported) <= Version(framework_version), (
+            f"x-framework_version {reported} is ahead of config {framework_version}"
+        )
     assert params["x-container_type"][0] == container_type
     assert f"/dlc-containers-{instance_id}.txt" in parsed.path
 
@@ -122,9 +153,7 @@ def test_imds_hop_limit(conn, aws_session, telemetry_container, ec2_instance):
 
     # hop_limit=1: container can't get IMDSv2 token through Docker bridge
     delete_telemetry_tag(aws_session, instance_id)
-    aws_session.ec2.modify_instance_metadata_options(
-        InstanceId=instance_id, HttpPutResponseHopLimit=1
-    )
+    set_imds_hop_limit(aws_session, instance_id, 1)
     container_name = telemetry_container("telemetry-hop1", env={"TEST_MODE": "1"})
 
     assert not telemetry_file_exists(conn, container_name), (
@@ -135,9 +164,7 @@ def test_imds_hop_limit(conn, aws_session, telemetry_container, ec2_instance):
     assert TELEMETRY_TAG_KEY not in tags, "Tag should not exist with hop_limit=1"
 
     # hop_limit=2: container can get IMDSv2 token
-    aws_session.ec2.modify_instance_metadata_options(
-        InstanceId=instance_id, HttpPutResponseHopLimit=2
-    )
+    set_imds_hop_limit(aws_session, instance_id, 2)
     container_name = telemetry_container("telemetry-hop2", env={"TEST_MODE": "1"})
 
     assert telemetry_file_exists(conn, container_name), "Telemetry should fire with hop_limit=2"

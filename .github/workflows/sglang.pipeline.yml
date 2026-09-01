@@ -96,9 +96,22 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-suffix: ${{ inputs.tag-suffix }}
 
-  sanity-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+  # Check to see which tests have passed before on the given image build
+  check:
+    if: ${{ always() && !failure() && !cancelled() }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.check-test-pass.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      suites: '["sanity", "telemetry", "efa", "sglang/upstream", "sglang/model", "sglang/sagemaker"]'
+
+  sanity-test:
+    if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -106,6 +119,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sanity'] || '' }}
 
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
@@ -119,8 +134,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-telemetry-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -128,10 +143,15 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   upstream-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-upstream-test }}
-    needs: [build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-upstream-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['sglang/upstream'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-upstream-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -139,11 +159,16 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sglang/upstream'] || '' }}
     secrets: inherit
 
   model-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test }}
-    needs: [build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-model-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['sglang/model'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-model-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -151,11 +176,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sglang/model'] || '' }}
     secrets: inherit
 
   sagemaker-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sagemaker-test &&
+          needs.ci-config.outputs.customer-type == 'sagemaker' &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['sglang/sagemaker'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -163,10 +194,15 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sglang/sagemaker'] || '' }}
 
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test }}
-    needs: [build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-efa-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['efa'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -174,6 +210,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['efa'] || '' }}
       run-nixl-tests: true
       run-nixl-disagg: false
       container-entrypoint: "/bin/bash"

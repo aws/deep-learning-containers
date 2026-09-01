@@ -1,0 +1,15 @@
+framework: llama.cpp
+version: "1.0.0+b10433"
+ecr_repository: llama-cpp
+accelerator: cpu
+python: py312
+os: amzn2023
+platform: default
+public_registry: true
+
+# Support policy
+ga: "2026-08-21"
+eop: "2027-08-21"
+
+tags:
+  - "server-cpu-v1"

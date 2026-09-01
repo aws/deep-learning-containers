@@ -1,0 +1,148 @@
+# CUDA base version (forwarded from config metadata.cuda_version as --build-arg).
+ARG CUDA_VERSION=13.0.2
+
+# STAGE 0: builder — compile llama.cpp (x86-64 CUDA) from a pinned ref.
+# One image carries the CUDA backend + every x86 CPU microarch backend as
+# loadable .so, dispatched at runtime (GPU if visible, else best CPU). The devel
+# base provides nvcc/headers, so no GPU is needed at build time.
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
+
+# Pin the upstream ref for reproducible builds.
+# b10433
+ARG LLAMA_CPP_REF=9b05354ec6fb58b4e665e9a39ebc40285c015638
+ARG BUILD_PARALLEL=16
+
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  gcc gcc-c++ make cmake git \
+  libcurl-devel openblas-devel \
+  libgomp \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+WORKDIR /src
+RUN git clone https://github.com/ggml-org/llama.cpp.git \
+  && cd llama.cpp \
+  && git checkout ${LLAMA_CPP_REF}
+
+WORKDIR /src/llama.cpp/build
+# CUDA backend + all x86 CPU variants as loadable fallbacks. --allow-shlib-undefined
+# lets the CPU-variant .so link against load-time symbols (upstream CUDA recipe).
+RUN cmake .. \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DGGML_CUDA=ON \
+  -DGGML_NATIVE=OFF \
+  -DGGML_CPU_ALL_VARIANTS=ON \
+  -DGGML_BACKEND_DL=ON \
+  -DGGML_OPENMP=ON \
+  -DLLAMA_CURL=ON \
+  -DCMAKE_EXE_LINKER_FLAGS=-Wl,--allow-shlib-undefined \
+  && cmake --build . --config Release -j ${BUILD_PARALLEL} --target llama-server llama-cli llama-bench
+
+# STAGE 1: runtime — slim CUDA runtime image with the server + shared libs.
+ARG CUDA_VERSION=13.0.2
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+
+ARG PYTHON="python3"
+ARG PYTHON_VERSION=3.12
+# Re-declared: ARGs don't cross build stages (CUDA_VERSION drives cuda-compat below;
+# LLAMA_CPP_REF used by OSS tracking).
+ARG CUDA_VERSION=13.0.2
+# b10433
+ARG LLAMA_CPP_REF=9b05354ec6fb58b4e665e9a39ebc40285c015638
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=general \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8
+
+# Expose the CUDA compute + utility driver libraries to the container at runtime.
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  libgomp libcurl curl-minimal openblas shadow-utils \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-pip \
+  # Upgrade cuda-compat (CUDA base ships an older one) to clear
+  # CVE-2026-24193 / CVE-2025-33219, which --security does not flag.
+  && dnf upgrade -y "cuda-compat-$(echo "${CUDA_VERSION%.*}" | tr '.' '-')" \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
+  && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
+  && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python \
+  && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf /usr/bin/yum
+
+RUN ${PYTHON} -m pip install --no-cache-dir requests botocore packaging \
+  && ${PYTHON} -m pip install --no-cache-dir "urllib3>=2.7.0"
+
+# Binaries + llama.cpp .so files (libllama, libggml*, libggml-cuda, CPU backends).
+COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/
+ENV PATH="/opt/llama.cpp/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/opt/llama.cpp/bin:${LD_LIBRARY_PATH}"
+
+# Telemetry, common scripts, and OSS compliance (DLC convention).
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/setup_oss_compliance.sh setup_oss_compliance.sh
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} \
+  # Track the source-built llama.cpp for OSS compliance (not covered by the scan above).
+  && printf '\n** llama.cpp; version %s -- https://github.com/ggml-org/llama.cpp\n' "${LLAMA_CPP_REF}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nllama.cpp %s https://github.com/ggml-org/llama.cpp/archive/%s.tar.gz\n' "${LLAMA_CPP_REF}" "${LLAMA_CPP_REF}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && rm setup_oss_compliance.sh \
+  && rm -rf /root/oss_compliance* \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /var/cache/dnf \
+  && rm -rf /root/.cache || true
+
+# ====================== ec2 =========================================
+FROM runtime AS llama-cpp-ec2
+
+ARG CACHE_REFRESH=0
+ARG PYTHON_VERSION=3.12
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3
+
+COPY ./scripts/docker/llama_cpp/dockerd_entrypoint.sh /usr/bin/serve
+RUN chmod +x /usr/bin/serve
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/bin/serve"]
+
+# SageMaker variant: nginx fronts llama-server, mapping GET /ping -> /health and
+# POST /invocations -> /v1/chat/completions (see sagemaker_entrypoint.sh).
+FROM runtime AS llama-cpp-sagemaker
+
+ARG CACHE_REFRESH=0
+ARG PYTHON_VERSION=3.12
+# nginx = reverse proxy; gettext = envsubst (renders the nginx conf template).
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  nginx gettext \
+  && dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /usr/bin/python${PYTHON_VERSION} /usr/bin/python3
+
+COPY ./scripts/docker/llama_cpp/llama_cpp_sagemaker.conf.template /etc/nginx/llama_cpp_sagemaker.conf.template
+COPY ./scripts/docker/llama_cpp/sagemaker_entrypoint.sh /usr/bin/serve
+RUN chmod +x /usr/bin/serve
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/bin/serve"]

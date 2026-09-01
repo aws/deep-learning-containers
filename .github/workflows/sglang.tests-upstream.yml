@@ -12,6 +12,26 @@ on:
         required: false
         type: string
         default: ""
+      suite:
+        description: "run_suite.py --suite name (must be valid for the sglang ref)."
+        required: false
+        type: string
+        default: "base-a-test-1-gpu-small"
+      skip-tests:
+        description: "Space-separated registered-test paths (relative to test/) to remove before running, e.g. gated-model tests the CI HF token cannot access."
+        required: false
+        type: string
+        default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -85,6 +105,9 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ./sglang_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            -e SGLANG_IS_IN_CI=1 \
+            -e SGLANG_ENABLE_ASYNC_ASSERT=false \
+            -e SGLANG_JIT_DEEPGEMM_FAST_WARMUP=true \
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
 
@@ -98,8 +121,8 @@ jobs:
 
       - name: Run SGLang tests
         run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
+          docker exec ${CONTAINER_ID} bash -c '
+            set -euxo pipefail
             nvidia-smi
 
             export PYTHONPATH=/workdir/python:${PYTHONPATH:-}
@@ -110,7 +133,40 @@ jobs:
             ;;
             esac
 
+            # Drop caller-specified tests (e.g. gated-model tests the CI HF token
+            # cannot access) before discovery, so run_suite.py never enqueues them.
+            for t in ${{ inputs.skip-tests }}; do
+              rm -f "/workdir/test/${t}"
+            done
+
             cd /workdir/test
             export SGLANG_TIMEOUT=600
-            python3 run_suite.py --hw cuda --suite stage-a-test-1
+            # run_suite.py returns non-zero when a test fails; pipefail (set at
+            # top) ensures `tee` does not mask its exit code. Fail additionally
+            # if nothing ran (unknown/empty suite).
+            python3 run_suite.py --hw cuda --suite ${{ inputs.suite }} 2>&1 | tee /tmp/suite.log
+            if grep -qE "No tests found|Test Summary: 0/0" /tmp/suite.log; then
+              echo "ERROR: suite ${{ inputs.suite }} ran 0 tests — invalid/empty suite for this sglang ref" >&2
+              exit 1
+            fi
           '
+
+  # Record a PASS row in the ci-images-table if the test passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          needs.srt-backend-test.result == 'success' }}
+    needs: [srt-backend-test]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: sglang/upstream
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

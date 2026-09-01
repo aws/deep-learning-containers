@@ -255,12 +255,14 @@ def deploy_inference_pipeline(models, role, test_name="pipe", instance_type="ml.
 def predict_and_log(predictor, payload, **kwargs):
     """Invoke an endpoint and log latency + first 200 chars of the response."""
     payload_len = len(payload) if isinstance(payload, (str, bytes)) else len(str(payload))
-    LOGGER.info(f"POST {predictor.endpoint_name} payload_len={payload_len}")
+    target_model = kwargs.get("target_model")
+    target_suffix = f" target={target_model}" if target_model else ""
+    LOGGER.info(f"POST {predictor.endpoint_name}{target_suffix} payload_len={payload_len}")
     start = time.time()
     response = predictor.predict(payload, **kwargs)
     LOGGER.info(
-        f"{predictor.endpoint_name} responded in {(time.time() - start) * 1000:.0f}ms: "
-        f"{str(response)[:200]}"
+        f"{predictor.endpoint_name}{target_suffix} responded in "
+        f"{(time.time() - start) * 1000:.0f}ms: {str(response)[:200]}"
     )
     return response
 

@@ -61,6 +61,30 @@ jobs:
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "xgboost-branch=$(yq '.build.xgboost_container_branch // "master"' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "python-version=$(yq '.build.python_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "dockerfile=$(yq '.build.dockerfile' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+
+      - name: Verify pinned package versions match declared dependencies
+        if: steps.check.outputs.exists == 'true'
+        env:
+          IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+          DOCKERFILE: ${{ steps.config.outputs.dockerfile }}
+        run: |
+          # 3.2.0+ declares deps in pyproject.toml; 3.0-5 uses requirements.txt.
+          DOCKER_DIR="$(dirname "$DOCKERFILE")"
+          if [[ -f "$DOCKER_DIR/pyproject.toml" ]]; then
+            REQS_FILE="$DOCKER_DIR/pyproject.toml"
+          elif [[ -f "$DOCKER_DIR/requirements.txt" ]]; then
+            REQS_FILE="$DOCKER_DIR/requirements.txt"
+          else
+            echo "No pyproject.toml or requirements.txt at $DOCKER_DIR — skipping version check"
+            exit 0
+          fi
+          docker run --rm \
+            -v "$PWD/$REQS_FILE:/tmp/$(basename "$REQS_FILE"):ro" \
+            -v "$PWD/test/xgboost/scripts/check_versions.py:/tmp/check_versions.py:ro" \
+            --entrypoint python3 \
+            "$IMAGE_URI" \
+            /tmp/check_versions.py "/tmp/$(basename "$REQS_FILE")"
 
       - name: Clone sagemaker-xgboost-container (tests + source)
         if: steps.check.outputs.exists == 'true'
@@ -92,6 +116,7 @@ jobs:
           cd /tmp/xgboost-integ
           pytest test/integration/local \
             --ignore=test/integration/local/test_multiple_model_endpoint.py \
+            --ignore=test/integration/local/test_versions.py \
             --docker-base-name "${CI_IMAGE_URI%:*}" \
             --tag "${CI_IMAGE_URI##*:}" \
             --py-version 3 \

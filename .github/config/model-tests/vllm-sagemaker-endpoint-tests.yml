@@ -70,6 +70,32 @@ sagemaker:
             temperature: 0
         validate: "json_field:choices.0.message.content"
 
+  # LightOnOCR-2-1B — efficient 1B VLM for document OCR, bf16 (~2GB).
+  # LightOnOcrForConditionalGeneration (Mistral3-based). Text-only chat completion
+  # validates serving; full OCR with image input requires multimodal request support.
+  - name: "lighton-ocr-2-1b"
+    s3_model: "lightonocr-2-1b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "4096"
+      SM_VLLM_DTYPE: "bfloat16"
+    test_cases:
+      - name: "chat-completion"
+        route: "/v1/chat/completions"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            messages:
+              - role: "user"
+                content: "What is optical character recognition?"
+            max_tokens: 256
+            temperature: 0
+        validate: "json_field:choices.0.message.content"
+
   - name: "voxtral-mini-4b"
     s3_model: "voxtral-mini-4b.tar.gz"
     instance_type: "ml.g6.xlarge"

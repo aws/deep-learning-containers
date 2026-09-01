@@ -255,7 +255,8 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - PR callers use `cancel-in-progress: true` for build/test jobs (supersede stale runs).
 
 ### Runner fleets
-- `x86-build-runner` — CPU builds (PyTorch, Base, Ray, XGBoost, Lambda)
+- `x86-build-runner` — CPU builds (Base, Ray, XGBoost, Lambda)
+- `x86-pytorch-build-runner` — PyTorch builds (all variants)
 - `x86-vllm-build-runner` — GPU compilation (vLLM, vLLM-Omni)
 - `x86-sglang-build-runner` — GPU compilation (SGLang)
 - `x86-g6xl-runner` — single-GPU tests (1x L4)

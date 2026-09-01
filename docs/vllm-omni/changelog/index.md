@@ -4,6 +4,61 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 * * *
 
+## v1.6.0 — 2026-08-25
+
+**Tags:** `omni-cuda-v1.6` · `omni-sagemaker-cuda-v1.6`
+
+**vLLM-Omni source:** [v0.26.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.26.0) (unchanged from v1.5)
+
+**DLC PR:** [#6564](https://github.com/aws/deep-learning-containers/pull/6564)
+
+### Changes
+
+- **SageMaker entrypoint — `SM_VLLM_*` argument handling.** The entrypoint previously built argv with one token per env var, so multi-value flags such
+  as `--lora-modules` (declared `nargs="+"` upstream, along with ~20 other list-typed fields) could never receive more than one value, and
+  `SM_VLLM_LORA_MODULES='[{...},{...}]'` failed to parse. The entrypoint now applies the same rule as vLLM's own config-file loader: a JSON array
+  expands into one argv token per element, a JSON object stays a single token, and non-JSON values pass through untouched.
+  - **Behavior change:** a JSON array in a list-typed env var such as `SM_VLLM_SERVED_MODEL_NAME='["a","b"]'` now yields two values instead of one
+    literal string.
+
+### Notes
+
+- No framework bump — still tracks vLLM-Omni 0.26.0 (upstream vLLM v0.26.0). This is a DLC-minor release (v1.5 → v1.6) scoped to the SageMaker
+  `SM_VLLM_*` fix above; the EC2 image is rebuilt in lockstep to keep the paired tags aligned.
+
+* * *
+
+## v1.5.0 — 2026-08-07
+
+**Tags:** `omni-cuda-v1.5` · `omni-sagemaker-cuda-v1.5`
+
+**vLLM-Omni source:** [v0.26.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.26.0)
+
+### Highlights
+
+- Upgraded to vLLM-Omni 0.26.0 — the first stable release since 0.20.0, skipping the `0.21.0rc1` pre-release the DLC had been tracking — aligned with
+  upstream vLLM v0.26.0.
+- **vLLM v0.26.0 Rust frontend (`vllm-rs`).** The build now compiles upstream's new Rust extension (rustup + protoc + `build_rust.sh`) before the
+  wheel build; `VLLM_REQUIRE_RUST_FRONTEND=1` guards against silently shipping a wheel missing the `_rust_*.so` artifacts.
+- **Bidirectional WebSocket streaming on SageMaker.** The SageMaker image now advertises
+  `com.amazonaws.sagemaker.capabilities.bidirectional-streaming=true` and bridges SageMaker's Bidirectional Streaming API to vLLM-Omni's native
+  WebSocket routes (e.g. `/v1/audio/speech/stream`) for low-latency streaming TTS and realtime sessions. See
+  [SageMaker Deployment](../deployment/sagemaker.md).
+- **CosyVoice3 fixed on 0.26.0.** `s3tokenizer==0.3.0` is now bundled — CosyVoice3's model code hard-imports it at load in 0.26.0, but upstream ships
+  it only in a dev extra, so the base install previously failed with `ModuleNotFoundError`.
+- FlashInfer bumped to 0.6.14; the local `transformers <5.9.0` cap is dropped (0.26.0 handles the Qwen3-TTS breakage in code).
+
+### Changes
+
+- FlashInfer JIT-cache install switched from `--extra-index-url` to `--index-url` (flashinfer-cubin left PyPI as of 0.6.14).
+- Dropped the `+PTX` suffix from `torch_cuda_arch_list` (upstream filters the global PTX flag as a no-op).
+
+### Known Issues
+
+- The DeepGEMM `_C` extension is not built for this bump; the image falls back to the Python path. Follow-up planned.
+
+* * *
+
 ## v1.4.0 — 2026-07-02
 
 **Tags:** `omni-cuda-v1.4` · `omni-sagemaker-cuda-v1.4`

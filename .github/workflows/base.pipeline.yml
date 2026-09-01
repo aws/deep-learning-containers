@@ -26,6 +26,21 @@ on:
         required: false
         type: boolean
         default: false
+      run-telemetry-test:
+        description: "Run telemetry tests"
+        required: false
+        type: boolean
+        default: true
+      run-efa-test:
+        description: "Run multi-node EFA/NCCL tests (launches 2x p4d.24xlarge)"
+        required: false
+        type: boolean
+        default: false
+      efa-instance-type:
+        description: "EFA-enabled instance type for the EFA test"
+        required: false
+        type: string
+        default: "p4d.24xlarge"
       release:
         description: "Run release job after tests pass"
         required: false
@@ -37,6 +52,18 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      device-type: ${{ steps.parse.outputs.device-type }}
+      target: ${{ steps.parse.outputs.target }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          echo "target=$(yq '.build.target // ""' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
   build:
     if: ${{ inputs.build }}
     concurrency:
@@ -59,9 +86,22 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-suffix: ${{ inputs.tag-suffix }}
 
-  sanity-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+  # Check to see which tests have passed before on the given image build
+  check:
+    if: ${{ always() && !failure() && !cancelled() }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.check-test-pass.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      suites: '["sanity", "telemetry", "efa"]'
+
+  sanity-test:
+    if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -69,6 +109,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sanity'] || '' }}
 
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
@@ -81,6 +123,40 @@ jobs:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
+  telemetry-test:
+    if: ${{ always() && !cancelled() && inputs.run-telemetry-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [build, check]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.telemetry-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
+
+  # Multi-node EFA/NCCL over Libfabric — devel only (runtime has no NCCL/EFA
+  # stack). Opt-in: launches 2x p4d.24xlarge, so it's off by default.
+  efa-test:
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-efa-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.target == 'devel' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          fromJSON(needs.check.outputs.skips || '{}')['efa'] != true }}
+    needs: [build, ci-config, check]
+    concurrency:
+      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['efa'] || '' }}
+      efa-instance-type: ${{ inputs.efa-instance-type }}
+
   release-gate:
     if: >-
       github.ref == 'refs/heads/main' &&
@@ -89,7 +165,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test]
+    needs: [build, sanity-test, security-test, telemetry-test, efa-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -129,7 +205,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [build, sanity-test, security-test, release-gate, release]
+    needs: [build, sanity-test, security-test, telemetry-test, efa-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

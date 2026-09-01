@@ -40,6 +40,7 @@ OS_VERSION=$(yq '.metadata.os_version // ""' "$CONFIG_FILE")
 CUSTOMER_TYPE=$(yq '.metadata.customer_type // ""' "$CONFIG_FILE")
 PLATFORM=$(yq '.metadata.platform // ""' "$CONFIG_FILE")
 CONTAINER_TYPE=$(yq '.metadata.container_type // ""' "$CONFIG_FILE")
+PROD_IMAGE=$(yq '.metadata.prod_image // ""' "$CONFIG_FILE")
 
 # Derived fields
 PYTHON_RAW=$(yq '.build.python_version // ""' "$CONFIG_FILE")
@@ -63,10 +64,14 @@ fi
 TRANSFORMERS_VERSION=$(yq '.build.transformers_version // ""' "$CONFIG_FILE")
 
 # Release flags
-FORCE_RELEASE=$(yq '.release.force_release // ""' "$CONFIG_FILE")
-PUBLIC_REGISTRY=$(yq '.release.public_registry // ""' "$CONFIG_FILE")
-PRIVATE_REGISTRY=$(yq '.release.private_registry // ""' "$CONFIG_FILE")
-ENABLE_SOCI=$(yq '.release.enable_soci // ""' "$CONFIG_FILE")
+# No `// ""` fallback on these booleans: yq's `//` treats boolean `false` as
+# falsy, so `false // ""` collapses to "" and the flag would be dropped from the
+# spec — after which ReleaseSpec defaults private_registry back to True. Extract
+# raw (missing key -> the string "null") and emit below unless it's "null".
+FORCE_RELEASE=$(yq '.release.force_release' "$CONFIG_FILE")
+PUBLIC_REGISTRY=$(yq '.release.public_registry' "$CONFIG_FILE")
+PRIVATE_REGISTRY=$(yq '.release.private_registry' "$CONFIG_FILE")
+ENABLE_SOCI=$(yq '.release.enable_soci' "$CONFIG_FILE")
 echo "Generating release spec:"
 echo "  Framework: ${FRAMEWORK}"
 echo "  Version: ${VERSION}"
@@ -83,13 +88,14 @@ SPEC+="version: \"${VERSION}\""$'\n'
 [[ -n "$OS_VERSION" ]]      && SPEC+="os_version: \"${OS_VERSION}\""$'\n'
 [[ -n "$CUSTOMER_TYPE" ]]   && SPEC+="customer_type: \"${CUSTOMER_TYPE}\""$'\n'
 [[ -n "$CUDA_VERSION" ]]    && SPEC+="cuda_version: \"${CUDA_VERSION}\""$'\n'
+[[ -n "$PROD_IMAGE" ]]      && SPEC+="prod_image: \"${PROD_IMAGE}\""$'\n'
 [[ -n "$TRANSFORMERS_VERSION" ]] && SPEC+="transformers_version: \"${TRANSFORMERS_VERSION}\""$'\n'
 [[ -n "$PLATFORM" ]]        && SPEC+="platform: \"${PLATFORM}\""$'\n'
 [[ -n "$CONTAINER_TYPE" ]]  && SPEC+="container_type: \"${CONTAINER_TYPE}\""$'\n'
-[[ -n "$FORCE_RELEASE" ]]   && SPEC+="force_release: ${FORCE_RELEASE}"$'\n'
-[[ -n "$PUBLIC_REGISTRY" ]] && SPEC+="public_registry: ${PUBLIC_REGISTRY}"$'\n'
-[[ -n "$PRIVATE_REGISTRY" ]] && SPEC+="private_registry: ${PRIVATE_REGISTRY}"$'\n'
-[[ -n "$ENABLE_SOCI" ]]    && SPEC+="enable_soci: ${ENABLE_SOCI}"$'\n'
+[[ "$FORCE_RELEASE"    != "null" && -n "$FORCE_RELEASE" ]]    && SPEC+="force_release: ${FORCE_RELEASE}"$'\n'
+[[ "$PUBLIC_REGISTRY"  != "null" && -n "$PUBLIC_REGISTRY" ]]  && SPEC+="public_registry: ${PUBLIC_REGISTRY}"$'\n'
+[[ "$PRIVATE_REGISTRY" != "null" && -n "$PRIVATE_REGISTRY" ]] && SPEC+="private_registry: ${PRIVATE_REGISTRY}"$'\n'
+[[ "$ENABLE_SOCI"      != "null" && -n "$ENABLE_SOCI" ]]      && SPEC+="enable_soci: ${ENABLE_SOCI}"$'\n'
 
 echo "$SPEC"
 

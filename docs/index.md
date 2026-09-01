@@ -60,21 +60,37 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     [vLLM-Omni Guide](vllm-omni/index.md)
 
+-   **Transcribe Speech**
+
+    ---
+
+    Transcribe, align, and diarize audio with WhisperX on EC2 or Amazon SageMaker AI.
+
+    [WhisperX Guide](whisperx/index.md)
+
+-   **Serve GGUF Models on CPU or GPU**
+
+    ---
+
+    Serve quantized GGUF models with llama.cpp on x86 CPU, NVIDIA GPU, or Graviton (ARM64) — EC2 or Amazon SageMaker AI.
+
+    [llama.cpp Guide](llama-cpp/index.md)
+
 -   **Serve ML Models**
 
     ---
 
-    Deploy any ML model with Ray Serve on EC2 or Amazon SageMaker AI — NLP, vision, audio, and tabular.
+    Deploy any ML model — NLP, vision, audio, and tabular — with Ray Serve on EC2 or Amazon SageMaker AI, or TensorFlow SavedModels with TensorFlow Serving on Amazon SageMaker AI.
 
-    [Ray Guide](ray/index.md)
+    [Ray Guide](ray/index.md) · [TensorFlow Inference Guide](tensorflow/inference/index.md)
 
 -   **Train Models**
 
     ---
 
-    Run distributed training with PyTorch on GPU or CPU, with EFA, NCCL, flash-attn, and DeepSpeed pre-installed.
+    Run distributed training with PyTorch, TensorFlow, or Ray Train on GPU or CPU, with EFA and NCCL pre-installed for multi-node workloads.
 
-    [PyTorch Guide](pytorch/index.md)
+    [PyTorch Guide](pytorch/index.md) · [TensorFlow Training Guide](tensorflow/training/index.md) · [Ray Train Guide](ray-train/index.md)
 
 -   **Build Your Own Image**
 

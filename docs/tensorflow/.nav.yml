@@ -1,0 +1,4 @@
+nav:
+  - Overview: index.md
+  - Training: training
+  - Inference: inference

@@ -18,6 +18,18 @@ multipart/form-data body (each top-level key becomes a form field) so the
 upstream handler receives the encoding it expects. multipart/form-data bodies
 are passed through unchanged.
 
+WebSocket / bidirectional streaming: the same middleware also gates SageMaker's
+Bidirectional Streaming API (InvokeEndpointWithBidirectionalStream). SageMaker's
+Sidecar substitutes the client's `model_invocation_path` into the container-side
+WS URI, so `scope["path"]` arrives as a vLLM-Omni WS route (e.g.
+`/v1/audio/speech/stream`). Connections at a whitelisted route (WS_ALLOWED_PATHS)
+pass through to vLLM's ASGI router; the un-overridden default
+(`/invocations-bidirectional-stream`) and any other path are rejected with
+guidance. The image must also carry the Docker label
+`com.amazonaws.sagemaker.capabilities.bidirectional-streaming=true` for
+SageMaker to route WS connections to it. Frame relay / fragmentation / ping-pong
+are handled by uvicorn beneath this middleware — nothing is bridged per-frame.
+
 Usage: vllm serve --omni --middleware omni_sagemaker_serve.SageMakerRouteMiddleware
 
 The middleware is loaded via vLLM's `--middleware` flag, which v0.20.0 wires
@@ -41,6 +53,31 @@ logger = logging.getLogger("omni_sagemaker")
 # Routes whose upstream handlers expect multipart/form-data. A JSON body
 # targeting one of these is converted to multipart before it reaches vLLM.
 FORM_DATA_ROUTES = frozenset({"/v1/videos", "/v1/videos/sync"})
+
+# vLLM-Omni's native WebSocket routes, reachable on SageMaker via the
+# Bidirectional Streaming API. A client calls
+# invoke_endpoint_with_bidirectional_stream with model_invocation_path set to
+# one of these (SLASHLESS on the wire, e.g. "v1/audio/speech/stream"); the
+# SageMaker Sidecar prepends the leading slash and opens the container WS at
+# that path, so scope["path"] arrives already resolved to one of these values.
+# We whitelist them so a mistyped/unsupported path fails fast with a clear
+# reason instead of a bare ASGI 404. Keep in sync with the @router.websocket
+# decorators in vllm_omni/entrypoints/openai/api_server.py.
+WS_ALLOWED_PATHS = frozenset(
+    {
+        "/v1/audio/speech/stream",
+        "/v1/realtime",
+        "/v1/realtime/video",
+        "/v1/video/chat/stream",
+        "/v1/duplex",
+        "/v1/realtime/robot/openpi",
+    }
+)
+
+# The default container-side WS path SageMaker connects to when the client does
+# not override model_invocation_path. vLLM-Omni has no handler here, so we
+# reject it with guidance rather than letting it 404 opaquely.
+WS_DEFAULT_PATH = "/invocations-bidirectional-stream"
 
 
 def _parse_route(headers: list[tuple[bytes, bytes]]) -> str | None:
@@ -115,16 +152,39 @@ def _replay(body: bytes) -> Receive:
     return receive
 
 
+async def _ws_reject(receive: Receive, send: Send, reason: str) -> None:
+    """Reject a WebSocket connection before accepting it (ASGI 403-equivalent).
+
+    Per the ASGI spec, sending `websocket.close` in response to the initial
+    `websocket.connect` (without a preceding `websocket.accept`) refuses the
+    handshake — the client sees a failed upgrade rather than an open-then-closed
+    socket. We consume the connect event first, then close. The reason is logged
+    (not sent as a frame — there's no accepted socket to send on).
+    """
+    await receive()  # consume the websocket.connect event
+    logger.warning("Rejecting WebSocket connection: %s", reason)
+    await send({"type": "websocket.close", "code": 1008})
+
+
 class SageMakerRouteMiddleware:
-    """ASGI middleware that reroutes /invocations based on CustomAttributes.
+    """ASGI middleware that bridges SageMaker to vLLM-Omni's routes.
 
-    Explicit route via header -> rewrites path to that endpoint.
-    No route specified -> falls through to vLLM's built-in /invocations handler.
+    HTTP (`/invocations`, via InvokeEndpoint):
+        Explicit route via CustomAttributes -> rewrites path to that endpoint.
+        No route specified -> falls through to vLLM's built-in /invocations
+        handler. When the resolved route expects multipart/form-data
+        (FORM_DATA_ROUTES) but the body arrives as application/json, the JSON
+        object is converted to a multipart/form-data body.
 
-    When the resolved route expects multipart/form-data (FORM_DATA_ROUTES) but
-    the body arrives as application/json, the JSON object is converted to a
-    multipart/form-data body so the upstream handler receives its expected
-    encoding.
+    WebSocket (via the Bidirectional Streaming API):
+        SageMaker's Sidecar substitutes the client's model_invocation_path into
+        the container-side WS request URI, so scope["path"] already equals a
+        vLLM-Omni WS route (e.g. /v1/audio/speech/stream). We let those through
+        to vLLM's ASGI router untouched. A connection at the un-overridden
+        default path (WS_DEFAULT_PATH), or at any path outside WS_ALLOWED_PATHS,
+        is rejected with a clear reason. Frame relay, fragmentation reassembly,
+        and ping/pong are all handled by the ASGI server (uvicorn) below this
+        middleware, so there is nothing to bridge frame-by-frame here.
     """
 
     def __init__(self, app: ASGIApp) -> None:
@@ -144,6 +204,28 @@ class SageMakerRouteMiddleware:
                     and _content_type(scope.get("headers", [])) == "application/json"
                 ):
                     scope, receive = await self._json_to_multipart(scope, receive)
+
+        elif scope["type"] == "websocket":
+            path = scope.get("path", "")
+            if path == WS_DEFAULT_PATH:
+                await _ws_reject(
+                    receive,
+                    send,
+                    f"no vLLM-Omni handler at {WS_DEFAULT_PATH}; set the "
+                    "X-Amzn-SageMaker-Model-Invocation-Path header (slashless, "
+                    "e.g. 'v1/audio/speech/stream') to a supported route: "
+                    f"{sorted(WS_ALLOWED_PATHS)}",
+                )
+                return
+            if path not in WS_ALLOWED_PATHS:
+                await _ws_reject(
+                    receive,
+                    send,
+                    f"unsupported WebSocket route {path!r}; supported routes "
+                    f"(set via model_invocation_path): {sorted(WS_ALLOWED_PATHS)}",
+                )
+                return
+            logger.info("Bidirectional WebSocket -> %s", path)
 
         await self.app(scope, receive, send)
 

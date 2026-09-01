@@ -1,18 +1,18 @@
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.22.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.28.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
 
 ARG FRAMEWORK=huggingface-vllm
-ARG FRAMEWORK_VERSION=0.22.1
+ARG FRAMEWORK_VERSION=0.28.0
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 
 LABEL maintainer="Hugging Face"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 
-ARG TRANSFORMERS_VERSION=5.10.2
-ARG HUGGINGFACE_HUB_VERSION=1.17.0
-ARG HF_XET_VERSION=1.5.0
+ARG TRANSFORMERS_VERSION=5.15.0
+ARG HUGGINGFACE_HUB_VERSION=1.27.0
+ARG HF_XET_VERSION=1.6.0
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends curl unzip \
@@ -23,9 +23,9 @@ RUN uv pip install --system \
   "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
   "hf-xet==${HF_XET_VERSION}" \
   "grpcio>=1.79.3" \
-  "cryptography>=48.0.1" \
+  "cryptography>=50.0.0" \
   "starlette>=1.3.1" \
-  "aiohttp>=3.14.1" \
+  "aiohttp>=3.14.3" \
   && uv cache clean \
   && rm -rf /tmp/uv*
 
@@ -67,9 +67,13 @@ RUN apt-get purge -y ffmpeg libav* || true && apt-get autoremove -y
 
 ARG FFMPEG_TAG=n8.1
 
-# Patch OS CVEs carried by the ubuntu22.04 base (openssl, mesa, ...). Hold
+# Patch OS CVEs carried by the ubuntu24.04 base (openssl, mesa, ...). Hold
 # cuda/nvidia/libnv packages first so the broad upgrade can't bump the toolkit
 # or driver (same pattern as docker/vllm).
+# ffmpeg is cloned shallow and tag-pinned from the GitHub mirror rather than
+# git.ffmpeg.org: n8.1 is the same commit on both (a65b3bf), the mirror does not
+# 502 mid-clone the way git.ffmpeg.org did on PR #6480, and --depth 1 drops the
+# full history. Same form as docker/ray/Dockerfile.{cpu,cuda}.
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends \
@@ -82,14 +86,14 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     libvpx-dev \
     libx264-dev \
     libx265-dev \
-  && git clone https://git.ffmpeg.org/ffmpeg.git /tmp/ffmpeg \
+  && git clone --depth 1 --branch "${FFMPEG_TAG}" https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
-  && git checkout "${FFMPEG_TAG}" \
   && ./configure \
     --prefix=/usr/local \
     --disable-debug \
     --disable-doc \
     --enable-gpl \
+    --enable-shared \
     --enable-libmp3lame \
     --enable-libopus \
     --enable-libvorbis \
@@ -98,6 +102,8 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     --enable-libx265 \
   && make -j"$(nproc)" \
   && make install \
+  && echo /usr/local/lib >/etc/ld.so.conf.d/ffmpeg-local.conf \
+  && ldconfig \
   && which ffmpeg \
   && ffmpeg -version \
   && ffprobe -version \
@@ -105,11 +111,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
-# NOTE: the mooncake-transfer-engine (CVE-2026-33186) and openssh
-# (CVE-2026-35385/35414/35386) backports the v0.21 image carried are dropped
-# here: the 0.22.1 base already ships the fixed versions
-# (mooncake-transfer-engine 0.3.10.post2, openssh 1:8.9p1-3ubuntu0.15).
-# ffmpeg above is still required (the base ships the vulnerable 4.4.2).
 
 RUN HOME_DIR=/root \
   && uv pip install --system --upgrade pip requests PTable \

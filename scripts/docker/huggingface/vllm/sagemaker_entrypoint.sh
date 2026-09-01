@@ -21,19 +21,16 @@ source /usr/local/bin/hf_optimizations.sh
 # LMCache: expose the kv-transfer-config through the SM_VLLM_ contract so the
 # mapping below turns it into --kv-transfer-config, unless the user set one.
 #
-# standard-supervisor (the default, PROCESS_AUTO_RECOVERY=true) flattens argv
-# into a single string that supervisord re-parses with shlex — which strips the
-# JSON's double quotes and makes vLLM fail with "key must be a string". We
-# single-quote-wrap the value so shlex hands the clean JSON back. In direct mode
-# (PROCESS_AUTO_RECOVERY=false) argv is exec'd verbatim, so pass raw JSON.
+# Pass the JSON verbatim, on both launch paths:
+#   PROCESS_AUTO_RECOVERY=false -> standard-supervisor os.execvp()s argv verbatim.
+#   PROCESS_AUTO_RECOVERY=true  -> argv is joined into supervisord's command=,
+#     which supervisord shlex.split()s back. standard-supervisor >=0.1.16 joins
+#     with shlex.join, so the double quotes survive; <=0.1.15 space-joined and the
+#     value had to be single-quote wrapped to survive that round-trip.
+# The AWS base has pinned >=0.1.16 since the vLLM 0.24.0 image, so wrapping now
+# reaches vLLM with literal quotes and dies in json.loads.
 if [[ -n "${HF_LMCACHE_KV_CONFIG:-}" && -z "${SM_VLLM_KV_TRANSFER_CONFIG:-}" ]]; then
-  _auto_recovery="$(echo "${PROCESS_AUTO_RECOVERY:-true}" | tr '[:upper:]' '[:lower:]')"
-  if [[ "${_auto_recovery}" == "true" || "${_auto_recovery}" == "1" ]]; then
-    export SM_VLLM_KV_TRANSFER_CONFIG="'${HF_LMCACHE_KV_CONFIG}'"
-  else
-    export SM_VLLM_KV_TRANSFER_CONFIG="${HF_LMCACHE_KV_CONFIG}"
-  fi
-  unset _auto_recovery
+  export SM_VLLM_KV_TRANSFER_CONFIG="${HF_LMCACHE_KV_CONFIG}"
 fi
 
 # runai-model-streamer (opt-in): default the load format for object-storage models.

@@ -130,9 +130,9 @@ class TestImageConfigDisplayProperties:
         ],
         ids=["default_account", "custom_account"],
     )
-    def test_display_example_url(self, kwargs, expected_substr):
+    def test_display_example_uri(self, kwargs, expected_substr):
         img = ImageConfig("pytorch-training", **kwargs)
-        assert expected_substr in img.display_example_url
+        assert expected_substr in img.display_example_uri
 
     @pytest.mark.parametrize(
         "platform,expected", [("ec2", "EC2, ECS, EKS"), ("sagemaker", "SageMaker")]

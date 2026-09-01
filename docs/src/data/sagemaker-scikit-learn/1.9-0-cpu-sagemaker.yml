@@ -1,0 +1,11 @@
+framework: Scikit-Learn
+version: "1.9-0"
+accelerator: cpu
+platform: sagemaker
+example_ecr_account: "<account-id>"
+
+tags:
+  - "1.9-0"
+
+ga: "2026-07-16"
+eop: "2027-07-16"

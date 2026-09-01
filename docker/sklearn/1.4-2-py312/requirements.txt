@@ -1,7 +1,7 @@
 boto3==1.28.57
 botocore>=1.31.57,<1.32.0
 certifi
-cryptography==46.0.7
+cryptography==50.0.0
 Flask==1.1.1
 gevent==23.9.1
 gunicorn==23.0.0
@@ -23,8 +23,8 @@ sagemaker-inference==1.2.0
 sagemaker-training==4.8.0
 scikit-learn==1.4.2
 scipy>=1.9.0
-setuptools==80.9.0
+setuptools==83.0.0
 six==1.16.0
 urllib3==1.26.17
 Werkzeug==2.0.3
-wheel==0.45.1
+wheel==0.46.2

@@ -39,6 +39,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-sglang-upstream-test:
+        description: "Run the upstream SGLang suite (sglang variant only)"
+        required: false
+        type: boolean
+        default: false
       release:
         description: "Run release job after tests pass"
         required: false
@@ -59,7 +64,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
-    timeout-minutes: 120
+    timeout-minutes: 360
     outputs:
       image-uri: ${{ steps.build.outputs.image-uri }}
     steps:
@@ -72,9 +77,22 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-suffix: ${{ inputs.tag-suffix }}
 
-  sanity-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+  # Check to see which tests have passed before on the given image build
+  check:
+    if: ${{ always() && !failure() && !cancelled() }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.check-test-pass.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      suites: '["sanity", "telemetry", "sglang/upstream"]'
+
+  sanity-test:
+    if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -82,6 +100,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sanity'] || '' }}
 
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
@@ -95,8 +115,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-telemetry-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -104,6 +124,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   # GPU validation — Lambda-specific pytest suite run inside the container
   validation-test:
@@ -143,14 +165,38 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-      - name: Parse validation tests
+      - name: Determine validation tests
         if: steps.check.outputs.exists == 'true'
         id: config
         run: |
-          CONFIG_FILE="${{ inputs.config-file }}"
-          # Read tests.validation as a space-separated list of paths
-          TESTS=$(yq -r '.tests.validation[]' "$CONFIG_FILE" | tr '\n' ' ')
+          TARGET=$(yq '.build.target' "${{ inputs.config-file }}")
+          COMMON="/test/unit/test_python.py /test/unit/test_environment.py /test/unit/test_lambda_runtime.py /test/unit/test_cuda.py"
+          case "$TARGET" in
+            *pytorch*)
+              TESTS="$COMMON /test/unit/test_imports_pytorch.py /test/unit/test_environment_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py" ;;
+            *cupy*)
+              TESTS="$COMMON /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py" ;;
+            *sglang*)
+              TESTS="$COMMON /test/unit/test_imports_sglang.py /test/single_gpu/test_sglang_inference.py" ;;
+            *vllm*)
+              TESTS="$COMMON /test/unit/test_imports_vllm.py /test/single_gpu/test_vllm_inference.py" ;;
+            *base*)
+              TESTS="$COMMON /test/unit/test_imports_base.py" ;;
+          esac
           echo "tests=${TESTS}" >> $GITHUB_OUTPUT
+          # Multi-mode RIC targets carry a runtime concurrency-mode knob.
+          if [[ "$TARGET" == *preview* ]]; then
+            echo "multimode=true" >> $GITHUB_OUTPUT
+          else
+            echo "multimode=false" >> $GITHUB_OUTPUT
+          fi
+          # Serving engines (sglang, vllm) ship a shared-server + proxy handler;
+          # they get an extra end-to-end serving test via the real RIC entrypoint.
+          if [[ "$TARGET" == *sglang* || "$TARGET" == *vllm* ]]; then
+            echo "serving=true" >> $GITHUB_OUTPUT
+          else
+            echo "serving=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Run GPU validation tests
         if: steps.check.outputs.exists == 'true'
@@ -160,9 +206,52 @@ jobs:
             ${{ steps.image.outputs.image-uri }} \
             -m pytest ${{ steps.config.outputs.tests }} -v
 
-      - name: Skip notice
-        if: steps.check.outputs.exists != 'true'
-        run: echo "Image not found in ECR — skipping tests (first release scenario)"
+      - name: Run serving + RIC topology test
+        if: steps.check.outputs.exists == 'true' && steps.config.outputs.serving == 'true'
+        run: |
+          chmod +x test/lambda/ric_topology_check.sh
+          if [[ "${{ steps.config.outputs.multimode }}" == "true" ]]; then
+            MODES="thread process hybrid"
+          else
+            MODES="single"
+          fi
+          bash test/lambda/ric_topology_check.sh ${{ steps.image.outputs.image-uri }} 4 "${MODES}"
+
+      - name: Verify runtime concurrency-mode override
+        if: steps.check.outputs.exists == 'true' && steps.config.outputs.multimode == 'true'
+        run: |
+          for mode in process thread hybrid; do
+            echo "::group::override AWS_LAMBDA_CONCURRENCY_MODE=${mode}"
+            docker run --rm --gpus all --entrypoint python \
+              -e AWS_LAMBDA_CONCURRENCY_MODE=${mode} \
+              -e EXPECTED_CONCURRENCY_MODE=${mode} \
+              -v $(pwd)/test/lambda:/test \
+              ${{ steps.image.outputs.image-uri }} \
+              -m pytest /test/unit/test_lambda_runtime.py::test_ric_resolves_container_env -v
+            echo "::endgroup::"
+          done
+
+  sglang-upstream-test:
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sglang-upstream-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['sglang/upstream'] != true }}
+    needs: [build, check]
+    concurrency:
+      group: ${{ github.workflow }}-sglang-upstream-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/sglang.tests-upstream.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sglang/upstream'] || '' }}
+      # These base-a-test-1-gpu-small tests require gated meta-llama/Llama-3.1-8B,
+      # which the CI HF token cannot access. The remaining suite tests are ungated.
+      skip-tests: >-
+        registered/core/test_basic_sanity.py
+        registered/core/test_basic_sanity_eagle3.py
+        registered/core/test_basic_sanity_dflash.py
 
   release-gate:
     if: >-
@@ -172,7 +261,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, validation-test]
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, sglang-upstream-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -212,7 +301,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [build, sanity-test, security-test, telemetry-test, validation-test, release-gate, release]
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, sglang-upstream-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -1,0 +1,11 @@
+framework: Scikit-Learn
+version: "1.4-2-py312"
+accelerator: cpu
+platform: sagemaker
+example_ecr_account: "<account-id>"
+
+tags:
+  - "1.4-2-py312"
+
+ga: "2025-10-30"
+eop: "2026-10-30"

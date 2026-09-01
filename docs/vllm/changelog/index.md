@@ -4,6 +4,106 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v2.4.0 — 2026-08-25
+
+**Tags:** `server-cuda-v2.4` · `server-sagemaker-cuda-v2.4`
+
+**vLLM source:** [6adad08](https://github.com/vllm-project/vllm/commit/6adad08767583f52eb4d2122111af0bf638ed5e6) (`0.27.1+amzn2023.6adad087`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.16.post3 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.27.1** — patch bump from 0.27.0 (v2.3); built from commit
+  [6adad08](https://github.com/vllm-project/vllm/commit/6adad08767583f52eb4d2122111af0bf638ed5e6)
+  ([compare](https://github.com/vllm-project/vllm/compare/v0.27.0...6adad08))
+- **Muse Glimmer** — new model support
+- **`SM_VLLM_*` multi-value argument fix (SageMaker only)** — see below
+
+### Changes
+
+- **SageMaker entrypoint — `SM_VLLM_*` argument handling** ([#6564](https://github.com/aws/deep-learning-containers/pull/6564)) — the entrypoint
+  previously built argv with one token per env var, so multi-value flags such as `--lora-modules` (declared `nargs="+"` upstream, along with ~20 other
+  list-typed fields) could never receive more than one value, and `SM_VLLM_LORA_MODULES='[{...},{...}]'` failed to parse. The entrypoint now applies
+  the same rule as vLLM's own config-file loader: a JSON array expands into one argv token per element, a JSON object stays a single token, and
+  non-JSON values pass through untouched.
+  - **Behavior change:** a JSON array in a list-typed env var such as `SM_VLLM_SERVED_MODEL_NAME='["a","b"]'` now yields two values instead of one
+    literal string.
+
+* * *
+
+## v2.3.0 — 2026-08-17
+
+**Tags:** `server-cuda-v2.3` · `server-sagemaker-cuda-v2.3`
+
+**vLLM source:** [4bdc8a7](https://github.com/vllm-project/vllm/commit/4bdc8a788d2e2ce9165d552b3d4d8b72604626bf) (`0.27.0+amzn2023.4bdc8a78`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.16.post3 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.27.0** — minor version bump from 0.26.0 (v2.2); ~255 upstream commits
+  ([compare](https://github.com/vllm-project/vllm/compare/d223c90...v0.27.0))
+- **Kimi K3** — first release carrying Kimi K3: native model support and kernels plus Rust/Python frontends
+  ([#50000](https://github.com/vllm-project/vllm/pull/50000)), compressed-tensors quantized checkpoints
+  ([#50500](https://github.com/vllm-project/vllm/pull/50500)), and shardable shared experts
+  ([#50656](https://github.com/vllm-project/vllm/pull/50656))
+- **FlashInfer 0.6.16.post3** — upgraded from 0.6.15.post1
+- **NVIDIA B300 (SM103)** — build now targets arch `10.3`, so the vLLM and DeepEP wheels ship SM103 cubins
+- **New models** — K-EXAONE-2.0-750B-A37B ([#50524](https://github.com/vllm-project/vllm/pull/50524)), jina-embeddings-v5-text-nano
+  ([#50688](https://github.com/vllm-project/vllm/pull/50688)), and Qwen3.5 dense and MoE ([#50210](https://github.com/vllm-project/vllm/pull/50210))
+
+### Changes
+
+- **Frontend** — `cache_salt` in the Anthropic Messages API ([#49498](https://github.com/vllm-project/vllm/pull/49498)); Cohere chat v2 API
+  ([#47189](https://github.com/vllm-project/vllm/pull/47189)); `diarized_json` for MOSS-Transcribe-Diarize
+  ([#48543](https://github.com/vllm-project/vllm/pull/48543)); disaggregated-serving detokenization streaming
+  ([#47301](https://github.com/vllm-project/vllm/pull/47301))
+- **Speculative decoding** — multi-layer MTP speculator ([#48892](https://github.com/vllm-project/vllm/pull/48892))
+- **Quantization** — ModelOpt W4A16 `--linear-backend` ([#50273](https://github.com/vllm-project/vllm/pull/50273)); W4A16 MoE / MXFP4 support
+  ([#47124](https://github.com/vllm-project/vllm/pull/47124)); dynamic FP8 for Inkling ([#48876](https://github.com/vllm-project/vllm/pull/48876))
+- **Bugfixes** — 56 upstream fixes, including Kimi-K3 MoE/EP correctness, Qwen3.5 transformers 5.x compatibility
+  ([#50704](https://github.com/vllm-project/vllm/pull/50704)), and Mamba prefill chunk alignment
+  ([#51113](https://github.com/vllm-project/vllm/pull/51113))
+
+### New Tested Models
+
+- **Baidu Unlimited-OCR** (`UnlimitedOCRForCausalLM`) — 3B MoE document-OCR VLM; added as a smoke test on g6.xl
+
+* * *
+
+## v2.2.0 — 2026-08-03
+
+**Tags:** `server-cuda-v2.2` · `server-sagemaker-cuda-v2.2`
+
+**vLLM source:** [d223c90](https://github.com/vllm-project/vllm/commit/d223c900d85224c02f2162ee2c757a769e99f519) (`0.26.0+amzn2023.d223c900`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.15.post1 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.26.0** — minor version bump from 0.24.0 (v2.1); ~1264 upstream commits
+  ([compare](https://github.com/vllm-project/vllm/compare/7b3d595...d223c90))
+- **FlashInfer 0.6.15.post1** — upgraded from 0.6.12
+- **DeepEP [d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)** — EPv2/GIN backend; requires NCCL ≥
+  2.30.4 (image now pins `nvidia-nccl-cu13==2.30.7`)
+- **Inkling** — piecewise CUDA graph, MTP speculative decoding, LoRA, and NVFP4 support
+- **Performance** — DeepSeek-V4 routing-kernel and `fused_topk_bias` speedups; per-KV-cache-group attention backends; fp32 `lm_head` via `head_dtype`
+
+### New Model Support
+
+- Cosmos3 Edge Reasoner, TranslateGemma-12b-it, and `BertForMaskedLM`
+
+### Notes
+
+- On CUDA 13, NCCL ships as a separate wheel (not bundled in `torch/lib`); the DeepEP build and runtime venv are both pinned to the same NCCL
+  (`2.30.7`) so the compiled wheel and runtime match.
+
+* * *
+
 ## v2.1.0 — 2026-07-02
 
 **Tags:** `server-cuda-v2.1` · `server-sagemaker-cuda-v2.1`

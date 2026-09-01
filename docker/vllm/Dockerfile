@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.24.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.28.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -111,6 +111,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && rm -rf /tmp/*
 
 COPY ./scripts/docker/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/docker/vllm/sagemaker_args.py /usr/local/bin/sagemaker_args.py
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

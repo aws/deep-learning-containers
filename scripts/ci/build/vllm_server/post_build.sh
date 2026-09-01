@@ -38,10 +38,13 @@ CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
 VLLM_REF=$(yq '.build.vllm_ref' "$CONFIG_FILE")
 FRAMEWORK_VERSION=$(yq '.metadata.framework_version' "$CONFIG_FILE")
 USE_SCCACHE=$(yq '.build.use_sccache // "false"' "$CONFIG_FILE")
+# Must match the value pre_build.sh hashed, or the wheel uploads under a key the
+# next build will not look in.
+TORCH_CUDA_ARCH_LIST_CFG=$(yq '.build.torch_cuda_arch_list // ""' "$CONFIG_FILE")
 
 # Upload wheel
 echo "Uploading vLLM wheel to cache..."
-bash "$SCRIPT_DIR/lib/upload_wheels.sh" --cuda-version "$CUDA_VERSION" --vllm-ref "$VLLM_REF" --framework-version "$FRAMEWORK_VERSION" --bucket "$BUCKET" || true
+bash "$SCRIPT_DIR/lib/upload_wheels.sh" --cuda-version "$CUDA_VERSION" --vllm-ref "$VLLM_REF" --framework-version "$FRAMEWORK_VERSION" --arch-list "$TORCH_CUDA_ARCH_LIST_CFG" --bucket "$BUCKET" || true
 
 # Push sccache
 if [[ "$USE_SCCACHE" == "true" ]]; then

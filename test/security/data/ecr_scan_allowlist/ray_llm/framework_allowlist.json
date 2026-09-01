@@ -1,0 +1,7 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "torch 2.9.1 pinned in vllm's benchmarks/requirements.txt spec file (not installed). Our runtime torch is 2.11.0 which is past the fix. Scanner reads the spec text and flags it. Cannot patch without vllm rebuild removing the stale spec.",
+        "review_by": "2026-11-17"
+    }
+]

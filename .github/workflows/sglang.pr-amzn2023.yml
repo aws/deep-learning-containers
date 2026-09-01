@@ -26,7 +26,10 @@ permissions:
 
 jobs:
   gatekeeper:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -36,7 +39,10 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
@@ -74,7 +80,10 @@ jobs:
 
   discover:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       configs: ${{ steps.discover.outputs.configs }}
     steps:

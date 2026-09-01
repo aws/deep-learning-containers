@@ -10,21 +10,18 @@ on:
       - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
       - ".github/workflows/vllm.pipeline.yml"
       - ".github/workflows/vllm.pr-amzn2023.yml"
+      - ".github/workflows/vllm.tests-unit.yml"
       - "docker/vllm/Dockerfile.amzn2023"
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "scripts/docker/vllm/**"
-      # omni_* scripts belong to vllm_omni only
       - "!scripts/docker/vllm/omni_*"
       - "test/efa/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/vllm_server/**"
       - "test/telemetry/**"
       - "test/vllm/sagemaker/**"
-      # Only the scripts the AL2023 pipeline actually runs: the amzn2023/ subdir
-      # plus the OS-agnostic shared scripts (setup/regression/cuda + the shared
-      # EC2 example script the amzn2023 wrapper delegates to). The ubuntu/ SageMaker
-      # example script is excluded so ubuntu-scoped edits don't trigger AL2023.
+      - "test/vllm/test_*.py"
       - "test/vllm/scripts/amzn2023/**"
       - "test/vllm/scripts/vllm_test_setup.sh"
       - "test/vllm/scripts/vllm_regression_test.sh"
@@ -38,7 +35,10 @@ permissions:
 
 jobs:
   gatekeeper:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -48,7 +48,10 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
@@ -56,6 +59,7 @@ jobs:
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+      unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
       upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -82,6 +86,10 @@ jobs:
             telemetry-test-change:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
+            unit-test-change:
+              - "scripts/docker/vllm/**"
+              - "test/vllm/test_*.py"
+              - ".github/workflows/vllm.tests-unit.yml"
             upstream-test-change:
               - "test/vllm/scripts/amzn2023/**"
               - "test/vllm/scripts/vllm_test_setup.sh"
@@ -91,7 +99,10 @@ jobs:
 
   discover:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       configs: ${{ steps.filter.outputs.configs }}
     steps:
@@ -117,6 +128,7 @@ jobs:
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}

@@ -1,0 +1,73 @@
+name: 'Check test skips'
+description: >
+  Compute the image content hash, test suite hash, and query the dlc-ci-images
+  table for every skip-eligible suite in a single query.
+
+inputs:
+  image-uri:
+    description: 'Image URI (uses prod image if empty).'
+    required: false
+    default: ''
+  config-file:
+    description: 'Path to image config YAML (used for the prod-image fallback).'
+    required: true
+  suites:
+    description: 'JSON array of test suites to check for this pipeline.'
+    required: true
+  ci-aws-account-id:
+    description: 'CI ECR account ID.'
+    required: true
+  prod-aws-account-id:
+    description: 'Prod ECR account ID (for the prod-image fallback).'
+    required: true
+  ci-images-table-account-id:
+    description: 'Account ID hosting the dlc-ci-images DynamoDB table.'
+    required: true
+  aws-region:
+    description: 'AWS region for ECR + the dlc-ci-images table.'
+    required: false
+    default: 'us-west-2'
+
+outputs:
+  skips:
+    description: 'JSON object: test suite -> true (skip) | false (run). {} means run all.'
+    value: ${{ steps.check.outputs.skips }}
+  image-content-hash:
+    description: "Computed image content hash (reused by the record path)."
+    value: ${{ steps.check.outputs.image-content-hash }}
+  suite-code-hashes:
+    description: "JSON map: suite -> suite_code_hash computed by the check."
+    value: ${{ steps.check.outputs.suite-code-hashes }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve image URI
+      id: image
+      uses: ./.github/actions/resolve-image-uri
+      with:
+        image-uri: ${{ inputs.image-uri }}
+        ci-aws-account-id: ${{ inputs.ci-aws-account-id }}
+        prod-aws-account-id: ${{ inputs.prod-aws-account-id }}
+        aws-region: ${{ inputs.aws-region }}
+        config-file: ${{ inputs.config-file }}
+
+    - name: ECR authenticate
+      uses: ./.github/actions/ecr-authenticate
+      with:
+        aws-account-id: ${{ steps.image.outputs.aws-account-id }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Compute skips
+      id: check
+      shell: bash
+      env:
+        CI_IMAGES_TABLE_ACCOUNT_ID: ${{ inputs.ci-images-table-account-id }}
+        IMAGE_URI: ${{ steps.image.outputs.image-uri }}
+        SUITES: ${{ inputs.suites }}
+      run: |
+        set +e
+        uv venv --python 3.12 --clear
+        source .venv/bin/activate
+        uv pip install boto3 pyyaml
+        python3 "${{ github.action_path }}/check_test_pass.py"

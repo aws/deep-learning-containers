@@ -15,6 +15,8 @@ import json
 import pytest
 from omni_sagemaker_serve import (
     FORM_DATA_ROUTES,
+    WS_ALLOWED_PATHS,
+    WS_DEFAULT_PATH,
     SageMakerRouteMiddleware,
     _build_multipart,
     _parse_route,
@@ -88,8 +90,11 @@ class TestMiddleware:
         self._run(middleware(scope, None, None))
         assert captured["path"] == "/health"
 
-    def test_ignores_non_http(self, middleware, captured):
-        scope = {"type": "websocket", "path": "/invocations"}
+    def test_ignores_non_http_non_ws(self, middleware, captured):
+        # lifespan (and any non-http, non-websocket scope) passes straight
+        # through to the app untouched. (WebSocket scopes are handled by the
+        # dedicated branch — see TestWebSocketBridge.)
+        scope = {"type": "lifespan", "path": "/invocations"}
         self._run(middleware(scope, None, None))
         assert captured["path"] == "/invocations"
 
@@ -151,6 +156,86 @@ class TestMiddleware:
         assert captured["path"] == "/v1/videos"
         assert body_captured["body"] == form_body
         assert captured["headers"][b"content-type"] == b"multipart/form-data; boundary=boundary"
+
+
+class TestWebSocketBridge:
+    """SageMaker Bidirectional Streaming -> vLLM-Omni WebSocket routes.
+
+    SageMaker's Sidecar substitutes the client's model_invocation_path into the
+    container WS URI, so scope["path"] arrives already resolved. The middleware
+    lets whitelisted routes through to the app and rejects everything else
+    (including the un-overridden default) before the handshake completes.
+    """
+
+    def _run(self, coro):
+        return asyncio.get_event_loop().run_until_complete(coro)
+
+    def _drive(self, path):
+        """Drive the middleware with a websocket scope at `path`.
+
+        Returns (passed_through, sent) where passed_through is True if the inner
+        app ran (connection accepted for routing), and `sent` is the list of
+        ASGI events the middleware emitted (a websocket.close on reject).
+        """
+        state = {"passed_through": False}
+        sent = []
+
+        async def app(scope, receive, send):
+            state["passed_through"] = True
+
+        # receive yields the connect event, then disconnect (for the reject path
+        # which consumes one event).
+        events = iter([{"type": "websocket.connect"}, {"type": "websocket.disconnect"}])
+
+        async def receive():
+            return next(events)
+
+        async def send(msg):
+            sent.append(msg)
+
+        middleware = SageMakerRouteMiddleware(app)
+        scope = {"type": "websocket", "path": path, "headers": []}
+        self._run(middleware(scope, receive, send))
+        return state["passed_through"], sent
+
+    @pytest.mark.parametrize("path", sorted(WS_ALLOWED_PATHS))
+    def test_allowed_ws_routes_pass_through(self, path):
+        passed, sent = self._drive(path)
+        assert passed is True, f"{path} should pass through to the app"
+        # Pass-through must NOT emit a close — the downstream handler owns the
+        # handshake (accept/close).
+        assert sent == []
+
+    def test_default_path_rejected(self):
+        passed, sent = self._drive(WS_DEFAULT_PATH)
+        assert passed is False, "un-overridden default path must not reach the app"
+        assert len(sent) == 1
+        assert sent[0]["type"] == "websocket.close"
+
+    def test_unknown_path_rejected(self):
+        passed, sent = self._drive("/v1/not/a/real/route")
+        assert passed is False
+        assert sent[0]["type"] == "websocket.close"
+
+    def test_reject_consumes_connect_before_close(self):
+        """A spec-conformant pre-accept reject: consume websocket.connect, then
+        send websocket.close WITHOUT a preceding websocket.accept."""
+        _, sent = self._drive(WS_DEFAULT_PATH)
+        assert all(m["type"] != "websocket.accept" for m in sent)
+        assert sent[-1]["type"] == "websocket.close"
+
+    def test_allowed_paths_match_upstream_router_decorators(self):
+        """Guard against WS_ALLOWED_PATHS drifting from the actual vLLM-Omni
+        @router.websocket routes. These six are the routes registered in
+        vllm_omni/entrypoints/openai/api_server.py at v0.26.0."""
+        assert WS_ALLOWED_PATHS == {
+            "/v1/audio/speech/stream",
+            "/v1/realtime",
+            "/v1/realtime/video",
+            "/v1/video/chat/stream",
+            "/v1/duplex",
+            "/v1/realtime/robot/openpi",
+        }
 
 
 def _parse_multipart(body: bytes, content_type: str) -> dict:

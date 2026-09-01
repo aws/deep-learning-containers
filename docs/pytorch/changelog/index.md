@@ -1,6 +1,21 @@
 # Changelog
 
-Changelog for the Amazon Linux 2023-based PyTorch images (`2.12-cu130-amzn2023`, `2.12-cpu-amzn2023`, and the corresponding `*-sagemaker` variants).
+Changelog for the Amazon Linux 2023-based PyTorch images (`2.13-cu133-amzn2023`, `2.13-cpu-amzn2023`, and the corresponding `*-sagemaker` variants).
+
+* * *
+
+## PyTorch 2.13 — 2026-07-20
+
+**Tags:** `2.13-cu133-amzn2023` · `2.13-cpu-amzn2023` · `2.13-cu133-amzn2023-sagemaker` · `2.13-cpu-amzn2023-sagemaker`
+
+**Bundled versions:** PyTorch 2.13.0 · `torchvision` 0.28.0 · `torchaudio` 2.11.0 · CUDA 13.3.0 · Python 3.12 · NCCL 2.30.7 · EFA 1.49.0 · GDRCopy 2.6
+· flash-attn 2.8.3 · Transformer Engine 2.17.0 · DeepSpeed 0.19.2
+
+### Highlights
+
+- Bumped PyTorch to 2.13.0, with `torchvision` 0.28.0
+- CUDA upgraded to 13.3.0 (new `cu133` tag); NCCL bumped to 2.30.7 and EFA to 1.49.0 for improved multi-node collective performance
+- Transformer Engine upgraded to 2.17.0 and DeepSpeed to 0.19.2
 
 * * *
 

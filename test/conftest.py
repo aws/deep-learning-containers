@@ -25,3 +25,14 @@ def region(request):
 @pytest.fixture(scope="session")
 def aws_session(region):
     return AWSSessionManager(region)
+
+
+@pytest.fixture(scope="session")
+def sagemaker_session(aws_session):
+    """SageMaker SDK v3 session (default_bucket / upload_data).
+
+    Imported lazily so suites that do not use the SageMaker SDK are unaffected.
+    """
+    from sagemaker.core.helper.session_helper import Session
+
+    return Session(boto_session=aws_session.session)

@@ -1,0 +1,28 @@
+name: "Dispatch - llama.cpp Release"
+
+# Manual release for a single llama.cpp image. Releases only when the target
+# config has release.release: true (all configs ship with it false until the
+# image is ready to release). Autorelease is added separately once onboarded.
+on:
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: "Path to image config YAML (e.g., .github/config/image/llama_cpp/ec2-amzn2023.yml)"
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/llama-cpp.pipeline.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit

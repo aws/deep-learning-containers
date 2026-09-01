@@ -114,6 +114,8 @@ class TestEntrypointArgHandling(unittest.TestCase):
         "/usr/bin/serve",
     ]
 
+    MODEL_DIR = "/opt/ml/model"
+
     def setUp(self):
         # Find the sagemaker entrypoint
         for path in self.ENTRYPOINT_CANDIDATES:
@@ -127,6 +129,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
             self.skipTest("No SageMaker entrypoint found")
         with open(self.SAGEMAKER_ENTRYPOINT) as f:
             content = f.read()
+        self.content = content
         # Detect framework from entrypoint content
         if "SM_SGLANG_" in content:
             self.prefix = "SM_SGLANG_"
@@ -137,18 +140,27 @@ class TestEntrypointArgHandling(unittest.TestCase):
             self.model_key = "SM_VLLM_MODEL"
             self.model_flag = "--model"
 
-    def _get_args(self, env_vars, mount_model_dir=False):
+    def _get_args(self, env_vars):
         """Run entrypoint in dry-run mode and capture the generated args."""
         with open(self.SAGEMAKER_ENTRYPOINT) as f:
             script = f.read()
+        # \s* matters: an entrypoint may guard the exec inside an if-block (the
+        # huggingface-vllm one prefers standard-supervisor when present), and an
+        # unreplaced exec launches the real server instead of dry-running.
         script = re.sub(
-            r"^exec\s+(standard-supervisor\s+)?python3\s+.*$",
+            r"^\s*exec\s+(standard-supervisor\s+)?python3\s+.*$",
             'echo "__ARGS__${ARGS[@]}__END__"',
             script,
             flags=re.MULTILINE,
         )
-        # Also suppress start_cuda_compat.sh if present
-        script = script.replace("bash /usr/local/bin/start_cuda_compat.sh", "true")
+        # Also suppress start_cuda_compat.sh if present, sourced or executed: it
+        # shells out to nvidia-smi, which is slow on a GPU-less sanity runner.
+        script = re.sub(
+            r"^\s*(bash|source|\.)\s+\S*start_cuda_compat\.sh.*$",
+            "true",
+            script,
+            flags=re.MULTILINE,
+        )
 
         env = {k: v for k, v in os.environ.items()}
         # Clear any existing SM_VLLM_ / SM_SGLANG_ vars
@@ -156,12 +168,6 @@ class TestEntrypointArgHandling(unittest.TestCase):
             if k.startswith("SM_VLLM_") or k.startswith("SM_SGLANG_"):
                 del env[k]
         env.update(env_vars)
-
-        if mount_model_dir:
-            os.makedirs("/tmp/fake_model", exist_ok=True)
-            with open("/tmp/fake_model/config.json", "w") as f:
-                f.write("{}")
-            script = script.replace("/opt/ml/model", "/tmp/fake_model")
 
         result = subprocess.run(
             ["bash", "-c", script],
@@ -179,6 +185,19 @@ class TestEntrypointArgHandling(unittest.TestCase):
     def _model_env(self, val="x"):
         """Return env dict with model set to avoid unrelated warnings."""
         return {self.model_key: val}
+
+    def _populate_model_dir(self):
+        """Put a file in the real model dir, removing it again after the test."""
+        try:
+            os.makedirs(self.MODEL_DIR, exist_ok=True)
+        except OSError as e:
+            self.skipTest(f"cannot populate {self.MODEL_DIR}: {e}")
+        marker = os.path.join(self.MODEL_DIR, "config.json")
+        if os.path.exists(marker):
+            return
+        with open(marker, "w") as f:
+            f.write("{}")
+        self.addCleanup(os.remove, marker)
 
     def test_string_value(self):
         """Model path env var -> --model/--model-path <value>"""
@@ -233,14 +252,40 @@ class TestEntrypointArgHandling(unittest.TestCase):
         self.assertEqual(args[idx + 1], "8080")
 
     def test_model_autodetect(self):
-        """When model env var is unset but /opt/ml/model exists, auto-detect it."""
-        if self.prefix == "SM_SGLANG_":
-            # SGLang already defaults --model-path to /opt/ml/model
-            args = self._get_args({}, mount_model_dir=True)
-            self.assertIn("--model-path", args)
-        else:
-            args = self._get_args({}, mount_model_dir=True)
-            self.assertIn("--model", args)
+        """When model env var is unset but /opt/ml/model is populated, auto-detect it."""
+        self._populate_model_dir()
+        args = self._get_args({})
+        self.assertIn(self.model_flag, args)
+        idx = args.index(self.model_flag)
+        self.assertEqual(args[idx + 1], self.MODEL_DIR)
+
+    def test_json_list_expands_to_one_token_per_element(self):
+        """A JSON array value must become one argv token per element.
+
+        Flags declared nargs='+' in vLLM (--lora-modules, --served-model-name, ...) read
+        each value as its own argv token; collapsing the array into a single token makes
+        them unusable. Only images whose entrypoint delegates to the arg helper do this expansion.
+        """
+        if "sagemaker_args.py" not in self.content:
+            self.skipTest("entrypoint does not expand JSON list values")
+        env = self._model_env()
+        env[f"{self.prefix}LORA_MODULES"] = (
+            '[{"name":"lora-a","path":"/loras/a"},{"name":"lora-b","path":"/loras/b"}]'
+        )
+        args = self._get_args(env)
+        self.assertIn("--lora-modules", args)
+        idx = args.index("--lora-modules")
+        values = []
+        for arg in args[idx + 1 :]:
+            if arg.startswith("--"):
+                break
+            values.append(arg)
+        self.assertEqual(len(values), 2, f"--lora-modules should get 2 argv tokens, got {values}")
+        self.assertEqual(
+            [json.loads(v)["name"] for v in values],
+            ["lora-a", "lora-b"],
+            f"each token must stay a parseable LoRA object: {values}",
+        )
 
     def test_hf_model_id_fallback(self):
         """When model env var unset and no /opt/ml/model, fall back to HF_MODEL_ID."""
@@ -281,6 +326,65 @@ class TestPackageVersionConsistency(unittest.TestCase):
         self.assertTrue(
             actual.startswith(expected_mm),
             f"Framework version {actual} doesn't match expected {expected_mm}",
+        )
+
+    def test_server_entrypoint_imports(self):
+        """vLLM server entrypoint module must import cleanly.
+
+        Startup guard: the vLLM process imports this module under supervisord,
+        so anything that throws here crash-loops the container and fails the
+        /ping health check. vLLM 0.25.1 defers the torchcodec import to runtime
+        (PR vllm-project/vllm#47888), so this no longer catches a missing FFmpeg
+        runtime by itself — test_torchcodec_video_backend_loads covers that. It
+        still catches any import-time regression (e.g. a future re-eager import).
+        """
+        try:
+            import vllm  # noqa: F401
+        except ImportError:
+            self.skipTest("vllm not installed (sglang image)")
+        result = subprocess.run(
+            [sys.executable, "-c", "import vllm.entrypoints.openai.api_server"],
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"Importing vLLM server entrypoint failed:\n{result.stderr}",
+        )
+
+    def test_torchcodec_video_backend_loads(self):
+        """torchcodec's video backend must load its FFmpeg-backed native lib.
+
+        Reproduces the report's failing chain: `from torchcodec.decoders import
+        VideoDecoder` dlopen's libtorchcodec_core*.so, which links
+        libavutil.so.* (and siblings). Only images that ship an FFmpeg runtime
+        are expected to satisfy this — the huggingface-vllm image builds FFmpeg
+        from source; base vLLM / SGLang images bundle torchcodec without FFmpeg
+        and are skipped. If ffmpeg is present but not built with --enable-shared
+        / registered via ldconfig, the shared libs are absent and this raises.
+        vLLM 0.25.1 makes the import lazy, so the failure moves from container
+        start to the first actual video decode — this guards that runtime path.
+        """
+        import shutil
+
+        if not shutil.which("ffmpeg"):
+            self.skipTest("image ships no ffmpeg runtime (video backend N/A)")
+        try:
+            import torchcodec  # noqa: F401
+        except ImportError:
+            self.skipTest("torchcodec not installed")
+        result = subprocess.run(
+            [sys.executable, "-c", "from torchcodec.decoders import VideoDecoder"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        self.assertEqual(
+            result.returncode,
+            0,
+            f"torchcodec failed to load its FFmpeg runtime:\n{result.stderr}",
         )
 
     def test_python_version(self):
@@ -382,15 +486,6 @@ class TestEntrypointContract(unittest.TestCase):
         has_vllm = "vllm.entrypoints.openai.api_server" in content or "vllm serve" in content
         has_sglang = "sglang.launch_server" in content
         self.assertTrue(has_vllm or has_sglang, "Entrypoint does not invoke vllm or sglang server")
-
-    def test_sagemaker_entrypoint_default_port_8080(self):
-        """SageMaker entrypoint must default to port 8080."""
-        ep = self._find_sagemaker_entrypoint()
-        if not ep:
-            self.skipTest("Not a SageMaker image")
-        with open(ep) as f:
-            content = f.read()
-        self.assertIn("8080", content, "Default port 8080 not found in entrypoint")
 
     def test_ec2_entrypoint_exists_and_executable(self):
         """EC2 entrypoint must exist and be executable (if present)."""

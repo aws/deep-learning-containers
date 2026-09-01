@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -38,6 +48,9 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       transformers-version: ${{ steps.parse.outputs.transformers-version }}
       target: ${{ steps.parse.outputs.target }}
+      nccl-version: ${{ steps.parse.outputs.nccl-version }}
+      efa-version: ${{ steps.parse.outputs.efa-version }}
+      gdrcopy-version: ${{ steps.parse.outputs.gdrcopy-version }}
     steps:
       - uses: actions/checkout@v6
 
@@ -75,13 +88,17 @@ jobs:
           echo "contributor=$(yq '.metadata.contributor // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "transformers-version=$(yq '.build.transformers_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "target=$(yq '.build.target // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "nccl-version=$(yq '.build.nccl_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "efa-version=$(yq '.build.efa_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "gdrcopy-version=$(yq '.build.gdrcopy_version // ""' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
   sanity-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
+    # arm64 images can only be exec'd on an arm64 fleet; x86 stays on default.
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:${{ needs.preflight.outputs.arch-type == 'arm64' && 'arm64-graviton4-build-runner' || 'default-runner' }}
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6
@@ -125,17 +142,33 @@ jobs:
             ${{ needs.preflight.outputs.image-uri }}
 
       - name: Run base image checks
-        if: needs.preflight.outputs.framework == 'base_dlc'
+        if: needs.preflight.outputs.framework == 'base'
         run: |
           PYTHON_SHORT=$(echo '${{ needs.preflight.outputs.python-version }}' | cut -d. -f1,2)
           CUDA_SHORT=$(echo '${{ needs.preflight.outputs.cuda-version }}' | cut -d. -f1,2)
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_base_image.sh \
             "${PYTHON_SHORT}" "${CUDA_SHORT}"
 
+      # Base devel images vend the NCCL/GDRCopy/EFA stack; runtime images do not.
+      # Gated on the version pins being present so a base variant built without
+      # the stack doesn't fail this step.
+      - name: Run NCCL / GDRCopy / EFA install checks
+        if: |
+          needs.preflight.outputs.framework == 'base' &&
+          needs.preflight.outputs.nccl-version != '' &&
+          needs.preflight.outputs.efa-version != '' &&
+          needs.preflight.outputs.gdrcopy-version != ''
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_nccl_efa_gdrcopy.sh \
+            "${{ needs.preflight.outputs.nccl-version }}" \
+            "${{ needs.preflight.outputs.efa-version }}" \
+            "${{ needs.preflight.outputs.gdrcopy-version }}"
+
       - name: Run inference engine checks
         if: |
           needs.preflight.outputs.framework == 'vllm' ||
           needs.preflight.outputs.framework == 'vllm_server' ||
+          needs.preflight.outputs.framework == 'huggingface-vllm' ||
           needs.preflight.outputs.framework == 'sglang' ||
           needs.preflight.outputs.framework == 'sglang_server'
         run: |
@@ -159,8 +192,9 @@ jobs:
       - name: Run training image sanity checks
         if: |
           needs.preflight.outputs.framework == 'pytorch_runtime' ||
-          needs.preflight.outputs.framework == 'tensorflow' ||
-          needs.preflight.outputs.framework == 'xgboost'
+          (needs.preflight.outputs.framework == 'tensorflow' && needs.preflight.outputs.job-type == 'training') ||
+          needs.preflight.outputs.framework == 'xgboost' ||
+          needs.preflight.outputs.framework == 'ray_train'
         run: |
           docker exec \
             -e EXPECTED_FRAMEWORK=${{ needs.preflight.outputs.framework }} \
@@ -168,15 +202,33 @@ jobs:
             -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
             ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_training.py
 
+      - name: Run TF inference image sanity checks
+        if: |
+          needs.preflight.outputs.framework == 'tensorflow' &&
+          needs.preflight.outputs.job-type == 'inference'
+        run: |
+          docker exec \
+            -e EXPECTED_FRAMEWORK=${{ needs.preflight.outputs.framework }} \
+            -e EXPECTED_DEVICE=${{ needs.preflight.outputs.device-type }} \
+            -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
+            -e EXPECTED_TFS_VERSION=${{ needs.preflight.outputs.framework-version }} \
+            ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_tf_inference.py
+
+      # TEI opts out: no Python in the container (upstream is a Rust-only image),
+      # and the S3-hosted generate_oss_compliance.sh script only handles Ubuntu / AL,
+      # not TEI CPU's Debian bookworm base.
       - name: Run OSS compliance check
+        if: needs.preflight.outputs.framework != 'tei'
         run: |
           docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
 
       - name: Copy OSS compliance artifacts
+        if: needs.preflight.outputs.framework != 'tei'
         run: |
           docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS
 
       - name: Upload third-party source code to S3
+        if: needs.preflight.outputs.framework != 'tei'
         run: |
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
@@ -184,9 +236,10 @@ jobs:
   sanity-sagemaker:
     if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.customer-type == 'sagemaker' }}
     needs: [preflight]
+    # arm64 images can only be exec'd on an arm64 fleet; x86 stays on default.
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
+        fleet:${{ needs.preflight.outputs.arch-type == 'arm64' && 'arm64-graviton4-build-runner' || 'default-runner' }}
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6
@@ -226,9 +279,9 @@ jobs:
             --transformers-version "${{ needs.preflight.outputs.transformers-version }}"
 
   # TODO: Change to device_type == 'gpu' when other GPU frameworks need this job.
-  # Move the base_dlc condition to the CUDA test step specifically.
+  # Move the base condition to the CUDA test step specifically.
   sanity-gpu:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.framework == 'base_dlc' }}
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.framework == 'base' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -256,3 +309,33 @@ jobs:
           CUDA_SHORT=$(echo '${{ needs.preflight.outputs.cuda-version }}' | cut -d. -f1,2)
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/cuda_${{ needs.preflight.outputs.target }}_test.sh \
             "${CUDA_SHORT}"
+
+      # Functional NCCL check — compiles against the image's own nccl.h/libnccl
+      # and runs a real all-reduce. devel only (needs nvcc + NCCL headers).
+      # Single-node: EFA/Libfabric transport is covered by test/efa/test_efa.py.
+      - name: Run single-node NCCL test
+        if: |
+          needs.preflight.outputs.target == 'devel' &&
+          needs.preflight.outputs.nccl-version != ''
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/nccl_single_node_test.sh
+
+  # Record a PASS row in the ci-images-table if the test passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          needs.sanity-test.result == 'success' }}
+    needs: [sanity-test, sanity-sagemaker, sanity-gpu]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: sanity
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

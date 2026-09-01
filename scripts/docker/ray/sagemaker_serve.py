@@ -27,13 +27,22 @@ logger = logging.getLogger(__name__)
 
 # Ray Serve backend URL (internal)
 RAYSERVE_URL = os.getenv("RAYSERVE_BACKEND_URL", "http://127.0.0.1:8000")
+_parsed = urlparse(RAYSERVE_URL)
+if not (_parsed.scheme in ("http", "https") and _parsed.netloc):
+    raise ValueError(f"RAYSERVE_BACKEND_URL invalid: {RAYSERVE_URL!r}")
+
+RAYSERVE_BACKEND_TIMEOUT = int(os.getenv("RAYSERVE_BACKEND_TIMEOUT", "300"))
+if RAYSERVE_BACKEND_TIMEOUT <= 0:
+    raise ValueError(f"RAYSERVE_BACKEND_TIMEOUT must be positive: {RAYSERVE_BACKEND_TIMEOUT}")
+
 REQUIREMENTS_PATH = "/opt/ml/model/code/requirements.txt"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage HTTP client lifecycle."""
-    async with httpx.AsyncClient(timeout=300.0) as client:
+    logger.info(f"Ray Serve backend: {RAYSERVE_URL}, proxy timeout: {RAYSERVE_BACKEND_TIMEOUT}s")
+    async with httpx.AsyncClient(timeout=RAYSERVE_BACKEND_TIMEOUT) as client:
         app.state.client = client
         yield
 

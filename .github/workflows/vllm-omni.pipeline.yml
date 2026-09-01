@@ -21,6 +21,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-unit-test:
+        description: "Run CPU-only unit tests"
+        required: false
+        type: boolean
+        default: true
       run-security-test:
         description: "Run security tests"
         required: false
@@ -86,9 +91,22 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-suffix: ${{ inputs.tag-suffix }}
 
-  sanity-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sanity-test }}
+  # Check to see which tests have passed before on the given image build
+  check:
+    if: ${{ always() && !failure() && !cancelled() }}
     needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.check-test-pass.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      suites: '["sanity", "telemetry", "vllm-omni/model", "vllm-omni/sagemaker"]'
+
+  sanity-test:
+    if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -96,6 +114,18 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sanity'] || '' }}
+
+  unit-test:
+    if: ${{ inputs.run-unit-test }}
+    concurrency:
+      group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/vllm.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ''
 
   security-test:
     if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
@@ -109,8 +139,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   telemetry-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-telemetry-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-telemetry-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -118,10 +148,12 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   model-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-model-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-model-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm-omni/model'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-model-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -129,11 +161,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['vllm-omni/model'] || '' }}
     secrets: inherit
 
   sagemaker-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sagemaker-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.customer-type == 'sagemaker' &&
+          fromJSON(needs.check.outputs.skips || '{}')['vllm-omni/sagemaker'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -141,6 +179,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['vllm-omni/sagemaker'] || '' }}
 
   release-gate:
     if: >-
@@ -150,7 +190,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, model-tests, sagemaker-tests]
+    needs: [build, sanity-test, unit-test, security-test, telemetry-test, model-tests, sagemaker-tests]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -190,7 +230,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [ci-config, build, sanity-test, security-test, telemetry-test, model-tests, sagemaker-tests, release-gate, release]
+    needs: [ci-config, build, sanity-test, unit-test, security-test, telemetry-test, model-tests, sagemaker-tests, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -7,4 +7,4 @@ platform: default
 public_registry: true
 
 tags:
-  - "serve-ml-cpu-v1"
+  - "serve-ml-cpu-v1.1"
