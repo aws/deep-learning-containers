@@ -114,6 +114,8 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            -e PIP_BREAK_SYSTEM_PACKAGES=1 \
+            -e UV_BREAK_SYSTEM_PACKAGES=1 \
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
@@ -170,6 +172,8 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            -e PIP_BREAK_SYSTEM_PACKAGES=1 \
+            -e UV_BREAK_SYSTEM_PACKAGES=1 \
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
@@ -226,6 +230,8 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            -e PIP_BREAK_SYSTEM_PACKAGES=1 \
+            -e UV_BREAK_SYSTEM_PACKAGES=1 \
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
