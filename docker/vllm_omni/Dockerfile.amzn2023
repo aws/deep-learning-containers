@@ -196,7 +196,7 @@ ARG DEEPEP_COMMIT_HASH
 ARG NVSHMEM_VER
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
-  && export LIBRARY_PATH="$(python3 -c 'import os, nvidia.nccl as n; print(os.path.join(os.path.dirname(n.__file__), "lib"))')${LIBRARY_PATH:+:$LIBRARY_PATH}" \
+  && export LIBRARY_PATH="$(dirname "$(find /opt/venv -path '*/nvidia/nccl/lib/libnccl.so.2' -print -quit)")${LIBRARY_PATH:+:$LIBRARY_PATH}" \
   && tools/ep_kernels/install_python_libraries.sh \
     --workspace /tmp/ep_kernels_workspace \
     --mode wheel \
