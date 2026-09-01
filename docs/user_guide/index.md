@@ -4,6 +4,7 @@ Choose a framework to get started:
 
 - **[vLLM](../vllm/index.md)** — serve large language models on {{ ec2_short }}, {{ eks_short }}, or {{ sagemaker }}
 - **[vLLM-Omni](../vllm-omni/index.md)** — serve multimodal models (TTS, image, video, audio, omni-chat)
+- **[SGLang](../sglang/index.md)** — serve large language models on {{ ec2_short }}, {{ eks_short }}, or {{ sagemaker }}
 - **[TEI](../tei/index.md)** — serve text embedding, reranker, and classification models with Text Embeddings Inference on {{ sagemaker }}
 - **[Ray](../ray/index.md)** — deploy any ML model with Ray Serve (NLP, vision, audio, tabular)
 - **[Ray Train](../ray-train/index.md)** — distributed training with Ray Train on any {{ eks_short }} cluster via KubeRay, or on {{ ec2_short }}
