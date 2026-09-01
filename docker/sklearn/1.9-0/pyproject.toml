@@ -16,10 +16,10 @@ dependencies = [
     "sagemaker-inference==1.5.5",
     "sagemaker-training==4.8.0",
     "PyYAML==6.0.3",
-    "requests==2.33.0",
-    "setuptools>=80.9.0,<81",
+    "requests==2.34.2",
+    "setuptools>=84.0.0,<85",
     "protobuf==3.20.2",
-    "cryptography>=50.0.0",
+    "cryptography>=50.0.1",
 ]
 
 [tool.uv]
