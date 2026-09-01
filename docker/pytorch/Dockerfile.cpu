@@ -193,6 +193,9 @@ RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dn
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
+# change to trigger image build and test run for demo
+RUN echo 'hello world'
+
 # OSS compliance
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
