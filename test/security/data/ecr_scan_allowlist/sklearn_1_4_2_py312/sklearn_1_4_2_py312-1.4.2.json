@@ -73,5 +73,70 @@
         "vulnerability_id": "CVE-2026-25087",
         "reason": "pyarrow Arrow C++ IPC reader use-after-free. IPC file reading not in serving/training path.",
         "review_by": "2026-10-06"
+    },
+    {
+        "vulnerability_id": "CVE-2024-22195",
+        "reason": "Jinja2. Blocked from upgrade by the sagemaker-containers dependency chain (jinja2<3.0); no user-controlled templates rendered in the serving/training path.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2024-34064",
+        "reason": "Jinja2. Blocked from upgrade by the sagemaker-containers dependency chain (jinja2<3.0); no user-controlled templates rendered in the serving/training path.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-21860",
+        "reason": "Werkzeug DoS/resource exhaustion. Blocked from upgrade by the sagemaker-containers dependency chain (Werkzeug 2.0.3); SageMaker manages inbound traffic and request size.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-66221",
+        "reason": "Werkzeug DoS/resource exhaustion. Blocked from upgrade by the sagemaker-containers dependency chain (Werkzeug 2.0.3); SageMaker manages inbound traffic and request size.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2024-49766",
+        "reason": "Werkzeug DoS/resource exhaustion. Blocked from upgrade by the sagemaker-containers dependency chain (Werkzeug 2.0.3); SageMaker manages inbound traffic and request size.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27199",
+        "reason": "Werkzeug DoS/resource exhaustion. Blocked from upgrade by the sagemaker-containers dependency chain (Werkzeug 2.0.3); SageMaker manages inbound traffic and request size.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-44431",
+        "reason": "urllib3: fix requires urllib3 2.x, but botocore 1.31.57 (pinned via boto3 1.28.57) requires urllib3<1.27; container makes only outbound calls to trusted AWS APIs.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2023-45803",
+        "reason": "urllib3: fix requires urllib3 2.x, but botocore 1.31.57 (pinned via boto3 1.28.57) requires urllib3<1.27; container makes only outbound calls to trusted AWS APIs.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2024-37891",
+        "reason": "urllib3: fix requires urllib3 2.x, but botocore 1.31.57 (pinned via boto3 1.28.57) requires urllib3<1.27; container makes only outbound calls to trusted AWS APIs.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-50181",
+        "reason": "urllib3: fix requires urllib3 2.x, but botocore 1.31.57 (pinned via boto3 1.28.57) requires urllib3<1.27; container makes only outbound calls to trusted AWS APIs.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27205",
+        "reason": "Flask. Blocked from upgrade by the sagemaker-containers pin (Flask 1.1.1); not exploitable in the SageMaker managed container context.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-4565",
+        "reason": "protobuf recursion DoS in pure-Python parsing. Fix requires protobuf 6.x; blocked by the sagemaker<3 protobuf cap; not exposed to untrusted input in the serving/training path.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2024-5206",
+        "reason": "scikit-learn TfidfVectorizer stored-token data leak. Fix in 1.5.0 would change the framework version (this is the 1.4-2 image); not exploitable in the managed serving/training path.",
+        "review_by": "2026-11-30"
     }
 ]
