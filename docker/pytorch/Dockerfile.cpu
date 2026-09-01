@@ -194,6 +194,7 @@ RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dn
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 # change to trigger image build and test run for demo
+# change 2 to trigger image build and test run for demo
 RUN echo 'hello world'
 
 # OSS compliance
