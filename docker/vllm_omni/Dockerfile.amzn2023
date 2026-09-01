@@ -186,11 +186,17 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
     fi
 
-# Build DeepEP wheels
+# Build DeepEP wheels.
+# DeepEP's setup.py adds the nvidia-nccl-cu* wheel lib dir to the built .so's
+# rpath (runtime) but NOT to the link-time search path, and the amzn2023 build
+# stage has no system libnccl.so.2 (upstream's manylinux/pytorch base does). So
+# point LIBRARY_PATH at the nccl wheel's lib dir so `-l:libnccl.so.2` resolves
+# when DeepEP links; the rpath DeepEP sets handles finding it at runtime.
 ARG DEEPEP_COMMIT_HASH
 ARG NVSHMEM_VER
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
+  && export LIBRARY_PATH="$(python3 -c 'import os, nvidia.nccl as n; print(os.path.join(os.path.dirname(n.__file__), "lib"))')${LIBRARY_PATH:+:$LIBRARY_PATH}" \
   && tools/ep_kernels/install_python_libraries.sh \
     --workspace /tmp/ep_kernels_workspace \
     --mode wheel \
