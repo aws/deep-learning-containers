@@ -15,7 +15,7 @@ KubeRay clusters on {{ eks }} and manually bootstrapped clusters on {{ ec2_short
 | {{ ec2_short }} / {{ eks_short }} | GPU | `public.ecr.aws/deep-learning-containers/ray:train-ml-cuda` |
 
 Ray Train shares the `ray` repository with the [Ray Serve DLC](../ray/index.md), using the `train-ml` tag prefix. Versioned tags (e.g.
-`train-ml-cuda-v1`, `train-ml-cuda-v1.0`, and `train-ml-cuda-v1.0.0`) are published alongside the floating tag. The image is also available on the
+`train-ml-cuda-v1`, `train-ml-cuda-v1.1`, and `train-ml-cuda-v1.1.0`) are published alongside the floating tag. The image is also available on the
 [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/ray). For private ECR URIs, see [Image Access](../get_started/index.md).
 
 ## What's Included
@@ -26,7 +26,7 @@ The image bundles the full distributed-training stack so you can launch multi-GP
   job-submission server that `ray job submit` and KubeRay's health probes use
 - **[PyTorch](https://pytorch.org/) 2.13.0** with `torchvision` 0.28.0 (CUDA 13.0 wheels)
 - **CUDA 13.0.2** with cuDNN and **NCCL 2.29.7** for multi-GPU collectives
-- **[EFA](https://aws.amazon.com/hpc/efa/) 1.47.0** with **OpenMPI** and the **AWS NCCL OFI plugin** for low-latency multi-node communication on
+- **[EFA](https://aws.amazon.com/hpc/efa/) 1.49.0** with **OpenMPI** and the **AWS NCCL OFI plugin** for low-latency multi-node communication on
   EFA-capable instances
 - **[GDRCopy](https://github.com/NVIDIA/gdrcopy) 2.4.4** userspace library for direct GPU-to-NIC memory copies
 - **[flash-attn](https://github.com/Dao-AILab/flash-attention) 2.8.3** — fused attention kernels for transformer training
