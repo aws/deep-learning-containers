@@ -82,6 +82,15 @@ ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
+# Pin NCCL to the version upstream vllm v0.28.0 requires: DeepEPv2's GIN backend
+# (built below) needs NCCL >= 2.30.4 for ncclGinRequest_t, newer than the
+# nvidia-nccl-cu<major> wheel torch pulls in. Force it via a uv override for
+# every install in this stage (mirrors upstream docker/Dockerfile's UV_OVERRIDE).
+ARG NCCL_VERSION=2.30.7
+RUN CUDA_MAJOR="${CUDA_VERSION%%.*}" \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
+ENV UV_OVERRIDE=/etc/uv-overrides.txt
+
 WORKDIR /workspace/vllm
 
 # Copy source from stage 0
@@ -227,6 +236,14 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
+
+# Pin NCCL to match the build stage (DeepEPv2 GIN backend needs NCCL >= 2.30.4);
+# the DeepEP wheel installed below links the venv's nvidia-nccl-cu<major>, so the
+# runtime venv must carry the same 2.30.7 (mirrors upstream docker/Dockerfile).
+ARG NCCL_VERSION=2.30.7
+RUN CUDA_MAJOR="${CUDA_VERSION%%.*}" \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
+ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch
 COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
