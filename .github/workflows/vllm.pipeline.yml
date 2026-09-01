@@ -205,7 +205,6 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
       image-content-hash: ${{ needs.check.outputs.image-content-hash }}
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['vllm/sagemaker'] || '' }}
-      release: ${{ inputs.release }}
 
   efa-test:
     if: >-

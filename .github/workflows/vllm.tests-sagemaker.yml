@@ -22,13 +22,6 @@ on:
         required: false
         type: string
         default: ""
-      release:
-        description: >-
-          True for release runs. On an exhausted instance-type fallback ladder, release
-          runs skip the model (AWS capacity must not block a release) while PR runs fail.
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -100,8 +93,6 @@ jobs:
           uv pip install -r test/vllm/sagemaker/requirements.txt
 
       - name: Run SageMaker endpoint tests
-        env:
-          RELEASE_RUN: ${{ inputs.release }}
         run: |
           source .venv/bin/activate
           cd test/
