@@ -68,7 +68,8 @@ display_names:
     # Repositories
     base: "Base"
     base-ubuntu: "Base (Ubuntu)"
-    ray: "Ray"
+    ray: "Ray Serve"
+    ray-llm: "Ray LLM"
     ray-train: "Ray Train"
     sagemaker-scikit-learn: "Scikit-Learn"
     sagemaker-xgboost: "XGBoost"
@@ -194,6 +195,7 @@ table_order:
   - base
   - base-ubuntu
   - ray
+  - ray-llm
   - ray-train
   - sglang
   - sglang-server
