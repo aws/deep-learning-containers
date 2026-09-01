@@ -1,0 +1,57 @@
+name: Tooling Tests
+
+# Unit tests for the CI tooling under scripts/ci/. These run on the runner and
+# need no image, no AWS credentials and no GPU — just python and bash.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "scripts/ci/**"
+      - "test/autocurrency/**"
+      - ".github/workflows/_prcheck.tooling-tests.yml"
+
+permissions:
+  contents: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  tooling-tests:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: python3 -m pip install --quiet -r test/requirements.txt
+
+      - name: Run python tooling tests
+        # Run from test/ so test_utils resolves, matching docs.pr-test.yml
+        run: |
+          cd test/
+          python3 -m pytest -vs -rA autocurrency
+
+      - name: Run shell tooling tests
+        run: |
+          status=0
+          found=0
+          while IFS= read -r suite; do
+            found=1
+            echo "::group::${suite}"
+            bash "${suite}" || status=1
+            echo "::endgroup::"
+          done < <(find scripts/ci -name '*_test.sh' -type f | sort)
+          if [[ "${found}" -eq 0 ]]; then
+            echo "No shell test suites found."
+          fi
+          exit "${status}"
