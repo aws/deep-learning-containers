@@ -152,6 +152,9 @@ RUN uv pip install --system --no-cache --break-system-packages \
 # Force upgrade six to 1.16.0 for six.moves compatibility on py3.12
 RUN uv pip install --system --break-system-packages --upgrade --force-reinstall six==1.16.0
 
+# Re-pin setuptools/wheel; the sagemaker_sklearn_container install above resolves them down.
+RUN uv pip install --system --break-system-packages --upgrade setuptools==83.0.0 wheel==0.46.2
+
 # Patch sagemaker-inference decoder.py (CWE-502 fix — disables pickle deserialization)
 COPY docker/sklearn/resources/patches/decoder.py /usr/local/lib/python${PYTHON_VERSION}/dist-packages/sagemaker_inference/decoder.py
 
