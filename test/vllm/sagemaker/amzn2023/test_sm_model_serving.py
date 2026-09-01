@@ -35,6 +35,10 @@ from sagemaker.core.shapes import (
 )
 from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
+from test_utils.instance_capacity import (
+    deploy_with_capacity_fallback,
+    normalize_instance_types,
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -58,12 +62,8 @@ def _load_sagemaker_config(config_path, model_name=None):
     for m in models:
         m["s3_path"] = f"{s3_prefix}/{m['s3_model']}"
         # instance_type accepts either a single type or a priority-ordered list of
-        # candidates to fall back through on capacity errors. Normalize to a list so
-        # the deploy path has one shape to handle.
-        instance_type = m["instance_type"]
-        m["instance_types"] = (
-            [instance_type] if isinstance(instance_type, str) else list(instance_type)
-        )
+        # candidates to fall back through on capacity errors.
+        m["instance_types"] = normalize_instance_types(m["instance_type"])
     return models
 
 
@@ -183,16 +183,6 @@ def _flatten_jinja(template_str):
     return template_str.replace("\n", '{{ "\\n" }}')
 
 
-# SageMaker reports a dry capacity pool as one of these. None of them indicate an image
-# or test defect, so they trigger instance-type fallback instead of failing the suite.
-_CAPACITY_TOKENS = ("InsufficientInstanceCapacity", "ResourceLimitExceeded", "CapacityError")
-
-
-def _is_capacity_error(exc):
-    """True if a deploy failed for lack of instance capacity, not a real defect."""
-    return any(token.lower() in str(exc).lower() for token in _CAPACITY_TOKENS)
-
-
 def _deploy_endpoint(image_uri, model_cfg, region, instance_type):
     """Deploy one endpoint on ``instance_type`` and wait for it to reach InService.
 
@@ -277,44 +267,24 @@ def deployed_model(request, image_uri):
 
     If every candidate is dry the test fails. Skipping would leave the model
     unvalidated while the run still reported green, hiding a real coverage gap.
-
-    No sleep between candidates: SageMaker already retries the pool internally for
-    several minutes before returning ICE, so each attempt carries its own backoff.
     """
     _, model_cfg = request.param
 
     region = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
-    candidates = model_cfg["instance_types"]
 
-    last_error = None
-    for instance_type in candidates:
-        try:
-            deployed = _deploy_endpoint(image_uri, model_cfg, region, instance_type)
-        except Exception as e:
-            if not _is_capacity_error(e):
-                raise  # a real deploy failure — surface it
-            last_error = e
-            LOGGER.warning(f"[capacity] no {instance_type} capacity for {model_cfg['name']}: {e}")
-            continue
-
-        endpoint_name, model, endpoint_config, endpoint = deployed
-        try:
-            yield {
-                "endpoint_name": endpoint_name,
-                "model_cfg": model_cfg,
-                "region": region,
-            }
-        finally:
-            _cleanup([endpoint, endpoint_config, model])
-        return
-
-    # Every candidate was dry. Fail rather than skip: a skip would leave the model
-    # unvalidated while the run still reads green, so a real coverage gap would pass
-    # unnoticed. A human can re-trigger once capacity frees up.
-    raise AssertionError(
-        f"No SageMaker capacity for {model_cfg['name']} on any of {candidates} "
-        f"(ICE). Last error: {last_error}"
+    endpoint_name, model, endpoint_config, endpoint = deploy_with_capacity_fallback(
+        model_cfg["instance_types"],
+        lambda instance_type: _deploy_endpoint(image_uri, model_cfg, region, instance_type),
+        model_cfg["name"],
     )
+    try:
+        yield {
+            "endpoint_name": endpoint_name,
+            "model_cfg": model_cfg,
+            "region": region,
+        }
+    finally:
+        _cleanup([endpoint, endpoint_config, model])
 
 
 def test_model_serving(deployed_model):
