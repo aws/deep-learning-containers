@@ -2,8 +2,10 @@ name: Upload ECR Allowlists to Scanner S3
 
 on:
   schedule:
-    # 4 AM UTC daily
-    - cron: '0 4 * * *'
+    # 6 AM UTC daily — runs ahead of the downstream security scan so a release
+    # pushed overnight has its allowlist in S3 before the scan reads it (was 4 AM,
+    # which left a gap where late pushes were scanned without their allowlist).
+    - cron: '0 6 * * *'
   # pull_request:
   #   paths:
   #     - ".github/actions/upload-ecr-allowlists/**"
