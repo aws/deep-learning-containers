@@ -2,8 +2,8 @@ name: Upload ECR Allowlists to Scanner S3
 
 on:
   schedule:
-    # 4 AM UTC daily
-    - cron: '0 4 * * *'
+    # 6 AM UTC daily
+    - cron: '0 6 * * *'
   # pull_request:
   #   paths:
   #     - ".github/actions/upload-ecr-allowlists/**"
