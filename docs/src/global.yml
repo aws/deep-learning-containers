@@ -107,9 +107,6 @@ display_names:
     autogluon-inference: "AutoGluon Inference"
     djl-inference: "DJL Inference"
     sagemaker-tritonserver: "NVIDIA Triton Server for SageMaker"
-    stabilityai-pytorch-inference: "StabilityAI PyTorch Inference"
-    pytorch-trcomp-training: "PyTorch Training Compiler"
-    huggingface-pytorch-trcomp-training: "HuggingFace PyTorch Training Compiler"
 
     # Release notes optional section names
     known_issues: "Known Issues"
@@ -185,6 +182,75 @@ framework_groups:
     - llama-cpp-arm64
 
 # =============================================================================
+# Image Categories
+# =============================================================================
+# Groups repository tables into sections (## headings) on available_images.md.
+# Categories render in the order listed; within each category, tables render in
+# `table_order` sequence. Every repository should appear in exactly one category
+# — any repository in `table_order` left out here is emitted under a trailing
+# "Other" heading (and logged as a warning) so nothing is silently dropped.
+# =============================================================================
+image_categories:
+  - title: "Base Containers"
+    repositories:
+      - base
+      - base-ubuntu
+  - title: "LLM Serving"
+    repositories:
+      - sglang
+      - sglang-server
+      - vllm
+      - vllm-server
+      - vllm-arm64
+      - vllm-omni
+      - llama-cpp
+      - llama-cpp-arm64
+      - sagemaker-tritonserver
+  - title: "Framework Containers"
+    repositories:
+      - ray
+      - ray-train
+      - pytorch
+      - pytorch-training
+      - pytorch-inference
+      - pytorch-training-arm64
+      - pytorch-inference-arm64
+      - tensorflow-training
+      - tensorflow-inference
+      - tensorflow-inference-arm64
+      - whisperx
+  - title: "Hugging Face"
+    repositories:
+      - huggingface-pytorch-training
+      - huggingface-pytorch-inference
+      - huggingface-llamacpp
+      - huggingface-vllm
+      - huggingface-vllm-omni
+      - huggingface-sglang
+      - huggingface-tei
+      - huggingface-tensorflow-training
+      - huggingface-tensorflow-inference
+  - title: "NeuronX (Trainium / Inferentia)"
+    repositories:
+      - pytorch-training-neuronx
+      - pytorch-inference-neuronx
+      - tensorflow-inference-neuronx
+      - huggingface-vllm-inference-neuronx
+      - huggingface-pytorch-training-neuronx
+      - huggingface-pytorch-inference-neuronx
+  - title: "AutoGluon"
+    repositories:
+      - autogluon-training
+      - autogluon-inference
+  - title: "DJL Inference"
+    repositories:
+      - djl-inference
+  - title: "SageMaker Algorithm Containers"
+    repositories:
+      - sagemaker-scikit-learn
+      - sagemaker-xgboost
+
+# =============================================================================
 # Table Order
 # =============================================================================
 # Order of tables in available_images.md and support_policy.md
@@ -201,7 +267,6 @@ table_order:
   - vllm-server
   - vllm-arm64
   - vllm-omni
-  - whisperx
   - llama-cpp
   - llama-cpp-arm64
   - pytorch
@@ -212,6 +277,7 @@ table_order:
   - tensorflow-training
   - tensorflow-inference
   - tensorflow-inference-arm64
+  - whisperx
   - pytorch-training-neuronx
   - pytorch-inference-neuronx
   - tensorflow-inference-neuronx
@@ -225,14 +291,11 @@ table_order:
   - huggingface-vllm-inference-neuronx
   - huggingface-pytorch-training-neuronx
   - huggingface-pytorch-inference-neuronx
-  - huggingface-pytorch-trcomp-training
   - huggingface-tensorflow-training
   - huggingface-tensorflow-inference
   - autogluon-training
   - autogluon-inference
   - djl-inference
   - sagemaker-tritonserver
-  - stabilityai-pytorch-inference
-  - pytorch-trcomp-training
   - sagemaker-scikit-learn
   - sagemaker-xgboost
