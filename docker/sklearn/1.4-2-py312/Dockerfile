@@ -61,7 +61,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
   && apt-get -y upgrade \
   && apt-get -y install --no-install-recommends \
-    curl git jq libatlas-base-dev nginx openjdk-8-jdk-headless unzip wget expat tzdata apparmor \
+    curl git jq libatlas-base-dev openjdk-8-jdk-headless unzip wget expat tzdata apparmor \
     libgstreamer1.0-0 libxml2 libsqlite3-0 software-properties-common ca-certificates lsb-release \
     build-essential linux-libc-dev \
   && wget https://packages.apache.org/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb \
@@ -78,6 +78,10 @@ RUN apt-get update \
   && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
   && ln -sf /usr/bin/python3 /usr/bin/python \
   && curl -sS https://bootstrap.pypa.io/get-pip.py | python3 - --break-system-packages \
+  && curl -fsSL https://nginx.org/keys/nginx_signing.key -o /usr/share/keyrings/nginx.asc \
+  && echo "deb [signed-by=/usr/share/keyrings/nginx.asc] https://nginx.org/packages/mainline/ubuntu $(lsb_release --codename --short) nginx" >/etc/apt/sources.list.d/nginx.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends nginx=1.31.5-1~noble \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
