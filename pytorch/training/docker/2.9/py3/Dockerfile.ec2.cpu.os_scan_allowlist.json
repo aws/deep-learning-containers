@@ -1,7 +1,7 @@
 {
   "black": [
     {
-      "description": "Black is the uncompromising Python code formatter. Prior to 26.3.1, Black writes a cache file, the name of which is computed from various formatting options. The value of the --python-cell-magics option was placed in the filename without sanitization, which allowed an attacker who controls the value of this argument to write cache files to arbitrary file system locations. Fixed in Black 26.3.1.",
+      "description": "Black is the uncompromising Python code formatter. Starting in version 24.3.0 and prior to version 26.3.1, Black writes a cache file, the name of which is computed from various formatting options. The value of the --python-cell-magics option was placed in the filename without sanitization, which allowed an attacker who controls the value of this argument to write cache files to arbitrary file system locations. Fixed in Black 26.3.1.",
       "vulnerability_id": "CVE-2026-32274",
       "name": "CVE-2026-32274",
       "package_name": "black",
