@@ -58,6 +58,8 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                 image=image_uri,
                 environment={
                     "SM_SGLANG_MODEL_PATH": model_id,
+                    # qwen3.5 emits Qwen3-Coder XML -> qwen3_coder parser.
+                    "SM_SGLANG_TOOL_CALL_PARSER": "qwen3_coder",
                     "HF_TOKEN": hf_token,
                 },
             ),
@@ -118,3 +120,38 @@ def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
 
     LOGGER.info(f"Model response: {pformat(body)}")
     LOGGER.info("Inference test successful!")
+
+    # --- Tool/function-calling regression (tool_choice=required -> deterministic call) ---
+    weather_tool = {
+        "type": "function",
+        "function": {
+            "name": "get_current_weather",
+            "description": "Get the current weather in a given city.",
+            "parameters": {
+                "type": "object",
+                "properties": {"city": {"type": "string", "description": "The city name"}},
+                "required": ["city"],
+            },
+        },
+    }
+    tool_payload = json.dumps(
+        {
+            "model": model_id,
+            "messages": [{"role": "user", "content": "What is the weather in Paris right now?"}],
+            "tools": [weather_tool],
+            "tool_choice": "required",
+            "max_tokens": 256,
+            "temperature": 0,
+        }
+    )
+    tool_result = endpoint.invoke(body=tool_payload, content_type="application/json")
+    tool_body = json.loads(tool_result.body.read())
+    LOGGER.info(f"Tool-calling response: {pformat(tool_body)}")
+
+    tool_calls = tool_body["choices"][0]["message"].get("tool_calls")
+    assert tool_calls, f"No tool_calls in tool-calling response: {tool_body}"
+    fn = tool_calls[0]["function"]
+    assert fn["name"] == "get_current_weather", f"Unexpected tool name: {fn['name']}"
+    args = json.loads(fn["arguments"])
+    assert isinstance(args, dict), f"tool arguments not a JSON object: {fn['arguments']}"
+    LOGGER.info("Tool-calling test successful!")
