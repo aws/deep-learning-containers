@@ -1,6 +1,6 @@
 # Table Configuration - SGLang
 
-# Show only the latest N releases in available_images.md (full list on Support Policy).
+# Show only the latest N releases in available_images.md.
 max_versions: 3
 columns:
   - field: framework_version

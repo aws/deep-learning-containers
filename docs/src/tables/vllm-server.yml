@@ -1,6 +1,6 @@
 # Table Configuration - vLLM Server (AMZN2023)
 
-# Show only the latest N releases in available_images.md (full list on Support Policy).
+# Show only the latest N releases in available_images.md.
 max_versions: 5
 columns:
   - field: framework_version

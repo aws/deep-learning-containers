@@ -107,9 +107,6 @@ display_names:
     autogluon-inference: "AutoGluon Inference"
     djl-inference: "DJL Inference"
     sagemaker-tritonserver: "NVIDIA Triton Server for SageMaker"
-    stabilityai-pytorch-inference: "StabilityAI PyTorch Inference"
-    pytorch-trcomp-training: "PyTorch Training Compiler"
-    huggingface-pytorch-trcomp-training: "HuggingFace PyTorch Training Compiler"
 
     # Release notes optional section names
     known_issues: "Known Issues"
@@ -206,7 +203,6 @@ image_categories:
       - vllm-server
       - vllm-arm64
       - vllm-omni
-      - whisperx
       - llama-cpp
       - llama-cpp-arm64
       - sagemaker-tritonserver
@@ -222,8 +218,7 @@ image_categories:
       - tensorflow-training
       - tensorflow-inference
       - tensorflow-inference-arm64
-      - pytorch-trcomp-training
-      - stabilityai-pytorch-inference
+      - whisperx
   - title: "Hugging Face"
     repositories:
       - huggingface-pytorch-training
@@ -233,7 +228,6 @@ image_categories:
       - huggingface-vllm-omni
       - huggingface-sglang
       - huggingface-tei
-      - huggingface-pytorch-trcomp-training
       - huggingface-tensorflow-training
       - huggingface-tensorflow-inference
   - title: "NeuronX (Trainium / Inferentia)"
@@ -273,7 +267,6 @@ table_order:
   - vllm-server
   - vllm-arm64
   - vllm-omni
-  - whisperx
   - llama-cpp
   - llama-cpp-arm64
   - pytorch
@@ -284,6 +277,7 @@ table_order:
   - tensorflow-training
   - tensorflow-inference
   - tensorflow-inference-arm64
+  - whisperx
   - pytorch-training-neuronx
   - pytorch-inference-neuronx
   - tensorflow-inference-neuronx
@@ -297,14 +291,11 @@ table_order:
   - huggingface-vllm-inference-neuronx
   - huggingface-pytorch-training-neuronx
   - huggingface-pytorch-inference-neuronx
-  - huggingface-pytorch-trcomp-training
   - huggingface-tensorflow-training
   - huggingface-tensorflow-inference
   - autogluon-training
   - autogluon-inference
   - djl-inference
   - sagemaker-tritonserver
-  - stabilityai-pytorch-inference
-  - pytorch-trcomp-training
   - sagemaker-scikit-learn
   - sagemaker-xgboost
