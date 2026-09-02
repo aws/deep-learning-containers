@@ -6,7 +6,8 @@ nav:
     - vLLM-Omni: vllm-omni
     - SGLang: sglang
     - TEI: tei
-    - Ray: ray
+    - Ray Serve: ray
+    - Ray LLM: ray-llm
     - Ray Train: ray-train
     - WhisperX: whisperx
     - llama.cpp: llama-cpp
