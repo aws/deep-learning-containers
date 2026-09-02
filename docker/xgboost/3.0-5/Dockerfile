@@ -3,7 +3,7 @@
 # Multi-stage build:
 #
 #   sqlite-builder ─── (compiles SQLite from source)
-#   nginx-builder ──── (builds fixed nginx 1.30.4 from source — CVE-2026-42533)
+#   nginx-builder ──── (builds fixed nginx 1.31.5 from source — nginx CVEs)
 #   wheel-builder ──── (builds sagemaker_xgboost_container wheel)
 #   base ──────────── (miniforge, MLIO, XGBoost, system deps)
 #   xgboost-sagemaker  (SageMaker serving layer on top of base)
@@ -36,14 +36,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ── Stage: nginx-builder ─────────────────────────────────────────────────────
-# Ubuntu 20.04 (Focal) reached end-of-standard-support (Apr 2025); its nginx
-# security fixes ship only via Ubuntu Pro/ESM, and nginx.org froze its focal
-# builds below the fix. Neither path delivers the CVE-2026-42533 fix
-# (nginx >= 1.30.4), so we build the fixed nginx release from source here and
-# copy the binary into the runtime image.
+# Focal has no fixed nginx — apt is ESM-only (20.04 EOL) and nginx.org's focal
+# builds stop at 1.28.0. Fixes for CVE-2026-42533/-42055/-42946 land only in
+# nginx mainline, so build 1.31.5 from source.
 FROM ubuntu:${UBUNTU_VERSION} AS nginx-builder
-ARG NGINX_VERSION=1.30.4
-ARG NGINX_SHA256=4261dc90e9e47c1c4041276e9aaa3d48ebe2e664f728e14fa95ae6c67d57a08b
+ARG NGINX_VERSION=1.31.5
+ARG NGINX_SHA256=e951607d534836624bd36b6b45a71dbfb055237deae3738da6bbf3270dada279
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get update && apt-get install -y --no-install-recommends \
   build-essential wget ca-certificates libpcre2-dev zlib1g-dev libssl-dev \
@@ -210,8 +208,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 
 RUN sqlite3 --version
 
-# nginx built from source in the nginx-builder stage (CVE-2026-42533 fix,
-# nginx 1.30.4) — Focal has no fixed nginx via apt or nginx.org (see that stage).
+# nginx 1.31.5, built from source in the nginx-builder stage.
 COPY --from=nginx-builder /usr/sbin/nginx /usr/sbin/nginx
 COPY --from=nginx-builder /etc/nginx /etc/nginx
 RUN mkdir -p /var/log/nginx /var/lib/nginx/body /var/lib/nginx/proxy \
