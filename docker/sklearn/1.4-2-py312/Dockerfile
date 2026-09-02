@@ -79,9 +79,9 @@ RUN apt-get update \
   && ln -sf /usr/bin/python3 /usr/bin/python \
   && curl -sS https://bootstrap.pypa.io/get-pip.py | python3 - --break-system-packages \
   && curl -fsSL https://nginx.org/keys/nginx_signing.key -o /usr/share/keyrings/nginx.asc \
-  && echo "deb [signed-by=/usr/share/keyrings/nginx.asc] https://nginx.org/packages/ubuntu $(lsb_release --codename --short) nginx" >/etc/apt/sources.list.d/nginx.list \
+  && echo "deb [signed-by=/usr/share/keyrings/nginx.asc] https://nginx.org/packages/mainline/ubuntu $(lsb_release --codename --short) nginx" >/etc/apt/sources.list.d/nginx.list \
   && apt-get update \
-  && apt-get install -y --no-install-recommends nginx \
+  && apt-get install -y --no-install-recommends nginx=1.31.5-1~noble \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
