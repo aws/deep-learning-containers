@@ -20,12 +20,6 @@ TEST_SKIP_ACTIONS = ("check-test-pass", "record-test-pass")
 CHECK_WORKFLOW = "_reusable.check-test-pass.yml"
 RECORD_ACTION = "record-test-pass"
 
-# Every record-test-pass call site must thread these inputs to the store write.
-# `suite` is checked separately (it's a per-suite literal, validated against
-# test-suites.yml by test_invoked_suites_are_configured). image-content-hash and
-# suite-code-hash form the row's keys; ci-image-uri is the recorded tag source;
-# ci-images-table-account-id targets the table. A caller that drops or misspells
-# any of these silently writes a broken/absent row, so pin the exact wiring.
 EXPECTED_RECORD_INPUTS = {
     "image-content-hash": "${{ inputs.image-content-hash }}",
     "suite-code-hash": "${{ inputs.suite-code-hash }}",
@@ -165,12 +159,7 @@ def _record_test_pass_steps():
 
 
 def test_record_test_pass_inputs_are_wired():
-    """Every record-test-pass call site must pass all store attributes, correctly wired.
-
-    ci-image-uri is `required: false` on the action, and GitHub only warns (does not
-    fail) on missing required composite-action inputs, so nothing else guarantees a
-    new suite's call site threads these. This is that guarantee.
-    """
+    """Every record-test-pass call site must pass all store attributes, correctly wired."""
     problems = []
     sites = 0
     for wf_name, step in _record_test_pass_steps():

@@ -4,9 +4,7 @@ import sys
 from pathlib import Path
 
 # record_pass.py lives in the composite action dir, not on the default path.
-_ACTION_DIR = (
-    Path(__file__).resolve().parents[2] / ".github" / "actions" / "record-test-pass"
-)
+_ACTION_DIR = Path(__file__).resolve().parents[2] / ".github" / "actions" / "record-test-pass"
 sys.path.insert(0, str(_ACTION_DIR))
 
 import record_pass  # noqa: E402
