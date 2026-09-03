@@ -573,5 +573,10 @@
         "vulnerability_id": "CVE-2026-63076",
         "reason": "openssl 3.6.3 in the bundled miniconda3 environment. The scanner's fixed version 4.0.2 is unreleased upstream; conda-forge tops out at 4.0.1, which is itself within the affected range, so the openssl>=4.0.2 pin is unsatisfiable. Affected TLS paths are not enabled by the XGBoost training/serving code. (3.6.4 exists on the 3.6 branch, which reaches EOL 2026-11-01; durable fix is moving this env to the 3.5 LTS line.)",
         "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-75803",
+        "reason": "openssl 3.6.3 in the bundled miniconda3 environment. The scanner's fixed version 4.0.2 is unreleased upstream; conda-forge tops out at 4.0.1, which is itself within the affected range, so the openssl>=4.0.2 pin is unsatisfiable. Affected TLS paths are not enabled by the XGBoost training/serving code. (3.6.4 exists on the 3.6 branch, which reaches EOL 2026-11-01; durable fix is moving this env to the 3.5 LTS line.)",
+        "review_by": "2027-03-02"
     }
 ]
