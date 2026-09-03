@@ -198,6 +198,7 @@ image_categories:
       - base-ubuntu
   - title: "LLM Serving"
     repositories:
+      - ray-llm
       - sglang
       - sglang-server
       - vllm

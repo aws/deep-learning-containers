@@ -1,5 +1,5 @@
 # Table Configuration - Ray LLM
-note: "Ray LLM images share the `ray` ECR repository with the Ray Serve image above and the Ray Train image below, and are identified by the `serve-llm` tag prefix. See the [Ray LLM guide](../ray-llm/index.md)."
+note: "Ray LLM images share the `ray` ECR repository with the Ray Serve and Ray Train images (listed under Framework Containers), and are identified by the `serve-llm` tag prefix. See the [Ray LLM guide](../ray-llm/index.md)."
 columns:
   - field: framework_version
     header: "Framework"
