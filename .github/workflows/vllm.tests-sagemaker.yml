@@ -36,7 +36,7 @@ jobs:
       image-uri: ${{ steps.image.outputs.image-uri }}
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
-      sagemaker-matrix: ${{ steps.parse.outputs.matrix }}
+      sagemaker-matrix: ${{ steps.parse.outputs.matrix || '[]' }}
     steps:
       - uses: actions/checkout@v6
 
@@ -68,9 +68,20 @@ jobs:
             --section sagemaker \
             --image-config "${{ inputs.config-file }}"
 
-  endpoint-test:
+  # Config models (from vllm-sagemaker-endpoint-tests.yml) fan out one job per model so a
+  # failure isolates to that model and only that job is re-run. max-parallel: 1 keeps at
+  # most one SageMaker endpoint live at a time; fail-fast: false lets every model run even
+  # after one fails. Model selection is by the SM_MODEL_NAME env var (read at pytest
+  # collection in _generate_test_params).
+  endpoint-test-models:
+    name: endpoint-test (${{ matrix.model.name }})
     if: ${{ needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.sagemaker-matrix)[0] != null }}
     needs: [preflight]
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        model: ${{ fromJson(needs.preflight.outputs.sagemaker-matrix) }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -92,19 +103,57 @@ jobs:
           uv pip install -r test/requirements.txt
           uv pip install -r test/vllm/sagemaker/requirements.txt
 
-      - name: Run SageMaker endpoint tests
+      - name: Run SageMaker endpoint test
+        env:
+          SM_MODEL_NAME: ${{ matrix.model.name }}
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} vllm/sagemaker
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            vllm/sagemaker/amzn2023/test_sm_model_serving.py
+
+  # deepseek is not in the config (it pulls the model from HuggingFace at runtime, a
+  # different path than the S3-artifact config models), so it stays its own job. It runs
+  # AFTER the model matrix (needs + always()) so total live endpoints never exceeds one.
+  endpoint-test-deepseek:
+    if: ${{ always() && needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.sagemaker-matrix)[0] != null }}
+    needs: [preflight, endpoint-test-models]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/vllm/sagemaker/requirements.txt
+
+      - name: Run SageMaker endpoint test
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            vllm/sagemaker/test_sm_endpoint.py
 
   # Record a PASS row in the ci-images-table if the test passed.
   record-test-pass:
     if: >-
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
-          needs.endpoint-test.result == 'success' }}
-    needs: [endpoint-test]
+          needs.endpoint-test-models.result == 'success' &&
+          needs.endpoint-test-deepseek.result == 'success' }}
+    needs: [endpoint-test-models, endpoint-test-deepseek]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
