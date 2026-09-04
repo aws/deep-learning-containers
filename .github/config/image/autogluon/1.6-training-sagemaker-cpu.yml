@@ -1,0 +1,33 @@
+image:
+  name: "autogluon-training-1.6-sagemaker-cpu"
+  description: "AutoGluon 1.6 CPU training for SageMaker (layered on the AWS PyTorch 2.13 training DLC)"
+
+metadata:
+  framework: "autogluon"
+  framework_version: "1.6.1"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "cpu"
+  job_type: "training"
+  prod_image: "autogluon-training:1.6.1-cpu-py312-amzn2023"
+
+build:
+  dockerfile: "docker/autogluon/training/Dockerfile"
+  target: "sagemaker"
+  base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.13-cpu-amzn2023-sagemaker"
+  python_version: "3.12"
+  autogluon_version: "1.6.1"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  # Gamma-testing the release before production.
+  # Flip environment to "production" after gamma validates.
+  release: true
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "gamma"
