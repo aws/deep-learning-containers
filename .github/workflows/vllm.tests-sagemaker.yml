@@ -89,13 +89,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.preflight.outputs.image-uri }}
-
       - name: Install test dependencies
         run: |
           uv venv --python 3.12
@@ -124,13 +117,6 @@ jobs:
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Install test dependencies
         run: |
