@@ -128,11 +128,11 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
         _cleanup([endpoint, endpoint_config, model])
 
 
-# Ladder, not a single type: all three carry the same single L4 24GB card, so they serve
-# this model identically and differ only in capacity pool.
+# Ladder, not a single type: g6 (L4) and g5 (A10G) are both single 24GB cards, so every
+# rung serves this 1.5B model identically and differs only in capacity pool.
 @pytest.mark.parametrize(
     "instance_type",
-    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge"]],
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
     indirect=True,
 )
 @pytest.mark.parametrize("model_id", ["deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"], indirect=True)

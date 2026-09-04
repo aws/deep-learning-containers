@@ -7,13 +7,16 @@
 #
 # Smoke-test entries live in the sibling vllm-model-tests.yml.
 #
-# instance_type is a priority-ordered fallback ladder. SageMaker returns
-# InsufficientInstanceCapacity per instance type, so the deploy walks the list and the
-# first candidate to reach InService wins; only an exhausted ladder fails the test.
-# Every rung of a ladder must fit the model unaided — the larger g6/g6e sizes carry the
-# same single GPU as their xlarge base (L4 24GB and L40S 48GB respectively), so they
-# serve identically and differ only in capacity pool. Never ladder across GPU families:
-# a model sized for L40S will not fit L4.
+# instance_type is a priority-ordered list rendered into SageMaker instance pools: one
+# endpoint whose production variant carries up to 5 instance types by priority. SageMaker
+# provisions the highest-priority type that has capacity and falls back to the next on an
+# insufficient-capacity error, server-side, within a single deploy; only an exhausted
+# ladder fails the test.
+# Every rung must fit the model unaided. g5 (A10G 24GB) and g6 (L4 24GB) are the same
+# 24GB class and mix freely; the larger sizes within a family carry the same single GPU as
+# their xlarge base, so they serve identically and differ only in capacity pool. Never add
+# a rung with too little VRAM: a model sized for L40S 48GB (e.g. nemotron-nano-12b-v2
+# below) must stay on g6e and must not get g5/g6 rungs.
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
@@ -30,6 +33,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
+      - "ml.g5.xlarge"
+      - "ml.g5.2xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -99,6 +104,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
+      - "ml.g5.xlarge"
+      - "ml.g5.2xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -125,6 +132,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
+      - "ml.g5.xlarge"
+      - "ml.g5.2xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -153,6 +162,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
+      - "ml.g5.xlarge"
+      - "ml.g5.2xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -177,6 +188,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
+      - "ml.g5.xlarge"
+      - "ml.g5.2xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     network_isolation: true
@@ -207,6 +220,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
+      - "ml.g5.xlarge"
+      - "ml.g5.2xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     network_isolation: true
@@ -242,6 +257,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
+      - "ml.g5.xlarge"
+      - "ml.g5.2xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"
