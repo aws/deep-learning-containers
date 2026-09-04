@@ -36,7 +36,7 @@ from sagemaker.core.shapes import (
 from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.instance_capacity import (
-    deploy_with_capacity_fallback,
+    build_instance_pools,
     normalize_instance_types,
 )
 
@@ -61,8 +61,9 @@ def _load_sagemaker_config(config_path, model_name=None):
         models = [m for m in models if m["name"] == model_name]
     for m in models:
         m["s3_path"] = f"{s3_prefix}/{m['s3_model']}"
-        # instance_type accepts either a single type or a priority-ordered list of
-        # candidates to fall back through on capacity errors.
+        # instance_type accepts either a single type or a priority-ordered ladder;
+        # build_instance_pools turns it into SageMaker instance pools that fall back
+        # across those types on capacity errors, server-side, within one deploy.
         m["instance_types"] = normalize_instance_types(m["instance_type"])
     return models
 
@@ -183,12 +184,14 @@ def _flatten_jinja(template_str):
     return template_str.replace("\n", '{{ "\\n" }}')
 
 
-def _deploy_endpoint(image_uri, model_cfg, region, instance_type):
-    """Deploy one endpoint on ``instance_type`` and wait for it to reach InService.
+def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
+    """Deploy one endpoint over an instance-pool ladder and wait for InService.
 
-    Cleans up its own partially-created resources before re-raising, so a caller
-    falling back to the next instance type does not leak a Model, an EndpointConfig,
-    and a Failed Endpoint per attempt.
+    The endpoint carries an instance-pool ladder, so SageMaker walks ``instance_types``
+    server-side, provisioning the highest-priority type with capacity and falling back
+    to the next on an insufficient-capacity error within this single deploy. Cleanup
+    still runs on failure, so a deploy that fails outright does not leak a Model, an
+    EndpointConfig, and a Failed Endpoint.
     """
     endpoint_name = random_suffix_name(f"vllm-{model_cfg['name']}", 50)
     role_arn = _get_role_arn(region)
@@ -230,23 +233,29 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_type):
                     variant_name="AllTraffic",
                     model_name=endpoint_name,
                     initial_instance_count=1,
-                    instance_type=instance_type,
+                    instance_pools=build_instance_pools(instance_types),
+                    # Give SageMaker room to walk the whole pool ladder on ICE before
+                    # failing; the priority-1 pool provisions first when it has capacity.
+                    variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
             ],
         )
 
-        LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_type}")
+        LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_types}")
         endpoint = Endpoint.create(
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
-        endpoint.wait_for_status("InService", timeout=2700)
+        # Pool provisioning can consume the full 1800s cap on its own, separate from
+        # model download and container startup, so the wall-clock wait must cover
+        # provisioning plus boot (1800 + ~2700 boot budget = 4500).
+        endpoint.wait_for_status("InService", timeout=4500)
     except Exception:
         _cleanup([endpoint, endpoint_config, model])
         raise
 
-    LOGGER.info(f"Endpoint InService: {endpoint_name} on {instance_type}")
+    LOGGER.info(f"Endpoint InService: {endpoint_name} on {instance_types}")
     return endpoint_name, model, endpoint_config, endpoint
 
 
@@ -258,24 +267,23 @@ def _generate_test_params():
 
 @pytest.fixture(scope="module", params=_generate_test_params(), ids=lambda x: x[0])
 def deployed_model(request, image_uri):
-    """Deploy the model, falling back through its instance_types on capacity errors.
+    """Deploy the model with an instance-pool ladder; SageMaker handles fallback.
 
     Insufficient capacity (ICE) on a single instance type is an AWS-side shortage, not
-    an image defect, so it moves to the next candidate instead of failing. Each
-    configured instance type is tried in order and the first one to reach InService
-    wins, which absorbs the common case of one size being momentarily dry.
+    an image defect. The configured ``instance_types`` become a production-variant
+    instance pool, so SageMaker provisions the highest-priority type with capacity and
+    falls back to the next server-side, absorbing the common case of one size being
+    momentarily dry.
 
-    If every candidate is dry the test fails. Skipping would leave the model
-    unvalidated while the run still reported green, hiding a real coverage gap.
+    If the endpoint never reaches InService the test fails. Skipping would leave the
+    model unvalidated while the run still reported green, hiding a real coverage gap.
     """
     _, model_cfg = request.param
 
     region = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
 
-    endpoint_name, model, endpoint_config, endpoint = deploy_with_capacity_fallback(
-        model_cfg["instance_types"],
-        lambda instance_type: _deploy_endpoint(image_uri, model_cfg, region, instance_type),
-        model_cfg["name"],
+    endpoint_name, model, endpoint_config, endpoint = _deploy_endpoint(
+        image_uri, model_cfg, region, model_cfg["instance_types"]
     )
     try:
         yield {

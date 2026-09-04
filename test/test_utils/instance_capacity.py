@@ -1,13 +1,14 @@
-"""Shared SageMaker instance-capacity fallback for endpoint tests.
+"""Shared SageMaker instance-pool helper for endpoint tests.
 
 SageMaker reports a dry capacity pool per instance type, so a shortage in one size
 says nothing about the next size up. An endpoint test that names a single instance
 type therefore fails for a reason that has nothing to do with the image under test.
 
-These helpers let a test declare a priority-ordered ladder of instance types and walk
-it, so a momentary shortage in one pool is absorbed rather than reported as a defect.
-An exhausted ladder raises: skipping would leave the model unvalidated while the run
-still reported green, hiding a real coverage gap.
+SageMaker's native "instance pools" feature (a.k.a. heterogeneous endpoints) solves
+this server-side: a production variant carries a priority-ordered list of up to five
+instance types, and SageMaker provisions the highest-priority type available, falling
+back to the next on an insufficient-capacity error, all within a single deploy. These
+helpers turn a single type or a priority-ordered ladder into that pool list.
 
 Every rung of a ladder must fit the model unaided. Within a family the larger sizes
 carry the same single GPU as their xlarge base (L4 24GB for g6, L40S 48GB for g6e), so
@@ -17,17 +18,13 @@ families — a model sized for L40S will not fit L4.
 
 import logging
 
+from sagemaker.core.shapes import InstancePool
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-# SageMaker reports a dry capacity pool as one of these. None of them indicate an image
-# or test defect, so they trigger instance-type fallback instead of failing the suite.
-CAPACITY_TOKENS = ("InsufficientInstanceCapacity", "ResourceLimitExceeded", "CapacityError")
-
-
-def is_capacity_error(exc):
-    """True if a deploy failed for lack of instance capacity, not a real defect."""
-    return any(token.lower() in str(exc).lower() for token in CAPACITY_TOKENS)
+# SageMaker allows at most five instance types per production variant.
+MAX_INSTANCE_POOLS = 5
 
 
 def normalize_instance_types(instance_type):
@@ -41,37 +38,29 @@ def normalize_instance_types(instance_type):
     return list(instance_type)
 
 
-def deploy_with_capacity_fallback(instance_type, deploy, label):
-    """Call ``deploy(instance_type)`` down the ladder; return the first success.
+def build_instance_pools(instance_type):
+    """Turn a single type or a priority-ordered ladder into a list of ``InstancePool``.
 
-    ``deploy`` takes one instance type and returns whatever the caller needs. It MUST
-    clean up its own partially-created resources before raising, otherwise each dry
-    candidate leaks a Model, an EndpointConfig, and a Failed Endpoint.
-
-    A non-capacity exception propagates immediately, so a genuine image or config
-    defect is never masked as a capacity shortage. ``label`` names the thing being
-    deployed, for logs and the final error.
-
-    No sleep between candidates: SageMaker already retries the pool internally for
-    several minutes before returning a capacity error, so each attempt carries its own
-    backoff.
+    The first candidate gets priority 1 (highest), the next priority 2, and so on.
+    SageMaker provisions the highest-priority type with available capacity and falls
+    back to lower-priority types on an insufficient-capacity error, so a momentary
+    shortage in one pool is absorbed server-side rather than reported as a defect.
 
     Raises:
-        AssertionError: if every candidate in the ladder is out of capacity.
+        ValueError: if no instance types are supplied, since a variant needs at least
+            one pool to provision.
+        ValueError: if more than ``MAX_INSTANCE_POOLS`` candidates are supplied, since
+            SageMaker rejects a variant with more than five pools.
     """
-    candidates = normalize_instance_types(instance_type)
-
-    last_error = None
-    for candidate in candidates:
-        try:
-            return deploy(candidate)
-        except Exception as e:
-            if not is_capacity_error(e):
-                raise  # a real deploy failure — surface it
-            last_error = e
-            LOGGER.warning(f"[capacity] no {candidate} capacity for {label}: {e}")
-            continue
-
-    raise AssertionError(
-        f"No instance capacity for {label} on any of {candidates} (ICE). Last error: {last_error}"
-    )
+    types = normalize_instance_types(instance_type)
+    if not types:
+        raise ValueError("build_instance_pools requires at least one instance type")
+    if len(types) > MAX_INSTANCE_POOLS:
+        raise ValueError(
+            f"SageMaker allows at most {MAX_INSTANCE_POOLS} instance pools per variant; "
+            f"got {len(types)}: {types}"
+        )
+    return [
+        InstancePool(instance_type=candidate, priority=priority)
+        for priority, candidate in enumerate(types, start=1)
+    ]
