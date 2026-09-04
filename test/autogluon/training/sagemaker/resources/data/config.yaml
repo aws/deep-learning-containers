@@ -1,0 +1,15 @@
+# TabularPredictor arguments for the adult-income sample. The entry script adds
+# num_gpus from SM_NUM_GPUS on GPU instances.
+ag_predictor_args:
+  eval_metric: roc_auc
+  label: class
+
+ag_fit_args:
+  hyperparameters:
+    GBM:
+      num_boost_round: 20
+    NN_TORCH:
+      num_epochs: 2
+  num_bag_folds: 3
+  num_bag_sets: 1
+  num_stack_levels: 0
