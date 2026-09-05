@@ -45,7 +45,11 @@ RUN pip install \
   "python_multipart>=0.0.22" \
   "starlette>=1.3.1" \
   "setuptools>=80.9.0" \
-  "xgrammar>=0.1.32"
+  "tqdm>=4.68.0" \
+  "urllib3>=2.4.0" \
+  "werkzeug>=3.1.1" \
+  "xgrammar>=0.1.32" \
+  "zipp>=3.22.0"
 
 # Copy artifacts
 # ===============
@@ -90,14 +94,12 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 RUN rm -rf \
   /root/.cargo/ \
   /root/.rustup/ \
-  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/ \
-  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/Cargo.lock \
-  /sgl-workspace/sglang/sgl-model-gateway/Cargo.lock \
-  /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
-  /sgl-workspace/sglang/rust/sglang-grpc/Cargo.lock \
+  /sgl-workspace/sglang/sgl-model-gateway/ \
+  /sgl-workspace/sglang/rust/ \
   && find / -name "Cargo.lock" -not -path "/proc/*" -not -path "/sys/*" -delete 2>/dev/null || true \
-  && find / -path "*/target/release/build" -not -path "/proc/*" -not -path "/sys/*" -exec rm -rf {} + 2>/dev/null || true \
-  && find / -path "*/target/release/.fingerprint" -not -path "/proc/*" -not -path "/sys/*" -exec rm -rf {} + 2>/dev/null || true \
+  && find / -name "Cargo.toml" -not -path "/proc/*" -not -path "/sys/*" -delete 2>/dev/null || true \
+  && find / -path "*/target/release" -not -path "/proc/*" -not -path "/sys/*" -exec rm -rf {} + 2>/dev/null || true \
+  && find / -path "*/target/debug" -not -path "/proc/*" -not -path "/sys/*" -exec rm -rf {} + 2>/dev/null || true \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Remove oh-my-zsh to avoid false positive in credentials scan
