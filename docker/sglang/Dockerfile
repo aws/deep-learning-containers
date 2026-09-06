@@ -40,6 +40,7 @@ RUN pip install \
   "black>=26.3.1" \
   "diffusers>=0.38.0" \
   "lxml>=6.1.0" \
+  "nltk>=3.10.3" \
   "pillow>=12.1.1" \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
