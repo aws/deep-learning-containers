@@ -8,11 +8,11 @@ dependencies = [
     # submit` depend on — without it the head runs in "minimal mode" and job
     # submission fails. It does NOT pull in ray[serve], so this stays training-scoped.
     "ray[default,train,tune,data]==2.58.0",
-    "torch==2.13.0",
+    "torch==2.14.0",
     "torchvision==0.28.0",
     "pytorch-lightning>=2.5.0",
     "deepspeed>=0.18.0",
-    "transformers>=4.46.0",
+    "transformers>=5.16.1",
     "datasets>=3.0.0",
     "accelerate>=1.0.0",
     "evaluate>=0.4.0",
