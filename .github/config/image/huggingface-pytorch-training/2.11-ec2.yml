@@ -14,7 +14,7 @@ metadata:
   prod_image: "huggingface-pytorch-training:2.11.0-transformers5.13.1-gpu-py312-cu130-amzn2023"
 
 build:
-  dockerfile: "docker/huggingface/pytorch/Dockerfile"
+  dockerfile: "docker/huggingface/pytorch/training/Dockerfile"
   target: "ec2"
   base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023"
   python_version: "3.12"
