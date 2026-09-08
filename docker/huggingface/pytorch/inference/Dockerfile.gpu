@@ -1,21 +1,17 @@
-ARG CUDA_VERSION=13.0.2
-ARG UBUNTU_VERSION=24.04
-ARG UV_VERSION=0.11.17
+# Hugging Face PyTorch inference DLC, layered on the matching AWS PyTorch DLC.
+# BASE_IMAGE selects the SageMaker or EC2 flavor through the image configuration.
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023-sagemaker
 
-FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uv
-
-FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu${UBUNTU_VERSION} AS base
+FROM ${BASE_IMAGE} AS base
 
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG FRAMEWORK=huggingface-pytorch
-ARG FRAMEWORK_VERSION=2.13.0
-ARG TORCH_VERSION=2.13.0
-ARG TRANSFORMERS_VERSION=5.13.0
-ARG HF_SERVE_REF=f0ca195900fa29e46a965d47de557df7e3e6733b
-ARG PYTHON=python3.12
-ARG PYTORCH_INDEX_URL=https://download.pytorch.org/whl/cu130
-ARG CUDA_PACKAGE_VERSION=13-0
+ARG FRAMEWORK_VERSION=2.11.0
+ARG CONTAINER_TYPE=inference
+ARG TRANSFORMERS_VERSION=5.16.1
+ARG HF_SERVE_VERSION=0.1.4
+ARG VENV_PYTHON=/opt/venv/bin/python
 
 LABEL maintainer="Hugging Face"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -23,118 +19,82 @@ LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 LABEL framework="${FRAMEWORK}"
 LABEL framework_version="${FRAMEWORK_VERSION}"
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
-ENV DEBIAN_FRONTEND=noninteractive \
-  LANG=C.UTF-8 \
-  LC_ALL=C.UTF-8 \
-  PYTHONDONTWRITEBYTECODE=1 \
+ENV PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8 \
-  CUDA_HOME=/usr/local/cuda \
-  VIRTUAL_ENV=/home/huggingface/venv \
-  HF_SERVE_HOME=/home/huggingface/app \
-  PATH="/home/huggingface/venv/bin:/usr/local/cuda/bin:${PATH}" \
-  LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}" \
-  DLC_CONTAINER_TYPE=general
+  VIRTUAL_ENV=/opt/venv \
+  DLC_CONTAINER_TYPE=${CONTAINER_TYPE}
 
-RUN apt-get update \
-  && apt-get upgrade -y \
-  && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    build-essential \
-    git \
-    ${PYTHON} \
-    ${PYTHON}-dev \
-    ${PYTHON}-venv \
-    ffmpeg=7:* \
-    libmagic-dev \
+# The base already provides CUDA 13.0, PyTorch 2.11, and the shared venv.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# SPAL provides the audio runtime dependencies on Amazon Linux 2023.
+RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-release \
+  && dnf install -y spal-release \
+  && dnf install -y --setopt=install_weak_deps=False \
     espeak-ng \
-    libnpp-dev-${CUDA_PACKAGE_VERSION} \
-    cuda-nvrtc-dev-${CUDA_PACKAGE_VERSION} \
-  && apt-get autoremove -y \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+    ffmpeg-free \
+    file-libs \
+    git \
+  && dnf clean all \
+  && rm -rf /var/cache/dnf
 
-RUN mkdir -p /repository /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code \
-  && chmod 755 /repository \
-  && groupadd --gid 1001 huggingface \
-  && useradd --uid 1001 --gid huggingface --shell /bin/bash --create-home huggingface
+RUN uv pip install --python ${VENV_PYTHON} \
+    "hf-serve[cuda-130]==${HF_SERVE_VERSION}" \
+    "torch==${FRAMEWORK_VERSION}" \
+    "transformers[accelerate,audio,chat_template,kernels,video,vision]==${TRANSFORMERS_VERSION}" \
+  && uv cache clean \
+  && rm -rf /tmp/uv*
 
-COPY --from=uv /uv /usr/local/bin/uv
-
-USER huggingface
-WORKDIR /home/huggingface
-
-RUN ${PYTHON} -m venv "${VIRTUAL_ENV}"
-
-RUN git clone https://github.com/huggingface/hf-serve.git "${HF_SERVE_HOME}" \
-  && cd "${HF_SERVE_HOME}" \
-  && git checkout "${HF_SERVE_REF}"
-
-WORKDIR /home/huggingface/app
-RUN --mount=type=cache,target=/home/huggingface/.cache/uv,uid=1001,gid=1001 \
-  uv sync --active --frozen --extra cuda-130 --extra flash-attn --preview-features extra-build-dependencies \
-  && uv pip install --python "${VIRTUAL_ENV}/bin/python" --upgrade \
-    --index-url "${PYTORCH_INDEX_URL}" \
-    --extra-index-url https://pypi.org/simple \
-    "torch==${TORCH_VERSION}" \
-    torchvision \
-    torchcodec \
-  && uv pip install --python "${VIRTUAL_ENV}/bin/python" --upgrade \
-    "transformers[accelerate,audio,chat_template,kernels,timm,vision]==${TRANSFORMERS_VERSION}"
-
-USER root
-WORKDIR /
-
+# Re-template telemetry so the image reports the Hugging Face inference framework.
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
-COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
-COPY ./scripts/docker/huggingface/pytorch/inference/entrypoint.sh /usr/local/bin/hf_serve_entrypoint.sh
-COPY ./scripts/docker/huggingface/pytorch/inference/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
-COPY ./scripts/docker/huggingface/pytorch/inference/sagemaker_serve.py /usr/local/bin/sagemaker_serve.py
-COPY ./scripts/docker/huggingface/vllm/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-
-ARG CONTAINER_TYPE=general
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
-    /usr/local/bin/hf_serve_entrypoint.sh \
-    /usr/local/bin/sagemaker_entrypoint.sh \
-    /usr/local/bin/start_cuda_compat.sh \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+  && rm /tmp/bash_telemetry.sh.template
 
-RUN bash /tmp/setup_oss_compliance.sh "${PYTHON}" \
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN bash /tmp/setup_oss_compliance.sh python3 \
   && rm /tmp/setup_oss_compliance.sh \
-  && rm -rf /root/oss_compliance* /tmp/tmp* /tmp/uv* /root/.cache
+  && rm -rf /root/oss_compliance* /tmp/tmp* /root/.cache
 
-RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs -r apt-mark hold \
-  && apt-get update \
-  && apt-get upgrade -y \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
+ARG CACHE_REFRESH=0
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever latest \
+  && dnf clean all \
+  && rm -rf /var/cache/dnf
+
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/inference/entrypoint.sh /usr/local/bin/hf_serve_entrypoint.sh
 
 EXPOSE 8080
-WORKDIR /home/huggingface
+WORKDIR /workspace
 
-FROM base AS huggingface-pytorch-inference-gpu
+# =====================================================================
+# sagemaker — Hugging Face PyTorch inference for SageMaker AI
+# =====================================================================
+FROM base AS sagemaker
 
-USER huggingface
-ENTRYPOINT ["/usr/local/bin/hf_serve_entrypoint.sh"]
-
-FROM base AS huggingface-pytorch-inference-gpu-sagemaker
-
-ENV DLC_CONTAINER_TYPE=inference \
+ENV CLOUD=sagemaker \
   HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:inference:hf-pytorch"
 
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
 
-USER huggingface
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/inference/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
+CMD ["serve"]
+
+# =====================================================================
+# ec2 — Hugging Face PyTorch inference for EC2 / EKS
+# =====================================================================
+FROM base AS ec2
+
+ENV CLOUD="" \
+  HF_HUB_USER_AGENT_ORIGIN="aws:ec2:gpu-cuda:inference:hf-pytorch"
+
+ENTRYPOINT ["/usr/local/bin/hf_serve_entrypoint.sh"]
+CMD ["serve"]

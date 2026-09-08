@@ -14,12 +14,35 @@ if [[ -d "${HF_MODEL_ID:-}" ]]; then
   unset HF_MODEL_ID
 fi
 
-if [[ -n "${HF_MODEL_DIR:-}" && -z "${MODEL_DIR:-}" ]]; then
-  export MODEL_DIR="${HF_MODEL_DIR}"
+if [[ -n "${HF_MODEL_DIR:-}" ]]; then
+  if [[ -z "${MODEL_DIR:-}" ]]; then
+    export MODEL_DIR="${HF_MODEL_DIR}"
+  else
+    echo "WARNING: MODEL_DIR is already set to '${MODEL_DIR}', keeping its value."
+  fi
+  unset HF_MODEL_DIR
 fi
 
 if [[ -n "${HF_MODEL_ID:-}" && -z "${MODEL_ID:-}" ]]; then
   export MODEL_ID="${HF_MODEL_ID}"
+fi
+
+# SageMaker extracts model.tar.gz into /opt/ml/model. Use it only when no model
+# was selected through an environment variable or an explicit CLI argument.
+model_source_arg=""
+for arg in "$@"; do
+  case "${arg}" in
+    --model-id | --model-id=* | --model-dir | --model-dir=*) model_source_arg="${arg}" ;;
+  esac
+done
+
+if [[ "${CLOUD:-}" == "sagemaker" \
+  && -z "${MODEL_ID:-}" \
+  && -z "${MODEL_DIR:-}" \
+  && -z "${model_source_arg}" \
+  && -d /opt/ml/model \
+  && -n "$(find /opt/ml/model -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+  export MODEL_DIR=/opt/ml/model
 fi
 
 if [[ -n "${HF_TASK:-}" && -z "${TASK:-}" ]]; then

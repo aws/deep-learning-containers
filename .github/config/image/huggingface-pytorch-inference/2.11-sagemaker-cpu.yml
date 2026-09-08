@@ -1,30 +1,26 @@
 image:
   name: "huggingface-pytorch-inference-sagemaker-cpu"
-  description: "Hugging Face PyTorch inference for SageMaker on CPU"
+  description: "Hugging Face PyTorch inference for SageMaker on CPU (layered on the AWS PyTorch DLC)"
 
 metadata:
   framework: "huggingface-pytorch"
-  framework_version: "2.13.0"
-  os_version: "ubuntu24.04"
+  framework_version: "2.11.0"
+  os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
   arch_type: "x86"
   device_type: "cpu"
   job_type: "inference"
   contributor: "huggingface"
-  prod_image: "huggingface-pytorch-inference:2.13.0-cpu-py312-ubuntu24.04-sagemaker-v1"
+  prod_image: "huggingface-pytorch-inference:2.11.0-cpu-py312-amzn2023-sagemaker-v1"
 
 build:
   dockerfile: "docker/huggingface/pytorch/inference/Dockerfile.cpu"
-  target: "huggingface-pytorch-inference-cpu-sagemaker"
-  ubuntu_version: "24.04"
-  uv_version: "0.11.17"
-  torch_version: "2.13.0"
-  transformers_version: "5.13.0"
-  hf_serve_ref: "f0ca195900fa29e46a965d47de557df7e3e6733b"
-  python: "python3.12"
+  target: "sagemaker"
+  base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cpu-amzn2023-sagemaker"
   python_version: "3.12"
-  pytorch_index_url: "https://download.pytorch.org/whl/cpu"
+  transformers_version: "5.16.1"
+  hf_serve_version: "0.1.4"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
