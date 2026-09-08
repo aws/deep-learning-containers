@@ -4,10 +4,8 @@ bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
 
 source /usr/local/bin/vllm_cpu_env.sh
 
-# SageMaker can't grant SYS_NICE, so NUMA core-binding fails; default nobind unless overridden.
 export VLLM_CPU_OMP_THREADS_BIND="${VLLM_CPU_OMP_THREADS_BIND:-nobind}"
 
-# SM_VLLM_* env vars -> CLI args (NUL-delimited tokens preserve spaces/multi-value flags).
 ARGS_FILE=$(mktemp)
 trap 'rm -f "${ARGS_FILE}"' EXIT
 if ! python3 /usr/local/bin/sagemaker_args.py >"${ARGS_FILE}"; then

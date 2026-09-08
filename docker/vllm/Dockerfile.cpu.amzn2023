@@ -1,5 +1,3 @@
-# vLLM CPU-inference DLC (x86, AL2023, source build). gcc14 kept in runtime for torch-inductor JIT at inference (AL2023 stock gcc 11.5 is too old).
-
 ARG AL_VERSION=2023
 ARG PYTHON_VERSION=3.12
 ARG FRAMEWORK_VERSION=0.28.0
@@ -13,7 +11,6 @@ ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
 ARG FRAMEWORK_VERSION
 ARG VLLM_REF=v${FRAMEWORK_VERSION}
 
-# --branch works for a tag; the fallback fetches a pinned commit SHA by ref.
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
   || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
 
@@ -31,7 +28,6 @@ FROM public.ecr.aws/amazonlinux/amazonlinux:${AL_VERSION} AS build
 ARG PYTHON_VERSION
 ARG PYTORCH_CPU_INDEX_URL=https://download.pytorch.org/whl/cpu
 
-# gcc14: vLLM's CPU codegen needs gcc >= 12; AL2023 ships 11.5 and 14.x (not 12/13).
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar gzip xz git make cmake ninja-build patch \
   gcc14 gcc14-c++ \
@@ -53,16 +49,13 @@ ENV UV_LINK_MODE=copy
 WORKDIR /workspace/vllm
 COPY --from=source /src/ ./
 
-# CPU torch + vLLM build deps from the +cpu wheel index (plain PyPI wheel is CUDA and fails on CPU).
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --extra-index-url ${PYTORCH_CPU_INDEX_URL} \
-    -r requirements/cpu.txt -r requirements/build/cpu.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --extra-index-url ${PYTORCH_CPU_INDEX_URL} \
+  -r requirements/cpu.txt -r requirements/build/cpu.txt
 
 ARG max_jobs=32
 ENV MAX_JOBS=${max_jobs}
 
 ENV VLLM_TARGET_DEVICE=cpu
-# arm64 sets 1 (FEAT_BF16); inert on x86, kept so a Graviton build reuses this recipe.
 ARG VLLM_CPU_ARM_BF16=0
 ENV VLLM_CPU_ARM_BF16=${VLLM_CPU_ARM_BF16}
 
@@ -70,8 +63,7 @@ ARG FRAMEWORK_VERSION
 ARG SETUPTOOLS_SCM_PRETEND_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${FRAMEWORK_VERSION}+cpu.amzn2023}
 
-RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
-  python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
 
 # =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
@@ -100,8 +92,7 @@ ENV UV_LINK_MODE=copy
 # torch CPU + vLLM runtime deps
 COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
 COPY --from=build /workspace/vllm/requirements/cpu.txt /tmp/cpu.txt
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --extra-index-url ${PYTORCH_CPU_INDEX_URL} -r /tmp/cpu.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --extra-index-url ${PYTORCH_CPU_INDEX_URL} -r /tmp/cpu.txt
 
 # vLLM wheel built in stage 1
 COPY --from=build /workspace/vllm/dist /tmp/vllm-dist
@@ -110,7 +101,6 @@ RUN --mount=type=cache,target=/root/.cache/uv ls /tmp/vllm-dist/*.whl \
   && echo "Installing ${VLLM_WHL}" \
   && uv pip install "${VLLM_WHL}" --extra-index-url ${PYTORCH_CPU_INDEX_URL}
 
-# Serving extras (CPU-relevant subset; no GPU-only streamers / bitsandbytes).
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
   accelerate modelscope av scipy soundfile "mistral_common[audio]"
 
