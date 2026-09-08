@@ -33,6 +33,11 @@ import unittest
 class TestCudaJitDependencies(unittest.TestCase):
     """Category 1: Verify CUDA binaries required by JIT-compiling libraries exist."""
 
+    def setUp(self):
+        # CUDA JIT toolchain + GPU-only libs (flashinfer/triton); GPU-only, gated by declared CUDA version.
+        if not os.environ.get("EXPECTED_CUDA_VERSION", ""):
+            self.skipTest("no CUDA version declared (CPU image)")
+
     # Map of binary -> list of libraries that need it
     REQUIRED_CUDA_BINARIES = {
         "nvcc": ["deep_gemm JIT", "flashinfer JIT"],
