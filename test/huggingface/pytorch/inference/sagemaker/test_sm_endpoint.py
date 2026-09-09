@@ -1,5 +1,6 @@
 """SageMaker endpoint integration tests for Hugging Face PyTorch inference DLC."""
 
+import base64
 import json
 import logging
 import os
@@ -168,8 +169,13 @@ def test_asr_endpoint(model_endpoint):
     endpoint_name = model_endpoint["name"]
     runtime = boto3.client("sagemaker-runtime")
 
-    payload = {"inputs": ASR_SAMPLE_URL}
-    LOGGER.info(f"Sending ASR payload: {payload}")
+    # Payload should be a base64 encoded audio file
+    with open(ASR_SAMPLE_URL, "rb") as f:
+        audio_data = f.read()
+    base64_audio_data = base64.b64encode(audio_data).decode("utf-8")
+    payload = {"inputs": base64_audio_data}
+
+    LOGGER.info("Sending ASR payload")
 
     result = runtime.invoke_endpoint(
         EndpointName=endpoint_name,
