@@ -135,7 +135,7 @@ def test_text_generation_endpoint(model_endpoint):
             {"role": "user", "content": "What is the capital of France?"},
         ],
         "max_tokens": 32,
-        "temperature": 0,
+        "temperature": 0.5,
     }
     LOGGER.info(f"Sending chat-completion payload: {payload}")
 
