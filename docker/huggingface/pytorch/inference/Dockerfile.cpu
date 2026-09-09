@@ -40,9 +40,9 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
   && rm -rf /var/cache/dnf
 
 RUN uv pip install --python ${VENV_PYTHON} \
-    "hf-serve[cpu]==${HF_SERVE_VERSION}" \
-    "torch==${FRAMEWORK_VERSION}" \
-    "transformers[accelerate,audio,chat_template,kernels,video,vision]==${TRANSFORMERS_VERSION}" \
+  "hf-serve[cpu]==${HF_SERVE_VERSION}" \
+  "torch==${FRAMEWORK_VERSION}" \
+  "transformers[accelerate,audio,chat_template,kernels,video,vision]==${TRANSFORMERS_VERSION}" \
   && uv cache clean \
   && rm -rf /tmp/uv*
 

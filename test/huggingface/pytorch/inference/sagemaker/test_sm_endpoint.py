@@ -7,15 +7,10 @@ from pprint import pformat
 
 import boto3
 import pytest
-from sagemaker.core.resources import Endpoint
-from sagemaker.core.resources import EndpointConfig
-from sagemaker.core.resources import Model
-from sagemaker.core.shapes import ContainerDefinition
-from sagemaker.core.shapes import ProductionVariant
-from test_utils import clean_string
-from test_utils import random_suffix_name
-from test_utils.constants import INFERENCE_AMI_VERSION
-from test_utils.constants import SAGEMAKER_ROLE
+from sagemaker.core.resources import Endpoint, EndpointConfig, Model
+from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
+from test_utils import clean_string, random_suffix_name
+from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
 
 LOGGER = logging.getLogger(__name__)
