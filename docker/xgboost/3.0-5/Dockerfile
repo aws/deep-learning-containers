@@ -3,6 +3,7 @@
 # Multi-stage build:
 #
 #   sqlite-builder ─── (compiles SQLite from source)
+#   nginx-builder ──── (builds fixed nginx 1.31.5 from source — nginx CVEs)
 #   wheel-builder ──── (builds sagemaker_xgboost_container wheel)
 #   base ──────────── (miniforge, MLIO, XGBoost, system deps)
 #   xgboost-sagemaker  (SageMaker serving layer on top of base)
@@ -32,6 +33,48 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   && cd sqlite-autoconf-3500200 \
   && ./configure --prefix=/usr/local && make && make install && ldconfig \
   && cd / && rm -rf /tmp/sqlite-autoconf-* \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# ── Stage: nginx-builder ─────────────────────────────────────────────────────
+# Focal has no fixed nginx — apt is ESM-only (20.04 EOL) and nginx.org's focal
+# builds stop at 1.28.0. Fixes for CVE-2026-42533/-42055/-42946 land only in
+# nginx mainline, so build 1.31.5 from source.
+FROM ubuntu:${UBUNTU_VERSION} AS nginx-builder
+ARG NGINX_VERSION=1.31.5
+ARG NGINX_SHA256=e951607d534836624bd36b6b45a71dbfb055237deae3738da6bbf3270dada279
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential wget ca-certificates libpcre2-dev zlib1g-dev libssl-dev \
+  && cd /tmp \
+  && wget --tries=5 --retry-connrefused --waitretry=5 --timeout=30 \
+    https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz \
+  && echo "${NGINX_SHA256}  nginx-${NGINX_VERSION}.tar.gz" | sha256sum -c - \
+  && tar xzf nginx-${NGINX_VERSION}.tar.gz \
+  && cd nginx-${NGINX_VERSION} \
+  && ./configure \
+    --prefix=/etc/nginx \
+    --sbin-path=/usr/sbin/nginx \
+    --conf-path=/etc/nginx/nginx.conf \
+    --pid-path=/run/nginx.pid \
+    --lock-path=/var/lock/nginx.lock \
+    --error-log-path=/var/log/nginx/error.log \
+    --http-log-path=/var/log/nginx/access.log \
+    --http-client-body-temp-path=/var/lib/nginx/body \
+    --http-proxy-temp-path=/var/lib/nginx/proxy \
+    --http-fastcgi-temp-path=/var/lib/nginx/fastcgi \
+    --http-uwsgi-temp-path=/var/lib/nginx/uwsgi \
+    --http-scgi-temp-path=/var/lib/nginx/scgi \
+    --with-http_ssl_module \
+    --with-http_v2_module \
+    --with-http_realip_module \
+    --with-http_gzip_static_module \
+    --with-http_stub_status_module \
+    --with-threads \
+    --with-pcre \
+  && make -j"$(nproc)" \
+  && make install \
+  && strip /usr/sbin/nginx \
+  && cd / && rm -rf /tmp/nginx-* \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # ── Stage: wheel-builder ───────────────────────────────────────────────────
@@ -75,9 +118,10 @@ RUN apt-key del 7fa2af80 \
   && dpkg -i cuda-keyring_1.0-1_all.deb \
   && apt-get update && apt-get -y upgrade \
   && apt-get -y install --no-install-recommends \
-    build-essential curl git jq libatlas-base-dev expat nginx \
+    build-essential curl git jq libatlas-base-dev expat \
     openjdk-8-jdk-headless unzip wget apparmor linux-libc-dev \
     libxml2 libgstreamer1.0-0 libglib2.0-0 \
+    libpcre2-8-0 libssl1.1 zlib1g \
   && wget --tries=5 --retry-connrefused --waitretry=5 --timeout=30 http://es.archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi7_3.3-4_amd64.deb \
   && dpkg -i libffi7_3.3-4_amd64.deb \
   && apt-get -y install --no-install-recommends \
@@ -163,6 +207,13 @@ RUN ldconfig && echo "/usr/local/lib" >/etc/ld.so.conf.d/sqlite3.conf && ldconfi
 ENV PATH="/usr/local/bin:${PATH}"
 
 RUN sqlite3 --version
+
+# nginx 1.31.5, built from source in the nginx-builder stage.
+COPY --from=nginx-builder /usr/sbin/nginx /usr/sbin/nginx
+COPY --from=nginx-builder /etc/nginx /etc/nginx
+RUN mkdir -p /var/log/nginx /var/lib/nginx/body /var/lib/nginx/proxy \
+  /var/lib/nginx/fastcgi /var/lib/nginx/uwsgi /var/lib/nginx/scgi \
+  && /usr/sbin/nginx -v
 
 # Install XGBoost
 RUN python3 -m pip install --no-cache -I \

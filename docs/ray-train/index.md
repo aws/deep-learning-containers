@@ -14,9 +14,10 @@ KubeRay clusters on {{ eks }} and manually bootstrapped clusters on {{ ec2_short
 | --- | --- | --- |
 | {{ ec2_short }} / {{ eks_short }} | GPU | `public.ecr.aws/deep-learning-containers/ray:train-ml-cuda` |
 
-Ray Train shares the `ray` repository with the [Ray Serve DLC](../ray/index.md), using the `train-ml` tag prefix. Versioned tags (e.g.
-`train-ml-cuda-v1`, `train-ml-cuda-v1.1`, and `train-ml-cuda-v1.1.0`) are published alongside the floating tag. The image is also available on the
-[ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/ray). For private ECR URIs, see [Image Access](../get_started/index.md).
+Ray Train shares the `ray` repository with the [Ray Serve](../ray/index.md) and [Ray LLM](../ray-llm/index.md) DLCs, using the `train-ml` tag prefix.
+Versioned tags (e.g. `train-ml-cuda-v1`, `train-ml-cuda-v1.0`, and `train-ml-cuda-v1.0.0`) are published alongside the floating tag. The image is also
+available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/ray). For private ECR URIs, see
+[Image Access](../get_started/index.md).
 
 ## What's Included
 

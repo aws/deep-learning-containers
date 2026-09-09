@@ -2,7 +2,7 @@
 
 This page is for referencing our supported {{ dlc }}.
 
-Refer to the tables below for all images that are available in {{ ecr }} repositories. For private ECR access and region-specific account IDs, see [Region Availability](region_availability.md).
+Refer to the tables below for all images that are available and currently supported in {{ ecr }} repositories. For private ECR access and region-specific account IDs, see [Region Availability](region_availability.md).
 
 ______________________________________________________________________
 

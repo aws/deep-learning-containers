@@ -101,4 +101,5 @@ jobs:
           suite: llama-cpp/sagemaker
           image-content-hash: ${{ inputs.image-content-hash }}
           suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-image-uri: ${{ inputs.image-uri }}
           ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

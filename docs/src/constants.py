@@ -17,7 +17,8 @@ TUTORIALS_DIR = DOCS_DIR / "tutorials"
 
 GLOBAL_CONFIG_PATH = SRC_DIR / "global.yml"
 
-AVAILABLE_IMAGES_TABLE_HEADER = "##"
+AVAILABLE_IMAGES_CATEGORY_HEADER = "##"
+AVAILABLE_IMAGES_TABLE_HEADER = "###"
 TUTORIALS_REPO = "https://github.com/aws-samples/sample-aws-deep-learning-containers"
 PUBLIC_GALLERY_URL = "https://gallery.ecr.aws/deep-learning-containers"
 SITE_URL = "https://aws.github.io/deep-learning-containers/"

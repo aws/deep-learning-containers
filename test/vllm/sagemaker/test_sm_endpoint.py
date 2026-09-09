@@ -10,6 +10,7 @@ from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
+from test_utils.instance_capacity import deploy_with_capacity_fallback
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
@@ -37,14 +38,16 @@ def _cleanup(resources):
             LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
 
 
-@pytest.fixture(scope="function")
-def model_endpoint(aws_session, image_uri, model_id, instance_type):
+def _deploy_endpoint(aws_session, image_uri, model_id, instance_type):
+    """Deploy one endpoint on ``instance_type`` and wait for it to reach InService.
+
+    Cleans up its own partially-created resources before re-raising, so a caller
+    falling back to the next instance type does not leak a Model, an EndpointConfig,
+    and a Failed Endpoint per attempt.
+    """
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
     endpoint_name = random_suffix_name(f"vllm-{cleaned_id}", 50)
     model_name = endpoint_name
-
-    LOGGER.debug(f"Using image: {image_uri}")
-    LOGGER.debug(f"Model ID: {model_id}")
 
     hf_token = get_hf_token(aws_session)
     role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
@@ -78,20 +81,53 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
             ],
         )
 
-        LOGGER.info(f"Deploying endpoint: {endpoint_name} (this may take 10-15 minutes)...")
+        LOGGER.info(
+            f"Deploying endpoint: {endpoint_name} on {instance_type} "
+            f"(this may take 10-15 minutes)..."
+        )
         endpoint = Endpoint.create(
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
         endpoint.wait_for_status("InService")
-        LOGGER.info("Endpoint deployment completed successfully")
+    except Exception:
+        _cleanup([endpoint, endpoint_config, model])
+        raise
 
+    LOGGER.info(f"Endpoint InService: {endpoint_name} on {instance_type}")
+    return model, endpoint_config, endpoint
+
+
+@pytest.fixture(scope="function")
+def model_endpoint(aws_session, image_uri, model_id, instance_type):
+    """Deploy the endpoint, falling back through instance_type on capacity errors.
+
+    ``instance_type`` may be a single type or a priority-ordered ladder. A dry pool in
+    one size says nothing about the next size up, so a capacity error moves on rather
+    than failing. An exhausted ladder fails: skipping would leave the image
+    unvalidated while the run still reported green.
+    """
+    LOGGER.debug(f"Using image: {image_uri}")
+    LOGGER.debug(f"Model ID: {model_id}")
+
+    model, endpoint_config, endpoint = deploy_with_capacity_fallback(
+        instance_type,
+        lambda candidate: _deploy_endpoint(aws_session, image_uri, model_id, candidate),
+        model_id,
+    )
+    try:
         yield endpoint
     finally:
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+# Ladder, not a single type: all three carry the same single L4 24GB card, so they serve
+# this model identically and differ only in capacity pool.
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"], indirect=True)
 def test_vllm_sagemaker_endpoint(model_endpoint):
     endpoint = model_endpoint

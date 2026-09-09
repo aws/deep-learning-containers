@@ -1,0 +1,6 @@
+nav:
+  - Overview: index.md
+  - Deployment:
+    - Amazon EKS (KubeRay): deployment/eks.md
+    - EC2: deployment/ec2.md
+  - Changelog: changelog/index.md

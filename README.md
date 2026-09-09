@@ -31,6 +31,8 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/09/07]** [SGLang v0.5.19 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.19-gpu-py312-ec2` · SageMaker: `0.5.19-gpu-py312` · Qwen3.8, Ling-3.0, Spark2.5, Granite 4.2; beam search; DeepEP v2 MoE all-to-all.
+- **[2026/09/01]** [Ray LLM v1.0 (2.58.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `serve-llm-cuda-v1.0` · Initial release: OpenAI-compatible LLM serving with Ray Serve and vLLM 0.26.0 on PyTorch 2.11.0 / CUDA 13.0.2 / Python 3.13; `ray[llm]`'s `build_openai_app` runs vLLM behind Ray Serve — single GPU on EC2, and multi-node serving on EKS via KubeRay.
 - **[2026/09/01]** [Ray Train v1.1 (2.58.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `train-ml-cuda-v1.1` · EFA `1.49.0` (up from 1.47.0).
 - **[2026/08/26]** [vLLM v0.28.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.28.0-gpu-py312-ec2` · SageMaker: `0.28.0-gpu-py312` · Kimi-K3 stack-wide optimization (Decode Context Parallel, fused FlashKDA kernels, GEMM-RS sequence parallelism); DeepSeek V4 sparse MLA end-to-end with MTP and DSpark speculative decoding; new models Muse Glimmer, Ling 3.0 Flash, Dots3, Interns2mobius; tiered KV cache offloading to disk; runtime base moves to Ubuntu 24.04 and Transformers 5.15.0; `max_num_batched_tokens` default 8192 -> 16384.
 - **[2026/08/26]** [Ray Train v1.0 (2.58.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `train-ml-cuda-v1.0` · Initial release: multi-node, multi-GPU distributed training with Ray Train/Tune/Data on PyTorch 2.13.0 / CUDA 13.0.2 / Python 3.13, with EFA 1.47.0, the AWS NCCL OFI plugin, GDRCopy, flash-attn, Transformer Engine, and DeepSpeed pre-installed; one image runs as either a Ray head or worker under KubeRay on any EKS cluster (including SageMaker HyperPod-EKS), or standalone on EC2.
@@ -44,7 +46,6 @@ ______________________________________________________________________
 - **[2026/08/14]** [vLLM v0.27.1 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.27.1-gpu-py312-ec2` · SageMaker: `0.27.1-gpu-py312` · Kimi K3, Qwen3.5 dense + MoE (EVS video token pruning), K-EXAONE-2.0-750B-A37B, VaultGemma, jina-embeddings-v5-text-nano.
 - **[2026/08/14]** [WhisperX v3.8.6 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/whisperx) — EC2: `3.8.6-cu128-amzn2023` · SageMaker: `3.8.6-cu128-amzn2023-sagemaker` · Initial release: speech transcription with word-level alignment (wav2vec2) and speaker diarization (pyannote) through an OpenAI-compatible API on CUDA 12.8 / Python 3.12; real-time and asynchronous SageMaker endpoints.
 - **[2026/08/12]** [Ray v1.4 (2.57.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2: `serve-ml-cuda-v1.4` · `serve-ml-cpu-v1.4` · SageMaker: `serve-ml-sagemaker-cuda-v1.4` · `serve-ml-sagemaker-cpu-v1.4` · Ray `2.57.0` (up from 2.56.1).
-- **[2026/08/08]** [SGLang v0.5.17 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.17-gpu-py312-ec2` · SageMaker: `0.5.17-gpu-py312` · Kimi K3, MiniMax H3.
 
 ### 📢 Support Updates
 
@@ -58,6 +59,7 @@ ______________________________________________________________________
 - **[Distributed Training on Amazon EKS](https://aws.amazon.com/blogs/machine-learning/configure-and-verify-a-distributed-training-cluster-with-aws-deep-learning-containers-on-amazon-eks/)** - Configure and validate a distributed training cluster with DLCs on Amazon EKS.
 - **[DLCs with Amazon SageMaker AI & MLflow](https://aws.amazon.com/blogs/machine-learning/use-aws-deep-learning-containers-with-amazon-sagemaker-ai-managed-mlflow/)** - Use DLCs with SageMaker AI managed MLflow for experiment tracking and model management.
 - **[LLM Serving on Amazon EKS with vLLM](https://aws.amazon.com/blogs/architecture/deploy-llms-on-amazon-eks-using-vllm-deep-learning-containers/)** - Deploy and serve LLMs on Amazon EKS using vLLM DLCs.
+- **[TorchServe to Ray Serve DLCs](https://aws.amazon.com/blogs/machine-learning/simplify-and-support-your-torchserve-workloads-using-ray-serve-deep-learning-containers/)** - Migrate TorchServe inference workloads to Ray Serve DLCs — AWS-managed, pre-tested containers without manual CUDA or version maintenance.
 - **[Fine-tuning Meta Llama 3.2 Vision](https://aws.amazon.com/blogs/machine-learning/fine-tune-and-deploy-meta-llama-3-2-vision-for-generative-ai-powered-web-automation-using-aws-dlcs-amazon-eks-and-amazon-bedrock/)** - Fine-tune and deploy Llama 3.2 Vision for web automation using DLCs, Amazon EKS, and Amazon Bedrock.
 - **[DLCs with Amazon Q Developer and MCP](https://aws.amazon.com/blogs/machine-learning/streamline-deep-learning-environments-with-amazon-q-developer-and-mcp/)** - Streamline deep learning environments with Amazon Q Developer and Model Context Protocol.
 
