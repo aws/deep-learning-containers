@@ -108,17 +108,7 @@ COPY --chmod=755 ./scripts/docker/huggingface/pytorch/hf_optimizations.sh /usr/l
 # =====================================================================
 FROM install AS sagemaker
 
-# ARG scope resets at FROM — redeclare for the install below.
-ARG VENV_PYTHON=/opt/venv/bin/python
-
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training:hf-pytorch"
-
-# tornado 6.5.8 fixes CVE-2026-82397. It arrives transitively via bokeh in the
-# base's sagemaker extra and is locked at 6.5.7 there, so a rebuild alone won't
-# pick the fix up. Scoped to this target because the ec2 base ships no bokeh and
-# no tornado. Drop once the base floors tornado at >=6.5.8.
-RUN uv pip install --python ${VENV_PYTHON} "tornado>=6.5.8" \
-  && uv cache clean
 
 COPY --chmod=755 ./scripts/docker/huggingface/pytorch/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
