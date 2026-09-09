@@ -5,6 +5,7 @@ import json
 import logging
 import os
 from pprint import pformat
+from urllib.request import urlretrieve
 
 import boto3
 import pytest
@@ -165,12 +166,14 @@ def test_text_generation_endpoint(model_endpoint):
     ],
     indirect=True,
 )
-def test_asr_endpoint(model_endpoint):
+def test_asr_endpoint(model_endpoint, tmp_path):
     endpoint_name = model_endpoint["name"]
     runtime = boto3.client("sagemaker-runtime")
 
     # Payload should be a base64 encoded audio file
-    with open(ASR_SAMPLE_URL, "rb") as f:
+    asr_sample_path = tmp_path / "1.flac"
+    urlretrieve(ASR_SAMPLE_URL, asr_sample_path)
+    with open(asr_sample_path, "rb") as f:
         audio_data = f.read()
     base64_audio_data = base64.b64encode(audio_data).decode("utf-8")
     payload = {"inputs": base64_audio_data}
