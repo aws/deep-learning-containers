@@ -3,7 +3,7 @@ image:
   description: "Hugging Face PyTorch inference for EC2 and EKS on CPU (layered on the AWS PyTorch DLC)"
 
 metadata:
-  framework: "huggingface-pytorch"
+  framework: "huggingface-pytorch-inference"
   framework_version: "2.11.0"
   os_version: "amzn2023"
   customer_type: "ec2"

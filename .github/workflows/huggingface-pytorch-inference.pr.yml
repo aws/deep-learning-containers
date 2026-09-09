@@ -14,7 +14,7 @@ on:
       - "scripts/docker/telemetry/**"
       - "test/huggingface/pytorch/inference/sagemaker/**"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/huggingface-pytorch/**"
+      - "test/security/data/ecr_scan_allowlist/huggingface-pytorch-inference/**"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -50,7 +50,7 @@ jobs:
               - ".github/config/image/huggingface-pytorch-inference/*.yml"
               - "docker/huggingface/pytorch/inference/**"
               - "scripts/docker/huggingface/pytorch/inference/**"
-              - "test/security/data/ecr_scan_allowlist/huggingface-pytorch/**"
+              - "test/security/data/ecr_scan_allowlist/huggingface-pytorch-inference/**"
             sanity-test-change:
               - "test/sanity/**"
             sagemaker-test-change:

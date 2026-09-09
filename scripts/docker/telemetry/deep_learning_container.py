@@ -245,7 +245,7 @@ def parse_args():
             "ray_train",
             "vllm_omni",
             "huggingface-vllm",
-            "huggingface-pytorch",
+            "huggingface-pytorch-inference",
             "huggingface-pytorch-training",
             "llama_cpp",
             "whisperx",
