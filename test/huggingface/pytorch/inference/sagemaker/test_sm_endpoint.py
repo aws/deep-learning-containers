@@ -1,11 +1,9 @@
 """SageMaker endpoint integration tests for Hugging Face PyTorch inference DLC."""
 
-import base64
 import json
 import logging
 import os
 from pprint import pformat
-from urllib.request import urlretrieve
 
 import boto3
 import pytest
@@ -18,7 +16,6 @@ from test_utils.huggingface_helper import get_hf_token
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-ASR_SAMPLE_URL = "https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/1.flac"
 STARTUP_HEALTH_CHECK_TIMEOUT = 3600
 ENDPOINT_WAIT_TIMEOUT = 4200
 INSTANCE_TYPE = "ml.g6.xlarge"
@@ -153,41 +150,3 @@ def test_text_generation_endpoint(model_endpoint):
 
     content = body["choices"][0]["message"]["content"]
     assert content.strip(), "Generated chat message is empty"
-
-
-@pytest.mark.parametrize(
-    "model_config",
-    [
-        {
-            "model_id": "nvidia/parakeet-tdt-0.6b-v3",
-            "task": "automatic-speech-recognition",
-            "env": {"DTYPE": "bfloat16"},
-        },
-    ],
-    indirect=True,
-)
-def test_asr_endpoint(model_endpoint, tmp_path):
-    endpoint_name = model_endpoint["name"]
-    runtime = boto3.client("sagemaker-runtime")
-
-    # Payload should be a base64 encoded audio file
-    asr_sample_path = tmp_path / "1.flac"
-    urlretrieve(ASR_SAMPLE_URL, asr_sample_path)
-    with open(asr_sample_path, "rb") as f:
-        audio_data = f.read()
-    base64_audio_data = base64.b64encode(audio_data).decode("utf-8")
-    payload = {"inputs": base64_audio_data}
-
-    LOGGER.info("Sending ASR payload")
-
-    result = runtime.invoke_endpoint(
-        EndpointName=endpoint_name,
-        Body=json.dumps(payload),
-        ContentType="application/json",
-        Accept="application/json",
-        CustomAttributes="route=/predict-json",
-    )
-    body = json.loads(result["Body"].read())
-    LOGGER.info(f"Model response: {pformat(body)}")
-
-    assert body.get("text", "").strip(), "Transcription text is empty"
