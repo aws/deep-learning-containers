@@ -11,7 +11,7 @@ metadata:
   device_type: "cpu"
   job_type: "inference"
   contributor: "huggingface"
-  prod_image: "huggingface-pytorch-inference:2.11.0-cpu-py312-amzn2023-v1"
+  prod_image: "huggingface-pytorch-inference:2.11-transformers5.16-amzn2023-v1"
 
 build:
   dockerfile: "docker/huggingface/pytorch/inference/Dockerfile.cpu"
