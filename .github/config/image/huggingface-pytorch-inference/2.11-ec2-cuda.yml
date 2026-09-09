@@ -1,5 +1,5 @@
 image:
-  name: "huggingface-pytorch-inference-2.11-ec2-cuda"
+  name: "huggingface-pytorch-inference-ec2-cuda"
   description: "Hugging Face PyTorch inference for EC2 and EKS with CUDA (layered on the AWS PyTorch DLC)"
 
 metadata:

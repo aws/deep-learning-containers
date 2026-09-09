@@ -1,5 +1,5 @@
 image:
-  name: "huggingface-pytorch-inference-2.11-ec2-cpu"
+  name: "huggingface-pytorch-inference-ec2-cpu"
   description: "Hugging Face PyTorch inference for EC2 and EKS on CPU (layered on the AWS PyTorch DLC)"
 
 metadata:
