@@ -7,7 +7,10 @@ pip install tensorizer # for tensorizer test
 
 # vLLM 0.18.0 moved basic scripts from offline_inference/basic/ to basic/offline_inference/
 # vLLM 0.27.0+ moved them to generate/offline_inference/
-if [ -d "generate/offline_inference" ]; then
+# vLLM 0.29.0+ moved them to generate/
+if [ -f "generate/generate.py" ]; then
+  BASIC_DIR="generate"
+elif [ -d "generate/offline_inference" ]; then
   BASIC_DIR="generate/offline_inference"
 elif [ -d "basic/offline_inference" ]; then
   BASIC_DIR="basic/offline_inference"
@@ -16,7 +19,12 @@ else
 fi
 
 python3 ${BASIC_DIR}/generate.py --model facebook/opt-125m
-python3 ${BASIC_DIR}/chat.py
+# vLLM 0.29.0+ moved chat.py to generate/chat.py (not in offline_inference subdir)
+if [ -f "generate/chat.py" ]; then
+  python3 generate/chat.py
+else
+  python3 ${BASIC_DIR}/chat.py
+fi
 # vLLM post-v0.20.0 moved prefix_caching and spec_decode examples
 if [ -f "features/automatic_prefix_caching/prefix_caching_offline.py" ]; then
   python3 features/automatic_prefix_caching/prefix_caching_offline.py
@@ -46,9 +54,22 @@ if [ -d "generate/multimodal" ]; then
 else
   python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
 fi
-python3 ${BASIC_DIR}/classify.py
-python3 ${BASIC_DIR}/embed.py
-python3 ${BASIC_DIR}/score.py
+# vLLM 0.29.0+ may have moved classify/embed/score out of offline_inference
+if [ -f "${BASIC_DIR}/classify.py" ]; then
+  python3 ${BASIC_DIR}/classify.py
+elif [ -f "generate/classify.py" ]; then
+  python3 generate/classify.py
+fi
+if [ -f "${BASIC_DIR}/embed.py" ]; then
+  python3 ${BASIC_DIR}/embed.py
+elif [ -f "generate/embed.py" ]; then
+  python3 generate/embed.py
+fi
+if [ -f "${BASIC_DIR}/score.py" ]; then
+  python3 ${BASIC_DIR}/score.py
+elif [ -f "generate/score.py" ]; then
+  python3 generate/score.py
+fi
 if [ -f "features/speculative_decoding/spec_decode_offline.py" ]; then
   SPEC_DECODE="features/speculative_decoding/spec_decode_offline.py"
 else
