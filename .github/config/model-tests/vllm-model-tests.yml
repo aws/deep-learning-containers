@@ -3,6 +3,7 @@
 # Smoke tests: model serving + inference validation.
 # smoke-test has codebuild-fleet and runner-scale-sets sub-keys.
 # Workflow parsers construct s3_path from s3_prefix + s3_model.
+# required_image_pattern scopes each entry to gpu vs cpu images.
 #
 # SageMaker endpoint tests live in the sibling vllm-sagemaker-endpoint-tests.yml.
 # Benchmark (throughput/latency) configs live in
@@ -13,10 +14,18 @@ test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 smoke-test:
   codebuild-fleet:
+    # Qwen3.5-0.8B CPU smoke — dense 0.8B causal LM on the CPU build fleet (no GPU).
+    - name: "qwen3.5-0.8b-cpu"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-build-runner"
+      extra_args: "--max-model-len 4096 --dtype bfloat16"
+      required_image_pattern: {device_type: "cpu"}
+
     - name: "qwen3.5-0.8b"
       s3_model: "qwen3.5-0.8b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
+      required_image_pattern: {device_type: "gpu"}
 
     # MiniCPM5-1B — dense 1B LlamaForCausalLM, bf16 (~2GB), no custom code.
     # Standard architecture, loads with plain `vllm serve` (no --trust-remote-code).
@@ -28,6 +37,7 @@ smoke-test:
       s3_model: "minicpm5-1b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 8192 --dtype bfloat16"
+      required_image_pattern: {device_type: "gpu"}
 
     # JetBrains Mellum2 reasoning MoE (12B total / 2.5B active, bf16 ~23GB).
     # MellumForCausalLM support added upstream in vLLM 0.23.0 (PR #43992).
@@ -36,6 +46,7 @@ smoke-test:
       s3_model: "mellum2-12b-a2.5b-thinking.tar.gz"
       fleet: "x86-g6exl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --reasoning-parser qwen3"
+      required_image_pattern: {device_type: "gpu"}
 
     # NVIDIA Nemotron-Nano-12B-v2: Mamba2-Transformer hybrid (NemotronHForCausalLM),
     # 12B params bf16 (~24GB weights). Requires vllm>=0.10.1 for hybrid support.
@@ -47,6 +58,7 @@ smoke-test:
       s3_model: "nemotron-nano-12b-v2.tar.gz"
       fleet: "x86-g6exl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --trust-remote-code --mamba_ssm_cache_dtype float32"
+      required_image_pattern: {device_type: "gpu"}
 
     # LightOnOCR-2-1B: efficient 1B VLM for document OCR (LightOnOcrForConditionalGeneration).
     # Mistral3-based, bf16 (~2GB). Requires multimodal flags for image input.
@@ -55,18 +67,21 @@ smoke-test:
       s3_model: "lightonocr-2-1b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --no-enable-prefix-caching"
+      required_image_pattern: {device_type: "gpu"}
 
     - name: "qwen3-embedding-0.6b"
       s3_model: "qwen3-embedding-0.6b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--dtype bfloat16 --max-model-len 8192"
       test_script: "vllm_embedding_smoke_test.sh"
+      required_image_pattern: {device_type: "gpu"}
 
     - name: "qwen3-vl-embedding-2b"
       s3_model: "qwen3-vl-embedding-2b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 2048 --trust-remote-code"
       test_script: "vllm_embedding_smoke_test.sh"
+      required_image_pattern: {device_type: "gpu"}
 
     # Redis langcache-embed-v3-small: 22.6M-param BERT (MiniLM-L6) encoder, bf16,
     # 384-dim embeddings, 128 max seq len. Sentence-transformer; needs --runner pooling.
@@ -75,18 +90,21 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--runner pooling --dtype bfloat16 --max-model-len 128"
       test_script: "vllm_embedding_smoke_test.sh"
+      required_image_pattern: {device_type: "gpu"}
 
     - name: "qwen3-reranker-4b"
       s3_model: "qwen3-reranker-4b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--dtype bfloat16 --max-model-len 10000 --gpu-memory-utilization 0.85"
       test_script: "vllm_reranker_smoke_test.sh"
+      required_image_pattern: {device_type: "gpu"}
 
     - name: "voxtral-mini-4b"
       s3_model: "voxtral-mini-4b.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tokenizer-mode mistral --config-format mistral --load-format mistral --max-model-len 8192 --enforce-eager"
       test_script: "vllm_asr_smoke_test.sh"
+      required_image_pattern: {device_type: "gpu"}
       test_fixtures:
         - "audio/asr_en.wav"
       test_cases:
@@ -100,6 +118,7 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--max-model-len 2048"
       test_script: "vllm_asr_smoke_test.sh"
+      required_image_pattern: {device_type: "gpu"}
       test_fixtures:
         - "audio/asr_en.wav"
       test_cases:
@@ -115,5 +134,6 @@ smoke-test:
       s3_model: "unlimited-ocr.tar.gz"
       fleet: "x86-g6xl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16 --no-enable-prefix-caching"
+      required_image_pattern: {device_type: "gpu"}
 
   runner-scale-sets: []

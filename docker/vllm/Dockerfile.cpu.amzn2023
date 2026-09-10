@@ -1,0 +1,252 @@
+ARG AL_VERSION=2023
+ARG PYTHON_VERSION=3.12
+ARG FRAMEWORK_VERSION=0.28.0
+
+# =============================================================================
+# STAGE 0: source — clone vLLM at the pinned ref
+# =============================================================================
+FROM alpine/git AS source
+
+ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
+ARG FRAMEWORK_VERSION
+ARG VLLM_REF=v${FRAMEWORK_VERSION}
+
+RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
+  || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
+
+RUN echo "vLLM CPU AL2023 Image Source Manifest" >/src/SOURCE_MANIFEST \
+  && echo "Base: ${VLLM_REPO} @ ${VLLM_REF}" >>/src/SOURCE_MANIFEST \
+  && echo "HEAD: $(cd /src && git rev-parse HEAD)" >>/src/SOURCE_MANIFEST \
+  && echo "Built: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >>/src/SOURCE_MANIFEST \
+  && echo "Target device: cpu" >>/src/SOURCE_MANIFEST
+
+# =============================================================================
+# STAGE 1: build — compile the vLLM CPU wheel from source
+# =============================================================================
+FROM public.ecr.aws/amazonlinux/amazonlinux:${AL_VERSION} AS build
+
+ARG PYTHON_VERSION
+ARG PYTORCH_CPU_INDEX_URL=https://download.pytorch.org/whl/cpu
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+  tar gzip xz git make cmake ninja-build patch \
+  gcc14 gcc14-c++ \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  numactl-devel libgomp \
+  && dnf clean all && rm -rf /var/cache/dnf
+ENV CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-g++
+
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+ENV UV_HTTP_TIMEOUT=500
+ENV UV_INDEX_STRATEGY="unsafe-best-match"
+ENV UV_LINK_MODE=copy
+
+WORKDIR /workspace/vllm
+COPY --from=source /src/ ./
+
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --extra-index-url ${PYTORCH_CPU_INDEX_URL} \
+  -r requirements/cpu.txt -r requirements/build/cpu.txt
+
+ARG max_jobs=32
+ENV MAX_JOBS=${max_jobs}
+
+ENV VLLM_TARGET_DEVICE=cpu
+ARG VLLM_CPU_ARM_BF16=0
+ENV VLLM_CPU_ARM_BF16=${VLLM_CPU_ARM_BF16}
+
+ARG FRAMEWORK_VERSION
+ARG SETUPTOOLS_SCM_PRETEND_VERSION
+ENV SETUPTOOLS_SCM_PRETEND_VERSION=${SETUPTOOLS_SCM_PRETEND_VERSION:-${FRAMEWORK_VERSION}+cpu.amzn2023}
+
+RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
+
+# =============================================================================
+# STAGE 2: deps — clean venv with only runtime packages
+# =============================================================================
+FROM public.ecr.aws/amazonlinux/amazonlinux:${AL_VERSION} AS deps
+
+ARG PYTHON_VERSION
+ARG PYTORCH_CPU_INDEX_URL=https://download.pytorch.org/whl/cpu
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+  tar gzip gcc14 gcc14-c++ \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+  numactl-devel libgomp \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+ENV UV_HTTP_TIMEOUT=500
+ENV UV_INDEX_STRATEGY="unsafe-best-match"
+ENV UV_LINK_MODE=copy
+
+# torch CPU + vLLM runtime deps
+COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
+COPY --from=build /workspace/vllm/requirements/cpu.txt /tmp/cpu.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --extra-index-url ${PYTORCH_CPU_INDEX_URL} -r /tmp/cpu.txt
+
+# vLLM wheel built in stage 1
+COPY --from=build /workspace/vllm/dist /tmp/vllm-dist
+RUN --mount=type=cache,target=/root/.cache/uv ls /tmp/vllm-dist/*.whl \
+  && VLLM_WHL=$(ls -t /tmp/vllm-dist/vllm-*.whl | head -1) \
+  && echo "Installing ${VLLM_WHL}" \
+  && uv pip install "${VLLM_WHL}" --extra-index-url ${PYTORCH_CPU_INDEX_URL}
+
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
+  accelerate modelscope av scipy soundfile "mistral_common[audio]"
+
+# =============================================================================
+# STAGE: builder-oss — generate license files without polluting the runtime venv
+# =============================================================================
+FROM public.ecr.aws/amazonlinux/amazonlinux:${AL_VERSION} AS builder-oss
+ARG PYTHON_VERSION
+RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
+COPY --from=deps /opt/venv /opt/venv
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+# =============================================================================
+# STAGE 3: runtime — minimal image with the clean venv
+# =============================================================================
+FROM public.ecr.aws/amazonlinux/amazonlinux:${AL_VERSION} AS runtime
+
+ARG PYTHON_VERSION=3.12
+
+WORKDIR /vllm-workspace
+
+# gcc14 + python-devel stay for torch-inductor JIT at inference; numactl/libgomp/gperftools for CPU.
+RUN dnf install -y --setopt=install_weak_deps=False \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip \
+  gcc14 gcc14-c++ \
+  numactl numactl-libs libgomp gperftools-libs util-linux openssl \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# The inductor C++ codegen invokes CC/CXX at inference time.
+ENV CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-g++
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
+COPY --from=deps /opt/venv /opt/venv
+COPY --from=source /src/SOURCE_MANIFEST /vllm-workspace/
+
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+ENV VLLM_USAGE_SOURCE=production-docker-image
+ENV HF_XET_HIGH_PERFORMANCE=1
+ENV VLLM_CPU_OMP_THREADS_BIND=nobind
+
+# =============================================================================
+# STAGE 4: DLC overlay — Amazon DLC customizations on top of the vLLM runtime
+# =============================================================================
+FROM runtime AS base
+
+ARG PYTHON="python3"
+ARG PYTHON_VERSION=3.12
+ARG DLC_MAJOR_VERSION=2
+ARG DLC_MINOR_VERSION=0
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=general \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8
+
+WORKDIR /
+
+RUN uv pip install --no-cache-dir botocore
+
+# Patch CVEs (device-agnostic Python deps; mirrors the GPU vLLM image).
+RUN uv pip install --no-cache-dir \
+  "pillow>=12.1.1" \
+  "xgrammar>=0.1.32" \
+  "PyJWT>=2.12.0" \
+  "cbor2>=5.9.0" \
+  "starlette>=1.3.1" \
+  "cryptography>=48.0.1" \
+  "model-hosting-container-standards>=0.1.16,<1.0.0" \
+  # setuptools path traversal (CVE-2025-47273); latest also re-vendors jaraco.context>=6.1.0 for its Zip Slip (CVE-2026-23949)
+  "setuptools>=78.1.1" \
+  # 8.0.1 fixes AttributeError on fastapi 0.138 _IncludedRouter that 500s /health (instrumentator #371)
+  "prometheus-fastapi-instrumentator>=8.0.1"
+
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+
+# telemetry
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /tmp/uv* \
+  && rm -rf /var/cache/dnf \
+  && rm -rf /root/.cache || true
+
+# OSS compliance (runs in isolated stage to avoid polluting the venv)
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+# ====================== ec2 =========================================
+FROM base AS vllm-cpu-ec2-amzn2023
+
+ARG CACHE_REFRESH=0
+ARG PYTHON_VERSION=3.12
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  # Re-point python3 at the venv (3.12) after the last dnf-using layer.
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+
+COPY ./scripts/docker/vllm/vllm_cpu_env.sh /usr/local/bin/vllm_cpu_env.sh
+COPY ./scripts/docker/vllm/cpu_dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/vllm_cpu_env.sh /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# ====================== sagemaker =========================================
+FROM base AS vllm-cpu-sagemaker-amzn2023
+
+ARG CACHE_REFRESH=0
+ARG PYTHON_VERSION=3.12
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf install -y --setopt=install_weak_deps=False libsndfile \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  # Re-point python3 at the venv (3.12) after the last dnf-using layer.
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+
+COPY ./scripts/docker/vllm/vllm_cpu_env.sh /usr/local/bin/vllm_cpu_env.sh
+COPY ./scripts/docker/vllm/cpu_sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY ./scripts/docker/vllm/sagemaker_serve.py /usr/local/bin/sagemaker_serve.py
+COPY ./scripts/docker/vllm/sagemaker_args.py /usr/local/bin/sagemaker_args.py
+RUN chmod +x /usr/local/bin/vllm_cpu_env.sh /usr/local/bin/sagemaker_entrypoint.sh
+ENV PYTHONPATH="/usr/local/bin:${PYTHONPATH}"
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

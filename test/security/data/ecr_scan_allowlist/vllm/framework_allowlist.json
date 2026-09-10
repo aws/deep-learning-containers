@@ -98,5 +98,15 @@
         "vulnerability_id": "CVE-2026-33818",
         "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, stack exhaustion unmarshalling deeply nested recursive structures, cannot be patched independently of a mooncake-transfer-engine rebuild with Go 1.26.6+",
         "review_by": "2026-10-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84304",
+        "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so; HTTP/2 DATA-frame fragmentation memory exhaustion fixed in grpc 1.83.1, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-08"
+    },
+    {
+        "vulnerability_id": "GHSA-2v4p-qf9q-27wj",
+        "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so; xds server panic on requests missing :authority and Host headers, fix only in a grpc 1.85.0-dev pseudo-version, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-08"
     }
 ]
