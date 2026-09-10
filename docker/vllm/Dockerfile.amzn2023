@@ -162,6 +162,8 @@ RUN --mount=type=cache,target=/root/.cache/uv CUDA_MAJOR=$(echo $CUDA_VERSION | 
   && mkdir -p /tmp/ep_kernels_workspace/dist \
   && cd /tmp/deepep \
   && EP_NCCL_ROOT_DIR="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl" \
+    LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:/usr/local/cuda/lib64/stubs:/usr/local/cuda/targets/x86_64-linux/lib/stubs:${LIBRARY_PATH}" \
+    LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LD_LIBRARY_PATH}" \
     DISABLE_AGGRESSIVE_PTX_INSTRS=1 \
     TORCH_CUDA_ARCH_LIST='9.0a 10.0a 10.3a' \
     python3 setup.py bdist_wheel --dist-dir /tmp/ep_kernels_workspace/dist \
