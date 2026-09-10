@@ -19,7 +19,7 @@ s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 sagemaker:
-  # Qwen3.5-0.8B CPU endpoint — dense 0.8B causal LM on a CPU ML instance ladder.
+  # Qwen3.5-0.8B CPU endpoint (x86) — dense 0.8B causal LM on an x86 CPU ML instance ladder.
   - name: "qwen3.5-0.8b-cpu"
     s3_model: "qwen3.5-0.8b.tar.gz"
     instance_type:
@@ -29,6 +29,36 @@ sagemaker:
     required_image_pattern:
       os_version: "amzn2023"
       device_type: "cpu"
+      arch_type: "x86"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "4096"
+      SM_VLLM_DTYPE: "bfloat16"
+    test_cases:
+      - name: "chat-completion"
+        route: "/v1/chat/completions"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            messages:
+              - role: "user"
+                content: "What is the capital of France?"
+            max_tokens: 256
+            temperature: 0
+        validate: "json_field:choices.0.message.content"
+
+  # Qwen3.5-0.8B CPU endpoint (arm64/Graviton) — same model on a Graviton CPU ML instance ladder.
+  - name: "qwen3.5-0.8b-arm64-cpu"
+    s3_model: "qwen3.5-0.8b.tar.gz"
+    instance_type:
+      - "ml.c7g.2xlarge"
+      - "ml.c7g.4xlarge"
+      - "ml.c8g.4xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+      device_type: "cpu"
+      arch_type: "arm64"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_MAX_MODEL_LEN: "4096"
