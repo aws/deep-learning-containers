@@ -144,6 +144,7 @@ ENV PATH="/opt/venv/bin:${PATH}"
 ENV VIRTUAL_ENV="/opt/venv"
 ENV VLLM_USAGE_SOURCE=production-docker-image
 ENV HF_XET_HIGH_PERFORMANCE=1
+ENV VLLM_CPU_OMP_THREADS_BIND=nobind
 
 # =============================================================================
 # STAGE 4: DLC overlay — Amazon DLC customizations on top of the vLLM runtime
