@@ -179,6 +179,8 @@ RUN uv pip install --no-cache-dir \
   "starlette>=1.3.1" \
   "cryptography>=48.0.1" \
   "model-hosting-container-standards>=0.1.16,<1.0.0" \
+  # setuptools path traversal (CVE-2025-47273); latest also re-vendors jaraco.context>=6.1.0 for its Zip Slip (CVE-2026-23949)
+  "setuptools>=78.1.1" \
   # 8.0.1 fixes AttributeError on fastapi 0.138 _IncludedRouter that 500s /health (instrumentator #371)
   "prometheus-fastapi-instrumentator>=8.0.1"
 
