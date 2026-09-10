@@ -19,6 +19,38 @@ s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 sagemaker:
+  # Qwen3.5-0.8B CPU endpoint — dense 0.8B causal LM served on the x86 CPU AL2023
+  # image (VLLM_TARGET_DEVICE=cpu). required_image_pattern device_type: cpu scopes
+  # this entry to the CPU image only. instance_type is a CPU ML ladder (no GPU): the
+  # 0.8B bf16 weights plus KV cache fit comfortably in c6i memory. Chat completion
+  # over /v1/chat/completions validates end-to-end serving.
+  - name: "qwen3.5-0.8b-cpu"
+    s3_model: "qwen3.5-0.8b.tar.gz"
+    instance_type:
+      - "ml.c6i.2xlarge"
+      - "ml.c6i.4xlarge"
+      - "ml.m5.4xlarge"
+    required_image_pattern:
+      os_version: "amzn2023"
+      device_type: "cpu"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "4096"
+      SM_VLLM_DTYPE: "bfloat16"
+    test_cases:
+      - name: "chat-completion"
+        route: "/v1/chat/completions"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            messages:
+              - role: "user"
+                content: "What is the capital of France?"
+            max_tokens: 256
+            temperature: 0
+        validate: "json_field:choices.0.message.content"
+
   # MiniCPM5-1B — dense 1B LlamaForCausalLM, bf16. Standard chat model served via
   # the OpenAI /v1/chat/completions route. Validated offline on
   # server-sagemaker-cuda-v2 with SM_VLLM_MAX_MODEL_LEN=8192. Hybrid reasoning

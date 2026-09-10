@@ -178,7 +178,7 @@ jobs:
     secrets: inherit
 
   model-tests:
-    if: ${{ always() && !cancelled() && inputs.run-model-test && needs.ci-config.outputs.device-type == 'gpu' && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm/model'] != true }}
+    if: ${{ always() && !cancelled() && inputs.run-model-test && (needs.ci-config.outputs.device-type == 'gpu' || needs.ci-config.outputs.device-type == 'cpu') && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm/model'] != true }}
     needs: [build, check, ci-config]
     concurrency:
       group: ${{ github.workflow }}-model-tests-${{ inputs.config-file }}-${{ github.ref }}
@@ -186,6 +186,7 @@ jobs:
     uses: ./.github/workflows/vllm.tests-model.yml
     with:
       config-file: ${{ inputs.config-file }}
+      device-type: ${{ needs.ci-config.outputs.device-type }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
       image-content-hash: ${{ needs.check.outputs.image-content-hash }}
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['vllm/model'] || '' }}
