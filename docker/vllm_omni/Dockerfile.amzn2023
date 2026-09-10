@@ -2,7 +2,12 @@ ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
 ARG FRAMEWORK_VERSION=0.26.0
 ARG FLASHINFER_VERSION=0.6.14
-ARG DEEPEP_COMMIT_HASH=73b6ea4
+# DeepEP v2 from the AWS EFA fork (amazon-contributing/DeepEP).
+ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
+ARG DEEPEP_COMMIT_HASH=874779c9ccd2294b56304bd6cc5f138f1f71d097
+ARG NCCL_VERSION=2.31.2
+ARG NVSHMEM_PIP_VERSION=3.3.24
+ARG GDRCOPY_VERSION=2.5.2
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -48,7 +53,7 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 # tools/install_protoc.sh; `perl` for the openssl-sys crate compiled by the
 # Rust frontend (`vllm-rs`, new in v0.26.0).
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl \
+  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
@@ -174,17 +179,38 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
     fi
 
-# Build DeepEP wheels
+# Build the DeepEP wheel from the AWS EFA fork. Its setup.py compiles both the legacy NVSHMEM
+# backend and the NCCL/GIN (EFA) backend and finds them from pip-wheel metadata / EP_NCCL_ROOT_DIR,
+# so install those wheels first, then build into the dist dir the runtime stage copies from.
+ARG DEEPEP_REPO
 ARG DEEPEP_COMMIT_HASH
-ARG NVSHMEM_VER
-RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
-  && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
-  && tools/ep_kernels/install_python_libraries.sh \
-    --workspace /tmp/ep_kernels_workspace \
-    --mode wheel \
-    ${DEEPEP_COMMIT_HASH:+--deepep-ref "$DEEPEP_COMMIT_HASH"} \
-    ${NVSHMEM_VER:+--nvshmem-ver "$NVSHMEM_VER"} \
-  && find /tmp/ep_kernels_workspace/nvshmem -name '*.a' -delete
+ARG NCCL_VERSION
+ARG NVSHMEM_PIP_VERSION
+RUN --mount=type=cache,target=/root/.cache/uv CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && uv pip install --no-deps \
+    "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" \
+    "nvidia-nvshmem-cu${CUDA_MAJOR}==${NVSHMEM_PIP_VERSION}" \
+  && git clone "${DEEPEP_REPO}" /tmp/deepep \
+  && git -C /tmp/deepep checkout "${DEEPEP_COMMIT_HASH}" \
+  && git -C /tmp/deepep submodule update --init --recursive \
+  && mkdir -p /tmp/ep_kernels_workspace/dist \
+  && cd /tmp/deepep \
+  && EP_NCCL_ROOT_DIR="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl" \
+    LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:/usr/local/cuda/lib64/stubs:/usr/local/cuda/targets/x86_64-linux/lib/stubs:${LIBRARY_PATH}" \
+    LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LD_LIBRARY_PATH}" \
+    DISABLE_AGGRESSIVE_PTX_INSTRS=1 \
+    TORCH_CUDA_ARCH_LIST='9.0a 10.0a 10.3a' \
+    python3 setup.py bdist_wheel --dist-dir /tmp/ep_kernels_workspace/dist \
+  && cd / && rm -rf /tmp/deepep
+
+ARG GDRCOPY_VERSION
+RUN mkdir -p /tmp/gdrcopy && cd /tmp \
+  && curl --retry 3 -fsSL -o v${GDRCOPY_VERSION}.tar.gz \
+    https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v${GDRCOPY_VERSION}.tar.gz \
+  && tar -xzf v${GDRCOPY_VERSION}.tar.gz && rm v${GDRCOPY_VERSION}.tar.gz \
+  && cd gdrcopy-${GDRCOPY_VERSION} \
+  && make -j"$(nproc)" prefix=/usr/local CUDA=/usr/local/cuda lib lib_install \
+  && cd / && rm -rf /tmp/gdrcopy*
 
 # =============================================================================
 # STAGE: wheel-export — scratch image with built wheels for S3 cache upload
@@ -225,6 +251,12 @@ ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
+# Match runtime venv NCCL to the DeepEP wheel's compile-time NCCL (see build stage).
+ARG NCCL_VERSION
+RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
+ENV UV_OVERRIDE=/etc/uv-overrides.txt
+
 # Install PyTorch
 COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
 COPY --from=build /workspace/vllm/requirements/cuda.txt /tmp/cuda.txt
@@ -256,6 +288,10 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-jit-cach
 # in a way that trips uv resolution), and `runai-model-streamer[azure]` extra.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate 'modelscope<1.38' \
   "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7"
+
+ARG NVSHMEM_PIP_VERSION
+RUN --mount=type=cache,target=/root/.cache/uv CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && uv pip install --no-deps "nvidia-nvshmem-cu${CUDA_MAJOR}==${NVSHMEM_PIP_VERSION}"
 
 # Install DeepEP wheels from build stage
 COPY --from=build /tmp/ep_kernels_workspace/dist /tmp/ep_kernels/dist
@@ -424,13 +460,13 @@ ENV LANG=C.UTF-8 \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8 \
-  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
 
 # Install DLC Python dependencies
-RUN uv pip install --no-cache-dir botocore
+RUN uv pip install --no-cache-dir botocore instanttensor modelexpress
 
 # Patch CVEs
 RUN uv pip install --no-cache-dir \
@@ -473,9 +509,11 @@ COPY --from=builder-oss-omni /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_
 COPY --from=builder-oss-omni /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
 COPY --from=builder-oss-omni /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
+COPY --from=build /usr/local/lib/libgdrapi.so* /usr/local/lib/
+
 # install EFA
 COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
-ARG EFA_VERSION="1.47.0"
+ARG EFA_VERSION="1.50.0"
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
