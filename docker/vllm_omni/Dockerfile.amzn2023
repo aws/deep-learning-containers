@@ -102,10 +102,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/bui
 # Rust frontend build deps (new in vllm v0.26.0):
 # - setuptools-rust + wheel (requirements/build/rust.txt) drives the in-tree
 #   Rust build during `setup.py bdist_wheel`.
-# - install_protoc.sh installs protoc, which `build_rust.sh` invokes when
-#   compiling the `_rust_*.so` PyO3 extensions.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/build/rust.txt
-RUN bash tools/install_protoc.sh
 
 # Upstream vllm v0.26.0 dropped the +PTX suffix here — vLLM filters torch's
 # top-level PTX flag when it converts global gencode into per-kernel arch lists,
@@ -140,17 +137,6 @@ ARG USE_SCCACHE=false
 
 # Seed sccache cache from build context (synced from S3 before build)
 COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
-
-# Build the Rust frontend (`vllm-rs`) — new in vllm v0.26.0. Upstream's
-# build_rust.sh installs the toolchain pinned in rust-toolchain.toml explicitly
-# (relying on rustup auto-install for proxy commands is unreliable) and drops
-# `vllm/vllm-rs/` + `vllm/_rust_*.so` into the source tree. setup.py's
-# get_precompiled_rust_extension_paths() then picks them up and ships them as-is
-# rather than re-running the Rust build inside setuptools-rust. Skipped when
-# using a pre-built wheel (the wheel already carries the Rust artifacts).
-RUN if ! ([ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1); then \
-      bash build_rust.sh; \
-    fi
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
     if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
