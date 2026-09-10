@@ -3,11 +3,7 @@
 # Smoke tests: model serving + inference validation.
 # smoke-test has codebuild-fleet and runner-scale-sets sub-keys.
 # Workflow parsers construct s3_path from s3_prefix + s3_model.
-#
-# Each entry carries a required_image_pattern so the preflight (which passes
-# --image-config) runs the entry only against matching images. GPU entries use
-# device_type: gpu (they serve on both the ubuntu and amzn2023 GPU images, so no
-# os_version is pinned); the CPU entry uses device_type: cpu.
+# required_image_pattern scopes each entry to gpu vs cpu images.
 #
 # SageMaker endpoint tests live in the sibling vllm-sagemaker-endpoint-tests.yml.
 # Benchmark (throughput/latency) configs live in
@@ -18,10 +14,7 @@ test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 smoke-test:
   codebuild-fleet:
-    # Qwen3.5-0.8B CPU smoke — dense 0.8B causal LM, runs on the x86 CPU AL2023
-    # image (VLLM_TARGET_DEVICE=cpu). No GPU: served on the CPU build fleet with
-    # the device-agnostic vllm_model_smoke_test.sh. Small enough to load and emit
-    # a /v1/completions response within the smoke timeout on CPU.
+    # Qwen3.5-0.8B CPU smoke — dense 0.8B causal LM on the CPU build fleet (no GPU).
     - name: "qwen3.5-0.8b-cpu"
       s3_model: "qwen3.5-0.8b.tar.gz"
       fleet: "x86-build-runner"

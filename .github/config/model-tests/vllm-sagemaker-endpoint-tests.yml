@@ -19,11 +19,7 @@ s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 sagemaker:
-  # Qwen3.5-0.8B CPU endpoint — dense 0.8B causal LM served on the x86 CPU AL2023
-  # image (VLLM_TARGET_DEVICE=cpu). required_image_pattern device_type: cpu scopes
-  # this entry to the CPU image only. instance_type is a CPU ML ladder (no GPU): the
-  # 0.8B bf16 weights plus KV cache fit comfortably in c6i memory. Chat completion
-  # over /v1/chat/completions validates end-to-end serving.
+  # Qwen3.5-0.8B CPU endpoint — dense 0.8B causal LM on a CPU ML instance ladder.
   - name: "qwen3.5-0.8b-cpu"
     s3_model: "qwen3.5-0.8b.tar.gz"
     instance_type:
