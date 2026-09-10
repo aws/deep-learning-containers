@@ -7,6 +7,11 @@ on:
         description: "Path to image config YAML"
         required: true
         type: string
+      device-type:
+        description: "Image device type (gpu|cpu). Controls the --gpus docker flag."
+        required: false
+        type: string
+        default: "gpu"
       image-uri:
         description: "Image URI to test. If empty, derives prod URI from config."
         required: false
@@ -64,7 +69,9 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install pyyaml
-          python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/vllm-model-tests.yml
+          python3 scripts/ci/parse_model_config.py \
+            --config .github/config/model-tests/vllm-model-tests.yml \
+            --image-config "${{ inputs.config-file }}"
 
   test-model-codebuild-fleet:
     name: test-model (${{ matrix.name }})
@@ -97,8 +104,12 @@ jobs:
 
       - name: Start container
         run: |
+          GPUS_FLAG=""
+          if [ "${{ inputs.device-type }}" != "cpu" ]; then
+            GPUS_FLAG="--gpus all"
+          fi
           docker pull ${{ needs.preflight.outputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it ${GPUS_FLAG} --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
             -v /dlc-models:/models \
             ${{ needs.preflight.outputs.image-uri }})
