@@ -128,7 +128,7 @@ WORKDIR /vllm-workspace
 RUN dnf install -y --setopt=install_weak_deps=False \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip \
   gcc14 gcc14-c++ \
-  numactl numactl-libs libgomp gperftools-libs \
+  numactl numactl-libs libgomp gperftools-libs util-linux \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # The inductor C++ codegen invokes CC/CXX at inference time.
