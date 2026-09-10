@@ -14,17 +14,24 @@ if [ -d "offline_inference" ]; then
   python3 offline_inference/basic/embed.py
   python3 offline_inference/basic/score.py
 
-  python3 offline_inference/automatic_prefix_caching.py || true
+  # automatic_prefix_caching may live under features/ in v0.29+
+  APC=$(find . -path '*/automatic_prefix_caching*' -name '*.py' | head -1)
+  [ -n "$APC" ] && python3 "$APC" || true
 
   python3 offline_inference/multimodal/audio_language.py --seed 0
   python3 offline_inference/multimodal/vision_language.py --seed 0
   python3 offline_inference/multimodal/vision_language_multi_image.py --seed 0
-  python3 offline_inference/multimodal/encoder_decoder_multimodal.py --model-type whisper --seed 0
+  # encoder_decoder_multimodal may have been renamed in v0.29+
+  ECDM=$(find . -path '*/encoder_decoder*' -name '*.py' | head -1)
+  [ -n "$ECDM" ] && python3 "$ECDM" --model-type whisper --seed 0 || true
 
-  TENSORIZE="offline_inference/tensorize_vllm_model.py"
-  python3 ${TENSORIZE} --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 ${TENSORIZE} --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+  # tensorize script may live under features/ in v0.29+
+  TENSORIZE=$(find . -path '*tensorize_vllm_model.py' | head -1)
+  [ -n "$TENSORIZE" ] && python3 ${TENSORIZE} --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 ${TENSORIZE} --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
 
-  SPEC_DECODE="offline_inference/spec_decode.py"
+  # spec_decode may live under features/ in v0.29+
+  SPEC_DECODE=$(find . -path '*spec_decode*.py' -not -path '*/test*' | head -1)
+  [ -z "$SPEC_DECODE" ] && SPEC_DECODE="offline_inference/spec_decode.py"
   python3 ${SPEC_DECODE} --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048
   python3 ${SPEC_DECODE} --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536
 else
