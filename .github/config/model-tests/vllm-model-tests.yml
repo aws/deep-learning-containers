@@ -14,12 +14,19 @@ test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 smoke-test:
   codebuild-fleet:
-    # Qwen3.5-0.8B CPU smoke — dense 0.8B causal LM on the CPU build fleet (no GPU).
+    # Qwen3.5-0.8B CPU smoke — dense 0.8B causal LM on the x86 CPU build fleet (no GPU).
     - name: "qwen3.5-0.8b-cpu"
       s3_model: "qwen3.5-0.8b.tar.gz"
       fleet: "x86-build-runner"
       extra_args: "--max-model-len 4096 --dtype bfloat16"
-      required_image_pattern: {device_type: "cpu"}
+      required_image_pattern: {device_type: "cpu", arch_type: "x86"}
+
+    # Qwen3.5-0.8B CPU smoke (arm64/Graviton) — reuses the Graviton4 build fleet (no arm64 GPU runner).
+    - name: "qwen3.5-0.8b-arm64-cpu"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "arm64-graviton4-build-runner"
+      extra_args: "--max-model-len 4096 --dtype bfloat16"
+      required_image_pattern: {device_type: "cpu", arch_type: "arm64"}
 
     - name: "qwen3.5-0.8b"
       s3_model: "qwen3.5-0.8b.tar.gz"
