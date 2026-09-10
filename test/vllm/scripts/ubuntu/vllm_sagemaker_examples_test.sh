@@ -43,6 +43,8 @@ python3 basic/offline_inference/embed.py
 python3 basic/offline_inference/score.py
 
 SPEC_DECODE="features/speculative_decoding/spec_decode_offline.py"
-python3 ${SPEC_DECODE} --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048
-# https://github.com/vllm-project/vllm/pull/26682 uses slightly more memory in PyTorch 2.9+ causing this test to OOM in 1xL4 GPU
-python3 ${SPEC_DECODE} --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536
+# vLLM 0.29.0's default CUDA graph memory profiler lowers the effective gpu-memory-utilization,
+# and https://github.com/vllm-project/vllm/pull/26682 uses more memory in PyTorch 2.9+, leaving
+# too little KV cache on 1xL4. Bump gpu-memory-utilization to reclaim KV headroom.
+python3 ${SPEC_DECODE} --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048 --gpu-memory-utilization 0.95
+python3 ${SPEC_DECODE} --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536 --gpu-memory-utilization 0.95
