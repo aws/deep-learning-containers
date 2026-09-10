@@ -8,7 +8,7 @@ dependencies = [
     "faster-whisper==1.2.1",
     "whisperx==3.8.6",
     "pyannote.audio==4.0.7",
-    "torch==2.8.0",
+    "torch==2.14.0",
     "torchaudio==2.8.0",
     # HTTP serving layer
     "fastapi==0.121.0",
