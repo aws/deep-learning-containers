@@ -383,6 +383,12 @@ RUN uv pip install --no-cache-dir \
   # 8.0.1 fixes AttributeError on fastapi 0.138 _IncludedRouter that 500s /health (instrumentator #371)
   "prometheus-fastapi-instrumentator>=8.0.1"
 
+# Pin runtime NCCL to the DeepEP wheel's version (torch's transitive otherwise wins).
+ARG NCCL_VERSION
+RUN CUDA_MAJOR=$(echo "$CUDA_VERSION" | cut -d. -f1) \
+  && uv pip install --no-deps "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" \
+  && test "$(uv pip show nvidia-nccl-cu${CUDA_MAJOR} | awk '/^Version:/{print $2}')" = "${NCCL_VERSION}"
+
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 
