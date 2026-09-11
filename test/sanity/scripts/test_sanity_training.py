@@ -27,7 +27,7 @@ Test categories:
    13. TestEntrypoint         - /usr/local/bin/entrypoint.sh is executable
 
 Gating env vars:
-    EXPECTED_FRAMEWORK - pytorch_runtime | tensorflow | xgboost | ray_train
+    EXPECTED_FRAMEWORK - pytorch_runtime | tensorflow | xgboost | ray_train | autogluon
     EXPECTED_DEVICE    - cpu | gpu
     EXPECTED_CUSTOMER  - ec2 | sagemaker
 """
@@ -51,7 +51,7 @@ tensorflow_only = unittest.skipIf(FRAMEWORK != "tensorflow", "TF-only test")
 # (SSH cluster, MPI, entrypoint script). xgboost is a SageMaker
 # algorithm container and does not honor this contract.
 training_cluster_only = unittest.skipUnless(
-    FRAMEWORK in {"tensorflow", "pytorch_runtime", "ray_train"},
+    FRAMEWORK in {"tensorflow", "pytorch_runtime", "ray_train", "autogluon"},
     "training-cluster-only test (requires SSH+MPI stack; xgboost is algorithm container)",
 )
 

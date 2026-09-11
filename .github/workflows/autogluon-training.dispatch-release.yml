@@ -1,0 +1,29 @@
+name: "Dispatch - AutoGluon Training Release"
+
+# AutoGluon ships a few times a year, so releases are triggered by hand rather
+# than on a cron. Run once per config file from `main`; the pipeline's
+# release-gate reads release.environment (gamma / production) from the config.
+
+on:
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: "Path to image config YAML (e.g., .github/config/image/autogluon/1.6-training-sagemaker-cuda.yml)"
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/autogluon-training.pipeline.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      tag-suffix: ${{ github.run_id }}
+      release: true
+    secrets: inherit
