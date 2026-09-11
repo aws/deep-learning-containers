@@ -525,7 +525,7 @@ RUN dnf install -y --setopt=install_weak_deps=False make \
        CXXSTD="-std=c++17" \
        "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
   && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \
-  && dnf remove -y make && dnf clean all && rm -rf /var/cache/dnf \
+  && dnf clean all && rm -rf /var/cache/dnf \
   && cd / && rm -rf "${NCCL_TESTS_DIR}"
 
 # ====================== omni ec2 =========================================
