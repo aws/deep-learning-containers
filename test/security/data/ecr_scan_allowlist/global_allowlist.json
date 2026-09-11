@@ -1,7 +1,7 @@
 [
     {
         "vulnerability_id": "RUSTSEC-2026-0195",
-        "reason": "quick-xml 0.39.2 in uv binary, upstream uv has not released a fix yet. XML entity expansion DoS, low risk for pip installer use case.",
-        "review_by": "2026-09-10"
+        "reason": "quick-xml vendored in the statically-linked uv binary. XML namespace-resolution DoS, low risk for the package-installer use case. Fixed upstream in uv>=0.11.32 (Cargo.lock ships quick-xml 0.41.0), so images that install uv unpinned pick the fix up on rebuild; retained here only until every framework's uv is confirmed at-or-above that release, then this entry should be dropped.",
+        "review_by": "2026-10-25"
     }
 ]
