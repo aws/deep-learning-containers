@@ -1,7 +1,7 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG FRAMEWORK_VERSION=0.26.0
-ARG FLASHINFER_VERSION=0.6.14
+ARG FRAMEWORK_VERSION=0.29.0rc1
+ARG FLASHINFER_VERSION=0.6.18
 # DeepEP v2 from the AWS EFA fork (amazon-contributing/DeepEP).
 ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
 ARG DEEPEP_COMMIT_HASH=874779c9ccd2294b56304bd6cc5f138f1f71d097
@@ -368,7 +368,7 @@ ENV HF_XET_HIGH_PERFORMANCE=1
 # =============================================================================
 FROM runtime AS omni-deps
 
-ARG VLLM_OMNI_VERSION=0.26.0
+ARG VLLM_OMNI_VERSION=0.29.0rc1
 
 # System deps for omni-modality (TTS, audio, image/video)
 # Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, ffmpeg.
@@ -434,7 +434,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=5
+ARG DLC_MINOR_VERSION=7
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
