@@ -11,6 +11,7 @@ ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
 ARG SGLANG_KERNEL_VERSION=0.4.4
 ARG FLASHINFER_VERSION=0.6.12
 ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
+ARG FLASHMLA_COMMIT=15f13e5030374295491c5ce31b02d7e63a7772c6
 ARG MOONCAKE_VERSION=0.3.12.post1
 ARG GDRCOPY_VERSION=2.6
 ARG RUST_VERSION=1.96.1
@@ -116,11 +117,15 @@ RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/py
 # Symlink for backward compat with libraries that expect the old layout (FlashMLA, CUTLASS).
 RUN ln -sf /usr/local/cuda/include/cccl/cuda /usr/local/cuda/include/cuda || true
 
-# flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA architecture.
+# flash-mla: Flash Multi-Latent Attention kernels for DeepSeek's MLA architecture.
 # Must be cloned from GitHub (PyPI sdist is missing headers) and built from source.
+# Pinned: HEAD (07a1089, "DeepSeek v4.1") added SM100-only kernels whose
+# static_asserts (FOLD_FACTOR==4, H_Q_PER_CTA==32) fail when compiled for the
+# sm_90a target still in TORCH_CUDA_ARCH_LIST, breaking the wheel build.
 RUN cd /sgl-workspace \
   && git clone https://github.com/deepseek-ai/FlashMLA.git flash-mla \
-  && cd flash-mla && git submodule update --init --recursive \
+  && cd flash-mla && git checkout ${FLASHMLA_COMMIT} \
+  && git submodule update --init --recursive \
   && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
   && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
     pip install --no-cache-dir --no-build-isolation -v .
