@@ -1,8 +1,8 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG FRAMEWORK_VERSION=0.26.0
-ARG FLASHINFER_VERSION=0.6.14
-ARG DEEPEP_COMMIT_HASH=73b6ea4
+ARG FRAMEWORK_VERSION=0.28.0
+ARG FLASHINFER_VERSION=0.6.16.post3
+ARG DEEPEP_COMMIT_HASH=d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -46,9 +46,12 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
 # `unzip` and `perl` are new build deps in vllm v0.26.0: `unzip` for
 # tools/install_protoc.sh; `perl` for the openssl-sys crate compiled by the
-# Rust frontend (`vllm-rs`, new in v0.26.0).
+# Rust frontend (`vllm-rs`, new in v0.26.0). `patch` is new in v0.28.0: vLLM's
+# CMakeLists.txt applies cmake/patches/pytorch_stable_string.patch to torch's
+# stable headers at configure time (CMakeLists.txt:417). The upstream manylinux
+# build base ships `patch`, but the amzn2023 base does not.
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl \
+  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
@@ -78,6 +81,15 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
+
+# Pin NCCL to the version upstream vllm v0.28.0 requires: DeepEPv2's GIN backend
+# (built below) needs NCCL >= 2.30.4 for ncclGinRequest_t, newer than the
+# nvidia-nccl-cu<major> wheel torch pulls in. Force it via a uv override for
+# every install in this stage (mirrors upstream docker/Dockerfile's UV_OVERRIDE).
+ARG NCCL_VERSION=2.30.7
+RUN CUDA_MAJOR="${CUDA_VERSION%%.*}" \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
+ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 WORKDIR /workspace/vllm
 
@@ -174,11 +186,17 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
     fi
 
-# Build DeepEP wheels
+# Build DeepEP wheels.
+# DeepEP's setup.py adds the nvidia-nccl-cu* wheel lib dir to the built .so's
+# rpath (runtime) but NOT to the link-time search path, and the amzn2023 build
+# stage has no system libnccl.so.2 (upstream's manylinux/pytorch base does). So
+# point LIBRARY_PATH at the nccl wheel's lib dir so `-l:libnccl.so.2` resolves
+# when DeepEP links; the rpath DeepEP sets handles finding it at runtime.
 ARG DEEPEP_COMMIT_HASH
 ARG NVSHMEM_VER
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
+  && export LIBRARY_PATH="$(dirname "$(find /opt/venv -path '*/nvidia/nccl/lib/libnccl.so.2' -print -quit)")${LIBRARY_PATH:+:$LIBRARY_PATH}" \
   && tools/ep_kernels/install_python_libraries.sh \
     --workspace /tmp/ep_kernels_workspace \
     --mode wheel \
@@ -224,6 +242,14 @@ ENV PATH="/root/.local/bin:${PATH}"
 ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
+
+# Pin NCCL to match the build stage (DeepEPv2 GIN backend needs NCCL >= 2.30.4);
+# the DeepEP wheel installed below links the venv's nvidia-nccl-cu<major>, so the
+# runtime venv must carry the same 2.30.7 (mirrors upstream docker/Dockerfile).
+ARG NCCL_VERSION=2.30.7
+RUN CUDA_MAJOR="${CUDA_VERSION%%.*}" \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
+ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch
 COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
@@ -285,6 +311,17 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         # Force-reinstall the matching CUDA wheel so the correct nixl_ep_cpp.so
         # is installed (upstream vllm v0.21.0 fix).
         uv pip install --force-reinstall --no-deps nixl-cu${CUDA_MAJOR}; \
+        # mooncake-transfer-engine's default PyPI wheel is a CUDA 12 build (its
+        # engine.so links libcudart.so.12, absent from the CUDA 13 runtime). On
+        # CUDA 13, swap it for the same-version cuda13 variant. New in upstream
+        # vllm v0.28.0 (.buildkite/scripts/install-kv-connectors.sh).
+        if [ "${CUDA_MAJOR}" = "13" ]; then \
+            MOONCAKE_VERSION=$(uv pip show mooncake-transfer-engine 2>/dev/null | awk '/^Version:/{print $2}'); \
+            if [ -n "${MOONCAKE_VERSION}" ]; then \
+                uv pip uninstall mooncake-transfer-engine || true; \
+                uv pip install "mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION}"; \
+            fi; \
+        fi; \
     fi
 
 # Pre-download FlashInfer cubins AFTER all wheel installs (vllm wheel, EP
@@ -346,7 +383,7 @@ ENV HF_XET_HIGH_PERFORMANCE=1
 # =============================================================================
 FROM runtime AS omni-deps
 
-ARG VLLM_OMNI_VERSION=0.26.0
+ARG VLLM_OMNI_VERSION=0.28.0
 
 # System deps for omni-modality (TTS, audio, image/video)
 # Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, ffmpeg.
@@ -371,7 +408,8 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install "s3tokenizer==0.3.0
 # transformers <5.9.0 cap DROPPED in vllm-omni v0.26.0: upstream removed the
 # cap from requirements/common.txt and handles the breakage in code via
 # `transformers_keys_to_ignore_compat` (vllm_omni/model_executor/models/utils.py).
-# Requirement is now just `transformers >= 5.5.3` — resolved transitively by the
+# As of v0.28.0 the requirement is `transformers >= 5.10.1, < 5.15` (5.15 has a
+# construction regression; 5.10.0 was yanked) — resolved transitively by the
 # vllm-omni wheel install above, no explicit pin needed here.
 
 # Remove stray top-level benchmarks/ and samples/ dirs shipped by the
@@ -412,7 +450,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=5
+ARG DLC_MINOR_VERSION=7
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
