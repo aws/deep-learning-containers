@@ -21,6 +21,7 @@ build:
   sglang_kernel_version: "0.4.5"
   flashinfer_version: "0.6.15.post1"
   deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
+  flashmla_commit: "15f13e5030374295491c5ce31b02d7e63a7772c6"
   mooncake_version: "0.3.12.post1"
   torch_version: "2.11.0"
   nccl_version: "2.30.4"
