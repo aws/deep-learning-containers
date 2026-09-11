@@ -100,8 +100,8 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf clean all
 
 # HF auto-optimization layer — sourced by the entrypoint to set training perf
-# defaults at run time. See scripts/docker/huggingface/pytorch/hf_optimizations.sh.
-COPY --chmod=755 ./scripts/docker/huggingface/pytorch/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
+# defaults at run time. See scripts/docker/huggingface/pytorch/training/hf_optimizations.sh.
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/training/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
 
 # =====================================================================
 # sagemaker — HuggingFace training for SageMaker AI
@@ -110,7 +110,7 @@ FROM install AS sagemaker
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training:hf-pytorch"
 
-COPY --chmod=755 ./scripts/docker/huggingface/pytorch/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/training/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 CMD ["train"]
 
@@ -121,6 +121,6 @@ FROM install AS ec2
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:ec2:gpu-cuda:training:hf-pytorch"
 
-COPY --chmod=755 ./scripts/docker/huggingface/pytorch/ec2_entrypoint.sh /usr/local/bin/ec2_entrypoint.sh
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/training/ec2_entrypoint.sh /usr/local/bin/ec2_entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/ec2_entrypoint.sh"]
 CMD ["/bin/bash"]
