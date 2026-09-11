@@ -103,6 +103,21 @@ class TestCudaJitDependencies(unittest.TestCase):
 
         self.assertTrue(hasattr(triton, "__version__"))
 
+    def test_deep_ep_v2_available(self):
+        """DeepEP v2 (deep_ep wheel + runtime NCCL >= 2.30.4) present; amzn2023 only."""
+        import importlib.util
+
+        from vllm.utils.import_utils import _get_runtime_nccl_version
+
+        with open("/etc/os-release") as f:
+            if "amzn" not in f.read().lower():
+                self.skipTest("DeepEP v2 ships only on amzn2023 images")
+
+        self.assertIsNotNone(importlib.util.find_spec("deep_ep"), "deep_ep wheel not installed")
+        nccl = _get_runtime_nccl_version()  # ctypes ncclGetVersion on the loaded libnccl
+        self.assertIsNotNone(nccl, "could not read runtime NCCL version")
+        self.assertGreaterEqual(nccl, 23004, f"runtime NCCL {nccl} < 2.30.4; deepep_v2 won't load")
+
 
 class TestEntrypointArgHandling(unittest.TestCase):
     """Category 2: Verify sagemaker_entrypoint.sh handles env vars correctly."""
