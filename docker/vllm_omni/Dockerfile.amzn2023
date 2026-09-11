@@ -1,8 +1,13 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG FRAMEWORK_VERSION=0.26.0
-ARG FLASHINFER_VERSION=0.6.14
-ARG DEEPEP_COMMIT_HASH=73b6ea4
+ARG FRAMEWORK_VERSION=0.29.0rc1
+ARG FLASHINFER_VERSION=0.6.18
+# DeepEP v2 from the AWS EFA fork (amazon-contributing/DeepEP).
+ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
+ARG DEEPEP_COMMIT_HASH=874779c9ccd2294b56304bd6cc5f138f1f71d097
+ARG NCCL_VERSION=2.31.2
+ARG NVSHMEM_PIP_VERSION=3.3.24
+ARG GDRCOPY_VERSION=2.5.2
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -48,7 +53,7 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 # tools/install_protoc.sh; `perl` for the openssl-sys crate compiled by the
 # Rust frontend (`vllm-rs`, new in v0.26.0).
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl \
+  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
@@ -97,10 +102,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/bui
 # Rust frontend build deps (new in vllm v0.26.0):
 # - setuptools-rust + wheel (requirements/build/rust.txt) drives the in-tree
 #   Rust build during `setup.py bdist_wheel`.
-# - install_protoc.sh installs protoc, which `build_rust.sh` invokes when
-#   compiling the `_rust_*.so` PyO3 extensions.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/build/rust.txt
-RUN bash tools/install_protoc.sh
 
 # Upstream vllm v0.26.0 dropped the +PTX suffix here — vLLM filters torch's
 # top-level PTX flag when it converts global gencode into per-kernel arch lists,
@@ -136,17 +138,6 @@ ARG USE_SCCACHE=false
 # Seed sccache cache from build context (synced from S3 before build)
 COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
 
-# Build the Rust frontend (`vllm-rs`) — new in vllm v0.26.0. Upstream's
-# build_rust.sh installs the toolchain pinned in rust-toolchain.toml explicitly
-# (relying on rustup auto-install for proxy commands is unreliable) and drops
-# `vllm/vllm-rs/` + `vllm/_rust_*.so` into the source tree. setup.py's
-# get_precompiled_rust_extension_paths() then picks them up and ships them as-is
-# rather than re-running the Rust build inside setuptools-rust. Skipped when
-# using a pre-built wheel (the wheel already carries the Rust artifacts).
-RUN if ! ([ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1); then \
-      bash build_rust.sh; \
-    fi
-
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
     if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
@@ -174,17 +165,38 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
     fi
 
-# Build DeepEP wheels
+# Build the DeepEP wheel from the AWS EFA fork. Its setup.py compiles both the legacy NVSHMEM
+# backend and the NCCL/GIN (EFA) backend and finds them from pip-wheel metadata / EP_NCCL_ROOT_DIR,
+# so install those wheels first, then build into the dist dir the runtime stage copies from.
+ARG DEEPEP_REPO
 ARG DEEPEP_COMMIT_HASH
-ARG NVSHMEM_VER
-RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
-  && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
-  && tools/ep_kernels/install_python_libraries.sh \
-    --workspace /tmp/ep_kernels_workspace \
-    --mode wheel \
-    ${DEEPEP_COMMIT_HASH:+--deepep-ref "$DEEPEP_COMMIT_HASH"} \
-    ${NVSHMEM_VER:+--nvshmem-ver "$NVSHMEM_VER"} \
-  && find /tmp/ep_kernels_workspace/nvshmem -name '*.a' -delete
+ARG NCCL_VERSION
+ARG NVSHMEM_PIP_VERSION
+RUN --mount=type=cache,target=/root/.cache/uv CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && uv pip install --no-deps \
+    "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" \
+    "nvidia-nvshmem-cu${CUDA_MAJOR}==${NVSHMEM_PIP_VERSION}" \
+  && git clone "${DEEPEP_REPO}" /tmp/deepep \
+  && git -C /tmp/deepep checkout "${DEEPEP_COMMIT_HASH}" \
+  && git -C /tmp/deepep submodule update --init --recursive \
+  && mkdir -p /tmp/ep_kernels_workspace/dist \
+  && cd /tmp/deepep \
+  && EP_NCCL_ROOT_DIR="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl" \
+    LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:/usr/local/cuda/lib64/stubs:/usr/local/cuda/targets/x86_64-linux/lib/stubs:${LIBRARY_PATH}" \
+    LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LD_LIBRARY_PATH}" \
+    DISABLE_AGGRESSIVE_PTX_INSTRS=1 \
+    TORCH_CUDA_ARCH_LIST='9.0a 10.0a 10.3a' \
+    python3 setup.py bdist_wheel --dist-dir /tmp/ep_kernels_workspace/dist \
+  && cd / && rm -rf /tmp/deepep
+
+ARG GDRCOPY_VERSION
+RUN mkdir -p /tmp/gdrcopy && cd /tmp \
+  && curl --retry 3 -fsSL -o v${GDRCOPY_VERSION}.tar.gz \
+    https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v${GDRCOPY_VERSION}.tar.gz \
+  && tar -xzf v${GDRCOPY_VERSION}.tar.gz && rm v${GDRCOPY_VERSION}.tar.gz \
+  && cd gdrcopy-${GDRCOPY_VERSION} \
+  && make -j"$(nproc)" prefix=/usr/local CUDA=/usr/local/cuda lib lib_install \
+  && cd / && rm -rf /tmp/gdrcopy*
 
 # =============================================================================
 # STAGE: wheel-export — scratch image with built wheels for S3 cache upload
@@ -225,6 +237,12 @@ ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
+# Match runtime venv NCCL to the DeepEP wheel's compile-time NCCL (see build stage).
+ARG NCCL_VERSION
+RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
+ENV UV_OVERRIDE=/etc/uv-overrides.txt
+
 # Install PyTorch
 COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
 COPY --from=build /workspace/vllm/requirements/cuda.txt /tmp/cuda.txt
@@ -256,6 +274,10 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-jit-cach
 # in a way that trips uv resolution), and `runai-model-streamer[azure]` extra.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate 'modelscope<1.38' \
   "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7"
+
+ARG NVSHMEM_PIP_VERSION
+RUN --mount=type=cache,target=/root/.cache/uv CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
+  && uv pip install --no-deps "nvidia-nvshmem-cu${CUDA_MAJOR}==${NVSHMEM_PIP_VERSION}"
 
 # Install DeepEP wheels from build stage
 COPY --from=build /tmp/ep_kernels_workspace/dist /tmp/ep_kernels/dist
@@ -346,7 +368,7 @@ ENV HF_XET_HIGH_PERFORMANCE=1
 # =============================================================================
 FROM runtime AS omni-deps
 
-ARG VLLM_OMNI_VERSION=0.26.0
+ARG VLLM_OMNI_VERSION=0.29.0rc1
 
 # System deps for omni-modality (TTS, audio, image/video)
 # Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, ffmpeg.
@@ -412,7 +434,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=5
+ARG DLC_MINOR_VERSION=7
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -424,13 +446,13 @@ ENV LANG=C.UTF-8 \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8 \
-  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
 
 # Install DLC Python dependencies
-RUN uv pip install --no-cache-dir botocore
+RUN uv pip install --no-cache-dir botocore instanttensor modelexpress
 
 # Patch CVEs
 RUN uv pip install --no-cache-dir \
@@ -442,6 +464,12 @@ RUN uv pip install --no-cache-dir \
   "cryptography>=48.0.1" \
   "gradio>=6.7.0" \
   "model-hosting-container-standards>=0.1.14,<1.0.0"
+
+# Pin runtime NCCL to the DeepEP wheel's version (torch's transitive otherwise wins).
+ARG NCCL_VERSION
+RUN CUDA_MAJOR=$(echo "$CUDA_VERSION" | cut -d. -f1) \
+  && uv pip install --no-deps "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" \
+  && test "$(uv pip show nvidia-nccl-cu${CUDA_MAJOR} | awk '/^Version:/{print $2}')" = "${NCCL_VERSION}"
 
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
@@ -473,9 +501,11 @@ COPY --from=builder-oss-omni /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_
 COPY --from=builder-oss-omni /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
 COPY --from=builder-oss-omni /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
+COPY --from=build /usr/local/lib/libgdrapi.so* /usr/local/lib/
+
 # install EFA
 COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
-ARG EFA_VERSION="1.47.0"
+ARG EFA_VERSION="1.50.0"
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
@@ -484,6 +514,25 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && dnf remove -y libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# Prebuild all_reduce_perf so the CI EFA test's setup_nccl_tests.sh is a no-op.
+ARG NCCL_TESTS_VERSION=v2.20.0
+RUN dnf install -y --setopt=install_weak_deps=False make \
+  && NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") \
+  && if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
+       ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
+     fi \
+  && cd /tmp \
+  && NCCL_TESTS_DIR="/tmp/nccl-tests-${NCCL_TESTS_VERSION#v}" \
+  && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
+  && make -C "${NCCL_TESTS_DIR}/src" BUILDDIR="${NCCL_TESTS_DIR}/build" \
+       MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" CUDA_HOME=/usr/local/cuda \
+       NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_90,code=sm_90" \
+       CXXSTD="-std=c++17" \
+       "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
+  && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && cd / && rm -rf "${NCCL_TESTS_DIR}"
 
 # ====================== omni ec2 =========================================
 FROM omni-base AS vllm-omni-ec2-amzn2023
