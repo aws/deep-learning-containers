@@ -1,0 +1,33 @@
+image:
+  name: "vllm-cpu-arm64-sagemaker-amzn2023"
+  description: "vLLM CPU-inference for SageMaker (arm64/Graviton, AL2023, built from source)"
+
+metadata:
+  framework: "vllm_server"
+  framework_version: "0.28.0"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "arm64"
+  device_type: "cpu"
+  job_type: "general"
+  prod_image: "vllm:server-arm64-sagemaker-cpu-v1"
+
+build:
+  dockerfile: "docker/vllm/Dockerfile.cpu.amzn2023"
+  target: "vllm-cpu-sagemaker-amzn2023"
+  python_version: "3.12"
+  vllm_ref: "2cf0a6915ce544dc493a0990f2ea38d81601128a"  # v0.28.0
+  # FEAT_BF16 is present on Graviton 3/4/5; build the aarch64 bf16 kernels from source.
+  vllm_cpu_arm_bf16: "1"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  # Autorelease wiring + validation pending; flip to true once CI is green.
+  release: false
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"
