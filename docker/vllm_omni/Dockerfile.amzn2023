@@ -53,7 +53,7 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 # tools/install_protoc.sh; `perl` for the openssl-sys crate compiled by the
 # Rust frontend (`vllm-rs`, new in v0.26.0).
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk \
+  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
@@ -508,6 +508,23 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && dnf remove -y libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# Prebuild all_reduce_perf so the CI EFA test's setup_nccl_tests.sh is a no-op.
+ARG NCCL_TESTS_VERSION=v2.20.0
+RUN dnf install -y --setopt=install_weak_deps=False make gcc-c++ \
+  && NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") \
+  && if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
+       ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
+     fi \
+  && cd /tmp \
+  && NCCL_TESTS_DIR="/tmp/nccl-tests-${NCCL_TESTS_VERSION#v}" \
+  && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
+  && make -C "${NCCL_TESTS_DIR}/src" BUILDDIR="${NCCL_TESTS_DIR}/build" \
+       MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" CUDA_HOME=/usr/local/cuda \
+       "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
+  && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \
+  && dnf remove -y make gcc-c++ && dnf clean all && rm -rf /var/cache/dnf \
+  && cd / && rm -rf "${NCCL_TESTS_DIR}"
 
 # ====================== omni ec2 =========================================
 FROM omni-base AS vllm-omni-ec2-amzn2023
