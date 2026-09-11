@@ -521,6 +521,8 @@ RUN dnf install -y --setopt=install_weak_deps=False make gcc-c++ \
   && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
   && make -C "${NCCL_TESTS_DIR}/src" BUILDDIR="${NCCL_TESTS_DIR}/build" \
        MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" CUDA_HOME=/usr/local/cuda \
+       NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_90,code=sm_90" \
+       CXXSTD="-std=c++17" \
        "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
   && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \
   && dnf remove -y make gcc-c++ && dnf clean all && rm -rf /var/cache/dnf \
