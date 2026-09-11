@@ -33,7 +33,6 @@ build:
   math_verify_version: "0.9.0"
   vllm_version: "0.25.0"
   dlc_major_version: "1"
-  dlc_minor_version: "0"
 
 release:
   # Gamma-testing the release before production.
