@@ -465,6 +465,12 @@ RUN uv pip install --no-cache-dir \
   "gradio>=6.7.0" \
   "model-hosting-container-standards>=0.1.14,<1.0.0"
 
+# Pin runtime NCCL to the DeepEP wheel's version (torch's transitive otherwise wins).
+ARG NCCL_VERSION
+RUN CUDA_MAJOR=$(echo "$CUDA_VERSION" | cut -d. -f1) \
+  && uv pip install --no-deps "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" \
+  && test "$(uv pip show nvidia-nccl-cu${CUDA_MAJOR} | awk '/^Version:/{print $2}')" = "${NCCL_VERSION}"
+
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 
