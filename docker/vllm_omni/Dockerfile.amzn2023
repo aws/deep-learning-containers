@@ -511,7 +511,7 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
 
 # Prebuild all_reduce_perf so the CI EFA test's setup_nccl_tests.sh is a no-op.
 ARG NCCL_TESTS_VERSION=v2.20.0
-RUN dnf install -y --setopt=install_weak_deps=False make gcc-c++ \
+RUN dnf install -y --setopt=install_weak_deps=False make \
   && NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") \
   && if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
        ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
@@ -525,7 +525,7 @@ RUN dnf install -y --setopt=install_weak_deps=False make gcc-c++ \
        CXXSTD="-std=c++17" \
        "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
   && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \
-  && dnf remove -y make gcc-c++ && dnf clean all && rm -rf /var/cache/dnf \
+  && dnf remove -y make && dnf clean all && rm -rf /var/cache/dnf \
   && cd / && rm -rf "${NCCL_TESTS_DIR}"
 
 # ====================== omni ec2 =========================================
