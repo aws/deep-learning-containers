@@ -2,47 +2,47 @@
     {
         "vulnerability_id": "CVE-2026-27145",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-33811",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-33814",
         "reason": "go/stdlib 1.25.9 and golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-39820",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-39821",
         "reason": "golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-39822",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.5+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-39836",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-42499",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.3+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-42504",
         "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, MIME header parsing CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-31"
     },
     {
         "vulnerability_id": "CVE-2026-46600",
