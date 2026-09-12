@@ -103,6 +103,32 @@ class TestCudaJitDependencies(unittest.TestCase):
 
         self.assertTrue(hasattr(triton, "__version__"))
 
+    def test_deep_ep_v2_available(self):
+        """DeepEP v2 *prerequisites* (deep_ep wheel + runtime NCCL >= 2.30.4); vLLM amzn2023 only.
+
+        GPU-free; checks prerequisites only, NOT the ElasticBuffer v2 API (that needs
+        `import deep_ep` = a GPU) — real v2 validation is the gated test_ep.py on p5en.
+        Scoped to vLLM: this file is shared with SGLang, which builds DeepEP differently,
+        ships both cu12/cu13 nccl wheels (metadata is ambiguous), and has no `vllm`
+        package. SGLang's DeepEP is covered separately when its 0.5.19 recipe lands.
+        """
+        import importlib.util
+
+        if importlib.util.find_spec("vllm") is None:
+            self.skipTest("not a vLLM image")
+        with open("/etc/os-release") as f:
+            if "amzn" not in f.read().lower():
+                self.skipTest("DeepEP v2 ships only on amzn2023 images")
+
+        self.assertIsNotNone(importlib.util.find_spec("deep_ep"), "deep_ep wheel not installed")
+        # vLLM's own probe: ctypes ncclGetVersion on the actually-loaded libnccl (raw int,
+        # e.g. 23102 for 2.31.2) — avoids the cu12/cu13 wheel-metadata ambiguity.
+        from vllm.utils.import_utils import _get_runtime_nccl_version
+
+        nccl = _get_runtime_nccl_version()
+        self.assertIsNotNone(nccl, "could not read runtime NCCL version")
+        self.assertGreaterEqual(nccl, 23004, f"runtime NCCL {nccl} < 2.30.4; deepep_v2 won't load")
+
 
 class TestEntrypointArgHandling(unittest.TestCase):
     """Category 2: Verify sagemaker_entrypoint.sh handles env vars correctly."""
