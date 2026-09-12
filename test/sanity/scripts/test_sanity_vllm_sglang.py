@@ -104,19 +104,34 @@ class TestCudaJitDependencies(unittest.TestCase):
         self.assertTrue(hasattr(triton, "__version__"))
 
     def test_deep_ep_v2_available(self):
-        """DeepEP v2 (deep_ep wheel + runtime NCCL >= 2.30.4) present; amzn2023 only."""
-        import importlib.util
+        """DeepEP v2 *prerequisites*: deep_ep wheel installed + NCCL >= 2.30.4; amzn2023 only.
 
-        from vllm.utils.import_utils import _get_runtime_nccl_version
+        GPU-free guard only — it does NOT verify the v2 ElasticBuffer API (that needs
+        `import deep_ep`, i.e. a GPU); the real v2 functional check is the gated
+        test_ep.py on p5en. Framework-agnostic: this file is shared with SGLang (no
+        vllm package), so NCCL comes from the nvidia-nccl wheel metadata, not vllm.
+        """
+        import importlib.metadata
+        import importlib.util
 
         with open("/etc/os-release") as f:
             if "amzn" not in f.read().lower():
                 self.skipTest("DeepEP v2 ships only on amzn2023 images")
 
         self.assertIsNotNone(importlib.util.find_spec("deep_ep"), "deep_ep wheel not installed")
-        nccl = _get_runtime_nccl_version()  # ctypes ncclGetVersion on the loaded libnccl
-        self.assertIsNotNone(nccl, "could not read runtime NCCL version")
-        self.assertGreaterEqual(nccl, 23004, f"runtime NCCL {nccl} < 2.30.4; deepep_v2 won't load")
+
+        nccl_ver = None
+        for pkg in ("nvidia-nccl-cu13", "nvidia-nccl-cu12"):
+            try:
+                nccl_ver = importlib.metadata.version(pkg)
+                break
+            except importlib.metadata.PackageNotFoundError:
+                continue
+        self.assertIsNotNone(nccl_ver, "nvidia-nccl wheel not installed")
+        parts = tuple(int(x) for x in nccl_ver.split(".")[:3])
+        self.assertGreaterEqual(
+            parts, (2, 30, 4), f"NCCL {nccl_ver} < 2.30.4; deepep_v2 won't load"
+        )
 
 
 class TestEntrypointArgHandling(unittest.TestCase):
