@@ -55,31 +55,81 @@ is_rc_version() {
 
 
 ###############################################################################
-# is_newer_version(upstream, current)
-#   Returns 0 (true) if upstream is strictly greater than current.
-#   Numeric segment-by-segment comparison, padded to 3 segments.
-#   Caller must ensure RC versions are filtered before calling.
+# release_segments(version)
+#   Echoes the numeric release segments of a version, space-separated.
+#   Everything from the first non-numeric character of a segment onward is
+#   dropped, so local/suffix segments ("+dlc1", ".post1", ".dev361") do not
+#   participate in the comparison. A segment with no leading digits ends the
+#   release portion.
 #
 #   Examples:
-#     is_newer_version "0.17.0" "0.16.0" → 0 (true)
-#     is_newer_version "0.16.0" "0.16.0" → 1 (false)
-#     is_newer_version "0.9.0"  "0.16.0" → 1 (false)
+#     release_segments "0.5.13+dlc1"  → "0 5 13"
+#     release_segments "0.17.0.post1" → "0 17 0"
+#     release_segments "1.0.0.1"      → "1 0 0 1"
+###############################################################################
+release_segments() {
+  local version="${1:?Usage: release_segments VERSION}"
+  local -a parts segments=()
+  local part digits
+
+  IFS='.' read -ra parts <<< "${version}"
+
+  for part in "${parts[@]}"; do
+    # Keep the leading digits only: "13+dlc1" → "13", "post1" → ""
+    digits="${part%%[!0-9]*}"
+    if [[ -z "${digits}" ]]; then
+      break
+    fi
+    segments+=("${digits}")
+    # A suffix started inside this segment — the release portion ends here.
+    if [[ "${digits}" != "${part}" ]]; then
+      break
+    fi
+  done
+
+  echo "${segments[*]:-}"
+}
+
+###############################################################################
+# is_newer_version(upstream, current)
+#   Returns 0 (true) if upstream is strictly greater than current.
+#   Compares the numeric release segments of both versions, ignoring local and
+#   suffix segments ("+dlc1", ".post1", ".dev361") and comparing every segment
+#   present rather than just the first three.
+#   Caller must ensure RC versions are filtered before calling.
+#
+#   Returns 2 and logs to stderr if either version has no numeric segments.
+#
+#   Examples:
+#     is_newer_version "0.17.0" "0.16.0"       → 0 (true)
+#     is_newer_version "0.16.0" "0.16.0"       → 1 (false)
+#     is_newer_version "0.9.0"  "0.16.0"       → 1 (false)
+#     is_newer_version "0.5.14" "0.5.13+dlc1"  → 0 (true)
+#     is_newer_version "1.0.0.1" "1.0.0"       → 0 (true)
 ###############################################################################
 is_newer_version() {
   local upstream="${1:?Usage: is_newer_version UPSTREAM CURRENT}"
   local current="${2:?Usage: is_newer_version UPSTREAM CURRENT}"
 
-  # Split into arrays on "."
-  IFS='.' read -ra u_parts <<< "${upstream}"
-  IFS='.' read -ra c_parts <<< "${current}"
+  local -a u_parts c_parts
+  read -ra u_parts <<< "$(release_segments "${upstream}")"
+  read -ra c_parts <<< "$(release_segments "${current}")"
 
-  # Pad to 3 segments with zeros
-  while [[ ${#u_parts[@]} -lt 3 ]]; do u_parts+=("0"); done
-  while [[ ${#c_parts[@]} -lt 3 ]]; do c_parts+=("0"); done
+  if [[ ${#u_parts[@]} -eq 0 || ${#c_parts[@]} -eq 0 ]]; then
+    echo "Error: cannot compare versions '${upstream}' and '${current}': no numeric release segments" >&2
+    return 2
+  fi
 
-  for i in 0 1 2; do
-    local u_seg=$((10#${u_parts[$i]}))
-    local c_seg=$((10#${c_parts[$i]}))
+  # Pad the shorter version with zeros so every segment is compared
+  local length=${#u_parts[@]}
+  (( ${#c_parts[@]} > length )) && length=${#c_parts[@]}
+  while [[ ${#u_parts[@]} -lt ${length} ]]; do u_parts+=("0"); done
+  while [[ ${#c_parts[@]} -lt ${length} ]]; do c_parts+=("0"); done
+
+  local i u_seg c_seg
+  for (( i = 0; i < length; i++ )); do
+    u_seg=$((10#${u_parts[$i]}))
+    c_seg=$((10#${c_parts[$i]}))
     if (( u_seg > c_seg )); then
       return 0
     fi
