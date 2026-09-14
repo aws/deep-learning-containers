@@ -21,6 +21,7 @@ docker/xgboost/prebuilt.whl
 docker/tei/*/cpu/tei-src/
 docker/tei/*/gpu/tei-src/
 docker/whisperx/pyannote-diarization.tar.gz
+docker/sklearn/*/multi_model_server-*.whl
 
 # tmp
 .github/archive
