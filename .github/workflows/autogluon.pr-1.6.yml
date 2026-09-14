@@ -62,7 +62,7 @@ jobs:
               - "test/autogluon/inference/test_*.py"
               - ".github/workflows/autogluon.tests-unit.yml"
             sagemaker-test-change:
-              - "test/autogluon/e2e/**"
+              - "test/autogluon/sagemaker/**"
               - ".github/workflows/autogluon.tests-sagemaker.yml"
             telemetry-test-change:
               - "scripts/docker/telemetry/**"

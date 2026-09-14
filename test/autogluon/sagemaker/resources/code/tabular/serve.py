@@ -1,4 +1,4 @@
-"""Inference handler packaged with the trained AutoGluon model."""
+"""Inference handler packaged with the trained AutoGluon tabular model."""
 
 from io import StringIO
 

@@ -88,12 +88,12 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
-          uv pip install -r test/autogluon/e2e/requirements.txt
+          uv pip install -r test/autogluon/sagemaker/requirements.txt
           cd test/
           PYTHONPATH=$(pwd):$PYTHONPATH \
             uv run --active --no-project pytest -v --tb=short -rA --log-cli-level=INFO \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
-            autogluon/e2e/test_train_and_serve.py
+            autogluon/sagemaker/test_train_and_serve.py
 
   record-test-pass:
     if: >-

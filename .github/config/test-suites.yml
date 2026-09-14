@@ -59,7 +59,7 @@ suites:
   autogluon/sagemaker:
     skip_eligible: true
     code_paths:
-      - test/autogluon/e2e/**
+      - test/autogluon/sagemaker/**
 
   tensorflow-inference/sagemaker:
     skip_eligible: true

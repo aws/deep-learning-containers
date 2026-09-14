@@ -1,4 +1,4 @@
-"""Train an AutoGluon predictor and package its inference handler."""
+"""Train an AutoGluon tabular predictor and package its inference handler."""
 
 import os
 import shutil
@@ -46,4 +46,4 @@ if __name__ == "__main__":
     resource_dir = Path(__file__).parent
     code_dir = model_dir / "code"
     code_dir.mkdir(exist_ok=True)
-    shutil.copy2(resource_dir / "tabular_serve.py", code_dir / "tabular_serve.py")
+    shutil.copy2(resource_dir / "serve.py", code_dir / "serve.py")
