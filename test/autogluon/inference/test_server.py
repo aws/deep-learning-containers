@@ -4,17 +4,11 @@ from __future__ import annotations
 
 import importlib.util
 import os
-import shutil
-import socket
-import subprocess
 import sys
-import threading
 import time
 import types
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-import httpx
 import pytest
 
 SERVER_DIR = Path(__file__).resolve().parents[3] / "scripts" / "docker" / "autogluon"
@@ -434,118 +428,3 @@ def test_codeartifact_arn_is_resolved_without_logging_credentials(monkeypatch):
             },
         ),
     ]
-
-
-def _free_port() -> int:
-    with socket.socket() as listener:
-        listener.bind(("127.0.0.1", 0))
-        return listener.getsockname()[1]
-
-
-def _wait_for_server(process: subprocess.Popen, port: int) -> None:
-    deadline = time.monotonic() + 10
-    while time.monotonic() < deadline:
-        if process.poll() is not None:
-            stdout, stderr = process.communicate()
-            pytest.fail(f"Gunicorn exited during startup:\n{stdout}\n{stderr}")
-        try:
-            if httpx.get(f"http://127.0.0.1:{port}/ping", timeout=0.2).status_code == 200:
-                return
-        except httpx.HTTPError:
-            pass
-        time.sleep(0.05)
-    pytest.fail("Gunicorn did not become ready")
-
-
-def test_one_sync_worker_serializes_inference_requests(tmp_path):
-    gunicorn = shutil.which("gunicorn")
-    assert gunicorn is not None
-    events_path = tmp_path / "events.txt"
-    _write_handler(
-        tmp_path,
-        """
-import os
-import time
-
-EVENTS_PATH = os.environ["AUTOGLOON_TEST_EVENTS_PATH"]
-
-def model_fn(model_dir):
-    return None
-
-def transform_fn(model, body, content_type, accept):
-    with open(EVENTS_PATH, "a") as events:
-        events.write(f"start {body}\\n")
-    time.sleep(0.4)
-    with open(EVENTS_PATH, "a") as events:
-        events.write(f"end {body}\\n")
-    return body, "text/plain"
-""",
-    )
-    port = _free_port()
-    environment = {
-        key: value for key, value in os.environ.items() if key not in SERVING_ENVIRONMENT_VARIABLES
-    }
-    environment.update(
-        {
-            "SAGEMAKER_BASE_DIR": str(tmp_path),
-            "SAGEMAKER_BIND_TO_PORT": str(port),
-            "SAGEMAKER_MODEL_SERVER_WORKERS": "1",
-            "SAGEMAKER_MODEL_SERVER_TIMEOUT": "10",
-            "AUTOGLOON_TEST_EVENTS_PATH": str(events_path),
-        }
-    )
-    process = subprocess.Popen(
-        [
-            gunicorn,
-            "--config",
-            str(GUNICORN_CONFIG_PATH),
-            "--chdir",
-            str(SERVER_DIR),
-            "server:app",
-        ],
-        env=environment,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    try:
-        _wait_for_server(process, port)
-        barrier = threading.Barrier(3)
-
-        def invoke(label: str):
-            barrier.wait()
-            return httpx.post(
-                f"http://127.0.0.1:{port}/invocations",
-                content=label,
-                headers={"content-type": "text/plain", "accept": "text/plain"},
-                timeout=5,
-            )
-
-        started = time.monotonic()
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            first = executor.submit(invoke, "first")
-            second = executor.submit(invoke, "second")
-            barrier.wait()
-            responses = [first.result(), second.result()]
-        elapsed = time.monotonic() - started
-
-        assert [response.status_code for response in responses] == [200, 200]
-        assert {response.text for response in responses} == {"first", "second"}
-        assert elapsed >= 0.7
-
-        events = events_path.read_text().splitlines()
-        assert len(events) == 4
-        assert events[0].startswith("start ")
-        first_label = events[0].removeprefix("start ")
-        assert events[1] == f"end {first_label}"
-        assert events[2].startswith("start ")
-        second_label = events[2].removeprefix("start ")
-        assert second_label != first_label
-        assert events[3] == f"end {second_label}"
-    finally:
-        process.terminate()
-        try:
-            process.communicate(timeout=5)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.communicate()

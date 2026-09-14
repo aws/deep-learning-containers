@@ -20,6 +20,8 @@ LABEL framework="autogluon"
 LABEL framework_version="${FRAMEWORK_VERSION}"
 # Allow SageMaker to select the listening port through SAGEMAKER_BIND_TO_PORT.
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+# AutoGluon serves one model artifact per container; SageMaker MME is unsupported.
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
 
 # rsync for Ray file sync, poppler-utils for pdf2image (AutoMM documents).
 # AL2023 has no tesseract package, so pytesseract-based AutoMM OCR is unavailable.
