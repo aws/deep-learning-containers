@@ -7,4 +7,4 @@ platform: sagemaker
 
 # Unified image supports both SageMaker training and inference.
 tags:
-  - "1.6.1-cpu-py312-amzn2023"
+  - "1.6.2-cpu-py312-amzn2023"
