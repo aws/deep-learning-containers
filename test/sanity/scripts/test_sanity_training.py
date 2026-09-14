@@ -27,10 +27,9 @@ Test categories:
    13. TestEntrypoint         - /usr/local/bin/entrypoint.sh is executable
 
 Gating env vars:
-    EXPECTED_FRAMEWORK - pytorch_runtime | tensorflow | xgboost | ray_train | autogluon
+    EXPECTED_FRAMEWORK - pytorch_runtime | tensorflow | xgboost | ray_train
     EXPECTED_DEVICE    - cpu | gpu
     EXPECTED_CUSTOMER  - ec2 | sagemaker
-    EXPECTED_CONTAINER_TYPE - defaults to training; unified images may use general
 """
 
 import ctypes
@@ -43,7 +42,6 @@ import unittest
 DEVICE = os.environ.get("EXPECTED_DEVICE", "").lower()
 CUSTOMER = os.environ.get("EXPECTED_CUSTOMER", "").lower()
 FRAMEWORK = os.environ.get("EXPECTED_FRAMEWORK", "").lower()
-CONTAINER_TYPE = os.environ.get("EXPECTED_CONTAINER_TYPE", "training").lower()
 
 gpu_only = unittest.skipIf(DEVICE != "gpu", "GPU-only test")
 cpu_only = unittest.skipIf(DEVICE != "cpu", "CPU-only test")
@@ -53,7 +51,7 @@ tensorflow_only = unittest.skipIf(FRAMEWORK != "tensorflow", "TF-only test")
 # (SSH cluster, MPI, entrypoint script). xgboost is a SageMaker
 # algorithm container and does not honor this contract.
 training_cluster_only = unittest.skipUnless(
-    FRAMEWORK in {"tensorflow", "pytorch_runtime", "ray_train", "autogluon"},
+    FRAMEWORK in {"tensorflow", "pytorch_runtime", "ray_train"},
     "training-cluster-only test (requires SSH+MPI stack; xgboost is algorithm container)",
 )
 
@@ -63,7 +61,7 @@ class TestContainerEnv(unittest.TestCase):
 
     @training_cluster_only
     def test_dlc_container_type(self):
-        self.assertEqual(os.environ.get("DLC_CONTAINER_TYPE"), CONTAINER_TYPE)
+        self.assertEqual(os.environ.get("DLC_CONTAINER_TYPE"), "training")
 
     def test_pythondontwritebytecode(self):
         self.assertEqual(os.environ.get("PYTHONDONTWRITEBYTECODE"), "1")

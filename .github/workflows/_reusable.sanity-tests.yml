@@ -202,7 +202,6 @@ jobs:
       - name: Run training image sanity checks
         if: |
           needs.preflight.outputs.framework == 'pytorch_runtime' ||
-          needs.preflight.outputs.framework == 'autogluon' ||
           (needs.preflight.outputs.framework == 'tensorflow' && needs.preflight.outputs.job-type == 'training') ||
           needs.preflight.outputs.framework == 'xgboost' ||
           needs.preflight.outputs.framework == 'ray_train'
@@ -211,15 +210,7 @@ jobs:
             -e EXPECTED_FRAMEWORK=${{ needs.preflight.outputs.framework }} \
             -e EXPECTED_DEVICE=${{ needs.preflight.outputs.device-type }} \
             -e EXPECTED_CUSTOMER=${{ needs.preflight.outputs.customer-type }} \
-            -e EXPECTED_CONTAINER_TYPE=${{ needs.preflight.outputs.job-type }} \
             ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_training.py
-
-      - name: Run AutoGluon image sanity checks
-        if: |
-          needs.preflight.outputs.framework == 'autogluon'
-        run: |
-          docker exec ${CONTAINER_ID} python3 \
-            /workdir/test/sanity/scripts/test_sanity_autogluon.py
 
       - name: Run TF inference image sanity checks
         if: |
