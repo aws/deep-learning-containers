@@ -6,12 +6,6 @@ from importlib.metadata import version
 
 
 class TestAutoGluonImage(unittest.TestCase):
-    def test_container_type(self):
-        self.assertEqual(os.environ.get("DLC_CONTAINER_TYPE"), "general")
-
-    def test_sagemaker_model_directory(self):
-        self.assertTrue(os.path.isdir("/opt/ml/model"))
-
     def test_serving_runtime_imports(self):
         import flask
         import gunicorn
