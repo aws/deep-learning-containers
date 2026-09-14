@@ -55,7 +55,6 @@ jobs:
               - "scripts/docker/autogluon/**"
               - "scripts/docker/common/setup_oss_compliance.sh"
               - "test/security/data/ecr_scan_allowlist/autogluon/**"
-              - "test/autogluon/e2e/**"
             sanity-test-change:
               - "test/sanity/**"
             unit-test-change:
