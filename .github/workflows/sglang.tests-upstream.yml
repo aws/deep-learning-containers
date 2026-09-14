@@ -119,6 +119,14 @@ jobs:
               pytest tabulate parameterized scipy
           '
 
+      # Upstream HellaSwag URL removed: seed the data from the HF mirror, then point the cache
+      # check at the seeded file (its json.load check rejects JSONL, else it re-downloads and 404s).
+      # Remove once sglang_ref includes sgl-project/sglang#39892 (dropped HellaSwag for MMLU).
+      - name: Seed HellaSwag data (upstream URL removed)
+        run: |
+          docker exec ${CONTAINER_ID} sh -c 'pip install -q --break-system-packages pandas pyarrow && python3 -c "import pandas as pd,urllib.request as u; u.urlretrieve(\"https://huggingface.co/datasets/Rowan/hellaswag/resolve/main/data/validation-00000-of-00001.parquet\",\"/tmp/hs.parquet\"); d=pd.read_parquet(\"/tmp/hs.parquet\"); d[\"label\"]=d[\"label\"].astype(int); d[[\"activity_label\",\"ctx\",\"endings\",\"label\"]].to_json(\"/tmp/hellaswag_val.jsonl\",orient=\"records\",lines=True)"'
+          docker exec ${CONTAINER_ID} sh -c 'f=/workdir/python/sglang/benchmark/utils.py; if [ -f "$f" ]; then sed -i "s/if is_file_valid_json(filename):/if os.path.isfile(filename):/" "$f"; fi'
+
       - name: Run SGLang tests
         run: |
           docker exec ${CONTAINER_ID} bash -c '
