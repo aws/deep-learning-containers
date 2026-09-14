@@ -1,0 +1,33 @@
+image:
+  name: "huggingface-pytorch-inference-ec2-cuda"
+  description: "Hugging Face PyTorch inference for EC2 and EKS with CUDA (layered on the AWS PyTorch DLC)"
+
+metadata:
+  framework: "huggingface-pytorch-inference"
+  framework_version: "2.11.0"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "inference"
+  contributor: "huggingface"
+  prod_image: "huggingface-pytorch-inference:2.11-transformers5.16-cu130-amzn2023-v1"
+
+build:
+  dockerfile: "docker/huggingface/pytorch/inference/Dockerfile.gpu"
+  target: "ec2"
+  base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  transformers_version: "5.16.1"
+  hf_serve_version: "0.1.4"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: true
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: false
+  environment: "production"
