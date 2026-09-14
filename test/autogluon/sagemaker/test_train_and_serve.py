@@ -16,7 +16,20 @@ from test_utils.constants import INFERENCE_AMI_VERSION
 
 LOGGER = logging.getLogger(__name__)
 RESOURCE_DIR = Path(__file__).parent / "resources"
-TRAIN_DATA = RESOURCE_DIR / "data" / "train.csv"
+CODE_DIR = RESOURCE_DIR / "code"
+DATA_DIR = RESOURCE_DIR / "data"
+PREDICTION_LENGTH = 5
+
+_WORKLOADS = {
+    "tabular": {
+        "source_dir": CODE_DIR / "tabular",
+        "data": DATA_DIR / "tabular" / "train.csv",
+    },
+    "timeseries": {
+        "source_dir": CODE_DIR / "timeseries",
+        "data": DATA_DIR / "timeseries" / "train.csv",
+    },
+}
 
 _INSTANCE_BY_DEVICE = {
     "cpu": {
@@ -53,24 +66,30 @@ def device_config():
     return device, _INSTANCE_BY_DEVICE[device]
 
 
+@pytest.fixture(scope="module", params=_WORKLOADS)
+def workload(request):
+    return request.param, _WORKLOADS[request.param]
+
+
 @pytest.fixture(scope="module")
-def model_data_url(image_uri, sagemaker_session, device_config):
+def model_data_url(image_uri, sagemaker_session, device_config, workload):
     """Train once and return the model artifact produced by the tested image."""
     device, instances = device_config
-    key_prefix = random_suffix_name("autogluon-e2e", 32)
+    workload_name, config = workload
+    key_prefix = random_suffix_name(f"ag-e2e-{workload_name}", 32)
     trainer = ModelTrainer(
         training_image=image_uri,
-        source_code=SourceCode(source_dir=str(RESOURCE_DIR), entry_script="train_tab.py"),
+        source_code=SourceCode(source_dir=str(config["source_dir"]), entry_script="train.py"),
         compute=Compute(instance_type=instances["training"], instance_count=1),
         role=os.environ["SM_ROLE_ARN"],
-        base_job_name=random_suffix_name(f"ag-e2e-{device}", 32),
+        base_job_name=random_suffix_name(f"ag-{workload_name}-{device}", 32),
     )
     trainer.train(
         input_data_config=[
             InputData(
                 channel_name="train",
                 data_source=sagemaker_session.upload_data(
-                    path=str(TRAIN_DATA),
+                    path=str(config["data"]),
                     key_prefix=f"{key_prefix}/train",
                 ),
             )
@@ -81,11 +100,12 @@ def model_data_url(image_uri, sagemaker_session, device_config):
 
 
 @pytest.fixture(scope="module")
-def endpoint(aws_session, image_uri, model_data_url, device_config):
+def endpoint(aws_session, image_uri, model_data_url, device_config, workload):
     """Deploy the training artifact with the same unified image."""
     device, instances = device_config
-    endpoint_name = random_suffix_name("ag-e2e", 63)
-    model_name = random_suffix_name("ag-e2e-model", 63)
+    workload_name, _ = workload
+    endpoint_name = random_suffix_name(f"ag-{workload_name}", 63)
+    model_name = random_suffix_name(f"ag-{workload_name}-model", 63)
     resources = []
     try:
         model = Model.create(
@@ -93,7 +113,7 @@ def endpoint(aws_session, image_uri, model_data_url, device_config):
             primary_container=ContainerDefinition(
                 image=image_uri,
                 model_data_url=model_data_url,
-                environment={"SAGEMAKER_PROGRAM": "tabular_serve.py"},
+                environment={"SAGEMAKER_PROGRAM": "serve.py"},
             ),
             execution_role_arn=os.environ["SM_ROLE_ARN"],
             session=aws_session.session,
@@ -128,8 +148,8 @@ def endpoint(aws_session, image_uri, model_data_url, device_config):
         _cleanup(resources)
 
 
-def test_train_then_serve(endpoint):
-    with TRAIN_DATA.open(newline="") as data_file:
+def _assert_tabular_prediction(endpoint, data_path):
+    with data_path.open(newline="") as data_file:
         row = next(csv.DictReader(data_file))
     expected_labels = {"<=50K", ">50K"}
     row.pop("class")
@@ -145,3 +165,29 @@ def test_train_then_serve(endpoint):
 
     assert len(prediction) == 1
     assert prediction[0]["class"].strip() in expected_labels
+
+
+def _assert_timeseries_prediction(endpoint, data_path):
+    with data_path.open(newline="") as data_file:
+        rows = list(csv.DictReader(data_file))
+    for row in rows:
+        row["target"] = float(row["target"])
+
+    response = endpoint.invoke(
+        body=json.dumps(rows),
+        content_type="application/json",
+        accept="application/json",
+    )
+    prediction = json.loads(response.body.read())
+
+    assert len(prediction) == 2 * PREDICTION_LENGTH
+    assert {row["item_id"] for row in prediction} == {"series_1", "series_2"}
+    assert all(isinstance(row["mean"], (int, float)) for row in prediction)
+
+
+def test_train_then_serve(endpoint, workload):
+    workload_name, config = workload
+    if workload_name == "tabular":
+        _assert_tabular_prediction(endpoint, config["data"])
+    else:
+        _assert_timeseries_prediction(endpoint, config["data"])
