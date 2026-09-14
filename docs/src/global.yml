@@ -242,6 +242,7 @@ image_categories:
       - huggingface-pytorch-inference-neuronx
   - title: "AutoGluon"
     repositories:
+      - autogluon
       - autogluon-training
       - autogluon-inference
   - title: "DJL Inference"
@@ -296,6 +297,7 @@ table_order:
   - huggingface-pytorch-inference-neuronx
   - huggingface-tensorflow-training
   - huggingface-tensorflow-inference
+  - autogluon
   - autogluon-training
   - autogluon-inference
   - djl-inference
