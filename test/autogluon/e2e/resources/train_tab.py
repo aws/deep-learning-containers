@@ -8,7 +8,7 @@ from autogluon.tabular import TabularDataset, TabularPredictor
 
 
 def first_file(directory):
-    return Path(directory) / sorted(os.listdir(directory))[0]
+    return Path(directory) / min(os.listdir(directory))
 
 
 if __name__ == "__main__":
