@@ -47,18 +47,6 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
-  ci-config:
-    runs-on: ubuntu-latest
-    outputs:
-      device-type: ${{ steps.parse.outputs.device-type }}
-      customer-type: ${{ steps.parse.outputs.customer-type }}
-    steps:
-      - uses: actions/checkout@v6
-      - id: parse
-        run: |
-          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
-          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
-
   build:
     if: ${{ inputs.build }}
     concurrency:
@@ -135,9 +123,8 @@ jobs:
     if: >-
       ${{ always() && !cancelled() && inputs.run-sagemaker-test &&
           needs.build.result != 'failure' &&
-          needs.ci-config.outputs.customer-type == 'sagemaker' &&
           fromJSON(needs.check.outputs.skips || '{}')['pytorch/integration/sagemaker'] != true }}
-    needs: [build, ci-config, check]
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
