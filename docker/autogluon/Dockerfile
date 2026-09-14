@@ -7,7 +7,7 @@ ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/pytorch:2.13-cu133-amzn20
 FROM ${BASE_IMAGE} AS sagemaker
 
 ARG FRAMEWORK=autogluon
-ARG FRAMEWORK_VERSION=1.6.1
+ARG FRAMEWORK_VERSION=1.6.2
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
@@ -27,18 +27,14 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
 # AL2023 has no tesseract package, so pytesseract-based AutoMM OCR is unavailable.
 RUN dnf install -y rsync poppler-utils && dnf clean all
 
-# The matching PyTorch base currently includes Flask/Gunicorn transitively.
-# Install exact versions explicitly: they are part of this image's serving stack,
-# not an accidental dependency on the base's MLflow installation.
-#
-# TODO(autogluon 1.6.2): remove this temporary s3fs/fsspec override when AutoMM
-# lifts its fsspec<=2025.3.0 cap. s3fs and fsspec must remain on matching releases.
+# PyTorch and torchvision come from the CPU/GPU base image. Install the
+# remaining dependency graph exactly as resolved in requirements.lock.
+COPY docker/autogluon/requirements.lock /tmp/autogluon-requirements.lock
 RUN uv pip install --python ${VENV_PYTHON} \
-  "autogluon==${FRAMEWORK_VERSION}" \
-  "flask==3.1.3" \
-  "gunicorn==25.3.0" \
-  "s3fs==2025.3.0" \
-  "fsspec==2025.3.0" \
+  --no-deps \
+  --require-hashes \
+  -r /tmp/autogluon-requirements.lock \
+  && rm /tmp/autogluon-requirements.lock \
   && uv cache clean
 
 # Drop Transformer Engine (GPU base only): unused by AutoGluon, and peft imports it at
