@@ -37,6 +37,7 @@ jobs:
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
       sagemaker-matrix: ${{ steps.parse.outputs.matrix }}
+      device-type: ${{ steps.device.outputs.device-type }}
     steps:
       - uses: actions/checkout@v6
 
@@ -68,8 +69,51 @@ jobs:
             --section sagemaker \
             --image-config "${{ inputs.config-file }}"
 
+      - name: Resolve device type
+        if: steps.check.outputs.exists == 'true'
+        id: device
+        run: |
+          source .venv/bin/activate
+          DEVICE_TYPE=$(python3 -c "import yaml; print(yaml.safe_load(open('${{ inputs.config-file }}'))['metadata']['device_type'])")
+          echo "device-type=${DEVICE_TYPE}" >> $GITHUB_OUTPUT
+
   endpoint-test:
+    name: endpoint-test (${{ matrix.name }})
     if: ${{ needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.sagemaker-matrix)[0] != null }}
+    needs: [preflight]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.preflight.outputs.sagemaker-matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/vllm/sagemaker/requirements.txt
+
+      - name: Run SageMaker endpoint tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} --model-name "${{ matrix.name }}" vllm/sagemaker/amzn2023/test_sm_model_serving.py
+
+  standalone-endpoint-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.device-type == 'gpu' }}
     needs: [preflight]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -96,15 +140,16 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} vllm/sagemaker
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} vllm/sagemaker/test_sm_endpoint.py
 
   # Record a PASS row in the ci-images-table if the test passed.
   record-test-pass:
     if: >-
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
-          needs.endpoint-test.result == 'success' }}
-    needs: [endpoint-test]
+          needs.endpoint-test.result == 'success' &&
+          (needs.standalone-endpoint-test.result == 'success' || needs.standalone-endpoint-test.result == 'skipped') }}
+    needs: [endpoint-test, standalone-endpoint-test]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

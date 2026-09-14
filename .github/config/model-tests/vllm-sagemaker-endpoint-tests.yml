@@ -19,9 +19,11 @@ s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 sagemaker:
-  # Qwen3.5-0.8B CPU endpoint — dense 0.8B causal LM on a CPU ML instance ladder.
-  - name: "qwen3.5-0.8b-cpu"
-    s3_model: "qwen3.5-0.8b.tar.gz"
+  # Qwen3.5-2B CPU endpoint — dense 2B causal LM on a CPU ML instance ladder.
+  # Name must be dot-free: it becomes the SageMaker ModelName, which only allows
+  # [a-zA-Z0-9-].
+  - name: "qwen35-2b-cpu"
+    s3_model: "qwen3.5-2b.tar.gz"
     instance_type:
       - "ml.c6i.2xlarge"
       - "ml.c6i.4xlarge"
