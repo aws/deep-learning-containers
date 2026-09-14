@@ -8,8 +8,6 @@ import time
 import types
 from pathlib import Path
 
-import pytest
-
 SERVER_DIR = Path(__file__).resolve().parents[3] / "scripts" / "docker" / "autogluon"
 SERVER_PATH = SERVER_DIR / "server.py"
 INSTALL_REQUIREMENTS_PATH = SERVER_DIR / "install_requirements.py"
@@ -133,51 +131,6 @@ def transform_fn(model, body, content_type, accept):
     assert response.data == b"setyb-teuqrap"
 
 
-def test_bytearray_response_is_supported(monkeypatch, tmp_path):
-    _write_handler(
-        tmp_path,
-        """
-def model_fn(model_dir):
-    return None
-
-def transform_fn(model, body, content_type, accept):
-    return bytearray(b"result"), "application/octet-stream"
-""",
-    )
-    server = _load_server(monkeypatch, tmp_path)
-
-    response = _request(server.app, "POST", "/invocations", data=b"input")
-
-    assert response.status_code == 200
-    assert response.data == b"result"
-
-
-def test_body_only_transform_response_uses_accept_header(monkeypatch, tmp_path):
-    _write_handler(
-        tmp_path,
-        """
-def model_fn(model_dir):
-    return None
-
-def transform_fn(model, body, content_type, accept):
-    return b"result"
-""",
-    )
-    server = _load_server(monkeypatch, tmp_path)
-
-    response = _request(
-        server.app,
-        "POST",
-        "/invocations",
-        data=b"input",
-        headers={"accept": "application/octet-stream"},
-    )
-
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "application/octet-stream"
-    assert response.data == b"result"
-
-
 def test_default_accept_environment_variable(monkeypatch, tmp_path):
     _write_handler(
         tmp_path,
@@ -219,58 +172,6 @@ def transform_fn(model, body, content_type, accept):
 
     assert response.status_code == 200
     assert response.text == str(tmp_path / "model")
-
-
-def test_input_predict_output_handler_pipeline(monkeypatch, tmp_path):
-    _write_handler(
-        tmp_path,
-        """
-def model_fn(model_dir):
-    return {"suffix": "!"}
-
-def input_fn(body, content_type):
-    assert content_type == "text/plain"
-    return body.upper()
-
-def predict_fn(data, model):
-    return data + model["suffix"]
-
-def output_fn(prediction, accept):
-    assert accept == "text/plain"
-    return prediction, accept
-""",
-    )
-    server = _load_server(monkeypatch, tmp_path)
-
-    response = _request(
-        server.app,
-        "POST",
-        "/invocations",
-        data="hello",
-        headers={"content-type": "text/plain", "accept": "text/plain"},
-    )
-
-    assert response.status_code == 200
-    assert response.text == "HELLO!"
-
-
-def test_transform_handler_cannot_mix_pipeline_functions(monkeypatch, tmp_path):
-    _write_handler(
-        tmp_path,
-        """
-def model_fn(model_dir):
-    return None
-
-def transform_fn(model, body, content_type, accept):
-    return body
-
-def input_fn(body, content_type):
-    return body
-""",
-    )
-
-    with pytest.raises(RuntimeError, match="transform_fn cannot be combined"):
-        _load_server(monkeypatch, tmp_path)
 
 
 def test_handler_value_error_is_a_client_error(monkeypatch, tmp_path):
