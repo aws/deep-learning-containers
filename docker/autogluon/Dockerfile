@@ -52,7 +52,6 @@ RUN uv pip check --python ${VENV_PYTHON}
 # model artifact (/opt/ml/model/code) and keeps the established SageMaker
 # inference-function contract used by AutoGluon Cloud.
 COPY scripts/docker/autogluon/server.py /opt/autogluon-server/server.py
-COPY scripts/docker/autogluon/settings.py /opt/autogluon-server/settings.py
 COPY scripts/docker/autogluon/gunicorn.conf.py /opt/autogluon-server/gunicorn.conf.py
 COPY --chmod=755 scripts/docker/autogluon/install_requirements.py /opt/autogluon-server/install_requirements.py
 COPY --chmod=755 scripts/docker/autogluon/sagemaker_entrypoint.sh /usr/local/bin/autogluon-sagemaker-entrypoint.sh
