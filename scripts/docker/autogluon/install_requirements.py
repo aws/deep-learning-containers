@@ -9,39 +9,38 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from urllib.parse import quote, urlsplit, urlunsplit
+from urllib.parse import quote, urlparse, urlunparse
 
 LOGGER = logging.getLogger("autogluon-serving")
-CODEARTIFACT_ARN = re.compile(
-    r"^arn:[^:]+:codeartifact:(?P<region>[^:]+):(?P<account>[^:]+):"
-    r"repository/(?P<domain>[^/]+)/(?P<repository>[^/]+)$"
-)
 
 
 def _codeartifact_index(repository_arn: str) -> str:
-    match = CODEARTIFACT_ARN.fullmatch(repository_arn)
-    if match is None:
+    # Adapted from scripts/docker/ray/sagemaker_serve.py.
+    match = re.fullmatch(
+        r"arn:([^:]+):codeartifact:([^:]+):([^:]+):repository/([^/]+)/(.+)",
+        repository_arn,
+    )
+    if not match:
         raise ValueError(f"Invalid CA_REPOSITORY_ARN: {repository_arn!r}")
 
     import boto3
 
-    values = match.groupdict()
-    client = boto3.client("codeartifact", region_name=values["region"])
+    _, region, account, domain, repository = match.groups()
+    client = boto3.client("codeartifact", region_name=region)
     arguments = {
-        "domain": values["domain"],
-        "domainOwner": values["account"],
+        "domain": domain,
+        "domainOwner": account,
     }
     token = client.get_authorization_token(**arguments)["authorizationToken"]
     endpoint = client.get_repository_endpoint(
         **arguments,
-        repository=values["repository"],
+        repository=repository,
         format="pypi",
     )["repositoryEndpoint"]
 
-    parsed = urlsplit(endpoint)
-    path = f"{parsed.path.rstrip('/')}/simple/"
-    authenticated_host = f"aws:{quote(token, safe='')}@{parsed.netloc}"
-    return urlunsplit((parsed.scheme, authenticated_host, path, parsed.query, parsed.fragment))
+    parsed = urlparse(endpoint)
+    authenticated = parsed._replace(netloc=f"aws:{quote(token, safe='')}@{parsed.netloc}")
+    return urlunparse(authenticated._replace(path=f"{parsed.path.rstrip('/')}/simple/"))
 
 
 def install_requirements() -> None:
