@@ -107,10 +107,12 @@ jobs:
           uv pip install -r test/vllm/sagemaker/requirements.txt
 
       - name: Run SageMaker endpoint tests
+        env:
+          SM_MODEL_NAME: ${{ matrix.name }}
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} --model-name "${{ matrix.name }}" vllm/sagemaker/amzn2023/test_sm_model_serving.py
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} vllm/sagemaker/amzn2023/test_sm_model_serving.py
 
   standalone-endpoint-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.device-type == 'gpu' }}
