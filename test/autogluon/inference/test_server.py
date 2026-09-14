@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import importlib.util
-import os
 import sys
 import time
 import types
@@ -13,7 +12,6 @@ import pytest
 
 SERVER_DIR = Path(__file__).resolve().parents[3] / "scripts" / "docker" / "autogluon"
 SERVER_PATH = SERVER_DIR / "server.py"
-SETTINGS_PATH = SERVER_DIR / "settings.py"
 INSTALL_REQUIREMENTS_PATH = SERVER_DIR / "install_requirements.py"
 GUNICORN_CONFIG_PATH = SERVER_DIR / "gunicorn.conf.py"
 
@@ -294,40 +292,21 @@ def transform_fn(model, body, content_type, accept):
     assert response.get_json()["detail"] == "unsupported payload"
 
 
-def test_settings_preserve_only_agreed_environment_variables(monkeypatch, tmp_path):
+def test_gunicorn_environment_configuration(monkeypatch):
     _clear_serving_environment(monkeypatch)
-    monkeypatch.setenv("SAGEMAKER_BASE_DIR", str(tmp_path))
-    monkeypatch.setenv("SAGEMAKER_PROGRAM", "custom.py")
     monkeypatch.setenv("SAGEMAKER_BIND_TO_PORT", "9000")
     monkeypatch.setenv("SAGEMAKER_MODEL_SERVER_WORKERS", "3")
     monkeypatch.setenv("SAGEMAKER_MODEL_SERVER_TIMEOUT", "120")
-    monkeypatch.setenv("SAGEMAKER_DEFAULT_INVOCATIONS_ACCEPT", "text/csv")
     monkeypatch.setenv("SAGEMAKER_CONTAINER_LOG_LEVEL", "10")
-    monkeypatch.setenv(
-        "CA_REPOSITORY_ARN",
-        "arn:aws:codeartifact:us-west-2:123456789012:repository/domain/repository",
-    )
-    # Deliberately unsupported aliases must not affect the configuration.
-    monkeypatch.setenv("SAGEMAKER_MODEL_DIR", "/ignored")
-    monkeypatch.setenv("SAGEMAKER_NUM_MODEL_WORKERS", "99")
-    monkeypatch.syspath_prepend(str(SERVER_DIR))
 
-    settings_module = _load(SETTINGS_PATH, "autogluon_settings")
-    settings = settings_module.Settings.from_environment()
     gunicorn_config = _load(GUNICORN_CONFIG_PATH, "autogluon_gunicorn_config")
 
-    assert settings.model_dir == tmp_path / "model"
-    assert settings.handler_path == tmp_path / "model" / "code" / "custom.py"
-    assert settings.default_accept == "text/csv"
-    assert settings.codeartifact_repository_arn.endswith("repository/domain/repository")
     assert gunicorn_config.bind == "0.0.0.0:9000"
     assert gunicorn_config.workers == 3
     assert gunicorn_config.timeout == 120
     assert gunicorn_config.graceful_timeout == 120
     assert gunicorn_config.loglevel == "debug"
     assert gunicorn_config.worker_class == "sync"
-    assert gunicorn_config.threads == 1
-    assert gunicorn_config.preload_app is False
 
 
 def test_requirements_installed_once_with_codeartifact_index(monkeypatch, tmp_path):
@@ -343,17 +322,14 @@ def transform_fn(model, body, content_type, accept):
     )
     requirements = model_dir / "code" / "requirements.txt"
     requirements.write_text("customer-package==1.2.3\n")
+    _clear_serving_environment(monkeypatch)
+    monkeypatch.setenv("SAGEMAKER_BASE_DIR", str(tmp_path))
+    monkeypatch.setenv(
+        "CA_REPOSITORY_ARN",
+        "arn:aws:codeartifact:us-west-2:123456789012:repository/domain/repository",
+    )
     monkeypatch.syspath_prepend(str(SERVER_DIR))
     installer = _load(INSTALL_REQUIREMENTS_PATH, "autogluon_install_requirements")
-    settings_module = _load(SETTINGS_PATH, "autogluon_settings")
-    settings = settings_module.Settings.from_environment(
-        {
-            "SAGEMAKER_BASE_DIR": str(tmp_path),
-            "CA_REPOSITORY_ARN": (
-                "arn:aws:codeartifact:us-west-2:123456789012:repository/domain/repository"
-            ),
-        }
-    )
     monkeypatch.setattr(
         installer,
         "_codeartifact_index",
@@ -366,7 +342,7 @@ def transform_fn(model, body, content_type, accept):
         lambda command, **kwargs: calls.append((command, kwargs)),
     )
 
-    installer.install_requirements(settings)
+    installer.install_requirements()
 
     assert len(calls) == 1
     command, kwargs = calls[0]

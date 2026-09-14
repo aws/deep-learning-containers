@@ -8,9 +8,8 @@ import os
 import re
 import subprocess
 import sys
+from pathlib import Path
 from urllib.parse import quote, urlsplit, urlunsplit
-
-from settings import Settings
 
 LOGGER = logging.getLogger("autogluon-serving")
 CODEARTIFACT_ARN = re.compile(
@@ -45,9 +44,11 @@ def _codeartifact_index(repository_arn: str) -> str:
     return urlunsplit((parsed.scheme, authenticated_host, path, parsed.query, parsed.fragment))
 
 
-def install_requirements(settings: Settings | None = None) -> None:
-    settings = settings or Settings.from_environment()
-    if not settings.requirements_path.is_file():
+def install_requirements() -> None:
+    requirements_path = (
+        Path(os.getenv("SAGEMAKER_BASE_DIR", "/opt/ml")) / "model" / "code" / "requirements.txt"
+    )
+    if not requirements_path.is_file():
         return
 
     command = [
@@ -58,20 +59,20 @@ def install_requirements(settings: Settings | None = None) -> None:
         sys.executable,
         "--no-cache",
         "-r",
-        str(settings.requirements_path),
+        str(requirements_path),
     ]
     environment = os.environ.copy()
-    if settings.codeartifact_repository_arn:
-        environment["UV_INDEX_URL"] = _codeartifact_index(settings.codeartifact_repository_arn)
+    repository_arn = os.getenv("CA_REPOSITORY_ARN")
+    if repository_arn:
+        environment["UV_INDEX_URL"] = _codeartifact_index(repository_arn)
 
-    LOGGER.info("Installing packages from %s", settings.requirements_path)
+    LOGGER.info("Installing packages from %s", requirements_path)
     subprocess.check_call(command, env=environment)
 
 
 def main() -> None:
-    settings = Settings.from_environment()
-    logging.basicConfig(level=settings.log_level)
-    install_requirements(settings)
+    logging.basicConfig(level=logging.INFO)
+    install_requirements()
 
 
 if __name__ == "__main__":

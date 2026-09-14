@@ -4,21 +4,30 @@ from __future__ import annotations
 
 import importlib.util
 import logging
+import os
 import sys
+from pathlib import Path
 from types import ModuleType
 from typing import Any
 
 from flask import Flask, Response, jsonify, request
-from settings import Settings
 
-SETTINGS = Settings.from_environment()
-logging.basicConfig(level=SETTINGS.log_level)
+MODEL_DIR = Path(os.getenv("SAGEMAKER_BASE_DIR", "/opt/ml")) / "model"
+CODE_DIR = MODEL_DIR / "code"
+PROGRAM = os.getenv("SAGEMAKER_PROGRAM", "inference.py").strip() or "inference.py"
+DEFAULT_ACCEPT = (
+    os.getenv("SAGEMAKER_DEFAULT_INVOCATIONS_ACCEPT", "application/json").strip()
+    or "application/json"
+)
+LOG_LEVEL = os.getenv("SAGEMAKER_CONTAINER_LOG_LEVEL", "INFO").strip() or "INFO"
+logging.basicConfig(level=int(LOG_LEVEL) if LOG_LEVEL.isdigit() else LOG_LEVEL.upper())
 LOGGER = logging.getLogger("autogluon-serving")
 
 
 def _load_handler() -> ModuleType:
     """Load the user-provided inference module from the model artifact."""
-    path = SETTINGS.handler_path
+    program = Path(PROGRAM)
+    path = program if program.is_absolute() else CODE_DIR / program
     if not path.is_file():
         raise RuntimeError(f"AutoGluon inference handler not found: {path}")
 
@@ -84,7 +93,7 @@ class Handler:
             self._predict_fn = None
             self._output_fn = None
 
-        self._model = model_fn(str(SETTINGS.model_dir))
+        self._model = model_fn(str(MODEL_DIR))
 
     def transform(
         self,
@@ -116,7 +125,7 @@ def ping() -> Response:
 @app.post("/invocations")
 def invocations() -> Response:
     content_type = _media_type(request.headers.get("content-type"), "application/json")
-    accept = _media_type(request.headers.get("accept"), SETTINGS.default_accept)
+    accept = _media_type(request.headers.get("accept"), DEFAULT_ACCEPT)
 
     try:
         body = _request_body(request.get_data(cache=False), content_type)

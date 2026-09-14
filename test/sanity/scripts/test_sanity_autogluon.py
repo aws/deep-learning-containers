@@ -23,7 +23,6 @@ class TestAutoGluonImage(unittest.TestCase):
 
     def test_adapter_files_exist(self):
         self.assertTrue(os.path.isfile("/opt/autogluon-server/server.py"))
-        self.assertTrue(os.path.isfile("/opt/autogluon-server/settings.py"))
         self.assertTrue(os.path.isfile("/opt/autogluon-server/gunicorn.conf.py"))
         self.assertTrue(os.access("/opt/autogluon-server/install_requirements.py", os.X_OK))
         self.assertTrue(os.access("/usr/local/bin/autogluon-sagemaker-entrypoint.sh", os.X_OK))
