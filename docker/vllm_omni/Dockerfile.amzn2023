@@ -49,19 +49,16 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
-# `unzip` and `perl` are new build deps in vllm v0.26.0: `unzip` for
-# tools/install_protoc.sh; `perl` for the openssl-sys crate compiled by the
-# Rust frontend (`vllm-rs`, new in v0.26.0).
+# vllm v0.26.0 build deps for the Rust frontend (`vllm-rs`): `perl` for the
+# openssl-sys crate, `unzip` for the protoc tooling pulled in by the build.
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
-# Rustup — needed to install the Rust toolchain pinned in the vllm source tree's
-# `rust-toolchain.toml`. We install rustup with no default toolchain and let
-# upstream's `build_rust.sh` (invoked below, after the source is copied) do the
-# explicit `rustup toolchain install "$TOOLCHAIN"` call, mirroring upstream.
+# Rustup with no default toolchain; the vllm wheel build auto-installs the
+# toolchain pinned in the source tree's `rust-toolchain.toml` on first cargo run.
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
   | sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
 ENV PATH="/root/.cargo/bin:${PATH}"
