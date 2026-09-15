@@ -21,13 +21,8 @@ python3 basic/offline_inference/embed.py
 python3 basic/offline_inference/score.py
 
 SPEC_DECODE="features/speculative_decoding/spec_decode_offline.py"
-# vLLM 0.29.0's CUDA graph memory profiler lowers the effective gpu-memory-utilization, and
-# https://github.com/vllm-project/vllm/pull/26682 uses more memory in PyTorch 2.9+, leaving too
-# little KV cache for spec-decode on 1xL4 Ubuntu images. amzn2023 passes at the 0.9 default and
-# OOMs at higher values, so only raise it on Ubuntu.
-GPU_MEM_UTIL=0.9
-if grep -qi ubuntu /etc/os-release 2>/dev/null; then
-  GPU_MEM_UTIL=0.95
-fi
+# 0.29.0's CUDA-graph memory profiler shrinks effective KV; the DeepEP-v2 amzn2023 image's extra
+# footprint needs 0.95 on 1xL4 (same as Ubuntu), else spec-decode OOMs at the old 0.9 default.
+GPU_MEM_UTIL=0.95
 python3 ${SPEC_DECODE} --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048 --gpu-memory-utilization ${GPU_MEM_UTIL}
 python3 ${SPEC_DECODE} --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536 --gpu-memory-utilization ${GPU_MEM_UTIL}
