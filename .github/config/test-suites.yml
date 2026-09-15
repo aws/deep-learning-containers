@@ -56,6 +56,11 @@ suites:
     code_paths:
       - test/pytorch/integration/sagemaker/**
 
+  autogluon/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/autogluon/sagemaker/**
+
   tensorflow-inference/sagemaker:
     skip_eligible: true
     code_paths:
