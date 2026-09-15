@@ -124,6 +124,13 @@ class TestCudaJitDependencies(unittest.TestCase):
         self.assertIsNotNone(
             importlib.util.find_spec("deep_ep"), "deep_ep (DeepEP v2) is not installed"
         )
+        # Assert it's the v2 fork (major >= 2), not upstream v1 — the fork ships __version__ 2.x.
+        from importlib.metadata import version as pkg_version
+
+        deep_ep_major = int(pkg_version("deep_ep").split(".")[0])
+        self.assertGreaterEqual(
+            deep_ep_major, 2, f"deep_ep {pkg_version('deep_ep')} is not v2 (upstream v1?)"
+        )
 
         nccl_spec = importlib.util.find_spec("nvidia.nccl")
         self.assertIsNotNone(nccl_spec, "nvidia-nccl wheel is not installed")
