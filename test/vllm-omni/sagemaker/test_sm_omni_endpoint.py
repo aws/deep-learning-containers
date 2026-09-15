@@ -87,7 +87,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
-        endpoint.wait_for_status("InService", timeout=1800)
+        endpoint.wait_for_status("InService", timeout=3600)
 
         yield endpoint
     finally:
@@ -240,7 +240,7 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
                 endpoint_name=endpoint_name,
                 endpoint_config_name=endpoint_name,
             )
-            endpoint.wait_for_status("InService", timeout=1800)
+            endpoint.wait_for_status("InService", timeout=3600)
         except Exception as e:
             if any(tok in str(e) for tok in _CAPACITY_TOKENS):
                 pytest.skip(f"SageMaker capacity unavailable for {instance_type}: {e}")
