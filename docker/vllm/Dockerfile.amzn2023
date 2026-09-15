@@ -201,7 +201,10 @@ ENV UV_LINK_MODE=copy
 # Match runtime venv NCCL to the DeepEP wheel's compile-time NCCL (see build stage).
 ARG NCCL_VERSION
 RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
-  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt
+  && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt \
+  # Pin transformers < 5.16: the pinned vLLM predates the transformers 5.16 Pixtral
+  # rename + rope_parameters changes, which break model architecture inspection.
+  && echo "transformers==5.15.1" >>/etc/uv-overrides.txt
 ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch

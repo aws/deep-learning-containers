@@ -19,11 +19,15 @@ s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 sagemaker:
-  # Qwen3.5-2B CPU endpoint — dense 2B causal LM on a CPU ML instance ladder.
+  # Qwen3.5-0.8B CPU endpoint — dense 0.8B causal LM on a CPU ML instance ladder.
+  # Same model the EC2 CPU smoke test serves, so it is validated on the CPU image.
+  # The 2B qwen3.5 tarball is a Mamba/GDN hybrid whose GDN kernels are Triton-only;
+  # Triton has no CPU backend, so its warmup compilation hangs past the SageMaker
+  # startup health-check window. The dense 0.8B warms up well within it.
   # Name must be dot-free: it becomes the SageMaker ModelName, which only allows
   # [a-zA-Z0-9-].
-  - name: "qwen35-2b-cpu"
-    s3_model: "qwen3.5-2b.tar.gz"
+  - name: "qwen35-08b-cpu"
+    s3_model: "qwen3.5-0.8b.tar.gz"
     instance_type:
       - "ml.c6i.2xlarge"
       - "ml.c6i.4xlarge"
