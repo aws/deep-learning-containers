@@ -1,9 +1,9 @@
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.28.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.29.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
 
 ARG FRAMEWORK=huggingface-vllm
-ARG FRAMEWORK_VERSION=0.28.0
+ARG FRAMEWORK_VERSION=0.29.0
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 
