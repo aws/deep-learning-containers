@@ -104,9 +104,9 @@ class TestCudaJitDependencies(unittest.TestCase):
         self.assertTrue(hasattr(triton, "__version__"))
 
     def test_deep_ep_v2_available(self):
-        """DeepEP v2 *prerequisites* (deep_ep wheel + runtime NCCL >= 2.30.4); vLLM amzn2023 only.
+        """DeepEP v2 present (deep_ep wheel is v2.x + runtime NCCL >= 2.30.4); vLLM amzn2023 only.
 
-        GPU-free; checks prerequisites only, NOT the ElasticBuffer v2 API (that needs
+        GPU-free; asserts the v2 wheel + NCCL floor, NOT the ElasticBuffer v2 API (that needs
         `import deep_ep` = a GPU) — real v2 validation is the gated test_ep.py on p5en.
         Scoped to vLLM: this file is shared with SGLang, which builds DeepEP differently,
         ships both cu12/cu13 nccl wheels (metadata is ambiguous), and has no `vllm`
@@ -121,6 +121,13 @@ class TestCudaJitDependencies(unittest.TestCase):
                 self.skipTest("DeepEP v2 ships only on amzn2023 images")
 
         self.assertIsNotNone(importlib.util.find_spec("deep_ep"), "deep_ep wheel not installed")
+        # Assert it's the v2 fork (major >= 2), not upstream v1 — the fork ships __version__ 2.x.
+        from importlib.metadata import version
+
+        deep_ep_major = int(version("deep_ep").split(".")[0])
+        self.assertGreaterEqual(
+            deep_ep_major, 2, f"deep_ep {version('deep_ep')} is not v2 (upstream v1?)"
+        )
         # vLLM's own probe: ctypes ncclGetVersion on the actually-loaded libnccl (raw int,
         # e.g. 23102 for 2.31.2) — avoids the cu12/cu13 wheel-metadata ambiguity.
         from vllm.utils.import_utils import _get_runtime_nccl_version
