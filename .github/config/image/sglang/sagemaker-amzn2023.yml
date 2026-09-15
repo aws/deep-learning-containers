@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "sglang_server"
-  framework_version: "0.5.17+dlc1"
+  framework_version: "0.5.19+dlc1"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -18,21 +18,21 @@ build:
   target: "sglang-sagemaker"
   python_version: "3.12"
   cuda_version: "13.0.3"
-  sglang_ref: "29481685462732237d80d86076d6563e1f658102"
-  sglang_kernel_version: "0.4.5"
-  flashinfer_version: "0.6.15.post1"
-  deepep_commit: "9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee"
-  flashmla_commit: "15f13e5030374295491c5ce31b02d7e63a7772c6"
-  mooncake_version: "0.3.12.post1"
-  torch_version: "2.11.0"
-  nccl_version: "2.30.4"
-  cudnn_version: "9.16.0.29"
-  efa_version: "1.49.0"
+  sglang_ref: "0bcd822377da7b5718e674eaf9c870d349424dd1"
+  sglang_kernel_version: "0.4.6.post1"
+  flashinfer_version: "0.6.18"
+  deepep_commit: "874779c9ccd2294b56304bd6cc5f138f1f71d097"
+  flashmla_commit: "15f13e5030374295491c5ce31b02d7e63a7772c6"  # TODO verify at build
+  mooncake_version: "0.3.13"
+  torch_version: "2.13.0"
+  nccl_version: "2.31.2"
+  cudnn_version: "9.16.0.29"  # TODO verify at build
+  efa_version: "1.50.0"
   rust_version: "1.96.1"
-  gdrcopy_version: "2.6"
+  gdrcopy_version: "2.5.2"
   torch_cuda_arch_list: "9.0;10.0;10.3"
   dlc_major_version: "1"
-  dlc_minor_version: "3"
+  dlc_minor_version: "4"
 
 release:
   release: true
