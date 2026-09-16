@@ -4,11 +4,11 @@ WORKDIR /usr/src
 
 FROM chef AS planner
 
-COPY docker/tei/1.9.3/cpu/tei-src/backends backends
-COPY docker/tei/1.9.3/cpu/tei-src/core core
-COPY docker/tei/1.9.3/cpu/tei-src/router router
-COPY docker/tei/1.9.3/cpu/tei-src/Cargo.toml ./
-COPY docker/tei/1.9.3/cpu/tei-src/Cargo.lock ./
+COPY docker/tei/cpu/tei-src/backends backends
+COPY docker/tei/cpu/tei-src/core core
+COPY docker/tei/cpu/tei-src/router router
+COPY docker/tei/cpu/tei-src/Cargo.toml ./
+COPY docker/tei/cpu/tei-src/Cargo.lock ./
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -40,11 +40,11 @@ COPY --from=planner /usr/src/recipe.json recipe.json
 
 RUN cargo chef cook --release --features ort,candle,mkl,static-linking --no-default-features --recipe-path recipe.json
 
-COPY docker/tei/1.9.3/cpu/tei-src/backends backends
-COPY docker/tei/1.9.3/cpu/tei-src/core core
-COPY docker/tei/1.9.3/cpu/tei-src/router router
-COPY docker/tei/1.9.3/cpu/tei-src/Cargo.toml ./
-COPY docker/tei/1.9.3/cpu/tei-src/Cargo.lock ./
+COPY docker/tei/cpu/tei-src/backends backends
+COPY docker/tei/cpu/tei-src/core core
+COPY docker/tei/cpu/tei-src/router router
+COPY docker/tei/cpu/tei-src/Cargo.toml ./
+COPY docker/tei/cpu/tei-src/Cargo.lock ./
 
 RUN cargo build --release --bin text-embeddings-router --features ort,candle,mkl,static-linking,http --no-default-features
 
@@ -90,5 +90,5 @@ ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:cpu:inference:tei
 RUN apt-get update && apt-get upgrade -y \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY --chmod=775 docker/tei/1.9.3/cpu/entrypoint.sh entrypoint.sh
+COPY --chmod=775 docker/tei/cpu/entrypoint.sh entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]

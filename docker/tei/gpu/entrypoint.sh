@@ -10,6 +10,16 @@ if [[ -n "${HF_MODEL_REVISION}" ]]; then
     export REVISION="${HF_MODEL_REVISION}"
 fi
 
+# Some runtimes mount host NVIDIA tools and libraries under /usr/local/nvidia
+# without adding them to PATH or refreshing the dynamic linker cache.
+if [ -d /usr/local/nvidia/bin ]; then
+    export PATH="${PATH}:/usr/local/nvidia/bin"
+fi
+if [ -d /usr/local/nvidia/lib64 ]; then
+    echo /usr/local/nvidia/lib64 >/etc/ld.so.conf.d/nvidia-host.conf
+    ldconfig
+fi
+
 if ! command -v nvidia-smi &>/dev/null; then
     echo "Error: 'nvidia-smi' command not found."
     exit 1

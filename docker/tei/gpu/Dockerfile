@@ -11,7 +11,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
   pkg-config \
   && rm -rf /var/lib/apt/lists/*
 
-COPY docker/tei/1.9.3/gpu/tei-src/rust-toolchain.toml rust-toolchain.toml
+COPY docker/tei/gpu/tei-src/rust-toolchain.toml rust-toolchain.toml
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 RUN cargo install cargo-chef --version $CARGO_CHEF --locked
 
@@ -19,11 +19,11 @@ FROM base-builder AS planner
 
 WORKDIR /usr/src
 
-COPY docker/tei/1.9.3/gpu/tei-src/backends backends
-COPY docker/tei/1.9.3/gpu/tei-src/core core
-COPY docker/tei/1.9.3/gpu/tei-src/router router
-COPY docker/tei/1.9.3/gpu/tei-src/Cargo.toml ./
-COPY docker/tei/1.9.3/gpu/tei-src/Cargo.lock ./
+COPY docker/tei/gpu/tei-src/backends backends
+COPY docker/tei/gpu/tei-src/core core
+COPY docker/tei/gpu/tei-src/router router
+COPY docker/tei/gpu/tei-src/Cargo.toml ./
+COPY docker/tei/gpu/tei-src/Cargo.lock ./
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -44,11 +44,11 @@ RUN CUDA_COMPUTE_CAP=80 cargo chef cook --release --features candle-cuda --recip
 RUN CUDA_COMPUTE_CAP=90 cargo chef cook --release --features candle-cuda --recipe-path recipe.json
 RUN CUDA_COMPUTE_CAP=100 cargo chef cook --release --features candle-cuda --recipe-path recipe.json
 RUN CUDA_COMPUTE_CAP=120 cargo chef cook --release --features candle-cuda --recipe-path recipe.json
-COPY docker/tei/1.9.3/gpu/tei-src/backends backends
-COPY docker/tei/1.9.3/gpu/tei-src/core core
-COPY docker/tei/1.9.3/gpu/tei-src/router router
-COPY docker/tei/1.9.3/gpu/tei-src/Cargo.toml ./
-COPY docker/tei/1.9.3/gpu/tei-src/Cargo.lock ./
+COPY docker/tei/gpu/tei-src/backends backends
+COPY docker/tei/gpu/tei-src/core core
+COPY docker/tei/gpu/tei-src/router router
+COPY docker/tei/gpu/tei-src/Cargo.toml ./
+COPY docker/tei/gpu/tei-src/Cargo.lock ./
 
 RUN CUDA_COMPUTE_CAP=75 cargo build --release --bin text-embeddings-router -F candle-cuda-turing
 RUN mv /usr/src/target/release/text-embeddings-router /usr/src/target/release/text-embeddings-router-75
@@ -97,5 +97,5 @@ ENV HF_HUB_USER_AGENT_ORIGIN=aws:sagemaker:gpu-cuda:inference:tei
 RUN apt-get update && apt-get upgrade -y \
   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY --chmod=775 docker/tei/1.9.3/gpu/entrypoint.sh entrypoint.sh
+COPY --chmod=775 docker/tei/gpu/entrypoint.sh entrypoint.sh
 ENTRYPOINT ["./entrypoint.sh"]
