@@ -232,9 +232,6 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_type):
                     initial_instance_count=1,
                     instance_type=instance_type,
                     inference_ami_version=INFERENCE_AMI_VERSION,
-                    # CPU warmup (torch.compile) is far slower than GPU and can exceed
-                    # SageMaker's 600s default ping window. Give the container room to
-                    # come up; kept under the 2700s wait_for_status below.
                     container_startup_health_check_timeout_in_seconds=1800,
                 ),
             ],

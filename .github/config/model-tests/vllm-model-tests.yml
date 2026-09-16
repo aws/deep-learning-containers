@@ -14,7 +14,7 @@ test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 smoke-test:
   codebuild-fleet:
-    # Qwen3.5-0.8B CPU smoke — dense 0.8B causal LM on the CPU build fleet (no GPU).
+    # Qwen3.5-0.8B CPU smoke on the CPU build fleet (no GPU).
     - name: "qwen3.5-0.8b-cpu"
       s3_model: "qwen3.5-0.8b.tar.gz"
       fleet: "x86-build-runner"
