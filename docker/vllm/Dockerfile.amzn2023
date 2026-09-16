@@ -443,6 +443,7 @@ RUN dnf install -y --setopt=install_weak_deps=False make which \
   && if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
        ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
      fi \
+  && echo "${NCCL_HOME}/lib" >/etc/ld.so.conf.d/nccl.conf && ldconfig \
   && cd /tmp \
   && NCCL_TESTS_DIR="/tmp/nccl-tests-${NCCL_TESTS_VERSION#v}" \
   && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
