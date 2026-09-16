@@ -1,4 +1,3 @@
-# Ported from awslabs/llm-hosting-container tei/1.9.3/cpu. Adjustments: tei-src/ COPY paths (staged by pre_build.sh), dropped --mount=type=secret, added dlc_major_version label + trailing apt upgrade.
 FROM lukemathwalker/cargo-chef:latest-rust-1.92-bookworm AS chef
 WORKDIR /usr/src
 

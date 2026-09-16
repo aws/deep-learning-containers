@@ -1,4 +1,3 @@
-# Ported from awslabs/llm-hosting-container tei/1.9.3/gpu. Adjustments: tei-src/ COPY paths (staged by pre_build.sh), dropped --mount=type=secret, added dlc_major_version label + trailing apt upgrade.
 FROM nvidia/cuda:12.9.1-devel-ubuntu24.04 AS base-builder
 
 ENV PATH="/root/.cargo/bin:${PATH}"
