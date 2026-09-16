@@ -153,5 +153,10 @@
         "vulnerability_id": "CVE-2026-73500",
         "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in etcd 3.7.1, cannot be patched independently of a mooncake-transfer-engine rebuild",
         "review_by": "2026-12-08"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84445",
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside the AL2023 mooncake libetcd_wrapper.so; fix only in a grpc 1.85.0-dev pseudo-version, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-08"
     }
 ]
