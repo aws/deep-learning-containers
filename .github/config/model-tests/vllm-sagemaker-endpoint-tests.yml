@@ -20,9 +20,6 @@ test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 default_required_image_pattern: {device_type: "gpu"}
 
 sagemaker:
-  # Qwen3.5-0.8B CPU endpoint — same model the EC2 CPU smoke test serves. Needs
-  # >=32 GiB RAM: on a 16 GiB box the worker is OOM-killed during multimodal warmup.
-  # Name must be dot-free (becomes the SageMaker ModelName; only [a-zA-Z0-9-]).
   - name: "qwen35-08b-cpu"
     s3_model: "qwen3.5-0.8b.tar.gz"
     instance_type:
