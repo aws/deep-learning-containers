@@ -10,7 +10,7 @@ on:
       - ".github/workflows/vllm-omni.pipeline.yml"
       - ".github/workflows/vllm-omni.pr.yml"
       - ".github/workflows/vllm-omni.tests-sagemaker.yml"
-      - ".github/workflows/vllm.tests-unit.yml"
+      - ".github/workflows/vllm-omni.tests-unit.yml"
       - "docker/vllm_omni/Dockerfile.amzn2023"
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
@@ -69,7 +69,6 @@ jobs:
             sagemaker-test-change:
               - ".github/workflows/vllm-omni.tests-sagemaker.yml"
               - "test/test_utils/instance_capacity.py"
-              - "test/test_utils/test_instance_capacity.py"
               - "test/vllm-omni/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
@@ -77,10 +76,13 @@ jobs:
               - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
             unit-test-change:
+              - ".github/workflows/vllm-omni.tests-unit.yml"
               - "scripts/docker/vllm/omni_*"
               - "scripts/docker/vllm/sagemaker_args.py"
+              - "test/test_utils/instance_capacity.py"
+              - "test/test_utils/test_instance_capacity.py"
+              - "test/vllm-omni/sagemaker/test_sagemaker_middleware.py"
               - "test/vllm/test_sagemaker_args.py"
-              - ".github/workflows/vllm.tests-unit.yml"
 
   discover:
     needs: [gatekeeper]

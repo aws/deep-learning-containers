@@ -1,0 +1,43 @@
+name: Reusable vLLM-Omni Unit Tests
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Unused (unit tests are image-independent); kept for signature parity."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  unit-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install pytest starlette "sagemaker>=3.0.0"
+
+      - name: Run vLLM-Omni unit tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          # --noconftest skips AWS endpoint fixtures; these are CPU-only tests.
+          python3 -m pytest -v --tb=short -rA --noconftest \
+            vllm/test_sagemaker_args.py \
+            test_utils/test_instance_capacity.py \
+            vllm-omni/sagemaker/test_sagemaker_middleware.py

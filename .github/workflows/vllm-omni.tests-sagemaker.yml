@@ -55,31 +55,6 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-  middleware-test:
-    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
-    needs: [preflight]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-          uv pip install -r test/vllm-omni/sagemaker/requirements.txt
-
-      - name: Run SageMaker middleware and instance-pool tests
-        run: |
-          source .venv/bin/activate
-          cd test/
-          python3 -m pytest -vs -rA \
-            test_utils/test_instance_capacity.py \
-            vllm-omni/sagemaker/test_sagemaker_middleware.py
-
   # Fan out one job per real endpoint case so a failure can be re-run in
   # isolation and every deploy starts with a fresh runner role session.
   # max-parallel: 1 matches the vLLM endpoint-matrix pattern: at most one
@@ -130,9 +105,8 @@ jobs:
     if: >-
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
-          needs.middleware-test.result == 'success' &&
           needs.endpoint-test.result == 'success' }}
-    needs: [middleware-test, endpoint-test]
+    needs: [endpoint-test]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
