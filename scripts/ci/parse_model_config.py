@@ -73,15 +73,20 @@ def _flatten_image_config(image_cfg: dict) -> dict[str, str]:
     return flat
 
 
-def _model_matches_image(model: dict, image_fields: dict[str, str]) -> bool:
+def _model_matches_image(model: dict, image_fields: dict[str, str], default_pattern=None) -> bool:
     """Check if a model's required_image_pattern matches the image config fields.
 
     required_image_pattern can be:
     - A dict of {field: value} pairs that must all match in the image config.
     - A plain string that must appear in at least one image config value.
     - Absent/None → model runs on all images.
+
+    A file-level default_required_image_pattern dict is merged under each model's
+    dict pattern (the model wins per-key).
     """
     pattern = model.get("required_image_pattern")
+    if isinstance(default_pattern, dict) and not isinstance(pattern, str):
+        pattern = {**default_pattern, **(pattern or {})}
     if not pattern:
         return True
     if isinstance(pattern, dict):
@@ -96,6 +101,7 @@ def parse_config(
 
     s3_prefix = cfg.get("s3_prefix", "")
     fixtures_prefix = cfg.get("test_fixtures_prefix", "")
+    default_pattern = cfg.get("default_required_image_pattern")
 
     image_fields = {}
     if image_config_path and os.path.isfile(image_config_path):
@@ -109,7 +115,7 @@ def parse_config(
     if isinstance(section_data, list):
         models = section_data or []
         if image_fields:
-            models = [m for m in models if _model_matches_image(m, image_fields)]
+            models = [m for m in models if _model_matches_image(m, image_fields, default_pattern)]
         transformed = [transform_model(m, s3_prefix, fixtures_prefix) for m in models]
         results["matrix"] = json.dumps(transformed, separators=(",", ":"))
         return results
@@ -119,7 +125,7 @@ def parse_config(
     for rt in types:
         models = section_data.get(rt, []) or []
         if image_fields:
-            models = [m for m in models if _model_matches_image(m, image_fields)]
+            models = [m for m in models if _model_matches_image(m, image_fields, default_pattern)]
         transformed = [transform_model(m, s3_prefix, fixtures_prefix) for m in models]
         key = rt if runner_type == "all" else "matrix"
         results[key] = json.dumps(transformed, separators=(",", ":"))

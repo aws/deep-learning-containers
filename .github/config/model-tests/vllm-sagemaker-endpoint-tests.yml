@@ -17,6 +17,7 @@
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
+default_required_image_pattern: {device_type: "gpu"}
 
 sagemaker:
   # Qwen3.5-0.8B CPU endpoint — same model the EC2 CPU smoke test serves. Needs
@@ -61,7 +62,6 @@ sagemaker:
       - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
-      device_type: "gpu"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_MAX_MODEL_LEN: "8192"
@@ -100,7 +100,6 @@ sagemaker:
       - "ml.g6e.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
-      device_type: "gpu"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_MAX_MODEL_LEN: "4096"
@@ -132,7 +131,6 @@ sagemaker:
       - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
-      device_type: "gpu"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_MAX_MODEL_LEN: "4096"
@@ -159,7 +157,6 @@ sagemaker:
       - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
-      device_type: "gpu"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_TOKENIZER_MODE: "mistral"
@@ -188,7 +185,6 @@ sagemaker:
       - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
-      device_type: "gpu"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
       SM_VLLM_MAX_MODEL_LEN: "2048"
@@ -213,7 +209,6 @@ sagemaker:
       - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
-      device_type: "gpu"
     network_isolation: true
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
@@ -244,7 +239,6 @@ sagemaker:
       - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
-      device_type: "gpu"
     network_isolation: true
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
@@ -280,7 +274,6 @@ sagemaker:
       - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
-      device_type: "gpu"
     chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"
     env:
       SM_VLLM_MODEL: "/opt/ml/model"
