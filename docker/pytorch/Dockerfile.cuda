@@ -132,6 +132,7 @@ ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 ARG EFA_VERSION
 ARG NCCL_TESTS_VERSION
+ARG FRAMEWORK_SHORT_VERSION=2.12
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -194,6 +195,9 @@ RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl._
       "${NCCL_TESTS_DIR}/build/all_reduce_perf" && \
     cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf && \
     cd / && rm -rf "${NCCL_TESTS_DIR}"
+
+# Framework license required at /license.txt for release; uploaded per minor version to s3://aws-dlc-licenses.
+RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/pytorch-${FRAMEWORK_SHORT_VERSION}/license.txt"
 
 
 # ── Stage: runtime (EC2 / ECS) ──────────────────────────────────────

@@ -61,6 +61,7 @@ ARG TORCH_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 ARG OPEN_MPI_VERSION
+ARG FRAMEWORK_SHORT_VERSION=2.12
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -106,6 +107,9 @@ RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
 
 # ldconfig
 RUN ldconfig
+
+# Framework license required at /license.txt for release; uploaded per minor version to s3://aws-dlc-licenses.
+RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/pytorch-${FRAMEWORK_SHORT_VERSION}/license.txt"
 
 
 # ── Stage: runtime (EC2 / ECS) ──────────────────────────────────────────────
