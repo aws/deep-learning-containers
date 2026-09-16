@@ -71,20 +71,32 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       customer-type: ${{ steps.parse.outputs.customer-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      build-fleet: ${{ steps.parse.outputs.build-fleet }}
     steps:
       - uses: actions/checkout@v6
       - id: parse
         run: |
           echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          # Arch-keyed build fleet: DLC builds native to the runner arch (no --platform),
+          # so an arm64 image must build on the Graviton fleet.
+          ARCH=$(yq '.metadata.arch_type' '${{ inputs.config-file }}')
+          if [ "${ARCH}" = "arm64" ]; then
+            echo "build-fleet=arm64-graviton4-build-runner" >> $GITHUB_OUTPUT
+          else
+            echo "build-fleet=x86-vllm-build-runner" >> $GITHUB_OUTPUT
+          fi
 
   build:
     if: ${{ inputs.build }}
+    needs: [ci-config]
     concurrency:
       group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-vllm-build-runner
+        fleet:${{ needs.ci-config.outputs.build-fleet }}
         buildspec-override:true
     timeout-minutes: 720
     env:
@@ -162,8 +174,8 @@ jobs:
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   upstream-tests:
-    if: ${{ always() && !cancelled() && inputs.run-upstream-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm/upstream'] != true }}
-    needs: [build, check]
+    if: ${{ always() && !cancelled() && inputs.run-upstream-test && needs.ci-config.outputs.device-type == 'gpu' && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm/upstream'] != true }}
+    needs: [build, check, ci-config]
     concurrency:
       group: ${{ github.workflow }}-upstream-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -176,14 +188,15 @@ jobs:
     secrets: inherit
 
   model-tests:
-    if: ${{ always() && !cancelled() && inputs.run-model-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm/model'] != true }}
-    needs: [build, check]
+    if: ${{ always() && !cancelled() && inputs.run-model-test && (needs.ci-config.outputs.device-type == 'gpu' || needs.ci-config.outputs.device-type == 'cpu') && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['vllm/model'] != true }}
+    needs: [build, check, ci-config]
     concurrency:
       group: ${{ github.workflow }}-model-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     uses: ./.github/workflows/vllm.tests-model.yml
     with:
       config-file: ${{ inputs.config-file }}
+      device-type: ${{ needs.ci-config.outputs.device-type }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
       image-content-hash: ${{ needs.check.outputs.image-content-hash }}
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['vllm/model'] || '' }}
@@ -209,9 +222,10 @@ jobs:
   efa-test:
     if: >-
       ${{ always() && !cancelled() && inputs.run-efa-test &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
           needs.build.result != 'failure' &&
           fromJSON(needs.check.outputs.skips || '{}')['efa'] != true }}
-    needs: [build, check]
+    needs: [build, check, ci-config]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
