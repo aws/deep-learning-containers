@@ -4,6 +4,7 @@ import pytest
 from test_utils.instance_capacity import (
     MAX_INSTANCE_POOLS,
     build_instance_pools,
+    is_capacity_error,
     normalize_instance_types,
 )
 
@@ -50,3 +51,20 @@ def test_more_than_five_pools_raises():
 def test_empty_list_raises():
     with pytest.raises(ValueError, match="at least one instance type"):
         build_instance_pools([])
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "InsufficientInstanceCapacity",
+        "ResourceLimitExceeded",
+        "CapacityError",
+        "endpoint failed: insufficientinstancecapacity in us-west-2",
+    ],
+)
+def test_capacity_errors_are_detected(message):
+    assert is_capacity_error(RuntimeError(message))
+
+
+def test_non_capacity_error_is_not_detected():
+    assert not is_capacity_error(RuntimeError("Model failed health check"))

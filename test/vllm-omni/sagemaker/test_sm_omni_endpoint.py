@@ -18,10 +18,17 @@ from sagemaker.core.shapes import (
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
-from test_utils.instance_capacity import build_instance_pools
+from test_utils.instance_capacity import (
+    build_instance_pools,
+    is_capacity_error,
+    normalize_instance_types,
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+VIDEO_MODEL_ID = "Wan-AI/Wan2.1-VACE-1.3B-diffusers"
+VIDEO_INSTANCE_TYPES = ["ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge"]
 
 
 @pytest.fixture(scope="function")
@@ -208,36 +215,46 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
 
     model = endpoint_config = endpoint = None
     try:
-        model = _create_model(model_name, image_uri, env, role_arn)
+        try:
+            model = _create_model(model_name, image_uri, env, role_arn)
 
-        LOGGER.info(f"Creating async endpoint config: {endpoint_name}")
-        endpoint_config = EndpointConfig.create(
-            endpoint_config_name=endpoint_name,
-            production_variants=[
-                ProductionVariant(
-                    variant_name="AllTraffic",
-                    model_name=model_name,
-                    initial_instance_count=1,
-                    instance_pools=build_instance_pools(instance_type),
-                    variant_instance_provision_timeout_in_seconds=1800,
-                    inference_ami_version=INFERENCE_AMI_VERSION,
+            LOGGER.info(f"Creating async endpoint config: {endpoint_name}")
+            endpoint_config = EndpointConfig.create(
+                endpoint_config_name=endpoint_name,
+                production_variants=[
+                    ProductionVariant(
+                        variant_name="AllTraffic",
+                        model_name=model_name,
+                        initial_instance_count=1,
+                        instance_pools=build_instance_pools(instance_type),
+                        variant_instance_provision_timeout_in_seconds=1800,
+                        inference_ami_version=INFERENCE_AMI_VERSION,
+                    ),
+                ],
+                async_inference_config=AsyncInferenceConfig(
+                    output_config=AsyncInferenceOutputConfig(s3_output_path=s3_output),
+                    client_config=AsyncInferenceClientConfig(
+                        max_concurrent_invocations_per_instance=1,
+                    ),
                 ),
-            ],
-            async_inference_config=AsyncInferenceConfig(
-                output_config=AsyncInferenceOutputConfig(s3_output_path=s3_output),
-                client_config=AsyncInferenceClientConfig(
-                    max_concurrent_invocations_per_instance=1,
-                ),
-            ),
-        )
+            )
 
-        LOGGER.info(f"Deploying async endpoint: {endpoint_name} on {instance_type}")
-        endpoint = Endpoint.create(
-            endpoint_name=endpoint_name,
-            endpoint_config_name=endpoint_name,
-        )
-        # Leave enough of the runner's credential session for inference and cleanup.
-        endpoint.wait_for_status("InService", timeout=2700)
+            LOGGER.info(f"Deploying async endpoint: {endpoint_name} on {instance_type}")
+            endpoint = Endpoint.create(
+                endpoint_name=endpoint_name,
+                endpoint_config_name=endpoint_name,
+            )
+            # Leave enough of the runner's credential session for inference and cleanup.
+            endpoint.wait_for_status("InService", timeout=2700)
+        except Exception as e:
+            if model_id == VIDEO_MODEL_ID and is_capacity_error(e):
+                candidates = normalize_instance_types(instance_type)
+                pytest.skip(
+                    "No SageMaker capacity for video-async after exhausting "
+                    f"{len(candidates)} native instance-pool candidates {candidates}. "
+                    f"Last error: {e}"
+                )
+            raise
 
         yield endpoint, s3_output
     finally:
@@ -296,10 +313,10 @@ def test_vllm_omni_tts_async_endpoint(async_endpoint):
 # VACE needs at least 32 GB host RAM, so xlarge pools are intentionally excluded.
 @pytest.mark.parametrize(
     "instance_type",
-    [["ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge"]],
+    [VIDEO_INSTANCE_TYPES],
     indirect=True,
 )
-@pytest.mark.parametrize("model_id", ["Wan-AI/Wan2.1-VACE-1.3B-diffusers"], indirect=True)
+@pytest.mark.parametrize("model_id", [VIDEO_MODEL_ID], indirect=True)
 def test_vllm_omni_video_async_endpoint(async_endpoint):
     """Video gen via async inference + /v1/videos/sync.
 

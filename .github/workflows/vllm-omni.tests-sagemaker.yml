@@ -73,8 +73,6 @@ jobs:
             node: "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_tts_endpoint"
           - name: tts-async
             node: "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_tts_async_endpoint"
-          - name: video-async
-            node: "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_video_async_endpoint"
           - name: bidi-speech-stream
             node: "vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py::test_vllm_omni_bidi_speech_stream"
           - name: bidi-default-path-rejected
@@ -100,13 +98,58 @@ jobs:
           python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} \
             "${{ matrix.test.node }}"
 
+  # Run video last to preserve the one-live-endpoint limit. It may skip after
+  # SageMaker exhausts all native instance-pool candidates; expose that state
+  # separately so a capacity skip is not cached as a full suite pass.
+  video-async-test:
+    name: endpoint-test (video-async)
+    if: >-
+      ${{ always() && needs.preflight.outputs.image-exists == 'true' &&
+          needs.endpoint-test.result != 'cancelled' }}
+    needs: [preflight, endpoint-test]
+    outputs:
+      skipped: ${{ steps.result.outputs.skipped }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/vllm-omni/sagemaker/requirements.txt
+
+      - name: Run SageMaker video endpoint test
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            --junitxml="${RUNNER_TEMP}/video-async.xml" \
+            "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_video_async_endpoint"
+
+      - name: Classify video endpoint result
+        id: result
+        run: |
+          test -f "${RUNNER_TEMP}/video-async.xml"
+          if grep -Eq 'skipped="[1-9][0-9]*"|<skipped' "${RUNNER_TEMP}/video-async.xml"; then
+            echo "skipped=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "skipped=false" >> "${GITHUB_OUTPUT}"
+          fi
+
   # Record a PASS row in the ci-images-table if the test suite passed.
   record-test-pass:
     if: >-
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
-          needs.endpoint-test.result == 'success' }}
-    needs: [endpoint-test]
+          needs.endpoint-test.result == 'success' &&
+          needs.video-async-test.result == 'success' &&
+          needs.video-async-test.outputs.skipped == 'false' }}
+    needs: [endpoint-test, video-async-test]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
