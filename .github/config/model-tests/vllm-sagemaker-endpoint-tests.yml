@@ -271,3 +271,41 @@ sagemaker:
               - "The Eiffel Tower is in Paris."
               - "Tokyo is the capital of Japan."
         validate: "json_field:results.0.relevance_score"
+
+  # Tool-calling regression: verifies the SM entrypoint forwards the tool-parser flags.
+  - name: "qwen3-5-0-8b-tool-calling"
+    s3_model: "qwen3.5-0.8b.tar.gz"
+    instance_type: "ml.g6.xlarge"
+    env:
+      SM_VLLM_MODEL: "/opt/ml/model"
+      SM_VLLM_MAX_MODEL_LEN: "4096"
+      SM_VLLM_DTYPE: "bfloat16"
+      SM_VLLM_ENABLE_AUTO_TOOL_CHOICE: "true"
+      SM_VLLM_TOOL_CALL_PARSER: "qwen3_xml"
+    test_cases:
+      - name: "tool-calling-required"
+        route: "/v1/chat/completions"
+        content_type: "application/json"
+        request:
+          body:
+            model: "/opt/ml/model"
+            messages:
+              - role: "user"
+                content: "What is the weather in Paris right now?"
+            tools:
+              - type: "function"
+                function:
+                  name: "get_current_weather"
+                  description: "Get the current weather in a given city."
+                  parameters:
+                    type: "object"
+                    properties:
+                      city:
+                        type: "string"
+                        description: "The city name, e.g. Paris"
+                    required:
+                      - "city"
+            tool_choice: "required"
+            max_tokens: 256
+            temperature: 0
+        validate: "json_field:choices.0.message.tool_calls.0.function.name"
