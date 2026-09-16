@@ -17,7 +17,7 @@ FROM chef AS builder
 ARG GIT_SHA
 ARG DOCKER_LABEL
 
-RUN apt-get update && DEBIAN_FRONTEND=nointeractive apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   ca-certificates \
   wget \
   gnupg \
