@@ -1,4 +1,5 @@
-# Table Configuration - HuggingFace PyTorch Training Compiler
+# Table Configuration - Ray LLM
+note: "Ray LLM images share the `ray` ECR repository with the Ray Serve and Ray Train images (listed under Framework Containers), and are identified by the `serve-llm` tag prefix. See the [Ray LLM guide](../ray-llm/index.md)."
 columns:
   - field: framework_version
     header: "Framework"
@@ -6,8 +7,6 @@ columns:
     header: "Python"
   - field: cuda
     header: "CUDA"
-  - field: transformers
-    header: "Transformers"
   - field: accelerator
     header: "Accelerator"
   - field: platform

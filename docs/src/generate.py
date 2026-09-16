@@ -4,6 +4,7 @@ import logging
 
 import sorter as sorter_module
 from constants import (
+    AVAILABLE_IMAGES_CATEGORY_HEADER,
     AVAILABLE_IMAGES_TABLE_HEADER,
     GLOBAL_CONFIG,
     PUBLIC_GALLERY_URL,
@@ -210,58 +211,104 @@ def generate_support_policy(dry_run: bool = False) -> str:
     return content
 
 
+def _build_repository_section(repository: str, display_names: dict[str, str]) -> str | None:
+    """Build the markdown section (heading + optional notes + table) for one repository.
+
+    Returns None when the repository has no supported images or no table config.
+    """
+    images = [img for img in load_repository_images(repository) if img.is_supported]
+    if not images:
+        return None
+
+    try:
+        table_config = load_table_config(repository)
+    except FileNotFoundError:
+        LOGGER.warning(f"No table config for {repository}, skipping")
+        return None
+
+    display_name = display_names[repository]
+    columns = table_config["columns"]
+    has_public_registry = check_public_registry(images, repository)
+
+    # Sort images by version desc with tiebreakers from config or defaults
+    tiebreaker_names = table_config.get("tiebreakers")
+    tiebreakers = (
+        [getattr(sorter_module, name) for name in tiebreaker_names]
+        if tiebreaker_names
+        else DEFAULT_TIEBREAKERS
+    )
+    images = sort_by_version(images, tiebreakers=tiebreakers)
+
+    # Optionally limit the table to the latest N releases (distinct versions),
+    # keeping every row of each kept version.
+    max_versions = table_config.get("max_versions")
+    if max_versions:
+        kept_versions = []
+        for img in images:
+            if img.version not in kept_versions:
+                if len(kept_versions) >= max_versions:
+                    break
+                kept_versions.append(img.version)
+        kept = set(kept_versions)
+        images = [img for img in images if img.version in kept]
+
+    # Build table
+    headers = [col["header"] for col in columns]
+    rows = [build_image_row(img, columns) for img in images]
+
+    section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
+    if has_public_registry:
+        # Use ecr_repository from images (falls back to data-dir key when unset) so display
+        # reflects the actual ECR repo when the data-dir key differs (e.g., vllm-omni and
+        # vllm-server both map to ECR repo 'vllm').
+        ecr_repo = images[0].ecr_repository if images else repository
+        url = f"{PUBLIC_GALLERY_URL}/{ecr_repo}"
+        section += f"\nThese images are also available in ECR Public Gallery: [{ecr_repo}]({url})\n"
+    if table_config.get("note"):
+        section += f"\n{table_config['note']}\n"
+    section += f"\n{render_table(headers, rows)}"
+    return section
+
+
 def generate_available_images(dry_run: bool = False) -> str:
-    """Generate available_images.md from image configs and table configs."""
+    """Generate available_images.md from image configs and table configs.
+
+    Repository tables are grouped under category headings defined by
+    ``image_categories`` in global.yml, in category order and preserving
+    ``table_order`` sequence within each category. Any repository in
+    ``table_order`` not assigned to a category is emitted under a trailing
+    "Other" heading so nothing is silently dropped.
+    """
     output_path = REFERENCE_DIR / "available_images.md"
     template_path = TEMPLATES_DIR / "reference" / "available_images.template.md"
     LOGGER.debug(f"Generating {output_path}")
 
     display_names = GLOBAL_CONFIG["display_names"]["repositories"]
     table_order = GLOBAL_CONFIG["table_order"]
-    tables_content = []
+    categories = list(GLOBAL_CONFIG.get("image_categories", []))
 
-    for repository in table_order:
-        images = [img for img in load_repository_images(repository) if img.is_supported]
-        if not images:
-            continue
-
-        try:
-            table_config = load_table_config(repository)
-        except FileNotFoundError:
-            LOGGER.warning(f"No table config for {repository}, skipping")
-            continue
-
-        display_name = display_names[repository]
-        columns = table_config["columns"]
-        has_public_registry = check_public_registry(images, repository)
-
-        # Sort images by version desc with tiebreakers from config or defaults
-        tiebreaker_names = table_config.get("tiebreakers")
-        tiebreakers = (
-            [getattr(sorter_module, name) for name in tiebreaker_names]
-            if tiebreaker_names
-            else DEFAULT_TIEBREAKERS
+    # Surface any repository that has no category so it is not silently dropped.
+    categorized = {repo for cat in categories for repo in cat["repositories"]}
+    uncategorized = [repo for repo in table_order if repo not in categorized]
+    if uncategorized:
+        LOGGER.warning(
+            f"Repositories not assigned to any image_categories entry: {uncategorized}. "
+            f"Emitting them under an 'Other' heading."
         )
-        images = sort_by_version(images, tiebreakers=tiebreakers)
+        categories = categories + [{"title": "Other", "repositories": uncategorized}]
 
-        # Build table
-        headers = [col["header"] for col in columns]
-        rows = [build_image_row(img, columns) for img in images]
-
-        section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
-        if has_public_registry:
-            # Use ecr_repository from images (falls back to data-dir key when unset) so display
-            # reflects the actual ECR repo when the data-dir key differs (e.g., vllm-omni and
-            # vllm-server both map to ECR repo 'vllm').
-            ecr_repo = images[0].ecr_repository if images else repository
-            url = f"{PUBLIC_GALLERY_URL}/{ecr_repo}"
-            section += (
-                f"\nThese images are also available in ECR Public Gallery: [{ecr_repo}]({url})\n"
-            )
-        if table_config.get("note"):
-            section += f"\n{table_config['note']}\n"
-        section += f"\n{render_table(headers, rows)}"
-        tables_content.append(section)
+    tables_content = []
+    for category in categories:
+        sections = []
+        for repository in category["repositories"]:
+            section = _build_repository_section(repository, display_names)
+            if section is not None:
+                sections.append(section)
+        if not sections:
+            continue
+        category_block = f"{AVAILABLE_IMAGES_CATEGORY_HEADER} {category['title']}\n\n"
+        category_block += "\n\n".join(sections)
+        tables_content.append(category_block)
 
     # Render template
     template = Template(load_jinja2(template_path))

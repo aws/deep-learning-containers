@@ -16,7 +16,7 @@
 
 # ── Global ARGs ─────────────────────────────────────────────────────────────
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=0
+ARG DLC_MINOR_VERSION=1
 ARG PYTHON_VERSION=3.13
 # Short X.Y form for venv site-packages paths.
 ARG PYTHON_SHORT_VERSION=3.13
@@ -25,7 +25,7 @@ ARG TORCH_VERSION=2.13.0
 ARG CUDA_VERSION=13.0.2
 ARG TRANSFORMER_ENGINE_VERSION=2.13.0
 ARG FLASH_ATTN_VERSION=2.8.3
-ARG EFA_VERSION=1.47.0
+ARG EFA_VERSION=1.49.0
 ARG GDRCOPY_VERSION=2.4.4
 # Compiler parallelism cap per stage — prevents OOM when nproc > available RAM.
 ARG MAX_JOBS=8

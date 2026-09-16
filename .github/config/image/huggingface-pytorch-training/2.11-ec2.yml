@@ -11,7 +11,7 @@ metadata:
   device_type: "gpu"
   job_type: "training"
   contributor: "huggingface"
-  prod_image: "huggingface-pytorch-training:2.11.0-transformers5.13.1-gpu-py312-cu130-amzn2023"
+  prod_image: "huggingface-pytorch-training:2.11-transformers5.13-cu130-amzn2023"
 
 build:
   dockerfile: "docker/huggingface/pytorch/Dockerfile"

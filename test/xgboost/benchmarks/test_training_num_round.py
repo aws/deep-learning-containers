@@ -41,7 +41,7 @@ BASE_HP = {"eta": "0.2", "gamma": "4", "min_child_weight": "6", "tree_method": "
             "100",
             "xgboost/libsvm/100000x200",
             {"max_depth": "15", "objective": "reg:squarederror"},
-            1200,
+            1800,
         ),
         (
             "200",

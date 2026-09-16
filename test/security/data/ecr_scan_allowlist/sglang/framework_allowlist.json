@@ -1,5 +1,10 @@
 [
     {
+        "vulnerability_id": "CVE-2026-84304",
+        "reason": "google.golang.org/grpc v1.82.1 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with grpc 1.83.1+",
+        "review_by": "2026-12-05"
+    },
+    {
         "vulnerability_id": "CVE-2026-56862",
         "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.6+",
         "review_by": "2026-11-22"

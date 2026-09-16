@@ -48,9 +48,9 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     ---
 
-    Deploy large language models with vLLM or SGLang on EC2, EKS, or Amazon SageMaker AI.
+    Deploy large language models with vLLM, SGLang, or Ray LLM on EC2, EKS, or Amazon SageMaker AI.
 
-    [vLLM Guide](vllm/index.md) · [SGLang Guide](sglang/index.md)
+    [vLLM Guide](vllm/index.md) · [SGLang Guide](sglang/index.md) · [Ray LLM Guide](ray-llm/index.md)
 
 -   **Serve Multimodal Models**
 
@@ -82,7 +82,7 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     Deploy any ML model — NLP, vision, audio, and tabular — with Ray Serve on EC2 or Amazon SageMaker AI, or TensorFlow SavedModels with TensorFlow Serving on Amazon SageMaker AI.
 
-    [Ray Guide](ray/index.md) · [TensorFlow Inference Guide](tensorflow/inference/index.md)
+    [Ray Serve Guide](ray/index.md) · [TensorFlow Inference Guide](tensorflow/inference/index.md)
 
 -   **Train Models**
 

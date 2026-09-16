@@ -26,12 +26,12 @@ build:
   torch_version: "2.13.0"
   transformer_engine_version: "2.13.0"
   flash_attn_version: "2.8.3"
-  efa_version: "1.47.0"
+  efa_version: "1.49.0"
   gdrcopy_version: "2.4.4"
   nccl_tests_version: "2.19.6"
   max_jobs: "8"
   dlc_major_version: "1"
-  dlc_minor_version: "0"
+  dlc_minor_version: "1"
 
 release:
   release: true

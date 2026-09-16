@@ -6,6 +6,14 @@
 # Test script: test/vllm/sagemaker/amzn2023/test_sm_model_serving.py
 #
 # Smoke-test entries live in the sibling vllm-model-tests.yml.
+#
+# instance_type is a priority-ordered fallback ladder. SageMaker returns
+# InsufficientInstanceCapacity per instance type, so the deploy walks the list and the
+# first candidate to reach InService wins; only an exhausted ladder fails the test.
+# Every rung of a ladder must fit the model unaided — the larger g6/g6e sizes carry the
+# same single GPU as their xlarge base (L4 24GB and L40S 48GB respectively), so they
+# serve identically and differ only in capacity pool. Never ladder across GPU families:
+# a model sized for L40S will not fit L4.
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
@@ -18,7 +26,10 @@ sagemaker:
   # (non-empty check) mirrors the other entries' validate rule.
   - name: "minicpm5-1b"
     s3_model: "minicpm5-1b.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type:
+      - "ml.g6.xlarge"
+      - "ml.g6.2xlarge"
+      - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -45,9 +56,18 @@ sagemaker:
   # cannot fit the model. --trust-remote-code loads the custom
   # configuration_nemotron_h.py; --mamba-ssm-cache-dtype=float32 is required by
   # the model card to preserve accuracy (skipping it silently degrades quality).
+  # instance_type is a fallback ladder: g6e.xlarge is the cheapest fit, and the larger
+  # sizes are the same single L40S 48GB card, so they need no tensor-parallel change and
+  # serve the model identically — only the capacity pool differs. g6e.xlarge ICE'd for
+  # several days straight in us-west-2 while every g6.xlarge entry above kept passing,
+  # which is what motivated the ladder. g6.xlarge (L4 24GB) is deliberately absent: it
+  # cannot fit this model.
   - name: "nemotron-nano-12b-v2"
     s3_model: "nemotron-nano-12b-v2.tar.gz"
-    instance_type: "ml.g6e.xlarge"
+    instance_type:
+      - "ml.g6e.xlarge"
+      - "ml.g6e.2xlarge"
+      - "ml.g6e.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -75,7 +95,10 @@ sagemaker:
   # validates serving; full OCR with image input requires multimodal request support.
   - name: "lighton-ocr-2-1b"
     s3_model: "lightonocr-2-1b.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type:
+      - "ml.g6.xlarge"
+      - "ml.g6.2xlarge"
+      - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -98,7 +121,10 @@ sagemaker:
 
   - name: "voxtral-mini-4b"
     s3_model: "voxtral-mini-4b.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type:
+      - "ml.g6.xlarge"
+      - "ml.g6.2xlarge"
+      - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -123,7 +149,10 @@ sagemaker:
 
   - name: "granite-speech-4-1-2b"
     s3_model: "granite-speech-4.1-2b.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type:
+      - "ml.g6.xlarge"
+      - "ml.g6.2xlarge"
+      - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -144,7 +173,10 @@ sagemaker:
 
   - name: "voxtral-mini-4b-network-isolated"
     s3_model: "voxtral-mini-4b-isolated.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type:
+      - "ml.g6.xlarge"
+      - "ml.g6.2xlarge"
+      - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     network_isolation: true
@@ -171,7 +203,10 @@ sagemaker:
 
   - name: "granite-speech-4-1-2b-network-isolated"
     s3_model: "granite-speech-4.1-2b-isolated.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type:
+      - "ml.g6.xlarge"
+      - "ml.g6.2xlarge"
+      - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     network_isolation: true
@@ -203,7 +238,10 @@ sagemaker:
   # at request time, reproducing the original template byte-for-byte.
   - name: "qwen3-reranker-4b"
     s3_model: "qwen3-reranker-4b.tar.gz"
-    instance_type: "ml.g6.xlarge"
+    instance_type:
+      - "ml.g6.xlarge"
+      - "ml.g6.2xlarge"
+      - "ml.g6.4xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"
