@@ -18,7 +18,20 @@ LOGGER = logging.getLogger(__name__)
 
 
 class LoggedConnection(Connection):
-    """Fabric Connection that logs commands before execution."""
+    """Fabric Connection that logs commands before execution.
+
+    Enables SSH-level keepalives on open so long-running, silent commands
+    don't have their idle TCP session dropped by the peer
+    """
+
+    # Seconds between SSH keepalive packets sent to the server.
+    KEEPALIVE_INTERVAL = 30
+
+    def open(self):
+        super().open()
+        transport = self.client.get_transport()
+        if transport is not None:
+            transport.set_keepalive(self.KEEPALIVE_INTERVAL)
 
     def run(self, cmd, **kwargs):
         kwargs.setdefault("hide", True)
