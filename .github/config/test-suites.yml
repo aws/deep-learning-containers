@@ -148,6 +148,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/vllm/sagemaker/**
+      - test/test_utils/instance_capacity.py
       - .github/config/model-tests/vllm-sagemaker-endpoint-tests.yml
 
   sglang/upstream:
@@ -187,6 +188,8 @@ suites:
     skip_eligible: true
     code_paths:
       - test/vllm-omni/sagemaker/**
+      - test/test_utils/instance_capacity.py
+      - test/test_utils/test_instance_capacity.py
 
   tei/sagemaker:
     skip_eligible: true

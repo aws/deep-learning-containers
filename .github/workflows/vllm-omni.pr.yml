@@ -9,6 +9,7 @@ on:
       - ".github/config/model-tests/vllm-omni-model-tests.yml"
       - ".github/workflows/vllm-omni.pipeline.yml"
       - ".github/workflows/vllm-omni.pr.yml"
+      - ".github/workflows/vllm-omni.tests-sagemaker.yml"
       - ".github/workflows/vllm.tests-unit.yml"
       - "docker/vllm_omni/Dockerfile.amzn2023"
       - "scripts/docker/common/**"
@@ -18,6 +19,8 @@ on:
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/vllm_omni/**"
       - "test/telemetry/**"
+      - "test/test_utils/instance_capacity.py"
+      - "test/test_utils/test_instance_capacity.py"
       - "test/vllm-omni/**"
       - "test/vllm/test_sagemaker_args.py"
       - "!docs/**"
@@ -64,6 +67,9 @@ jobs:
               - ".github/config/model-tests/vllm-omni-model-tests.yml"
               - "test/vllm-omni/**"
             sagemaker-test-change:
+              - ".github/workflows/vllm-omni.tests-sagemaker.yml"
+              - "test/test_utils/instance_capacity.py"
+              - "test/test_utils/test_instance_capacity.py"
               - "test/vllm-omni/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"

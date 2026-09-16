@@ -18,6 +18,7 @@ from sagemaker.core.shapes import (
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
+from test_utils.instance_capacity import build_instance_pools
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -56,6 +57,7 @@ def _create_model(model_name, image_uri, env, role_arn):
 
 @pytest.fixture(scope="function")
 def model_endpoint(aws_session, image_uri, model_id, instance_type):
+    """Deploy a realtime endpoint over a native SageMaker instance-pool ladder."""
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-{cleaned_id}", 50)
     model_name = endpoint_name
@@ -76,25 +78,32 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     variant_name="AllTraffic",
                     model_name=model_name,
                     initial_instance_count=1,
-                    instance_type=instance_type,
+                    instance_pools=build_instance_pools(instance_type),
+                    variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
             ],
         )
 
-        LOGGER.info(f"Deploying endpoint: {endpoint_name}")
+        LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_type}")
         endpoint = Endpoint.create(
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
-        endpoint.wait_for_status("InService", timeout=1800)
+        # Leave enough of the runner's credential session for inference and cleanup.
+        endpoint.wait_for_status("InService", timeout=2700)
 
         yield endpoint
     finally:
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+# Every rung is a single 24 GB GPU and can serve this TTS model unaided.
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_endpoint(model_endpoint, aws_session):
     """TTS via /invocations, covering both response transports on ONE endpoint.
@@ -184,24 +193,11 @@ def test_vllm_omni_tts_endpoint(model_endpoint, aws_session):
     LOGGER.info("TTS endpoint test PASSED (buffered + response-streaming)")
 
 
-_CAPACITY_TOKENS = (
-    "ResourceLimitExceeded",
-    "InsufficientInstanceCapacity",
-    "CapacityError",
-)
-
-
 @pytest.fixture(scope="function")
 def async_endpoint(aws_session, image_uri, model_id, instance_type):
-    """Deploy an async inference endpoint (no 60s timeout limit).
-
-    Skips the test if SageMaker can't allocate the requested instance type
-    (common for newer GPU families like g6e.xlarge / g6e.12xlarge). Surfaces
-    the skip rather than failing CI so the rest of the matrix still gets
-    useful signal.
-    """
-    cleaned_instance = clean_string(instance_type, "_./")
-    endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_instance}", 50)
+    """Deploy an async endpoint over a native SageMaker instance-pool ladder."""
+    cleaned_id = clean_string(model_id.split("/")[1], "_./")
+    endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_id}", 50)
     model_name = endpoint_name
     account_id = aws_session.sts.get_caller_identity()["Account"]
     s3_output = f"s3://sagemaker-{aws_session.region}-{account_id}/vllm-omni-async-output/"
@@ -212,46 +208,47 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
 
     model = endpoint_config = endpoint = None
     try:
-        try:
-            model = _create_model(model_name, image_uri, env, role_arn)
+        model = _create_model(model_name, image_uri, env, role_arn)
 
-            LOGGER.info(f"Creating async endpoint config: {endpoint_name}")
-            endpoint_config = EndpointConfig.create(
-                endpoint_config_name=endpoint_name,
-                production_variants=[
-                    ProductionVariant(
-                        variant_name="AllTraffic",
-                        model_name=model_name,
-                        initial_instance_count=1,
-                        instance_type=instance_type,
-                        inference_ami_version=INFERENCE_AMI_VERSION,
-                    ),
-                ],
-                async_inference_config=AsyncInferenceConfig(
-                    output_config=AsyncInferenceOutputConfig(s3_output_path=s3_output),
-                    client_config=AsyncInferenceClientConfig(
-                        max_concurrent_invocations_per_instance=1,
-                    ),
+        LOGGER.info(f"Creating async endpoint config: {endpoint_name}")
+        endpoint_config = EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=model_name,
+                    initial_instance_count=1,
+                    instance_pools=build_instance_pools(instance_type),
+                    variant_instance_provision_timeout_in_seconds=1800,
+                    inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
-            )
+            ],
+            async_inference_config=AsyncInferenceConfig(
+                output_config=AsyncInferenceOutputConfig(s3_output_path=s3_output),
+                client_config=AsyncInferenceClientConfig(
+                    max_concurrent_invocations_per_instance=1,
+                ),
+            ),
+        )
 
-            LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
-            endpoint = Endpoint.create(
-                endpoint_name=endpoint_name,
-                endpoint_config_name=endpoint_name,
-            )
-            endpoint.wait_for_status("InService", timeout=1800)
-        except Exception as e:
-            if any(tok in str(e) for tok in _CAPACITY_TOKENS):
-                pytest.skip(f"SageMaker capacity unavailable for {instance_type}: {e}")
-            raise
+        LOGGER.info(f"Deploying async endpoint: {endpoint_name} on {instance_type}")
+        endpoint = Endpoint.create(
+            endpoint_name=endpoint_name,
+            endpoint_config_name=endpoint_name,
+        )
+        # Leave enough of the runner's credential session for inference and cleanup.
+        endpoint.wait_for_status("InService", timeout=2700)
 
         yield endpoint, s3_output
     finally:
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_async_endpoint(async_endpoint):
     """TTS via async inference — no 60s timeout, up to 1 hour."""
@@ -296,7 +293,12 @@ def test_vllm_omni_tts_async_endpoint(async_endpoint):
     pytest.fail("Async inference timed out after 300s")
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.2xlarge"], indirect=True)
+# VACE needs at least 32 GB host RAM, so xlarge pools are intentionally excluded.
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["Wan-AI/Wan2.1-VACE-1.3B-diffusers"], indirect=True)
 def test_vllm_omni_video_async_endpoint(async_endpoint):
     """Video gen via async inference + /v1/videos/sync.

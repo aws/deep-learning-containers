@@ -4,10 +4,10 @@ SageMaker reports a dry capacity pool per instance type, so a shortage in one si
 says nothing about the next size up. An endpoint test that names a single instance
 type therefore fails for a reason that has nothing to do with the image under test.
 
-These helpers let a test declare a priority-ordered ladder of instance types and walk
-it, so a momentary shortage in one pool is absorbed rather than reported as a defect.
-An exhausted ladder raises: skipping would leave the model unvalidated while the run
-still reported green, hiding a real coverage gap.
+These helpers support both the legacy client-side fallback loop and SageMaker's native
+instance pools (a.k.a. heterogeneous endpoints). Native pools put the priority-ordered
+instance-type ladder on one production variant, so SageMaker performs capacity fallback
+server-side within a single deploy.
 
 Every rung of a ladder must fit the model unaided. Within a family the larger sizes
 carry the same single GPU as their xlarge base (L4 24GB for g6, L40S 48GB for g6e), so
@@ -17,8 +17,13 @@ families — a model sized for L40S will not fit L4.
 
 import logging
 
+from sagemaker.core.shapes import InstancePool
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+# SageMaker allows at most five instance types per production variant.
+MAX_INSTANCE_POOLS = 5
 
 # SageMaker reports a dry capacity pool as one of these. None of them indicate an image
 # or test defect, so they trigger instance-type fallback instead of failing the suite.
@@ -39,6 +44,31 @@ def normalize_instance_types(instance_type):
     if isinstance(instance_type, str):
         return [instance_type]
     return list(instance_type)
+
+
+def build_instance_pools(instance_type):
+    """Turn a single type or priority-ordered ladder into native SageMaker pools.
+
+    The first candidate gets priority 1 (highest), the next priority 2, and so on.
+    SageMaker provisions the highest-priority type with available capacity and falls
+    back to lower-priority types on an insufficient-capacity error.
+
+    Raises:
+        ValueError: if no instance types are supplied.
+        ValueError: if more than ``MAX_INSTANCE_POOLS`` candidates are supplied.
+    """
+    types = normalize_instance_types(instance_type)
+    if not types:
+        raise ValueError("build_instance_pools requires at least one instance type")
+    if len(types) > MAX_INSTANCE_POOLS:
+        raise ValueError(
+            f"SageMaker allows at most {MAX_INSTANCE_POOLS} instance pools per variant; "
+            f"got {len(types)}: {types}"
+        )
+    return [
+        InstancePool(instance_type=candidate, priority=priority)
+        for priority, candidate in enumerate(types, start=1)
+    ]
 
 
 def deploy_with_capacity_fallback(instance_type, deploy, label):
