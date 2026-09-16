@@ -421,6 +421,9 @@ COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSC
 
 COPY --from=build /usr/local/lib/libgdrapi.so* /usr/local/lib/
 
+# Add /usr/local/lib to the linker cache so GDRCopy's libgdrapi.so loads at runtime.
+RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/local-lib.conf && ldconfig
+
 # install EFA
 COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 ARG EFA_VERSION="1.50.0"
@@ -429,13 +432,13 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && ldconfig \
   && bash install_efa_amzn2023.sh ${EFA_VERSION} \
   && rm install_efa_amzn2023.sh \
-  && dnf remove -y libnccl-devel \
+  && dnf remove -y libnccl libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # Prebuild all_reduce_perf so the CI EFA test's setup_nccl_tests.sh is a no-op.
 ARG NCCL_TESTS_VERSION=v2.20.0
-RUN dnf install -y --setopt=install_weak_deps=False make \
+RUN dnf install -y --setopt=install_weak_deps=False make which \
   && NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") \
   && if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
        ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
