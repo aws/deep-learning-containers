@@ -1,0 +1,10 @@
+framework: AutoGluon
+version: "1.6"
+accelerator: cpu
+python: py312
+os: amzn2023
+platform: sagemaker
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "1.6.1-cpu-py312-amzn2023"
