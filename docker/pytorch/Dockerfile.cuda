@@ -36,7 +36,7 @@ ARG MAX_JOBS=8
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
-ARG FRAMEWORK_SHORT_VERSION=2.12
+ARG FRAMEWORK_SHORT_VERSION=2.13
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
@@ -81,7 +81,7 @@ RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
 FROM builder-base AS builder-flash-attn
-ARG FRAMEWORK_SHORT_VERSION=2.12
+ARG FRAMEWORK_SHORT_VERSION=2.13
 ARG FLASH_ATTN_VERSION
 ARG MAX_JOBS
 
@@ -132,7 +132,7 @@ ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 ARG EFA_VERSION
 ARG NCCL_TESTS_VERSION
-ARG FRAMEWORK_SHORT_VERSION=2.12
+ARG FRAMEWORK_SHORT_VERSION=2.13
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -196,7 +196,6 @@ RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl._
     cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf && \
     cd / && rm -rf "${NCCL_TESTS_DIR}"
 
-# Framework license required at /license.txt for release; uploaded per minor version to s3://aws-dlc-licenses.
 RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/pytorch-${FRAMEWORK_SHORT_VERSION}/license.txt"
 
 
@@ -249,7 +248,7 @@ CMD ["bash"]
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
 FROM runtime-base AS sagemaker
-ARG FRAMEWORK_SHORT_VERSION=2.12
+ARG FRAMEWORK_SHORT_VERSION=2.13
 ARG TORCH_VERSION
 
 # SageMaker BYOC paths
