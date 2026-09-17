@@ -36,7 +36,7 @@ ARG MAX_JOBS=8
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
-ARG FRAMEWORK_SHORT_VERSION=2.13
+ARG FRAMEWORK_SHORT_VERSION=2.14
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
@@ -81,7 +81,7 @@ RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
 FROM builder-base AS builder-flash-attn
-ARG FRAMEWORK_SHORT_VERSION=2.13
+ARG FRAMEWORK_SHORT_VERSION=2.14
 ARG FLASH_ATTN_VERSION
 ARG MAX_JOBS
 
@@ -137,7 +137,7 @@ ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 ARG EFA_VERSION
 ARG NCCL_TESTS_VERSION
-ARG FRAMEWORK_SHORT_VERSION=2.13
+ARG FRAMEWORK_SHORT_VERSION=2.14
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -253,7 +253,7 @@ CMD ["bash"]
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
 FROM runtime-base AS sagemaker
-ARG FRAMEWORK_SHORT_VERSION=2.13
+ARG FRAMEWORK_SHORT_VERSION=2.14
 ARG TORCH_VERSION
 
 # SageMaker BYOC paths

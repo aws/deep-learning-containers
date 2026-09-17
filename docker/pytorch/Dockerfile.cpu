@@ -24,7 +24,7 @@ ARG OPEN_MPI_VERSION=4.1.7
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
 FROM amazonlinux:2023 AS builder-base
-ARG FRAMEWORK_SHORT_VERSION=2.13
+ARG FRAMEWORK_SHORT_VERSION=2.14
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
@@ -61,7 +61,7 @@ ARG TORCH_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 ARG OPEN_MPI_VERSION
-ARG FRAMEWORK_SHORT_VERSION=2.13
+ARG FRAMEWORK_SHORT_VERSION=2.14
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -157,7 +157,7 @@ CMD ["bash"]
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
 FROM runtime-base AS sagemaker
-ARG FRAMEWORK_SHORT_VERSION=2.13
+ARG FRAMEWORK_SHORT_VERSION=2.14
 ARG TORCH_VERSION
 
 # SageMaker BYOC paths
