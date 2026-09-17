@@ -464,7 +464,8 @@ RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=Fal
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   # dnf needs system python 3.9
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3 \
+  && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf /usr/bin/yum
 
 COPY ./scripts/docker/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -480,7 +481,8 @@ RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=Fal
   && dnf install -y --setopt=install_weak_deps=False libsndfile \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
   # dnf needs system python 3.9
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3 \
+  && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf /usr/bin/yum
 
 COPY ./scripts/docker/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 COPY ./scripts/docker/vllm/sagemaker_serve.py /usr/local/bin/sagemaker_serve.py
