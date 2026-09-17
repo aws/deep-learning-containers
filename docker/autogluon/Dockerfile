@@ -1,8 +1,12 @@
-# AutoGluon SageMaker CPU DLC, layered on the AWS PyTorch CPU training DLC
+# AutoGluon SageMaker DLC, layered on an AWS PyTorch training DLC
 # (Amazon Linux 2023). The image supports both SageMaker commands:
 # `train` uses the inherited training toolkit and `serve` uses the lightweight
 # AutoGluon HTTP adapter below.
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/pytorch:2.13-cpu-amzn2023-sagemaker
+#
+# BASE_IMAGE is supplied by:
+# - .github/config/image/autogluon/1.6-sagemaker-cpu.yml
+# - .github/config/image/autogluon/1.6-sagemaker-cuda.yml
+ARG BASE_IMAGE
 
 FROM ${BASE_IMAGE} AS sagemaker
 
@@ -27,7 +31,7 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
 # AL2023 has no tesseract package, so pytesseract-based AutoMM OCR is unavailable.
 RUN dnf install -y rsync poppler-utils && dnf clean all
 
-# PyTorch and torchvision come from the CPU base image. Install the
+# PyTorch and torchvision come from the selected base image. Install the
 # remaining dependency graph exactly as resolved in requirements.lock.
 COPY docker/autogluon/requirements.lock /tmp/autogluon-requirements.lock
 RUN uv pip install --python ${VENV_PYTHON} \
@@ -36,6 +40,12 @@ RUN uv pip install --python ${VENV_PYTHON} \
   -r /tmp/autogluon-requirements.lock \
   && rm /tmp/autogluon-requirements.lock \
   && uv cache clean
+
+# Some GPU base images include Transformer Engine. It is unused by AutoGluon,
+# and peft imports it at load time, which fails without an NVIDIA driver
+# (libcuda.so.1). This is a no-op when the packages are absent, including on CPU.
+RUN TE_PKGS=$(uv pip list --python ${VENV_PYTHON} 2>/dev/null | awk '{print $1}' | grep -i '^transformer-engine' || true) \
+  && if [ -n "${TE_PKGS}" ]; then uv pip uninstall --python ${VENV_PYTHON} ${TE_PKGS}; fi
 
 RUN uv pip check --python ${VENV_PYTHON}
 

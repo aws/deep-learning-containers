@@ -14,7 +14,7 @@ metadata:
   prod_image: "autogluon:1.6-cpu-amzn2023"
 
 build:
-  dockerfile: "docker/autogluon/Dockerfile.cpu"
+  dockerfile: "docker/autogluon/Dockerfile"
   target: "sagemaker"
   base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.13-cpu-amzn2023-sagemaker"
   python_version: "3.12"
