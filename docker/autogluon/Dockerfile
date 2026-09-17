@@ -33,13 +33,13 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
 RUN dnf install -y rsync poppler-utils && dnf clean all
 
 # REQUIREMENTS_FILE is supplied by the matching CPU/CUDA image config. It
-# contains only packages added to or changed from that PyTorch DLC base.
-COPY ${REQUIREMENTS_FILE} /tmp/autogluon-requirements.txt
+# contains exact pins only for packages added to or changed from that PyTorch
+# DLC base.
+COPY ${REQUIREMENTS_FILE} /tmp/autogluon-requirements.in
 RUN uv pip install --python ${VENV_PYTHON} \
   --no-deps \
-  --require-hashes \
-  -r /tmp/autogluon-requirements.txt \
-  && rm /tmp/autogluon-requirements.txt \
+  -r /tmp/autogluon-requirements.in \
+  && rm /tmp/autogluon-requirements.in \
   && uv cache clean
 
 # Some GPU base images include Transformer Engine. It is unused by AutoGluon,

@@ -17,7 +17,7 @@ build:
   dockerfile: "docker/autogluon/Dockerfile"
   target: "sagemaker"
   base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.13-cpu-amzn2023-sagemaker"
-  requirements_file: "docker/autogluon/requirements.cpu.txt"
+  requirements_file: "docker/autogluon/1.6/requirements.cpu.in"
   python_version: "3.12"
   dlc_major_version: "1"
   dlc_minor_version: "0"

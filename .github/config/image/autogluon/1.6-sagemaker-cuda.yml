@@ -17,7 +17,7 @@ build:
   dockerfile: "docker/autogluon/Dockerfile"
   target: "sagemaker"
   base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.13-cu133-amzn2023-sagemaker"
-  requirements_file: "docker/autogluon/requirements.cuda.txt"
+  requirements_file: "docker/autogluon/1.6/requirements.cuda.in"
   python_version: "3.12"
   cuda_version: "13.3.0"
   dlc_major_version: "1"
