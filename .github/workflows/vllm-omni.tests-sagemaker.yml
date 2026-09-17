@@ -77,6 +77,8 @@ jobs:
             node: "vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py::test_vllm_omni_bidi_speech_stream"
           - name: bidi-default-path-rejected
             node: "vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py::test_vllm_omni_bidi_default_path_rejected"
+          - name: peft-lora
+            node: "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_peft_lora_endpoint"
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

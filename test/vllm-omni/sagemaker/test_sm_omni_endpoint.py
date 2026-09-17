@@ -30,6 +30,20 @@ LOGGER.setLevel(logging.INFO)
 VIDEO_MODEL_ID = "Wan-AI/Wan2.1-VACE-1.3B-diffusers"
 VIDEO_INSTANCE_TYPES = ["ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge"]
 
+# PEFT LoRA: SD-3.5-medium (~20 GiB peak) fits a single 24 GB GPU with no offload.
+# Base is HF-pulled at runtime; the PEFT adapter ships via the model's S3
+# model_data, extracted to /opt/ml/model/adapters/sd35-lora.
+LORA_MODEL_ID = "stabilityai/stable-diffusion-3.5-medium"
+LORA_ADAPTER_S3 = "s3://dlc-cicd-models/omni-models/sd35-yarnart-peft-adapter.tar.gz"
+LORA_ADAPTER_PATH = "/opt/ml/model/adapters/sd35-lora"
+LORA_INSTANCE_TYPES = [
+    "ml.g6.xlarge",
+    "ml.g6.2xlarge",
+    "ml.g6.4xlarge",
+    "ml.g5.xlarge",
+    "ml.g5.2xlarge",
+]
+
 
 @pytest.fixture(scope="function")
 def model_id(request):
@@ -52,12 +66,19 @@ def _cleanup(resources):
             LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
 
 
-def _create_model(model_name, image_uri, env, role_arn):
-    """Create a v3 Model resource pointing at the DLC image."""
+def _create_model(model_name, image_uri, env, role_arn, model_data_url=None):
+    """Create a v3 Model resource pointing at the DLC image.
+
+    model_data_url (optional): an S3 .tar.gz SageMaker extracts to /opt/ml/model
+    on the endpoint — used to ship a LoRA adapter alongside an HF-pulled base.
+    """
     LOGGER.info(f"Creating model: {model_name}")
+    container_kwargs = {"image": image_uri, "environment": env}
+    if model_data_url:
+        container_kwargs["model_data_url"] = model_data_url
     return Model.create(
         model_name=model_name,
-        primary_container=ContainerDefinition(image=image_uri, environment=env),
+        primary_container=ContainerDefinition(**container_kwargs),
         execution_role_arn=role_arn,
     )
 
@@ -384,6 +405,105 @@ def test_vllm_omni_video_async_endpoint(async_endpoint):
             time.sleep(5)
 
     pytest.fail("Async video inference timed out after 600s")
+
+
+@pytest.fixture(scope="function")
+def lora_endpoint(aws_session, image_uri, instance_type):
+    """Deploy a realtime endpoint with a PEFT LoRA adapter registered at startup.
+
+    Base (SD-3.5-medium) is HF-pulled at runtime; the adapter ships as the
+    model's S3 model_data, extracted to /opt/ml/model/adapters/sd35-lora.
+    """
+    endpoint_name = random_suffix_name("vllm-omni-lora-sd35", 50)
+    model_name = endpoint_name
+
+    hf_token = get_hf_token(aws_session)
+    env = {
+        "SM_VLLM_MODEL": LORA_MODEL_ID,
+        "HF_TOKEN": hf_token,
+        "SM_VLLM_ENABLE_LORA": "true",
+        "SM_VLLM_LORA_MODULES": json.dumps({"name": "sd35-lora", "path": LORA_ADAPTER_PATH}),
+        "SM_VLLM_MAX_LORA_RANK": "64",
+        "SM_VLLM_TRUST_REMOTE_CODE": "true",
+    }
+    role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
+
+    model = endpoint_config = endpoint = None
+    try:
+        model = _create_model(model_name, image_uri, env, role_arn, model_data_url=LORA_ADAPTER_S3)
+
+        LOGGER.info(f"Creating endpoint config: {endpoint_name}")
+        endpoint_config = EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=model_name,
+                    initial_instance_count=1,
+                    instance_pools=build_instance_pools(instance_type),
+                    variant_instance_provision_timeout_in_seconds=1800,
+                    inference_ami_version=INFERENCE_AMI_VERSION,
+                ),
+            ],
+        )
+
+        LOGGER.info(f"Deploying LoRA endpoint: {endpoint_name} on {instance_type}")
+        endpoint = Endpoint.create(endpoint_name=endpoint_name, endpoint_config_name=endpoint_name)
+        endpoint.wait_for_status("InService", timeout=2700)
+
+        yield endpoint
+    finally:
+        _cleanup([endpoint, endpoint_config, model])
+
+
+def _invoke_image(endpoint, body):
+    """POST an image-gen request via /invocations; return the base64 image string."""
+    # First request pays model load + warmup; retry past SageMaker's 60s invoke timeout.
+    for attempt in range(3):
+        try:
+            result = endpoint.invoke(
+                body=json.dumps(body),
+                content_type="application/json",
+                custom_attributes="route=/v1/images/generations",
+            )
+            break
+        except Exception as e:
+            LOGGER.warning(f"Image invoke attempt {attempt + 1}/3 failed: {e}")
+            if attempt == 2:
+                raise
+            time.sleep(30)
+    data = json.loads(result.body.read())
+    b64 = (data.get("data") or [{}])[0].get("b64_json")
+    assert b64 and len(b64) > 1000, f"no/small image in response: {str(data)[:300]}"
+    return b64
+
+
+# SD-3.5-medium fits every rung (single 24 GB GPU, no offload).
+@pytest.mark.parametrize("instance_type", [LORA_INSTANCE_TYPES], indirect=True)
+def test_vllm_omni_peft_lora_endpoint(lora_endpoint):
+    """PEFT LoRA per-request selection on /v1/images/generations.
+
+    Generates the SAME prompt/seed twice — without, then with, the per-request
+    `lora` field. A real bind check: the images must DIFFER, proving the adapter
+    is applied per request (not merely loaded at startup).
+    """
+    endpoint = lora_endpoint
+    base = {"prompt": "a cat sitting on a chair", "size": "512x512", "seed": 42, "n": 1}
+
+    LOGGER.info("Image gen WITHOUT adapter (baseline)")
+    img_base = _invoke_image(endpoint, base)
+
+    LOGGER.info("Image gen WITH per-request lora field")
+    img_lora = _invoke_image(
+        endpoint,
+        {**base, "lora": {"name": "sd35-lora", "local_path": LORA_ADAPTER_PATH, "scale": 1.0}},
+    )
+
+    assert img_base != img_lora, (
+        "LoRA had no effect: with-adapter output identical to baseline "
+        "(per-request `lora` field not applied by the middleware/server)"
+    )
+    LOGGER.info("PEFT LoRA endpoint test PASSED (adapter applied per-request)")
 
 
 def _upload_payload_to_s3(
