@@ -19,9 +19,11 @@ s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
 
 sagemaker:
-  # Qwen3.5-2B CPU endpoint (arm64/Graviton). Dot-free name (SageMaker ModelName allows only [a-zA-Z0-9-]).
-  - name: "qwen35-2b-arm64-cpu"
-    s3_model: "qwen3.5-2b.tar.gz"
+  # Qwen3.5-0.8B CPU endpoint (arm64/Graviton). Dense 0.8B; the 2B qwen3.5 tarball is a
+  # Mamba/GDN hybrid whose GDN kernels are Triton-only (no CPU backend), so it fails to
+  # start within the SageMaker health-check window. Dot-free name (ModelName allows only [a-zA-Z0-9-]).
+  - name: "qwen35-08b-arm64-cpu"
+    s3_model: "qwen3.5-0.8b.tar.gz"
     instance_type:
       - "ml.c7g.2xlarge"
       - "ml.c7g.4xlarge"
