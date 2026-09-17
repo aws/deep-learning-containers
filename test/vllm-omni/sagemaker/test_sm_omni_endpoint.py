@@ -442,6 +442,9 @@ def lora_endpoint(aws_session, image_uri, instance_type):
                     initial_instance_count=1,
                     instance_pools=build_instance_pools(instance_type),
                     variant_instance_provision_timeout_in_seconds=1800,
+                    # SD-3.5-medium's ~15 GB gated HF pull + load exceeds the 600s
+                    # default ping-health-check window; extend so /ping has time.
+                    container_startup_health_check_timeout_in_seconds=2400,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
             ],
