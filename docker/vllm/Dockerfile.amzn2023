@@ -56,11 +56,19 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
+# unzip/perl: Rust frontend (vllm-rs) build deps.
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build patch gawk \
+  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl patch gawk \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
+
+# Rust frontend (vllm-rs, vllm 0.26.0+); VLLM_REQUIRE_RUST_FRONTEND forces the build (else silently skipped).
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+  | sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
+ENV PATH="/root/.cargo/bin:${PATH}"
+ENV CARGO_BUILD_JOBS=4
+ENV VLLM_REQUIRE_RUST_FRONTEND=1
 
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
@@ -80,6 +88,9 @@ COPY --from=source /src/ ./
 # Install PyTorch + build deps (slow-changing, cached)
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/cuda.txt -r requirements/build/cuda.txt \
   --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+# Rust frontend build deps (setuptools-rust).
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/build/rust.txt
 
 # 10.3 is B300 (SM103); without it there is no SM103 cubin and no 10.0+PTX to JIT from.
 # The value below is only a fallback: image configs set build.torch_cuda_arch_list, which
