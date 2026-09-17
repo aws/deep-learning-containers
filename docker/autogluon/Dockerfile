@@ -10,6 +10,7 @@ ARG BASE_IMAGE
 
 FROM ${BASE_IMAGE} AS sagemaker
 
+ARG REQUIREMENTS_FILE
 ARG FRAMEWORK=autogluon
 ARG FRAMEWORK_VERSION=1.6.2
 ARG CONTAINER_TYPE=general
@@ -31,14 +32,14 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
 # AL2023 has no tesseract package, so pytesseract-based AutoMM OCR is unavailable.
 RUN dnf install -y rsync poppler-utils && dnf clean all
 
-# PyTorch and torchvision come from the selected base image. Install the
-# remaining dependency graph exactly as resolved in requirements.lock.
-COPY docker/autogluon/requirements.lock /tmp/autogluon-requirements.lock
+# REQUIREMENTS_FILE is supplied by the matching CPU/CUDA image config. It
+# contains only packages added to or changed from that PyTorch DLC base.
+COPY ${REQUIREMENTS_FILE} /tmp/autogluon-requirements.txt
 RUN uv pip install --python ${VENV_PYTHON} \
   --no-deps \
   --require-hashes \
-  -r /tmp/autogluon-requirements.lock \
-  && rm /tmp/autogluon-requirements.lock \
+  -r /tmp/autogluon-requirements.txt \
+  && rm /tmp/autogluon-requirements.txt \
   && uv cache clean
 
 # Some GPU base images include Transformer Engine. It is unused by AutoGluon,
