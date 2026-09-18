@@ -61,9 +61,7 @@ def _load_sagemaker_config(config_path, model_name=None):
         models = [m for m in models if m["name"] == model_name]
     for m in models:
         m["s3_path"] = f"{s3_prefix}/{m['s3_model']}"
-        # instance_type accepts either a single type or a priority-ordered ladder;
-        # build_instance_pools turns it into SageMaker instance pools that fall back
-        # across those types on capacity errors, server-side, within one deploy.
+        # instance_type may be a single type or a priority-ordered ladder.
         m["instance_types"] = normalize_instance_types(m["instance_type"])
     return models
 
@@ -234,8 +232,7 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
                     model_name=endpoint_name,
                     initial_instance_count=1,
                     instance_pools=build_instance_pools(instance_types),
-                    # Give SageMaker room to walk the whole pool ladder on ICE before
-                    # failing; the priority-1 pool provisions first when it has capacity.
+                    # Cap for walking the whole pool ladder on capacity errors.
                     variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
@@ -247,9 +244,7 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
-        # Pool provisioning can consume the full 1800s cap on its own, separate from
-        # model download and container startup, so the wall-clock wait must cover
-        # provisioning plus boot (1800 + ~2700 boot budget = 4500).
+        # Covers pool provisioning (<=1800s) plus model download and container boot.
         endpoint.wait_for_status("InService", timeout=4500)
     except Exception:
         _cleanup([endpoint, endpoint_config, model])

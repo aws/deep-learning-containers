@@ -68,11 +68,7 @@ jobs:
             --section sagemaker \
             --image-config "${{ inputs.config-file }}"
 
-  # Config models (from vllm-sagemaker-endpoint-tests.yml) fan out one job per model so a
-  # failure isolates to that model and only that job is re-run. max-parallel: 1 keeps at
-  # most one SageMaker endpoint live at a time; fail-fast: false lets every model run even
-  # after one fails. Model selection is by the SM_MODEL_NAME env var (read at pytest
-  # collection in _generate_test_params).
+  # One job per config model; max-parallel 1 keeps a single endpoint live at a time.
   endpoint-test-models:
     name: endpoint-test (${{ matrix.model.name }})
     if: ${{ needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.sagemaker-matrix)[0] != null }}
@@ -105,9 +101,7 @@ jobs:
           python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} \
             vllm/sagemaker/amzn2023/test_sm_model_serving.py
 
-  # deepseek is not in the config (it pulls the model from HuggingFace at runtime, a
-  # different path than the S3-artifact config models), so it stays its own job. It runs
-  # AFTER the model matrix (needs + always()) so total live endpoints never exceeds one.
+  # deepseek pulls from HuggingFace at runtime, so it stays a separate job after the matrix.
   endpoint-test-deepseek:
     if: ${{ always() && needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.sagemaker-matrix)[0] != null }}
     needs: [preflight, endpoint-test-models]
