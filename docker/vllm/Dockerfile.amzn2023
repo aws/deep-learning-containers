@@ -53,11 +53,11 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
-# gcc14 is needed for DeepSelect: it requires C++20 <format>, missing from AL2023's default gcc 11.5.
+# gcc14 for DeepSelect's C++20 <format>; elfutils-devel for DeepGEMM's deep_jit backtraces.
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar gzip xz git gcc gcc-c++ gcc14 gcc14-c++ make cmake ninja-build patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-  libibverbs-devel \
+  libibverbs-devel elfutils-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 RUN python${PYTHON_VERSION} -m venv /opt/venv
