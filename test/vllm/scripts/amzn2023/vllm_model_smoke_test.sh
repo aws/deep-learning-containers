@@ -53,7 +53,7 @@ fi
 echo "=== Running completion test ==="
 RESPONSE=$(curl -sf http://localhost:${VLLM_PORT}/v1/completions \
   -H "Content-Type: application/json" \
-  -d "{\"model\": \"${MODEL_DIR}\", \"prompt\": \"Hello\", \"max_tokens\": 16}")
+  -d "{\"model\": \"${MODEL_DIR}\", \"prompt\": \"The capital of France is\", \"max_tokens\": 16}")
 
 echo "Response: ${RESPONSE}"
 
