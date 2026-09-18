@@ -1,13 +1,13 @@
 [
     {
         "vulnerability_id": "CVE-2026-42504",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade (same libetcd_wrapper.so go-stdlib cluster as CVE-2026-33818/39821/56853; still present on the mooncake-transfer-engine-cuda13 wheel shipped for vLLM 0.28.0)",
+        "review_by": "2026-10-22"
     },
     {
         "vulnerability_id": "CVE-2026-27145",
         "reason": "go/stdlib in mooncake/libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, unpatchable without mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-10-22"
     },
     {
         "vulnerability_id": "CVE-2026-53923",
@@ -58,6 +58,16 @@
         "vulnerability_id": "GHSA-hrxh-6v49-42gf",
         "reason": "google.golang.org/grpc in mooncake/libetcd_wrapper.so, xDS RBAC engine vulnerabilities, unpatchable without mooncake rebuild with grpc-go>=1.82.1",
         "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84304",
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake/libetcd_wrapper.so, fragmented HTTP/2 DATA frame memory amplification DoS, unpatchable without a mooncake-transfer-engine-cuda13 rebuild with grpc-go >=1.83.1",
+        "review_by": "2026-10-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84445",
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake/libetcd_wrapper.so, xds.NewGRPCServer panic on requests missing :authority and Host headers; not exploitable here because mooncake does not run an xDS-configured gRPC server, unpatchable without a mooncake-transfer-engine-cuda13 rebuild",
+        "review_by": "2026-10-25"
     },
     {
         "vulnerability_id": "CVE-2026-56853",

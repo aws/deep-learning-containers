@@ -48,5 +48,10 @@ cp /tmp/sklearn-wheel/dist/*.whl "${REPO_ROOT}/${DOCKER_DIR}/prebuilt.whl"
 
 echo "Scikit-learn wheel ready: $(ls ${REPO_ROOT}/${DOCKER_DIR}/prebuilt.whl)"
 
+echo "Fetching multi-model-server wheel..."
+MMS_WHEEL_S3_URI="${MMS_WHEEL_S3_URI:-s3://dlc-cicd-wheels/wheels/mme-wheel/multi_model_server-1.1.2-py2.py3-none-any.whl}"
+aws s3 cp "${MMS_WHEEL_S3_URI}" "${REPO_ROOT}/${DOCKER_DIR}/multi_model_server-1.1.2-py2.py3-none-any.whl"
+echo "multi-model-server wheel ready: $(ls ${REPO_ROOT}/${DOCKER_DIR}/multi_model_server-1.1.2-py2.py3-none-any.whl)"
+
 echo "Cleaning up build artifacts..."
 rm -rf /tmp/sklearn-wheel

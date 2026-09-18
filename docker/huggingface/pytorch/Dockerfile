@@ -1,5 +1,4 @@
-# HuggingFace PyTorch training DLC, layered on the AWS PyTorch training DLC.
-# Two targets map onto the base's two flavors: sagemaker | ec2.
+# HuggingFace PyTorch training DLC for SageMaker, layered on the AWS PyTorch training DLC.
 ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023-sagemaker
 
 FROM ${BASE_IMAGE} AS install
@@ -32,9 +31,6 @@ ARG VENV_PYTHON=/opt/venv/bin/python
 ENV PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8
-
-# The ec2 base flavor doesn't ship uv (the sagemaker one does) — bring our own.
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # --- HuggingFace training stack ------------------------------------------
 # Security floors for ECR findings: soupsieve fixes GHSA-2wc2-fm75-p42x and
@@ -113,14 +109,3 @@ ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training:hf-pytorch"
 COPY --chmod=755 ./scripts/docker/huggingface/pytorch/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 CMD ["train"]
-
-# =====================================================================
-# ec2 — HuggingFace training for EC2 / EKS
-# =====================================================================
-FROM install AS ec2
-
-ENV HF_HUB_USER_AGENT_ORIGIN="aws:ec2:gpu-cuda:training:hf-pytorch"
-
-COPY --chmod=755 ./scripts/docker/huggingface/pytorch/ec2_entrypoint.sh /usr/local/bin/ec2_entrypoint.sh
-ENTRYPOINT ["/usr/local/bin/ec2_entrypoint.sh"]
-CMD ["/bin/bash"]

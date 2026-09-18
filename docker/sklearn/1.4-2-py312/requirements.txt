@@ -9,7 +9,7 @@ itsdangerous==2.0.1
 jinja2<3.0
 MarkupSafe<2.0
 model-archiver==1.0.3
-multi-model-server==1.1.1
+multi-model-server==1.1.2
 numpy==2.1.0
 pandas==2.3.2
 protobuf==3.20.2
