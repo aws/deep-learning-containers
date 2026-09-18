@@ -25,6 +25,7 @@ from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
+from test_utils.instance_capacity import build_instance_pools
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -66,7 +67,8 @@ def bidi_endpoint(aws_session, image_uri, model_id, instance_type):
     Same deploy/teardown lifecycle as the HTTP endpoint tests. The DLC image
     already carries the com.amazonaws.sagemaker.capabilities.bidirectional-streaming
     label (set in Dockerfile.amzn2023), which is what makes SageMaker open a
-    WebSocket to the container.
+    WebSocket to the container. The production variant uses a native SageMaker
+    instance-pool ladder for server-side capacity fallback.
     """
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-bidi-{cleaned_id}", 50)
@@ -93,18 +95,20 @@ def bidi_endpoint(aws_session, image_uri, model_id, instance_type):
                     variant_name="AllTraffic",
                     model_name=model_name,
                     initial_instance_count=1,
-                    instance_type=instance_type,
+                    instance_pools=build_instance_pools(instance_type),
+                    variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
             ],
         )
 
-        LOGGER.info(f"Deploying endpoint: {endpoint_name}")
+        LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_type}")
         endpoint = Endpoint.create(
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
-        endpoint.wait_for_status("InService", timeout=1800)
+        # Leave enough of the runner's credential session for inference and cleanup.
+        endpoint.wait_for_status("InService", timeout=2700)
 
         yield endpoint
     finally:
@@ -242,7 +246,11 @@ async def _stream_tts(aws_session, endpoint_name, deadline_s=180):
     }
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_bidi_speech_stream(bidi_endpoint, aws_session):
     """Stream TTS audio over the SageMaker Bidirectional Streaming WebSocket API.
@@ -278,7 +286,11 @@ def test_vllm_omni_bidi_speech_stream(bidi_endpoint, aws_session):
     LOGGER.info(f"Bidi speech-stream test PASSED — {result['audio_bytes']} audio bytes streamed")
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_bidi_default_path_rejected(bidi_endpoint, aws_session):
     """Omitting model_invocation_path targets /invocations-bidirectional-stream,
