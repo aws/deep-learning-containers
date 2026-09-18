@@ -36,7 +36,12 @@ def _load_handler() -> ModuleType:
         raise RuntimeError(f"Unable to import AutoGluon inference handler: {path}")
 
     handler = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(handler)
+    sys.modules[spec.name] = handler
+    try:
+        spec.loader.exec_module(handler)
+    except Exception:
+        sys.modules.pop(spec.name, None)
+        raise
     return handler
 
 
@@ -46,7 +51,10 @@ def _media_type(value: str | None, default: str) -> str:
 
 
 def _request_body(body: bytes, content_type: str) -> bytes | str:
-    if content_type.startswith("text/") or content_type == "application/json":
+    if content_type.startswith("text/") or content_type in (
+        "application/json",
+        "application/jsonl",
+    ):
         return body.decode("utf-8")
     return body
 

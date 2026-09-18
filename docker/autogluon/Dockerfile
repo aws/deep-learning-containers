@@ -28,9 +28,10 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 # AutoGluon serves one model artifact per container; SageMaker MME is unsupported.
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
 
-# rsync for Ray file sync, poppler-utils for pdf2image (AutoMM documents).
+# jq for the inherited SageMaker hostname setup, rsync for Ray file sync,
+# poppler-utils for pdf2image (AutoMM documents).
 # AL2023 has no tesseract package, so pytesseract-based AutoMM OCR is unavailable.
-RUN dnf install -y rsync poppler-utils && dnf clean all
+RUN dnf install -y jq rsync poppler-utils && dnf clean all
 
 # REQUIREMENTS_FILE is supplied by the matching CPU/CUDA image config. It
 # contains exact pins only for packages added to or changed from that PyTorch
@@ -82,6 +83,10 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all \
   && rm -rf /tmp/tmp* /tmp/pip-* /tmp/uv-*
+
+# The security refresh may replace /etc/bashrc, so restore the telemetry hook.
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/autogluon-sagemaker-entrypoint.sh"]

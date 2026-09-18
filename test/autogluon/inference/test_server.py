@@ -8,6 +8,8 @@ import time
 import types
 from pathlib import Path
 
+import pytest
+
 SERVER_DIR = Path(__file__).resolve().parents[3] / "scripts" / "docker" / "autogluon"
 SERVER_PATH = SERVER_DIR / "server.py"
 INSTALL_REQUIREMENTS_PATH = SERVER_DIR / "install_requirements.py"
@@ -131,6 +133,41 @@ def transform_fn(model, body, content_type, accept):
     assert response.data == b"setyb-teuqrap"
 
 
+@pytest.mark.parametrize(
+    "content_type,body",
+    [
+        ("application/json", '{"feature": 1}'),
+        ("application/jsonl", '{"feature": 1}\n{"feature": 2}'),
+        ("text/csv", "feature\n1"),
+    ],
+)
+def test_text_request_body_is_decoded(monkeypatch, tmp_path, content_type, body):
+    _write_handler(
+        tmp_path,
+        """
+def model_fn(model_dir):
+    return None
+
+def transform_fn(model, body, content_type, accept):
+    assert isinstance(body, str)
+    return body, content_type
+""",
+    )
+    server = _load_server(monkeypatch, tmp_path)
+
+    response = _request(
+        server.app,
+        "POST",
+        "/invocations",
+        data=body,
+        headers={"content-type": content_type},
+    )
+
+    assert response.status_code == 200
+    assert response.text == body
+    assert response.headers["content-type"] == content_type
+
+
 def test_default_accept_environment_variable(monkeypatch, tmp_path):
     _write_handler(
         tmp_path,
@@ -167,6 +204,33 @@ def transform_fn(model, body, content_type, accept):
         program="tabular_serve.py",
     )
     server = _load_server(monkeypatch, tmp_path, program="tabular_serve.py")
+
+    response = _request(server.app, "POST", "/invocations", data=b"input")
+
+    assert response.status_code == 200
+    assert response.text == str(tmp_path / "model")
+
+
+def test_handler_module_is_registered_during_execution(monkeypatch, tmp_path):
+    _write_handler(
+        tmp_path,
+        """
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+@dataclass
+class Model:
+    model_dir: str
+
+def model_fn(model_dir):
+    return Model(model_dir)
+
+def transform_fn(model, body, content_type, accept):
+    return model.model_dir, "text/plain"
+""",
+    )
+    server = _load_server(monkeypatch, tmp_path)
 
     response = _request(server.app, "POST", "/invocations", data=b"input")
 
