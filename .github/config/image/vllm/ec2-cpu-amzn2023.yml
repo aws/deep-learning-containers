@@ -1,0 +1,30 @@
+image:
+  name: "vllm-cpu-ec2-amzn2023"
+  description: "vLLM CPU-inference for EC2 instances (x86, AL2023, built from source)"
+
+metadata:
+  framework: "vllm_server"
+  framework_version: "0.28.0"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "cpu"
+  job_type: "general"
+  prod_image: "vllm:server-cpu-v1"
+
+build:
+  dockerfile: "docker/vllm/Dockerfile.cpu.amzn2023"
+  target: "vllm-cpu-ec2-amzn2023"
+  python_version: "3.12"
+  vllm_ref: "2cf0a6915ce544dc493a0990f2ea38d81601128a"  # v0.28.0
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  # Autorelease wiring + validation pending; flip to true once CI is green.
+  release: false
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"

@@ -10,9 +10,17 @@
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
+default_required_image_pattern: {device_type: "gpu"}
 
 smoke-test:
   codebuild-fleet:
+    # Qwen3.5-0.8B CPU smoke on the CPU build fleet (no GPU).
+    - name: "qwen3.5-0.8b-cpu"
+      s3_model: "qwen3.5-0.8b.tar.gz"
+      fleet: "x86-build-runner"
+      extra_args: "--max-model-len 4096 --dtype bfloat16"
+      required_image_pattern: {device_type: "cpu"}
+
     - name: "qwen3.5-0.8b"
       s3_model: "qwen3.5-0.8b.tar.gz"
       fleet: "x86-g6xl-runner"

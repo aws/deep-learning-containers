@@ -232,6 +232,7 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_type):
                     initial_instance_count=1,
                     instance_type=instance_type,
                     inference_ami_version=INFERENCE_AMI_VERSION,
+                    container_startup_health_check_timeout_in_seconds=1800,
                 ),
             ],
         )
