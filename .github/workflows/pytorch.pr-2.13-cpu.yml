@@ -15,7 +15,8 @@ on:
       - "scripts/docker/telemetry/**"
       - "test/pytorch/unit/**"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
+      - "test/security/data/ecr_scan_allowlist/pytorch_runtime/pytorch_runtime-2.13.*.json"
+      - "test/security/data/ecr_scan_allowlist/pytorch_runtime/framework_allowlist.json"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -60,7 +61,8 @@ jobs:
               - "docker/pytorch/2.13/cpu/**"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"
-              - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
+              - "test/security/data/ecr_scan_allowlist/pytorch_runtime/pytorch_runtime-2.13.*.json"
+              - "test/security/data/ecr_scan_allowlist/pytorch_runtime/framework_allowlist.json"
             sagemaker-test-change:
               - "test/pytorch/integration/sagemaker/**"
               - ".github/workflows/pytorch.tests-sagemaker.yml"
