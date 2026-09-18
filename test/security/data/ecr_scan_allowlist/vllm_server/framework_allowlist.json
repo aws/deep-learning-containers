@@ -92,7 +92,7 @@
     {
         "vulnerability_id": "CVE-2026-27145",
         "reason": "go/stdlib 1.24.11 embedded in mooncake libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-09-10"
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-39822",
@@ -152,6 +152,16 @@
     {
         "vulnerability_id": "CVE-2026-73500",
         "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in etcd 3.7.1, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-08"
+    },
+    {
+        "vulnerability_id": "CVE-2026-90553",
+        "reason": "vLLM RCE in the LlavaOnevision2 processor loader (ignores trust_remote_code when loading remote processor classes), fixed upstream in vllm 0.28.0. The AL2023 GPU image is on source-built vllm 0.27.1 (vllm_ref 6adad08). Exploitation requires serving a LlavaOnevision2 model whose HF repo references an attacker-controlled remote processor class; the served model is operator-selected in DLC hosting. Stopgap pending the 0.28.0 currency bump.",
+        "review_by": "2026-10-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84445",
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside the AL2023 mooncake libetcd_wrapper.so, xds.NewGRPCServer accepts an RPC missing required headers; not exploitable here as mooncake does not run an xDS-configured gRPC server, and the fix is only in a grpc 1.85.0-dev pseudo-version, cannot be patched independently of a mooncake-transfer-engine rebuild",
         "review_by": "2026-12-08"
     }
 ]

@@ -12,6 +12,7 @@ on:
       - ".github/workflows/vllm.pr-amzn2023.yml"
       - ".github/workflows/vllm.tests-unit.yml"
       - "docker/vllm/Dockerfile.amzn2023"
+      - "docker/vllm/Dockerfile.cpu.amzn2023"
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "scripts/docker/vllm/**"
@@ -70,6 +71,7 @@ jobs:
             build-change:
               - ".github/config/image/vllm/*-amzn2023.yml"
               - "docker/vllm/Dockerfile.amzn2023"
+              - "docker/vllm/Dockerfile.cpu.amzn2023"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/**"
               - "test/security/data/ecr_scan_allowlist/vllm_server/**"
