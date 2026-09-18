@@ -64,8 +64,13 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install pyyaml
+          DEVICE_TYPE=$(python3 -c "import yaml; print(yaml.safe_load(open('${{ inputs.config-file }}'))['metadata']['device_type'])")
+          CONFIG=.github/config/model-tests/vllm-sagemaker-endpoint-tests.yml
+          if [ "${DEVICE_TYPE}" = "cpu" ]; then
+            CONFIG=.github/config/model-tests/vllm-cpu-sagemaker-endpoint-tests.yml
+          fi
           python3 scripts/ci/parse_model_config.py \
-            --config .github/config/model-tests/vllm-sagemaker-endpoint-tests.yml \
+            --config "${CONFIG}" \
             --section sagemaker \
             --image-config "${{ inputs.config-file }}"
 
