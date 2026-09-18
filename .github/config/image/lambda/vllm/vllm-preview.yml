@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "lambda"
-  framework_version: "13.0.3"
+  framework_version: "0.29.0"
   os_version: "amzn2023"
   arch_type: "x86"
   device_type: "gpu"
@@ -17,9 +17,9 @@ build:
   target: "vllm-preview-py3"
   python_version: "3.13"
   cuda_version: "13.0.3"
-  vllm_ref: "6adad08767583f52eb4d2122111af0bf638ed5e6"
-  vllm_version: "0.27.1"
-  flashinfer_version: "0.6.16.post3"
+  vllm_ref: "98dff2a81d747d1dba01a47f939f48c3526d4206"
+  vllm_version: "0.29.0"
+  flashinfer_version: "0.6.18"
   torch_cuda_arch_list: "8.0 8.6 8.9 12.0"
   use_sccache: "true"
   dlc_major_version: "1"
