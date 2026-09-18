@@ -31,18 +31,13 @@ VIDEO_MODEL_ID = "Wan-AI/Wan2.1-VACE-1.3B-diffusers"
 VIDEO_INSTANCE_TYPES = ["ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge"]
 
 # PEFT LoRA: SD-3.5-medium (~20 GiB peak) fits a single 24 GB GPU with no offload.
-# Base is HF-pulled at runtime; the PEFT adapter ships via the model's S3
-# model_data, extracted to /opt/ml/model/adapters/sd35-lora.
-LORA_MODEL_ID = "stabilityai/stable-diffusion-3.5-medium"
-LORA_ADAPTER_S3 = "s3://dlc-cicd-models/omni-models/sd35-yarnart-peft-adapter.tar.gz"
+# SD-3.5 is HF-gated, so the base is BAKED into the S3 model artifact (base at
+# root + adapters/sd35-lora/) and loaded from /opt/ml/model — no runtime HF pull,
+# no HF token needed on the endpoint. Ada-only ladder (L4/L40S); no g5/Ampere.
+LORA_MODEL_S3 = "s3://dlc-cicd-models/omni-models/sd35-medium-peft-baked.tar.gz"
+LORA_MODEL_PATH = "/opt/ml/model"
 LORA_ADAPTER_PATH = "/opt/ml/model/adapters/sd35-lora"
-LORA_INSTANCE_TYPES = [
-    "ml.g6.xlarge",
-    "ml.g6.2xlarge",
-    "ml.g6.4xlarge",
-    "ml.g5.xlarge",
-    "ml.g5.2xlarge",
-]
+LORA_INSTANCE_TYPES = ["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge"]
 
 
 @pytest.fixture(scope="function")
@@ -64,6 +59,24 @@ def _cleanup(resources):
             resource.delete()
         except Exception as e:
             LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
+
+
+def _wait_until_deletable(endpoint, aws_session, timeout=1800):
+    """Wait for an endpoint to leave 'Creating' — a Creating endpoint can't be deleted,
+    so this prevents a slow/timed-out deploy from leaking one at teardown."""
+    if endpoint is None:
+        return
+    smc = aws_session.session.client("sagemaker", region_name=aws_session.region)
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            status = smc.describe_endpoint(EndpointName=endpoint.endpoint_name)["EndpointStatus"]
+        except Exception:
+            return
+        if status != "Creating":
+            return
+        LOGGER.info(f"Waiting for endpoint to leave Creating before delete (status={status})")
+        time.sleep(30)
 
 
 def _create_model(model_name, image_uri, env, role_arn, model_data_url=None):
@@ -411,16 +424,15 @@ def test_vllm_omni_video_async_endpoint(async_endpoint):
 def lora_endpoint(aws_session, image_uri, instance_type):
     """Deploy a realtime endpoint with a PEFT LoRA adapter registered at startup.
 
-    Base (SD-3.5-medium) is HF-pulled at runtime; the adapter ships as the
-    model's S3 model_data, extracted to /opt/ml/model/adapters/sd35-lora.
+    Base (SD-3.5-medium, gated) is BAKED into the S3 model artifact and loaded
+    from /opt/ml/model — no runtime HF pull, no HF token on the endpoint. The
+    adapter sits at /opt/ml/model/adapters/sd35-lora in the same artifact.
     """
     endpoint_name = random_suffix_name("vllm-omni-lora-sd35", 50)
     model_name = endpoint_name
 
-    hf_token = get_hf_token(aws_session)
     env = {
-        "SM_VLLM_MODEL": LORA_MODEL_ID,
-        "HF_TOKEN": hf_token,
+        "SM_VLLM_MODEL": LORA_MODEL_PATH,
         "SM_VLLM_ENABLE_LORA": "true",
         "SM_VLLM_LORA_MODULES": json.dumps({"name": "sd35-lora", "path": LORA_ADAPTER_PATH}),
         "SM_VLLM_MAX_LORA_RANK": "64",
@@ -430,7 +442,7 @@ def lora_endpoint(aws_session, image_uri, instance_type):
 
     model = endpoint_config = endpoint = None
     try:
-        model = _create_model(model_name, image_uri, env, role_arn, model_data_url=LORA_ADAPTER_S3)
+        model = _create_model(model_name, image_uri, env, role_arn, model_data_url=LORA_MODEL_S3)
 
         LOGGER.info(f"Creating endpoint config: {endpoint_name}")
         endpoint_config = EndpointConfig.create(
@@ -442,9 +454,10 @@ def lora_endpoint(aws_session, image_uri, instance_type):
                     initial_instance_count=1,
                     instance_pools=build_instance_pools(instance_type),
                     variant_instance_provision_timeout_in_seconds=1800,
-                    # SD-3.5-medium's ~15 GB gated HF pull + load exceeds the 600s
-                    # default ping-health-check window; extend so /ping has time.
-                    container_startup_health_check_timeout_in_seconds=2400,
+                    # ~15 GB baked artifact downloads from S3 during provisioning;
+                    # give it room, plus a generous /ping window for model load.
+                    model_data_download_timeout_in_seconds=1800,
+                    container_startup_health_check_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
             ],
@@ -456,6 +469,7 @@ def lora_endpoint(aws_session, image_uri, instance_type):
 
         yield endpoint
     finally:
+        _wait_until_deletable(endpoint, aws_session)
         _cleanup([endpoint, endpoint_config, model])
 
 
