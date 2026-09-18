@@ -46,7 +46,7 @@ if __name__ == "__main__":
                     "devices": 1,
                 },
             },
-            "SeasonalNaive": {"seasonal_period": 6},
+            "SeasonalNaive": {"seasonal_period": 6, "n_jobs": 1},
         },
         enable_ensemble=False,
     )
