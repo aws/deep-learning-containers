@@ -1,0 +1,33 @@
+name: Reusable AutoGluon Unit Tests
+
+on:
+  workflow_call: {}
+
+permissions:
+  contents: read
+
+jobs:
+  unit-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install "flask==3.1.3" pytest
+
+      - name: Validate unified entrypoint
+        run: bash -n scripts/docker/autogluon/sagemaker_entrypoint.sh
+
+      - name: Run serving adapter unit tests
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH="${{ github.workspace }}/test" \
+            uv run --active --no-project pytest -v --tb=short -rA --noconftest \
+            test/autogluon/inference/test_server.py

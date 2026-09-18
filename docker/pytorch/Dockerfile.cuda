@@ -36,7 +36,7 @@ ARG MAX_JOBS=8
 
 # ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
-ARG FRAMEWORK_SHORT_VERSION=2.12
+ARG FRAMEWORK_SHORT_VERSION=2.14
 ARG PYTHON_VERSION
 
 RUN dnf install -y --allowerasing \
@@ -81,13 +81,14 @@ RUN CUDNN_HOME=$(python -c "import nvidia.cudnn; print(nvidia.cudnn.__path__[0])
 
 # ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
 FROM builder-base AS builder-flash-attn
-ARG FRAMEWORK_SHORT_VERSION=2.12
+ARG FRAMEWORK_SHORT_VERSION=2.14
 ARG FLASH_ATTN_VERSION
 ARG MAX_JOBS
 
 # If a cached wheel exists in the build context, install it; otherwise build from source.
 # When building from source, the wheel is saved to /tmp/built_wheels/ for later S3 upload.
 # docker/pytorch/${FRAMEWORK_SHORT_VERSION}/wheels/ is created by CI (fetch_cached_wheels.sh); may not exist locally.
+# The sed bumps flash-attn's pinned -std=c++17 to c++20, which torch >=2.14 headers require.
 COPY docker/pytorch/${FRAMEWORK_SHORT_VERSION}/cuda/pyproject.toml docker/pytorch/${FRAMEWORK_SHORT_VERSION}/wheel[s]/ /tmp/wheels/
 RUN --mount=type=cache,target=/root/.cache/uv \
   mkdir -p /tmp/built_wheels && \
@@ -97,8 +98,12 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install "${WHL}"; \
   else \
     echo "No cached wheel — building flash-attn from source" && \
+    pip download --no-deps --no-binary :all: --no-build-isolation \
+      --dest /tmp/fa-src flash-attn==${FLASH_ATTN_VERSION} && \
+    tar xf /tmp/fa-src/flash_attn-*.tar.gz -C /tmp/fa-src && \
+    sed -i 's/-std=c++17/-std=c++20/g' /tmp/fa-src/flash_attn-*/setup.py && \
     MAX_JOBS=${MAX_JOBS} pip wheel --no-deps --no-build-isolation \
-      --wheel-dir /tmp/built_wheels flash-attn==${FLASH_ATTN_VERSION} && \
+      --wheel-dir /tmp/built_wheels /tmp/fa-src/flash_attn-*/ && \
     uv pip install /tmp/built_wheels/flash_attn*.whl; \
   fi
 
@@ -132,6 +137,7 @@ ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 ARG EFA_VERSION
 ARG NCCL_TESTS_VERSION
+ARG FRAMEWORK_SHORT_VERSION=2.14
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -195,6 +201,8 @@ RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl._
     cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf && \
     cd / && rm -rf "${NCCL_TESTS_DIR}"
 
+RUN curl -fsSLo /license.txt "https://aws-dlc-licenses.s3.amazonaws.com/pytorch-${FRAMEWORK_SHORT_VERSION}/license.txt"
+
 
 # ── Stage: runtime (EC2 / ECS) ──────────────────────────────────────
 FROM runtime-base AS runtime
@@ -245,7 +253,7 @@ CMD ["bash"]
 
 # ── Stage: sagemaker (SageMaker Training) ────────────────────────────────────
 FROM runtime-base AS sagemaker
-ARG FRAMEWORK_SHORT_VERSION=2.12
+ARG FRAMEWORK_SHORT_VERSION=2.14
 ARG TORCH_VERSION
 
 # SageMaker BYOC paths
