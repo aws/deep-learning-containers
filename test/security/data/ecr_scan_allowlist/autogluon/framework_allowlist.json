@@ -1,0 +1,12 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-54399",
+        "reason": "Ray 2.58.0 bundles httpcore5 5.0.2 inside ray_dist.jar. The Java dependency cannot be upgraded independently from the Ray wheel; remediation requires an upstream Ray release that updates the bundled Apache HttpComponents Core.",
+        "review_by": "2026-10-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-58659",
+        "reason": "False positive for lightning 2.6.6: the advisory affects versions through 2.6.5, and 2.6.6 includes the fix from commit d710d68. The scanner incorrectly reports 2022.6.15 as the fixed version because the advisory's patched-version metadata is malformed.",
+        "review_by": "2026-10-20"
+    }
+]
