@@ -8,5 +8,10 @@
         "vulnerability_id": "CVE-2026-82397",
         "reason": "tornado 6.5.7 is inherited from the current PyTorch 2.11 base image; fixed version 6.5.8 was released after that base was locked. Temporary exception until the base image refreshes tornado or the Hugging Face layer takes the new security floor.",
         "review_by": "2026-09-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-90553",
+        "reason": "vllm 0.25.0 LlavaOnevision2 processor loader ignores trust_remote_code (RCE). Fix requires vllm>=0.28.0, which hard-pins torch==2.13.0 / torchvision==0.28.0 (verified on PyPI: 0.26.0 pins torch==2.11.0, 0.27.1 and 0.28.0 pin torch==2.13.0); taking it would replace the torch 2.11.0 runtime this DLC's PyTorch 2.11.0 base image contracts for. vllm is present only as the trl online-RL rollout backend; the vulnerable path requires loading an attacker-controlled remote processor class. Bump VLLM_VERSION to 0.28.0 once the HF training image moves onto a torch 2.13 base.",
+        "review_by": "2026-11-30"
     }
 ]

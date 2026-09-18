@@ -153,6 +153,12 @@ RUN uv pip install --system --no-cache --break-system-packages \
   /tmp/sagemaker_sklearn_container-2.0-py3-none-any.whl \
   && rm /tmp/sagemaker_sklearn_container-2.0-py3-none-any.whl
 
+# Reinstall multi-model-server from the vendored wheel
+COPY docker/sklearn/1.4-2-py312/multi_model_server-1.1.2-py2.py3-none-any.whl /tmp/multi_model_server-1.1.2-py2.py3-none-any.whl
+RUN uv pip install --system --no-cache --break-system-packages --force-reinstall --no-deps \
+  /tmp/multi_model_server-1.1.2-py2.py3-none-any.whl \
+  && rm /tmp/multi_model_server-1.1.2-py2.py3-none-any.whl
+
 # Force upgrade six to 1.16.0 for six.moves compatibility on py3.12
 RUN uv pip install --system --break-system-packages --upgrade --force-reinstall six==1.16.0
 

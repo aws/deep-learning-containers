@@ -18,9 +18,26 @@ from sagemaker.core.shapes import (
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
+from test_utils.instance_capacity import (
+    build_instance_pools,
+    is_capacity_error,
+    normalize_instance_types,
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+VIDEO_MODEL_ID = "Wan-AI/Wan2.1-VACE-1.3B-diffusers"
+VIDEO_INSTANCE_TYPES = ["ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge"]
+
+# PEFT LoRA: SD-3.5-medium (~20 GiB peak) fits a single 24 GB GPU with no offload.
+# SD-3.5 is HF-gated, so the base is BAKED into the S3 model artifact (base at
+# root + adapters/sd35-lora/) and loaded from /opt/ml/model — no runtime HF pull,
+# no HF token needed on the endpoint. Ada-only ladder (L4/L40S); no g5/Ampere.
+LORA_MODEL_S3 = "s3://dlc-cicd-models/omni-models/sd35-medium-peft-baked.tar.gz"
+LORA_MODEL_PATH = "/opt/ml/model"
+LORA_ADAPTER_PATH = "/opt/ml/model/adapters/sd35-lora"
+LORA_INSTANCE_TYPES = ["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge"]
 
 
 @pytest.fixture(scope="function")
@@ -44,18 +61,44 @@ def _cleanup(resources):
             LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
 
 
-def _create_model(model_name, image_uri, env, role_arn):
-    """Create a v3 Model resource pointing at the DLC image."""
+def _wait_until_deletable(endpoint, aws_session, timeout=1800):
+    """Wait for an endpoint to leave 'Creating' — a Creating endpoint can't be deleted,
+    so this prevents a slow/timed-out deploy from leaking one at teardown."""
+    if endpoint is None:
+        return
+    smc = aws_session.session.client("sagemaker", region_name=aws_session.region)
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            status = smc.describe_endpoint(EndpointName=endpoint.endpoint_name)["EndpointStatus"]
+        except Exception:
+            return
+        if status != "Creating":
+            return
+        LOGGER.info(f"Waiting for endpoint to leave Creating before delete (status={status})")
+        time.sleep(30)
+
+
+def _create_model(model_name, image_uri, env, role_arn, model_data_url=None):
+    """Create a v3 Model resource pointing at the DLC image.
+
+    model_data_url (optional): an S3 .tar.gz SageMaker extracts to /opt/ml/model
+    on the endpoint — used to ship a LoRA adapter alongside an HF-pulled base.
+    """
     LOGGER.info(f"Creating model: {model_name}")
+    container_kwargs = {"image": image_uri, "environment": env}
+    if model_data_url:
+        container_kwargs["model_data_url"] = model_data_url
     return Model.create(
         model_name=model_name,
-        primary_container=ContainerDefinition(image=image_uri, environment=env),
+        primary_container=ContainerDefinition(**container_kwargs),
         execution_role_arn=role_arn,
     )
 
 
 @pytest.fixture(scope="function")
 def model_endpoint(aws_session, image_uri, model_id, instance_type):
+    """Deploy a realtime endpoint over a native SageMaker instance-pool ladder."""
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
     endpoint_name = random_suffix_name(f"vllm-omni-{cleaned_id}", 50)
     model_name = endpoint_name
@@ -76,25 +119,32 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     variant_name="AllTraffic",
                     model_name=model_name,
                     initial_instance_count=1,
-                    instance_type=instance_type,
+                    instance_pools=build_instance_pools(instance_type),
+                    variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
             ],
         )
 
-        LOGGER.info(f"Deploying endpoint: {endpoint_name}")
+        LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_type}")
         endpoint = Endpoint.create(
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
-        endpoint.wait_for_status("InService", timeout=3600)
+        # Leave enough of the runner's credential session for inference and cleanup.
+        endpoint.wait_for_status("InService", timeout=2700)
 
         yield endpoint
     finally:
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+# Every rung is a single 24 GB GPU and can serve this TTS model unaided.
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_endpoint(model_endpoint, aws_session):
     """TTS via /invocations, covering both response transports on ONE endpoint.
@@ -184,24 +234,11 @@ def test_vllm_omni_tts_endpoint(model_endpoint, aws_session):
     LOGGER.info("TTS endpoint test PASSED (buffered + response-streaming)")
 
 
-_CAPACITY_TOKENS = (
-    "ResourceLimitExceeded",
-    "InsufficientInstanceCapacity",
-    "CapacityError",
-)
-
-
 @pytest.fixture(scope="function")
 def async_endpoint(aws_session, image_uri, model_id, instance_type):
-    """Deploy an async inference endpoint (no 60s timeout limit).
-
-    Skips the test if SageMaker can't allocate the requested instance type
-    (common for newer GPU families like g6e.xlarge / g6e.12xlarge). Surfaces
-    the skip rather than failing CI so the rest of the matrix still gets
-    useful signal.
-    """
-    cleaned_instance = clean_string(instance_type, "_./")
-    endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_instance}", 50)
+    """Deploy an async endpoint over a native SageMaker instance-pool ladder."""
+    cleaned_id = clean_string(model_id.split("/")[1], "_./")
+    endpoint_name = random_suffix_name(f"vllm-omni-async-{cleaned_id}", 50)
     model_name = endpoint_name
     account_id = aws_session.sts.get_caller_identity()["Account"]
     s3_output = f"s3://sagemaker-{aws_session.region}-{account_id}/vllm-omni-async-output/"
@@ -223,7 +260,8 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
                         variant_name="AllTraffic",
                         model_name=model_name,
                         initial_instance_count=1,
-                        instance_type=instance_type,
+                        instance_pools=build_instance_pools(instance_type),
+                        variant_instance_provision_timeout_in_seconds=1800,
                         inference_ami_version=INFERENCE_AMI_VERSION,
                     ),
                 ],
@@ -235,15 +273,21 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
                 ),
             )
 
-            LOGGER.info(f"Deploying async endpoint: {endpoint_name}")
+            LOGGER.info(f"Deploying async endpoint: {endpoint_name} on {instance_type}")
             endpoint = Endpoint.create(
                 endpoint_name=endpoint_name,
                 endpoint_config_name=endpoint_name,
             )
-            endpoint.wait_for_status("InService", timeout=3600)
+            # Leave enough of the runner's credential session for inference and cleanup.
+            endpoint.wait_for_status("InService", timeout=2700)
         except Exception as e:
-            if any(tok in str(e) for tok in _CAPACITY_TOKENS):
-                pytest.skip(f"SageMaker capacity unavailable for {instance_type}: {e}")
+            if model_id == VIDEO_MODEL_ID and is_capacity_error(e):
+                candidates = normalize_instance_types(instance_type)
+                pytest.skip(
+                    "No SageMaker capacity for video-async after exhausting "
+                    f"{len(candidates)} native instance-pool candidates {candidates}. "
+                    f"Last error: {e}"
+                )
             raise
 
         yield endpoint, s3_output
@@ -251,7 +295,11 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
 def test_vllm_omni_tts_async_endpoint(async_endpoint):
     """TTS via async inference — no 60s timeout, up to 1 hour."""
@@ -296,8 +344,13 @@ def test_vllm_omni_tts_async_endpoint(async_endpoint):
     pytest.fail("Async inference timed out after 300s")
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.2xlarge"], indirect=True)
-@pytest.mark.parametrize("model_id", ["Wan-AI/Wan2.1-VACE-1.3B-diffusers"], indirect=True)
+# VACE needs at least 32 GB host RAM, so xlarge pools are intentionally excluded.
+@pytest.mark.parametrize(
+    "instance_type",
+    [VIDEO_INSTANCE_TYPES],
+    indirect=True,
+)
+@pytest.mark.parametrize("model_id", [VIDEO_MODEL_ID], indirect=True)
 def test_vllm_omni_video_async_endpoint(async_endpoint):
     """Video gen via async inference + /v1/videos/sync.
 
@@ -365,6 +418,109 @@ def test_vllm_omni_video_async_endpoint(async_endpoint):
             time.sleep(5)
 
     pytest.fail("Async video inference timed out after 600s")
+
+
+@pytest.fixture(scope="function")
+def lora_endpoint(aws_session, image_uri, instance_type):
+    """Deploy a realtime endpoint with a PEFT LoRA adapter registered at startup.
+
+    Base (SD-3.5-medium, gated) is BAKED into the S3 model artifact and loaded
+    from /opt/ml/model — no runtime HF pull, no HF token on the endpoint. The
+    adapter sits at /opt/ml/model/adapters/sd35-lora in the same artifact.
+    """
+    endpoint_name = random_suffix_name("vllm-omni-lora-sd35", 50)
+    model_name = endpoint_name
+
+    env = {
+        "SM_VLLM_MODEL": LORA_MODEL_PATH,
+        "SM_VLLM_ENABLE_LORA": "true",
+        "SM_VLLM_LORA_MODULES": json.dumps({"name": "sd35-lora", "path": LORA_ADAPTER_PATH}),
+        "SM_VLLM_MAX_LORA_RANK": "64",
+        "SM_VLLM_TRUST_REMOTE_CODE": "true",
+    }
+    role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
+
+    model = endpoint_config = endpoint = None
+    try:
+        model = _create_model(model_name, image_uri, env, role_arn, model_data_url=LORA_MODEL_S3)
+
+        LOGGER.info(f"Creating endpoint config: {endpoint_name}")
+        endpoint_config = EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=model_name,
+                    initial_instance_count=1,
+                    instance_pools=build_instance_pools(instance_type),
+                    variant_instance_provision_timeout_in_seconds=1800,
+                    # ~15 GB baked artifact downloads from S3 during provisioning;
+                    # give it room, plus a generous /ping window for model load.
+                    model_data_download_timeout_in_seconds=1800,
+                    container_startup_health_check_timeout_in_seconds=1800,
+                    inference_ami_version=INFERENCE_AMI_VERSION,
+                ),
+            ],
+        )
+
+        LOGGER.info(f"Deploying LoRA endpoint: {endpoint_name} on {instance_type}")
+        endpoint = Endpoint.create(endpoint_name=endpoint_name, endpoint_config_name=endpoint_name)
+        endpoint.wait_for_status("InService", timeout=2700)
+
+        yield endpoint
+    finally:
+        _wait_until_deletable(endpoint, aws_session)
+        _cleanup([endpoint, endpoint_config, model])
+
+
+def _invoke_image(endpoint, body):
+    """POST an image-gen request via /invocations; return the base64 image string."""
+    # First request pays model load + warmup; retry past SageMaker's 60s invoke timeout.
+    for attempt in range(3):
+        try:
+            result = endpoint.invoke(
+                body=json.dumps(body),
+                content_type="application/json",
+                custom_attributes="route=/v1/images/generations",
+            )
+            break
+        except Exception as e:
+            LOGGER.warning(f"Image invoke attempt {attempt + 1}/3 failed: {e}")
+            if attempt == 2:
+                raise
+            time.sleep(30)
+    data = json.loads(result.body.read())
+    b64 = (data.get("data") or [{}])[0].get("b64_json")
+    assert b64 and len(b64) > 1000, f"no/small image in response: {str(data)[:300]}"
+    return b64
+
+
+# SD-3.5-medium fits every rung (single 24 GB GPU, no offload).
+@pytest.mark.parametrize("instance_type", [LORA_INSTANCE_TYPES], indirect=True)
+def test_vllm_omni_peft_lora_endpoint(lora_endpoint):
+    """PEFT LoRA per-request selection on /v1/images/generations.
+
+    Generates the SAME prompt/seed twice — without, then with, the per-request
+    `lora` field. A real bind check: the images must DIFFER, proving the adapter
+    is applied per request (not merely loaded at startup).
+    """
+    endpoint = lora_endpoint
+    base = {"prompt": "a cat sitting on a chair", "size": "512x512", "seed": 42, "n": 1}
+
+    LOGGER.info("Image gen WITHOUT adapter (baseline)")
+    img_base = _invoke_image(endpoint, base)
+
+    LOGGER.info("Image gen WITH per-request lora field")
+    img_lora = _invoke_image(
+        endpoint,
+        {**base, "lora": {"name": "sd35-lora", "local_path": LORA_ADAPTER_PATH, "scale": 1.0}},
+    )
+
+    assert img_base != img_lora, (
+        "LoRA had no effect: with-adapter output identical to baseline "
+        "(per-request `lora` field not applied by the middleware/server)"
+    )
+    LOGGER.info("PEFT LoRA endpoint test PASSED (adapter applied per-request)")
 
 
 def _upload_payload_to_s3(
