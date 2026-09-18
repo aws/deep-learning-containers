@@ -90,6 +90,11 @@
         "review_by": "2026-12-31"
     },
     {
+        "vulnerability_id": "CVE-2026-84445",
+        "reason": "google.golang.org/grpc v1.82.1 embedded in mooncake libetcd_wrapper.so, xds.NewGRPCServer accepts RPCs missing :authority/Host headers; not exploitable here (no xDS gRPC server), cannot patch without upstream mooncake rebuild with grpc-go 1.83.1+",
+        "review_by": "2026-12-31"
+    },
+    {
         "vulnerability_id": "GHSA-2v4p-qf9q-27wj",
         "reason": "google.golang.org/grpc v1.79.3 embedded in mooncake libetcd_wrapper.so, xds server panic on request missing :authority/Host headers (DoS); mooncake does not use xds.NewGRPCServer, cannot patch without upstream mooncake rebuild with fixed grpc-go",
         "review_by": "2026-12-31"
@@ -97,11 +102,6 @@
     {
         "vulnerability_id": "CVE-2026-73500",
         "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 embedded in mooncake libetcd_wrapper.so, TLS listener connection-exhaustion DoS, cannot patch without upstream mooncake rebuild with etcd client 3.7.1+",
-        "review_by": "2026-12-31"
-    },
-    {
-        "vulnerability_id": "CVE-2026-84445",
-        "reason": "google.golang.org/grpc v1.82.1 embedded in mooncake libetcd_wrapper.so, xds.NewGRPCServer accepts RPCs missing :authority/Host headers; not exploitable here (no xDS gRPC server), cannot patch without upstream mooncake rebuild with grpc-go 1.83.1+",
         "review_by": "2026-12-31"
     }
 ]
