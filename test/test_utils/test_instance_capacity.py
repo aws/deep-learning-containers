@@ -1,14 +1,10 @@
-"""Unit tests for the SageMaker instance-pool helpers (CPU-only, no AWS).
-
-These guard the two behaviors that gate every expensive GPU endpoint deploy: the
-priority mapping (first candidate becomes priority 1, provisioned first) and the
-pool-count bounds SageMaker enforces (1 to 5 pools per variant).
-"""
+"""Unit tests for the SageMaker instance-pool helpers (CPU-only, no AWS)."""
 
 import pytest
 from test_utils.instance_capacity import (
     MAX_INSTANCE_POOLS,
     build_instance_pools,
+    is_capacity_error,
     normalize_instance_types,
 )
 
@@ -26,12 +22,12 @@ def test_normalize_list_is_passed_through():
 
 def test_ladder_maps_to_ascending_priority_from_one():
     pools = build_instance_pools(["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge"])
-    assert [p.instance_type for p in pools] == [
+    assert [pool.instance_type for pool in pools] == [
         "ml.g6.xlarge",
         "ml.g6.2xlarge",
         "ml.g6.4xlarge",
     ]
-    assert [p.priority for p in pools] == [1, 2, 3]
+    assert [pool.priority for pool in pools] == [1, 2, 3]
 
 
 def test_single_string_is_one_pool_at_priority_one():
@@ -44,7 +40,7 @@ def test_single_string_is_one_pool_at_priority_one():
 def test_five_pools_are_accepted():
     pools = build_instance_pools([f"ml.g6.{i}xlarge" for i in range(1, 6)])
     assert len(pools) == MAX_INSTANCE_POOLS
-    assert [p.priority for p in pools] == [1, 2, 3, 4, 5]
+    assert [pool.priority for pool in pools] == [1, 2, 3, 4, 5]
 
 
 def test_more_than_five_pools_raises():
@@ -55,3 +51,20 @@ def test_more_than_five_pools_raises():
 def test_empty_list_raises():
     with pytest.raises(ValueError, match="at least one instance type"):
         build_instance_pools([])
+
+
+@pytest.mark.parametrize(
+    "message",
+    [
+        "InsufficientInstanceCapacity",
+        "ResourceLimitExceeded",
+        "CapacityError",
+        "endpoint failed: insufficientinstancecapacity in us-west-2",
+    ],
+)
+def test_capacity_errors_are_detected(message):
+    assert is_capacity_error(RuntimeError(message))
+
+
+def test_non_capacity_error_is_not_detected():
+    assert not is_capacity_error(RuntimeError("Model failed health check"))

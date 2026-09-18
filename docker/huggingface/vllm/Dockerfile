@@ -1,9 +1,9 @@
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.28.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.29.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
 
 ARG FRAMEWORK=huggingface-vllm
-ARG FRAMEWORK_VERSION=0.28.0
+ARG FRAMEWORK_VERSION=0.29.0
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 
@@ -18,7 +18,12 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends curl unzip \
   && rm -rf /var/lib/apt/lists/*
 
-RUN uv pip install --system \
+# --break-system-packages: the 0.29 base runs `apt-get upgrade` after its own uv
+# installs, which pulls in the distro python3.12 and its PEP 668
+# /usr/lib/python3.12/EXTERNALLY-MANAGED marker. Without the flag uv refuses with
+# "The interpreter at /usr is externally managed". The target env is unchanged:
+# /usr/local/lib/python3.12/dist-packages, where vllm itself lives.
+RUN uv pip install --system --break-system-packages \
   "transformers==${TRANSFORMERS_VERSION}" \
   "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
   "hf-xet==${HF_XET_VERSION}" \
@@ -113,7 +118,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
 
 
 RUN HOME_DIR=/root \
-  && uv pip install --system --upgrade pip requests PTable \
+  && uv pip install --system --break-system-packages --upgrade pip requests PTable \
   && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
   && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
   && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \

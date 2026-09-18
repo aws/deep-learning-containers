@@ -318,6 +318,8 @@ ENV VIRTUAL_ENV="/opt/venv"
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_USAGE_SOURCE=production-docker-image
 ENV HF_XET_HIGH_PERFORMANCE=1
+# vllm 0.29.0 passes the plain float triton_utils.LOG2E into @triton.jit kernels.
+ENV TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1
 
 # =============================================================================
 # STAGE 4: DLC overlay — Amazon DLC customizations on top of vLLM runtime
