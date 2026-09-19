@@ -45,6 +45,7 @@ RUN pip install \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
   "starlette>=1.3.1" \
+  "virtualenv>=20.26.6" \
   "xgrammar>=0.1.32"
 
 # Copy artifacts
