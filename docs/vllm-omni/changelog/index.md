@@ -4,6 +4,45 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 * * *
 
+## v1.7.0 — 2026-09-21
+
+**Tags:** `omni-cuda-v1.7` · `omni-sagemaker-cuda-v1.7`
+
+**vLLM-Omni source:** [v0.28.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.28.0) (upstream vLLM v0.28.0)
+
+**DLC PR:** [#6680](https://github.com/aws/deep-learning-containers/pull/6680)
+
+### Highlights
+
+- Upgraded to vLLM-Omni 0.28.0, tracking upstream vLLM v0.28.0 (up from 0.26.0). Full upstream diff:
+  [v0.26.0...v0.28.0](https://github.com/vllm-project/vllm-omni/compare/v0.26.0...v0.28.0).
+- **New model serving.** Qwen3-Omni gains a thinker-only pipeline for Instruct serving ([#6284](https://github.com/vllm-project/vllm-omni/pull/6284)),
+  and native full-duplex Nemotron VoiceChat serving is added ([#6089](https://github.com/vllm-project/vllm-omni/pull/6089)).
+- **MiniMax-H3 diffusion.** The FastH3 four-step adapter is fused at load time ([#6714](https://github.com/vllm-project/vllm-omni/pull/6714)), with
+  native LoRA via FlashGen ([#6666](https://github.com/vllm-project/vllm-omni/pull/6666)) and Turbo LoRA with DLO
+  ([#6550](https://github.com/vllm-project/vllm-omni/pull/6550)), plus text-encoder disaggregation
+  ([#5885](https://github.com/vllm-project/vllm-omni/pull/5885)).
+- **TTS streaming.** Adaptive chunk ramp — Phase 2 buffer-feedback controller ([#6001](https://github.com/vllm-project/vllm-omni/pull/6001)) — plus
+  extensive MiniCPM-o full-duplex streaming and barge-in stability fixes.
+- **Diffusion quantization.** Online INT8 with DLO AllGather ([#6573](https://github.com/vllm-project/vllm-omni/pull/6573)) and offline SVDQuant W4A4
+  ([#6162](https://github.com/vllm-project/vllm-omni/pull/6162)).
+
+### Changes
+
+- **Bundled-library bumps.** FlashInfer 0.6.14 → 0.6.16.post3; DeepEP repinned; NCCL pinned to 2.30.7 because DeepEPv2's GIN backend requires NCCL ≥
+  2.30.4.
+- **CUDA 13 mooncake wheel.** The KV-connector install now swaps `mooncake-transfer-engine` for its `-cuda13` variant to match the CUDA 13 base.
+- **`transformers` requirement** widened to `>= 5.10.1, < 5.15` (5.15 introduces a breaking change).
+- Frontend: interleaved video frames are encoded in parallel ([#6776](https://github.com/vllm-project/vllm-omni/pull/6776)), and MiniMax-H3 MP4
+  response conversion is parallelized ([#6499](https://github.com/vllm-project/vllm-omni/pull/6499)).
+
+### Notes
+
+- No CUDA change — still CUDA 13.0.2 and Python 3.12. This is a framework bump (v1.6 → v1.7); the EC2 and SageMaker images are rebuilt in lockstep to
+  keep the paired tags aligned.
+
+* * *
+
 ## v1.6.0 — 2026-08-25
 
 **Tags:** `omni-cuda-v1.6` · `omni-sagemaker-cuda-v1.6`
