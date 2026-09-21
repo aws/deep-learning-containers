@@ -8,24 +8,16 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 **Tags:** `omni-cuda-v1.7` · `omni-sagemaker-cuda-v1.7`
 
-**vLLM-Omni source:** [v0.28.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.28.0) (upstream vLLM v0.28.0)
+**vLLM-Omni source:** [v0.28.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.28.0) (upstream vLLM v0.28.0) —
+[full upstream diff](https://github.com/vllm-project/vllm-omni/compare/v0.26.0...v0.28.0)
 
 **DLC PR:** [#6680](https://github.com/aws/deep-learning-containers/pull/6680)
 
 ### Highlights
 
-- Upgraded to vLLM-Omni 0.28.0, tracking upstream vLLM v0.28.0 (up from 0.26.0). Full upstream diff:
-  [v0.26.0...v0.28.0](https://github.com/vllm-project/vllm-omni/compare/v0.26.0...v0.28.0).
-- **New model serving.** Qwen3-Omni gains a thinker-only pipeline for Instruct serving ([#6284](https://github.com/vllm-project/vllm-omni/pull/6284)),
-  and native full-duplex Nemotron VoiceChat serving is added ([#6089](https://github.com/vllm-project/vllm-omni/pull/6089)).
-- **MiniMax-H3 diffusion.** The FastH3 four-step adapter is fused at load time ([#6714](https://github.com/vllm-project/vllm-omni/pull/6714)), with
-  native LoRA via FlashGen ([#6666](https://github.com/vllm-project/vllm-omni/pull/6666)) and Turbo LoRA with DLO
-  ([#6550](https://github.com/vllm-project/vllm-omni/pull/6550)), plus text-encoder disaggregation
-  ([#5885](https://github.com/vllm-project/vllm-omni/pull/5885)).
-- **TTS streaming.** Adaptive chunk ramp — Phase 2 buffer-feedback controller ([#6001](https://github.com/vllm-project/vllm-omni/pull/6001)) — plus
-  extensive MiniCPM-o full-duplex streaming and barge-in stability fixes.
-- **Diffusion quantization.** Online INT8 with DLO AllGather ([#6573](https://github.com/vllm-project/vllm-omni/pull/6573)) and offline SVDQuant W4A4
-  ([#6162](https://github.com/vllm-project/vllm-omni/pull/6162)).
+- **PEFT LoRA validated on SageMaker.** A new endpoint test deploys an SD-3.5-medium image model with a baked-in PEFT LoRA adapter registered at
+  startup (`SM_VLLM_ENABLE_LORA`, `SM_VLLM_LORA_MODULES`, `SM_VLLM_MAX_LORA_RANK`) and confirms that per-request adapter selection via the `lora`
+  field on `/v1/images/generations` changes the generated image.
 
 ### Changes
 
