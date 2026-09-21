@@ -25,8 +25,6 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
   2.30.4.
 - **CUDA 13 mooncake wheel.** The KV-connector install now swaps `mooncake-transfer-engine` for its `-cuda13` variant to match the CUDA 13 base.
 - **`transformers` requirement** widened to `>= 5.10.1, < 5.15` (5.15 introduces a breaking change).
-- Frontend: interleaved video frames are encoded in parallel ([#6776](https://github.com/vllm-project/vllm-omni/pull/6776)), and MiniMax-H3 MP4
-  response conversion is parallelized ([#6499](https://github.com/vllm-project/vllm-omni/pull/6499)).
 
 ### Notes
 
