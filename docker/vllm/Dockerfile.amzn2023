@@ -263,8 +263,8 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         fi; \
     fi
 
-# Pin transformers to the last release compatible with vLLM 0.27.1 (5.17.0 breaks pixtral import + RoPE parsing).
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install "transformers==5.16.1"
+# Cap transformers below 5.17: this vLLM (0.27.1) uses the pre-5.17 pixtral class name and RoPE layout that 5.17.0 renamed/restructured. Remove once vLLM is bumped to a release that supports transformers 5.17+.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "transformers<5.17"
 
 # Download FlashInfer precompiled cubins after all pip installs are done
 RUN flashinfer show-config && flashinfer download-cubin
