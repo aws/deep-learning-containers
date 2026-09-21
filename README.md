@@ -31,6 +31,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/09/21]** [vLLM-Omni v1.7 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.7` · SageMaker: `omni-sagemaker-cuda-v1.7` · vLLM-Omni `0.28.0` (up from 0.26.0); PEFT LoRA adapters validated on SageMaker — per-request `lora` selection on `/v1/images/generations`; FlashInfer 0.6.16.post3, NCCL pinned 2.30.7, CUDA-13 mooncake wheel.
 - **[2026/09/11]** [vLLM v0.29.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.29.0-gpu-py312-ec2` · SageMaker: `0.29.0-gpu-py312` · New models: Hy4-preview (Tencent 770B/49B-active MoE with Gated DeepSeek Sparse Attention and native MTP), Qwen3.8-Flash-Next (BF16/FP8/NVFP4, MTP), GraniteSWA, GraniteMoeSWA, NemotronH_Omni_Reasoning_V3 (MTP), and Kimi K3 NVFP4 checkpoints.
 - **[2026/09/07]** [SGLang v0.5.19 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.19-gpu-py312-ec2` · SageMaker: `0.5.19-gpu-py312` · Qwen3.8, Ling-3.0, Spark2.5, Granite 4.2; beam search; DeepEP v2 MoE all-to-all.
 - **[2026/09/01]** [Ray LLM v1.0 (2.58.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `serve-llm-cuda-v1.0` · Initial release: OpenAI-compatible LLM serving with Ray Serve and vLLM 0.26.0 on PyTorch 2.11.0 / CUDA 13.0.2 / Python 3.13; `ray[llm]`'s `build_openai_app` runs vLLM behind Ray Serve — single GPU on EC2, and multi-node serving on EKS via KubeRay.
