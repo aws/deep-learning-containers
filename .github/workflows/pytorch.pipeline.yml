@@ -194,11 +194,12 @@ jobs:
       ${{ always() && !cancelled() && inputs.run-multi-gpu-test &&
           needs.build.result != 'failure' &&
           needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.ci-config.outputs.customer-type == 'ec2' &&
           fromJSON(needs.check.outputs.skips || '{}')['pytorch/multi_gpu'] != true }}
     needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-multi-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     uses: ./.github/workflows/pytorch.tests-multi-gpu.yml
     with:
       config-file: ${{ inputs.config-file }}
