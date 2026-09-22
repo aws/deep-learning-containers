@@ -15,7 +15,6 @@ on:
       - "scripts/docker/telemetry/**"
       - "test/efa/**"
       - "test/pytorch/multi_gpu/**"
-      - "test/pytorch/multi_node/**"
       - "test/pytorch/single_gpu/**"
       - "test/pytorch/unit/**"
       - "test/sanity/**"
@@ -50,7 +49,6 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
       multi-gpu-test-change: ${{ steps.changes.outputs.multi-gpu-test-change }}
-      multi-node-test-change: ${{ steps.changes.outputs.multi-node-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
@@ -73,8 +71,6 @@ jobs:
               - "test/efa/**"
             multi-gpu-test-change:
               - "test/pytorch/multi_gpu/**"
-            multi-node-test-change:
-              - "test/pytorch/multi_node/**"
             sanity-test-change:
               - "test/sanity/**"
             single-gpu-test-change:
@@ -115,8 +111,7 @@ jobs:
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
-      run-multi-gpu-test: false   # NOTE: Temporarily disable test due to CI resource contention
-      run-multi-node-test: false  # NOTE: Temporarily disable test due to CI resource contention
+      run-multi-gpu-test: false
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}

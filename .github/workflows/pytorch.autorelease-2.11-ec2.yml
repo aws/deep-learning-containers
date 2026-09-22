@@ -34,7 +34,6 @@ jobs:
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
-      run-multi-gpu-test: false
-      run-multi-node-test: false
+      run-multi-gpu-test: true
       release: true
     secrets: inherit

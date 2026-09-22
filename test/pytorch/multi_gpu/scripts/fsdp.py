@@ -1,8 +1,4 @@
-"""FSDP training + checkpoint on 2 GPUs — launched by torchrun.
-
-Usage (workflow runs this):
-    torchrun --nproc_per_node=2 --master_port=29501 test/pytorch/multi_gpu/test_fsdp.py
-"""
+"""FSDP training + checkpoint across all local GPUs — launched by torchrun."""
 
 import os
 import shutil
