@@ -60,8 +60,6 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-  # The test provisions its own GPU instance from a capacity reservation, so this job
-  # only needs a CPU runner to drive it.
   multi-gpu-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]

@@ -8,9 +8,7 @@ import torch.nn as nn
 
 MICRO_BATCH = 4
 
-# Per-GPU micro-batch rather than a fixed train_batch_size: DeepSpeed requires
-# train_batch_size == micro_batch * world_size * accum, so a hardcoded total only
-# validates on the GPU count it was written for.
+# DeepSpeed requires train_batch_size == micro * world * accum; declare the per-GPU half.
 DS_CONFIG = {
     "train_micro_batch_size_per_gpu": MICRO_BATCH,
     "gradient_accumulation_steps": 1,

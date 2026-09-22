@@ -21,8 +21,6 @@ IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 CONTAINER_NAME = "multi_gpu_test"
 SCRIPTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts")
 
-# Each payload gets its own rendezvous port so a leaked torchrun from a prior payload
-# cannot collide with the next one.
 PAYLOADS = (("ddp", 29500), ("fsdp", 29501), ("deepspeed", 29502))
 
 
@@ -44,8 +42,7 @@ def gpu_host():
         )
         conn.run(f"docker pull {IMAGE_URI}", timeout=1800)
 
-        # Use the image's entrypoint so PyTorch's CUDA forward-compat setup runs before
-        # bash; -id keeps stdin open so bash blocks instead of exiting.
+        # Image entrypoint sets CUDA forward-compat; -id keeps stdin open so bash blocks.
         conn.run(f"docker rm -f {CONTAINER_NAME}", warn=True, hide=True)
         conn.run(
             f"docker run --gpus all -id --name {CONTAINER_NAME} --shm-size=2g "

@@ -28,11 +28,9 @@ from test_utils.efa_helpers import (
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-# Priority-ordered by reservation headroom, largest pool first, so the scarce pools stay
-# free for the suites that can only use them. Overridable via MULTI_GPU_INSTANCE_TYPES.
+# Ordered by reservation headroom, so scarce pools stay free for suites that need them.
 DEFAULT_CANDIDATES = ("g6.12xlarge", "g6e.12xlarge", "p4d.24xlarge")
 
-# Below this, "multi-GPU" is not being tested at all.
 MIN_GPUS = 2
 
 GPU_TEST_TAG_KEY = "dlc-multi-gpu-test"
@@ -139,8 +137,7 @@ def gpu_instance(candidates=None, region=DEFAULT_REGION):
     try:
         key_name, key_path = aws_session.create_key_pair()
 
-        # Reap resources leaked by prior hard-killed runs. The finally below is skipped
-        # when the runner is SIGKILLed, so only a next-run sweep reclaims those instances.
+        # The finally below is skipped on SIGKILL; only a next-run sweep reclaims those.
         cleanup_stale_instances(aws_session, tag_key=GPU_TEST_TAG_KEY)
         cleanup_stale_runner_sgs(aws_session)
 
