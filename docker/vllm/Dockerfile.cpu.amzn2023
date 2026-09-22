@@ -89,13 +89,6 @@ ENV UV_HTTP_TIMEOUT=500
 ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
-# vLLM common.txt leaves transformers unbounded (>=5.10.4); 5.17.0 drops the
-# bare PixtralRotaryEmbedding import and MellumConfig shim that v0.30.0 still
-# relies on (fix landed upstream on main, never backported to the 0.30.0
-# branch). Cap below 5.17 so rebuilds stay reproducible. See GPU AL2023 build.
-RUN echo "transformers<5.17" >/etc/uv-constraints.txt
-ENV UV_CONSTRAINT=/etc/uv-constraints.txt
-
 # torch CPU + vLLM runtime deps
 COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
 COPY --from=build /workspace/vllm/requirements/cpu.txt /tmp/cpu.txt
