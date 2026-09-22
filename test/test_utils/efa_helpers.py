@@ -557,7 +557,9 @@ def release_eip(aws_session, alloc_id):
         LOGGER.warning(f"Failed to release EIP {alloc_id}: {e}")
 
 
-def cleanup_stale_instances(aws_session, min_age_minutes=EFA_STALE_AGE_MINUTES):
+def cleanup_stale_instances(
+    aws_session, min_age_minutes=EFA_STALE_AGE_MINUTES, tag_key=EFA_TEST_TAG_KEY
+):
     """Terminate leaked EFA instances (and free their associated EIPs).
 
     efa_instances() cleans up only in a `finally`, which the runner skips when hard-killed
@@ -572,7 +574,7 @@ def cleanup_stale_instances(aws_session, min_age_minutes=EFA_STALE_AGE_MINUTES):
 
     resp = aws_session.ec2.describe_instances(
         Filters=[
-            {"Name": f"tag:{EFA_TEST_TAG_KEY}", "Values": ["true"]},
+            {"Name": f"tag:{tag_key}", "Values": ["true"]},
             {
                 "Name": "instance-state-name",
                 "Values": ["pending", "running", "stopping", "stopped"],

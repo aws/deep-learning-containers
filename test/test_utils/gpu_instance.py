@@ -139,8 +139,9 @@ def gpu_instance(candidates=None, region=DEFAULT_REGION):
     try:
         key_name, key_path = aws_session.create_key_pair()
 
-        # Reap resources leaked by prior hard-killed runs.
-        cleanup_stale_instances(aws_session)
+        # Reap resources leaked by prior hard-killed runs. The finally below is skipped
+        # when the runner is SIGKILLed, so only a next-run sweep reclaims those instances.
+        cleanup_stale_instances(aws_session, tag_key=GPU_TEST_TAG_KEY)
         cleanup_stale_runner_sgs(aws_session)
 
         runner_ip = aws_session.get_codebuild_runner_public_ip()
