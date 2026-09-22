@@ -10,6 +10,16 @@ if [[ -n "${HF_MODEL_REVISION}" ]]; then
     export REVISION="${HF_MODEL_REVISION}"
 fi
 
+# Some runtimes mount host NVIDIA tools and libraries under /usr/local/nvidia
+# without adding them to PATH or refreshing the dynamic linker cache.
+if [ -d /usr/local/nvidia/bin ]; then
+    export PATH="${PATH}:/usr/local/nvidia/bin"
+fi
+if [ -d /usr/local/nvidia/lib64 ]; then
+    echo /usr/local/nvidia/lib64 >/etc/ld.so.conf.d/nvidia-host.conf
+    ldconfig
+fi
+
 if ! command -v nvidia-smi &>/dev/null; then
     echo "Error: 'nvidia-smi' command not found."
     exit 1
@@ -20,7 +30,15 @@ fi
 # to include the compat directory in `LD_LIBRARY_PATH` to bridge the mismatch.
 if [ -f /usr/local/cuda/compat/libcuda.so.1 ]; then
     CUDA_COMPAT_MAX_DRIVER_VERSION=$(readlink /usr/local/cuda/compat/libcuda.so.1 | cut -d'.' -f 3-)
-    NVIDIA_DRIVER_VERSION=$(sed -n 's/^NVRM.*Kernel Module *\([0-9.]*\).*$/\1/p' /proc/driver/nvidia/version 2>/dev/null || true)
+    NVIDIA_DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader | head -n1)
+    if [[ ! "$NVIDIA_DRIVER_VERSION" =~ ^[0-9]+(\.[0-9]+)+$ ]]; then
+        echo "Error: Unable to determine the NVIDIA driver version."
+        exit 1
+    fi
+    if [[ ! "$CUDA_COMPAT_MAX_DRIVER_VERSION" =~ ^[0-9]+(\.[0-9]+)+$ ]]; then
+        echo "Error: Unable to determine the CUDA compatibility library driver version."
+        exit 1
+    fi
     if [ "$NVIDIA_DRIVER_VERSION" != "$CUDA_COMPAT_MAX_DRIVER_VERSION" ] &&
         [ "$NVIDIA_DRIVER_VERSION" = "$(printf '%s\n' "$NVIDIA_DRIVER_VERSION" "$CUDA_COMPAT_MAX_DRIVER_VERSION" | sort -V | head -n1)" ]; then
         export LD_LIBRARY_PATH="/usr/local/cuda/compat:${LD_LIBRARY_PATH}"
