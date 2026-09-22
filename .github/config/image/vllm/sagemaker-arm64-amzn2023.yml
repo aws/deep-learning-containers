@@ -14,7 +14,7 @@ metadata:
   prod_image: "vllm:server-arm64-sagemaker-cpu-v1"
 
 build:
-  dockerfile: "docker/vllm/Dockerfile.cpu.amzn2023"
+  dockerfile: "docker/vllm/Dockerfile.cpu.arm64.amzn2023"
   target: "vllm-cpu-sagemaker-amzn2023"
   python_version: "3.12"
   vllm_ref: "ec4a3a537068db40afbc9374a67da719c8c9b964"  # v0.30.0 + transformers-5.17 pixtral/mellum guard (vllm#56108); the 0.30.0 tag predates this commit
