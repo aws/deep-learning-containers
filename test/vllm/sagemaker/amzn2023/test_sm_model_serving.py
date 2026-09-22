@@ -35,6 +35,10 @@ from sagemaker.core.shapes import (
 )
 from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
+from test_utils.instance_capacity import (
+    build_instance_pools,
+    normalize_instance_types,
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -57,6 +61,8 @@ def _load_sagemaker_config(config_path, model_name=None):
         models = [m for m in models if m["name"] == model_name]
     for m in models:
         m["s3_path"] = f"{s3_prefix}/{m['s3_model']}"
+        # instance_type may be a single type or a priority-ordered ladder.
+        m["instance_types"] = normalize_instance_types(m["instance_type"])
     return models
 
 
@@ -176,7 +182,15 @@ def _flatten_jinja(template_str):
     return template_str.replace("\n", '{{ "\\n" }}')
 
 
-def _deploy_endpoint(image_uri, model_cfg, region):
+def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
+    """Deploy one endpoint over an instance-pool ladder and wait for InService.
+
+    The endpoint carries an instance-pool ladder, so SageMaker walks ``instance_types``
+    server-side, provisioning the highest-priority type with capacity and falling back
+    to the next on an insufficient-capacity error within this single deploy. Cleanup
+    still runs on failure, so a deploy that fails outright does not leak a Model, an
+    EndpointConfig, and a Failed Endpoint.
+    """
     endpoint_name = random_suffix_name(f"vllm-{model_cfg['name']}", 50)
     role_arn = _get_role_arn(region)
     env_vars = dict(model_cfg.get("env", {}))
@@ -187,48 +201,56 @@ def _deploy_endpoint(image_uri, model_cfg, region):
         template_path = repo_root / chat_template_file
         env_vars["SM_VLLM_CHAT_TEMPLATE"] = _flatten_jinja(template_path.read_text())
 
-    LOGGER.info(f"Creating model: {endpoint_name}")
-    create_kwargs = dict(
-        model_name=endpoint_name,
-        primary_container=ContainerDefinition(
-            image=image_uri,
-            model_data_source=ModelDataSource(
-                s3_data_source=S3ModelDataSource(
-                    s3_uri=model_cfg["s3_path"],
-                    s3_data_type="S3Prefix",
-                    compression_type="Gzip",
+    model = endpoint_config = endpoint = None
+    try:
+        LOGGER.info(f"Creating model: {endpoint_name}")
+        create_kwargs = dict(
+            model_name=endpoint_name,
+            primary_container=ContainerDefinition(
+                image=image_uri,
+                model_data_source=ModelDataSource(
+                    s3_data_source=S3ModelDataSource(
+                        s3_uri=model_cfg["s3_path"],
+                        s3_data_type="S3Prefix",
+                        compression_type="Gzip",
+                    ),
                 ),
+                environment=env_vars,
             ),
-            environment=env_vars,
-        ),
-        execution_role_arn=role_arn,
-    )
-    if model_cfg.get("network_isolation"):
-        create_kwargs["enable_network_isolation"] = True
-    model = Model.create(**create_kwargs)
+            execution_role_arn=role_arn,
+        )
+        if model_cfg.get("network_isolation"):
+            create_kwargs["enable_network_isolation"] = True
+        model = Model.create(**create_kwargs)
 
-    LOGGER.info(f"Creating endpoint config: {endpoint_name}")
-    endpoint_config = EndpointConfig.create(
-        endpoint_config_name=endpoint_name,
-        production_variants=[
-            ProductionVariant(
-                variant_name="AllTraffic",
-                model_name=endpoint_name,
-                initial_instance_count=1,
-                instance_type=model_cfg["instance_type"],
-                inference_ami_version=INFERENCE_AMI_VERSION,
-            ),
-        ],
-    )
+        LOGGER.info(f"Creating endpoint config: {endpoint_name}")
+        endpoint_config = EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[
+                ProductionVariant(
+                    variant_name="AllTraffic",
+                    model_name=endpoint_name,
+                    initial_instance_count=1,
+                    instance_pools=build_instance_pools(instance_types),
+                    # Cap for walking the whole pool ladder on capacity errors.
+                    variant_instance_provision_timeout_in_seconds=1800,
+                    inference_ami_version=INFERENCE_AMI_VERSION,
+                ),
+            ],
+        )
 
-    LOGGER.info(f"Deploying endpoint: {endpoint_name}")
-    endpoint = Endpoint.create(
-        endpoint_name=endpoint_name,
-        endpoint_config_name=endpoint_name,
-    )
-    endpoint.wait_for_status("InService", timeout=2700)
-    LOGGER.info(f"Endpoint InService: {endpoint_name}")
+        LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_types}")
+        endpoint = Endpoint.create(
+            endpoint_name=endpoint_name,
+            endpoint_config_name=endpoint_name,
+        )
+        # Covers pool provisioning (<=1800s) plus model download and container boot.
+        endpoint.wait_for_status("InService", timeout=4500)
+    except Exception:
+        _cleanup([endpoint, endpoint_config, model])
+        raise
 
+    LOGGER.info(f"Endpoint InService: {endpoint_name} on {instance_types}")
     return endpoint_name, model, endpoint_config, endpoint
 
 
@@ -240,19 +262,32 @@ def _generate_test_params():
 
 @pytest.fixture(scope="module", params=_generate_test_params(), ids=lambda x: x[0])
 def deployed_model(request, image_uri):
+    """Deploy the model with an instance-pool ladder; SageMaker handles fallback.
+
+    Insufficient capacity (ICE) on a single instance type is an AWS-side shortage, not
+    an image defect. The configured ``instance_types`` become a production-variant
+    instance pool, so SageMaker provisions the highest-priority type with capacity and
+    falls back to the next server-side, absorbing the common case of one size being
+    momentarily dry.
+
+    If the endpoint never reaches InService the test fails. Skipping would leave the
+    model unvalidated while the run still reported green, hiding a real coverage gap.
+    """
     _, model_cfg = request.param
 
     region = os.environ.get("AWS_DEFAULT_REGION", "us-west-2")
 
-    endpoint_name, model, endpoint_config, endpoint = _deploy_endpoint(image_uri, model_cfg, region)
-
-    yield {
-        "endpoint_name": endpoint_name,
-        "model_cfg": model_cfg,
-        "region": region,
-    }
-
-    _cleanup([endpoint, endpoint_config, model])
+    endpoint_name, model, endpoint_config, endpoint = _deploy_endpoint(
+        image_uri, model_cfg, region, model_cfg["instance_types"]
+    )
+    try:
+        yield {
+            "endpoint_name": endpoint_name,
+            "model_cfg": model_cfg,
+            "region": region,
+        }
+    finally:
+        _cleanup([endpoint, endpoint_config, model])
 
 
 def test_model_serving(deployed_model):

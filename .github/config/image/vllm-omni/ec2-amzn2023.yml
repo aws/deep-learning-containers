@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "vllm_omni"
-  framework_version: "0.26.0"
+  framework_version: "0.28.0"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
@@ -17,15 +17,15 @@ build:
   target: "vllm-omni-ec2-amzn2023"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  vllm_ref: "v0.26.0"
-  vllm_omni_version: "0.26.0"
-  flashinfer_version: "0.6.14"
-  deepep_commit_hash: "73b6ea4"
+  vllm_ref: "v0.28.0"
+  vllm_omni_version: "0.28.0"
+  flashinfer_version: "0.6.16.post3"
+  deepep_commit_hash: "d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb"
   efa_version: "1.47.0"
   torch_cuda_arch_list: "7.5;8.0;8.6;8.9;9.0;10.0;11.0;12.0"
   install_kv_connectors: "true"
   dlc_major_version: "1"
-  dlc_minor_version: "6"
+  dlc_minor_version: "7"
   use_sccache: "true"
 
 release:

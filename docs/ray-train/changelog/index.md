@@ -4,6 +4,19 @@ Changelog for the Amazon Linux 2023-based Ray Train DLC images (`train-ml-cuda`)
 
 * * *
 
+## Ray Train v1.1 — 2026-09-01
+
+**Tags:** `train-ml-cuda` · `train-ml-cuda-v1` · `train-ml-cuda-v1.1` · `train-ml-cuda-v1.1.0`
+
+**Bundled versions:** Ray 2.58.0 · PyTorch 2.13.0 · `torchvision` 0.28.0 · CUDA 13.0.2 · Python 3.13 · NCCL 2.29.7 · EFA 1.49.0 · GDRCopy 2.4.4 ·
+flash-attn 2.8.3 · Transformer Engine 2.13.0 · DeepSpeed 0.19.2 · PyTorch Lightning 2.6.5 · Transformers 5.13.0
+
+### Changes
+
+- Upgraded EFA from 1.47.0 to 1.49.0 (aws-ofi-nccl 1.20.0)
+
+* * *
+
 ## Ray Train v1.0 — 2026-08-26
 
 **Tags:** `train-ml-cuda` · `train-ml-cuda-v1` · `train-ml-cuda-v1.0` · `train-ml-cuda-v1.0.0`

@@ -122,7 +122,7 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/vllm.tests-unit.yml
+    uses: ./.github/workflows/vllm-omni.tests-unit.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ''

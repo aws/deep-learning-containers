@@ -56,6 +56,11 @@ suites:
     code_paths:
       - test/pytorch/integration/sagemaker/**
 
+  autogluon/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/autogluon/sagemaker/**
+
   tensorflow-inference/sagemaker:
     skip_eligible: true
     code_paths:
@@ -148,6 +153,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/vllm/sagemaker/**
+      - test/test_utils/instance_capacity.py
       - .github/config/model-tests/vllm-sagemaker-endpoint-tests.yml
 
   sglang/upstream:
@@ -186,7 +192,10 @@ suites:
   vllm-omni/sagemaker:
     skip_eligible: true
     code_paths:
-      - test/vllm-omni/sagemaker/**
+      - test/vllm-omni/sagemaker/requirements.txt
+      - test/vllm-omni/sagemaker/test_sm_omni_endpoint.py
+      - test/vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py
+      - test/test_utils/instance_capacity.py
 
   tei/sagemaker:
     skip_eligible: true

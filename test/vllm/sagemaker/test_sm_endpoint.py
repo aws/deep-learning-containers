@@ -10,6 +10,7 @@ from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
+from test_utils.instance_capacity import build_instance_pools
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
@@ -37,14 +38,18 @@ def _cleanup(resources):
             LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
 
 
-@pytest.fixture(scope="function")
-def model_endpoint(aws_session, image_uri, model_id, instance_type):
+def _deploy_endpoint(aws_session, image_uri, model_id, instance_types):
+    """Deploy one endpoint over an instance-pool ladder and wait for InService.
+
+    The endpoint carries an instance-pool ladder, so SageMaker walks ``instance_types``
+    server-side, provisioning the highest-priority type with capacity and falling back
+    to the next on an insufficient-capacity error within this single deploy. Cleanup
+    still runs on failure, so a deploy that fails outright does not leak a Model, an
+    EndpointConfig, and a Failed Endpoint.
+    """
     cleaned_id = clean_string(model_id.split("/")[1], "_./")
     endpoint_name = random_suffix_name(f"vllm-{cleaned_id}", 50)
     model_name = endpoint_name
-
-    LOGGER.debug(f"Using image: {image_uri}")
-    LOGGER.debug(f"Model ID: {model_id}")
 
     hf_token = get_hf_token(aws_session)
     role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
@@ -72,26 +77,60 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     variant_name="AllTraffic",
                     model_name=model_name,
                     initial_instance_count=1,
-                    instance_type=instance_type,
+                    instance_pools=build_instance_pools(instance_types),
+                    # Cap for walking the whole pool ladder on capacity errors.
+                    variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
             ],
         )
 
-        LOGGER.info(f"Deploying endpoint: {endpoint_name} (this may take 10-15 minutes)...")
+        LOGGER.info(
+            f"Deploying endpoint: {endpoint_name} on {instance_types} "
+            f"(this may take 10-15 minutes)..."
+        )
         endpoint = Endpoint.create(
             endpoint_name=endpoint_name,
             endpoint_config_name=endpoint_name,
         )
-        endpoint.wait_for_status("InService")
-        LOGGER.info("Endpoint deployment completed successfully")
+        # Covers pool provisioning (<=1800s) plus model download and container boot.
+        endpoint.wait_for_status("InService", timeout=4500)
+    except Exception:
+        _cleanup([endpoint, endpoint_config, model])
+        raise
 
+    LOGGER.info(f"Endpoint InService: {endpoint_name} on {instance_types}")
+    return model, endpoint_config, endpoint
+
+
+@pytest.fixture(scope="function")
+def model_endpoint(aws_session, image_uri, model_id, instance_type):
+    """Deploy the endpoint with an instance-pool ladder; SageMaker handles fallback.
+
+    ``instance_type`` may be a single type or a priority-ordered ladder. The ladder
+    becomes a production-variant instance pool, so a dry pool in one size falls back to
+    the next size up server-side rather than failing. An endpoint that never reaches
+    InService fails: skipping would leave the image unvalidated while the run still
+    reported green.
+    """
+    LOGGER.debug(f"Using image: {image_uri}")
+    LOGGER.debug(f"Model ID: {model_id}")
+
+    model, endpoint_config, endpoint = _deploy_endpoint(
+        aws_session, image_uri, model_id, instance_type
+    )
+    try:
         yield endpoint
     finally:
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+# g6 (L4) and g5 (A10G) are both single 24GB cards, so every rung serves this model.
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"], indirect=True)
 def test_vllm_sagemaker_endpoint(model_endpoint):
     endpoint = model_endpoint

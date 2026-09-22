@@ -230,6 +230,7 @@ def parse_args():
     parser.add_argument(
         "--framework",
         choices=[
+            "autogluon",
             "tensorflow",
             "mxnet",
             "pytorch",

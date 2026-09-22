@@ -55,47 +55,36 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+  # Fan out one job per real endpoint case so a failure can be re-run in
+  # isolation and every deploy starts with a fresh runner role session.
+  # max-parallel: 1 matches the vLLM endpoint-matrix pattern: at most one
+  # SageMaker endpoint is live at a time. fail-fast: false lets every case run
+  # even after one fails.
   endpoint-test:
+    name: endpoint-test (${{ matrix.test.name }})
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
-    # Split the suite across independent jobs, each on its own fresh runner.
-    # The CodeBuild runner's role session has a hard ~1h max lifetime that
-    # cannot be refreshed past its ceiling; running every endpoint test in one
-    # job serialized to ~55 min, so the async tests (which start last and then
-    # do an S3 PutObject after a ~40 min InService wait) hit ExpiredToken.
-    # Each matrix leg is a separate job with a fresh session, so each test
-    # group starts at t=0 with a full-lifetime token.
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
-        group:
-          # Unit tests (middleware, no endpoint) + fast real-time endpoint
-          # transports: buffered + response-stream (one endpoint) and the two
-          # bidirectional-WebSocket tests. `-k` deselects only the slow async
-          # endpoint tests so everything else here — including all of
-          # test_sagemaker_middleware.py — still runs.
-          - name: realtime
-            filter: "not async_endpoint"
-          # Slow async-inference tests only: each deploys its own endpoint and
-          # waits ~40 min for InService before its first S3 upload. Filter is
-          # the "async_endpoint" substring — it must be a *contiguous* substring
-          # of the node id (pytest -k), which "test_vllm_omni_tts_async_endpoint"
-          # contains but "test_async_endpoint" does not.
-          - name: async
-            filter: "async_endpoint"
+        test:
+          - name: tts-realtime
+            node: "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_tts_endpoint"
+          - name: tts-async
+            node: "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_tts_async_endpoint"
+          - name: bidi-speech-stream
+            node: "vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py::test_vllm_omni_bidi_speech_stream"
+          - name: bidi-default-path-rejected
+            node: "vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py::test_vllm_omni_bidi_default_path_rejected"
+          - name: peft-lora
+            node: "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_peft_lora_endpoint"
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
         buildspec-override:true
     steps:
       - uses: actions/checkout@v6
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Install test dependencies
         run: |
@@ -104,21 +93,65 @@ jobs:
           uv pip install -r test/requirements.txt
           uv pip install -r test/vllm-omni/sagemaker/requirements.txt
 
-      - name: Run SageMaker endpoint tests (${{ matrix.group.name }})
+      - name: Run SageMaker endpoint test
         run: |
           source .venv/bin/activate
           cd test/
           python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} \
-            -k "${{ matrix.group.filter }}" \
-            vllm-omni/sagemaker
+            "${{ matrix.test.node }}"
+
+  # Run video last to preserve the one-live-endpoint limit. It may skip after
+  # SageMaker exhausts all native instance-pool candidates; expose that state
+  # separately so a capacity skip is not cached as a full suite pass.
+  video-async-test:
+    name: endpoint-test (video-async)
+    if: >-
+      ${{ always() && needs.preflight.outputs.image-exists == 'true' &&
+          needs.endpoint-test.result != 'cancelled' }}
+    needs: [preflight, endpoint-test]
+    outputs:
+      skipped: ${{ steps.result.outputs.skipped }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/vllm-omni/sagemaker/requirements.txt
+
+      - name: Run SageMaker video endpoint test
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            --junitxml="${RUNNER_TEMP}/video-async.xml" \
+            "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_video_async_endpoint"
+
+      - name: Classify video endpoint result
+        id: result
+        run: |
+          test -f "${RUNNER_TEMP}/video-async.xml"
+          if grep -Eq 'skipped="[1-9][0-9]*"|<skipped' "${RUNNER_TEMP}/video-async.xml"; then
+            echo "skipped=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "skipped=false" >> "${GITHUB_OUTPUT}"
+          fi
 
   # Record a PASS row in the ci-images-table if the test suite passed.
   record-test-pass:
     if: >-
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
-          needs.endpoint-test.result == 'success' }}
-    needs: [endpoint-test]
+          needs.endpoint-test.result == 'success' &&
+          needs.video-async-test.result == 'success' &&
+          needs.video-async-test.outputs.skipped == 'false' }}
+    needs: [endpoint-test, video-async-test]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -130,4 +163,5 @@ jobs:
           suite: vllm-omni/sagemaker
           image-content-hash: ${{ inputs.image-content-hash }}
           suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-image-uri: ${{ inputs.image-uri }}
           ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

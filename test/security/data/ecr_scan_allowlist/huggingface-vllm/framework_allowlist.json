@@ -148,5 +148,15 @@
         "vulnerability_id": "CVE-2026-73500",
         "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
         "review_by": "2026-11-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84304",
+        "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
+        "review_by": "2026-11-18"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84445",
+        "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild; only affects xds.NewGRPCServer() servers, which the image never starts",
+        "review_by": "2026-11-18"
     }
 ]

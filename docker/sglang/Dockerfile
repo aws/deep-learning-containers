@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.18
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.20
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -40,10 +40,12 @@ RUN pip install \
   "black>=26.3.1" \
   "diffusers>=0.38.0" \
   "lxml>=6.1.0" \
+  "nltk>=3.10.3" \
   "pillow>=12.1.1" \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
   "starlette>=1.3.1" \
+  "virtualenv>=20.26.6" \
   "xgrammar>=0.1.32"
 
 # Copy artifacts

@@ -16,6 +16,15 @@ import ci_images_db  # noqa: E402
 import hash_suite_code  # noqa: E402
 
 
+def _tag_from_uri(image_uri):
+    """Return the bare CI tag from a full image URI (…/ci:<tag>).
+
+    The only colon in an ECR image URI separates the repo from the tag, so the
+    tag is everything after the last ':'. Returns '' for an empty/missing URI.
+    """
+    return image_uri.rsplit(":", 1)[-1] if image_uri else ""
+
+
 def _write_summary(lines):
     """Append markdown lines to the GitHub step summary, if running in Actions."""
     path = os.getenv("GITHUB_STEP_SUMMARY")
@@ -30,7 +39,8 @@ def main():
     suite = os.environ["SUITE"]
     image_content_hash = os.environ.get("IMAGE_CONTENT_HASH", "")
     suite_code_hash = os.environ.get("SUITE_CODE_HASH", "")
-    ci_image_tag = os.environ.get("CI_IMAGE_TAG", "")
+    # CI_IMAGE_URI carries the full CI image URI (…/ci:<tag>); store only the tag.
+    ci_image_tag = _tag_from_uri(os.environ.get("CI_IMAGE_URI", ""))
 
     # Suites with skip_eligible=false are always run — never record them.
     try:

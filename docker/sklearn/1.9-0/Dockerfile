@@ -101,6 +101,11 @@ COPY --from=wheel-builder /build/dist/sagemaker_sklearn_container-2.0-py3-none-a
 RUN pip install --no-cache --no-deps /tmp/sagemaker_sklearn_container-2.0-py3-none-any.whl \
   && rm /tmp/sagemaker_sklearn_container-2.0-py3-none-any.whl
 
+# Reinstall multi-model-server from the vendored wheel
+COPY docker/sklearn/1.9-0/multi_model_server-1.1.2-py2.py3-none-any.whl /tmp/multi_model_server-1.1.2-py2.py3-none-any.whl
+RUN pip install --no-cache --force-reinstall --no-deps /tmp/multi_model_server-1.1.2-py2.py3-none-any.whl \
+  && rm /tmp/multi_model_server-1.1.2-py2.py3-none-any.whl
+
 # MMS setup
 RUN useradd -m model-server \
   && mkdir -p /home/model-server/tmp && chown -R model-server /home/model-server
