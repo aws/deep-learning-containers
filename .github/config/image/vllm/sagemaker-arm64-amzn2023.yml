@@ -17,14 +17,14 @@ build:
   dockerfile: "docker/vllm/Dockerfile.cpu.arm64.amzn2023"
   target: "vllm-cpu-sagemaker-amzn2023"
   python_version: "3.12"
-  vllm_ref: "ec4a3a537068db40afbc9374a67da719c8c9b964"  # v0.30.0 + transformers-5.17 pixtral/mellum guard (vllm#56108); the 0.30.0 tag predates this commit
+  vllm_ref: "ec4a3a537068db40afbc9374a67da719c8c9b964"  # v0.30.0 (vllm#56108)
   # FEAT_BF16 is present on Graviton 3/4/5; build the aarch64 bf16 kernels from source.
   vllm_cpu_arm_bf16: "1"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 
 release:
-  release: true
+  release: false
   force_release: false
   public_registry: true
   private_registry: true
