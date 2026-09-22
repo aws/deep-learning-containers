@@ -21,7 +21,7 @@ IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 CONTAINER_NAME = "multi_gpu_test"
 SCRIPTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts")
 
-PAYLOADS = (("ddp", 29500), ("fsdp", 29501), ("deepspeed", 29502))
+PAYLOADS = (("ddp", 29500), ("fsdp", 29501), ("deepspeed_zero2", 29502))
 
 
 @pytest.fixture(scope="module")
@@ -45,7 +45,7 @@ def gpu_host():
         # Image entrypoint sets CUDA forward-compat; -id keeps stdin open so bash blocks.
         conn.run(f"docker rm -f {CONTAINER_NAME}", warn=True, hide=True)
         conn.run(
-            f"docker run --gpus all -id --name {CONTAINER_NAME} --shm-size=2g "
+            f"docker run --runtime=nvidia --gpus all -id --name {CONTAINER_NAME} --shm-size=2g "
             f"-v $HOME/test:/test -v /dev/shm:/dev/shm {IMAGE_URI} bash"
         )
         LOGGER.info(f"Container ready on {instance_type} with {num_gpus} GPUs")
@@ -66,8 +66,9 @@ def test_multi_gpu_payload(gpu_host, payload, port):
         timeout=1800,
         warn=True,
     )
+    LOGGER.info(f"{payload} stdout:\n{result.stdout}")
+    LOGGER.info(f"{payload} stderr:\n{result.stderr}")
     assert result.ok, (
-        f"{payload} failed on {instance_type} with {num_gpus} GPUs "
-        f"(exit {result.return_code})\n{result.stdout[-2000:]}\n{result.stderr[-2000:]}"
+        f"{payload} failed on {instance_type} with {num_gpus} GPUs (exit {result.return_code})"
     )
-    assert "ok" in result.stdout, f"{payload} did not report success:\n{result.stdout[-2000:]}"
+    assert "ok" in result.stdout, f"{payload} did not report success"
