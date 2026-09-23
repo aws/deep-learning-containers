@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "llama_cpp"
-  framework_version: "1.0.0+b10433"
+  framework_version: "1.0.0+b11139"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -18,7 +18,7 @@ build:
   target: "llama-cpp-sagemaker"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  llama_cpp_ref: "9b05354ec6fb58b4e665e9a39ebc40285c015638"  # b10433
+  llama_cpp_ref: "42916d83f4a225e56709f873aa8050ac11f5b6a4"  # b11139
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

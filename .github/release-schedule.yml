@@ -129,3 +129,28 @@ schedules:
   - cron: "30 23 * * 2,4"
     workflow: ray-train.autorelease-gpu.yml
     gpu: heavy
+
+  # Friday — llama.cpp (onboarding; isolated slot, no contention with the packed Mon-Thu windows)
+  - cron: "00 16 * * 5"
+    workflow: llama-cpp.autorelease-ec2-amzn2023.yml
+    gpu: light
+
+  - cron: "30 16 * * 5"
+    workflow: llama-cpp.autorelease-ec2-gpu-amzn2023.yml
+    gpu: heavy
+
+  - cron: "00 17 * * 5"
+    workflow: llama-cpp.autorelease-ec2-arm64-amzn2023.yml
+    gpu: minimal
+
+  - cron: "30 17 * * 5"
+    workflow: llama-cpp.autorelease-sagemaker-amzn2023.yml
+    gpu: light
+
+  - cron: "00 18 * * 5"
+    workflow: llama-cpp.autorelease-sagemaker-gpu-amzn2023.yml
+    gpu: heavy
+
+  - cron: "30 18 * * 5"
+    workflow: llama-cpp.autorelease-sagemaker-arm64-amzn2023.yml
+    gpu: minimal
