@@ -56,11 +56,11 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
-# unzip/perl: Rust frontend (vllm-rs) build deps.
+# gcc14: DeepSelect's C++20 <format> (elfutils-devel below for DeepGEMM). unzip/perl: Rust frontend (vllm-rs); gawk: gdrcopy.
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl patch gawk \
+  tar gzip xz git gcc gcc-c++ gcc14 gcc14-c++ make cmake ninja-build unzip perl patch gawk \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-  libibverbs-devel \
+  libibverbs-devel elfutils-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Rust frontend (vllm-rs, vllm 0.26.0+); VLLM_REQUIRE_RUST_FRONTEND forces the build (else silently skipped).
@@ -130,7 +130,8 @@ ARG USE_SCCACHE=false
 COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
-    if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+    export CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-c++ CUDAHOSTCXX=/usr/bin/gcc14-c++ \
+    && if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && rm -rf dist && mkdir -p dist \
       && cp /tmp/prebuilt_wheels/*.whl dist/; \
@@ -352,6 +353,8 @@ ENV VIRTUAL_ENV="/opt/venv"
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_USAGE_SOURCE=production-docker-image
 ENV HF_XET_HIGH_PERFORMANCE=1
+# vllm 0.29.0 passes the plain float triton_utils.LOG2E into @triton.jit kernels.
+ENV TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1
 
 # =============================================================================
 # STAGE 4: DLC overlay — Amazon DLC customizations on top of vLLM runtime

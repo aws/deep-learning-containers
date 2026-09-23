@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.29.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.30.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -19,6 +19,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8 \
+  TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1 \
   LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
@@ -44,6 +45,10 @@ RUN uv pip install --system \
 # Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
 RUN uv pip install --system \
   av scipy soundfile "mistral_common[audio]" \
+  && uv cache clean
+
+RUN uv pip install --system \
+  "transformers<5.17" \
   && uv cache clean
 
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py

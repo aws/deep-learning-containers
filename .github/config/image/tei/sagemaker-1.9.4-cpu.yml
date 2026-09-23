@@ -1,23 +1,23 @@
 image:
-  name: "sagemaker-tei-gpu"
-  description: "SageMaker TEI 1.9.3 GPU"
+  name: "sagemaker-tei-cpu"
+  description: "SageMaker TEI 1.9.4 CPU"
 
 metadata:
   framework: "tei"
-  framework_version: "1.9.3"
+  framework_version: "1.9.4"
+  # CPU runtime base is debian:bookworm-slim; os_version preserves the customer-facing tag suffix.
   os_version: "ubuntu24.04"
   customer_type: "sagemaker"
   platform: "sagemaker"
   arch_type: "x86"
-  device_type: "gpu"
+  device_type: "cpu"
   job_type: "inference"
-  prod_image: "tei:2.0.1-tei1.9.3-gpu-py310-cu129-ubuntu24.04"
+  prod_image: "tei-cpu:2.0.1-tei1.9.4-cpu-py310-ubuntu24.04"
 
 build:
-  dockerfile: "docker/tei/1.9.3/gpu/Dockerfile"
+  dockerfile: "docker/tei/cpu/Dockerfile"
   target: "sagemaker"
   python_version: "3.10"
-  cuda_version: "12.9.1"
 
 release:
   release: true

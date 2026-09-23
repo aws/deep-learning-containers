@@ -1,4 +1,4 @@
-name: "PR - TEI 1.9.3"
+name: "PR - TEI 1.9.4"
 
 on:
   pull_request:
@@ -7,9 +7,9 @@ on:
     paths:
       - ".github/config/image/tei/**"
       - ".github/workflows/tei.pipeline.yml"
-      - ".github/workflows/tei.pr-1.9.3.yml"
+      - ".github/workflows/tei.pr-1.9.4.yml"
       - ".github/workflows/tei.tests-sagemaker.yml"
-      - "docker/tei/1.9.3/**"
+      - "docker/tei/**"
       - "scripts/ci/build/tei/**"
       - "test/tei/**"
       - "test/sanity/**"
@@ -45,7 +45,7 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/tei/**"
-              - "docker/tei/1.9.3/**"
+              - "docker/tei/**"
               - "scripts/ci/build/tei/**"
               - "test/security/data/ecr_scan_allowlist/tei/**"
             sagemaker-test-change:
@@ -64,7 +64,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/tei/sagemaker-1.9.3-*.yml"
+          pattern: ".github/config/image/tei/sagemaker-1.9.4-*.yml"
 
   pipeline:
     needs: [check-changes, discover]

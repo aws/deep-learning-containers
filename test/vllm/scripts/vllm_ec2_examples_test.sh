@@ -21,8 +21,7 @@ python3 basic/offline_inference/embed.py
 python3 basic/offline_inference/score.py
 
 SPEC_DECODE="features/speculative_decoding/spec_decode_offline.py"
-# 0.29.0's CUDA-graph memory profiler shrinks effective KV; the DeepEP-v2 amzn2023 image's extra
-# footprint needs 0.95 on 1xL4 (same as Ubuntu), else spec-decode OOMs at the old 0.9 default.
+# 0.29.0's CUDA graph memory profiler makes 0.9 behave like 0.8655; vLLM asks for >=0.9345.
 GPU_MEM_UTIL=0.95
 python3 ${SPEC_DECODE} --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048 --gpu-memory-utilization ${GPU_MEM_UTIL}
 python3 ${SPEC_DECODE} --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536 --gpu-memory-utilization ${GPU_MEM_UTIL}

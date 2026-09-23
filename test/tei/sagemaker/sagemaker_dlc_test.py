@@ -1,18 +1,24 @@
+"""SageMaker endpoint integration tests for TEI using SageMaker SDK v3."""
+
 import argparse
 import json
 import logging
 import os
 import signal
 import sys
-import time
 
 import pytest
-from sagemaker.huggingface import HuggingFaceModel
+from sagemaker.core.resources import Endpoint, EndpointConfig, Model
+from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
+from test_utils import random_suffix_name
+from test_utils.instance_capacity import deploy_with_capacity_fallback
 
 logging.basicConfig(stream=sys.stdout, format="%(message)s", level=logging.INFO)
 
 MODEL_S3_PREFIX = "s3://dlc-cicd-models/tei-models"
 INFERENCE_AMI_VERSION_CU12 = "al2-ami-sagemaker-inference-gpu-3-1"
+# Keep the existing size first; all candidates have one NVIDIA L4 GPU.
+GPU_INSTANCE_TYPES = ["ml.g6.4xlarge", "ml.g6.2xlarge", "ml.g6.xlarge"]
 
 
 def model_data_uri(model_id):
@@ -28,59 +34,95 @@ def timeout_handler(signum, frame):
     raise TimeoutError("Test timed out")
 
 
-def run_test(args):
+def _cleanup(resources):
+    """Delete all created resources, including after a partial deployment failure."""
+    for resource in resources:
+        if resource is None:
+            continue
+        try:
+            resource.delete()
+        except Exception as error:
+            logging.warning("Cleanup %s failed: %s", type(resource).__name__, error)
+
+
+def _deploy_endpoint(args, instance_type):
+    """Deploy one candidate, cleaning up partial resources before a retry."""
     default_env = {"HF_MODEL_ID": "/opt/ml/model"}
     if args.model_revision:
         default_env["HF_MODEL_REVISION"] = args.model_revision
 
-    signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(int(args.timeout))
-    predictor = None
+    model = endpoint_config = endpoint = None
     try:
-        endpoint_name = args.model_id.replace("/", "-").replace(".", "-")[:40]
-        endpoint_name = endpoint_name + "-" + time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
-        model = HuggingFaceModel(
-            name=endpoint_name,
-            env=default_env,
-            role=args.role,
-            image_uri=args.image_uri,
-            model_data=model_data_uri(args.model_id),
+        model_slug = args.model_id.replace("/", "-").replace(".", "-")[:40]
+        endpoint_name = random_suffix_name(f"tei-{model_slug}", 63)
+        logging.info("Deploying %s on %s", endpoint_name, instance_type)
+        model = Model.create(
+            model_name=endpoint_name,
+            primary_container=ContainerDefinition(
+                image=args.image_uri,
+                model_data_url=model_data_uri(args.model_id),
+                environment=default_env,
+            ),
+            execution_role_arn=args.role,
         )
-        deploy_parameters = {
-            "instance_type": args.instance_type,
+        variant_parameters = {
+            "variant_name": "AllTraffic",
+            "model_name": endpoint_name,
+            "instance_type": instance_type,
             "initial_instance_count": 1,
-            "endpoint_name": endpoint_name,
-            "container_startup_health_check_timeout": 1800,
+            "container_startup_health_check_timeout_in_seconds": 1800,
         }
-        if args.instance_type.startswith("ml.g") or args.instance_type.startswith("ml.p"):
-            deploy_parameters["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
-        predictor = model.deploy(**deploy_parameters)
+        if instance_type.startswith("ml.g") or instance_type.startswith("ml.p"):
+            variant_parameters["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
+        endpoint_config = EndpointConfig.create(
+            endpoint_config_name=endpoint_name,
+            production_variants=[ProductionVariant(**variant_parameters)],
+        )
+        endpoint = Endpoint.create(
+            endpoint_name=endpoint_name,
+            endpoint_config_name=endpoint_name,
+        )
+        endpoint.wait_for_status("InService", timeout=int(args.timeout))
+    except Exception:
+        _cleanup([endpoint, endpoint_config, model])
+        raise
+
+    return model, endpoint_config, endpoint
+
+
+def run_test(args):
+    # The timeout covers all deployment attempts and inference for this model.
+    previous_handler = signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(int(args.timeout))
+    model = endpoint_config = endpoint = None
+    try:
+        model, endpoint_config, endpoint = deploy_with_capacity_fallback(
+            args.instance_type,
+            lambda candidate: _deploy_endpoint(args, candidate),
+            args.model_id,
+        )
 
         logging.info("Endpoint deployment complete.")
 
-        data = {
-            "inputs": "What is Deep Learning?",
-            "parameters": {"max_new_tokens": 50, "top_k": 50, "top_p": 0.95, "do_sample": True},
-        }
-        output = predictor.predict(data)
+        data = {"inputs": "What is Deep Learning?"}
+        result = endpoint.invoke(body=json.dumps(data), content_type="application/json")
+        output = json.loads(result.body.read())
         logging.info("Output: " + json.dumps(output))
-        # TODO: we need to clearly define the expected output format for each models.
-        # assert "generated_text" in output[0]
+        assert output, "Model response is empty, failing endpoint test!"
     finally:
-        if predictor:
-            predictor.delete_model()
-            predictor.delete_endpoint()
         signal.alarm(0)
+        signal.signal(signal.SIGALRM, previous_handler)
+        _cleanup([endpoint, endpoint_config, model])
 
 
 def get_models_for_image(image_type, device_type):
     if image_type == "TEI":
         if device_type == "gpu":
             return [
-                ("BAAI/bge-m3", None, "ml.g6.4xlarge"),
-                ("intfloat/multilingual-e5-base", None, "ml.g6.4xlarge"),
-                ("thenlper/gte-base", None, "ml.g6.4xlarge"),
-                ("sentence-transformers/all-MiniLM-L6-v2", None, "ml.g6.4xlarge"),
+                ("BAAI/bge-m3", None, GPU_INSTANCE_TYPES),
+                ("intfloat/multilingual-e5-base", None, GPU_INSTANCE_TYPES),
+                ("thenlper/gte-base", None, GPU_INSTANCE_TYPES),
+                ("sentence-transformers/all-MiniLM-L6-v2", None, GPU_INSTANCE_TYPES),
             ]
         elif device_type == "cpu":
             return [("BAAI/bge-m3", None, "ml.m5.xlarge")]
@@ -140,7 +182,13 @@ def test(image_type, device_type, timeout: str = "3000"):
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("--image_uri", type=str, required=True)
-    arg_parser.add_argument("--instance_type", type=str, required=True)
+    arg_parser.add_argument(
+        "--instance_type",
+        type=str,
+        nargs="+",
+        required=True,
+        help="Instance types in fallback order",
+    )
     arg_parser.add_argument("--model_id", type=str, required=True)
     arg_parser.add_argument("--model_revision", type=str, required=False)
     arg_parser.add_argument("--role", type=str, required=True)
