@@ -71,8 +71,6 @@ function install_efa {
 
     rm -rf /root/.ssh/
     mkdir -p /root/.ssh/
-    ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
-    cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
     printf "Host *\n  StrictHostKeyChecking no\n" >> /root/.ssh/config
 
     dnf clean all
