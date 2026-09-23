@@ -188,7 +188,7 @@ jobs:
       image-content-hash: ${{ needs.check.outputs.image-content-hash }}
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/single_gpu'] || '' }}
 
-  # Multi-GPU tests — only for GPU images
+  # Multi-GPU tests — only for GPU EC2 images
   multi-gpu-test:
     if: >-
       ${{ always() && !cancelled() && inputs.run-multi-gpu-test &&
