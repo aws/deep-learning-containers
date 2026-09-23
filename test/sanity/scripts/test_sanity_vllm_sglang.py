@@ -71,9 +71,7 @@ class TestCudaJitDependencies(unittest.TestCase):
         """nvcc must be executable and return a version string."""
         cuda_home = self._find_cuda_home()
         nvcc = os.path.join(cuda_home, "bin", "nvcc")
-        result = subprocess.run(
-            [nvcc, "--version"], capture_output=True, text=True, timeout=10
-        )
+        result = subprocess.run([nvcc, "--version"], capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, f"nvcc failed: {result.stderr}")
         self.assertIn("release", result.stdout.lower())
 
@@ -106,90 +104,68 @@ class TestCudaJitDependencies(unittest.TestCase):
         self.assertTrue(hasattr(triton, "__version__"))
 
     def test_deep_ep_v2_available(self):
-        """DeepEP v2 present (deep_ep wheel is v2.x + runtime NCCL >= 2.30.4); vLLM amzn2023 only.
+        """DeepEP v2 present (deep_ep wheel is v2.x + runtime NCCL >= 2.30.4) on amzn2023.
 
-        GPU-free; asserts the v2 wheel + NCCL floor, NOT the ElasticBuffer v2 API (that needs
-        `import deep_ep` = a GPU) — real v2 validation is the gated test_ep.py on p5en.
-        Scoped to vLLM: this file is shared with SGLang, which builds DeepEP differently,
-        ships both cu12/cu13 nccl wheels (metadata is ambiguous), and has no `vllm`
-        package. SGLang's DeepEP is covered separately when its 0.5.19 recipe lands.
+        Runs on both vLLM and SGLang amzn2023 images. GPU-free: asserts the v2 wheel +
+        NCCL floor, NOT the ElasticBuffer v2 API (that needs `import deep_ep` = a GPU) —
+        real v2 validation is the gated internode test_ep.py. The NCCL floor is read the
+        way each framework supports: vLLM uses its own runtime probe of the loaded libnccl;
+        SGLang (no `vllm` package) reads the nvidia-nccl wheel's libnccl.so.2 via ctypes.
         """
-        import importlib.util
-
-        if importlib.util.find_spec("vllm") is None:
-            self.skipTest("not a vLLM image")
-        with open("/etc/os-release") as f:
-            if "amzn" not in f.read().lower():
-                self.skipTest("DeepEP v2 ships only on amzn2023 images")
-
-        self.assertIsNotNone(
-            importlib.util.find_spec("deep_ep"), "deep_ep wheel not installed"
-        )
-        # Assert it's the v2 fork (major >= 2), not upstream v1 — the fork ships __version__ 2.x.
-        from importlib.metadata import version
-
-        deep_ep_major = int(version("deep_ep").split(".")[0])
-        self.assertGreaterEqual(
-            deep_ep_major, 2, f"deep_ep {version('deep_ep')} is not v2 (upstream v1?)"
-        )
-        # vLLM's own probe: ctypes ncclGetVersion on the actually-loaded libnccl (raw int,
-        # e.g. 23102 for 2.31.2) — avoids the cu12/cu13 wheel-metadata ambiguity.
-        from vllm.utils.import_utils import _get_runtime_nccl_version
-
-        nccl = _get_runtime_nccl_version()
-        self.assertIsNotNone(nccl, "could not read runtime NCCL version")
-        self.assertGreaterEqual(
-            nccl, 23004, f"runtime NCCL {nccl} < 2.30.4; deepep_v2 won't load"
-        )
-
-    def test_deep_ep_v2_available_sglang(self):
-        """DeepEP v2 (deep_ep) is installed and runtime NCCL is >= 2.30.4 (SGLang amzn2023).
-
-        Skipped on non-AL2023 images and on vLLM images (which don't ship DeepEP v2
-        here). GPU-free: reads the NCCL version from the nvidia-nccl wheel's
-        libnccl.so.2 via ncclGetVersion rather than importing deep_ep (needs a GPU).
-        """
-        import ctypes
         import importlib.util
 
         try:
             with open("/etc/os-release") as f:
-                os_release = f.read()
+                os_release = f.read().lower()
         except OSError:
             self.skipTest("cannot read /etc/os-release")
-        if "amzn" not in os_release or importlib.util.find_spec("vllm") is not None:
-            self.skipTest("not an SGLang amzn2023 image")
+        if "amzn" not in os_release:
+            self.skipTest("DeepEP v2 ships only on amzn2023 images")
 
         self.assertIsNotNone(
-            importlib.util.find_spec("deep_ep"), "deep_ep (DeepEP v2) is not installed"
+            importlib.util.find_spec("deep_ep"), "deep_ep (DeepEP v2) wheel not installed"
         )
         # Assert it's the v2 fork (major >= 2), not upstream v1 — the fork ships __version__ 2.x.
         from importlib.metadata import version as pkg_version
 
         deep_ep_major = int(pkg_version("deep_ep").split(".")[0])
         self.assertGreaterEqual(
-            deep_ep_major,
-            2,
-            f"deep_ep {pkg_version('deep_ep')} is not v2 (upstream v1?)",
+            deep_ep_major, 2, f"deep_ep {pkg_version('deep_ep')} is not v2 (upstream v1?)"
         )
 
-        nccl_spec = importlib.util.find_spec("nvidia.nccl")
-        self.assertIsNotNone(nccl_spec, "nvidia-nccl wheel is not installed")
-        if nccl_spec.submodule_search_locations:
-            nccl_root = list(nccl_spec.submodule_search_locations)[0]
+        # NCCL floor >= 2.30.4 (23004), read per framework.
+        if importlib.util.find_spec("vllm") is not None:
+            # vLLM: its own probe of the actually-loaded libnccl (avoids wheel-metadata ambiguity).
+            from vllm.utils.import_utils import _get_runtime_nccl_version
+
+            nccl = _get_runtime_nccl_version()
+            self.assertIsNotNone(nccl, "could not read runtime NCCL version")
+            self.assertGreaterEqual(
+                nccl, 23004, f"runtime NCCL {nccl} < 2.30.4; deepep_v2 won't load"
+            )
         else:
-            nccl_root = os.path.dirname(nccl_spec.origin)
-        libnccl = os.path.join(nccl_root, "lib", "libnccl.so.2")
-        self.assertTrue(os.path.isfile(libnccl), f"{libnccl} not found")
+            # SGLang: no `vllm` package; read the nvidia-nccl wheel's libnccl.so.2 via ctypes.
+            import ctypes
 
-        lib = ctypes.CDLL(libnccl)
-        version = ctypes.c_int()
-        self.assertEqual(
-            lib.ncclGetVersion(ctypes.byref(version)), 0, "ncclGetVersion failed"
-        )
-        self.assertGreaterEqual(
-            version.value, 23004, f"runtime NCCL {version.value} < 23004 (2.30.4)"
-        )
+            nccl_spec = importlib.util.find_spec("nvidia.nccl")
+            self.assertIsNotNone(nccl_spec, "nvidia-nccl wheel is not installed")
+            if nccl_spec.submodule_search_locations:
+                nccl_root = list(nccl_spec.submodule_search_locations)[0]
+            else:
+                nccl_root = os.path.dirname(nccl_spec.origin)
+            libnccl = os.path.join(nccl_root, "lib", "libnccl.so.2")
+            self.assertTrue(os.path.isfile(libnccl), f"{libnccl} not found")
+
+            lib = ctypes.CDLL(libnccl)
+            nccl_version = ctypes.c_int()
+            self.assertEqual(
+                lib.ncclGetVersion(ctypes.byref(nccl_version)), 0, "ncclGetVersion failed"
+            )
+            self.assertGreaterEqual(
+                nccl_version.value,
+                23004,
+                f"runtime NCCL {nccl_version.value} < 23004 (2.30.4)",
+            )
 
 
 class TestEntrypointArgHandling(unittest.TestCase):
@@ -267,9 +243,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
         stdout = result.stdout + result.stderr
         match = re.search(r"__ARGS__(.+?)__END__", stdout)
         if not match:
-            self.fail(
-                f"Could not capture args. stdout={result.stdout} stderr={result.stderr}"
-            )
+            self.fail(f"Could not capture args. stdout={result.stdout} stderr={result.stderr}")
         return match.group(1).split()
 
     def _model_env(self, val="x"):
@@ -370,9 +344,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
             if arg.startswith("--"):
                 break
             values.append(arg)
-        self.assertEqual(
-            len(values), 2, f"--lora-modules should get 2 argv tokens, got {values}"
-        )
+        self.assertEqual(len(values), 2, f"--lora-modules should get 2 argv tokens, got {values}")
         self.assertEqual(
             [json.loads(v)["name"] for v in values],
             ["lora-a", "lora-b"],
@@ -382,9 +354,7 @@ class TestEntrypointArgHandling(unittest.TestCase):
     def test_hf_model_id_fallback(self):
         """When model env var unset and no /opt/ml/model, fall back to HF_MODEL_ID."""
         if self.prefix == "SM_SGLANG_":
-            self.skipTest(
-                "SGLang defaults to /opt/ml/model, no HF_MODEL_ID fallback needed"
-            )
+            self.skipTest("SGLang defaults to /opt/ml/model, no HF_MODEL_ID fallback needed")
         args = self._get_args({"HF_MODEL_ID": "meta-llama/Llama-3-8B"})
         self.assertIn("--model", args)
         idx = args.index("--model")
@@ -498,22 +468,14 @@ class TestPackageVersionConsistency(unittest.TestCase):
         if not expected:
             self.skipTest("EXPECTED_CUDA_VERSION not set (CPU image)")
         expected_mm = ".".join(expected.split(".")[:2])
-        cuda_home = (
-            os.environ.get("CUDA_HOME")
-            or os.environ.get("CUDA_PATH")
-            or "/usr/local/cuda"
-        )
+        cuda_home = os.environ.get("CUDA_HOME") or os.environ.get("CUDA_PATH") or "/usr/local/cuda"
         nvcc = os.path.join(cuda_home, "bin", "nvcc")
-        result = subprocess.run(
-            [nvcc, "--version"], capture_output=True, text=True, timeout=10
-        )
+        result = subprocess.run([nvcc, "--version"], capture_output=True, text=True, timeout=10)
         ver_match = re.search(r"release (\d+\.\d+)", result.stdout)
         if not ver_match:
             self.skipTest("Cannot parse nvcc version output")
         actual = ver_match.group(1)
-        self.assertEqual(
-            actual, expected_mm, f"CUDA {actual} doesn't match expected {expected_mm}"
-        )
+        self.assertEqual(actual, expected_mm, f"CUDA {actual} doesn't match expected {expected_mm}")
 
     def test_torch_cuda_matches_toolkit(self):
         """torch.version.cuda should agree with the installed CUDA toolkit."""
@@ -585,13 +547,9 @@ class TestEntrypointContract(unittest.TestCase):
             self.skipTest("Not a SageMaker image")
         with open(ep) as f:
             content = f.read()
-        has_vllm = (
-            "vllm.entrypoints.openai.api_server" in content or "vllm serve" in content
-        )
+        has_vllm = "vllm.entrypoints.openai.api_server" in content or "vllm serve" in content
         has_sglang = "sglang.launch_server" in content
-        self.assertTrue(
-            has_vllm or has_sglang, "Entrypoint does not invoke vllm or sglang server"
-        )
+        self.assertTrue(has_vllm or has_sglang, "Entrypoint does not invoke vllm or sglang server")
 
     def test_ec2_entrypoint_exists_and_executable(self):
         """EC2 entrypoint must exist and be executable (if present)."""
