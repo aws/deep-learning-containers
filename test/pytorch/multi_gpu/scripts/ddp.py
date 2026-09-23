@@ -1,10 +1,4 @@
-"""Multi-node DDP training — launched by torchrun on each node.
-
-Usage (workflow runs on each node):
-    torchrun --nnodes=2 --nproc_per_node=1 --node_rank=$RANK \
-        --master_addr=node0 --master_port=29400 \
-        test/pytorch/multi_node/test_multinode_ddp.py
-"""
+"""DDP training across all local GPUs — launched by torchrun."""
 
 import os
 
@@ -38,9 +32,11 @@ def main():
 
     assert loss.item() < first, f"Loss did not decrease: {first} -> {loss.item()}"
 
-    # --- Test 2: gradients are synchronized across nodes ---
+    # --- Test 2: gradients are synchronized across ranks ---
     torch.manual_seed(42)
     model2 = DDP(nn.Linear(32, 1).cuda(), device_ids=[local_rank])
+
+    # Each rank uses DIFFERENT data — DDP should still sync gradients
     x2 = torch.randn(16, 32, device="cuda") * (rank + 1)
     y2 = torch.randn(16, 1, device="cuda")
     loss2 = nn.functional.mse_loss(model2(x2), y2)
