@@ -7,8 +7,8 @@ ARG BASE_REF=2023
 FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS builder
 
 # Pin the upstream ref for reproducible builds.
-# b11139
-ARG LLAMA_CPP_REF=42916d83f4a225e56709f873aa8050ac11f5b6a4
+# v0.4.1 (b10964)
+ARG LLAMA_CPP_REF=b29c606e28a01b1bc8c1351026a0fa6e616bf6c4
 ARG BUILD_PARALLEL=16
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
@@ -41,8 +41,8 @@ FROM public.ecr.aws/amazonlinux/amazonlinux:${BASE_REF} AS runtime
 ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 # Re-declared: ARGs don't cross build stages (used by OSS tracking below).
-# b11139
-ARG LLAMA_CPP_REF=42916d83f4a225e56709f873aa8050ac11f5b6a4
+# v0.4.1 (b10964)
+ARG LLAMA_CPP_REF=b29c606e28a01b1bc8c1351026a0fa6e616bf6c4
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
 LABEL maintainer="Amazon AI"
