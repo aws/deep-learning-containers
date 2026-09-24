@@ -189,7 +189,7 @@ jobs:
             *sglang*)
               TESTS="$COMMON /test/unit/test_imports_sglang.py /test/unit/test_runai_streamer.py /test/single_gpu/test_sglang_inference.py" ;;
             *vllm*)
-              TESTS="$COMMON /test/unit/test_imports_vllm.py /test/unit/test_runai_streamer.py /test/single_gpu/test_vllm_inference.py" ;;
+              TESTS="$COMMON /test/unit/test_imports_vllm.py /test/unit/test_runai_streamer.py /test/unit/test_modelscope.py /test/single_gpu/test_vllm_inference.py" ;;
             *base*)
               TESTS="$COMMON /test/unit/test_imports_base.py" ;;
           esac

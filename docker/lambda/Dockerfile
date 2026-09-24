@@ -325,6 +325,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   # to stream safetensors from S3 to GPU (mirrors the al2023 vLLM image).
   && uv pip install --python "${UV_PYTHON}" \
      "runai-model-streamer[s3,gcs,azure]>=0.15.7" \
+  # modelscope hub loader, mirroring the al2023 vLLM image's serving extras.
+  # <1.38: 1.38 dropped the `revision` kwarg vLLM's repo_utils.py passes (vllm#47325).
+  && uv pip install --python "${UV_PYTHON}" "modelscope<1.38" \
   # NOTE: do NOT delete /tmp/vllm-dist or /root/.cache/sccache — the
   # vllm-wheel-export / vllm-sccache-export scratch stages read them out of this
   # builder for the S3 cache. This is a throwaway builder (only /var/lang is copied
