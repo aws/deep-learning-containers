@@ -17,7 +17,7 @@ build:
   target: "vllm-py3"
   python_version: "3.13"
   cuda_version: "13.0.3"
-  vllm_ref: "ced6857afa0ea7b2e3f0846a62e1394e90f15607"
+  vllm_ref: "ec4a3a537068db40afbc9374a67da719c8c9b964"
   vllm_version: "0.30.0"
   flashinfer_version: "0.6.18.post1"
   torch_cuda_arch_list: "8.0 8.6 8.9 12.0"

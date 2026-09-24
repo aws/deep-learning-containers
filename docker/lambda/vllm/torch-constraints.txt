@@ -11,6 +11,4 @@
 torch==2.13.0
 torchaudio==2.11.0
 torchvision==0.28.0
-
-# Match VLLM_REF's requirements/test/cuda.in pin so the tests don't swap it out.
-transformers==5.16.1
+transformers==5.17.0
