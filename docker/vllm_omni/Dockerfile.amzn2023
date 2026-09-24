@@ -49,9 +49,8 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
-# `unzip` and `perl` are new build deps in vllm v0.26.0: `unzip` for
-# tools/install_protoc.sh; `perl` for the openssl-sys crate compiled by the
-# Rust frontend (`vllm-rs`, new in v0.26.0). `patch` is new in v0.28.0: vLLM's
+# `unzip` and `perl` are build deps from vllm v0.26.0: `perl` for the openssl-sys
+# crate compiled by the Rust frontend (`vllm-rs`, new in v0.26.0). `patch` is new in v0.28.0: vLLM's
 # CMakeLists.txt applies cmake/patches/pytorch_stable_string.patch to torch's
 # stable headers at configure time (CMakeLists.txt:417). The upstream manylinux
 # build base ships `patch`, but the amzn2023 base does not.
@@ -105,10 +104,9 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/bui
 # Rust frontend build deps (new in vllm v0.26.0):
 # - setuptools-rust + wheel (requirements/build/rust.txt) drives the in-tree
 #   Rust build during `setup.py bdist_wheel`.
-# - install_protoc.sh installs protoc, which `build_rust.sh` invokes when
-#   compiling the `_rust_*.so` PyO3 extensions.
+# protoc is no longer needed as of vllm v0.29.0: tools/install_protoc.sh was
+# removed upstream and build_rust.sh builds vllm-rs without it.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/build/rust.txt
-RUN bash tools/install_protoc.sh
 
 # Upstream vllm v0.26.0 dropped the +PTX suffix here — vLLM filters torch's
 # top-level PTX flag when it converts global gencode into per-kernel arch lists,
