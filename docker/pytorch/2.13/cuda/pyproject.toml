@@ -30,7 +30,7 @@ sagemaker = [
     "sagemaker>=3.4.0",
     "sagemaker-pytorch-training",
     "sagemaker-training",
-    "mlflow>=3.16.0",  # relaxes cryptography cap to <51, unblocking CVE-2026-69247
+    "mlflow>=3.16.1",  # relaxes cryptography cap to <51, unblocking CVE-2026-69247
     "bokeh",
     "imageio",
     "numba",
