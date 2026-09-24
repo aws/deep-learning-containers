@@ -9,8 +9,8 @@ from sagemaker.core.resources import Endpoint, EndpointConfig, Model
 from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
-from test_utils.instance_capacity import build_instance_pools
 from test_utils.huggingface_helper import get_hf_token
+from test_utils.instance_capacity import build_instance_pools
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
