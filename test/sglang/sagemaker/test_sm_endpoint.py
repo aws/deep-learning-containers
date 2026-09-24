@@ -9,6 +9,7 @@ from sagemaker.core.resources import Endpoint, EndpointConfig, Model
 from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
+from test_utils.instance_capacity import build_instance_pools
 from test_utils.huggingface_helper import get_hf_token
 
 # To enable debugging, change logging.INFO to logging.DEBUG
@@ -72,7 +73,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     variant_name="AllTraffic",
                     model_name=model_name,
                     initial_instance_count=1,
-                    instance_type=instance_type,
+                    instance_pools=build_instance_pools(instance_type),
                     inference_ami_version=INFERENCE_AMI_VERSION,
                     container_startup_health_check_timeout_in_seconds=600,
                 ),
@@ -92,7 +93,11 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
         _cleanup([endpoint, endpoint_config, model])
 
 
-@pytest.mark.parametrize("instance_type", ["ml.g6.xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "instance_type",
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"]],
+    indirect=True,
+)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
 def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
     endpoint = model_endpoint
