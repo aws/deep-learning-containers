@@ -12,12 +12,12 @@
     {
         "vulnerability_id": "CVE-2026-34478",
         "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
-        "review_by": "2026-08-24"
+        "review_by": "2026-09-29"
     },
     {
         "vulnerability_id": "CVE-2026-34480",
         "reason": "ray bundles log4j-core 2.25.3 in ray_dist.jar, cannot patch without upstream ray rebuild",
-        "review_by": "2026-08-24"
+        "review_by": "2026-09-29"
     },
     {
         "vulnerability_id": "CVE-2026-54513",
@@ -43,5 +43,10 @@
         "vulnerability_id": "CVE-2026-54399",
         "reason": "httpcore5 5.0.2 bundled in ray_dist.jar (Apache HttpComponents Core). Upstream fix in 5.5-beta2 (pre-release); no stable release yet.",
         "review_by": "2026-10-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-9856",
+        "reason": "transformers 5.8.0 fix in 5.10.0 needs new Ray release bump (core contract package)",
+        "review_by": "2026-10-21"
     }
 ]

@@ -1,24 +1,29 @@
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.27.1-gpu-py312-cu130-ubuntu22.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.29.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
 
 ARG FRAMEWORK=huggingface-vllm
-ARG FRAMEWORK_VERSION=0.27.1
+ARG FRAMEWORK_VERSION=0.29.0
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 
 LABEL maintainer="Hugging Face"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 
-ARG TRANSFORMERS_VERSION=5.10.2
-ARG HUGGINGFACE_HUB_VERSION=1.17.0
-ARG HF_XET_VERSION=1.5.0
+ARG TRANSFORMERS_VERSION=5.15.0
+ARG HUGGINGFACE_HUB_VERSION=1.27.0
+ARG HF_XET_VERSION=1.6.0
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends curl unzip \
   && rm -rf /var/lib/apt/lists/*
 
-RUN uv pip install --system \
+# --break-system-packages: the 0.29 base runs `apt-get upgrade` after its own uv
+# installs, which pulls in the distro python3.12 and its PEP 668
+# /usr/lib/python3.12/EXTERNALLY-MANAGED marker. Without the flag uv refuses with
+# "The interpreter at /usr is externally managed". The target env is unchanged:
+# /usr/local/lib/python3.12/dist-packages, where vllm itself lives.
+RUN uv pip install --system --break-system-packages \
   "transformers==${TRANSFORMERS_VERSION}" \
   "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
   "hf-xet==${HF_XET_VERSION}" \
@@ -67,7 +72,7 @@ RUN apt-get purge -y ffmpeg libav* || true && apt-get autoremove -y
 
 ARG FFMPEG_TAG=n8.1
 
-# Patch OS CVEs carried by the ubuntu22.04 base (openssl, mesa, ...). Hold
+# Patch OS CVEs carried by the ubuntu24.04 base (openssl, mesa, ...). Hold
 # cuda/nvidia/libnv packages first so the broad upgrade can't bump the toolkit
 # or driver (same pattern as docker/vllm).
 # ffmpeg is cloned shallow and tag-pinned from the GitHub mirror rather than
@@ -113,7 +118,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
 
 
 RUN HOME_DIR=/root \
-  && uv pip install --system --upgrade pip requests PTable \
+  && uv pip install --system --break-system-packages --upgrade pip requests PTable \
   && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
   && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
   && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \

@@ -4,6 +4,59 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 * * *
 
+## v1.7.0 — 2026-09-21
+
+**Tags:** `omni-cuda-v1.7` · `omni-sagemaker-cuda-v1.7`
+
+**vLLM-Omni source:** [v0.28.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.28.0) (upstream vLLM v0.28.0) —
+[full upstream diff](https://github.com/vllm-project/vllm-omni/compare/v0.26.0...v0.28.0)
+
+**DLC PR:** [#6680](https://github.com/aws/deep-learning-containers/pull/6680)
+
+### Highlights
+
+- **PEFT LoRA validated on SageMaker.** A new endpoint test deploys an SD-3.5-medium image model with a baked-in PEFT LoRA adapter registered at
+  startup (`SM_VLLM_ENABLE_LORA`, `SM_VLLM_LORA_MODULES`, `SM_VLLM_MAX_LORA_RANK`) and confirms that per-request adapter selection via the `lora`
+  field on `/v1/images/generations` changes the generated image.
+
+### Changes
+
+- **Bundled-library bumps.** FlashInfer 0.6.14 → 0.6.16.post3; DeepEP repinned; NCCL pinned to 2.30.7 because DeepEPv2's GIN backend requires NCCL ≥
+  2.30.4.
+- **CUDA 13 mooncake wheel.** The KV-connector install now swaps `mooncake-transfer-engine` for its `-cuda13` variant to match the CUDA 13 base.
+- **`transformers` requirement** widened to `>= 5.10.1, < 5.15` (5.15 introduces a breaking change).
+
+### Notes
+
+- No CUDA change — still CUDA 13.0.2 and Python 3.12. This is a framework bump (v1.6 → v1.7); the EC2 and SageMaker images are rebuilt in lockstep to
+  keep the paired tags aligned.
+
+* * *
+
+## v1.6.0 — 2026-08-25
+
+**Tags:** `omni-cuda-v1.6` · `omni-sagemaker-cuda-v1.6`
+
+**vLLM-Omni source:** [v0.26.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.26.0) (unchanged from v1.5)
+
+**DLC PR:** [#6564](https://github.com/aws/deep-learning-containers/pull/6564)
+
+### Changes
+
+- **SageMaker entrypoint — `SM_VLLM_*` argument handling.** The entrypoint previously built argv with one token per env var, so multi-value flags such
+  as `--lora-modules` (declared `nargs="+"` upstream, along with ~20 other list-typed fields) could never receive more than one value, and
+  `SM_VLLM_LORA_MODULES='[{...},{...}]'` failed to parse. The entrypoint now applies the same rule as vLLM's own config-file loader: a JSON array
+  expands into one argv token per element, a JSON object stays a single token, and non-JSON values pass through untouched.
+  - **Behavior change:** a JSON array in a list-typed env var such as `SM_VLLM_SERVED_MODEL_NAME='["a","b"]'` now yields two values instead of one
+    literal string.
+
+### Notes
+
+- No framework bump — still tracks vLLM-Omni 0.26.0 (upstream vLLM v0.26.0). This is a DLC-minor release (v1.5 → v1.6) scoped to the SageMaker
+  `SM_VLLM_*` fix above; the EC2 image is rebuilt in lockstep to keep the paired tags aligned.
+
+* * *
+
 ## v1.5.0 — 2026-08-07
 
 **Tags:** `omni-cuda-v1.5` · `omni-sagemaker-cuda-v1.5`

@@ -141,6 +141,16 @@ jobs:
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/inspect_docker.py \
             ${{ needs.preflight.outputs.image-uri }}
 
+      - name: Check framework license
+        if: |
+          needs.preflight.outputs.framework == 'pytorch_runtime' ||
+          needs.preflight.outputs.framework == 'tensorflow'
+        run: |
+          bash test/sanity/scripts/check_license_file.sh \
+            "${CONTAINER_ID}" \
+            "${{ needs.preflight.outputs.framework }}" \
+            "${{ needs.preflight.outputs.framework-version }}"
+
       - name: Run base image checks
         if: needs.preflight.outputs.framework == 'base'
         run: |
@@ -338,4 +348,5 @@ jobs:
           suite: sanity
           image-content-hash: ${{ inputs.image-content-hash }}
           suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-image-uri: ${{ inputs.image-uri }}
           ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

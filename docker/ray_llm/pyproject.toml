@@ -1,11 +1,11 @@
 [project]
 name = "dlc-ray-llm"
-version = "2.57.0"
+version = "2.58.0"
 requires-python = "==3.13.*"
 dependencies = [
-    "ray[default,serve,llm]==2.57.0",
-    # ray[llm] 2.57.0 hard-pins vllm[audio]==0.25.1; bump when Ray moves its pin.
-    "vllm==0.25.1",
+    "ray[default,serve,llm]==2.58.0",
+    # ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0; bump when Ray moves its pin.
+    "vllm==0.26.0",
     "torch==2.11.0",
     "torchvision==0.26.0",
     "torchaudio==2.11.0",

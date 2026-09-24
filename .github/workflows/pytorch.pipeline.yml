@@ -46,11 +46,11 @@ on:
         required: false
         type: boolean
         default: true
-      run-multi-node-test:
-        description: "Run multi-node GPU tests (skipped for CPU images)"
+      multi-gpu-instance-types:
+        description: "Candidate instance types for the multi-GPU test, tried in order until one has reserved capacity."
         required: false
-        type: boolean
-        default: true
+        type: string
+        default: ""
       run-efa-test:
         description: "Run EFA tests (skipped for CPU images)"
         required: false
@@ -117,7 +117,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity", "telemetry"]'
+      suites: '["sanity", "telemetry", "efa", "pytorch/unit", "pytorch/single_gpu", "pytorch/multi_gpu", "pytorch/integration/sagemaker"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -158,8 +158,8 @@ jobs:
 
   # Unit tests — CPU-only runner, works for both CPU and GPU images
   unit-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-unit-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-unit-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['pytorch/unit'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -167,11 +167,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/unit'] || '' }}
 
   # Single-GPU tests — only for GPU images
   single-gpu-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-single-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-single-gpu-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          fromJSON(needs.check.outputs.skips || '{}')['pytorch/single_gpu'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -179,35 +185,38 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/single_gpu'] || '' }}
 
-  # Multi-GPU tests — only for GPU images
+  # Multi-GPU tests — only for GPU EC2 images
   multi-gpu-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-multi-gpu-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-multi-gpu-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.ci-config.outputs.customer-type == 'ec2' &&
+          fromJSON(needs.check.outputs.skips || '{}')['pytorch/multi_gpu'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-multi-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     uses: ./.github/workflows/pytorch.tests-multi-gpu.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-
-  # Multi-node GPU tests — only for GPU images
-  multi-node-gpu-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-multi-node-test && needs.ci-config.outputs.device-type == 'gpu' }}
-    needs: [build, ci-config]
-    concurrency:
-      group: ${{ github.workflow }}-multi-node-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/pytorch.tests-multi-node-gpu.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      instance-types: ${{ inputs.multi-gpu-instance-types }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/multi_gpu'] || '' }}
 
   # EFA on ec2 only — sagemaker is the same build (+extra args), so EFA is identical.
   efa-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-efa-test && needs.ci-config.outputs.device-type == 'gpu' && needs.ci-config.outputs.customer-type == 'ec2' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-efa-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.ci-config.outputs.customer-type == 'ec2' &&
+          fromJSON(needs.check.outputs.skips || '{}')['efa'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -215,11 +224,17 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['efa'] || '' }}
 
   # SageMaker training tests — only for sagemaker images (launches remote SM jobs)
   sagemaker-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sagemaker-test &&
+          needs.build.result != 'failure' &&
+          needs.ci-config.outputs.customer-type == 'sagemaker' &&
+          fromJSON(needs.check.outputs.skips || '{}')['pytorch/integration/sagemaker'] != true }}
+    needs: [build, ci-config, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -227,6 +242,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/integration/sagemaker'] || '' }}
 
   release-gate:
     if: >-
@@ -236,7 +253,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, multi-gpu-test, multi-node-gpu-test, sagemaker-test, efa-test]
+    needs: [build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, multi-gpu-test, sagemaker-test, efa-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -276,7 +293,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [ci-config, build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, multi-gpu-test, multi-node-gpu-test, efa-test, sagemaker-test, release-gate, release]
+    needs: [ci-config, build, sanity-test, security-test, telemetry-test, unit-test, single-gpu-test, multi-gpu-test, efa-test, sagemaker-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

@@ -15,7 +15,8 @@ on:
       - "scripts/docker/telemetry/**"
       - "test/pytorch/unit/**"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
+      - "test/security/data/ecr_scan_allowlist/pytorch_runtime/pytorch_runtime-2.11.*.json"
+      - "test/security/data/ecr_scan_allowlist/pytorch_runtime/framework_allowlist.json"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -60,7 +61,8 @@ jobs:
               - "docker/pytorch/2.11/cpu/**"
               - "scripts/docker/common/**"
               - "scripts/docker/pytorch/**"
-              - "test/security/data/ecr_scan_allowlist/pytorch_runtime/**"
+              - "test/security/data/ecr_scan_allowlist/pytorch_runtime/pytorch_runtime-2.11.*.json"
+              - "test/security/data/ecr_scan_allowlist/pytorch_runtime/framework_allowlist.json"
             sagemaker-test-change:
               - "test/pytorch/integration/sagemaker/**"
               - ".github/workflows/pytorch.tests-sagemaker.yml"
@@ -100,7 +102,6 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-efa-test: false
       run-multi-gpu-test: false
-      run-multi-node-test: false
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-single-gpu-test: false

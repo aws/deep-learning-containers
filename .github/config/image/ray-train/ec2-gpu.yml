@@ -6,7 +6,7 @@ metadata:
   # ray_train (not ray) so security allowlist + build hooks resolve to their own
   # dirs and edits don't trigger the Ray Serve PR workflows.
   framework: "ray_train"
-  framework_version: "2.56.0"
+  framework_version: "2.58.0"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
@@ -26,18 +26,17 @@ build:
   torch_version: "2.13.0"
   transformer_engine_version: "2.13.0"
   flash_attn_version: "2.8.3"
-  efa_version: "1.47.0"
+  efa_version: "1.49.0"
   gdrcopy_version: "2.4.4"
   nccl_tests_version: "2.19.6"
   max_jobs: "8"
   dlc_major_version: "1"
-  dlc_minor_version: "0"
+  dlc_minor_version: "1"
 
 release:
   release: true
   force_release: false
-  # Gamma-only for now (private ECR, no public gallery) until v1 is signed off.
-  public_registry: false
+  public_registry: true
   private_registry: true
   enable_soci: true
-  environment: "gamma"
+  environment: "production"

@@ -1,0 +1,15 @@
+# Table Configuration - Ray LLM
+note: "Ray LLM images share the `ray` ECR repository with the Ray Serve and Ray Train images (listed under Framework Containers), and are identified by the `serve-llm` tag prefix. See the [Ray LLM guide](../ray-llm/index.md)."
+columns:
+  - field: framework_version
+    header: "Framework"
+  - field: python
+    header: "Python"
+  - field: cuda
+    header: "CUDA"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: example_uri
+    header: "Example URI"

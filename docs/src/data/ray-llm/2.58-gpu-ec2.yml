@@ -1,0 +1,12 @@
+framework: Ray
+version: "2.58"
+ecr_repository: ray
+accelerator: gpu
+python: py313
+cuda: cu130
+os: amzn2023
+platform: default
+public_registry: true
+
+tags:
+  - "serve-llm-cuda-v1.0"

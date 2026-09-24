@@ -5,6 +5,13 @@ set -eux
 UV_FLAGS=""
 if [ -z "${VIRTUAL_ENV:-}" ]; then
   UV_FLAGS="--system"
+  # The Ubuntu image installs into the distro interpreter at /usr, which carries PEP 668's
+  # EXTERNALLY-MANAGED marker; without this uv refuses every install with "The interpreter
+  # at /usr is externally managed". Set as an env var rather than appending
+  # --break-system-packages to UV_FLAGS because `uv pip freeze` below shares UV_FLAGS and
+  # rejects that flag ("unexpected argument"), which its `|| true` would hide.
+  # The AL2023 image has a venv at /opt/venv with VIRTUAL_ENV set, so it skips this branch.
+  export UV_BREAK_SYSTEM_PACKAGES=1
 fi
 
 # lightning is quarantined on PyPI — remove terratorch (which depends on it)

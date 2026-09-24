@@ -36,6 +36,11 @@ A currency auto-update PR has failed CI. Diagnose the failure and produce minima
 - Do NOT modify files unrelated to the failure
 - ONLY edit files that are provided in the context below. If a file is not shown, do not edit it.
 - For CVE scan failures: pin a safe version in Dockerfile, or add to allowlist if vendored/unpatchable
+- Mooncake CVEs are allowlist-only, never pinned: the Go deps are statically linked into a prebuilt
+  shared object, so there is no pip package to bump. Identify them by `Package Manager` GOMOD/GOBINARY,
+  a `go/stdlib`/`golang.org/x/*`/`go.etcd.io/*`/`google.golang.org/grpc` package, or a `File paths`
+  entry like `.../mooncake/libetcd_wrapper.so`. Only an upstream mooncake-transfer-engine rebuild
+  fixes them, so the allowlist reason should name the package, its version, and that blocker.
 - For "file not found" errors: find the new path in the upstream repo
 - For build errors: check if upstream base image changed something
 

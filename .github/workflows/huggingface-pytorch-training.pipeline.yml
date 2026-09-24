@@ -47,18 +47,6 @@ on:
         value: ${{ jobs.build.outputs.image-uri }}
 
 jobs:
-  ci-config:
-    runs-on: ubuntu-latest
-    outputs:
-      device-type: ${{ steps.parse.outputs.device-type }}
-      customer-type: ${{ steps.parse.outputs.customer-type }}
-    steps:
-      - uses: actions/checkout@v6
-      - id: parse
-        run: |
-          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
-          echo "customer-type=$(yq '.metadata.customer_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
-
   build:
     if: ${{ inputs.build }}
     concurrency:
@@ -92,7 +80,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity", "telemetry"]'
+      suites: '["sanity", "telemetry", "pytorch/integration/sagemaker"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -132,8 +120,11 @@ jobs:
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
 
   sagemaker-tests:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test && needs.ci-config.outputs.customer-type == 'sagemaker' }}
-    needs: [build, ci-config]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-sagemaker-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['pytorch/integration/sagemaker'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-tests-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -141,6 +132,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['pytorch/integration/sagemaker'] || '' }}
 
   release-gate:
     if: >-

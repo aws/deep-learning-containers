@@ -93,7 +93,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity"]'
+      suites: '["sanity", "tei/sagemaker"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -120,8 +120,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
 
   sagemaker-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-sagemaker-test }}
-    needs: [build]
+    if: ${{ always() && !cancelled() && inputs.run-sagemaker-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['tei/sagemaker'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-sagemaker-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: false
@@ -129,6 +129,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['tei/sagemaker'] || '' }}
 
   release-gate:
     if: >-

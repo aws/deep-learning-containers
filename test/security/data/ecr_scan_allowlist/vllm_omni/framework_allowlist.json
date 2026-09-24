@@ -1,33 +1,13 @@
 [
     {
         "vulnerability_id": "CVE-2026-42504",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade",
-        "review_by": "2026-08-25"
+        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade (same libetcd_wrapper.so go-stdlib cluster as CVE-2026-33818/39821/56853; still present on the mooncake-transfer-engine-cuda13 wheel shipped for vLLM 0.28.0)",
+        "review_by": "2026-10-22"
     },
     {
         "vulnerability_id": "CVE-2026-27145",
         "reason": "go/stdlib in mooncake/libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, unpatchable without mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-09-10"
-    },
-    {
-        "vulnerability_id": "CVE-2026-53923",
-        "reason": "vllm GGUF integer truncation, fix requires vllm>=0.23.1rc0, image pinned to 0.21.0rc1+amzn2023",
-        "review_by": "2026-09-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-41523",
-        "reason": "vllm assert-based activation check bypass, fix requires vllm>=0.22.0, image pinned to 0.21.0rc1+amzn2023",
-        "review_by": "2026-09-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-48746",
-        "reason": "vllm ASGI/starlette auth bypass, fix requires vllm>=0.22.0, image pinned to 0.21.0rc1+amzn2023",
-        "review_by": "2026-09-25"
-    },
-    {
-        "vulnerability_id": "CVE-2026-54232",
-        "reason": "vllm Dockerfile dependency confusion via flashinfer-jit-cache, fix requires vllm>=0.22.1, image pinned to 0.21.0rc1+amzn2023",
-        "review_by": "2026-09-25"
+        "review_by": "2026-10-22"
     },
     {
         "vulnerability_id": "CVE-2026-39822",
@@ -40,24 +20,19 @@
         "review_by": "2026-10-22"
     },
     {
-        "vulnerability_id": "CVE-2026-54234",
-        "reason": "vllm rejection sampler out-of-bounds via speculative decoding, fix requires vllm>=0.24.0, image pinned to 0.21.0rc1+amzn2023",
-        "review_by": "2027-01-20"
-    },
-    {
-        "vulnerability_id": "CVE-2026-55574",
-        "reason": "vllm structured_outputs.regex ReDoS, fix requires vllm>=0.24.0, image pinned to 0.21.0rc1+amzn2023",
-        "review_by": "2027-01-20"
-    },
-    {
         "vulnerability_id": "CVE-2026-56852",
         "reason": "golang.org/x/text in mooncake/libetcd_wrapper.so, norm.Iter infinite loop on invalid UTF-8, unpatchable without mooncake rebuild with golang.org/x/text>=0.39.0",
         "review_by": "2026-10-22"
     },
     {
-        "vulnerability_id": "GHSA-hrxh-6v49-42gf",
-        "reason": "google.golang.org/grpc in mooncake/libetcd_wrapper.so, xDS RBAC engine vulnerabilities, unpatchable without mooncake rebuild with grpc-go>=1.82.1",
-        "review_by": "2026-10-22"
+        "vulnerability_id": "CVE-2026-84304",
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake/libetcd_wrapper.so, fragmented HTTP/2 DATA frame memory amplification DoS, unpatchable without a mooncake-transfer-engine-cuda13 rebuild with grpc-go >=1.83.1",
+        "review_by": "2026-10-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84445",
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake/libetcd_wrapper.so, xds.NewGRPCServer panic on requests missing :authority and Host headers; not exploitable here because mooncake does not run an xDS-configured gRPC server, unpatchable without a mooncake-transfer-engine-cuda13 rebuild",
+        "review_by": "2026-10-25"
     },
     {
         "vulnerability_id": "CVE-2026-56853",
@@ -83,11 +58,6 @@
         "vulnerability_id": "CVE-2026-39821",
         "reason": "go/stdlib 1.25.10 in mooncake/libetcd_wrapper.so, idna ToASCII/ToUnicode accepting Punycode labels that decode to ASCII-only names, unpatchable without mooncake rebuild with Go 1.26.6+",
         "review_by": "2026-10-17"
-    },
-    {
-        "vulnerability_id": "RUSTSEC-2026-0195",
-        "reason": "quick-xml vendored in uv binary, unbounded namespace allocation DoS, fixed in uv>=0.11.32 (Cargo.lock quick-xml 0.41.0); auto-resolves on next image rebuild via curl|sh unpinned install — prune once next scan is clean",
-        "review_by": "2026-10-22"
     },
     {
         "vulnerability_id": "CVE-2026-73500",

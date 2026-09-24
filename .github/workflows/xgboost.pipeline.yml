@@ -85,7 +85,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity"]'
+      suites: '["sanity", "xgboost/longevity"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -149,8 +149,11 @@ jobs:
   # Longevity test — sustained-load resource-impact check on the serving
   # container. Lightweight; runs on PRs alongside the local integ tests.
   longevity-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-integ-test }}
-    needs: [build]
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-integ-test &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['xgboost/longevity'] != true }}
+    needs: [build, check]
     concurrency:
       group: ${{ github.workflow }}-longevity-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
@@ -158,6 +161,8 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['xgboost/longevity'] || '' }}
 
   # Full integration suite — GPU container tests + SageMaker e2e + benchmarks.
   # Heavy; only runs on the release pipeline, not on PRs.

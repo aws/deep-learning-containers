@@ -14,7 +14,7 @@ on:
       - "scripts/docker/telemetry/**"
       - "test/ray-llm/**"
       - "test/sanity/**"
-      - "test/security/data/ecr_scan_allowlist/ray-llm/**"
+      - "test/security/data/ecr_scan_allowlist/ray_llm/**"
       - "test/telemetry/**"
       - "!docs/**"
 
@@ -54,7 +54,7 @@ jobs:
               - "docker/ray_llm/**"
               - "scripts/docker/common/**"
               - "scripts/docker/ray_llm/**"
-              - "test/security/data/ecr_scan_allowlist/ray-llm/**"
+              - "test/security/data/ecr_scan_allowlist/ray_llm/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:

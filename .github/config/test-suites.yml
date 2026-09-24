@@ -29,6 +29,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/efa/**
+      - test/test_utils/efa_helpers.py
 
   pytorch/unit:
     skip_eligible: true
@@ -45,15 +46,40 @@ suites:
     code_paths:
       - test/pytorch/multi_gpu/**
 
-  pytorch/multi_node:
-    skip_eligible: true
-    code_paths:
-      - test/pytorch/multi_node/**
-
   pytorch/integration/sagemaker:
     skip_eligible: true
     code_paths:
       - test/pytorch/integration/sagemaker/**
+
+  autogluon/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/autogluon/sagemaker/**
+
+  tensorflow-inference/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/integration/inference/**
+
+  tensorflow-training/unit:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/unit/**
+
+  tensorflow-training/single_gpu:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/single_gpu/**
+
+  tensorflow-training/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/tensorflow/integration/training/**
+
+  ray/unit:
+    skip_eligible: true
+    code_paths:
+      - test/ray/unit/**
 
   ray/ec2:
     skip_eligible: true
@@ -77,6 +103,36 @@ suites:
       - test/ray/test_ffmpeg_codecs.sh
       - test/ray/test_ffmpeg_gpu.sh
 
+  ray-train/unit:
+    skip_eligible: true
+    code_paths:
+      - test/ray-train/unit/**
+
+  ray-train/single_gpu:
+    skip_eligible: true
+    code_paths:
+      - test/ray-train/single_gpu/**
+
+  ray-train/eks:
+    skip_eligible: true
+    code_paths:
+      - test/ray-train/eks/**
+
+  ray-llm/unit:
+    skip_eligible: true
+    code_paths:
+      - test/ray-llm/unit/**
+
+  ray-llm/ec2:
+    skip_eligible: true
+    code_paths:
+      - test/ray-llm/ec2/**
+
+  ray-llm/eks-multi-node:
+    skip_eligible: true
+    code_paths:
+      - test/ray-llm/eks-multi-node/**
+
   vllm/upstream:
     skip_eligible: true
     code_paths:
@@ -86,11 +142,14 @@ suites:
     skip_eligible: true
     code_paths:
       - test/vllm/**
+      - .github/config/model-tests/vllm-model-tests.yml
 
   vllm/sagemaker:
     skip_eligible: true
     code_paths:
       - test/vllm/sagemaker/**
+      - test/test_utils/instance_capacity.py
+      - .github/config/model-tests/vllm-sagemaker-endpoint-tests.yml
 
   sglang/upstream:
     skip_eligible: true
@@ -101,31 +160,54 @@ suites:
     skip_eligible: true
     code_paths:
       - test/sglang/**
+      - .github/config/model-tests/sglang-model-tests.yml
 
   sglang/sagemaker:
     skip_eligible: true
     code_paths:
       - test/sglang/sagemaker/**
 
+  llama-cpp/model:
+    skip_eligible: true
+    code_paths:
+      - test/llama_cpp/scripts/**
+      - .github/config/model-tests/llama-cpp-model-tests.yml
+
+  llama-cpp/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/llama_cpp/sagemaker/**
+
   vllm-omni/model:
     skip_eligible: true
     code_paths:
       - test/vllm-omni/**
+      - .github/config/model-tests/vllm-omni-model-tests.yml
 
   vllm-omni/sagemaker:
     skip_eligible: true
     code_paths:
-      - test/vllm-omni/sagemaker/**
+      - test/vllm-omni/sagemaker/requirements.txt
+      - test/vllm-omni/sagemaker/test_sm_omni_endpoint.py
+      - test/vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py
+      - test/test_utils/instance_capacity.py
+
+  tei/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/tei/sagemaker/**
 
   openfold3/sagemaker:
     skip_eligible: true
     code_paths:
       - test/openfold3/sagemaker/**
 
-  xgboost/container:
+  xgboost/longevity:
     skip_eligible: true
     code_paths:
-      - test/xgboost/container/**
+      - test/xgboost/container/test_longevity.py
+      - test/xgboost/container/container_helper.py
+      - test/xgboost/container/conftest.py
 
   xgboost/e2e:
     skip_eligible: true
@@ -136,3 +218,20 @@ suites:
     skip_eligible: true
     code_paths:
       - test/xgboost/benchmarks/**
+
+  sklearn/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/sklearn/sagemaker/**
+      - test/sklearn/conftest.py
+      - test/sklearn/requirements.txt
+
+  whisperx/ec2:
+    skip_eligible: true
+    code_paths:
+      - test/whisperx/ec2/**
+
+  whisperx/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/whisperx/sagemaker/**

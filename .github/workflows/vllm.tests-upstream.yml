@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -104,6 +114,8 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            -e PIP_BREAK_SYSTEM_PACKAGES=1 \
+            -e UV_BREAK_SYSTEM_PACKAGES=1 \
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
@@ -160,6 +172,8 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            -e PIP_BREAK_SYSTEM_PACKAGES=1 \
+            -e UV_BREAK_SYSTEM_PACKAGES=1 \
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
@@ -216,6 +230,8 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            -e PIP_BREAK_SYSTEM_PACKAGES=1 \
+            -e UV_BREAK_SYSTEM_PACKAGES=1 \
             ${{ needs.preflight.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
@@ -241,3 +257,26 @@ jobs:
             # EC2 example tests are shared across OSes (amzn2023 wraps this script).
             docker exec ${CONTAINER_ID} test/vllm/scripts/vllm_ec2_examples_test.sh
           fi
+
+  # Record a PASS row in the ci-images-table if the test passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          needs.regression-test.result == 'success' &&
+          needs.cuda-test.result == 'success' &&
+          needs.example-test.result == 'success' }}
+    needs: [regression-test, cuda-test, example-test]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: vllm/upstream
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-image-uri: ${{ inputs.image-uri }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

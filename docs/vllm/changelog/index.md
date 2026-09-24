@@ -4,6 +4,64 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v2.5.0 — 2026-09-23
+
+**Tags:** `server-cuda-v2.5` · `server-sagemaker-cuda-v2.5`
+
+**vLLM source:** [ec4a3a5](https://github.com/vllm-project/vllm/commit/ec4a3a537068db40afbc9374a67da719c8c9b964) (`0.30.0+amzn2023.ec4a3a53`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18.post1 · Transformers 5.17.0 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.30.0** — two minor versions up from 0.27.1 (v2.4)
+  ([compare](https://github.com/vllm-project/vllm/compare/v0.27.1...ec4a3a537068db40afbc9374a67da719c8c9b964))
+- **New models** — DeepSeek-V4.1-Flash, GLM-5.3-Flash, K2-Horizon, Cohere Compass, Bailing V3 VL, Nanbeige4.2
+- **Fast Start** — a per-GPU weight-cache daemon serves post-quantized, TP-sharded weights over CUDA IPC with `--load-format ipc_cache`
+  ([#54921](https://github.com/vllm-project/vllm/pull/54921))
+- **Watermarking** — Gumbel-max generation and detection with per-request opt-out ([#54053](https://github.com/vllm-project/vllm/pull/54053))
+- **HiSparse** — sparse-MLA decode spills KV pages to pinned host memory via `HiSparseConnector`
+  ([#53781](https://github.com/vllm-project/vllm/pull/53781))
+- **FlashInfer 0.6.18.post1** — upgraded from 0.6.16.post3
+
+### Changes
+
+- **Built from `ec4a3a5`, not the `v0.30.0` tag** ([#6775](https://github.com/aws/deep-learning-containers/pull/6775)) — the tag predates upstream's
+  Transformers 5.17 adaptation ([#56108](https://github.com/vllm-project/vllm/pull/56108), never backported), so it cannot run 5.17.0. This ref is
+  that adaptation, keeping lighton-ocr-2-1b and mellum2-12b-a2.5b-thinking working without capping Transformers.
+
+* * *
+
+## v2.4.0 — 2026-08-25
+
+**Tags:** `server-cuda-v2.4` · `server-sagemaker-cuda-v2.4`
+
+**vLLM source:** [6adad08](https://github.com/vllm-project/vllm/commit/6adad08767583f52eb4d2122111af0bf638ed5e6) (`0.27.1+amzn2023.6adad087`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.16.post3 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.27.1** — patch bump from 0.27.0 (v2.3); built from commit
+  [6adad08](https://github.com/vllm-project/vllm/commit/6adad08767583f52eb4d2122111af0bf638ed5e6)
+  ([compare](https://github.com/vllm-project/vllm/compare/v0.27.0...6adad08))
+- **Muse Glimmer** — new model support
+- **`SM_VLLM_*` multi-value argument fix (SageMaker only)** — see below
+
+### Changes
+
+- **SageMaker entrypoint — `SM_VLLM_*` argument handling** ([#6564](https://github.com/aws/deep-learning-containers/pull/6564)) — the entrypoint
+  previously built argv with one token per env var, so multi-value flags such as `--lora-modules` (declared `nargs="+"` upstream, along with ~20 other
+  list-typed fields) could never receive more than one value, and `SM_VLLM_LORA_MODULES='[{...},{...}]'` failed to parse. The entrypoint now applies
+  the same rule as vLLM's own config-file loader: a JSON array expands into one argv token per element, a JSON object stays a single token, and
+  non-JSON values pass through untouched.
+  - **Behavior change:** a JSON array in a list-typed env var such as `SM_VLLM_SERVED_MODEL_NAME='["a","b"]'` now yields two values instead of one
+    literal string.
+
+* * *
+
 ## v2.3.0 — 2026-08-17
 
 **Tags:** `server-cuda-v2.3` · `server-sagemaker-cuda-v2.3`

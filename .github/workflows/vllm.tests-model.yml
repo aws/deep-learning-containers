@@ -7,8 +7,23 @@ on:
         description: "Path to image config YAML"
         required: true
         type: string
+      device-type:
+        description: "Image device type (gpu|cpu). Controls the --gpus docker flag."
+        required: false
+        type: string
+        default: "gpu"
       image-uri:
         description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
+        type: string
+        default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
         required: false
         type: string
         default: ""
@@ -54,7 +69,13 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install pyyaml
-          python3 scripts/ci/parse_model_config.py --config .github/config/model-tests/vllm-model-tests.yml
+          CONFIG=.github/config/model-tests/vllm-model-tests.yml
+          if [ "${{ inputs.device-type }}" = "cpu" ]; then
+            CONFIG=.github/config/model-tests/vllm-cpu-model-tests.yml
+          fi
+          python3 scripts/ci/parse_model_config.py \
+            --config "${CONFIG}" \
+            --image-config "${{ inputs.config-file }}"
 
   test-model-codebuild-fleet:
     name: test-model (${{ matrix.name }})
@@ -87,8 +108,12 @@ jobs:
 
       - name: Start container
         run: |
+          GPUS_FLAG=""
+          if [ "${{ inputs.device-type }}" != "cpu" ]; then
+            GPUS_FLAG="--gpus all"
+          fi
           docker pull ${{ needs.preflight.outputs.image-uri }}
-          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it ${GPUS_FLAG} --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
             -v /dlc-models:/models \
             ${{ needs.preflight.outputs.image-uri }})
@@ -211,3 +236,25 @@ jobs:
         run: |
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+
+  # Record a PASS row in the ci-images-table if the test suite passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          (needs.test-model-codebuild-fleet.result == 'success' ||
+           needs.test-model-runner-scale-sets.result == 'success') }}
+    needs: [test-model-codebuild-fleet, test-model-runner-scale-sets]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: vllm/model
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-image-uri: ${{ inputs.image-uri }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}

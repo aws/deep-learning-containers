@@ -8,16 +8,19 @@ FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
 ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
-ARG SGLANG_KERNEL_VERSION=0.4.4
-ARG FLASHINFER_VERSION=0.6.12
-ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
-ARG MOONCAKE_VERSION=0.3.12.post1
-ARG GDRCOPY_VERSION=2.6
+ARG SGLANG_KERNEL_VERSION=0.4.6.post1
+ARG FLASHINFER_VERSION=0.6.18
+ARG DEEPEP_COMMIT=874779c9ccd2294b56304bd6cc5f138f1f71d097
+# DeepEP AWS EFA fork (adds EFA/GIN support); overrides the deepseek-ai upstream.
+ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
+ARG FLASHMLA_COMMIT=15f13e5030374295491c5ce31b02d7e63a7772c6
+ARG MOONCAKE_VERSION=0.3.13
+ARG GDRCOPY_VERSION=2.5.2
 ARG RUST_VERSION=1.96.1
-ARG TORCH_VERSION=2.11.0
+ARG TORCH_VERSION=2.13.0
 
 # CUDA / GPU
-ARG NCCL_VERSION=2.30.4
+ARG NCCL_VERSION=2.31.2
 ARG CUDNN_VERSION=9.16.0.29
 ARG TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3'
 
@@ -116,27 +119,44 @@ RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/py
 # Symlink for backward compat with libraries that expect the old layout (FlashMLA, CUTLASS).
 RUN ln -sf /usr/local/cuda/include/cccl/cuda /usr/local/cuda/include/cuda || true
 
-# flash-mla: Flash Multi-Latent Attention kernels for DeepSeek V4's MLA architecture.
+# flash-mla: Flash Multi-Latent Attention kernels for DeepSeek's MLA architecture.
 # Must be cloned from GitHub (PyPI sdist is missing headers) and built from source.
+# Pinned: HEAD (07a1089, "DeepSeek v4.1") added SM100-only kernels whose
+# static_asserts (FOLD_FACTOR==4, H_Q_PER_CTA==32) fail when compiled for the
+# sm_90a target still in TORCH_CUDA_ARCH_LIST, breaking the wheel build.
 RUN cd /sgl-workspace \
   && git clone https://github.com/deepseek-ai/FlashMLA.git flash-mla \
-  && cd flash-mla && git submodule update --init --recursive \
+  && cd flash-mla && git checkout ${FLASHMLA_COMMIT} \
+  && git submodule update --init --recursive \
   && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
   && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
     pip install --no-cache-dir --no-build-isolation -v .
 
-# DeepEP
-RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
-  https://github.com/deepseek-ai/DeepEP/archive/${DEEPEP_COMMIT}.zip \
-  && unzip -q ${DEEPEP_COMMIT}.zip && rm ${DEEPEP_COMMIT}.zip \
-  && mv DeepEP-${DEEPEP_COMMIT} DeepEP \
-  && cd DeepEP \
-  && sed -i 's/#define NUM_CPU_TIMEOUT_SECS 100/#define NUM_CPU_TIMEOUT_SECS 1000/' csrc/kernels/configs.cuh \
-  && sed -i 's/#define NUM_TIMEOUT_CYCLES 200000000000ull/#define NUM_TIMEOUT_CYCLES 2000000000000ull/' csrc/kernels/configs.cuh
+# DeepEP v2 (AWS EFA fork). Switch from the deepseek-ai upstream zip download to a
+# git clone of the fork so vendored submodules resolve; the fork adds EFA/GIN support.
+# The fork also moved the timeout constants out of csrc/kernels/configs.cuh into
+# csrc/kernels/legacy/compiled.cuh and renamed them LEGACY_*; retarget the sed to
+# match (substring replace preserves any trailing comment on the value line).
+RUN cd /sgl-workspace \
+  && git clone ${DEEPEP_REPO} DeepEP \
+  && cd DeepEP && git checkout ${DEEPEP_COMMIT} \
+  && git submodule update --init --recursive \
+  && sed -i 's/#define LEGACY_NUM_CPU_TIMEOUT_SECS 100/#define LEGACY_NUM_CPU_TIMEOUT_SECS 1000/' csrc/kernels/legacy/compiled.cuh \
+  && sed -i 's/#define LEGACY_NUM_TIMEOUT_CYCLES 200000000000ull/#define LEGACY_NUM_TIMEOUT_CYCLES 2000000000000ull/' csrc/kernels/legacy/compiled.cuh
 
+# Build DeepEP v2. On CUDA 13, NCCL ships as a separate wheel (not bundled in
+# torch/lib), so install nvidia-nccl-cu13 first and point the build at it via
+# EP_NCCL_ROOT_DIR and LIBRARY_PATH (nccl lib dir + cuda stubs for the driver stub).
+# DISABLE_AGGRESSIVE_PTX_INSTRS=1 avoids GIN PTX that fails to assemble here.
+# Uses the SYSTEM-python nccl path (uv pip install --system), not /opt/venv.
 RUN cd /sgl-workspace/DeepEP \
-  && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-  && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
+  && uv pip install --system --no-cache --reinstall nvidia-nccl-cu13==${NCCL_VERSION} \
+  && NCCL_ROOT=$(python3 -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") \
+  && export EP_NCCL_ROOT_DIR="${NCCL_ROOT}" \
+  && export LIBRARY_PATH="${NCCL_ROOT}/lib:/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}" \
+  && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${NCCL_ROOT}/lib:${LD_LIBRARY_PATH}" \
+  && export DISABLE_AGGRESSIVE_PTX_INSTRS=1 \
+  && TORCH_CUDA_ARCH_LIST='9.0a 10.0a 10.3a' MAX_JOBS=${BUILD_PARALLEL} \
     uv pip install --system --no-cache --no-build-isolation .
 
 # Mooncake: 0.3.12+ wheels are tagged manylinux_2_28 (glibc >= 2.28), which AL2023's
@@ -163,8 +183,8 @@ RUN export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
     && rm -rf /root/.cargo /root/.rustup target dist
 
 # Patch NCCL/cuDNN versions to match upstream
-RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
-  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION}
+RUN uv pip install --system --no-cache --reinstall nvidia-nccl-cu13==${NCCL_VERSION} \
+  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu13==${CUDNN_VERSION}
 
 # =============================================================================
 # STAGE 1: runtime — minimal production image with DLC overlay
@@ -174,10 +194,10 @@ FROM nvidia/cuda:${CUDA_REF}-runtime-amzn2023 AS runtime
 ARG CUDA_REF
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
-ARG TORCH_VERSION=2.11.0
-ARG SGLANG_KERNEL_VERSION=0.4.4
-ARG EFA_VERSION=1.49.0
-ARG NCCL_VERSION=2.30.4
+ARG TORCH_VERSION=2.13.0
+ARG SGLANG_KERNEL_VERSION=0.4.6.post1
+ARG EFA_VERSION=1.50.0
+ARG NCCL_VERSION=2.31.2
 ARG CUDNN_VERSION=9.16.0.29
 
 ARG DLC_MAJOR_VERSION=1
@@ -286,7 +306,7 @@ COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
 RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 
 # Install DLC Python dependencies
-RUN uv pip install --system --no-cache botocore
+RUN uv pip install --system --no-cache botocore instanttensor modelexpress
 
 # runai-model-streamer S3 extra (not pulled by sglang[all])
 RUN uv pip install --system --no-cache \
@@ -323,12 +343,12 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
      sglang-kernel==${SGLANG_KERNEL_VERSION} \
      --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
-  && uv pip install --system --no-cache --reinstall nvidia-nccl-cu12==${NCCL_VERSION} \
-  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu12==${CUDNN_VERSION} \
-  && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu12 \
+  && uv pip install --system --no-cache --reinstall nvidia-nccl-cu13==${NCCL_VERSION} \
+  && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu13==${CUDNN_VERSION} \
+  && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu13 \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
-     "nvidia-cutlass-dsl[cu13]==4.6.0" \
-  && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1,<82" "numpy<2.5" \
+     "nvidia-cutlass-dsl[cu13]==4.6.2" \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1,<82" "numpy<2.5" "datasets>=2.19" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
   && ldconfig
@@ -423,22 +443,16 @@ RUN cd /tmp \
   && echo "trtllm-gen cubins: ${CUBINS}" \
   && test "${CUBINS}" -eq 1696
 
-# K3 decodes with the CuTeDSL MLA backend, which needs decode context parallel
-# (enable_dcp) plumbed through flashinfer. The patch ships in the sglang source
-# tree but upstream only applies it in their own K3 image. tests/ diffs are
-# stripped (no test tree in site-packages); --dry-run first so a patch that has
-# gone stale against a flashinfer bump fails the build loudly instead of
-# half-applying. The signature check is the assertion that it took.
-RUN FLASHINFER_DCP_PATCH=/sgl-workspace/sglang/docker/kimi_k3/flashinfer-perkz-dcp-0.6.15.txt \
-  && FLASHINFER_SITE_PACKAGES="$(python${PYTHON_VERSION} -c 'from pathlib import Path; import flashinfer; print(Path(flashinfer.__file__).resolve().parent.parent)')" \
-  && sed '/^diff --git a\/tests\//,$d' "${FLASHINFER_DCP_PATCH}" \
-     | patch --dry-run --batch --forward --strip=1 --directory="${FLASHINFER_SITE_PACKAGES}" \
-  && sed '/^diff --git a\/tests\//,$d' "${FLASHINFER_DCP_PATCH}" \
-     | patch --batch --forward --strip=1 --directory="${FLASHINFER_SITE_PACKAGES}" \
-  && python${PYTHON_VERSION} -c "import inspect, flashinfer.decode as d; \
-     assert 'enable_dcp' in inspect.signature(d.trtllm_batch_decode_with_kv_cache_mla).parameters, \
-     'flashinfer DCP patch did not apply'; print('flashinfer DCP ok')" \
-  && rm -rf /root/.cache/flashinfer /root/.cache/pip
+# Kimi-K3's CuTeDSL MLA decode uses flashinfer decode-context-parallel (enable_dcp),
+# which is upstreamed in sglang 0.5.19 — the flashinfer DCP monkeypatch that older
+# builds applied (docker/kimi_k3/flashinfer-perkz-dcp-0.6.15.txt, now removed) is no
+# longer needed, so no patch step here.
+
+# Final NCCL pin + assert. A transitive dep in any pip step above can silently
+# downgrade NCCL; re-pin it to the DeepEP v2 / EFA requirement as the last system
+# pip step and fail the build loudly if it regressed. --no-deps touches nothing else.
+RUN uv pip install --system --no-deps nvidia-nccl-cu13==${NCCL_VERSION} \
+  && test "$(uv pip show nvidia-nccl-cu13 | awk '/^Version:/{print $2}')" = "${NCCL_VERSION}"
 
 
 # Telemetry, common scripts, and OSS compliance
@@ -475,6 +489,27 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && bash install_efa_amzn2023.sh ${EFA_VERSION} \
   && rm install_efa_amzn2023.sh \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# Prebuild all_reduce_perf (NCCL tests) so the CI EFA test's setup is a no-op and
+# customers can verify EFA/NCCL connectivity. Built against the system-python
+# nvidia.nccl wheel. Only all_reduce_perf is built — a bare `make` also builds the
+# comm_ops test (needs curand.h, absent from the runtime base). make/gcc-c++ from
+# the runtime deps above are intentionally kept (not removed).
+ARG NCCL_TESTS_VERSION=v2.20.0
+RUN NCCL_HOME=$(python${PYTHON_VERSION} -c "import nvidia.nccl; print(nvidia.nccl.__path__[0])") \
+  && if [ ! -e "${NCCL_HOME}/lib/libnccl.so" ]; then \
+       ln -s "$(basename $(ls ${NCCL_HOME}/lib/libnccl.so.* | head -1))" "${NCCL_HOME}/lib/libnccl.so"; \
+     fi \
+  && cd /tmp \
+  && NCCL_TESTS_DIR="/tmp/nccl-tests-${NCCL_TESTS_VERSION#v}" \
+  && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
+  && make -C "${NCCL_TESTS_DIR}/src" BUILDDIR="${NCCL_TESTS_DIR}/build" \
+       MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" CUDA_HOME=/usr/local/cuda \
+       NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_90,code=sm_90" \
+       CXXSTD="-std=c++17" \
+       "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
+  && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \
+  && cd / && rm -rf "${NCCL_TESTS_DIR}"
 
 # ====================== ec2 =========================================
 FROM runtime AS sglang-ec2
