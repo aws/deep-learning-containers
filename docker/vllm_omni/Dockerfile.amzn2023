@@ -49,16 +49,22 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
-# vllm v0.26.0 build deps for the Rust frontend (`vllm-rs`): `perl` for the
-# openssl-sys crate, `unzip` for the protoc tooling pulled in by the build.
+# `unzip` and `perl` are new build deps in vllm v0.26.0: `unzip` for
+# tools/install_protoc.sh; `perl` for the openssl-sys crate compiled by the
+# Rust frontend (`vllm-rs`, new in v0.26.0). `patch` is new in v0.28.0: vLLM's
+# CMakeLists.txt applies cmake/patches/pytorch_stable_string.patch to torch's
+# stable headers at configure time (CMakeLists.txt:417). The upstream manylinux
+# build base ships `patch`, but the amzn2023 base does not.
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
-# Rustup with no default toolchain; the vllm wheel build auto-installs the
-# toolchain pinned in the source tree's `rust-toolchain.toml` on first cargo run.
+# Rustup — needed to install the Rust toolchain pinned in the vllm source tree's
+# `rust-toolchain.toml`. We install rustup with no default toolchain and let
+# upstream's `build_rust.sh` (invoked below, after the source is copied) do the
+# explicit `rustup toolchain install "$TOOLCHAIN"` call, mirroring upstream.
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
   | sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -99,7 +105,10 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/bui
 # Rust frontend build deps (new in vllm v0.26.0):
 # - setuptools-rust + wheel (requirements/build/rust.txt) drives the in-tree
 #   Rust build during `setup.py bdist_wheel`.
+# - install_protoc.sh installs protoc, which `build_rust.sh` invokes when
+#   compiling the `_rust_*.so` PyO3 extensions.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/build/rust.txt
+RUN bash tools/install_protoc.sh
 
 # Upstream vllm v0.26.0 dropped the +PTX suffix here — vLLM filters torch's
 # top-level PTX flag when it converts global gencode into per-kernel arch lists,
@@ -134,6 +143,17 @@ ARG USE_SCCACHE=false
 
 # Seed sccache cache from build context (synced from S3 before build)
 COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
+
+# Build the Rust frontend (`vllm-rs`) — new in vllm v0.26.0. Upstream's
+# build_rust.sh installs the toolchain pinned in rust-toolchain.toml explicitly
+# (relying on rustup auto-install for proxy commands is unreliable) and drops
+# `vllm/vllm-rs/` + `vllm/_rust_*.so` into the source tree. setup.py's
+# get_precompiled_rust_extension_paths() then picks them up and ships them as-is
+# rather than re-running the Rust build inside setuptools-rust. Skipped when
+# using a pre-built wheel (the wheel already carries the Rust artifacts).
+RUN if ! ([ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1); then \
+      bash build_rust.sh; \
+    fi
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
     if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
@@ -304,6 +324,17 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         # Force-reinstall the matching CUDA wheel so the correct nixl_ep_cpp.so
         # is installed (upstream vllm v0.21.0 fix).
         uv pip install --force-reinstall --no-deps nixl-cu${CUDA_MAJOR}; \
+        # mooncake-transfer-engine's default PyPI wheel is a CUDA 12 build (its
+        # engine.so links libcudart.so.12, absent from the CUDA 13 runtime). On
+        # CUDA 13, swap it for the same-version cuda13 variant. New in upstream
+        # vllm v0.28.0 (.buildkite/scripts/install-kv-connectors.sh).
+        if [ "${CUDA_MAJOR}" = "13" ]; then \
+            MOONCAKE_VERSION=$(uv pip show mooncake-transfer-engine 2>/dev/null | awk '/^Version:/{print $2}'); \
+            if [ -n "${MOONCAKE_VERSION}" ]; then \
+                uv pip uninstall mooncake-transfer-engine || true; \
+                uv pip install "mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION}"; \
+            fi; \
+        fi; \
     fi
 
 # Pre-download FlashInfer cubins AFTER all wheel installs (vllm wheel, EP
@@ -431,7 +462,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=7
+ARG DLC_MINOR_VERSION=8
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
