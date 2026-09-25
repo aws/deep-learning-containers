@@ -435,6 +435,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && mkdir -p "$HOME" && echo 'source /usr/local/bin/bash_telemetry.sh' >>"$HOME/.bashrc" \
   && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-base-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-base-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
@@ -494,6 +495,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && mkdir -p "$HOME" && echo 'source /usr/local/bin/bash_telemetry.sh' >>"$HOME/.bashrc" \
   && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-cupy-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-cupy-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
@@ -560,6 +562,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && mkdir -p "$HOME" && echo 'source /usr/local/bin/bash_telemetry.sh' >>"$HOME/.bashrc" \
   && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-pytorch-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-pytorch-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
