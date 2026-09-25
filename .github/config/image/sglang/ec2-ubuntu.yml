@@ -16,7 +16,7 @@ build:
   base_image: "lmsysorg/sglang:v0.5.20"
   python_version: "3.12"
   cuda_version: "13.0.3"
-  efa_version: "1.48.0"
+  efa_version: "1.50.0"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 release:
