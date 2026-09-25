@@ -1,24 +1,22 @@
-name: "PR - vLLM AL2023"
+name: "PR - vLLM CPU AL2023"
 
 on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/vllm/*-amzn2023.yml"
-      - "!.github/config/image/vllm/*-cpu-amzn2023.yml"
-      - "!.github/config/image/vllm/*-arm64-amzn2023.yml"
-      - ".github/config/model-tests/vllm-model-tests.yml"
-      - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
+      - ".github/config/image/vllm/*-cpu-amzn2023.yml"
+      - ".github/config/image/vllm/*-arm64-amzn2023.yml"
+      - ".github/config/model-tests/vllm-cpu-model-tests.yml"
+      - ".github/config/model-tests/vllm-cpu-sagemaker-endpoint-tests.yml"
       - ".github/workflows/vllm.pipeline.yml"
-      - ".github/workflows/vllm.pr-amzn2023.yml"
+      - ".github/workflows/vllm.pr-cpu-amzn2023.yml"
       - ".github/workflows/vllm.tests-unit.yml"
-      - "docker/vllm/Dockerfile.amzn2023"
+      - "docker/vllm/Dockerfile.cpu*.amzn2023"
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "scripts/docker/vllm/**"
       - "!scripts/docker/vllm/omni_*"
-      - "test/efa/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/vllm_server/**"
       - "test/telemetry/**"
@@ -26,9 +24,6 @@ on:
       - "test/vllm/test_*.py"
       - "test/vllm/scripts/amzn2023/**"
       - "test/vllm/scripts/vllm_test_setup.sh"
-      - "test/vllm/scripts/vllm_regression_test.sh"
-      - "test/vllm/scripts/vllm_cuda_test.sh"
-      - "test/vllm/scripts/vllm_ec2_examples_test.sh"
       - "!docs/**"
 
 permissions:
@@ -56,13 +51,11 @@ jobs:
         buildspec-override:true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
-      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
       model-test-change: ${{ steps.changes.outputs.model-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
-      upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -70,20 +63,17 @@ jobs:
         with:
           filters: |
             build-change:
-              - ".github/config/image/vllm/*-amzn2023.yml"
-              - "!.github/config/image/vllm/*-cpu-amzn2023.yml"
-              - "!.github/config/image/vllm/*-arm64-amzn2023.yml"
-              - "docker/vllm/Dockerfile.amzn2023"
+              - ".github/config/image/vllm/*-cpu-amzn2023.yml"
+              - ".github/config/image/vllm/*-arm64-amzn2023.yml"
+              - "docker/vllm/Dockerfile.cpu*.amzn2023"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/**"
               - "test/security/data/ecr_scan_allowlist/vllm_server/**"
-            efa-test-change:
-              - "test/efa/**"
             model-test-change:
-              - ".github/config/model-tests/vllm-model-tests.yml"
+              - ".github/config/model-tests/vllm-cpu-model-tests.yml"
               - "test/vllm/scripts/amzn2023/**"
             sagemaker-test-change:
-              - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
+              - ".github/config/model-tests/vllm-cpu-sagemaker-endpoint-tests.yml"
               - "test/vllm/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
@@ -94,12 +84,6 @@ jobs:
               - "scripts/docker/vllm/**"
               - "test/vllm/test_*.py"
               - ".github/workflows/vllm.tests-unit.yml"
-            upstream-test-change:
-              - "test/vllm/scripts/amzn2023/**"
-              - "test/vllm/scripts/vllm_test_setup.sh"
-              - "test/vllm/scripts/vllm_regression_test.sh"
-              - "test/vllm/scripts/vllm_cuda_test.sh"
-              - "test/vllm/scripts/vllm_ec2_examples_test.sh"
 
   discover:
     needs: [gatekeeper]
@@ -117,7 +101,7 @@ jobs:
           pattern: ".github/config/image/vllm/*-amzn2023.yml"
       - id: filter
         run: |
-          FILTERED=$(echo '${{ steps.discover.outputs.configs }}' | jq -c '[.[] | select((.name | contains("hyperpod") | not) and (.name | contains("cpu") | not))]')
+          FILTERED=$(echo '${{ steps.discover.outputs.configs }}' | jq -c '[.[] | select(.name | contains("cpu"))]')
           echo "configs=${FILTERED}" >> $GITHUB_OUTPUT
 
   pipeline:
@@ -135,9 +119,7 @@ jobs:
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
-      run-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
-      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
       release: false
     secrets: inherit
