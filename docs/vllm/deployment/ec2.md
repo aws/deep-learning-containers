@@ -61,6 +61,30 @@ The S3 prefix should contain a Hugging Face model layout (`config.json`, `tokeni
 attached instance role, the AWS credentials may be omitted — the container will pick them up from IMDS. See the
 [Run:ai streamer docs](https://docs.vllm.ai/en/latest/models/extensions/runai_model_streamer.html) for sharded loading and tuning options.
 
+## Graviton (ARM64 CPU)
+
+On AWS Graviton instances (for example `c7g`, `c8g`, `m8g`, `r8g`), use the CPU image. No `--gpus` flag is needed:
+
+```bash
+docker run -p 8000:8000 --shm-size=4g \
+  public.ecr.aws/deep-learning-containers/vllm:server-arm64-cpu \
+  --model Qwen/Qwen3.5-2B \
+  --dtype bfloat16 \
+  --max-model-len 4096 \
+  --host 0.0.0.0 --port 8000
+```
+
+The CPU image sets these defaults at startup:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `VLLM_CPU_KVCACHE_SPACE` | 40% of host RAM (minimum 2 GiB) | KV-cache size in GiB. GPU memory flags such as `--gpu-memory-utilization` have no effect on CPU. |
+| `VLLM_CPU_OMP_THREADS_BIND` | `nobind` | OpenMP thread binding. Set to `auto` or a core list (for example `0-31`) to pin threads. |
+| `LD_PRELOAD` | `libtcmalloc_minimal.so.4` | tcmalloc for lower allocator overhead |
+
+Override any of them with `-e`, for example `-e VLLM_CPU_KVCACHE_SPACE=16`. Use `bfloat16` weights; GGUF models are not supported on the CPU backend.
+See [vLLM CPU installation](https://docs.vllm.ai/en/latest/getting_started/installation/cpu.html) for more tuning options.
+
 ## Model-Specific Tuning
 
 For recommended serving flags, hardware configurations, and quantization options per model, see [recipes.vllm.ai](https://recipes.vllm.ai/).

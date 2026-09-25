@@ -5,6 +5,15 @@ All models listed below are regression-tested on every DLC vLLM release and work
 The **Coverage** column indicates test depth: *Smoke* runs on every PR; *Benchmark* runs throughput and latency tests with pass/fail thresholds before
 release. A *Smoke + Benchmark* tag means both apply.
 
+## Tested Models (Graviton CPU)
+
+The `server-arm64-cpu` images are tested on every release with:
+
+| Model | Coverage |
+| --- | --- |
+| [Qwen/Qwen3.5-0.8B](https://huggingface.co/Qwen/Qwen3.5-0.8B) | Smoke |
+| [Qwen/Qwen3.5-2B](https://huggingface.co/Qwen/Qwen3.5-2B) | SageMaker endpoint (`ml.c7g`, `ml.c8g`) |
+
 ## Tested Models
 
 | Family | Model | Coverage |
