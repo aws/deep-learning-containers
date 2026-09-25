@@ -108,26 +108,27 @@ class TestCudaJitDependencies(unittest.TestCase):
 
         self.assertTrue(hasattr(triton, "__version__"))
 
-    def test_deep_ep_v2_available_sglang(self):
-        """DeepEP v2 (deep_ep) is installed and runtime NCCL is >= 2.30.4 (SGLang amzn2023).
+    def test_deep_ep_v2_available(self):
+        """DeepEP v2 present (deep_ep wheel is v2.x + runtime NCCL >= 2.30.4) on amzn2023.
 
-        Skipped on non-AL2023 images and on vLLM images (which don't ship DeepEP v2
-        here). GPU-free: reads the NCCL version from the nvidia-nccl wheel's
-        libnccl.so.2 via ncclGetVersion rather than importing deep_ep (needs a GPU).
+        Runs on both vLLM and SGLang amzn2023 images. GPU-free: asserts the v2 wheel +
+        NCCL floor, NOT the ElasticBuffer v2 API (that needs `import deep_ep` = a GPU) —
+        real v2 validation is the gated internode test_ep.py. The NCCL floor is read the
+        way each framework supports: vLLM uses its own runtime probe of the loaded libnccl;
+        SGLang (no `vllm` package) reads the nvidia-nccl wheel's libnccl.so.2 via ctypes.
         """
-        import ctypes
         import importlib.util
 
         try:
             with open("/etc/os-release") as f:
-                os_release = f.read()
+                os_release = f.read().lower()
         except OSError:
             self.skipTest("cannot read /etc/os-release")
-        if "amzn" not in os_release or importlib.util.find_spec("vllm") is not None:
-            self.skipTest("not an SGLang amzn2023 image")
+        if "amzn" not in os_release:
+            self.skipTest("DeepEP v2 ships only on amzn2023 images")
 
         self.assertIsNotNone(
-            importlib.util.find_spec("deep_ep"), "deep_ep (DeepEP v2) is not installed"
+            importlib.util.find_spec("deep_ep"), "deep_ep (DeepEP v2) wheel not installed"
         )
         # Assert it's the v2 fork (major >= 2), not upstream v1 — the fork ships __version__ 2.x.
         from importlib.metadata import version as pkg_version
@@ -137,21 +138,39 @@ class TestCudaJitDependencies(unittest.TestCase):
             deep_ep_major, 2, f"deep_ep {pkg_version('deep_ep')} is not v2 (upstream v1?)"
         )
 
-        nccl_spec = importlib.util.find_spec("nvidia.nccl")
-        self.assertIsNotNone(nccl_spec, "nvidia-nccl wheel is not installed")
-        if nccl_spec.submodule_search_locations:
-            nccl_root = list(nccl_spec.submodule_search_locations)[0]
-        else:
-            nccl_root = os.path.dirname(nccl_spec.origin)
-        libnccl = os.path.join(nccl_root, "lib", "libnccl.so.2")
-        self.assertTrue(os.path.isfile(libnccl), f"{libnccl} not found")
+        # NCCL floor >= 2.30.4 (23004), read per framework.
+        if importlib.util.find_spec("vllm") is not None:
+            # vLLM: its own probe of the actually-loaded libnccl (avoids wheel-metadata ambiguity).
+            from vllm.utils.import_utils import _get_runtime_nccl_version
 
-        lib = ctypes.CDLL(libnccl)
-        version = ctypes.c_int()
-        self.assertEqual(lib.ncclGetVersion(ctypes.byref(version)), 0, "ncclGetVersion failed")
-        self.assertGreaterEqual(
-            version.value, 23004, f"runtime NCCL {version.value} < 23004 (2.30.4)"
-        )
+            nccl = _get_runtime_nccl_version()
+            self.assertIsNotNone(nccl, "could not read runtime NCCL version")
+            self.assertGreaterEqual(
+                nccl, 23004, f"runtime NCCL {nccl} < 2.30.4; deepep_v2 won't load"
+            )
+        else:
+            # SGLang: no `vllm` package; read the nvidia-nccl wheel's libnccl.so.2 via ctypes.
+            import ctypes
+
+            nccl_spec = importlib.util.find_spec("nvidia.nccl")
+            self.assertIsNotNone(nccl_spec, "nvidia-nccl wheel is not installed")
+            if nccl_spec.submodule_search_locations:
+                nccl_root = list(nccl_spec.submodule_search_locations)[0]
+            else:
+                nccl_root = os.path.dirname(nccl_spec.origin)
+            libnccl = os.path.join(nccl_root, "lib", "libnccl.so.2")
+            self.assertTrue(os.path.isfile(libnccl), f"{libnccl} not found")
+
+            lib = ctypes.CDLL(libnccl)
+            nccl_version = ctypes.c_int()
+            self.assertEqual(
+                lib.ncclGetVersion(ctypes.byref(nccl_version)), 0, "ncclGetVersion failed"
+            )
+            self.assertGreaterEqual(
+                nccl_version.value,
+                23004,
+                f"runtime NCCL {nccl_version.value} < 23004 (2.30.4)",
+            )
 
 
 class TestEntrypointArgHandling(unittest.TestCase):
