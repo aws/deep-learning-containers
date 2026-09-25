@@ -27,6 +27,18 @@ class TestContainerEnv:
         assert os.environ.get("TZ") == ":/etc/localtime"
 
 
+class TestWritableCaches:
+    """Caches must point at /tmp — every other path in a Lambda sandbox is read-only."""
+
+    @pytest.mark.parametrize("var", ["HOME", "XDG_CONFIG_HOME", "XDG_CACHE_HOME"])
+    def test_cache_var_under_tmp(self, var):
+        value = os.environ.get(var, "")
+        assert value == "/tmp" or value.startswith("/tmp/"), f"{var}={value!r}"
+
+    def test_user_is_set(self):
+        assert os.environ.get("USER")
+
+
 class TestPath:
     """PATH and LD_LIBRARY_PATH contain required directories."""
 

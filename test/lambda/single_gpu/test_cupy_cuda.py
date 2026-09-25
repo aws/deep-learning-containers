@@ -1,5 +1,7 @@
 """Validate CuPy CUDA operations on a single GPU — cupy image."""
 
+import os
+
 import cupy as cp
 
 
@@ -54,3 +56,19 @@ def test_fft():
     fft_result = cp.fft.fft(signal)
     assert fft_result.shape == (n,)
     assert cp.isfinite(fft_result).all()
+
+
+def test_raw_kernel_compiles_and_caches_to_writable_dir():
+    """A custom kernel must JIT-compile and cache somewhere writable on Lambda."""
+    kernel = cp.RawKernel(
+        r"""
+        extern "C" __global__ void add_one(float* x) { x[blockIdx.x] += 1.0f; }
+        """,
+        "add_one",
+    )
+    x = cp.zeros(4, dtype=cp.float32)
+    kernel((4,), (1,), (x,))
+    assert cp.array_equal(x, cp.ones(4, dtype=cp.float32))
+
+    cache_dir = os.environ["CUPY_CACHE_DIR"]
+    assert os.listdir(cache_dir), f"{cache_dir} is empty — kernel cache was not written"
