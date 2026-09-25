@@ -185,7 +185,7 @@ jobs:
             *pytorch*)
               TESTS="$COMMON /test/unit/test_imports_pytorch.py /test/unit/test_environment_pytorch.py /test/unit/test_ffmpeg.py /test/single_gpu/test_pytorch_inference.py /test/single_gpu/test_pytorch_pipelines.py /test/single_gpu/test_ffmpeg_gpu.py" ;;
             *cupy*)
-              TESTS="$COMMON /test/unit/test_imports_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py" ;;
+              TESTS="$COMMON /test/unit/test_imports_cupy.py /test/unit/test_environment_cupy.py /test/single_gpu/test_cupy_cuda.py /test/single_gpu/test_cupy_workloads.py" ;;
             *sglang*)
               TESTS="$COMMON /test/unit/test_imports_sglang.py /test/unit/test_runai_streamer.py /test/single_gpu/test_sglang_inference.py" ;;
             *vllm*)

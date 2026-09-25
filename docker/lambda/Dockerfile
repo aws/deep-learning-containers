@@ -411,6 +411,10 @@ ENV PATH="/var/lang/bin:$PATH" \
   LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
   PYTHONPATH="/var/runtime" \
   PYTHONDONTWRITEBYTECODE=1 \
+  USER=lambda \
+  HOME=/tmp \
+  XDG_CONFIG_HOME=/tmp/.config \
+  XDG_CACHE_HOME=/tmp/.cache \
   DLC_CONTAINER_TYPE=general \
   LAMBDA_TASK_ROOT=/var/task \
   LAMBDA_RUNTIME_DIR=/var/runtime \
@@ -431,6 +435,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && mkdir -p "$HOME" && echo 'source /usr/local/bin/bash_telemetry.sh' >>"$HOME/.bashrc" \
   && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-base-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-base-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
@@ -463,6 +468,12 @@ ENV PATH="/var/lang/bin:$PATH" \
   LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
   PYTHONPATH="/var/runtime" \
   PYTHONDONTWRITEBYTECODE=1 \
+  CUPY_CACHE_DIR=/tmp/cupy_cache \
+  NUMBA_CACHE_DIR=/tmp/numba_cache \
+  USER=lambda \
+  HOME=/tmp \
+  XDG_CONFIG_HOME=/tmp/.config \
+  XDG_CACHE_HOME=/tmp/.cache \
   DLC_CONTAINER_TYPE=general \
   LAMBDA_TASK_ROOT=/var/task \
   LAMBDA_RUNTIME_DIR=/var/runtime \
@@ -484,6 +495,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && mkdir -p "$HOME" && echo 'source /usr/local/bin/bash_telemetry.sh' >>"$HOME/.bashrc" \
   && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-cupy-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-cupy-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
@@ -523,6 +535,13 @@ ENV PATH="/var/lang/bin:/usr/local/bin:$PATH" \
   PYTHONPATH="/var/runtime" \
   PYTHONDONTWRITEBYTECODE=1 \
   TORCH_HOME=/tmp/torch \
+  HF_HOME=/tmp/huggingface \
+  TRITON_CACHE_DIR=/tmp/triton \
+  TORCHINDUCTOR_CACHE_DIR=/tmp/torchinductor \
+  USER=lambda \
+  HOME=/tmp \
+  XDG_CONFIG_HOME=/tmp/.config \
+  XDG_CACHE_HOME=/tmp/.cache \
   DLC_CONTAINER_TYPE=general \
   LAMBDA_TASK_ROOT=/var/task \
   LAMBDA_RUNTIME_DIR=/var/runtime \
@@ -543,6 +562,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && mkdir -p "$HOME" && echo 'source /usr/local/bin/bash_telemetry.sh' >>"$HOME/.bashrc" \
   && rm -rf /var/lang/lib/python${PYTHON_VERSION}/ensurepip/_bundled
 COPY --from=oss-pytorch-py3 /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=oss-pytorch-py3 /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
