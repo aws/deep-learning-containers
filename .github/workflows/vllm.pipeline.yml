@@ -240,9 +240,8 @@ jobs:
       container-cmd: "-c 'sleep infinity'"
 
   release-gate:
-    # Non-main refs may only dispatch-release to gamma (enforced in the check step).
     if: >-
-      (github.ref == 'refs/heads/main' || contains(github.workflow_ref, '.dispatch-release')) &&
+      github.ref == 'refs/heads/main' &&
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release &&
@@ -260,10 +259,6 @@ jobs:
         run: |
           SHOULD_RELEASE=$(yq '.release.release' "${{ inputs.config-file }}")
           ENVIRONMENT=$(yq '.release.environment' "${{ inputs.config-file }}")
-          if [[ "${{ github.ref }}" != "refs/heads/main" && "${ENVIRONMENT}" != "gamma" ]]; then
-            echo "::warning::Skipping release: ${ENVIRONMENT} releases require main (ref: ${{ github.ref }})"
-            SHOULD_RELEASE=false
-          fi
           echo "should-release=${SHOULD_RELEASE}" >> $GITHUB_OUTPUT
           echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
       - id: spec
