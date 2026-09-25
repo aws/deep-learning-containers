@@ -241,7 +241,9 @@ ENV UV_PYTHON="/var/lang/bin/python${PYTHON_VERSION}" \
 
 # Build tooling: git (clone), patch (vLLM's torch>=2.13 stable-header hotfix in
 # CMakeLists shells out to `patch`), gcc/g++ already present from builder-base-devel.
+# gcc14 for DeepSelect's C++20 <format>; elfutils-devel for DeepGEMM's deep_jit backtraces.
 RUN dnf install -y --setopt=install_weak_deps=False git patch \
+  gcc14 gcc14-c++ elfutils-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./docker/lambda/vllm/torch-constraints.txt /tmp/torch-constraints.txt
@@ -268,7 +270,8 @@ RUN git init /tmp/vllm \
 # The wheel + sccache are NOT deleted here — the vllm-wheel-export / vllm-sccache-export
 # scratch stages read them out for the S3 cache on a miss.
 RUN --mount=type=cache,target=/root/.cache/uv \
-  mkdir -p /tmp/vllm-dist \
+  export CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-c++ CUDAHOSTCXX=/usr/bin/gcc14-c++ \
+  && mkdir -p /tmp/vllm-dist \
   && if [ "${USE_PREBUILT_WHEEL}" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
        echo "✅ Using pre-built vLLM wheel from cache — skipping compilation" \
        && cp /tmp/prebuilt_wheels/*.whl /tmp/vllm-dist/; \
