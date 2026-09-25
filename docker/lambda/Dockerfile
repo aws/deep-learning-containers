@@ -241,7 +241,6 @@ ENV UV_PYTHON="/var/lang/bin/python${PYTHON_VERSION}" \
 
 # Build tooling: git (clone), patch (vLLM's torch>=2.13 stable-header hotfix in
 # CMakeLists shells out to `patch`), gcc/g++ already present from builder-base-devel.
-# gcc14 for DeepSelect's C++20 <format>; elfutils-devel for DeepGEMM's deep_jit backtraces.
 RUN dnf install -y --setopt=install_weak_deps=False git patch \
   gcc14 gcc14-c++ elfutils-devel \
   && dnf clean all && rm -rf /var/cache/dnf
