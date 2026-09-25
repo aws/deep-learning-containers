@@ -248,7 +248,7 @@ async def _stream_tts(aws_session, endpoint_name, deadline_s=180):
 
 @pytest.mark.parametrize(
     "instance_type",
-    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"]],
     indirect=True,
 )
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
@@ -288,7 +288,7 @@ def test_vllm_omni_bidi_speech_stream(bidi_endpoint, aws_session):
 
 @pytest.mark.parametrize(
     "instance_type",
-    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"]],
     indirect=True,
 )
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
