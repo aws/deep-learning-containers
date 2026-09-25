@@ -265,6 +265,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         fi; \
     fi
 
+# Cap transformers <5.17 (this vLLM predates the 5.17 pixtral/RoPE changes); drop on vLLM bump.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "transformers<5.17"
+
 # Download FlashInfer precompiled cubins after all pip installs are done
 RUN flashinfer show-config && flashinfer download-cubin
 
