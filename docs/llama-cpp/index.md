@@ -26,7 +26,7 @@ All images are also available on the ECR Public Gallery ([llama-cpp](https://gal
 
 ## What's Included
 
-Each image is a from-source build of the upstream [llama.cpp](https://github.com/ggml-org/llama.cpp) project (tag `b10433`):
+Each image is a from-source build of the upstream [llama.cpp](https://github.com/ggml-org/llama.cpp) project (release `v0.4.1`):
 
 - **`llama-server`** — the OpenAI-compatible HTTP inference server (the default entrypoint)
 - **`llama-cli`** and **`llama-bench`** — the interactive CLI and the benchmarking tool, on `PATH` for one-off use

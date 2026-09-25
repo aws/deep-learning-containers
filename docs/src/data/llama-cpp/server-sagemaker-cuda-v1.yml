@@ -1,5 +1,5 @@
 framework: llama.cpp
-version: "1.0.0+b10433"
+version: "1.0.0+v0.4.1"
 ecr_repository: llama-cpp
 accelerator: gpu
 python: py312

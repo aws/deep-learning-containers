@@ -4,6 +4,29 @@ Changelog for the Amazon Linux 2023-based llama.cpp images.
 
 * * *
 
+## llama.cpp 1.0.0 (v0.4.1), 2026-09-25
+
+**Tags (x86, `llama-cpp`):** `server-cpu-v1` · `server-cuda-v1` · `server-sagemaker-cpu-v1` · `server-sagemaker-cuda-v1`
+
+**Tags (ARM64, `llama-cpp-arm64`):** `server-cpu-v1` · `server-sagemaker-cpu-v1`
+
+**llama.cpp source:** [v0.4.1](https://github.com/ggml-org/llama.cpp/releases/tag/v0.4.1) (build b10964)
+
+### Highlights
+
+- Upgraded llama.cpp from build b10433 to the stable release v0.4.1. Images now track the upstream stable (`v*`) release line instead of nightly `b*`
+  builds.
+- New model architectures: Maple 20B-A1B, Tencent Hy 4 (preview), and Spark2.5.
+- `llama-server` fixes: an LRU hang on concurrent requests for the same model, speculative decoding after image input, and context checkpoint eviction
+  on short prompts.
+- `llama-server` now enables `--reasoning-preserve` by default.
+- Upstream removed the deprecated `--mmap`, `--mlock`, and `--direct-io` flags. Use `--load-mode` instead. If you pass these flags through
+  `SM_LLAMA_CPP_*` variables or a custom command, update them before moving to this image.
+- Structured JSONL logging is available through `--log-jsonl`.
+- See the [upstream release notes](https://github.com/ggml-org/llama.cpp/releases/tag/v0.4.1) for the full list of changes.
+
+* * *
+
 ## llama.cpp 1.0.0 (b10433) — 2026-08-21
 
 **Tags (x86, `llama-cpp`):** `server-cpu-v1` · `server-cuda-v1` · `server-sagemaker-cpu-v1` · `server-sagemaker-cuda-v1`
