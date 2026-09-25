@@ -4,8 +4,6 @@ columns:
     header: "Framework"
   - field: python
     header: "Python"
-  - field: cuda
-    header: "CUDA"
   - field: accelerator
     header: "Accelerator"
   - field: platform

@@ -40,6 +40,8 @@ def define_env(env):
         "latest_vllm_sagemaker": get_latest_image_uri("vllm", "sagemaker"),
         "latest_vllm_server_ec2": get_latest_image_uri("vllm-server", "ec2"),
         "latest_vllm_server_sagemaker": get_latest_image_uri("vllm-server", "sagemaker"),
+        "latest_vllm_arm64_ec2": get_latest_image_uri("vllm-arm64", "ec2"),
+        "latest_vllm_arm64_sagemaker": get_latest_image_uri("vllm-arm64", "sagemaker"),
         "latest_sglang_sagemaker": get_latest_image_uri("sglang", "sagemaker"),
         "latest_sglang_server_ec2": get_latest_image_uri("sglang-server", "ec2"),
         "latest_sglang_server_sagemaker": get_latest_image_uri("sglang-server", "sagemaker"),

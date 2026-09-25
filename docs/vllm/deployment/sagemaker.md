@@ -146,6 +146,33 @@ sm.delete_endpoint_config(EndpointConfigName="vllm-config")
 sm.delete_model(ModelName="vllm-model")
 ```
 
+## Graviton (ARM64 CPU)
+
+To serve on Graviton CPU instances, use the `server-arm64-sagemaker-cpu` image with a Graviton ML instance type (for example `ml.c7g.4xlarge` or
+`ml.c8g.4xlarge`). Omit `inference_ami_version`; the CPU image does not need a GPU AMI.
+
+```python
+model = Model(
+    image_uri="{{ images.latest_vllm_arm64_sagemaker }}",
+    role="arn:aws:iam::<account_id>:role/<role_name>",
+    predictor_cls=Predictor,
+    env={
+        "SM_VLLM_MODEL": "Qwen/Qwen3.5-2B",
+        "SM_VLLM_DTYPE": "bfloat16",
+        "SM_VLLM_MAX_MODEL_LEN": "4096",
+    },
+)
+
+predictor = model.deploy(
+    instance_type="ml.c8g.4xlarge",
+    initial_instance_count=1,
+    serializer=JSONSerializer(),
+)
+```
+
+All `SM_VLLM_*` variables work the same as on the GPU image. The CPU defaults for `VLLM_CPU_KVCACHE_SPACE` and `VLLM_CPU_OMP_THREADS_BIND` are
+described in [EC2 Deployment](ec2.md#graviton-arm64-cpu); set them in `env` to override.
+
 ## Model Artifacts
 
 When `ModelDataUrl` (or `ModelDataSource`) points to a tarball/S3 prefix, SageMaker mounts the contents at `/opt/ml/model`. The entrypoint
