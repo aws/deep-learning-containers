@@ -31,6 +31,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/09/25]** [vLLM Server ARM64 CPU v1.0 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) · EC2: `server-arm64-cpu-v1.0` · SageMaker: `server-arm64-sagemaker-cpu-v1.0` · Initial release: vLLM `0.30.0` CPU backend on AWS Graviton (ARM64), no GPU required; bf16 kernels for Graviton 3 and later, RAM-based KV-cache defaults, and the OpenAI-compatible API on EC2 and SageMaker AI.
 - **[2026/09/23]** [vLLM v0.30.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.30.0-gpu-py312-ec2` · SageMaker: `0.30.0-gpu-py312` · DeepSeek-V4.1-Flash, GLM-5.3-Flash, K2-Horizon; Fast Start GPU weight cache; Gumbel-max watermarking; `transformers` capped below 5.17.
 - **[2026/09/23]** [vLLM Server v2.5 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.5` · SageMaker: `server-sagemaker-cuda-v2.5` · vLLM `0.30.0` (up from 0.27.1), built from `ec4a3a5` for Transformers 5.17; FlashInfer 0.6.18.post1.
 - **[2026/09/21]** [vLLM-Omni v1.7 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.7` · SageMaker: `omni-sagemaker-cuda-v1.7` · vLLM-Omni `0.28.0` (up from 0.26.0); PEFT LoRA adapters validated on SageMaker — per-request `lora` selection on `/v1/images/generations`; FlashInfer 0.6.16.post3, NCCL pinned 2.30.7, CUDA-13 mooncake wheel.
