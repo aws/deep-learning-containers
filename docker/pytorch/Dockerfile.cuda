@@ -176,6 +176,9 @@ RUN CUDART=$(ls /usr/local/cuda/lib64/libcudart.so.* | head -1) \
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
+COPY scripts/docker/common/configure_ssh.sh /tmp/configure_ssh.sh
+RUN bash /tmp/configure_ssh.sh && rm /tmp/configure_ssh.sh
+
 # NCCL tests binary (all_reduce_perf) — used by CI EFA tests and available to
 # customers for verifying EFA/NCCL connectivity before training.
 #

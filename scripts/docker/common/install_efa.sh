@@ -83,8 +83,6 @@ function install_efa {
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
     rm -rf /root/.ssh/
     mkdir -p /root/.ssh/
-    ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
-    cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
     printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
     # Remove build time tools
