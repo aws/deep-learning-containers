@@ -10,7 +10,7 @@ FROM $BASE_IMAGE AS base
 # ====================================================
 
 ARG PYTHON="python3"
-ARG EFA_VERSION="1.46.0"
+ARG EFA_VERSION="1.50.0"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
