@@ -4,7 +4,9 @@
 if [ -z "${VLLM_CPU_KVCACHE_SPACE:-}" ]; then
   total_kb=$(grep -m1 MemTotal /proc/meminfo 2>/dev/null | tr -dc '0-9')
   total_gib=$(( ${total_kb:-0} / 1024 / 1024 ))
-  kv=$(( total_gib * 40 / 100 ))
+  pct=$(( total_gib * 40 / 100 ))
+  headroom=$(( total_gib - 11 ))
+  kv=$(( pct < headroom ? pct : headroom ))
   [ "${kv}" -lt 2 ] && kv=2
   export VLLM_CPU_KVCACHE_SPACE="${kv}"
   echo "INFO: VLLM_CPU_KVCACHE_SPACE defaulted to ${kv} GiB (from ${total_gib} GiB RAM); set it explicitly to override."

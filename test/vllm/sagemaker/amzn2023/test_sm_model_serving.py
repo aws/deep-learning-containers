@@ -235,6 +235,7 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
                     # Cap for walking the whole pool ladder on capacity errors.
                     variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
+                    container_startup_health_check_timeout_in_seconds=1800,
                 ),
             ],
         )
