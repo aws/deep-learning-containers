@@ -28,16 +28,18 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 VIDEO_MODEL_ID = "Wan-AI/Wan2.1-VACE-1.3B-diffusers"
-VIDEO_INSTANCE_TYPES = ["ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge"]
+VIDEO_INSTANCE_TYPES = ["ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"]
 
 # PEFT LoRA: SD-3.5-medium (~20 GiB peak) fits a single 24 GB GPU with no offload.
 # SD-3.5 is HF-gated, so the base is BAKED into the S3 model artifact (base at
 # root + adapters/sd35-lora/) and loaded from /opt/ml/model — no runtime HF pull,
 # no HF token needed on the endpoint. Ada-only ladder (L4/L40S); no g5/Ampere.
+# ml.g6.12xlarge is the high-quota (4x L4) capacity fallback that keeps the ladder
+# on Ada silicon; g5 (Ampere) is deliberately excluded here.
 LORA_MODEL_S3 = "s3://dlc-cicd-models/omni-models/sd35-medium-peft-baked.tar.gz"
 LORA_MODEL_PATH = "/opt/ml/model"
 LORA_ADAPTER_PATH = "/opt/ml/model/adapters/sd35-lora"
-LORA_INSTANCE_TYPES = ["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge"]
+LORA_INSTANCE_TYPES = ["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g6.12xlarge"]
 
 
 @pytest.fixture(scope="function")
@@ -142,7 +144,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
 # Every rung is a single 24 GB GPU and can serve this TTS model unaided.
 @pytest.mark.parametrize(
     "instance_type",
-    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"]],
     indirect=True,
 )
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
@@ -297,7 +299,7 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
 
 @pytest.mark.parametrize(
     "instance_type",
-    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"]],
     indirect=True,
 )
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
