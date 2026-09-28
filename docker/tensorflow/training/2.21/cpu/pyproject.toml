@@ -43,7 +43,7 @@ sagemaker = [
     "sagemaker-training",
     "smclarify",
     "sagemaker>=3.4.0",
-    "mlflow>=3.9.0",
+    "mlflow>=3.16.0",
     "torch",
     "tensorflow-io==0.37.*",
     "tensorflow-datasets",
