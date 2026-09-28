@@ -10,7 +10,7 @@ metadata:
   arch_type: "arm64"
   device_type: "cpu"
   job_type: "general"
-  prod_image: "vllm:server-arm64-cpu-v1"
+  prod_image: "vllm-arm64:server-cpu-v1"
 
 build:
   dockerfile: "docker/vllm/Dockerfile.cpu.arm64.amzn2023"
@@ -28,4 +28,4 @@ release:
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: "production"
+  environment: "gamma"
