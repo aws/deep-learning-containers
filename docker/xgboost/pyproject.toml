@@ -30,7 +30,7 @@ dependencies = [
     "sagemaker-inference==1.5.5",
     "scikit-learn==1.8.0",
     "scipy==1.15.0",
-    "setuptools>=80.9.0,<81",
+    "setuptools>=83.0.0,<84",
     "urllib3==2.7.0",
     "Werkzeug==3.1.8",
     "pyarrow==22.0.0",
