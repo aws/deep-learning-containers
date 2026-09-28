@@ -10,7 +10,8 @@ dependencies = [
     "ray[default,train,tune,data]==2.58.0",
     "torch==2.13.0",
     "torchvision==0.28.0",
-    "pytorch-lightning>=2.5.0",
+    # CVE-2026-58659 floor; was >=2.5.0 (resolved 2.6.5, vulnerable).
+    "pytorch-lightning>=2.6.6",
     "deepspeed>=0.18.0",
     "transformers>=4.46.0",
     "datasets>=3.0.0",
@@ -26,6 +27,8 @@ dependencies = [
     "pip>=25.0",
     # CVE-2026-69244 floor; ray[default] would otherwise resolve aiohttp 3.14.1.
     "aiohttp>=3.14.3",
+    # CVE-2026-63374 / CVE-2026-63349 floor; transitively resolved anyio 4.14.1.
+    "anyio>=4.14.2",
     # TODO(ray-train): evaluate adding peft/trl for LoRA / RLHF fine-tuning use
     # cases (larger image + CVE surface — deferred from v1).
     # NOTE: torchaudio is intentionally omitted — no cu130 wheel past 2.11.0, and
