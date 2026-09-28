@@ -38,6 +38,7 @@ Private ECR account IDs by region. See [Image Access](../get_started/index.md) f
 | Israel (Tel Aviv) | il-central-1 | 780543022126 |
 | Mexico (Central) | mx-central-1 | 637423239942 |
 | Middle East (Bahrain) | me-south-1 | 217643126080 |
+| Middle East (Saudi Arabia) | me-west-1 | 124382933778 |
 | Middle East (UAE) | me-central-1 | 914824155844 |
 | South America (Sao Paulo) | sa-east-1 | 763104351884 |
 | China (Beijing) | cn-north-1 | 727897471807 |
