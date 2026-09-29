@@ -148,7 +148,7 @@ sm.delete_model(ModelName="vllm-model")
 
 ## Graviton (ARM64 CPU)
 
-To serve on Graviton CPU instances, use the `server-arm64-sagemaker-cpu` image with a Graviton ML instance type (for example `ml.c7g.4xlarge` or
+To serve on Graviton CPU instances, use the `vllm-arm64:server-sagemaker-cpu` image with a Graviton ML instance type (for example `ml.c7g.4xlarge` or
 `ml.c8g.4xlarge`). Omit `inference_ami_version`; the CPU image does not need a GPU AMI.
 
 ```python

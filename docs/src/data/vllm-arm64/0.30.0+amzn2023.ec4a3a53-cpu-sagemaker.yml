@@ -1,6 +1,6 @@
 framework: vLLM
 version: "0.30.0+amzn2023.ec4a3a53"
-ecr_repository: vllm
+ecr_repository: vllm-arm64
 accelerator: cpu
 python: py312
 os: amzn2023
@@ -8,4 +8,4 @@ platform: sagemaker
 public_registry: true
 
 tags:
-  - "server-arm64-sagemaker-cpu-v1.0"
+  - "server-sagemaker-cpu-v1.0"

@@ -7,7 +7,7 @@ release. A *Smoke + Benchmark* tag means both apply.
 
 ## Tested Models (Graviton CPU)
 
-The `server-arm64-cpu` images are tested on every release with:
+The `vllm-arm64` images are tested on every release with:
 
 | Model | Coverage |
 | --- | --- |

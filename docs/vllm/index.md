@@ -9,8 +9,8 @@ ongoing security patching.
 | --- | --- | --- |
 | {{ ec2_short }} / {{ eks_short }} | `public.ecr.aws/deep-learning-containers/vllm:server-cuda` | 8000 |
 | {{ sagemaker }} | `public.ecr.aws/deep-learning-containers/vllm:server-sagemaker-cuda` | 8080 |
-| {{ ec2_short }} / {{ eks_short }} (Graviton CPU) | `public.ecr.aws/deep-learning-containers/vllm:server-arm64-cpu` | 8000 |
-| {{ sagemaker }} (Graviton CPU) | `public.ecr.aws/deep-learning-containers/vllm:server-arm64-sagemaker-cpu` | 8080 |
+| {{ ec2_short }} / {{ eks_short }} (Graviton CPU) | `public.ecr.aws/deep-learning-containers/vllm-arm64:server-cpu` | 8000 |
+| {{ sagemaker }} (Graviton CPU) | `public.ecr.aws/deep-learning-containers/vllm-arm64:server-sagemaker-cpu` | 8080 |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/vllm). For private ECR URIs, see
 [Image Access](../get_started/index.md).
@@ -30,7 +30,7 @@ custom handlers, and dependency installation. See [{{ sagemaker }} Deployment](d
 
 ### Graviton (ARM64 CPU) Images
 
-The `server-arm64-cpu` images run vLLM's CPU backend on AWS Graviton (ARM64) instances, with no GPU required. They are built from the same vLLM source
+The `vllm-arm64` images run vLLM's CPU backend on AWS Graviton (ARM64) instances, with no GPU required. They are built from the same vLLM source
 as the GPU images, with bf16 kernels enabled for Graviton 3 and later. The GPU-only components above (CUDA, FlashInfer, DeepEP, NIXL, EFA) are not
 included. See [Graviton (ARM64 CPU)](deployment/ec2.md#graviton-arm64-cpu) for usage and CPU-specific defaults.
 

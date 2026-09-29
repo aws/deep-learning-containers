@@ -67,7 +67,7 @@ On AWS Graviton instances (for example `c7g`, `c8g`, `m8g`, `r8g`), use the CPU 
 
 ```bash
 docker run -p 8000:8000 --shm-size=4g \
-  public.ecr.aws/deep-learning-containers/vllm:server-arm64-cpu \
+  public.ecr.aws/deep-learning-containers/vllm-arm64:server-cpu \
   --model Qwen/Qwen3.5-2B \
   --dtype bfloat16 \
   --max-model-len 4096 \
