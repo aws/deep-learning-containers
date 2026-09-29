@@ -11,8 +11,8 @@
     },
     {
         "vulnerability_id": "CVE-2026-5241",
-        "reason": "transformers 4.57.6 is a transitive dependency of whisperx 3.8.6; the fix requires transformers>=5.5.0, but transformers 5.x requires huggingface-hub>=1.5.0 while whisperx 3.8.6 pins huggingface-hub<1.0.0, so uv resolution rejects any 5.x bump. Fixable only via a new whisperx release that raises the huggingface-hub cap. The vulnerable code path is not exercised by the ASR inference server.",
-        "review_by": "2026-10-08"
+        "reason": "transformers 4.57.6 is a transitive dependency of whisperx 3.8.6; the fix requires transformers>=5.5.0, but transformers 5.x requires huggingface-hub>=1.5.0 while whisperx 3.8.6 pins huggingface-hub<1.0.0, so uv resolution rejects any 5.x bump. Fixable only via a new whisperx release that raises the huggingface-hub cap; 3.8.6 is still the latest stable release (3.8.7 exists only as an rc). The vulnerable code path is not exercised by the ASR inference server.",
+        "review_by": "2026-10-29"
     },
     {
         "vulnerability_id": "CVE-2026-24747",
