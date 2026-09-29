@@ -71,8 +71,9 @@ RUN pip install flask gunicorn
 RUN for PIP in /opt/conda/bin/pip /opt/conda/envs/openfold3/bin/pip; do \
     "$PIP" install --upgrade \
       "GitPython>=3.1.50" "urllib3>=2.7.0" "pillow>=12.2.0" \
-      "dulwich>=1.2.5" "msgpack>=1.2.1"; \
+      "dulwich>=1.2.5" "msgpack>=1.2.1" "click>=8.3.3"; \
   done \
+  && /opt/conda/envs/openfold3/bin/pip install --upgrade --no-deps "pytorch-lightning>=2.6.6" \
   && rm -rf /opt/conda/pkgs/* \
   && /opt/conda/bin/conda clean --all --yes
 
