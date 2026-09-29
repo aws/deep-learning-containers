@@ -7,7 +7,7 @@
     {
         "vulnerability_id": "CVE-2026-82397",
         "reason": "tornado 6.5.7 is inherited from the current PyTorch 2.11 base image; fixed version 6.5.8 was released after that base was locked. Temporary exception until the base image refreshes tornado or the Hugging Face layer takes the new security floor.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-90553",

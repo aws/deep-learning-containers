@@ -552,7 +552,7 @@
     {
         "vulnerability_id": "CVE-2026-54876",
         "reason": "openssl 3.6.3 in the bundled miniconda3 environment. No fix is installable: per the upstream advisory of 2026-08-05 the project did not issue releases for this issue, so the nominal fixed versions 3.6.4 (for the 3.6 branch) and 4.0.2 are both unreleased and exist only as git commits. No openssl-3.6.4 or openssl-4.0.2 tag exists upstream and conda-forge tops out at 3.6.3 / 4.0.1, so the scanner's openssl>=4.0.2 pin is unsatisfiable; moving to 4.0.1 would not help since 4.0.1 is itself in the affected range. Upstream severity is Low (the High here is the NVD-derived score), impact is a client-side memory-leak DoS, and OCSP response checking is off by default and never enabled by the training or serving paths. No exploit available. Note the 3.6 branch reaches end-of-life on 2026-11-01, so if 3.6.4 does not ship the durable fix is moving this environment to the 3.5 LTS line, which is unaffected.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-63072",
