@@ -58,6 +58,7 @@ REGION_MAPPING = {
     "ca-west-1": "ea83ea06",
     "eu-south-2": "df2c9d70",
     "eu-central-2": "aa7aabcc",
+    "me-west-1": "1b9ff200",
 }
 
 
