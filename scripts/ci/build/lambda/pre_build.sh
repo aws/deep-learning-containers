@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# Pre-build hook for Lambda images. Two independent responsibilities, each gated on
-# the config's build.target (all Lambda images share framework=lambda, so this one
-# hook runs for base/cupy/pytorch/sglang/vllm — it must act only where relevant):
+# Pre-build hook for Lambda images, gated on the config's build.target (all Lambda
+# images share framework=lambda, so this one hook runs for base/cupy/pytorch/sglang/
+# vllm — it must act only where relevant):
 #
-#   1. *preview* targets: download the multi-mode concurrency RIC tarball from S3
-#      into docker/lambda/artifacts/.
-#   2. *vllm* targets: fetch a cached vLLM wheel from S3 (skip the ~85-min source
-#      compile) and pull the sccache compiler cache. Mirrors scripts/ci/build/
-#      vllm_server/pre_build.sh, but namespaced under lambda-vllm/ (py3.13 / cu130
-#      build env is distinct from the amzn2023 wheel).
+#   *vllm* targets: fetch a cached vLLM wheel from S3 (skip the ~85-min source
+#   compile) and pull the sccache compiler cache. Mirrors scripts/ci/build/
+#   vllm_server/pre_build.sh, but namespaced under lambda-vllm/ (py3.13 / cu130
+#   build env is distinct from the amzn2023 wheel).
 #
 # Usage:  bash scripts/ci/build/lambda/pre_build.sh --config-file <path>
 #
@@ -19,15 +17,8 @@
 #                        sccache scratch stages for post_build to upload
 #
 # Side effects:
-#   docker/lambda/artifacts/                 (RIC tarball, preview targets)
 #   docker/lambda/vllm/prebuilt_wheels/      (cached wheel, vllm targets on hit)
 #   docker/lambda/vllm/sccache-cache/        (sccache, vllm targets)
-#
-# Versioning: awslambdaric_version (e.g. 3.1.1) is the Python package version and
-# may repeat across RIC releases, so it alone cannot identify a build.
-# awslambdaric_release (e.g. 2.0.0.0) is the RIC release version and is the
-# provenance key: it selects the S3 path so each image traces to exactly one build
-# and rollback is a one-field change. It is required for RIC targets.
 
 set -euo pipefail
 
@@ -48,21 +39,7 @@ BUCKET="${WHEELS_BUCKET:-dlc-cicd-wheels}"
 TARGET=$(yq '.build.target' "$CONFIG_FILE")
 
 # ---------------------------------------------------------------------------
-# 1. RIC tarball (preview targets)
-# ---------------------------------------------------------------------------
-if [[ "$TARGET" == *preview* ]]; then
-  AWSLAMBDARIC_VERSION=$(yq '.build.awslambdaric_version // "3.1.1"' "$CONFIG_FILE")
-  AWSLAMBDARIC_RELEASE=$(yq '.build.awslambdaric_release // ""' "$CONFIG_FILE")
-  [[ -n "$AWSLAMBDARIC_RELEASE" ]] || { echo "ERROR: awslambdaric_release is required for RIC targets" >&2; exit 1; }
-  echo "RIC target detected — downloading RIC tarball (release ${AWSLAMBDARIC_RELEASE}, version ${AWSLAMBDARIC_VERSION})..."
-  mkdir -p docker/lambda/artifacts
-  aws s3 cp "s3://${BUCKET}/lambda-ric/${AWSLAMBDARIC_RELEASE}/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz" \
-    "docker/lambda/artifacts/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz" --region us-west-2
-  echo "RIC tarball downloaded."
-fi
-
-# ---------------------------------------------------------------------------
-# 2. vLLM wheel cache + sccache (vllm targets only)
+# vLLM wheel cache + sccache (vllm targets only)
 # ---------------------------------------------------------------------------
 if [[ "$TARGET" == *vllm* ]]; then
   CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
@@ -96,6 +73,6 @@ if [[ "$TARGET" == *vllm* ]]; then
   fi
 fi
 
-if [[ "$TARGET" != *preview* && "$TARGET" != *vllm* ]]; then
-  echo "Non-RIC, non-vLLM target — no pre-build actions."
+if [[ "$TARGET" != *vllm* ]]; then
+  echo "Non-vLLM target — no pre-build actions."
 fi

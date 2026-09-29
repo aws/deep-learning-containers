@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Verify runai-model-streamer S3 streaming LOCALLY for the vLLM / sglang serving
-# images. (For the real managed-GPU equivalent see test/lambda/platform/run_runai_s3.py.)
+# images.
 #
 # Runs the engine's OpenAI server directly (entrypoint overridden — no Lambda RIE;
 # RIC concurrency is covered separately by rie_topology_check.sh) with the model
