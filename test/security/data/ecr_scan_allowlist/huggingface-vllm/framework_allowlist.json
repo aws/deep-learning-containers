@@ -102,7 +102,7 @@
     {
         "vulnerability_id": "CVE-2026-55574",
         "reason": "vllm 0.22.1; fixed only in 0.24.0, which would require changing the base vLLM DLC version — cannot be bumped independently of the base image",
-        "review_by": "2026-09-25"
+        "review_by": "2026-11-27"
     },
     {
         "vulnerability_id": "CVE-2026-24747",
