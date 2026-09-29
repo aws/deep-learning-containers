@@ -3,6 +3,7 @@
 import os
 
 import cupy as cp
+import numpy as np
 
 
 def test_cuda_available():
@@ -56,6 +57,24 @@ def test_fft():
     fft_result = cp.fft.fft(signal)
     assert fft_result.shape == (n,)
     assert cp.isfinite(fft_result).all()
+
+
+def test_numba_cuda_kernel_runs_on_gpu():
+    """The cupy image advertises Numba; @cuda.jit must compile and run on the GPU."""
+    from numba import cuda as nbcuda
+
+    assert nbcuda.is_available()
+
+    @nbcuda.jit
+    def increment(x):
+        i = nbcuda.grid(1)
+        if i < x.size:
+            x[i] += 1
+
+    host = np.arange(256, dtype=np.float32)
+    device = nbcuda.to_device(host)
+    increment[8, 32](device)
+    assert np.array_equal(device.copy_to_host(), host + 1)
 
 
 def test_raw_kernel_compiles_and_caches_to_writable_dir():

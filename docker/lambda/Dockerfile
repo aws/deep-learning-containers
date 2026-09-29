@@ -461,6 +461,9 @@ RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /va
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
+# numba.cuda JIT-compiles through libNVVM, which the CUDA runtime base omits.
+COPY --from=builder-base-devel /usr/local/cuda/nvvm/lib64 /usr/local/cuda/nvvm/lib64
+COPY --from=builder-base-devel /usr/local/cuda/nvvm/libdevice /usr/local/cuda/nvvm/libdevice
 COPY ./scripts/docker/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
@@ -468,6 +471,7 @@ ENV PATH="/var/lang/bin:$PATH" \
   LD_LIBRARY_PATH="/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib:/usr/local/cuda/lib64:/x86_64-bottlerocket-linux-gnu/sys-root/usr/lib/nvidia" \
   PYTHONPATH="/var/runtime" \
   PYTHONDONTWRITEBYTECODE=1 \
+  CUDA_HOME=/usr/local/cuda \
   CUPY_CACHE_DIR=/tmp/cupy_cache \
   NUMBA_CACHE_DIR=/tmp/numba_cache \
   USER=lambda \
