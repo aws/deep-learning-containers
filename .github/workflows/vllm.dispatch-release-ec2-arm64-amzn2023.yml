@@ -32,5 +32,41 @@ jobs:
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
-      release: true
+      # vllm.pipeline.yml only releases from main; other refs release to gamma below.
+      release: ${{ github.ref == 'refs/heads/main' }}
+    secrets: inherit
+
+  release-gate:
+    if: ${{ github.ref != 'refs/heads/main' }}
+    needs: [discover, pipeline]
+    runs-on: ubuntu-latest
+    outputs:
+      config-file: ${{ steps.check.outputs.config-file }}
+      release-spec: ${{ steps.spec.outputs.release-spec }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: check
+        env:
+          CONFIGS: ${{ needs.discover.outputs.configs }}
+        run: |
+          CONFIG_FILE=$(echo "${CONFIGS}" | jq -r '.[0].config_file')
+          ENVIRONMENT=$(yq '.release.environment' "${CONFIG_FILE}")
+          if [[ "${ENVIRONMENT}" != "gamma" ]]; then
+            echo "::error::Releases from ${GITHUB_REF} are limited to gamma (config environment: ${ENVIRONMENT})"
+            exit 1
+          fi
+          echo "config-file=${CONFIG_FILE}" >> $GITHUB_OUTPUT
+      - id: spec
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-file: ${{ steps.check.outputs.config-file }}
+
+  release:
+    needs: [pipeline, release-gate]
+    uses: ./.github/workflows/_reusable.release-image.yml
+    with:
+      source-image-uri: ${{ needs.pipeline.outputs.image-uri }}
+      release-spec: ${{ needs.release-gate.outputs.release-spec }}
+      environment: gamma
+      aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit
