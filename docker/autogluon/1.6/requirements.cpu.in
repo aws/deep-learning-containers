@@ -3,6 +3,7 @@ absl-py==2.5.0
 accelerate==1.15.0
 adagio==0.2.6
 aiohttp-cors==0.8.1
+anyio==4.14.2
 autogluon==1.6.3
 autogluon-common==1.6.3
 autogluon-core==1.6.3
@@ -26,6 +27,7 @@ frozendict==2.4.7
 fugue==0.9.7
 future==1.0.0
 gdown==6.4.0
+gitpython==3.1.60
 gluonts==0.17.0
 google-api-core==2.37.0
 googleapis-common-protos==1.75.3
