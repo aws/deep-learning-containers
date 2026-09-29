@@ -1,7 +1,7 @@
 """GPU-gated Conv2D integration test for TF 2.20 inference DLC.
 
 Sanity tests check libcudnn.so presence but no request exercises a cuDNN
-kernel. This deploys a tiny Conv2D SavedModel to ml.g6.4xlarge so a real
+kernel. This deploys a tiny Conv2D SavedModel to a GPU endpoint so a real
 Conv routes through cuDNN's cudnnConvolutionForward — HTTP 200 proves
 the libcudnn on the image is ABI-compatible with the TFS binary.
 """
