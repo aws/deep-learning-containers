@@ -5,16 +5,12 @@ server (`vllm serve`) is started once, and the handler is a thin proxy to it, so
 single model copy in VRAM is shared across all concurrent invocations. This is the
 correct shape for a GPU serving engine under the multi-mode concurrency RIC — an
 in-process `vllm.LLM` per worker would load one model copy PER worker (N copies),
-which does not fit a single GPU in process/hybrid mode.
+which does not fit a single GPU.
 
-Where the server is started depends on the concurrency mode (AWS_LAMBDA_CONCURRENCY_MODE):
-  - thread  (1 process × N threads): start at MODULE LEVEL — runs once in the sole
-            process before threads spawn. Recommended for GPU/serving engines.
-  - process / hybrid (>1 process):    start via @register_pre_fork — runs ONCE in the
-            parent before workers are forked, so all workers share the one server.
-            (Module-level would run in every worker → N servers colliding on the port.)
-Thread mode does NOT run pre_fork hooks; process/hybrid do. Standard on-demand mode
-(no AWS_LAMBDA_MAX_CONCURRENCY) also starts at module level.
+Multi-concurrency (AWS_LAMBDA_MAX_CONCURRENCY set): start via @register_pre_fork, which
+runs ONCE in the parent before the workers are forked, so all workers proxy to the one
+server. (Module-level would run in every worker → N servers colliding on the port.)
+On-demand (no AWS_LAMBDA_MAX_CONCURRENCY): start at module level.
 
 Customers typically override this handler; this default lets the image serve out of
 the box and gives CI a smoke target.
@@ -39,6 +35,7 @@ import time
 
 import requests
 import torch
+from awslambdaric.lambda_concurrency_hooks import register_pre_fork
 
 _MODEL_ID = os.environ.get("MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
 _GPU_MEM_UTIL = os.environ.get("VLLM_GPU_MEM_UTIL", "0.8")
@@ -92,18 +89,9 @@ def _start_server():
     raise RuntimeError(f"vLLM server did not become ready within {_TIMEOUT}s")
 
 
-_mode = os.environ.get("AWS_LAMBDA_CONCURRENCY_MODE", "process")
-_multi = bool(os.environ.get("AWS_LAMBDA_MAX_CONCURRENCY"))
-
-try:
-    if _multi and _mode in ("process", "hybrid"):
-        # lambda_concurrency_hooks ships only in the preview RIC.
-        from awslambdaric.lambda_concurrency_hooks import register_pre_fork
-
-        register_pre_fork(_start_server)
-    else:
-        _start_server()
-except ImportError:
+if os.environ.get("AWS_LAMBDA_MAX_CONCURRENCY"):
+    register_pre_fork(_start_server)
+else:
     _start_server()
 
 

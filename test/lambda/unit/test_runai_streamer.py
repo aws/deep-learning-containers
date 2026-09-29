@@ -4,8 +4,8 @@ This is the package behind `--load-format runai_streamer`, which lets vLLM / sgl
 stream safetensors directly from S3 into GPU memory with no /tmp staging (set
 MODEL_ID=s3://… + VLLM_LOAD_FORMAT/SGLANG_LOAD_FORMAT=runai_streamer on the handler).
 
-The functional end-to-end S3-streaming serving check runs on real Lambda managed GPU
-via test/lambda/platform/run_runai_s3.py. This unit test guards the cheaper contract:
+The functional end-to-end S3-streaming serving check runs in CI via
+test/lambda/single_gpu/runai_s3_check.sh. This unit test guards the cheaper contract:
 the package and its S3 extra are installed and importable in the image.
 """
 

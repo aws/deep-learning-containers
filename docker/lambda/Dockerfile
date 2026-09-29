@@ -4,7 +4,6 @@ ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG FFMPEG_VERSION=8.0.1
 ARG NV_CODEC_HEADERS_VERSION=12.2.72.0
-ARG AWSLAMBDARIC_VERSION=3.1.1
 ARG FRAMEWORK=lambda
 ARG FRAMEWORK_VERSION=13.0.3
 ARG CONTAINER_TYPE=general
@@ -751,96 +750,3 @@ COPY --from=oss-vllm-py3 /usr/local/bin/testOSSCompliance /usr/local/bin/testOSS
 WORKDIR /var/task
 ENTRYPOINT ["/vllm_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
-
-# ============================================================
-# RIC builder (compile multi-mode concurrency RIC with C extensions)
-# ============================================================
-FROM builder-base as builder-ric-preview
-ARG PYTHON_VERSION
-ARG AWSLAMBDARIC_VERSION
-RUN dnf install -y --setopt=install_weak_deps=False \
-  gcc gcc-c++ cmake make autoconf automake libtool \
-  && dnf clean all && rm -rf /var/cache/dnf
-COPY --from=lambda-python /var/lang/bin /var/lang/bin
-COPY --from=lambda-python /var/lang/include /var/lang/include
-COPY --from=lambda-python /var/lang/lib /var/lang/lib
-RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages
-ENV PATH="/var/lang/bin:$PATH"
-RUN printf 'home = /var/lang/bin\nimplementation = CPython\n' >/var/lang/pyvenv.cfg
-COPY ./docker/lambda/artifacts/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz /tmp/
-RUN uv pip install --python /var/lang/bin/python${PYTHON_VERSION} --no-deps /tmp/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz \
-  && rm /tmp/awslambdaric-${AWSLAMBDARIC_VERSION}.tar.gz
-
-# ============================================================
-# Base Python 3.13 (+ multi-mode concurrency RIC)
-# ============================================================
-FROM base-py3 as base-preview-py3
-ARG PYTHON_VERSION
-RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
-  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-# Default: process mode (RIC-native). Customers override per function at runtime
-# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
-# vars take precedence over this image default. In process/hybrid, VRAM scales
-# with worker count (one model copy + CUDA context per process) — size function
-# concurrency to the model's VRAM footprint.
-ENV AWS_LAMBDA_CONCURRENCY_MODE=process
-
-# ============================================================
-# CuPy Python 3.13 (+ multi-mode concurrency RIC)
-# ============================================================
-FROM cupy-py3 as cupy-preview-py3
-ARG PYTHON_VERSION
-RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
-  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-# Default: process mode (RIC-native). Customers override per function at runtime
-# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
-# vars take precedence over this image default. In process/hybrid, VRAM scales
-# with worker count (one model copy + CUDA context per process) — size function
-# concurrency to the model's VRAM footprint.
-ENV AWS_LAMBDA_CONCURRENCY_MODE=process
-
-# ============================================================
-# PyTorch Python 3.13 (+ multi-mode concurrency RIC)
-# ============================================================
-FROM pytorch-py3 as pytorch-preview-py3
-ARG PYTHON_VERSION
-RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
-  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-# Default: process mode (RIC-native). Customers override per function at runtime
-# to thread (one shared model copy in GPU VRAM) or hybrid; function-config env
-# vars take precedence over this image default. In process/hybrid, VRAM scales
-# with worker count (one model copy + CUDA context per process) — size function
-# concurrency to the model's VRAM footprint.
-ENV AWS_LAMBDA_CONCURRENCY_MODE=process
-# ============================================================
-# sglang Python 3.13 (+ multi-mode concurrency RIC)
-# ============================================================
-FROM sglang-py3 as sglang-preview-py3
-ARG PYTHON_VERSION
-RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
-  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-# Default: process mode (RIC-native). Customers override per function at runtime;
-# function-config env vars take precedence over this image default. For serving
-# engines the handler starts ONE shared engine server (module-level in thread mode,
-# @register_pre_fork in process/hybrid) that all RIC workers proxy to, so every mode
-# — including this process default — shares a single model copy in VRAM.
-ENV AWS_LAMBDA_CONCURRENCY_MODE=process
-
-# ============================================================
-# vLLM Python 3.13 (+ multi-mode concurrency RIC)
-# ============================================================
-FROM vllm-py3 as vllm-preview-py3
-ARG PYTHON_VERSION
-RUN rm -rf /var/lang/lib/python${PYTHON_VERSION}/site-packages/awslambdaric* \
-  && rm -f /var/lang/lib/python${PYTHON_VERSION}/site-packages/runtime_client*.so
-COPY --from=builder-ric-preview /var/lang/lib/python${PYTHON_VERSION}/site-packages/ /var/lang/lib/python${PYTHON_VERSION}/site-packages/
-# Default: process mode (RIC-native). Customers override per function at runtime;
-# function-config env vars take precedence over this image default. For serving
-# engines the handler starts ONE shared engine server (module-level in thread mode,
-# @register_pre_fork in process/hybrid) that all RIC workers proxy to, so every mode
-# — including this process default — shares a single model copy in VRAM.
-ENV AWS_LAMBDA_CONCURRENCY_MODE=process

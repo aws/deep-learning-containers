@@ -2,7 +2,7 @@
 # Post-build hook for Lambda images. Only acts for *vllm* targets: uploads the
 # freshly source-built vLLM wheel to the S3 cache and pushes the sccache compiler
 # cache, so subsequent builds hit the cache instead of recompiling (~85 min).
-# No-op for base/cupy/pytorch/sglang/preview targets.
+# No-op for base/cupy/pytorch/sglang targets.
 #
 # Usage:  bash scripts/ci/build/lambda/post_build.sh --config-file <path>
 #
