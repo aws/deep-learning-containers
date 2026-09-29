@@ -14,14 +14,20 @@ import os
 import pytest
 from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
+from test_utils.instance_capacity import (
+    build_instance_pools,
+    deploy_with_capacity_fallback,
+    normalize_instance_types,
+)
 
 LOGGER = logging.getLogger(__name__)
 
-# SM instance-type map keyed on the image's device_type. GPU is ml.g6.4xlarge
-# to match the CI account's provisioned hosting fleet.
+# SM instance-type map keyed on the image's device_type. The test models are tiny, so
+# any single-GPU rung works; GPU is a priority-ordered ladder across the L4 and A10G
+# capacity pools (same ladder as the vLLM/SGLang endpoint tests) to survive ICE.
 _SM_INSTANCE_TYPE_BY_DEVICE = {
     "cpu": "ml.c5.xlarge",
-    "gpu": "ml.g6.4xlarge",
+    "gpu": ["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"],
 }
 
 
@@ -34,8 +40,8 @@ def sm_device_type() -> str:
 
 
 @pytest.fixture(scope="session")
-def sm_instance_type(sm_device_type) -> str:
-    """SM endpoint instance type derived from device type."""
+def sm_instance_type(sm_device_type) -> str | list[str]:
+    """SM endpoint instance type (or fallback ladder) derived from device type."""
     return _SM_INSTANCE_TYPE_BY_DEVICE[sm_device_type]
 
 
@@ -56,7 +62,7 @@ def _provision_endpoint(
     session,
     role_arn: str,
     image_uri: str,
-    sm_instance_type: str,
+    sm_instance_type: str | list[str],
     sm_device_type: str,
     model_data_url: str,
     mode: str = "SingleModel",
@@ -67,23 +73,24 @@ def _provision_endpoint(
 
     Returns (endpoint, endpoint_name, model_name).
 
+    ``sm_instance_type`` may be a priority-ordered ladder. SingleModel endpoints get it
+    as native SageMaker instance pools (server-side fallback in one deploy). MultiModel
+    endpoints walk it client-side, one deploy per rung, since instance pools are not
+    documented for multi-model endpoints.
+
     Deliberately scope-agnostic: the caller owns the pytest fixture scope and
-    the try/finally. Each resource is appended to the caller's ``resources``
-    list as soon as it is created, so a mid-flight failure still leaves the
-    caller able to tear down whatever already exists (prevents billing leaks).
-    Tear down with ``_cleanup(reversed(resources))`` — SageMaker requires
-    endpoint before endpoint-config before model.
+    the try/finally. A failed deploy tears down its own partial resources; a
+    successful one appends them to the caller's ``resources`` list. Tear down
+    with ``_cleanup(reversed(resources))`` — SageMaker requires endpoint before
+    endpoint-config before model.
     """
     from sagemaker.core.resources import (
         ContainerDefinition,
         Endpoint,
         EndpointConfig,
         Model,
-        ProductionVariant,
     )
-
-    endpoint_name = random_suffix_name(name_prefix, 63)
-    model_name = random_suffix_name(f"{name_prefix}-model", 63)
+    from sagemaker.core.shapes import ProductionVariant
 
     container_kwargs = {
         "image": image_uri,
@@ -94,39 +101,58 @@ def _provision_endpoint(
     if container_env:
         container_kwargs["environment"] = dict(container_env)
 
-    model = Model.create(
-        model_name=model_name,
-        primary_container=ContainerDefinition(**container_kwargs),
-        execution_role_arn=role_arn,
-        session=session,
-    )
-    resources.append(model)
+    def _create(capacity_kwargs):
+        endpoint_name = random_suffix_name(name_prefix, 63)
+        model_name = random_suffix_name(f"{name_prefix}-model", 63)
+        attempt: list = []
+        try:
+            model = Model.create(
+                model_name=model_name,
+                primary_container=ContainerDefinition(**container_kwargs),
+                execution_role_arn=role_arn,
+                session=session,
+            )
+            attempt.append(model)
 
-    variant_kwargs = dict(
-        variant_name="AllTraffic",
-        model_name=model_name,
-        initial_instance_count=1,
-        instance_type=sm_instance_type,
-    )
-    if sm_device_type == "gpu":
-        variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
+            variant_kwargs = dict(
+                variant_name="AllTraffic",
+                model_name=model_name,
+                initial_instance_count=1,
+                **capacity_kwargs,
+            )
+            if sm_device_type == "gpu":
+                variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
 
-    endpoint_config = EndpointConfig.create(
-        endpoint_config_name=endpoint_name,
-        production_variants=[ProductionVariant(**variant_kwargs)],
-        session=session,
-    )
-    resources.append(endpoint_config)
+            endpoint_config = EndpointConfig.create(
+                endpoint_config_name=endpoint_name,
+                production_variants=[ProductionVariant(**variant_kwargs)],
+                session=session,
+            )
+            attempt.append(endpoint_config)
 
-    endpoint = Endpoint.create(
-        endpoint_name=endpoint_name,
-        endpoint_config_name=endpoint_name,
-        session=session,
-    )
-    resources.append(endpoint)
+            endpoint = Endpoint.create(
+                endpoint_name=endpoint_name,
+                endpoint_config_name=endpoint_name,
+                session=session,
+            )
+            attempt.append(endpoint)
 
-    endpoint.wait_for_status("InService")
-    return endpoint, endpoint_name, model_name
+            endpoint.wait_for_status("InService")
+        except BaseException:
+            # Tear down this rung now so a capacity retry does not leak a Failed endpoint.
+            _cleanup(reversed(attempt))
+            raise
+        resources.extend(attempt)
+        return endpoint, endpoint_name, model_name
+
+    types = normalize_instance_types(sm_instance_type)
+    if len(types) == 1:
+        return _create({"instance_type": types[0]})
+    if mode == "MultiModel":
+        return deploy_with_capacity_fallback(
+            types, lambda t: _create({"instance_type": t}), label=name_prefix
+        )
+    return _create({"instance_pools": build_instance_pools(types)})
 
 
 @pytest.fixture
