@@ -4,7 +4,7 @@
 # Usage:
 #   bash fetch_wheels.sh --cuda-version <ver> --vllm-ref <ref> --vllm-version <ver> --arch-list <arches> [--bucket <bucket>]
 #
-# Exit code: 0 if wheel found, 1 if cache miss.
+# Exit codes: 0 wheel found and checksum verified, 1 cache miss, 2 checksum mismatch.
 # S3 layout: s3://<bucket>/wheels/lambda-vllm/<cuda>/<source_hash>/vllm-*.whl
 #
 # Namespaced under lambda-vllm/ (NOT the vllm_server wheels/vllm/ path): the Lambda
@@ -48,7 +48,25 @@ aws s3 cp "s3://${BUCKET}/${PREFIX}" "${DEST_DIR}/" \
   --recursive --exclude "*" --include "vllm-${VLLM_VERSION}*.whl" 2>/dev/null || true
 
 if ls "${DEST_DIR}"/*.whl >/dev/null 2>&1; then
-  echo "Cache hit (src:${SOURCE_HASH})"
+  # Verify against the .sha256 sidecar written by upload_wheels.sh; fail closed.
+  for WHL in "${DEST_DIR}"/*.whl; do
+    FNAME=$(basename "${WHL}")
+    if ! aws s3 cp "s3://${BUCKET}/${PREFIX}${FNAME}.sha256" "${WHL}.sha256" 2>/dev/null; then
+      echo "No checksum for ${FNAME} — discarding cached wheel" >&2
+      rm -f "${DEST_DIR}"/*.whl "${DEST_DIR}"/*.sha256
+      echo "Cache miss (src:${SOURCE_HASH}, checksum absent)"
+      exit 1
+    fi
+    if ! echo "$(cat "${WHL}.sha256")  ${WHL}" | sha256sum -c - >/dev/null; then
+      echo "ERROR: checksum mismatch on ${FNAME} from s3://${BUCKET}/${PREFIX}" >&2
+      rm -f "${DEST_DIR}"/*.whl "${DEST_DIR}"/*.sha256
+      # Exit 2, not 1: a mismatch is not a cache miss, so the caller hard-fails.
+      exit 2
+    fi
+    rm -f "${WHL}.sha256"
+    echo "Verified ${FNAME}"
+  done
+  echo "Cache hit (src:${SOURCE_HASH}, checksums verified)"
   exit 0
 else
   echo "Cache miss (src:${SOURCE_HASH})"

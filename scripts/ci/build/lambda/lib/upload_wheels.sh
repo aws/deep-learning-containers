@@ -52,5 +52,13 @@ for WHL in "${WHEELS[@]}"; do
     continue
   fi
   echo "Uploading ${FNAME} -> s3://${BUCKET}/${S3_KEY}"
-  aws s3 cp "${WHL}" "s3://${BUCKET}/${S3_KEY}" || echo "Upload failed (non-fatal)"
+  # Wheel first, then its .sha256 sidecar; a wheel without one reads as a cache miss.
+  if aws s3 cp "${WHL}" "s3://${BUCKET}/${S3_KEY}"; then
+    sha256sum "${WHL}" | cut -d' ' -f1 > "${WHL}.sha256"
+    aws s3 cp "${WHL}.sha256" "s3://${BUCKET}/${S3_KEY}.sha256" \
+      || echo "Checksum upload failed — wheel will be treated as a cache miss"
+    rm -f "${WHL}.sha256"
+  else
+    echo "Upload failed (non-fatal)"
+  fi
 done

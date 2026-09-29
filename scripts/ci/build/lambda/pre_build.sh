@@ -76,11 +76,16 @@ if [[ "$TARGET" == *vllm* ]]; then
 
   WHEEL_HIT="false"
   echo "Fetching cached Lambda vLLM wheel..."
-  if bash "$SCRIPT_DIR/lib/fetch_wheels.sh" \
-      --cuda-version "$CUDA_VERSION" --vllm-ref "$VLLM_REF" \
-      --vllm-version "$VLLM_VERSION" --arch-list "$ARCH_LIST" --bucket "$BUCKET"; then
-    WHEEL_HIT="true"
-  fi
+  # Exit 2 = cached wheel failed its checksum; hard-fail instead of rebuilding.
+  FETCH_RC=0
+  bash "$SCRIPT_DIR/lib/fetch_wheels.sh" \
+    --cuda-version "$CUDA_VERSION" --vllm-ref "$VLLM_REF" \
+    --vllm-version "$VLLM_VERSION" --arch-list "$ARCH_LIST" --bucket "$BUCKET" || FETCH_RC=$?
+  case "$FETCH_RC" in
+    0) WHEEL_HIT="true" ;;
+    1) WHEEL_HIT="false" ;;
+    *) echo "ERROR: wheel cache integrity check failed (rc=${FETCH_RC})" >&2; exit 1 ;;
+  esac
 
   echo "WHEEL_CACHE_HIT=${WHEEL_HIT}" >> "${GITHUB_ENV:-/dev/null}"
   if [[ "$WHEEL_HIT" == "true" ]]; then

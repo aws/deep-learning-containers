@@ -12,6 +12,7 @@ on:
       - "docker/lambda/**"
       - "scripts/docker/lambda/vllm/**"
       - "scripts/common/**"
+      - "scripts/ci/checks/**"
       - "scripts/telemetry/**"
       - "test/lambda/**"
       - "test/sanity/**"
@@ -32,6 +33,15 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
       - uses: ./.github/actions/pr-permission-gate
+
+  # Every remote artifact must be checksum-verified and every image digest-pinned.
+  dependency-pinning:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: python3 scripts/ci/checks/check_pinned_downloads.py docker/lambda/Dockerfile
+
 
   check-changes:
     needs: [gatekeeper]
