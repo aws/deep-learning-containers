@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
-"""Fail a Dockerfile that fetches a remote artifact without verifying it.
+"""Fail a Dockerfile that fetches a third-party artifact without verifying it.
 
-Two rules:
+Two rules, applied only to sources outside Amazon's control:
   1. Every curl/wget must be verified in the same RUN, via `sha256sum -c`
      or `gpg --batch --verify`.
   2. Every remote image must be pinned by digest (`@sha256:...`).
+
+Amazon-controlled sources (see AMAZON_HOST) are exempt: their integrity rests on
+Amazon operating the channel, the same basis as the AL2023 dnf repos. Note this
+keys on the distribution *host*, not on who authored the package — an AWS-owned
+artifact served from github.com still needs a checksum, because GitHub is where
+tampering would occur.
 
 Usage:
     python scripts/ci/checks/check_pinned_downloads.py [dockerfile ...]
@@ -22,6 +28,17 @@ FETCH = re.compile(r"\b(?:curl|wget)\b")
 VERIFY = re.compile(r"sha256sum\s+-c|sha512sum\s+-c|gpg\s+--batch\s+--verify")
 # Fetching a signature or checksum file is itself the verification input.
 FETCH_EXEMPT = re.compile(r"\.asc\b|\.sha256\b|\.sha512\b|\.sig\b|--recv-keys")
+# Amazon-operated distribution channels, exempt from both rules.
+AMAZON_HOST = re.compile(
+    r"""(?x)
+    (?://|@|^)(?:[\w.-]+\.)?           # optional subdomains
+    (?: public\.ecr\.aws
+      | [\w.-]*\.amazonaws\.com
+      | [\w.-]*\.amazonlinux\.com
+      | s3://
+    )""",
+    re.IGNORECASE,
+)
 DIGEST = re.compile(r"@sha256:[0-9a-f]{64}")
 # A digest supplied through an ARG, e.g. nvidia/cuda:13.0.3-runtime@${CUDA_DIGEST}.
 DIGEST_ARG = re.compile(r"@\$\{?(\w+)\}?")
@@ -77,7 +94,11 @@ def check(path):
 
         if FETCH.search(body) and not VERIFY.search(body):
             for offset, line in enumerate(body.splitlines()):
-                if FETCH.search(line) and not FETCH_EXEMPT.search(line):
+                if (
+                    FETCH.search(line)
+                    and not FETCH_EXEMPT.search(line)
+                    and not AMAZON_HOST.search(line)
+                ):
                     problems.append(
                         (
                             lineno + offset,
@@ -95,6 +116,8 @@ def check(path):
         for ref in refs:
             base = ref.split("@")[0].split(":")[0].lower()
             if base in stages or ref.startswith("$"):
+                continue
+            if AMAZON_HOST.search(ref):
                 continue
             if DIGEST.search(ref):
                 continue

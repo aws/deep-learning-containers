@@ -11,7 +11,6 @@ DF="${1:-docker/lambda/Dockerfile}"
 arg() { grep -m1 "^ARG $1=" "$DF" | cut -d= -f2-; }
 
 CUDA=$(arg CUDA_VERSION)
-PY=$(arg PYTHON_VERSION)
 UV=$(arg UV_VERSION)
 RIE=$(arg AWS_LAMBDA_RIE_VERSION)
 FFMPEG=$(arg FFMPEG_VERSION)
@@ -22,7 +21,6 @@ RUSTUP=$(arg RUSTUP_VERSION)
 digest() { docker buildx imagetools inspect "$1" | awk '/^Digest:/{print $2; exit}'; }
 remote_sha() { curl -fsSL "$1" | sha256sum | cut -d' ' -f1; }
 
-echo "ARG LAMBDA_PYTHON_DIGEST=$(digest "public.ecr.aws/lambda/python:${PY}")"
 echo "ARG CUDA_RUNTIME_DIGEST=$(digest "nvidia/cuda:${CUDA}-runtime-amzn2023")"
 echo "ARG CUDA_DEVEL_DIGEST=$(digest "nvidia/cuda:${CUDA}-devel-amzn2023")"
 echo "ARG UV_DIGEST=$(digest "ghcr.io/astral-sh/uv:${UV}")"

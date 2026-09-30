@@ -10,10 +10,9 @@ ARG FRAMEWORK_VERSION=13.0.3
 ARG CONTAINER_TYPE=general
 
 # ============================================================
-# Base image digests. Tags are mutable; the digest is the pin.
+# Third-party base image digests; Amazon-operated registries are exempt.
 # Refresh these and the checksums below with scripts/ci/checks/refresh_pins.sh.
 # ============================================================
-ARG LAMBDA_PYTHON_DIGEST=sha256:fbfc20f16d1c53b9c41e74215880a4947e0bbff0159410bd6ae1951dc1f29c07
 ARG CUDA_RUNTIME_DIGEST=sha256:c3ea43fa25fad8688698133d51307c3f788fdbd2d1464e68ddf206e6f81329ad
 ARG CUDA_DEVEL_DIGEST=sha256:1de52a0239e463b1a7a254c968cf33dda93ffad489c77dc6427ca55510e295a8
 ARG UV_VERSION=0.12.19
@@ -46,12 +45,12 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION}@${UV_DIGEST} as uv-source
 # (including awslambdaric) are installed via uv so we own the
 # full dependency tree with no Lambda-bundled extras.
 # ============================================================
-FROM public.ecr.aws/lambda/python:${PYTHON_VERSION}@${LAMBDA_PYTHON_DIGEST} as lambda-python
+FROM public.ecr.aws/lambda/python:${PYTHON_VERSION} as lambda-python
 
 # ============================================================
 # Lambda RIE (downloaded once, copied into runtime stages)
 # ============================================================
-FROM public.ecr.aws/lambda/python:${PYTHON_VERSION}@${LAMBDA_PYTHON_DIGEST} as rie-downloader
+FROM public.ecr.aws/lambda/python:${PYTHON_VERSION} as rie-downloader
 ARG AWS_LAMBDA_RIE_VERSION
 ARG AWS_LAMBDA_RIE_SHA256
 RUN curl -fsSLo /usr/local/bin/aws-lambda-rie \
