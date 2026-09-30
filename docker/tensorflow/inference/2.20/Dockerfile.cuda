@@ -11,8 +11,8 @@ ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 ARG TF_SERVING_VERSION=2.20.0
 ARG TFS_SHORT_VERSION=2.20
-ARG NGINX_VERSION=1.30.3
-ARG NJS_VERSION=0.9.9
+ARG NGINX_VERSION=1.30.5
+ARG NJS_VERSION=1.0.1
 
 
 # ── Stage: build_image (TFS upstream binary source) ──────────────────────────
@@ -119,7 +119,7 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf clean all
 
 # nginx + njs module from AL2023 core. --releasever latest is required so
-# openssl-libs 3.5.5 is pulled transitively (AL2023 nginx 1.30.3 links
+# openssl-libs 3.5.5 is pulled transitively (AL2023 nginx 1.30.x links
 # against libssl.so.3(OPENSSL_3.5.0); the pinned base ships 3.0.x).
 RUN dnf install -y --releasever latest --allowerasing \
   nginx-${NGINX_VERSION} \
@@ -199,9 +199,13 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template
 
 # Security patch — run after all installers so every OS package is covered.
+# CACHE_REFRESH (passed daily by CI) busts this layer so newly published
+# advisories are applied even when every earlier layer is a cache hit.
+ARG CACHE_REFRESH=0
 # libcurl --refresh: --security sometimes misses libcurl CVE patches that
 # ship as regular updates rather than security advisories.
-RUN dnf upgrade -y --security --releasever latest \
+RUN echo "CVE patch refresh token: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever latest \
   && dnf upgrade -y cuda-compat-* \
   && dnf upgrade -y libcurl libcurl-minimal --refresh \
   && dnf clean all
