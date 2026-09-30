@@ -132,12 +132,18 @@ def resolve_efa_version(pinned):
         _fail(f"Cannot reach {EFA_INSTALLER_BASE_URL} to resolve EFA 'latest'.")
 
     candidate = _efa_version_from_docs()
-    candidate_etag = _efa_tarball_etag(candidate) if candidate else None
-    if candidate_etag is None:
+    if candidate is None:
         _warn(
-            f"No published EFA version found via {EFA_DOCS_URL} (page moved?); "
+            f"Could not read an EFA version from {EFA_DOCS_URL} (page moved?); "
             f"searching upward from {EFA_VERSION_FALLBACK} instead."
         )
+    candidate_etag = _efa_tarball_etag(candidate) if candidate else None
+    if candidate_etag is None:
+        if candidate is not None:
+            _warn(
+                f"{EFA_DOCS_URL} names {candidate}, but no tarball is published for it yet; "
+                f"searching upward from {EFA_VERSION_FALLBACK} instead."
+            )
         candidate = EFA_VERSION_FALLBACK
         candidate_etag = _efa_tarball_etag(candidate)
 

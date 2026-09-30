@@ -71,7 +71,7 @@ def test_climbs_a_patch_release(monkeypatch):
     assert rba.resolve_efa_version("latest") == "1.50.1"
 
 
-def test_unreadable_docs_page_falls_back_and_still_resolves(monkeypatch):
+def test_unreadable_docs_page_falls_back_and_still_resolves(monkeypatch, capsys):
     """A moved docs page must not stall EFA currency or break the build."""
     monkeypatch.setattr(
         rba, "_efa_tarball_etag", fake_bucket([rba.EFA_VERSION_FALLBACK], rba.EFA_VERSION_FALLBACK)
@@ -79,9 +79,11 @@ def test_unreadable_docs_page_falls_back_and_still_resolves(monkeypatch):
     monkeypatch.setattr(rba, "_efa_version_from_docs", lambda: None)
 
     assert rba.resolve_efa_version("latest") == rba.EFA_VERSION_FALLBACK
+    # The warning is the only signal that the floor has become load-bearing.
+    assert "Could not read an EFA version" in capsys.readouterr().out
 
 
-def test_docs_naming_an_unpublished_version_falls_back(monkeypatch):
+def test_docs_naming_an_unpublished_version_falls_back(monkeypatch, capsys):
     """Docs can name a release before the tarball lands; never install a 404."""
     monkeypatch.setattr(
         rba, "_efa_tarball_etag", fake_bucket([rba.EFA_VERSION_FALLBACK], rba.EFA_VERSION_FALLBACK)
@@ -89,6 +91,8 @@ def test_docs_naming_an_unpublished_version_falls_back(monkeypatch):
     monkeypatch.setattr(rba, "_efa_version_from_docs", lambda: "9.99.0")
 
     assert rba.resolve_efa_version("latest") == rba.EFA_VERSION_FALLBACK
+    # Distinct from an unreadable page: the page was fine, the tarball is not out.
+    assert "no tarball is published for it yet" in capsys.readouterr().out
 
 
 def test_fails_when_latest_cannot_be_reached(monkeypatch):
