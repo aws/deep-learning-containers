@@ -4,6 +4,27 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 * * *
 
+## v1.8.0 — 2026-09-26
+
+**Tags:** `omni-cuda-v1.8` · `omni-sagemaker-cuda-v1.8`
+
+**vLLM-Omni source:** `0.29.0rc1` on upstream vLLM [v0.29.0](https://github.com/vllm-project/vllm/releases/tag/v0.29.0) —
+[full upstream diff](https://github.com/vllm-project/vllm-omni/compare/v0.28.0...v0.29.0rc1)
+
+**DLC PR:** [#6736](https://github.com/aws/deep-learning-containers/pull/6736)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2 · EFA 1.50.0
+
+### Changes
+
+- Bumped vLLM-Omni to `0.29.0rc1` on vLLM 0.29.0, up from 0.28.0, with FlashInfer 0.6.18 and the `instanttensor` and `modelexpress` extras
+- **DeepEP v2 over EFA** — DeepEP now builds from the [amazon-contributing/DeepEP](https://github.com/amazon-contributing/DeepEP) fork, which adds an
+  NCCL/GIN backend for expert-parallel all-to-all over EFA
+- NCCL 2.30.7 → 2.31.2, and NVSHMEM now comes from the `nvidia-nvshmem-cu13` wheel. EFA 1.47.0 → 1.50.0
+
+* * *
+
 ## v1.7.0 — 2026-09-21
 
 **Tags:** `omni-cuda-v1.7` · `omni-sagemaker-cuda-v1.7`
