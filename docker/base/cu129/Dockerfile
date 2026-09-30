@@ -142,7 +142,7 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
 ARG CACHE_REFRESH=0
 RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
-  curl automake autoconf cmake gcc gcc-c++ git make tar \
+    curl automake autoconf cmake gcc gcc-c++ git make tar \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
