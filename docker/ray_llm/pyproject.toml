@@ -15,6 +15,8 @@ dependencies = [
     "boto3>=1.35.0",
     "awscli>=1.35.0",
     "pip>=25.0",
+    # Transitive via mcp; 2.14.0 fixes the prepare_key JWK CVEs.
+    "pyjwt>=2.14.0",
 ]
 
 [tool.uv]
