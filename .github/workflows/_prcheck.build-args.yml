@@ -1,0 +1,32 @@
+name: Build-Args Unit Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/actions/build-image/**"
+      - "test/ci/**"
+      - ".github/workflows/_prcheck.build-args.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-args-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install pytest pyyaml
+
+      # loads only test/ci conftest and excludes the container-test harness
+      # (which imports test_utils and is not needed here).
+      - name: Run build-args unit tests
+        run: python -m pytest test/ci --confcutdir test/ci -v
