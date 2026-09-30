@@ -70,15 +70,10 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
-RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
+ARG CACHE_REFRESH=0
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
-  # Explicitly upgrade OS packages whose AL2023 fixes are published but not yet
-  # flagged by --security (advisory-metadata lag): CVE-2026-16742 (systemd),
-  # CVE-2026-78367/-84233 (rpm), CVE-2026-80230 (curl), CVE-2026-89161 (pcre2)
-  && dnf upgrade -y --releasever latest \
-    systemd systemd-libs systemd-networkd systemd-pam systemd-resolved systemd-rpm-macros systemd-udev \
-    rpm rpm-libs rpm-build rpm-build-libs rpm-sign-libs python3-rpm \
-    curl curl-minimal libcurl-minimal pcre2 pcre2-syntax \
   # Explicitly upgrade cuda-compat-13-2 to pick up fixes for NVIDIA Display Driver CVEs
   && dnf upgrade -y --releasever latest cuda-compat-13-2 \
   && dnf clean all && rm -rf /var/cache/dnf
@@ -188,16 +183,9 @@ COPY ./scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
 # Security patch — run after all installers so every OS package is covered
-RUN dnf upgrade -y --security --releasever latest \
-  # Explicitly upgrade OS packages whose AL2023 fixes are published but not yet
-  # flagged by --security (advisory-metadata lag): CVE-2026-16742 (systemd),
-  # CVE-2026-78367/-84233 (rpm), CVE-2026-80230 (curl), CVE-2026-89161 (pcre2),
-  # CVE-2026-13732 (gdb), CVE-2026-85013 (environment-modules)
-  && dnf upgrade -y --releasever latest \
-    systemd systemd-libs systemd-networkd systemd-pam systemd-resolved systemd-rpm-macros systemd-udev \
-    rpm rpm-libs rpm-build rpm-build-libs rpm-sign-libs python3-rpm \
-    curl curl-minimal libcurl-minimal pcre2 pcre2-syntax \
-    gdb-minimal environment-modules \
+ARG CACHE_REFRESH=0
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-2 to pick up fixes for NVIDIA Display Driver CVEs
   && dnf upgrade -y --releasever latest cuda-compat-13-2 \
   && dnf clean all && rm -rf /var/cache/dnf
