@@ -90,7 +90,11 @@ LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 
 # libgomp for OpenMP (may already be in base)
-RUN dnf install -y --allowerasing libgomp && dnf clean all
+ARG CACHE_REFRESH=0
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf install -y --allowerasing libgomp \
+  && dnf upgrade -y --security --releasever latest \
+  && dnf clean all
 
 COPY --from=builder /opt/conda /opt/conda
 COPY --from=builder /opt/openfold-3 /opt/openfold-3
