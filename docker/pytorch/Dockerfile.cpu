@@ -129,7 +129,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template
 
 # Security patch
-RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dnf clean all
+RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap \
+  # upgrade OS pkgs --security misses: CVE-2026-78367/-84233 (rpm), -80230 (curl), -89161 (pcre2), -16742 (systemd)
+  && dnf upgrade -y --releasever latest rpm rpm-libs python3-rpm curl curl-minimal libcurl-minimal pcre2 pcre2-syntax systemd systemd-libs \
+  && dnf clean all
 
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
@@ -191,7 +194,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template
 
 # Security patch
-RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dnf clean all
+RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap \
+  # upgrade OS pkgs --security misses: CVE-2026-78367/-84233 (rpm), -80230 (curl), -89161 (pcre2), -16742 (systemd)
+  && dnf upgrade -y --releasever latest rpm rpm-libs python3-rpm curl curl-minimal libcurl-minimal pcre2 pcre2-syntax systemd systemd-libs \
+  && dnf clean all
 
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc

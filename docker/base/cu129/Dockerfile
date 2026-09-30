@@ -62,6 +62,13 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
 
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
+  # Explicitly upgrade OS packages whose AL2023 fixes are published but not yet
+  # flagged by --security (advisory-metadata lag): CVE-2026-16742 (systemd),
+  # CVE-2026-78367/-84233 (rpm), CVE-2026-80230 (curl), CVE-2026-89161 (pcre2)
+  && dnf upgrade -y --releasever latest \
+    systemd systemd-libs systemd-networkd systemd-pam systemd-resolved systemd-rpm-macros systemd-udev \
+    rpm rpm-libs rpm-build rpm-build-libs rpm-sign-libs python3-rpm \
+    curl curl-minimal libcurl-minimal pcre2 pcre2-syntax \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=uv /uv /usr/local/bin/uv
@@ -140,6 +147,15 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   curl automake autoconf cmake gcc gcc-c++ git make tar \
   && dnf upgrade -y --security --releasever latest \
+  # Explicitly upgrade OS packages whose AL2023 fixes are published but not yet
+  # flagged by --security (advisory-metadata lag): CVE-2026-16742 (systemd),
+  # CVE-2026-78367/-84233 (rpm), CVE-2026-80230 (curl), CVE-2026-89161 (pcre2),
+  # CVE-2026-13732 (gdb), CVE-2026-85013 (environment-modules)
+  && dnf upgrade -y --releasever latest \
+    systemd systemd-libs systemd-networkd systemd-pam systemd-resolved systemd-rpm-macros systemd-udev \
+    rpm rpm-libs rpm-build rpm-build-libs rpm-sign-libs python3-rpm \
+    curl curl-minimal libcurl-minimal pcre2 pcre2-syntax \
+    gdb-minimal environment-modules \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=uv /uv /usr/local/bin/uv

@@ -13,5 +13,10 @@
         "vulnerability_id": "CVE-2026-90554",
         "reason": "vllm 0.26.0 pinned by the ray-llm image; fix requires vllm>=0.28.0, a framework version bump handled in a separate follow-up PR",
         "review_by": "2026-10-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-93436",
+        "reason": "vllm pinned by the ray-llm image (VLLM_VERSION); fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
+        "review_by": "2026-10-27"
     }
 ]

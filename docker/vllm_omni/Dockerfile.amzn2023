@@ -569,6 +569,8 @@ FROM omni-base AS vllm-omni-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  # upgrade OS pkgs --security misses: CVE-2026-78367/-84233 (rpm), -80230 (curl), -89161 (pcre2), -16742 (systemd), -85197 (libsoup3), -19774 (bluez)
+  && dnf upgrade -y --releasever latest rpm rpm-libs python3-rpm curl curl-minimal libcurl-minimal pcre2 pcre2-syntax systemd systemd-libs libsoup3 bluez-libs \
   # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
   # (NVIDIA repo — not flagged in AL2023 security advisories, so --security misses it)
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
@@ -593,6 +595,8 @@ LABEL com.amazonaws.sagemaker.capabilities.bidirectional-streaming=true
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  # upgrade OS pkgs --security misses: CVE-2026-78367/-84233 (rpm), -80230 (curl), -89161 (pcre2), -16742 (systemd), -85197 (libsoup3), -19774 (bluez)
+  && dnf upgrade -y --releasever latest rpm rpm-libs python3-rpm curl curl-minimal libcurl-minimal pcre2 pcre2-syntax systemd systemd-libs libsoup3 bluez-libs \
   # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
   # (NVIDIA repo — not flagged in AL2023 security advisories, so --security misses it)
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \

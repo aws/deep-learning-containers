@@ -85,7 +85,10 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
 FROM nvidia/cuda:12.9.1-runtime-amzn2023 AS base
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf upgrade -y --security --releasever latest \
+  # upgrade OS pkgs --security misses: CVE-2026-78367/-84233 (rpm), -80230 (curl), -89161 (pcre2), -16742 (systemd)
+  && dnf upgrade -y --releasever latest rpm rpm-libs python3-rpm curl curl-minimal libcurl-minimal pcre2 pcre2-syntax systemd systemd-libs \
+  && dnf clean all && rm -rf /var/cache/dnf
 
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=3

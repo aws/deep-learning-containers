@@ -63,5 +63,10 @@
         "vulnerability_id": "CVE-2026-73500",
         "reason": "go.etcd.io/etcd/client/pkg/v3 in mooncake/libetcd_wrapper.so, TLS listener TCP connection exhaustion DoS, unpatchable without mooncake rebuild with etcd client >=3.7.1",
         "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "CVE-2026-93436",
+        "reason": "vllm pinned by the vllm-omni image (VLLM_VERSION); fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
+        "review_by": "2026-10-27"
     }
 ]
