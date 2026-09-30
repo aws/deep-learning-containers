@@ -8,7 +8,7 @@
 <a href="https://aws.github.io/deep-learning-containers/reference/available_images/"><strong>Available Images</strong></a> · <a href="https://aws.github.io/deep-learning-containers/tutorials/"><strong>Tutorials</strong></a></p>
 
 <p align="center">
-  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.13-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.13-ec2.yml/badge.svg" alt="Auto Release - PyTorch 2.13"></a>
+  <a href="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.14-ec2.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/pytorch.autorelease-2.14-ec2.yml/badge.svg" alt="Auto Release - PyTorch 2.14"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow-training.autorelease-2.21-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow-training.autorelease-2.21-sagemaker.yml/badge.svg" alt="Auto Release - TensorFlow Training 2.21"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow-inference.autorelease-2.20-sagemaker.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/tensorflow-inference.autorelease-2.20-sagemaker.yml/badge.svg" alt="Auto Release - TensorFlow Inference 2.20"></a>
   <a href="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml"><img src="https://github.com/aws/deep-learning-containers/actions/workflows/vllm.autorelease-ec2-amzn2023.yml/badge.svg" alt="Auto Release - vLLM"></a>
@@ -31,6 +31,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/09/28]** [PyTorch v2.14.0](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.14-cu133-amzn2023` · SageMaker: `2.14-cu133-amzn2023-sagemaker` · PyTorch 2.14.0 with `torchvision` 0.29.0; CUDA 13.3.1, EFA 1.50.0, TE 2.18.0, DeepSpeed 0.19.6.
 - **[2026/09/26]** [vLLM Server v2.6 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.6` · SageMaker: `server-sagemaker-cuda-v2.6` · DeepEP v2 over EFA, built from the `amazon-contributing/DeepEP` fork; NCCL 2.31.2; EFA 1.50.0. vLLM stays at `0.30.0` (`ec4a3a5`).
 - **[2026/09/26]** [vLLM-Omni v1.8 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.8` · SageMaker: `omni-sagemaker-cuda-v1.8` · vLLM-Omni `0.29.0rc1` (up from 0.28.0); DeepEP v2 over EFA; FlashInfer 0.6.18, NCCL 2.31.2, EFA 1.50.0.
 - **[2026/09/24]** [SGLang Server v1.4 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.4` · SageMaker: `server-sagemaker-cuda-v1.4` · SGLang `0.5.19` (up from 0.5.17); DeepEP v2 over EFA; PyTorch 2.13.0, NCCL 2.31.2, EFA 1.50.0.
@@ -44,7 +45,6 @@ ______________________________________________________________________
 - **[2026/09/01]** [Ray Train v1.1 (2.58.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `train-ml-cuda-v1.1` · EFA `1.49.0` (up from 1.47.0).
 - **[2026/08/26]** [vLLM v0.28.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.28.0-gpu-py312-ec2` · SageMaker: `0.28.0-gpu-py312` · Kimi-K3 stack-wide optimization (Decode Context Parallel, fused FlashKDA kernels, GEMM-RS sequence parallelism); DeepSeek V4 sparse MLA end-to-end with MTP and DSpark speculative decoding; new models Muse Glimmer, Ling 3.0 Flash, Dots3, Interns2mobius; tiered KV cache offloading to disk; runtime base moves to Ubuntu 24.04 and Transformers 5.15.0; `max_num_batched_tokens` default 8192 -> 16384.
 - **[2026/08/26]** [Ray Train v1.0 (2.58.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `train-ml-cuda-v1.0` · Initial release: multi-node, multi-GPU distributed training with Ray Train/Tune/Data on PyTorch 2.13.0 / CUDA 13.0.2 / Python 3.13, with EFA 1.47.0, the AWS NCCL OFI plugin, GDRCopy, flash-attn, Transformer Engine, and DeepSpeed pre-installed; one image runs as either a Ray head or worker under KubeRay on any EKS cluster (including SageMaker HyperPod-EKS), or standalone on EC2.
-- **[2026/08/25]** [vLLM-Omni v1.6 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.6` · SageMaker: `omni-sagemaker-cuda-v1.6` · SageMaker `SM_VLLM_*` fix — JSON-array env vars (e.g. `SM_VLLM_LORA_MODULES`) now expand into multiple argv values so multi-value flags parse correctly; no framework bump (still vLLM-Omni `0.26.0`).
 
 ### 📢 Support Updates
 
