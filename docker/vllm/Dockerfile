@@ -8,7 +8,7 @@ FROM $BASE_IMAGE AS base
 # ====================== common =========================================
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
-ARG EFA_VERSION="1.50.0"
+ARG EFA_VERSION="latest"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
@@ -78,6 +78,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 COPY ./scripts/docker/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
+  && { grep "^# EFA installer version" /opt/amazon/efa_installed_packages || echo "EFA version not recorded"; } \
   && mkdir -p /tmp/nvjpeg \
   && cd /tmp/nvjpeg \
   && curl -O https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \

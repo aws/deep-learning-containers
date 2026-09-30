@@ -10,7 +10,7 @@ FROM $BASE_IMAGE AS base
 # ====================================================
 
 ARG PYTHON="python3"
-ARG EFA_VERSION="1.50.0"
+ARG EFA_VERSION="latest"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -71,6 +71,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 # =========================================
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
+  && { grep "^# EFA installer version" /opt/amazon/efa_installed_packages || echo "EFA version not recorded"; } \
   && mkdir -p /tmp/nvjpeg \
   && cd /tmp/nvjpeg \
   # latest cu12 libnvjpeg available is cu124
