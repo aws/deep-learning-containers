@@ -27,7 +27,7 @@ ARG TORCH_VERSION=2.12.1
 ARG TRANSFORMER_ENGINE_VERSION=2.13.0
 ARG FLASH_ATTN_VERSION=2.8.3
 ARG GDRCOPY_VERSION=2.4.4
-ARG EFA_VERSION=1.47.0
+ARG EFA_VERSION="latest"
 ARG NCCL_TESTS_VERSION=v2.20.0
 # Compiler parallelism cap per stage — prevents OOM when nproc > available RAM.
 # Default 8 is safe for 128GB builders; override with --build-arg MAX_JOBS=16.
