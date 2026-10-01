@@ -60,6 +60,7 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
+ARG CACHE_REFRESH=0
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
@@ -139,6 +140,7 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
+ARG CACHE_REFRESH=0
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   curl automake autoconf cmake gcc gcc-c++ git make tar \
   && dnf upgrade -y --security --releasever latest \
