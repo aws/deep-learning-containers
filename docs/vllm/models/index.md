@@ -5,15 +5,6 @@ All models listed below are regression-tested on every DLC vLLM release and work
 The **Coverage** column indicates test depth: *Smoke* runs on every PR; *Benchmark* runs throughput and latency tests with pass/fail thresholds before
 release. A *Smoke + Benchmark* tag means both apply.
 
-## Tested Models (Graviton CPU)
-
-The `vllm-arm64` images are tested on every release with:
-
-| Model | Coverage |
-| --- | --- |
-| [Qwen/Qwen3.5-0.8B](https://huggingface.co/Qwen/Qwen3.5-0.8B) | Smoke |
-| [Qwen/Qwen3.5-2B](https://huggingface.co/Qwen/Qwen3.5-2B) | SageMaker endpoint (`ml.c7g`, `ml.c8g`) |
-
 ## Tested Models
 
 | Family | Model | Coverage |
@@ -37,6 +28,15 @@ The `vllm-arm64` images are tested on every release with:
 | **GPT-OSS** | [openai/gpt-oss-20b](https://huggingface.co/openai/gpt-oss-20b) | Benchmark |
 | **JetBrains** | [JetBrains/Mellum2-12B-A2.5B-Thinking](https://huggingface.co/JetBrains/Mellum2-12B-A2.5B-Thinking) | Smoke + Benchmark |
 | **Baidu** | [baidu/Unlimited-OCR](https://huggingface.co/baidu/Unlimited-OCR) | Smoke |
+
+### Graviton CPU
+
+The `vllm-arm64` images are tested on every release with:
+
+| Model | Coverage |
+| --- | --- |
+| [Qwen/Qwen3.5-0.8B](https://huggingface.co/Qwen/Qwen3.5-0.8B) | Smoke |
+| [Qwen/Qwen3.5-2B](https://huggingface.co/Qwen/Qwen3.5-2B) | SageMaker endpoint (`ml.c7g`, `ml.c8g`) |
 
 ## Model-Specific Tuning
 
