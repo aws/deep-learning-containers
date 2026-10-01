@@ -28,7 +28,7 @@ The GPU image includes:
 - **TensorFlow Serving 2.20.0** — the `tensorflow_model_server` binary, plus the matching gRPC stubs (`tensorflow-serving-api-gpu` in the GPU image,
   `tensorflow-serving-api` in the CPU image)
 - **CUDA 12.9.1** with **cuDNN 9.24.0.43** (`nvidia-cudnn-cu12`)
-- **nginx 1.30.3** with the **njs 0.9.9** module — terminates {{ sm_short }} traffic on port 8080 and routes it to TensorFlow Serving or to the Python
+- **nginx 1.30.5** with the **njs 1.0.1** module — terminates {{ sm_short }} traffic on port 8080 and routes it to TensorFlow Serving or to the Python
   handler
 - **SageMaker TensorFlow Serving handler stack** — `falcon` 3.1.0 and `gunicorn` behind `gevent` workers, serving the optional `inference.py`
   pre/post-processing hooks

@@ -19,8 +19,8 @@ build:
   cuda_version: "12.9.1"
   tf_serving_version: "2.20.0"
   tfs_short_version: "2.20"
-  nginx_version: "1.30.3"
-  njs_version: "0.9.9"
+  nginx_version: "1.30.5"
+  njs_version: "1.0.1"
   dlc_major_version: "1"
 
 release:

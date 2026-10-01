@@ -24,8 +24,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
-      - "ml.g5.xlarge"
       - "ml.g5.2xlarge"
+      - "ml.g5.12xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -95,8 +95,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
-      - "ml.g5.xlarge"
       - "ml.g5.2xlarge"
+      - "ml.g5.12xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -123,8 +123,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
-      - "ml.g5.xlarge"
       - "ml.g5.2xlarge"
+      - "ml.g5.12xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -153,8 +153,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
-      - "ml.g5.xlarge"
       - "ml.g5.2xlarge"
+      - "ml.g5.12xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -179,8 +179,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
-      - "ml.g5.xlarge"
       - "ml.g5.2xlarge"
+      - "ml.g5.12xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     network_isolation: true
@@ -211,8 +211,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
-      - "ml.g5.xlarge"
       - "ml.g5.2xlarge"
+      - "ml.g5.12xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     network_isolation: true
@@ -248,8 +248,8 @@ sagemaker:
       - "ml.g6.xlarge"
       - "ml.g6.2xlarge"
       - "ml.g6.4xlarge"
-      - "ml.g5.xlarge"
       - "ml.g5.2xlarge"
+      - "ml.g5.12xlarge"
     required_image_pattern:
       os_version: "amzn2023"
     chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"

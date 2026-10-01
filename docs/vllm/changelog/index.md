@@ -4,6 +4,26 @@ Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sa
 
 * * *
 
+## v2.6.0 — 2026-09-26
+
+**Tags:** `server-cuda-v2.6` · `server-sagemaker-cuda-v2.6`
+
+**vLLM source:** [ec4a3a5](https://github.com/vllm-project/vllm/commit/ec4a3a537068db40afbc9374a67da719c8c9b964) (`0.30.0+amzn2023.ec4a3a53`),
+unchanged from v2.5
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18.post1 · Transformers 5.17.0 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2 · EFA 1.50.0
+
+### Changes
+
+- **DeepEP v2 over EFA** ([#6730](https://github.com/aws/deep-learning-containers/pull/6730)) — DeepEP now builds from the
+  [amazon-contributing/DeepEP](https://github.com/amazon-contributing/DeepEP) fork, which adds an NCCL/GIN backend for expert-parallel all-to-all over
+  EFA.
+- NCCL 2.30.7 → 2.31.2, required by that backend and checked at runtime. NVSHMEM now comes from the `nvidia-nvshmem-cu13` wheel.
+- EFA 1.47.0 → 1.50.0.
+
+* * *
+
 ## v2.5.0 — 2026-09-23
 
 **Tags:** `server-cuda-v2.5` · `server-sagemaker-cuda-v2.5`

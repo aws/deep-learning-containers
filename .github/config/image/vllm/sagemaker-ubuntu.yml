@@ -17,7 +17,7 @@ build:
   base_image: "vllm/vllm-openai:v0.30.0"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  efa_version: "1.47.0"
+  efa_version: "1.50.0"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 release:
