@@ -5,12 +5,12 @@ ongoing security patching.
 
 ## Images
 
-| Platform | Image | Default Port |
-| --- | --- | --- |
-| {{ ec2_short }} / {{ eks_short }} | `public.ecr.aws/deep-learning-containers/vllm:server-cuda` | 8000 |
-| {{ sagemaker }} | `public.ecr.aws/deep-learning-containers/vllm:server-sagemaker-cuda` | 8080 |
-| {{ ec2_short }} / {{ eks_short }} (Graviton CPU) | `public.ecr.aws/deep-learning-containers/vllm-arm64:server-cpu` | 8000 |
-| {{ sagemaker }} (Graviton CPU) | `public.ecr.aws/deep-learning-containers/vllm-arm64:server-sagemaker-cpu` | 8080 |
+| Platform | Architecture | Device | Image | Default Port |
+| --- | --- | --- | --- | --- |
+| {{ ec2_short }} / {{ eks_short }} | x86_64 | GPU (CUDA) | `public.ecr.aws/deep-learning-containers/vllm:server-cuda` | 8000 |
+| {{ sagemaker }} | x86_64 | GPU (CUDA) | `public.ecr.aws/deep-learning-containers/vllm:server-sagemaker-cuda` | 8080 |
+| {{ ec2_short }} / {{ eks_short }} | ARM64 (Graviton) | CPU | `public.ecr.aws/deep-learning-containers/vllm-arm64:server-cpu` | 8000 |
+| {{ sagemaker }} | ARM64 (Graviton) | CPU | `public.ecr.aws/deep-learning-containers/vllm-arm64:server-sagemaker-cpu` | 8080 |
 
 All images are also available on the [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers/vllm). For private ECR URIs, see
 [Image Access](../get_started/index.md).
