@@ -38,7 +38,7 @@ _INSTANCE_BY_DEVICE = {
     },
     "gpu": {
         "training": "ml.g4dn.2xlarge",
-        "inference": "ml.g6.xlarge",
+        "inference": "ml.g4dn.2xlarge",
     },
 }
 _NUMERIC_COLUMNS = {

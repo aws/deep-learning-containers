@@ -6,32 +6,27 @@
     },
     {
         "vulnerability_id": "CVE-2026-90553",
-        "reason": "vllm 0.26.0 pinned by the ray-llm image; fix requires vllm>=0.28.0, a framework version bump handled in a separate follow-up PR",
-        "review_by": "2026-10-26"
-    },
-    {
-        "vulnerability_id": "CVE-2026-90554",
-        "reason": "vllm 0.26.0 pinned by the ray-llm image; fix requires vllm>=0.28.0, a framework version bump handled in a separate follow-up PR",
-        "review_by": "2026-10-27"
-    },
-    {
-        "vulnerability_id": "CVE-2026-93436",
-        "reason": "vllm pinned by the ray-llm image (VLLM_VERSION); fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
-        "review_by": "2026-10-27"
+        "reason": "vllm 0.26.0 RCE in the LlavaOnevision2 processor loader, which ignores trust_remote_code. Fixed in vllm 0.28.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2026-11-17"
     },
     {
         "vulnerability_id": "CVE-2026-94623",
-        "reason": "vllm 0.26.0 pinned by the image; fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
-        "review_by": "2026-10-27"
+        "reason": "vllm 0.26.0 DoS in the NIXL connector prefix caching, which does not validate block counts across multi-prompt completion requests. Fixed in vllm 0.30.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2026-11-17"
     },
     {
-        "vulnerability_id": "CVE-2026-97687",
-        "reason": "urllib3 2.7.0 inherited from the published base image (/usr/local site-packages); base-image fix handled in a separate base PR, propagates on next base release",
-        "review_by": "2026-10-15"
+        "vulnerability_id": "CVE-2026-90554",
+        "reason": "vllm 0.26.0. Fixed in vllm 0.28.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2026-11-17"
     },
     {
         "vulnerability_id": "CVE-2026-97689",
-        "reason": "urllib3 2.7.0 inherited from the published base image (/usr/local site-packages); base-image fix handled in a separate base PR, propagates on next base release",
+        "reason": "urllib3 2.7.0 in the base image's system python under /usr/local. This image's own venv at /opt/venv is on 2.8.0, which carries the fix. The base is consumed as a published image, so clearing this needs a base bump.",
+        "review_by": "2026-10-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97687",
+        "reason": "urllib3 2.7.0 in the base image's system python under /usr/local. This image's own venv at /opt/venv is on 2.8.0, which carries the fix. The base is consumed as a published image, so clearing this needs a base bump.",
         "review_by": "2026-10-15"
     }
 ]
