@@ -5,7 +5,7 @@ Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `s
 
 * * *
 
-## v1.0.0 - 2026-10-01 (ARM64 CPU)
+## v1.0.0 — 2026-10-01 (ARM64 CPU)
 
 **Tags:** `server-cpu-v1.0` · `server-sagemaker-cpu-v1.0`
 
