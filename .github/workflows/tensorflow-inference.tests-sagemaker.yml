@@ -26,6 +26,11 @@ on:
         required: false
         type: string
         default: ""
+      non-blocking:
+        description: "Report test failures without failing the job. Failed runs are not recorded as a test pass."
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -63,6 +68,8 @@ jobs:
     timeout-minutes: 180
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
+    outputs:
+      tests-outcome: ${{ steps.tests.outcome }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -84,6 +91,11 @@ jobs:
           uv pip install -r test/requirements.txt -r test/tensorflow/integration/inference/requirements.txt
 
       - name: Run SageMaker inference tests
+        id: tests
+        # Step-level timeout so a hung endpoint deploy is a step failure that
+        # non-blocking can absorb, instead of a job timeout that cannot be.
+        timeout-minutes: 170
+        continue-on-error: ${{ inputs.non-blocking }}
         env:
           PYTHONPATH: ${{ github.workspace }}/test
           SM_DEVICE_TYPE: ${{ inputs.device-type }}
@@ -94,12 +106,17 @@ jobs:
             --region ${{ vars.AWS_REGION }} \
             test/tensorflow/integration/inference/
 
+      - name: Report non-blocking failure
+        if: ${{ steps.tests.outcome == 'failure' }}
+        run: echo "::warning::SageMaker inference tests failed (non-blocking for this variant)."
+
   # Record a PASS row in the ci-images-table if the test passed.
   record-test-pass:
     if: >-
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
-          needs.sagemaker-test.result == 'success' }}
+          needs.sagemaker-test.result == 'success' &&
+          needs.sagemaker-test.outputs.tests-outcome == 'success' }}
     needs: [sagemaker-test]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}

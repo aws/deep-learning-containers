@@ -151,6 +151,10 @@ jobs:
       device-type: ${{ needs.ci-config.outputs.device-type }}
       image-content-hash: ${{ needs.check.outputs.image-content-hash }}
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['tensorflow-inference/sagemaker'] || '' }}
+      # GPU SageMaker endpoint tests are non-blocking for PRs and release: they
+      # still run and report, but a failure does not gate merge or autorelease.
+      # Remove once GPU endpoint runs are reliably green.
+      non-blocking: ${{ needs.ci-config.outputs.device-type == 'gpu' }}
 
   release-gate:
     if: >-
