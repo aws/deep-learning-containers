@@ -70,6 +70,7 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
+ARG CACHE_REFRESH=0
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-2 to pick up fixes for NVIDIA Display Driver CVEs
@@ -155,6 +156,7 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
+ARG CACHE_REFRESH=0
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   curl automake autoconf cmake gcc gcc-c++ git make tar \
   && dnf clean all && rm -rf /var/cache/dnf
