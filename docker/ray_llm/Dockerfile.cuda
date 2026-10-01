@@ -9,6 +9,7 @@ ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK_VERSION=2.58.0
 ARG VLLM_VERSION=0.26.0
 ARG EFA_VERSION=1.49.0
+ARG GDRCOPY_VERSION=2.4.4
 ARG NCCL_TESTS_VERSION=v2.20.0
 ARG CUDA_VERSION=13.0.2
 
@@ -28,6 +29,13 @@ ENV PATH="/opt/venv/bin:${PATH}"
 COPY docker/ray_llm/pyproject.toml docker/ray_llm/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
+
+
+# ── Stage: builder-gdrcopy (parallel — independent of Python) ────────────────
+FROM ${BUILDER_BASE_IMAGE} AS builder-gdrcopy
+ARG GDRCOPY_VERSION
+COPY scripts/docker/common/install_gdrcopy.sh /tmp/install_gdrcopy.sh
+RUN bash /tmp/install_gdrcopy.sh ${GDRCOPY_VERSION} && rm /tmp/install_gdrcopy.sh
 
 
 # ── Stage: builder-oss (OSS license generation, isolated) ────────────────────
@@ -106,6 +114,10 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && rm /tmp/install_efa.sh \
   && dnf remove -y libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf
+
+# GDRCopy userspace lib
+COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
+RUN ldconfig
 
 # Security patch after all installers so every OS package is covered.
 RUN dnf upgrade -y --security --releasever latest \
