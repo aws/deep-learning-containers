@@ -4,7 +4,7 @@ set -ex
 ARCH=$(uname -m)
 
 function check_libnccl_net_so {
-    if [[ "$EFA_VERSION" > "1.44.0" ]] || [[ "$EFA_VERSION" == "1.44.0" ]]; then
+    if [[ "$EFA_VERSION" == "latest" ]] || [[ "$EFA_VERSION" > "1.44.0" ]] || [[ "$EFA_VERSION" == "1.44.0" ]]; then
         OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib64/"
         NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
     else
@@ -41,11 +41,13 @@ function install_efa {
         [ "$1" = "$2" ] || [ "$2" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]
     }
     EFA_EXTRA_ARGS=""
-    if ver_ge "$EFA_VERSION" "1.48.0"; then
+    if [ "$EFA_VERSION" = "latest" ] || ver_ge "$EFA_VERSION" "1.48.0"; then
         EFA_EXTRA_ARGS="--disable-ngc"
     fi
 
     ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify ${EFA_EXTRA_ARGS}
+    echo "=== EFA installer version ==="
+    grep -i "EFA installer version" /opt/amazon/efa_installed_packages || true
     rm -rf /tmp/efa
 
     mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real
@@ -83,7 +85,7 @@ function install_efa {
 
 while test $# -gt 0; do
     case "$1" in
-        [0-9].[0-9]*.[0-9]*)
+        [0-9].[0-9]*.[0-9]*|latest)
             install_efa $1
             ;;
         *)
