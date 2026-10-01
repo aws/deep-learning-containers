@@ -17,6 +17,8 @@ dependencies = [
     "pip>=25.0",
     # Transitive via mcp; 2.14.0 fixes the prepare_key JWK CVEs.
     "pyjwt>=2.14.0",
+    # Transitive; 2.8.0 fixes the redirect/retry CVEs.
+    "urllib3>=2.8.0",
 ]
 
 [tool.uv]

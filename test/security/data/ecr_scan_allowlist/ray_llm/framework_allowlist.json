@@ -13,5 +13,10 @@
         "vulnerability_id": "CVE-2026-94623",
         "reason": "vllm 0.26.0 DoS in the NIXL connector prefix caching, which does not validate block counts across multi-prompt completion requests. Fixed in vllm 0.30.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
         "review_by": "2026-11-17"
+    },
+    {
+        "vulnerability_id": "CVE-2026-90554",
+        "reason": "vllm 0.26.0. Fixed in vllm 0.28.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2026-11-17"
     }
 ]
