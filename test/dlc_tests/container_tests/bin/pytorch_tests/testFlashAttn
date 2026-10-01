@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -ex
+
+# Import only: flash-attn kernels need sm_80+, and the default test instance may be older.
+python -c "import flash_attn, flash_attn_2_cuda; print(flash_attn.__version__)"
+
+# torch must be imported first so libc10.so and the other torch libs are loaded.
+EXT=$(python -c "import torch, flash_attn_2_cuda; print(flash_attn_2_cuda.__file__)")
+CUDA_MAJOR=$(python -c "import torch; print(torch.version.cuda.split('.')[0])")
+if ldd "$EXT" | grep -E "libcudart\.so\.[0-9]+" | grep -qv "libcudart\.so\.${CUDA_MAJOR}"; then
+    echo "flash_attn_2_cuda links a CUDA runtime other than ${CUDA_MAJOR}:"
+    ldd "$EXT" | grep libcudart
+    exit 1
+fi

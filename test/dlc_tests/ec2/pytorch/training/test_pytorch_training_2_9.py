@@ -35,6 +35,7 @@ def test_pytorch_2_9_gpu(
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_curand_gpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_flash_attn_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_telemetry_bashrc_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_telemetry_entrypoint_gpu, (pytorch_training, ec2_connection)),
     ]

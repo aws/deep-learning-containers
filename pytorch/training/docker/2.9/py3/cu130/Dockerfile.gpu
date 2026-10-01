@@ -141,7 +141,8 @@ ENV NVTE_FRAMEWORK=pytorch
 
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+# Force source build; the prebuilt wheel is cu12-linked
+RUN MAX_JOBS=4 FLASH_ATTENTION_FORCE_BUILD=TRUE pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 
 RUN pip install --no-cache-dir nvidia-mathdx
 

@@ -38,6 +38,7 @@ PT_AMP_INDUCTOR_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMPwithInductor"
 )
 PT_CURAND_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testCurand")
+PT_FLASH_ATTN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testFlashAttn")
 PT_APEX_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testNVApex")
 PT_GDRCOPY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "gdrcopy", "test_gdrcopy.sh")
 PT_TRANSFORMER_ENGINE_CMD = os.path.join(
@@ -402,6 +403,15 @@ def pytorch_curand_gpu(pytorch_training, ec2_connection):
     """
     execute_ec2_training_test(
         ec2_connection, pytorch_training, PT_CURAND_CMD, container_name="pytorch_curand"
+    )
+
+
+def pytorch_flash_attn_gpu(pytorch_training, ec2_connection):
+    """
+    Test flash-attn CUDA extension imports
+    """
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training, PT_FLASH_ATTN_CMD, container_name="pytorch_flash_attn"
     )
 
 
