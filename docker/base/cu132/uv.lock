@@ -87,7 +87,7 @@ requires-dist = [
     { name = "botocore" },
     { name = "packaging" },
     { name = "requests" },
-    { name = "urllib3", specifier = ">=2.7.0" },
+    { name = "urllib3", specifier = ">=2.8.0" },
 ]
 
 [[package]]

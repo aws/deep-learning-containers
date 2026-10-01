@@ -1,0 +1,13 @@
+framework: PyTorch
+version: "2.14"
+accelerator: cpu
+python: py312
+os: amzn2023
+platform: sagemaker
+ga: "2026-09-28"
+eop: "2027-09-28"
+public_registry: true
+
+tags:
+  - "2.14.0-cpu-amzn2023-sagemaker"
+  - "2.14-cpu-amzn2023-sagemaker"
