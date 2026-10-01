@@ -30,8 +30,8 @@ custom handlers, and dependency installation. See [{{ sagemaker }} Deployment](d
 
 ### Graviton (ARM64 CPU) Images
 
-The `vllm-arm64` images run vLLM's CPU backend on AWS Graviton (ARM64) instances, with no GPU required. They are built from the same vLLM source
-as the GPU images, with bf16 kernels enabled for Graviton 3 and later. The GPU-only components above (CUDA, FlashInfer, DeepEP, NIXL, EFA) are not
+The `vllm-arm64` images run vLLM's CPU backend on AWS Graviton (ARM64) instances, with no GPU required. They are built from the same vLLM source as
+the GPU images, with bf16 kernels enabled for Graviton 3 and later. The GPU-only components above (CUDA, FlashInfer, DeepEP, NIXL, EFA) are not
 included. See [Graviton (ARM64 CPU)](deployment/ec2.md#graviton-arm64-cpu) for usage and CPU-specific defaults.
 
 ## API Endpoints

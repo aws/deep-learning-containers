@@ -1,6 +1,7 @@
 # Changelog
 
-Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `server-sagemaker-cuda`; `vllm-arm64`: `server-cpu`, `server-sagemaker-cpu`).
+Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `server-sagemaker-cuda`; `vllm-arm64`: `server-cpu`,
+`server-sagemaker-cpu`).
 
 * * *
 
