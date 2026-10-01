@@ -603,5 +603,10 @@
         "vulnerability_id": "CVE-2026-97689",
         "reason": "urllib3 1.26.20 pinned transitively by botocore 1.20.52 (legacy sagemaker-containers stack) in /miniconda3; urllib3>=2 unsatisfiable without a botocore bump",
         "review_by": "2026-10-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54873",
+        "reason": "openssl 3.6.3 in the bundled miniconda3 environment; fix 4.0.3 not available on conda-forge",
+        "review_by": "2027-03-02"
     }
 ]

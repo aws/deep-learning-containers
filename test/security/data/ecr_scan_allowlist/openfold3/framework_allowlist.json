@@ -348,5 +348,10 @@
         "vulnerability_id": "CVE-2026-72897",
         "reason": "openssl 3.6.x pinned by the OpenFold3 0.4.1 upstream conda lock; fix 4.0.3 not available on conda-forge",
         "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54873",
+        "reason": "openssl 3.6.x pinned by the OpenFold3 0.4.1 upstream conda lock; fix 4.0.3 not available on conda-forge",
+        "review_by": "2026-11-28"
     }
 ]

@@ -1,12 +1,1 @@
-[
-    {
-        "vulnerability_id": "CVE-2026-97687",
-        "reason": "urllib3 1.26.17 pinned by botocore<1.32 in the 1.4-2-py312 image (legacy sagemaker stack); urllib3>=2 unsatisfiable without a botocore bump",
-        "review_by": "2026-10-15"
-    },
-    {
-        "vulnerability_id": "CVE-2026-97689",
-        "reason": "urllib3 1.26.17 pinned by botocore<1.32 in the 1.4-2-py312 image (legacy sagemaker stack); urllib3>=2 unsatisfiable without a botocore bump",
-        "review_by": "2026-10-15"
-    }
-]
+[]
