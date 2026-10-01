@@ -18,5 +18,20 @@
         "vulnerability_id": "CVE-2026-93436",
         "reason": "vllm pinned by the ray-llm image (VLLM_VERSION); fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
         "review_by": "2026-10-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94623",
+        "reason": "vllm 0.26.0 pinned by the image; fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
+        "review_by": "2026-10-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97687",
+        "reason": "urllib3 2.7.0 inherited from the published base image (/usr/local site-packages); base-image fix handled in a separate base PR, propagates on next base release",
+        "review_by": "2026-10-15"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97689",
+        "reason": "urllib3 2.7.0 inherited from the published base image (/usr/local site-packages); base-image fix handled in a separate base PR, propagates on next base release",
+        "review_by": "2026-10-15"
     }
 ]

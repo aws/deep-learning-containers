@@ -68,5 +68,10 @@
         "vulnerability_id": "CVE-2026-93436",
         "reason": "vllm pinned by the vllm-omni image (VLLM_VERSION); fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
         "review_by": "2026-10-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94623",
+        "reason": "vllm 0.29.0rc1 pinned by the image; fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
+        "review_by": "2026-10-27"
     }
 ]

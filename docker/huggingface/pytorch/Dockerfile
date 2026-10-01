@@ -59,6 +59,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "pyasn1>=0.6.4" \
   "cryptography>=50.0.0" \
   "aiohttp>=3.14.3" \
+  "urllib3>=2.8.0" \
   && uv cache clean
 
 # --- Efficiency / quantization kernels -----------------------------------
