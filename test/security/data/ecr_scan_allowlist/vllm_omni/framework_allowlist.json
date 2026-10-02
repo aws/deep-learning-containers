@@ -1,8 +1,8 @@
 [
     {
         "vulnerability_id": "CVE-2026-42504",
-        "reason": "go/stdlib in mooncake/libetcd_wrapper.so, unpatchable without mooncake upgrade (same libetcd_wrapper.so go-stdlib cluster as CVE-2026-33818/39821/56853; still present on the mooncake-transfer-engine-cuda13 wheel shipped for vLLM 0.28.0)",
-        "review_by": "2026-10-22"
+        "reason": "go/stdlib 1.25.10 in mooncake/libetcd_wrapper.so, unpatchable without a mooncake rebuild with Go 1.26.4+ (same libetcd_wrapper.so go-stdlib cluster as CVE-2026-33818/39821/56853); mooncake-transfer-engine-cuda13 0.3.13.post1 is the latest release on PyPI and still ships a Go 1.25.10 build, so there is no newer version to move to",
+        "review_by": "2026-12-01"
     },
     {
         "vulnerability_id": "CVE-2026-27145",
@@ -63,5 +63,10 @@
         "vulnerability_id": "CVE-2026-73500",
         "reason": "go.etcd.io/etcd/client/pkg/v3 in mooncake/libetcd_wrapper.so, TLS listener TCP connection exhaustion DoS, unpatchable without mooncake rebuild with etcd client >=3.7.1",
         "review_by": "2026-10-22"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94623",
+        "reason": "vllm 0.29.0rc1 NIXL connector prefix-caching DoS; vllm is pinned by ARG FRAMEWORK_VERSION=0.29.0rc1 in docker/vllm_omni/Dockerfile.amzn2023 (with ARG VLLM_OMNI_VERSION tracking it), so any move is a framework-version decision. The upstream fix (vllm-project/vllm PR #51505) is still open and the vulnerable assertion in _apply_prefix_caching is unchanged in v0.30.0 and on main, so the scanner's fixedInVersion 0.30.0 is inferred from the NVD affected range rather than an actual patched release; needs framework owner review.",
+        "review_by": "2026-10-30"
     }
 ]
