@@ -23,11 +23,9 @@ build:
   dlc_minor_version: "0"
 
 release:
-  # Gamma-testing the unified image before production.
-  # Follow-up: publish the AutoGluon docs only after the production release succeeds.
   release: true
   force_release: false
   public_registry: false
   private_registry: true
   enable_soci: false
-  environment: "gamma"
+  environment: "production"
