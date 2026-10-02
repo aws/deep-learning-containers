@@ -11,25 +11,20 @@ import subprocess
 import threading
 import time
 
+from awslambdaric.lambda_concurrency_hooks import register_pre_fork
+
 _MARKER = "/tmp/prefork_marker"
 
-# Engine images only; importing it starts their shared server.
-try:
-    import handler as _baked
-except Exception:
-    _baked = None
+# Engine images ship a serving handler; core images do not. Absence is expected, but a
+# handler that fails to import is a defect and must surface.
+_baked = importlib.import_module("handler") if os.path.exists("/var/task/handler.py") else None
+
 
 # The marker records the PID that ran the hook, so a worker can prove it was its parent.
-try:
-    from awslambdaric.lambda_concurrency_hooks import register_pre_fork
-
-    @register_pre_fork
-    def _write_prefork_marker():
-        with open(_MARKER, "w") as f:
-            f.write(str(os.getpid()))
-
-except Exception:
-    pass
+@register_pre_fork
+def _write_prefork_marker():
+    with open(_MARKER, "w") as f:
+        f.write(str(os.getpid()))
 
 
 def _completion_ok(resp):

@@ -96,6 +96,10 @@ wait_ready() {
     sleep 5
   done
   echo "  handler not ready within ${READY_TIMEOUT}s"
+  # Surface the import/init error first; RIE chatter otherwise pushes it out of the tail.
+  docker logs "${CONTAINER}" 2>&1 |
+    grep -iE "errorMessage|ModuleNotFound|ImportError|Traceback|Runtime\.[A-Za-z]+Error" |
+    sort -u | tail -5
   docker logs "${CONTAINER}" 2>&1 | tail -20
   return 1
 }
