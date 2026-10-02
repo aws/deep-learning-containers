@@ -1,5 +1,25 @@
 ARG CUDA_VERSION=13.0.3
 ARG PYTHON_VERSION=3.13
+
+# ============================================================
+# Dependency verification values. Each ARG is labelled with the
+# inventory row it satisfies.
+# ============================================================
+# Row 16 — nvidia/cuda: registry digest is the published checksum.
+ARG CUDA_RUNTIME_DIGEST=sha256:c3ea43fa25fad8688698133d51307c3f788fdbd2d1464e68ddf206e6f81329ad
+ARG CUDA_DEVEL_DIGEST=sha256:1de52a0239e463b1a7a254c968cf33dda93ffad489c77dc6427ca55510e295a8
+# Row 17 — uv: registry digest.
+ARG UV_VERSION=0.12.19
+ARG UV_DIGEST=sha256:04d046b13e60d6bcec73cbc5e1cad25d680dea90c8573340950a0ac2d1aef424
+# Row 10 — FFmpeg: sha256 and GPG signature, both published by ffmpeg.org.
+ARG FFMPEG_SHA256=05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41
+ARG FFMPEG_GPG_KEY=FCF986EA15E6E293A5644F10B4322F04D67658D8
+# Row 11 — rustup: sha256 published at static.rust-lang.org.
+ARG RUSTUP_VERSION=1.29.1
+ARG RUSTUP_SHA256=dda7234360b7f578ca8b0ddcb80145646fa61a67c1720a5abc7051b35c9fcb71
+# Row 12 — sccache: sha256 published as a release asset.
+ARG SCCACHE_VERSION=0.8.1
+ARG SCCACHE_SHA256=e0ee621fb16b6940666cd770b091c62cadafd3e062dd12e3a49d9caaff3b795f
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 ARG FFMPEG_VERSION=8.0.1
@@ -7,6 +27,12 @@ ARG NV_CODEC_HEADERS_VERSION=12.2.72.0
 ARG FRAMEWORK=lambda
 ARG FRAMEWORK_VERSION=13.0.3
 ARG CONTAINER_TYPE=general
+
+# ============================================================
+# Row 17 — uv, digest-pinned. Declared as a stage because
+# COPY --from= does not expand ARGs.
+# ============================================================
+FROM ghcr.io/astral-sh/uv:${UV_VERSION}@${UV_DIGEST} as uv-source
 
 # ============================================================
 # Lambda Python sources
@@ -28,33 +54,53 @@ RUN curl -Lo /usr/local/bin/aws-lambda-rie \
 # ============================================================
 # Shared builder base (CUDA runtime + uv)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as builder-base
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# Row 16 — every nvidia/cuda reference below is digest-pinned.
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as builder-base
+# Row 17 — uv from the digest-pinned stage above.
+COPY --from=uv-source /uv /usr/local/bin/uv
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip findutils \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # ============================================================
 # Shared builder base — devel (CUDA devel + uv + git)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 as builder-base-devel
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# Row 16 — every nvidia/cuda reference below is digest-pinned.
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023@${CUDA_DEVEL_DIGEST} as builder-base-devel
+# Row 17 — uv from the digest-pinned stage above.
+COPY --from=uv-source /uv /usr/local/bin/uv
 RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # ============================================================
 # FFmpeg builder (compiled from source with NVENC/NVDEC GPU acceleration)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 as ffmpeg-builder
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023@${CUDA_DEVEL_DIGEST} as ffmpeg-builder
 ARG FFMPEG_VERSION
+ARG FFMPEG_SHA256
+ARG FFMPEG_GPG_KEY
 ARG NV_CODEC_HEADERS_VERSION
 ENV PATH="/usr/local/cuda/bin:${PATH}"
+# Row 10 — the signing key is vendored so the trust anchor is reviewable in the diff.
+COPY ./docker/lambda/keys/ffmpeg-release.asc /tmp/ffmpeg-release.asc
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar xz gcc gcc-c++ make pkgconfig nasm yasm git diffutils \
   && dnf clean all && rm -rf /var/cache/dnf \
   && git clone --branch n${NV_CODEC_HEADERS_VERSION} --depth 1 https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
   && cd /tmp/nv-codec-headers && make install && cd /tmp && rm -rf nv-codec-headers \
-  && curl -fsSL https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n${FFMPEG_VERSION}.tar.gz | tar xz -C /tmp \
-  && mv /tmp/FFmpeg-n${FFMPEG_VERSION} /tmp/ffmpeg \
+  # Row 10 — from ffmpeg.org, not the GitHub archive tag: only ffmpeg.org publishes a
+  # signature, and its tarballs are byte-stable whereas GitHub's are generated per request.
+  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz.asc \
+  # Row 10 — checksum.
+  && echo "${FFMPEG_SHA256}  ffmpeg-${FFMPEG_VERSION}.tar.xz" | sha256sum -c - \
+  # Row 10 — signature. --no-autostart: gnupg2-minimal has no gpg-agent and gpg exits 2
+  # trying to spawn one; verification does not need it.
+  && gpg --batch --no-autostart --import /tmp/ffmpeg-release.asc \
+  && gpg --batch --no-autostart --list-keys ${FFMPEG_GPG_KEY} \
+  && gpg --batch --no-autostart --verify ffmpeg-${FFMPEG_VERSION}.tar.xz.asc ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && tar xJf ffmpeg-${FFMPEG_VERSION}.tar.xz -C /tmp \
+  && rm -f ffmpeg-${FFMPEG_VERSION}.tar.xz ffmpeg-${FFMPEG_VERSION}.tar.xz.asc /tmp/ffmpeg-release.asc \
+  && mv /tmp/ffmpeg-${FFMPEG_VERSION} /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
   && PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" ./configure \
     --prefix=/usr/local \
@@ -148,6 +194,8 @@ FROM builder-pytorch-py3 as builder-sglang-py3
 ARG PYTHON_VERSION
 ARG CUDA_VERSION
 ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
+ARG RUSTUP_VERSION
+ARG RUSTUP_SHA256
 ARG SGLANG_KERNEL_VERSION=0.4.4
 # sglang engine version, from the config's metadata.framework_version (e.g.
 # 0.5.14+dlc1) — same source the serving amzn2023 image uses.
@@ -157,7 +205,13 @@ ARG FRAMEWORK_VERSION=0.5.14+dlc1
 RUN dnf install -y --setopt=install_weak_deps=False \
   gcc gcc-c++ openssl-devel pkgconfig perl protobuf-compiler protobuf-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
-  && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+  # Row 11 — fetch rustup-init and verify its published sha256 rather than piping to sh.
+  && curl --proto '=https' --tlsv1.2 --retry 3 -fsSLo /tmp/rustup-init \
+    https://static.rust-lang.org/rustup/archive/${RUSTUP_VERSION}/x86_64-unknown-linux-gnu/rustup-init \
+  && echo "${RUSTUP_SHA256}  /tmp/rustup-init" | sha256sum -c - \
+  && chmod +x /tmp/rustup-init \
+  && /tmp/rustup-init -y --profile minimal \
+  && rm -f /tmp/rustup-init
 # Stamp the sglang package version (built from a shallow git clone, so setuptools_scm
 # can't derive it). Matches the serving amzn2023 image's format exactly:
 # ${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF} — e.g. 0.5.14+dlc1.amzn2023.<commit>
@@ -230,6 +284,8 @@ ARG TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 12.0"
 ARG MAX_JOBS=8
 ARG NVCC_THREADS=2
 ARG USE_SCCACHE=true
+ARG SCCACHE_VERSION
+ARG SCCACHE_SHA256
 # Wheel-cache control (see scripts/ci/build/lambda/pre_build.sh):
 #   USE_PREBUILT_WHEEL=1 + a wheel present in prebuilt_wheels/ → skip the ~85-min
 #   source compile and install the cached wheel. Default 0 (compile) so a plain
@@ -284,8 +340,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
        && export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS="${MAX_JOBS}" NVCC_THREADS="${NVCC_THREADS}" \
           VLLM_TARGET_DEVICE=cuda SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+cu${CUDA_SHORT}" \
        && if [ "${USE_SCCACHE}" = "true" ]; then \
-            curl -fsSL -o /tmp/sccache.tar.gz "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
-            && tar -xzf /tmp/sccache.tar.gz -C /tmp && mv /tmp/sccache-v0.8.1-*/sccache /usr/bin/sccache && rm -rf /tmp/sccache* \
+            # Row 12 — sccache checksum.
+            curl -fsSL -o /tmp/sccache.tar.gz "https://github.com/mozilla/sccache/releases/download/v${SCCACHE_VERSION}/sccache-v${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
+            && echo "${SCCACHE_SHA256}  /tmp/sccache.tar.gz" | sha256sum -c - \
+            && tar -xzf /tmp/sccache.tar.gz -C /tmp && mv /tmp/sccache-v${SCCACHE_VERSION}-*/sccache /usr/bin/sccache && rm -rf /tmp/sccache* \
             && export SCCACHE_DIR=/root/.cache/sccache SCCACHE_IDLE_TIMEOUT=0 CMAKE_BUILD_TYPE=Release \
                CMAKE_C_COMPILER_LAUNCHER=sccache CMAKE_CXX_COMPILER_LAUNCHER=sccache CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
             && sccache --show-stats; \
@@ -353,19 +411,19 @@ COPY --from=builder-vllm-py3 /root/.cache/sccache/ /
 # ============================================================
 # OSS compliance builders (isolated — prevents dependency closure modification)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-base-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as oss-base-py3
 COPY --from=builder-base-py3 /var/lang /var/lang
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-cupy-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as oss-cupy-py3
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-pytorch-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as oss-pytorch-py3
 ARG FFMPEG_VERSION
 COPY --from=builder-pytorch-py3 /var/lang /var/lang
 COPY --from=lambda-python /lib64/libssl.so.3 /lib64/libcrypto.so.3 /lib64/
@@ -376,13 +434,13 @@ RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && printf '\n** FFprobe; version n%s -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFprobe n%s https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n%s.tar.gz\n' "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS
 
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-sglang-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as oss-sglang-py3
 COPY --from=builder-sglang-py3 /var/lang /var/lang
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as oss-vllm-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as oss-vllm-py3
 COPY --from=builder-vllm-py3 /var/lang /var/lang
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
@@ -391,7 +449,7 @@ RUN PATH="/var/lang/bin:$PATH" bash /tmp/setup_oss_compliance.sh python3 \
 # ============================================================
 # Runtime: Base Python 3.13 (CUDA + Python + RIC + RIE)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as base-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as base-py3
 ARG PYTHON_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
@@ -448,7 +506,7 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: CuPy Python 3.13 (base + CuPy, NumPy, SciPy)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as cupy-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as cupy-py3
 ARG PYTHON_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
@@ -512,7 +570,7 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: PyTorch Python 3.13 (base + PyTorch, FFmpeg, SAM2)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as pytorch-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as pytorch-py3
 ARG PYTHON_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
@@ -579,7 +637,7 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: sglang Python 3.13 (sglang serving engine)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as sglang-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as sglang-py3
 ARG PYTHON_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
@@ -605,7 +663,8 @@ COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
 # uv: the upstream test suite's setup script compiles + installs test deps into the
 # image's Python env via uv. It is a test-only tool (not used at serving runtime).
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# Row 17 — uv from the digest-pinned stage above.
+COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/sglang_entrypoint.sh /sglang_entrypoint.sh
 COPY ./scripts/docker/lambda/sglang/handler.py /var/task/handler.py
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
@@ -664,7 +723,7 @@ CMD ["handler.handler"]
 # ============================================================
 # Runtime: vLLM Python 3.13 (lambda pytorch base + vLLM engine)
 # ============================================================
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 as vllm-py3
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023@${CUDA_RUNTIME_DIGEST} as vllm-py3
 ARG PYTHON_VERSION
 ARG DLC_MAJOR_VERSION
 ARG DLC_MINOR_VERSION
@@ -691,7 +750,8 @@ COPY --from=lambda-python /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
 # uv: the upstream test suite's setup script compiles + installs test deps into the
 # image's Python env via uv. It is a test-only tool (not used at serving runtime).
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# Row 17 — uv from the digest-pinned stage above.
+COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/vllm_entrypoint.sh /vllm_entrypoint.sh
 COPY ./scripts/docker/lambda/vllm/handler.py /var/task/handler.py
 RUN chmod +x /vllm_entrypoint.sh \
