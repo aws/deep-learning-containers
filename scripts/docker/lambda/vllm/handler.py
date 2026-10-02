@@ -1,0 +1,115 @@
+"""Default AWS Lambda handler for the vLLM serving image.
+
+Follows the Lambda LMI serving pattern: ONE shared vLLM OpenAI-compatible HTTP
+server (`vllm serve`) is started once, and the handler is a thin proxy to it, so a
+single model copy in VRAM is shared across all concurrent invocations. This is the
+correct shape for a GPU serving engine under the multi-mode concurrency RIC — an
+in-process `vllm.LLM` per worker would load one model copy PER worker (N copies),
+which does not fit a single GPU.
+
+Multi-concurrency (AWS_LAMBDA_MAX_CONCURRENCY set): start via @register_pre_fork, which
+runs ONCE in the parent before the workers are forked, so all workers proxy to the one
+server. (Module-level would run in every worker → N servers colliding on the port.)
+On-demand (no AWS_LAMBDA_MAX_CONCURRENCY): start at module level.
+
+Customers typically override this handler; this default lets the image serve out of
+the box and gives CI a smoke target.
+
+Environment variables:
+  MODEL_ID              HuggingFace model id, local path, or s3:// prefix (default: a tiny model)
+  VLLM_GPU_MEM_UTIL     gpu_memory_utilization for the server (default: 0.8)
+  VLLM_TP_SIZE          tensor_parallel_size (default: visible GPU count)
+  VLLM_MAX_MODEL_LEN    optional cap on the model context length
+  VLLM_LOAD_FORMAT      vLLM --load-format; set runai_streamer with an s3:// MODEL_ID
+                        to stream safetensors from S3 to GPU (runai-model-streamer)
+  SERVED_MODEL_NAME     --served-model-name; the model id clients use (set this when
+                        MODEL_ID is a path/s3:// prefix so requests have a stable name)
+  VLLM_SERVER_PORT      port the in-container server binds (default: 8000)
+  VLLM_SERVER_TIMEOUT   seconds to wait for server readiness (default: 600)
+"""
+
+import json
+import os
+import subprocess
+import time
+
+import requests
+import torch
+from awslambdaric.lambda_concurrency_hooks import register_pre_fork
+
+_MODEL_ID = os.environ.get("MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
+_GPU_MEM_UTIL = os.environ.get("VLLM_GPU_MEM_UTIL", "0.8")
+_MAX_MODEL_LEN = os.environ.get("VLLM_MAX_MODEL_LEN")
+# Set VLLM_LOAD_FORMAT=runai_streamer with MODEL_ID=s3://bucket/prefix to stream
+# safetensors from S3 into GPU memory via runai-model-streamer (no /tmp staging).
+_LOAD_FORMAT = os.environ.get("VLLM_LOAD_FORMAT")
+# When MODEL_ID is a path/s3:// prefix, the served model name differs from it;
+# set SERVED_MODEL_NAME so clients (and this handler) address a stable model id.
+_SERVED_NAME = os.environ.get("SERVED_MODEL_NAME")
+_PORT = os.environ.get("VLLM_SERVER_PORT", "8000")
+_TIMEOUT = int(os.environ.get("VLLM_SERVER_TIMEOUT", "600"))
+_BASE_URL = f"http://127.0.0.1:{_PORT}"
+
+# One GPU per sandbox → device_count() is normally 1; auto-adapts if a sandbox is
+# ever granted multiple GPUs. Override VLLM_TP_SIZE to pin explicitly.
+_TP_SIZE = int(os.environ.get("VLLM_TP_SIZE", "0")) or max(1, torch.cuda.device_count())
+
+
+def _start_server():
+    """Launch the vLLM OpenAI server once and block until it is ready."""
+    cmd = [
+        "vllm",
+        "serve",
+        _MODEL_ID,
+        "--host",
+        "127.0.0.1",
+        "--port",
+        _PORT,
+        "--gpu-memory-utilization",
+        _GPU_MEM_UTIL,
+        "--tensor-parallel-size",
+        str(_TP_SIZE),
+    ]
+    if _MAX_MODEL_LEN:
+        cmd += ["--max-model-len", _MAX_MODEL_LEN]
+    if _LOAD_FORMAT:
+        cmd += ["--load-format", _LOAD_FORMAT]
+    if _SERVED_NAME:
+        cmd += ["--served-model-name", _SERVED_NAME]
+    subprocess.Popen(cmd)
+
+    deadline = time.monotonic() + _TIMEOUT
+    while time.monotonic() < deadline:
+        try:
+            if requests.get(f"{_BASE_URL}/health", timeout=5).status_code == 200:
+                return
+        except requests.RequestException:
+            pass
+        time.sleep(1)
+    raise RuntimeError(f"vLLM server did not become ready within {_TIMEOUT}s")
+
+
+if os.environ.get("AWS_LAMBDA_MAX_CONCURRENCY"):
+    register_pre_fork(_start_server)
+else:
+    _start_server()
+
+
+def handler(event, context):
+    """Proxy a single Lambda invocation to the shared vLLM OpenAI server.
+
+    The event is the OpenAI request body, forwarded as-is. Convenience: a bare
+    ``{"prompt": ...}`` is routed to /v1/completions; anything with ``messages``
+    goes to /v1/chat/completions. The multi-mode RIC passes the payload as bytes,
+    the standard RIC as a dict — both are normalized.
+    """
+    if isinstance(event, (bytes, bytearray, str)):
+        event = json.loads(event or "{}")
+
+    body = dict(event)
+    body.setdefault("model", _SERVED_NAME or _MODEL_ID)
+    path = "/v1/chat/completions" if "messages" in body else "/v1/completions"
+
+    resp = requests.post(f"{_BASE_URL}{path}", json=body, timeout=_TIMEOUT)
+    resp.raise_for_status()
+    return resp.json()
