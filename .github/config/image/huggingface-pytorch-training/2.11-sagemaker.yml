@@ -15,7 +15,7 @@ metadata:
   prod_image: "huggingface-pytorch-training:2.11-transformers5.13-cu130-amzn2023-sagemaker"
 
 build:
-  dockerfile: "docker/huggingface/pytorch/Dockerfile"
+  dockerfile: "docker/huggingface/pytorch/training/Dockerfile"
   target: "sagemaker"
   base_image: "public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023-sagemaker"
   python_version: "3.12"
