@@ -2,7 +2,7 @@ name: "PR - Lambda vLLM"
 
 on:
   pull_request:
-    branches: [lambda]
+    branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/lambda/vllm/*.yml"
@@ -11,8 +11,9 @@ on:
       - ".github/workflows/vllm.tests-upstream.yml"
       - "docker/lambda/**"
       - "scripts/docker/lambda/vllm/**"
-      - "scripts/common/**"
-      - "scripts/telemetry/**"
+      - "scripts/docker/lambda/vllm_entrypoint.sh"
+      - "scripts/docker/common/**"
+      - "scripts/docker/telemetry/**"
       - "test/lambda/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/lambda/**"
@@ -53,14 +54,15 @@ jobs:
               - ".github/config/image/lambda/vllm/*.yml"
               - "docker/lambda/**"
               - "scripts/docker/lambda/vllm/**"
-              - "scripts/common/**"
+              - "scripts/docker/lambda/vllm_entrypoint.sh"
+              - "scripts/docker/common/**"
               - "test/security/data/ecr_scan_allowlist/lambda/**"
             validation-test-change:
               - "test/lambda/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
-              - "scripts/telemetry/**"
+              - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
             upstream-test-change:
               - ".github/workflows/vllm.tests-upstream.yml"

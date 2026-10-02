@@ -1,5 +1,4 @@
 # Lambda SGLang release workflow — manual dispatch only.
-# Lambda Dockerfile and configs live on the `lambda` branch (pre-GA).
 # Discovers the Lambda SGLang config(s) and runs the pipeline for each.
 
 name: "Dispatch - Lambda SGLang Release"

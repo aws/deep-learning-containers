@@ -2,7 +2,7 @@ name: "PR - Lambda SGLang"
 
 on:
   pull_request:
-    branches: [lambda]
+    branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/lambda/sglang/*.yml"
@@ -11,8 +11,9 @@ on:
       - ".github/workflows/sglang.tests-upstream.yml"
       - "docker/lambda/**"
       - "scripts/docker/lambda/sglang/**"
-      - "scripts/common/**"
-      - "scripts/telemetry/**"
+      - "scripts/docker/lambda/sglang_entrypoint.sh"
+      - "scripts/docker/common/**"
+      - "scripts/docker/telemetry/**"
       - "test/lambda/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/lambda/**"
@@ -53,7 +54,8 @@ jobs:
               - ".github/config/image/lambda/sglang/*.yml"
               - "docker/lambda/**"
               - "scripts/docker/lambda/sglang/**"
-              - "scripts/common/**"
+              - "scripts/docker/lambda/sglang_entrypoint.sh"
+              - "scripts/docker/common/**"
               - "test/security/data/ecr_scan_allowlist/lambda/**"
             validation-test-change:
               - "test/lambda/**"
@@ -62,7 +64,7 @@ jobs:
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
-              - "scripts/telemetry/**"
+              - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
 
   discover:

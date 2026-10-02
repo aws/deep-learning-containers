@@ -2,17 +2,17 @@ name: "PR - Lambda Core"
 
 on:
   pull_request:
-    branches: [lambda]
+    branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/lambda/core/*.yml"
       - ".github/workflows/lambda.pipeline.yml"
       - ".github/workflows/lambda-core.pr.yml"
       - "docker/lambda/**"
-      - "scripts/lambda/**"
+      - "scripts/docker/lambda/lambda_entrypoint.sh"
       - "scripts/ci/build/lambda/**"
-      - "scripts/common/**"
-      - "scripts/telemetry/**"
+      - "scripts/docker/common/**"
+      - "scripts/docker/telemetry/**"
       - "test/lambda/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/lambda/**"
@@ -51,16 +51,16 @@ jobs:
               - ".github/workflows/lambda-core.pr.yml"
               - ".github/config/image/lambda/core/*.yml"
               - "docker/lambda/**"
-              - "scripts/lambda/**"
+              - "scripts/docker/lambda/lambda_entrypoint.sh"
               - "scripts/ci/build/lambda/**"
-              - "scripts/common/**"
+              - "scripts/docker/common/**"
               - "test/security/data/ecr_scan_allowlist/lambda/**"
             validation-test-change:
               - "test/lambda/**"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
-              - "scripts/telemetry/**"
+              - "scripts/docker/telemetry/**"
               - "test/telemetry/**"
 
   discover:
