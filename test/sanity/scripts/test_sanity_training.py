@@ -54,6 +54,16 @@ training_cluster_only = unittest.skipUnless(
     FRAMEWORK in {"tensorflow", "pytorch_runtime", "ray_train"},
     "training-cluster-only test (requires SSH+MPI stack; xgboost is algorithm container)",
 )
+# ray_train coordinates multi-node via Ray, not mpirun-over-SSH, so it has no
+# keypair — hence only pytorch/tensorflow here.
+mpi_ssh_keypair_only = unittest.skipUnless(
+    FRAMEWORK in {"pytorch_runtime", "tensorflow"},
+    "keypair present only on mpirun-over-SSH frameworks (pytorch, tensorflow)",
+)
+no_keypair_training_only = unittest.skipUnless(
+    FRAMEWORK == "ray_train",
+    "keypair-absence check (ray_train does not use mpirun-over-SSH)",
+)
 
 
 class TestContainerEnv(unittest.TestCase):
@@ -151,8 +161,18 @@ class TestSSHConfig(unittest.TestCase):
     def test_sshd_binary(self):
         self.assertTrue(os.access("/usr/sbin/sshd", os.X_OK))
 
+    @mpi_ssh_keypair_only
     def test_root_authorized_keys(self):
         self.assertTrue(os.path.isfile("/root/.ssh/authorized_keys"))
+
+    @no_keypair_training_only
+    def test_root_keypair_absent(self):
+        """Frameworks that don't use mpirun-over-SSH must not have the SSH keypair."""
+        self.assertFalse(os.path.isfile("/root/.ssh/id_rsa"), "/root/.ssh/id_rsa present")
+        self.assertFalse(
+            os.path.isfile("/root/.ssh/authorized_keys"),
+            "/root/.ssh/authorized_keys present",
+        )
 
     def test_strict_host_key_checking_disabled(self):
         with open("/root/.ssh/config") as f:

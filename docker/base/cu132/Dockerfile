@@ -71,7 +71,8 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
 ARG CACHE_REFRESH=0
-RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-2 to pick up fixes for NVIDIA Display Driver CVEs
   && dnf upgrade -y --releasever latest cuda-compat-13-2 \
@@ -183,7 +184,9 @@ COPY ./scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
 # Security patch — run after all installers so every OS package is covered
-RUN dnf upgrade -y --security --releasever latest \
+ARG CACHE_REFRESH=0
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-2 to pick up fixes for NVIDIA Display Driver CVEs
   && dnf upgrade -y --releasever latest cuda-compat-13-2 \
   && dnf clean all && rm -rf /var/cache/dnf

@@ -25,7 +25,7 @@ ARG TORCH_VERSION=2.13.0
 ARG CUDA_VERSION=13.0.2
 ARG TRANSFORMER_ENGINE_VERSION=2.13.0
 ARG FLASH_ATTN_VERSION=2.8.3
-ARG EFA_VERSION=1.49.0
+ARG EFA_VERSION="latest"
 ARG GDRCOPY_VERSION=2.4.4
 # Compiler parallelism cap per stage — prevents OOM when nproc > available RAM.
 ARG MAX_JOBS=8
@@ -175,7 +175,9 @@ RUN NCCL_HOME=$(/opt/venv/bin/python -c "import nvidia.nccl; print(nvidia.nccl._
     cd / && rm -rf /tmp/nccl-tests-${NCCL_TESTS_VERSION}
 
 # Security patch — after all installers so every OS package is covered.
-RUN dnf upgrade -y --security --releasever latest \
+ARG CACHE_REFRESH=0
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever latest \
   && dnf upgrade -y cuda-compat-* libcap \
   && dnf clean all
 

@@ -534,7 +534,7 @@ RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/local-lib.conf && ldconfig
 
 # install EFA
 COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
-ARG EFA_VERSION="1.50.0"
+ARG EFA_VERSION="latest"
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
@@ -568,7 +568,8 @@ RUN dnf install -y --setopt=install_weak_deps=False make which \
 FROM omni-base AS vllm-omni-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
   # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
   # (NVIDIA repo — not flagged in AL2023 security advisories, so --security misses it)
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
@@ -592,7 +593,8 @@ FROM omni-base AS vllm-omni-sagemaker-amzn2023
 LABEL com.amazonaws.sagemaker.capabilities.bidirectional-streaming=true
 
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
   # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
   # (NVIDIA repo — not flagged in AL2023 security advisories, so --security misses it)
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \

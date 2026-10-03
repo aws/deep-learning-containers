@@ -16,6 +16,7 @@ metadata:
 build:
   dockerfile: "docker/vllm/Dockerfile.amzn2023"
   target: "vllm-sagemaker-amzn2023"
+  efa_version: "latest"
   python_version: "3.12"
   cuda_version: "13.0.2"
   # Kept in lockstep with ec2-amzn2023.yml -- same Dockerfile.
