@@ -28,5 +28,10 @@
         "vulnerability_id": "CVE-2026-94623",
         "reason": "vllm 0.25.0 pinned by the image; fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
         "review_by": "2026-10-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-93592",
+        "reason": "vllm 0.25.0 is pinned by vllm_version in .github/config/image/huggingface-pytorch-training/2.11-sagemaker.yml and consumed as vllm==${VLLM_VERSION} in docker/huggingface/pytorch/Dockerfile; the fix requires vllm>=0.28.0, which is a framework-version change gated on a release bump rather than a dependency patch.",
+        "review_by": "2026-10-30"
     }
 ]
