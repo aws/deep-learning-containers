@@ -31,13 +31,13 @@ dependencies = [
     "scikit-learn==1.8.0",
     "scipy==1.15.0",
     "setuptools>=80.9.0,<81",
-    "urllib3==2.7.0",
+    "urllib3==2.8.0",
     "Werkzeug==3.1.8",
     "pyarrow==22.0.0",
     "protobuf>=3.20.0,<=3.20.3",
     "fonttools>=4.60.2",
     "idna>=3.15",
-    "tornado>=6.5.8",
+    "tornado>=6.5.10",
     "msgpack>=1.2.1",
 ]
 
@@ -48,7 +48,7 @@ override-dependencies = [
     "markupsafe>=2.1.5",
     "itsdangerous>=2.2.0",
     "werkzeug==3.1.8",
-    "urllib3==2.7.0",
+    "urllib3==2.8.0",
     "certifi==2025.4.26",
     "pillow==12.3.0",
 ]
