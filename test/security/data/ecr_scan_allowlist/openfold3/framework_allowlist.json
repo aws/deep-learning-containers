@@ -325,16 +325,6 @@
         "review_by": "2026-10-26"
     },
     {
-        "vulnerability_id": "CVE-2026-97687",
-        "reason": "urllib3 2.7.0 inherited from the published base image (/usr/local site-packages); base-image fix handled in a separate base PR, propagates on next base release",
-        "review_by": "2026-10-15"
-    },
-    {
-        "vulnerability_id": "CVE-2026-97689",
-        "reason": "urllib3 2.7.0 inherited from the published base image (/usr/local site-packages); base-image fix handled in a separate base PR, propagates on next base release",
-        "review_by": "2026-10-15"
-    },
-    {
         "vulnerability_id": "CVE-2026-84784",
         "reason": "openssl 3.6.x pinned by the OpenFold3 0.4.1 upstream conda lock; fix 4.0.3 not available on conda-forge",
         "review_by": "2026-11-28"

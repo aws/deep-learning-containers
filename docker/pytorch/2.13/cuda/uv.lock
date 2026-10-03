@@ -2535,7 +2535,7 @@ requires-dist = [
     { name = "torchaudio", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu130" },
     { name = "torchvision", specifier = "==0.28.0", index = "https://download.pytorch.org/whl/cu130" },
     { name = "tornado", marker = "extra == 'sagemaker'", specifier = ">=6.5.8" },
-    { name = "urllib3", specifier = ">=2.7.0" },
+    { name = "urllib3", specifier = ">=2.8.0" },
 ]
 provides-extras = ["sagemaker"]
 

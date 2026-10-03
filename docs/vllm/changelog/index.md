@@ -1,6 +1,26 @@
 # Changelog
 
-Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sagemaker-cuda`).
+Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `server-sagemaker-cuda`; `vllm-arm64`: `server-cpu`,
+`server-sagemaker-cpu`).
+
+* * *
+
+## v1.0.0 — 2026-10-01 (ARM64 CPU)
+
+**Tags:** `server-cpu-v1.0` · `server-sagemaker-cpu-v1.0`
+
+**vLLM source:** [ec4a3a5](https://github.com/vllm-project/vllm/commit/ec4a3a537068db40afbc9374a67da719c8c9b964) (`0.30.0+amzn2023.ec4a3a53`)
+
+**Bundled versions:** Python 3.12 · GCC 14 · tcmalloc
+
+### Highlights
+
+- **Initial release** of vLLM on AWS Graviton (ARM64) CPU for EC2 and SageMaker AI, built from source with the vLLM CPU backend and bf16 kernels
+  ([#6732](https://github.com/aws/deep-learning-containers/pull/6732))
+- **CPU memory defaults:** `VLLM_CPU_KVCACHE_SPACE` defaults to 40% of host RAM (minimum 2 GiB), since GPU memory-utilization flags do not apply on
+  CPU
+- **GCC 14 in the runtime image:** torch-inductor compiles CPU kernels at inference time and emits Armv9 flags on Graviton 4, which the default AL2023
+  GCC 11 cannot compile
 
 * * *
 

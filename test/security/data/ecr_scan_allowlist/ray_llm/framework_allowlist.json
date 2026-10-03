@@ -18,15 +18,5 @@
         "vulnerability_id": "CVE-2026-90554",
         "reason": "vllm 0.26.0. Fixed in vllm 0.28.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
         "review_by": "2026-11-17"
-    },
-    {
-        "vulnerability_id": "CVE-2026-97689",
-        "reason": "urllib3 2.7.0 in the base image's system python under /usr/local. This image's own venv at /opt/venv is on 2.8.0, which carries the fix. The base is consumed as a published image, so clearing this needs a base bump.",
-        "review_by": "2026-10-15"
-    },
-    {
-        "vulnerability_id": "CVE-2026-97687",
-        "reason": "urllib3 2.7.0 in the base image's system python under /usr/local. This image's own venv at /opt/venv is on 2.8.0, which carries the fix. The base is consumed as a published image, so clearing this needs a base bump.",
-        "review_by": "2026-10-15"
     }
 ]
