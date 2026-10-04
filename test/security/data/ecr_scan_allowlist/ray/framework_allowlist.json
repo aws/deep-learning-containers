@@ -37,7 +37,7 @@
     {
         "vulnerability_id": "CVE-2026-69244",
         "reason": "aiohttp 3.14.1 bundled inside ray/_private/runtime_env/agent/thirdparty_files/, fix requires aiohttp>=3.14.3 which is not yet vendored by any released ray",
-        "review_by": "2026-10-03"
+        "review_by": "2026-11-04"
     },
     {
         "vulnerability_id": "CVE-2026-54399",
