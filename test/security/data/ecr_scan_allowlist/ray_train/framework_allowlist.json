@@ -58,5 +58,10 @@
         "vulnerability_id": "CVE-2026-89425",
         "reason": "jackson-core 2.18.8 bundled in ray_dist.jar, cannot patch without upstream ray rebuild (fix requires 2.22.3)",
         "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-68494",
+        "reason": "jackson-core 2.18.8 bundled in ray_dist.jar, cannot patch without upstream ray rebuild (fix requires 2.21.4)",
+        "review_by": "2026-11-28"
     }
 ]
