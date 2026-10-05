@@ -12,7 +12,6 @@ Choose a framework to get started:
 - **[WhisperX](../whisperx/index.md)** — transcribe, align, and diarize speech on {{ ec2_short }} or {{ sagemaker }}
 - **[llama.cpp](../llama-cpp/index.md)** — serve quantized GGUF models on x86 CPU, NVIDIA GPU, or Graviton (ARM64) with the OpenAI-compatible
   llama-server API
-- **[AutoGluon](../autogluon/index.md)** — tabular classification, regression, and time series forecasting on {{ sagemaker }}
 - **[PyTorch](../pytorch/index.md)** — distributed training with EFA, NCCL, flash-attn, and DeepSpeed pre-installed
 - **[TensorFlow Training](../tensorflow/training/index.md)** — training on {{ sagemaker }} with EFA-capable multi-node support on Amazon Linux 2023
 - **[TensorFlow Inference](../tensorflow/inference/index.md)** — serve TensorFlow SavedModels with TensorFlow Serving on {{ sagemaker }}

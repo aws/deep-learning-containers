@@ -31,7 +31,6 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
-- **[2026/10/02]** [AutoGluon v1.6.3 (AL2023)](https://aws.github.io/deep-learning-containers/autogluon/) — SageMaker: `1.6-cu133-amzn2023` · `1.6-cpu-amzn2023` · Single image for training and inference (replaces `autogluon-training` / `autogluon-inference`); adds Mitra, TabICL, TabDPT, Nori, Chronos, and Toto 2.0 foundation models.
 - **[2026/10/01]** [vLLM Server ARM64 CPU v1.0 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm-arm64) · EC2: `server-cpu-v1.0` · SageMaker: `server-sagemaker-cpu-v1.0` · Initial release: vLLM `0.30.0` CPU backend on AWS Graviton (ARM64), no GPU required; bf16 kernels for Graviton 3 and later, RAM-based KV-cache defaults, and the OpenAI-compatible API on EC2 and SageMaker AI.
 - **[2026/09/28]** [PyTorch v2.14.0](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.14-cu133-amzn2023` · SageMaker: `2.14-cu133-amzn2023-sagemaker` · PyTorch 2.14.0 with `torchvision` 0.29.0; CUDA 13.3.1, EFA 1.50.0, TE 2.18.0, DeepSpeed 0.19.6.
 - **[2026/09/26]** [vLLM Server v2.6 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.6` · SageMaker: `server-sagemaker-cuda-v2.6` · DeepEP v2 over EFA, built from the `amazon-contributing/DeepEP` fork; NCCL 2.31.2; EFA 1.50.0. vLLM stays at `0.30.0` (`ec4a3a5`).

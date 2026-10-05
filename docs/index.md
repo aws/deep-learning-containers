@@ -92,14 +92,6 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     [PyTorch Guide](pytorch/index.md) · [TensorFlow Training Guide](tensorflow/training/index.md) · [Ray Train Guide](ray-train/index.md)
 
--   **Tabular Prediction and Forecasting**
-
-    ---
-
-    Train and serve tabular classification, regression, and time series forecasting models with AutoGluon on Amazon SageMaker AI.
-
-    [AutoGluon Guide](autogluon/index.md)
-
 -   **Build Your Own Image**
 
     ---
