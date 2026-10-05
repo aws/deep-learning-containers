@@ -128,8 +128,8 @@ ARG CUDA_VERSION_SHORT
 # NCCL RPM version as published in the NVIDIA cuda-rhel9 repo. The +cudaX.Y
 # build suffix is derived from CUDA_VERSION below.
 ARG NCCL_VERSION="2.29.7-1"
-# EFA installer 1.49.0 vends libfabric 2.4.0amzn5.0 and aws-ofi-nccl 1.20.0.
-ARG EFA_VERSION="1.49.0"
+# Resolved at build time; the installer logs the version it landed on.
+ARG EFA_VERSION="latest"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
