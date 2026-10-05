@@ -40,13 +40,8 @@ These variables apply to the `serve` mode. Set them in the {{ sm_short }} model'
 
 {{ sm_short }} sets `SAGEMAKER_BIND_TO_PORT` automatically; the server listens on port 8080 otherwise.
 
-Training jobs use the standard {{ sm_short }} training toolkit inherited from the PyTorch DLC. Hyperparameters, channels (`SM_CHANNEL_*`),
-`SM_MODEL_DIR`, and `SM_NUM_GPUS` behave as described in the [SageMaker training toolkit](https://github.com/aws/sagemaker-training-toolkit)
-documentation.
-
 ## Known Limitations
 
 - **x86 only.** There are no ARM64 images.
 - **One model per container.** Multi-model endpoints are not supported.
-- **No Tesseract OCR.** Amazon Linux 2023 has no Tesseract package, so `pytesseract`-based document OCR in `autogluon.multimodal` is unavailable.
 - **Model loading happens before `/ping` succeeds.** Raise `ContainerStartupHealthCheckTimeoutInSeconds` for large predictors.

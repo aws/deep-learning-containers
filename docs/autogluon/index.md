@@ -1,10 +1,11 @@
-# AutoML using AutoGluon DLC
+# Tabular Prediction and Forecasting using AutoGluon DLC
 
-Production-ready Docker images for training and serving [AutoGluon](https://auto.gluon.ai/) models on {{ sagemaker }}. Available in CPU and GPU
-variants, built on Amazon Linux 2023 with ongoing security patching.
+[AutoGluon](https://auto.gluon.ai/) lets you build accurate ML models for **tabular classification, regression**, and **time series forecasting** with
+just a few lines of code. It trains traditional models like XGBoost and CatBoost alongside foundation models like Mitra and Chronos, then combines
+them into a single predictor that maximizes performance on your task.
 
-A single image covers the whole workflow: run a {{ sm_short }} training job with your AutoGluon script, then deploy the resulting model artifact to a
-{{ sm_short }} endpoint with the same image. There are no separate training and inference images.
+The AutoGluon DLC includes AutoGluon and all the libraries it builds on. Use AutoGluon's API, or train and serve with the underlying packages
+directly. The same image runs both {{ sm_short }} training jobs and inference endpoints.
 
 ## Images
 
@@ -13,36 +14,31 @@ A single image covers the whole workflow: run a {{ sm_short }} training job with
 | GPU | `763104351884.dkr.ecr.<region>.amazonaws.com/autogluon:1.6-cu133-amzn2023` |
 | CPU | `763104351884.dkr.ecr.<region>.amazonaws.com/autogluon:1.6-cpu-amzn2023` |
 
-Pin the full version (for example `1.6.3-cu133-amzn2023`) to stay on a specific AutoGluon patch release. For other regions and account IDs, see
-[Image Access](../get_started/index.md) and [Available Images](../reference/available_images.md).
+To pin a patch release, use the full version (for example `1.6.3-cu133-amzn2023`). For account IDs in other regions, see
+[Image Access](../get_started/index.md).
 
 ## What's Included
 
-The images are layered on the [PyTorch {{ sm_short }} DLC](../pytorch/index.md) (PyTorch 2.13, CUDA 13.3 for the GPU variant, Python 3.12) and add:
+- **[AutoGluon](https://github.com/autogluon/autogluon) 1.6.3**
+- **Tabular classification and regression:** [scikit-learn](https://scikit-learn.org/), [LightGBM](https://github.com/microsoft/LightGBM),
+  [CatBoost](https://github.com/catboost/catboost), [XGBoost](https://github.com/dmlc/xgboost), [TabM](https://github.com/yandex-research/tabm)
+- **Tabular foundation models:** [Mitra](https://huggingface.co/autogluon/mitra-classifier), [TabICL](https://github.com/soda-inria/tabicl),
+  [TabDPT](https://github.com/layer6ai-labs/TabDPT), [Nori](https://github.com/synthefy/synthefy-nori)
+- **Time series forecasting:** [StatsForecast](https://github.com/Nixtla/statsforecast) (statistical models such as ETS and ARIMA),
+  [GluonTS](https://github.com/awslabs/gluonts) (deep learning models such as DeepAR, TFT, and PatchTST),
+  [MLForecast](https://github.com/Nixtla/mlforecast)
+- **Time series foundation models:** [Chronos](https://github.com/amazon-science/chronos-forecasting),
+  [Toto 2.0](https://huggingface.co/collections/Datadog/toto-20)
 
-- **[AutoGluon](https://github.com/autogluon/autogluon) 1.6.3** — `tabular`, `timeseries`, and `multimodal` modules
-- **Tabular foundation models** — Mitra, Nori, TabDPT, and TabICL (`autogluon.tabular[mitra,nori,tabdpt,tabicl]`)
-- **[Chronos](https://github.com/amazon-science/chronos-forecasting)** — pretrained time series forecasting models
-- **Gradient-boosting and classical libraries** — LightGBM, CatBoost, XGBoost, StatsForecast, MLForecast
-- **[Ray](https://www.ray.io/)** — parallel model training inside a single job
-- **A lightweight inference server** — Gunicorn + Flask on port 8080, implementing the {{ sm_short }} `/ping` and `/invocations` contract
+Foundation model weights are not baked into the image. They are downloaded from Hugging Face the first time a model is used, so the training job or
+endpoint needs internet access (or the weights staged locally).
 
-## How It Works
+The image is built on the [PyTorch {{ sm_short }} DLC](../pytorch/index.md): PyTorch 2.13, Python 3.12, CUDA 13.3 (GPU variant), Amazon Linux 2023.
 
-The image entrypoint dispatches on the command {{ sm_short }} passes to the container:
+## Training and Inference
 
-| Command | Behavior |
-| --- | --- |
-| `train` | Runs your entry script through the {{ sm_short }} training toolkit inherited from the PyTorch DLC (`SM_MODEL_DIR`, `SM_CHANNEL_*`, `SM_NUM_GPUS`, ...) |
-| `serve` | Installs `code/requirements.txt` from the model artifact (if present), loads your inference handler, and serves `/ping` and `/invocations` |
+Run your own training script in a {{ sm_short }} training job, then serve the model from an endpoint with the same image. For inference, define
+`model_fn` to load the model and `transform_fn` to make predictions for each request, similar to the now deprecated
+[PyTorch Inference DLC](https://sagemaker.readthedocs.io/en/v2/frameworks/pytorch/using_pytorch.html#serve-a-pytorch-model).
 
-Your inference handler lives in the model artifact under `code/` and defines `model_fn` and `transform_fn`. See
-[{{ sagemaker }} Deployment](deployment/sagemaker.md) for an end-to-end example and [Configuration](configuration.md) for the handler contract and
-environment variables.
-
-## How We Build
-
-- **Built from upstream releases** — images track [AutoGluon releases](https://github.com/autogluon/autogluon/releases) and pin every added package to
-  an exact version.
-- **Regression-tested** — every release trains and serves tabular and time series models on {{ sm_short }} for both CPU and GPU variants.
-- **Security-patched** — continuously maintained with security patches from {{ aws }} on an Amazon Linux 2023 base.
+See [{{ sagemaker }} Deployment](deployment/sagemaker.md) for an end-to-end example and [Configuration](configuration.md) for the handler contract.

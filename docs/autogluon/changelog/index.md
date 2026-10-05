@@ -12,16 +12,13 @@ Changelog for the Amazon Linux 2023-based AutoGluon images.
 
 ### Highlights
 
-- Unified image for {{ sm_short }} training and inference. Replaces the separate `autogluon-training` and `autogluon-inference` images used up to
-  AutoGluon 1.5.
-- New `autogluon` ECR repository with tags of the form `<version>-<cpu|cuda>-amzn2023`.
-- Built on the PyTorch 2.13 {{ sm_short }} DLC: Amazon Linux 2023, CUDA 13.3 (GPU variant), Python 3.12.
-- Includes the Mitra, Nori, TabDPT, and TabICL tabular foundation models and Chronos for time series forecasting.
-- New lightweight inference server that loads a `model_fn` / `transform_fn` handler from the model artifact.
+- One image for {{ sm_short }} training and inference, replacing the separate `autogluon-training` and `autogluon-inference` images (AutoGluon 1.5 and
+  earlier).
+- Built on the PyTorch 2.13 {{ sm_short }} DLC (Amazon Linux 2023, Python 3.12, CUDA 13.3).
+- Adds the Mitra, TabICL, TabDPT, and Nori tabular foundation models and the Chronos and Toto 2.0 time series foundation models.
 
-### Migrating from 1.5 and Earlier
+### Migrating from 1.5
 
-- Use the same `autogluon` image URI for both the training job and the model. The image picks the right mode from the `train` / `serve` command.
-- Inference handlers keep the `model_fn` / `transform_fn` contract. `input_fn`, `predict_fn`, and `output_fn` are not supported; fold that logic into
+- Use the `autogluon` image for both training jobs and inference endpoints.
+- Inference handlers must define `model_fn` and `transform_fn`. `input_fn`, `predict_fn`, and `output_fn` are not called; move that logic into
   `transform_fn`.
-- Multi-model endpoints are not supported.
