@@ -10,7 +10,7 @@ ARG CUDA_VERSION=12.9.1
 ARG PYTHON_VERSION=3.12
 ARG TF_VERSION=2.21.0
 ARG OPEN_MPI_VERSION=4.1.8
-ARG EFA_VERSION=1.49.0
+ARG EFA_VERSION="latest"
 
 
 # ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────

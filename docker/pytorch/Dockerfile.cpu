@@ -132,7 +132,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 # CACHE_REFRESH (passed daily by CI) busts this layer so newly published
 # advisories are applied even when every earlier layer is a cache hit.
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dnf clean all
+RUN echo "cache refresh: ${CACHE_REFRESH}" && dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dnf clean all
 
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
@@ -197,7 +197,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 # CACHE_REFRESH (passed daily by CI) busts this layer so newly published
 # advisories are applied even when every earlier layer is a cache hit.
 ARG CACHE_REFRESH=0
-RUN dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dnf clean all
+RUN echo "cache refresh: ${CACHE_REFRESH}" && dnf upgrade -y --security --releasever latest && dnf upgrade -y libcap && dnf clean all
 
 # Telemetry bashrc hook — must be after security patch (dnf may replace /etc/bashrc)
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
