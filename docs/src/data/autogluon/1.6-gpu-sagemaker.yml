@@ -1,0 +1,16 @@
+framework: AutoGluon
+version: "1.6.3"
+accelerator: gpu
+python: py312
+cuda: cu133
+os: amzn2023
+platform: sagemaker
+public_registry: false
+
+# Support policy
+ga: "2026-10-02"
+eop: "2027-10-02"
+
+tags:
+  - "1.6.3-cu133-amzn2023"
+  - "1.6-cu133-amzn2023"

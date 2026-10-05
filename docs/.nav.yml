@@ -10,6 +10,7 @@ nav:
     - Ray LLM: ray-llm
     - Ray Train: ray-train
     - WhisperX: whisperx
+    - AutoGluon: autogluon
     - llama.cpp: llama-cpp
     - PyTorch: pytorch
     - TensorFlow: tensorflow
