@@ -35,7 +35,8 @@ BUCKET="${WHEELS_BUCKET:-dlc-cicd-wheels}"
 CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
 VLLM_REF=$(yq '.build.vllm_ref' "$CONFIG_FILE")
 VLLM_VERSION=$(yq '.build.vllm_version' "$CONFIG_FILE")
-ARCH_LIST=$(yq '.build.torch_cuda_arch_list // "8.0 8.6 8.9 12.0"' "$CONFIG_FILE")
+ARCH_LIST=$(yq '.build.torch_cuda_arch_list' "$CONFIG_FILE")
+[[ "$ARCH_LIST" != "null" ]] || { echo "ERROR: build.torch_cuda_arch_list missing from $CONFIG_FILE" >&2; exit 1; }
 USE_SCCACHE=$(yq '.build.use_sccache // "false"' "$CONFIG_FILE")
 
 echo "Uploading Lambda vLLM wheel to cache..."

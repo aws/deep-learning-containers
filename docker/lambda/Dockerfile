@@ -276,9 +276,9 @@ ARG VLLM_REF=7b3d595eb197d714052ce296cc8b124f0dc8af31
 # derive it from a shallow clone). Matches the serving amzn2023 image's ref.
 ARG VLLM_VERSION=0.24.0
 ARG FLASHINFER_VERSION=0.6.12
-# Fleet arches: A10G(8.6) L4/L40S(8.9) + g7 Blackwell(12.0); T4/sm_75 is out of
-# scope for engines. 8.0 kept for forward-compat with A100-class if ever added.
-ARG TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 12.0"
+# Fallback only — image configs set build.torch_cuda_arch_list.
+ARG torch_cuda_arch_list="8.0 8.6 8.9 12.0"
+ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 # Cap build parallelism: vllm's CUDA compile is memory-hungry (MAX_JOBS=32 OOM-froze
 # the 185GB box). sccache makes rebuilds cheap; tune via --build-arg.
 ARG MAX_JOBS=8
@@ -337,7 +337,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
        # stale cmake 3.25 on the pytorch cu130 index doesn't mask PyPI's cmake>=3.26.1.
        && UV_INDEX_STRATEGY=unsafe-best-match uv pip install --python "${UV_PYTHON}" \
           cmake ninja setuptools-scm setuptools-rust \
-       && export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS="${MAX_JOBS}" NVCC_THREADS="${NVCC_THREADS}" \
+       && export MAX_JOBS="${MAX_JOBS}" NVCC_THREADS="${NVCC_THREADS}" \
           VLLM_TARGET_DEVICE=cuda SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+cu${CUDA_SHORT}" \
        && if [ "${USE_SCCACHE}" = "true" ]; then \
             # Row 12 — sccache checksum.
