@@ -1,4 +1,5 @@
 # Table Configuration - AutoGluon (AMZN2023)
+note: "One image for SageMaker training and inference. See the [AutoGluon documentation](https://auto.gluon.ai/) to get started."
 columns:
   - field: framework_version
     header: "Framework"
