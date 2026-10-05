@@ -1,5 +1,5 @@
 framework: AutoGluon
-version: "1.6.3"
+version: "1.6"
 accelerator: cpu
 python: py312
 os: amzn2023
@@ -11,5 +11,5 @@ ga: "2026-10-02"
 eop: "2027-10-02"
 
 tags:
-  - "1.6.3-cpu-amzn2023"
   - "1.6-cpu-amzn2023"
+  - "1.6.3-cpu-amzn2023"
