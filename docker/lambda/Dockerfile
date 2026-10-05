@@ -655,7 +655,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   numactl-libs gcc gcc-c++ which \
   cuda-nvcc-13-0 cuda-cudart-devel-13-0 cuda-crt-13-0 \
   libcurand-devel-13-0 libcublas-devel-13-0 libcusolver-devel-13-0 libcusparse-devel-13-0 \
-  && dnf upgrade -y --releasever=latest \
+  && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-devel /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so
 COPY --from=builder-sglang-py3 /var/lang /var/lang
@@ -742,7 +742,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   numactl-libs gcc gcc-c++ which \
   cuda-nvcc-13-0 cuda-cudart-devel-13-0 cuda-crt-13-0 \
   libcurand-devel-13-0 libcublas-devel-13-0 libcusolver-devel-13-0 libcusparse-devel-13-0 \
-  && dnf upgrade -y --releasever=latest \
+  && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-devel /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so
 COPY --from=builder-vllm-py3 /var/lang /var/lang

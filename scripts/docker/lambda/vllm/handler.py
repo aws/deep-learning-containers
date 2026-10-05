@@ -76,10 +76,12 @@ def _start_server():
         cmd += ["--load-format", _LOAD_FORMAT]
     if _SERVED_NAME:
         cmd += ["--served-model-name", _SERVED_NAME]
-    subprocess.Popen(cmd)
+    proc = subprocess.Popen(cmd)
 
     deadline = time.monotonic() + _TIMEOUT
     while time.monotonic() < deadline:
+        if proc.poll() is not None:
+            raise RuntimeError(f"vLLM server exited with code {proc.returncode} during startup")
         try:
             if requests.get(f"{_BASE_URL}/health", timeout=5).status_code == 200:
                 return
