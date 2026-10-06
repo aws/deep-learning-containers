@@ -47,7 +47,10 @@ ENV UV_PROJECT_ENVIRONMENT=/usr/local
 COPY ./docker/ray/pyproject.toml ./docker/ray/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
-  && rm -rf /tmp/deps
+  && rm -rf /tmp/deps \
+  # ray_dist.jar is for Ray Java workers, unused in this Python-only image. Dropped here
+  # so it never reaches the runtime stage, along with its bundled Java dependencies.
+  && rm -f /usr/local/lib/python*/site-packages/ray/jars/ray_dist.jar
 
 
 #############
@@ -67,7 +70,7 @@ LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 ARG PYTHON_VERSION=3.13.12
 ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK="ray"
-ARG FRAMEWORK_VERSION="2.56.1"
+ARG FRAMEWORK_VERSION="2.59.0"
 ARG CONTAINER_TYPE="inference"
 ARG FFMPEG_VERSION=n8.0.1
 
