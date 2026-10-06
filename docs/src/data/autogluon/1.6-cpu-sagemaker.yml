@@ -8,7 +8,6 @@ public_registry: false
 
 # Support policy
 ga: "2026-10-02"
-eop: "2027-10-02"
 
 tags:
   - "1.6-cpu-amzn2023"
