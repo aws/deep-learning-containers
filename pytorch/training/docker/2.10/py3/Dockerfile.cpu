@@ -39,7 +39,7 @@ RUN apt-get update \
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="3"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -286,7 +286,7 @@ FROM common AS sagemaker
 ARG PYTHON
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="3"
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
