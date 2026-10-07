@@ -121,8 +121,7 @@ jobs:
 
       # Upstream HellaSwag URL removed: seed the data from the HF mirror, then point the cache
       # check at the seeded file (its json.load check rejects JSONL, else it re-downloads and 404s).
-      # Removable once EVERY caller's ref includes sgl-project/sglang#39892 (dropped HellaSwag
-      # for MMLU). amzn2023 and ubuntu are past it; lambda/sglang/sglang.yml is still on 0.5.18.
+      # Remove once sglang_ref includes sgl-project/sglang#39892 (dropped HellaSwag for MMLU).
       - name: Seed HellaSwag data (upstream URL removed)
         run: |
           docker exec ${CONTAINER_ID} sh -c 'pip install -q --break-system-packages pandas pyarrow && python3 -c "import pandas as pd,urllib.request as u; u.urlretrieve(\"https://huggingface.co/datasets/Rowan/hellaswag/resolve/main/data/validation-00000-of-00001.parquet\",\"/tmp/hs.parquet\"); d=pd.read_parquet(\"/tmp/hs.parquet\"); d[\"label\"]=d[\"label\"].astype(int); d[[\"activity_label\",\"ctx\",\"endings\",\"label\"]].to_json(\"/tmp/hellaswag_val.jsonl\",orient=\"records\",lines=True)"'
