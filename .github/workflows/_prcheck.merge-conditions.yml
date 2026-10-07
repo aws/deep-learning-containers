@@ -27,7 +27,6 @@ jobs:
             const ignoredChecks = new Set([self]);
             const ignoredPatterns = [
               /efa-test$/,
-              /image\/vllm\/.* \/ sagemaker-tests \/ endpoint-test/,
             ];
             const intervalMs = 30_000;
             const timeoutMs = 7_200_000;
