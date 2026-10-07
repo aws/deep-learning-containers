@@ -88,7 +88,7 @@ wait_ready() {
   # The RIE answers 200 even when the handler raises, so require a real field.
   local deadline=$((SECONDS + READY_TIMEOUT))
   while [ "${SECONDS}" -lt "${deadline}" ]; do
-    if [ "$(jq_ok "$(invoke '{"action":"get_pid","sleep":0}' 60)" '.pid != null')" = "1" ]; then
+    if [ "$(jq_ok "$(invoke '{"action":"get_pid","sleep":0}' "${READY_TIMEOUT}")" '.pid != null')" = "1" ]; then
       return 0
     fi
     sleep 5
