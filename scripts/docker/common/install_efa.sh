@@ -18,7 +18,7 @@ esac
 
 function check_libnccl_net_so {
 
-    if [[ "$EFA_VERSION" > "1.44.0" ]] || [[ "$EFA_VERSION" == "1.44.0" ]]; then  # version threshold
+    if [[ "$EFA_VERSION" == "latest" ]] || [[ "$EFA_VERSION" > "1.44.0" ]] || [[ "$EFA_VERSION" == "1.44.0" ]]; then  # version threshold ("latest" = newest)
         # Newer EFA version - no ARCH_DIR, different filename
         OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/"
         NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
@@ -59,6 +59,8 @@ function install_efa {
     tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz
     cd aws-efa-installer
     ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify
+    echo "=== EFA installer version ==="
+    grep -i "EFA installer version" /opt/amazon/efa_installed_packages || true
     rm -rf /tmp/efa
     # Configure Open MPI and configure NCCL parameters
     mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real
@@ -83,8 +85,6 @@ function install_efa {
     sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
     rm -rf /root/.ssh/
     mkdir -p /root/.ssh/
-    ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
-    cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
     printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
     # Remove build time tools
@@ -106,7 +106,7 @@ function install_efa {
 while test $# -gt 0
 do
     case "$1" in
-    [0-9].[0-9]*.[0-9]*) install_efa $1;
+    [0-9].[0-9]*.[0-9]*|latest) install_efa $1;
         ;;
     *) echo "bad argument $1"; exit 1
         ;;

@@ -15,6 +15,7 @@ metadata:
 build:
   dockerfile: "docker/vllm/Dockerfile.amzn2023"
   target: "vllm-ec2-amzn2023"
+  efa_version: "latest"
   python_version: "3.12"
   cuda_version: "13.0.2"
   vllm_ref: "ec4a3a537068db40afbc9374a67da719c8c9b964"

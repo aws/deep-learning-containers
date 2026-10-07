@@ -27,7 +27,7 @@ build:
   torch_version: "2.13.0"
   nccl_version: "2.31.2"
   cudnn_version: "9.16.0.29"
-  efa_version: "1.50.0"
+  efa_version: "latest"
   rust_version: "1.96.1"
   gdrcopy_version: "2.5.2"
   torch_cuda_arch_list: "9.0;10.0;10.3"

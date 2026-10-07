@@ -23,5 +23,20 @@
         "vulnerability_id": "CVE-2026-91777",
         "reason": "Ray 2.58.0 bundles jackson-databind 2.18.8 inside ray_dist.jar. The Java dependency cannot be upgraded independently from the Ray wheel; remediation requires an upstream Ray release that updates the bundled Jackson dependency.",
         "review_by": "2026-10-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-89407",
+        "reason": "Ray 2.58.0 bundles jackson-core 2.18.8 inside ray_dist.jar. The Java dependency cannot be upgraded independently from the Ray wheel; remediation requires an upstream Ray release that updates the bundled Jackson dependency.",
+        "review_by": "2026-10-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-89425",
+        "reason": "Ray 2.58.0 bundles jackson-core 2.18.8 inside ray_dist.jar. The Java dependency cannot be upgraded independently from the Ray wheel; remediation requires an upstream Ray release that updates the bundled Jackson dependency.",
+        "review_by": "2026-10-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-68494",
+        "reason": "Ray 2.58.0 bundles jackson-core 2.18.8 inside ray_dist.jar. The Java dependency cannot be upgraded independently from the Ray wheel; remediation requires an upstream Ray release that updates the bundled Jackson dependency.",
+        "review_by": "2026-10-20"
     }
 ]

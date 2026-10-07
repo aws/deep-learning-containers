@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.30.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.31.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -8,7 +8,7 @@ FROM $BASE_IMAGE AS base
 # ====================== common =========================================
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
-ARG EFA_VERSION="1.50.0"
+ARG EFA_VERSION="latest"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
@@ -45,10 +45,6 @@ RUN uv pip install --system \
 # Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
 RUN uv pip install --system \
   av scipy soundfile "mistral_common[audio]" \
-  && uv cache clean
-
-RUN uv pip install --system \
-  "transformers<5.17" \
   && uv cache clean
 
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py

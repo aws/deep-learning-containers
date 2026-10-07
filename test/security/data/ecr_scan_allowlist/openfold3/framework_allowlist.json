@@ -2,146 +2,346 @@
     {
         "vulnerability_id": "CVE-2026-9076",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2025-69420",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2025-69421",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2025-15467",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2025-69419",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-28386",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-28387",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-28388",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-28389",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-28390",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-31789",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-31790",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-34180",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-34181",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-34182",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-34183",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-42764",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-42765",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-45445",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-45447",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-7383",
         "reason": "openssl is pinned by OpenFold3 0.4.1 upstream conda lock (openssl 3.6.1, conda-forge); upgrading risks breaking the locked conda env. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-3805",
         "reason": "libcurl is pulled in by the OpenFold3 0.4.1 conda env; no independent patch without re-resolving the upstream-pinned lock. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-5773",
         "reason": "libcurl is pulled in by the OpenFold3 0.4.1 conda env; no independent patch without re-resolving the upstream-pinned lock. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-6276",
         "reason": "libcurl is pulled in by the OpenFold3 0.4.1 conda env; no independent patch without re-resolving the upstream-pinned lock. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2025-32434",
         "reason": "torch 2.5.1 (cuda12.4) is the official pinned version in OpenFold3 0.4.1 upstream conda lock; upgrade requires upstream model re-validation. CVE-2025-32434 is torch.load RCE, not reachable: checkpoint is baked from OpenFold3's own bucket, no untrusted checkpoint loading.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2025-55552",
         "reason": "torch 2.5.1 (cuda12.4) is the official pinned version in OpenFold3 0.4.1 upstream conda lock; upgrade requires upstream model re-validation. CVE-2025-32434 is torch.load RCE, not reachable: checkpoint is baked from OpenFold3's own bucket, no untrusted checkpoint loading.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2025-55553",
         "reason": "torch 2.5.1 (cuda12.4) is the official pinned version in OpenFold3 0.4.1 upstream conda lock; upgrade requires upstream model re-validation. CVE-2025-32434 is torch.load RCE, not reachable: checkpoint is baked from OpenFold3's own bucket, no untrusted checkpoint loading.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "RUSTSEC-2026-0185",
         "reason": "quinn-proto is statically compiled into the astral-sh uv binary (/usr/local/bin/uv), a build-time tool not used at OpenFold3 runtime; cannot patch independently of the uv release.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-23949",
         "reason": "jaraco.context is vendored inside setuptools (_vendor); upgraded with setuptools by upstream, not independently pip-installable. Tracked for upstream bump.",
-        "review_by": "2026-09-30"
+        "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2025-55551",
+        "reason": "torch 2.5.1 (cuda12.4) is pinned by the OpenFold3 0.4.1 conda lock; fix requires torch>=2.9.0, a framework-version bump that breaks the pinned OpenFold3 env and needs upstream model re-validation. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2025-55560",
+        "reason": "torch 2.5.1 (cuda12.4) is pinned by the OpenFold3 0.4.1 conda lock; fix requires torch>=2.7.1, a framework-version bump that breaks the pinned OpenFold3 env and needs upstream model re-validation. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-24747",
+        "reason": "torch 2.5.1 (cuda12.4) is pinned by the OpenFold3 0.4.1 conda lock; fix requires torch>=2.10.0, a framework-version bump that breaks the pinned OpenFold3 env and needs upstream model re-validation. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-75803",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-63073",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-63076",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54876",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54874",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-14456",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-14457",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-63075",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-18798",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-63072",
+        "reason": "openssl 3.6.1 (conda-forge) is pinned by the OpenFold3 0.4.1 conda lock, with 3.6.0 in the base conda; the scanner's fixed version is OpenSSL 4.0.2, a major-version bump not adoptable without breaking the conda-forge-locked env. Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-11564",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-8925",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-11856",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-8927",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-19931",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-18924",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-8924",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-8926",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-9079",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-10536",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-11586",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-80231",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-9080",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-80229",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-82208",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-13608",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-8932",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-8286",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-80230",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-82209",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-9545",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-9547",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.20.1, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-80255",
+        "reason": "curl/libcurl 8.17.0 ships in the miniforge base conda (conda-forge) that underpins conda/mamba; fix requires curl>=8.22.0, not independently bumpable without re-resolving the conda-forge base env (pinned to openssl 3.6). Tracked for upstream bump.",
+        "review_by": "2026-10-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84784",
+        "reason": "openssl 3.6.x pinned by the OpenFold3 0.4.1 upstream conda lock; fix 4.0.3 not available on conda-forge",
+        "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-84782",
+        "reason": "openssl 3.6.x pinned by the OpenFold3 0.4.1 upstream conda lock; fix 4.0.3 not available on conda-forge",
+        "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-72897",
+        "reason": "openssl 3.6.x pinned by the OpenFold3 0.4.1 upstream conda lock; fix 4.0.3 not available on conda-forge",
+        "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-54873",
+        "reason": "openssl 3.6.x pinned by the OpenFold3 0.4.1 upstream conda lock; fix 4.0.3 not available on conda-forge",
+        "review_by": "2026-11-28"
     }
 ]

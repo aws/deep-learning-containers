@@ -8,7 +8,7 @@ ARG PYTHON_VERSION=3.13
 ARG PYTHON_SHORT_VERSION=3.13
 ARG FRAMEWORK_VERSION=2.58.0
 ARG VLLM_VERSION=0.26.0
-ARG EFA_VERSION=1.49.0
+ARG EFA_VERSION="latest"
 ARG GDRCOPY_VERSION=2.4.4
 ARG NCCL_TESTS_VERSION=v2.20.0
 ARG CUDA_VERSION=13.0.2
@@ -120,7 +120,9 @@ COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
 RUN ldconfig
 
 # Security patch after all installers so every OS package is covered.
-RUN dnf upgrade -y --security --releasever latest \
+ARG CACHE_REFRESH=0
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf upgrade -y --security --releasever latest \
   && dnf upgrade -y cuda-compat-* libcap \
   && dnf clean all
 

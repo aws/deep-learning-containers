@@ -1,0 +1,11 @@
+framework: AutoGluon
+version: "1.6"
+accelerator: cpu
+python: py312
+os: amzn2023
+platform: sagemaker
+public_registry: false
+
+tags:
+  - "1.6-cpu-amzn2023"
+  - "1.6.3-cpu-amzn2023"

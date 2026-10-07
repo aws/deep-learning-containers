@@ -104,8 +104,6 @@ display_names:
     huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
     huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
     huggingface-tensorflow-inference: "HuggingFace TensorFlow Inference"
-    autogluon-training: "AutoGluon Training"
-    autogluon-inference: "AutoGluon Inference"
     djl-inference: "DJL Inference"
     sagemaker-tritonserver: "NVIDIA Triton Server for SageMaker"
 
@@ -242,8 +240,7 @@ image_categories:
       - huggingface-pytorch-inference-neuronx
   - title: "AutoGluon"
     repositories:
-      - autogluon-training
-      - autogluon-inference
+      - autogluon
   - title: "DJL Inference"
     repositories:
       - djl-inference
@@ -296,8 +293,7 @@ table_order:
   - huggingface-pytorch-inference-neuronx
   - huggingface-tensorflow-training
   - huggingface-tensorflow-inference
-  - autogluon-training
-  - autogluon-inference
+  - autogluon
   - djl-inference
   - sagemaker-tritonserver
   - sagemaker-scikit-learn
