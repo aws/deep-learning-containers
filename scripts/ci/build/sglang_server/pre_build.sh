@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Pre-build hook for the SGLang AL2023 images (framework sglang_server).
 # Downloads private patches for the config's sglang_ref from the CI models bucket into
-# scripts/docker/sglang_server/patches/, where the Dockerfile applies them. The CI
+# scripts/docker/sglang/amzn2023/patches/, where the Dockerfile applies them. The CI
 # runner has read access to dlc-cicd-models (same account), so no AWS creds enter the
 # docker build itself.
 #
@@ -19,7 +19,7 @@
 #                              s3://dlc-cicd-models/build-patches/sglang_server)
 #
 # Side effects:
-#   Copies <prefix>/<sglang_ref>/*.patch into scripts/docker/sglang_server/patches/
+#   Copies <prefix>/<sglang_ref>/*.patch into scripts/docker/sglang/amzn2023/patches/
 set -euo pipefail
 
 CONFIG_FILE=""
@@ -59,7 +59,7 @@ SGLANG_REF=$(yq -r '.build.sglang_ref // ""' "$CONFIG_FILE")
 [[ -n "$SGLANG_REF" ]] || { echo "No build.sglang_ref in $CONFIG_FILE: skipping S3 patches"; exit 0; }
 
 PREFIX="${SGLANG_PATCHES_S3_PREFIX:-s3://dlc-cicd-models/build-patches/sglang_server}"
-DEST="scripts/docker/sglang_server/patches"
+DEST="scripts/docker/sglang/amzn2023/patches"
 mkdir -p "$DEST"
 
 aws s3 cp --recursive --only-show-errors --exclude "*" --include "*.patch" \

@@ -89,12 +89,12 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
     && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
 # Apply local patches on top of SGLANG_REF: those committed to
-# scripts/docker/sglang_server/patches/ plus any the sglang_server pre-build hook
+# scripts/docker/sglang/amzn2023/patches/ plus any the sglang_server pre-build hook
 # downloaded from S3 (PR and main builds). Same contract as the vLLM AL2023 image: no patches
 # is fine, but a patch that no longer applies to SGLANG_REF fails the build instead of
 # producing an unpatched image. git apply output is discarded because its error report
 # quotes the patch's code into the build log; reproduce a failure locally.
-COPY ./scripts/docker/sglang_server/patches/ /tmp/patches/
+COPY ./scripts/docker/sglang/amzn2023/patches/ /tmp/patches/
 RUN cd /sgl-workspace/sglang \
   && for p in /tmp/patches/*.patch; do \
        [ -f "$p" ] || continue; \
