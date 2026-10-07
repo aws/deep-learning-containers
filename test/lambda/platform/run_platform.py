@@ -137,7 +137,9 @@ def wait_active(args, name, version):
     last = {}
     while time.time() < deadline:
         last = _call(
-            args.region, "GET", f"{FUNCTIONS}/{_quote(name)}/configuration?Qualifier={urllib.parse.quote(version)}"
+            args.region,
+            "GET",
+            f"{FUNCTIONS}/{_quote(name)}/configuration?Qualifier={urllib.parse.quote(version)}",
         )
         state = last.get("State")
         reason = f"{last.get('StateReasonCode') or ''} {last.get('StateReason') or ''}".strip()
@@ -181,7 +183,9 @@ def invoke_concurrently(args, name, payload, count, version):
 
 def test_invoke_and_image(args, name, version):
     event = {"action": "echo", "marker": "dlc-ric-platform"}
-    assert invoke(args, name, event, version)["marker"] == "dlc-ric-platform", "echo did not round-trip"
+    assert invoke(args, name, event, version)["marker"] == "dlc-ric-platform", (
+        "echo did not round-trip"
+    )
     print("  PASS echo round-trips through the RIC")
 
     libs = ["awslambdaric", "boto3", "torch"]

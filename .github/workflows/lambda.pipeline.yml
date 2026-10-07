@@ -281,6 +281,10 @@ jobs:
           docker push "$OVERLAY"
           echo "overlay=${OVERLAY}" >> $GITHUB_OUTPUT
 
+      - name: Install driver dependencies
+        if: steps.check.outputs.exists == 'true'
+        run: python3 -m pip install boto3 -q
+
       - name: Run RIC invoke test on real Lambda
         if: steps.check.outputs.exists == 'true'
         run: |
