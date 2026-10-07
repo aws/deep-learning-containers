@@ -10,10 +10,8 @@ Patches come from two places:
 - **Committed here** — applied to every build, including releases.
 - **S3** — `scripts/ci/build/sglang_server/pre_build.sh` copies
   `s3://dlc-cicd-models/build-patches/sglang_server/<sglang_ref>/*.patch` into this
-  directory before the build, for pull_request builds from branches of this repository
-  and for builds of main (which include every release). Fork PRs, other branches and
-  local builds skip it. The patch stays out of the repository but ships in released
-  images. It is keyed by `sglang_ref`, so it silently stops applying once the ref moves.
+  directory before every CI build, releases included. The patch stays out of the
+  repository but ships in released images. It is keyed by `sglang_ref`, so it silently stops applying once the ref moves.
   Uploading a patch does not trigger a build; push a commit that touches a build path.
 
 Either way, use a patch only to carry a change the pinned `SGLANG_REF` predates, and drop

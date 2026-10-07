@@ -5,10 +5,9 @@
 # runner has read access to dlc-cicd-models (same account), so no AWS creds enter the
 # docker build itself.
 #
-# S3 patches are fetched for pull_request builds from branches of this repository and for
-# builds of main, which include every release, so they ship in released images while
-# staying out of the repository. Fork PRs, other branches and local runs skip them.
-# Patches are keyed by sglang_ref, so they stop applying once the ref moves.
+# Every build that runs this hook fetches them, releases included, so they ship in released
+# images while staying out of the repository. Patches are keyed by sglang_ref, so they stop
+# applying once the ref moves.
 #
 # Usage:
 #   bash scripts/ci/build/sglang_server/pre_build.sh --config-file <path>
@@ -33,27 +32,6 @@ done
 [[ -n "$CONFIG_FILE" ]] || { echo "ERROR: --config-file is required" >&2; exit 1; }
 [[ -f "$CONFIG_FILE" ]] || { echo "ERROR: Config file not found: $CONFIG_FILE" >&2; exit 1; }
 
-case "${GITHUB_EVENT_NAME:-}" in
-  "")
-    echo "Not a CI build: skipping S3 patches"
-    exit 0
-    ;;
-  pull_request)
-    HEAD_REPO=$(python3 -c 'import json, os
-pr = json.load(open(os.environ["GITHUB_EVENT_PATH"]))["pull_request"]
-print((pr["head"].get("repo") or {}).get("full_name", ""))')
-    if [[ "$HEAD_REPO" != "${GITHUB_REPOSITORY:-}" ]]; then
-      echo "Pull request from another repository (${HEAD_REPO:-unknown}): skipping S3 patches"
-      exit 0
-    fi
-    ;;
-  *)
-    if [[ "${GITHUB_REF:-}" != "refs/heads/main" ]]; then
-      echo "Not a main build (${GITHUB_REF:-unknown ref}): skipping S3 patches"
-      exit 0
-    fi
-    ;;
-esac
 
 SGLANG_REF=$(yq -r '.build.sglang_ref // ""' "$CONFIG_FILE")
 [[ -n "$SGLANG_REF" ]] || { echo "No build.sglang_ref in $CONFIG_FILE: skipping S3 patches"; exit 0; }
