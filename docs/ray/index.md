@@ -22,10 +22,10 @@ All images are also available on the [ECR Public Gallery](https://gallery.ecr.aw
 
 The images bundle a curated stack so you can ship a serving endpoint without building a custom image:
 
-- **[Ray Serve](https://docs.ray.io/en/latest/serve/index.html) 2.55** — scalable model serving with autoscaling, fractional GPU sharing, and
+- **[Ray Serve](https://docs.ray.io/en/latest/serve/index.html) 2.59** — scalable model serving with autoscaling, fractional GPU sharing, and
   multi-model composition
 - **[PyTorch](https://pytorch.org/) 2.10** with **CUDA 12.9** (GPU variant) — current stable PyTorch
-- **[Transformers](https://huggingface.co/docs/transformers) 5.8** — Hugging Face model loading and `pipeline()` API
+- **[Transformers](https://huggingface.co/docs/transformers) 5.19** — Hugging Face model loading and `pipeline()` API
 - **[FFmpeg](https://ffmpeg.org/) 8.0.1** — built from source for video ingestion and processing pipelines
 - **OpenCV, Pillow, soundfile, torchaudio, torchvision, torchcodec** — common image, audio, and video I/O libraries
 - **scikit-learn, NumPy, pandas** — for tabular models and feature engineering

@@ -31,6 +31,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/10/08]** [Ray Serve v1.5 (2.59.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2: `serve-ml-cuda-v1.5` · `serve-ml-cpu-v1.5` · SageMaker: `serve-ml-sagemaker-cuda-v1.5` · `serve-ml-sagemaker-cpu-v1.5` · Ray 2.59.0 (up from 2.57.0); Transformers 5.19.0, uvicorn 0.54.0, OpenCV 4.14.0.94; dropped the unused Ray Java worker jar and its bundled dependencies.
 - **[2026/10/01]** [vLLM Server ARM64 CPU v1.0 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm-arm64) · EC2: `server-cpu-v1.0` · SageMaker: `server-sagemaker-cpu-v1.0` · Initial release: vLLM `0.30.0` CPU backend on AWS Graviton (ARM64), no GPU required; bf16 kernels for Graviton 3 and later, RAM-based KV-cache defaults, and the OpenAI-compatible API on EC2 and SageMaker AI.
 - **[2026/09/28]** [PyTorch v2.14.0](https://gallery.ecr.aws/deep-learning-containers/pytorch) — EC2: `2.14-cu133-amzn2023` · SageMaker: `2.14-cu133-amzn2023-sagemaker` · PyTorch 2.14.0 with `torchvision` 0.29.0; CUDA 13.3.1, EFA 1.50.0, TE 2.18.0, DeepSpeed 0.19.6.
 - **[2026/09/26]** [vLLM Server v2.6 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.6` · SageMaker: `server-sagemaker-cuda-v2.6` · DeepEP v2 over EFA, built from the `amazon-contributing/DeepEP` fork; NCCL 2.31.2; EFA 1.50.0. vLLM stays at `0.30.0` (`ec4a3a5`).
@@ -43,7 +44,6 @@ ______________________________________________________________________
 - **[2026/09/11]** [vLLM v0.29.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.29.0-gpu-py312-ec2` · SageMaker: `0.29.0-gpu-py312` · New models: Hy4-preview (Tencent 770B/49B-active MoE with Gated DeepSeek Sparse Attention and native MTP), Qwen3.8-Flash-Next (BF16/FP8/NVFP4, MTP), GraniteSWA, GraniteMoeSWA, NemotronH_Omni_Reasoning_V3 (MTP), and Kimi K3 NVFP4 checkpoints.
 - **[2026/09/07]** [SGLang v0.5.19 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.19-gpu-py312-ec2` · SageMaker: `0.5.19-gpu-py312` · Qwen3.8, Ling-3.0, Spark2.5, Granite 4.2; beam search; DeepEP v2 MoE all-to-all.
 - **[2026/09/01]** [Ray LLM v1.0 (2.58.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `serve-llm-cuda-v1.0` · Initial release: OpenAI-compatible LLM serving with Ray Serve and vLLM 0.26.0 on PyTorch 2.11.0 / CUDA 13.0.2 / Python 3.13; `ray[llm]`'s `build_openai_app` runs vLLM behind Ray Serve — single GPU on EC2, and multi-node serving on EKS via KubeRay.
-- **[2026/09/01]** [Ray Train v1.1 (2.58.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `train-ml-cuda-v1.1` · EFA `1.49.0` (up from 1.47.0).
 
 ### 📢 Support Updates
 
