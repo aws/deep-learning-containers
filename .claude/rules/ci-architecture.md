@@ -263,3 +263,4 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - `x86-g6exl-runner` — multi-GPU tests (4x L4)
 - `x86-g6e12xl-runner` — large multi-GPU tests (4x L4, more memory)
 - `default-runner` — CPU-only jobs (sanity, telemetry, security, SageMaker endpoint tests)
+- `release-runner` — release publish job (step 1 of `_reusable.release-image.yml`); its own CodeBuild project (label `codebuild-release-runner-*`) with a 24 h timeout and an auto-scaling fleet

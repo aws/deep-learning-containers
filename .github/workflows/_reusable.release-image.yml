@@ -24,7 +24,7 @@ on:
         type: string
         default: 'us-west-2'
       runner-fleet:
-        description: 'CodeBuild runner fleet'
+        description: 'CodeBuild runner fleet for steps 2-4 (step 1 runs on the release-runner project)'
         required: false
         type: string
         default: 'default-runner'
@@ -65,8 +65,7 @@ jobs:
     needs: [validate-release]
     environment: ${{ inputs.environment }}
     runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ inputs.runner-fleet }}
+      - codebuild-release-runner-${{ github.run_id }}-${{ github.run_attempt }}
         buildspec-override:true
     timeout-minutes: 1440
     outputs:
