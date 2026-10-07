@@ -82,8 +82,7 @@ def _quote(name):
 
 
 def create_function(args, name):
-    # ExecutionEnvironmentConcurrencyConfig is rejected here; the platform derives
-    # AWS_LAMBDA_MAX_CONCURRENCY from PerExecutionEnvironmentMaxConcurrency instead.
+    # aws lambda create-function
     payload = {
         "FunctionName": name,
         "Role": args.execution_role_arn,
@@ -93,25 +92,25 @@ def create_function(args, name):
         "MemorySize": args.memory_size,
         "EphemeralStorage": {"Size": args.ephemeral_storage},
         "Architectures": ["x86_64"],
-        # A GPU capacity provider rejects functions that declare no accelerator need.
         "AcceleratorConfig": {"AcceleratorMemorySize": args.accelerator_memory_size},
         "CapacityProviderConfig": {
             "LambdaManagedInstancesCapacityProviderConfig": {
                 "CapacityProviderArn": args.capacity_provider_arn,
                 "PerExecutionEnvironmentMaxConcurrency": args.concurrency,
+                "ExecutionEnvironmentMemoryGiBPerVCpu": args.memory_gib_per_vcpu,
             }
         },
     }
     _call(args.region, "POST", FUNCTIONS, payload)
     wait_created(args, name)
-    # Managed instances serve a published version, never $LATEST.
+    # aws lambda publish-version
     return _call(args.region, "POST", f"{FUNCTIONS}/{_quote(name)}/versions")["Version"]
 
 
 def wait_created(args, name):
-    # Publishing is rejected until the create has settled, which LastUpdateStatus reports.
     deadline = time.time() + args.ready_timeout
     while time.time() < deadline:
+        # aws lambda get-function-configuration
         current = _call(args.region, "GET", f"{FUNCTIONS}/{_quote(name)}/configuration")
         state, update = current.get("State"), current.get("LastUpdateStatus")
         print(f"  create state={state} lastUpdate={update}")
@@ -130,10 +129,11 @@ def wait_active(args, name, version):
     deadline = time.time() + args.ready_timeout
     last = {}
     while time.time() < deadline:
+        # aws lambda get-function-configuration --qualifier
         last = _call(
             args.region,
             "GET",
-            f"{FUNCTIONS}/{_quote(name)}/configuration?Qualifier={urllib.parse.quote(version)}",
+            f"{FUNCTIONS}/{_quote(name)}/configuration?Qualifier={_quote(version)}",
         )
         state = last.get("State")
         reason = f"{last.get('StateReasonCode') or ''} {last.get('StateReason') or ''}".strip()
@@ -153,10 +153,11 @@ def wait_active(args, name, version):
 
 
 def invoke(args, name, payload, version="$LATEST"):
+    # aws lambda invoke --qualifier
     raw = _call(
         args.region,
         "POST",
-        f"{FUNCTIONS}/{_quote(name)}/invocations?Qualifier={urllib.parse.quote(version)}",
+        f"{FUNCTIONS}/{_quote(name)}/invocations?Qualifier={_quote(version)}",
         payload,
         raw_response=True,
     )
@@ -176,6 +177,7 @@ def invoke_concurrently(args, name, payload, count, version):
 
 
 def test_invoke_and_image(args, name, version):
+    """Proves: handler called via the RIC, and DLC libraries importable from handler code."""
     event = {"action": "echo", "marker": "dlc-ric-platform"}
     assert invoke(args, name, event, version)["marker"] == "dlc-ric-platform", (
         "echo did not round-trip"
@@ -192,6 +194,7 @@ def test_invoke_and_image(args, name, version):
 
 
 def test_concurrency_and_prefork(args, name, version):
+    """Proves: simultaneous invokes get separate workers, and the pre-fork hook runs first."""
     results = invoke_concurrently(
         args, name, {"action": "get_pid", "sleep": args.overlap_seconds}, args.concurrency, version
     )
@@ -211,6 +214,7 @@ def test_concurrency_and_prefork(args, name, version):
 
 
 def test_gpu_shared_engine(args, name, version):
+    """Proves: on vllm/sglang images only, inference succeeds on one shared GPU process."""
     payload = {"prompt": "Describe a container image in one sentence.", "max_tokens": 16}
     results = invoke_concurrently(
         args, name, {"action": "infer_probe", "payload": payload}, args.concurrency, version
@@ -227,7 +231,6 @@ def test_gpu_shared_engine(args, name, version):
 
 
 def run(args):
-    # Unique per run: a name reused straight after deletion can still be settling.
     name = f"{args.name_prefix}-{os.urandom(3).hex()}"
     print(f"=== {name} ===")
     try:
@@ -239,6 +242,7 @@ def run(args):
             test_gpu_shared_engine(args, name, version)
     finally:
         try:
+            # aws lambda delete-function
             _call(args.region, "DELETE", f"{FUNCTIONS}/{_quote(name)}")
             print(f"  deleted {name}")
         except ApiError as e:
@@ -258,12 +262,12 @@ def main():
     p.add_argument(
         "--accelerator-memory-size",
         type=int,
-        default=16,
+        default=12,
         choices=[3, 6, 12, 16, 24, 48],
         help="minimum GPU memory in GB per execution environment",
     )
-    # Must fit the smallest instance in the pool, or placement silently has nowhere to go.
     p.add_argument("--memory-size", type=int, default=4096)
+    p.add_argument("--memory-gib-per-vcpu", type=int, default=4)
     p.add_argument("--ephemeral-storage", type=int, default=10240)
     p.add_argument("--invoke-timeout", type=int, default=300)
     p.add_argument("--ready-timeout", type=int, default=900)
