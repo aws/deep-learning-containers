@@ -5,10 +5,10 @@ requires-python = ">=3.13,<3.14"
 dependencies = [
     "awslambdaric==4.1.0",
     "boto3==1.40.4",
-    "pip==26.0.1",
+    "pip==26.2",
     "pip-licenses==5.5.1",
     "requests==2.33.0",
-    "setuptools==82.0.1",
+    "setuptools==83.0.0",
     "urllib3==2.8.0",
-    "pytest==8.4.1",
+    "pytest==9.0.3",
 ]
