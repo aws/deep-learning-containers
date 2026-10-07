@@ -25,7 +25,6 @@ from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 
 FUNCTIONS = "/2015-03-31/functions"
-QUALIFIER = "$LATEST.PUBLISHED"
 RETRYABLE_STATUS = (429, 500, 502, 503, 504)
 MAX_ATTEMPTS = 5
 CAPACITY_MARKERS = (
@@ -92,6 +91,7 @@ def create_function(args, name):
         "Code": {"ImageUri": args.image},
         "Timeout": args.invoke_timeout,
         "MemorySize": args.memory_size,
+        "EphemeralStorage": {"Size": args.ephemeral_storage},
         "Architectures": ["x86_64"],
         # A GPU capacity provider rejects functions that declare no accelerator need.
         "AcceleratorConfig": {"AcceleratorMemorySize": args.accelerator_memory_size},
@@ -104,14 +104,8 @@ def create_function(args, name):
     }
     _call(args.region, "POST", FUNCTIONS, payload)
     wait_created(args, name)
-    # Managed instances serve the published qualifier, never $LATEST.
-    _call(
-        args.region,
-        "POST",
-        f"{FUNCTIONS}/{_quote(name)}/versions",
-        {"PublishTo": "LATEST_PUBLISHED"},
-    )
-    return QUALIFIER
+    # Managed instances serve a published version, never $LATEST.
+    return _call(args.region, "POST", f"{FUNCTIONS}/{_quote(name)}/versions")["Version"]
 
 
 def wait_created(args, name):
@@ -270,6 +264,7 @@ def main():
     )
     # Must fit the smallest instance in the pool, or placement silently has nowhere to go.
     p.add_argument("--memory-size", type=int, default=4096)
+    p.add_argument("--ephemeral-storage", type=int, default=10240)
     p.add_argument("--invoke-timeout", type=int, default=300)
     p.add_argument("--ready-timeout", type=int, default=900)
     p.add_argument("--overlap-seconds", type=int, default=5)
