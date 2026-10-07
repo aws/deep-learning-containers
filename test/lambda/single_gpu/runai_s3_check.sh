@@ -3,7 +3,7 @@
 # images.
 #
 # Runs the engine's OpenAI server directly (entrypoint overridden — no Lambda RIE;
-# RIC concurrency is covered separately by rie_topology_check.sh) with the model
+# RIC concurrency is covered separately by ric_concurrency_check.sh) with the model
 # pointed at an s3:// prefix and --load-format runai_streamer, so the engine streams
 # safetensors straight from S3 into GPU memory (no HuggingFace download, no /tmp
 # staging), then fires one inference and asserts a real completion comes back.
