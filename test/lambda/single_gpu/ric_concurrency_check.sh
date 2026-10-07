@@ -21,7 +21,6 @@ CONTAINER=ric-check
 RC=0
 SHAPE_RC=0
 
-# Overridable so the check can run on a CPU box during development.
 if [ -z "${DOCKER_GPU_FLAG+x}" ]; then GPU_FLAG="--gpus all"; else GPU_FLAG="${DOCKER_GPU_FLAG}"; fi
 
 REQUIRED_LIBS="awslambdaric,boto3"
@@ -31,8 +30,8 @@ MODEL_MOUNT=""
 MODEL_ID="none"
 READY_TIMEOUT=90
 if [ "${ENGINE}" != "none" ]; then
-  READY_TIMEOUT=900 # engine cold start: load + warmup
-  # Mount the model so the engine needs no HuggingFace access from the runner.
+  READY_TIMEOUT=900
+  # aws s3 cp
   MODEL_S3_URI="${MODEL_S3_URI:-s3://dlc-cicd-models/llm-models/qwen3-0.6b.tar.gz}"
   MODEL_DIR="$(mktemp -d)"
   echo "fetching model ${MODEL_S3_URI} ..."
@@ -55,12 +54,12 @@ trap 'docker rm -f "${CONTAINER}" >/dev/null 2>&1; [ -n "${MODEL_DIR:-}" ] && rm
 
 echo "image=${IMAGE} N=${N} engine=${ENGINE} libs=${REQUIRED_LIBS}"
 
+# curl POST /2015-03-31/functions/function/invocations
 invoke() { curl -s -m "${2:-600}" "${INVOKE_URL}" -d "$1" 2>/dev/null; }
 
-# 1 if the JSON satisfies the jq filter, else 0.
 jq_ok() { echo "$1" | jq -e "$2" >/dev/null 2>&1 && echo 1 || echo 0; }
 
-check() { # check <name> <1|0> [detail]
+check() {
   if [ "$2" = "1" ]; then
     echo "  PASS  $1"
   else
@@ -70,7 +69,8 @@ check() { # check <name> <1|0> [detail]
   fi
 }
 
-start_container() { # start_container <multi|ondemand>
+# docker run
+start_container() {
   docker rm -f "${CONTAINER}" >/dev/null 2>&1
   local conc=()
   [ "$1" = "multi" ] && conc=(-e "AWS_LAMBDA_MAX_CONCURRENCY=${N}")
@@ -85,7 +85,6 @@ start_container() { # start_container <multi|ondemand>
 }
 
 wait_ready() {
-  # The RIE answers 200 even when the handler raises, so require a real field.
   local deadline=$((SECONDS + READY_TIMEOUT))
   while [ "${SECONDS}" -lt "${deadline}" ]; do
     if [ "$(jq_ok "$(invoke '{"action":"get_pid","sleep":0}' "${READY_TIMEOUT}")" '.pid != null')" = "1" ]; then
@@ -94,7 +93,6 @@ wait_ready() {
     sleep 5
   done
   echo "  handler not ready within ${READY_TIMEOUT}s"
-  # Surface the import/init error first; RIE chatter otherwise pushes it out of the tail.
   docker logs "${CONTAINER}" 2>&1 |
     grep -iE "errorMessage|ModuleNotFound|ImportError|Traceback|Runtime\.[A-Za-z]+Error" |
     sort -u | tail -5
@@ -102,8 +100,7 @@ wait_ready() {
   return 1
 }
 
-# Fires n concurrent invokes; sets BURST_PAIRS ("pid tid" lines, deduped) and BURST_OK.
-burst() { # burst <n> <payload>
+burst() {
   local n="$1" payload="$2" tmp i f p
   tmp="$(mktemp -d)"
   for i in $(seq 1 "${n}"); do
@@ -124,16 +121,20 @@ burst() { # burst <n> <payload>
 count_procs() { printf '%s\n' "${BURST_PAIRS}" | awk 'NF{print $1}' | sort -u | grep -c '[0-9]'; }
 count_handlers() { printf '%s\n' "${BURST_PAIRS}" | grep -c '[0-9]'; }
 
+# docker exec nvidia-smi --query-compute-apps
 gpu_procs() {
   docker exec "${CONTAINER}" nvidia-smi --query-compute-apps=pid --format=csv,noheader 2>/dev/null |
     grep -c '[0-9]'
 }
 
+# docker logs
 dump_logs_on_failure() {
   [ "${SHAPE_RC}" = "0" ] ||
     docker logs "${CONTAINER}" 2>&1 | grep -iE 'error|traceback|out of memory' | tail -15
 }
 
+# Proves: N overlapping invokes each get their own forked worker, the pre-fork hook runs
+# once in the parent, and on engine images one shared GPU process serves them all.
 echo "########## shape=multi (AWS_LAMBDA_MAX_CONCURRENCY=${N}) ##########"
 SHAPE_RC=0
 start_container multi
@@ -149,7 +150,6 @@ else
   check "imports from handler (${REQUIRED_LIBS})" \
     "$(jq_ok "${RESP}" 'to_entries | all(.value==true)')" "got ${RESP}"
 
-  # Workers start lazily; the RIE rejects a burst with "no idle runtimes" until all N are up.
   for attempt in $(seq 1 20); do
     burst "${N}" '{"action":"get_pid","sleep":1}'
     [ "$(count_procs)" -ge "${N}" ] && break
@@ -169,7 +169,6 @@ else
   check "exactly ${N} worker processes" \
     "$([ "${PROCS}" = "${N}" ] && echo 1 || echo 0)" "observed ${PROCS}"
 
-  # The pre-fork hook ran once, in the parent, before the workers forked.
   RESP="$(invoke '{"action":"check_hook"}' 60)"
   check "register_pre_fork ran in the parent" \
     "$(jq_ok "${RESP}" '.hook_ran_in_parent==true')" "got ${RESP}"
@@ -184,6 +183,8 @@ fi
 dump_logs_on_failure
 docker rm -f "${CONTAINER}" >/dev/null 2>&1
 
+# Proves: without the env var the RIC never forks, so one worker serves every invoke and
+# no pre-fork hook runs. Unreachable on real Lambda, which always sets the variable.
 echo "########## shape=ondemand (no AWS_LAMBDA_MAX_CONCURRENCY) ##########"
 SHAPE_RC=0
 start_container ondemand
@@ -194,15 +195,12 @@ else
   RESP="$(invoke '{"action":"echo","msg":"hello"}' 60)"
   check "echo invoke round-trip" "$(jq_ok "${RESP}" '.msg=="hello"')" "got ${RESP}"
 
-  # One worker, so two sequential invokes report the same PID. No burst: the RIE has a
-  # single runtime here and would reject concurrent invokes.
   PID1="$(invoke '{"action":"get_pid","sleep":0}' 60 | jq -r '.pid // empty')"
   PID2="$(invoke '{"action":"get_pid","sleep":0}' 60 | jq -r '.pid // empty')"
   check "single worker process" \
     "$([ -n "${PID1}" ] && [ "${PID1}" = "${PID2}" ] && echo 1 || echo 0)" \
     "pids ${PID1:-?} ${PID2:-?}"
 
-  # No fork, so no pre-fork hook: the engine handlers start their server at module level.
   RESP="$(invoke '{"action":"check_hook"}' 60)"
   check "no pre-fork hook without MAX_CONCURRENCY" \
     "$(jq_ok "${RESP}" '.hook_executed==false')" "got ${RESP}"
