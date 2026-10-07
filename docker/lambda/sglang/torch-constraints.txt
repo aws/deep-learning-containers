@@ -1,3 +1,4 @@
+fsspec>=2026.6.0
 # Torch trio constraints for the sglang source install.
 #
 # torch/vision/audio are already installed (cu130) from the builder-pytorch-py3
