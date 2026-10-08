@@ -582,6 +582,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest \
   && dnf install -y --setopt=install_weak_deps=False \
     libxcb libX11 libXext libXfixes alsa-lib \
+    gcc which \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-pytorch-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
