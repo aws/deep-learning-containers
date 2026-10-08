@@ -1,5 +1,5 @@
 # Hugging Face PyTorch inference DLC, layered on the matching AWS PyTorch DLC.
-# BASE_IMAGE selects the SageMaker or EC2 flavor through the image configuration.
+# BASE_IMAGE selects the matching SageMaker image through the image configuration.
 ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cpu-amzn2023-sagemaker
 
 FROM ${BASE_IMAGE} AS base
@@ -99,15 +99,4 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
 
 COPY --chmod=755 ./scripts/docker/huggingface/pytorch/inference/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
-CMD ["serve"]
-
-# =====================================================================
-# ec2 — Hugging Face PyTorch inference for EC2 / EKS
-# =====================================================================
-FROM base AS ec2
-
-ENV CLOUD="" \
-  HF_HUB_USER_AGENT_ORIGIN="aws:ec2:cpu:inference:hf-pytorch"
-
-ENTRYPOINT ["/usr/local/bin/hf_serve_entrypoint.sh"]
 CMD ["serve"]
