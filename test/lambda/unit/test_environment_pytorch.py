@@ -26,16 +26,26 @@ def test_model_and_jit_caches_under_tmp(var):
     assert value.startswith("/tmp/"), f"{var}={value!r}"
 
 
-@pytest.mark.parametrize("tool", ["gcc", "which"])
+@pytest.mark.parametrize("tool", ["gcc", "g++", "which"])
 def test_host_compiler_on_path(tool):
-    """Triton and Inductor shell out to a C compiler, so one must be installed."""
+    """Triton resolves gcc via shutil.which; Inductor's cpp_wrapper resolves g++."""
     assert shutil.which(tool), f"{tool} not found on PATH"
 
 
-def test_gcc_compiles_and_links(tmp_path):
+C_PROBE = "int main(void) { return 0; }\n"
+CPP_PROBE = "#include <vector>\nint main() { return std::vector<int>{}.size(); }\n"
+
+
+@pytest.mark.parametrize(
+    ("compiler", "ext", "source"),
+    [("gcc", "c", C_PROBE), ("g++", "cpp", CPP_PROBE)],
+)
+def test_toolchain_compiles_and_links(tmp_path, compiler, ext, source):
     """Presence on PATH is not enough — the toolchain must actually produce a binary."""
-    src = tmp_path / "probe.c"
-    src.write_text("int main(void) { return 0; }\n")
-    out = tmp_path / "probe"
-    subprocess.run(["gcc", str(src), "-o", str(out)], check=True, capture_output=True)
+    src = tmp_path / f"probe.{ext}"
+    src.write_text(source)
+    out = tmp_path / f"probe_{ext}"
+    subprocess.run(
+        [compiler, str(src), "-o", str(out)], check=True, capture_output=True
+    )
     subprocess.run([str(out)], check=True)
