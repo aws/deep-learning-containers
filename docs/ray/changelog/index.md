@@ -4,6 +4,19 @@ Changelog for the Ray Serve DLC images.
 
 * * *
 
+## v1.5.0 — 2026-10-08
+
+**Tags:** `serve-ml-cuda-v1.5` · `serve-ml-cpu-v1.5` · `serve-ml-sagemaker-cuda-v1.5` · `serve-ml-sagemaker-cpu-v1.5`
+
+### Changes
+
+- Upgraded Ray from 2.57.0 to 2.59.0
+- Upgraded Transformers to 5.19.0, uvicorn to 0.54.0 and OpenCV to 4.14.0.94
+- Removed `ray_dist.jar`, which is only used by Ray Java workers, along with its bundled Java dependencies
+- Refreshed the transitive dependencies, including protobuf 7.36.2
+
+* * *
+
 ## v1.4.0 — 2026-08-12
 
 **Tags:** `serve-ml-cuda-v1.4` · `serve-ml-cpu-v1.4` · `serve-ml-sagemaker-cuda-v1.4` · `serve-ml-sagemaker-cpu-v1.4`
