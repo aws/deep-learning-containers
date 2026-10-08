@@ -241,7 +241,6 @@ def parse_args():
             "vllm_server",
             "sglang",
             "sglang_server",
-            "miles",
             "lambda",
             "ray",
             "ray_llm",

@@ -4,8 +4,8 @@
 #
 # This target deliberately excludes the SageMaker Training adapter. It follows
 # the v0.1.1 release lock while retaining documented AL2023 and multi-GPU
-# artifact replacements plus the EFA, security, telemetry, and compliance
-# layers needed by a first-party EC2 training image.
+# artifact replacements plus the EFA, security, and compliance layers needed
+# by a first-party EC2 training image.
 
 # ── Global release inputs ────────────────────────────────────────────────────
 ARG CUDA_VERSION=13.0.3
@@ -735,27 +735,15 @@ RUN git clone --filter=blob:none https://github.com/NVIDIA/nccl-tests.git \
 # ── Stage: ec2 ───────────────────────────────────────────────────────────────
 FROM runtime-base AS ec2
 
-ARG MILES_VERSION
 ARG CACHE_REFRESH=0
 ARG FFMPEG_VERSION
 ARG GDRCOPY_VERSION
 ARG NCCL_TESTS_COMMIT
 
-# DLC telemetry and CUDA forward-compatibility hooks.
-COPY scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+# Miles telemetry registration is deferred to a follow-up change so this
+# initial build integration does not modify shared telemetry files.
 COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-RUN chmod +x \
-      /usr/local/bin/deep_learning_container.py \
-      /usr/local/bin/start_cuda_compat.sh \
-    && sed -e 's/{{FRAMEWORK}}/miles/g' \
-      -e "s/{{FRAMEWORK_VERSION}}/${MILES_VERSION}/g" \
-      -e 's/{{CONTAINER_TYPE}}/training/g' \
-      /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
-    && chmod +x /usr/local/bin/bash_telemetry.sh \
-    && rm /tmp/bash_telemetry.sh.template \
-    && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
-    && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 
 # Apply security updates after every OS installer.
 RUN echo "security-cache-refresh=${CACHE_REFRESH}" >/dev/null \
