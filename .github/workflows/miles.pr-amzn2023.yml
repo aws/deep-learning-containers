@@ -1,0 +1,41 @@
+name: "PR - Miles AL2023"
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/miles/ec2-amzn2023.yml"
+      - ".github/workflows/miles.pipeline.yml"
+      - ".github/workflows/miles.pr-amzn2023.yml"
+      - "docker/miles/**"
+      - "scripts/docker/common/**"
+      - "scripts/docker/miles/**"
+      - "scripts/docker/telemetry/**"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  pipeline:
+    needs: [gatekeeper]
+    uses: ./.github/workflows/miles.pipeline.yml
+    with:
+      config-file: ".github/config/image/miles/ec2-amzn2023.yml"
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      build: true
+    secrets: inherit

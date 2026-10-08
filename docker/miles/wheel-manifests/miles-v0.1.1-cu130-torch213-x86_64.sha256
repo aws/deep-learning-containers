@@ -1,0 +1,14 @@
+# Miles v0.1.1 CUDA 13 / Torch 2.13 x86_64 release assets that are
+# binary-compatible with AL2023. Router and Mooncake release artifacts are
+# excluded because their manylinux_2_39 requirement is newer than AL2023.
+a1c642823771f83ee6314c07e42a233294c5d7afd910acf4bfa3291f9f3e0351  apex-0.1-cp312-cp312-linux_x86_64.whl
+26ab8fdfd4b08c4b927db2bd5b442eb33214626bc942f47264d0872629f4c96e  causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl
+c16f6c90ff5958ab4dbfda07ea76feb3c1570e06f1ee7e2d2949d9bdee7efae8  fake_int4_quant_cuda-0.0.0-cp312-cp312-linux_x86_64.whl
+17837fcc5bc5b21965e234c6097ba68197b1eb3c4e30d37e824705d85ede7b6f  fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl
+5900a899060e04b890842ca598193ca7238ed9fdec6bd4794caeeef525c8c5bb  flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl
+6b19fd7c3ced3e70b3a75b6d84d194bb3fcf18fcd609b88cd047d85d467a9498  flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl
+edf843a8e62c5a385d169293b157025190bea78e293e438403a4c42895530e9b  flash_mla-1.0.0+b7643bd-cp312-cp312-linux_x86_64.whl
+fcdbd2526b0094926361249b365edf1f473e07b9e00da943c696f557c5d142b5  mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl
+c274fd74ea2e4caa7132921e1ecfa3847931abbed9f6b8cab61346cdb833bc76  transformer_engine-2.17.0-py3-none-any.whl
+1c8e6627cf02358201f513ab902c7b4f82f179214bd775edc97ce0f2001d82da  transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl
+e4ca446b6ac59bcb99f58b688008329333a8a947d56f2a689e945724708fb076  transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl
