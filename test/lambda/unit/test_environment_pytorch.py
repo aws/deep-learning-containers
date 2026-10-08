@@ -45,7 +45,5 @@ def test_toolchain_compiles_and_links(tmp_path, compiler, ext, source):
     src = tmp_path / f"probe.{ext}"
     src.write_text(source)
     out = tmp_path / f"probe_{ext}"
-    subprocess.run(
-        [compiler, str(src), "-o", str(out)], check=True, capture_output=True
-    )
+    subprocess.run([compiler, str(src), "-o", str(out)], check=True, capture_output=True)
     subprocess.run([str(out)], check=True)
