@@ -4,6 +4,25 @@ Changelog for the Amazon Linux 2023-based SGLang images (`server-cuda`, `server-
 
 * * *
 
+## v1.4.0 — 2026-09-24
+
+**Tags:** `server-cuda-v1.4` · `server-sagemaker-cuda-v1.4`
+
+**SGLang source:** [0bcd822](https://github.com/sgl-project/sglang/commit/0bcd822377da7b5718e674eaf9c870d349424dd1) (`0.5.19+amzn2023.0bcd822`)
+
+**Bundled versions:** CUDA 13.0.3 · Python 3.12 · PyTorch 2.13.0 · sgl-kernel 0.4.6.post1 · FlashInfer 0.6.18 · Mooncake 0.3.13 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2 · EFA 1.50.0
+
+### Changes
+
+- Bumped SGLang to `0.5.19` (upstream commit `0bcd822`), up from 0.5.17, with PyTorch 2.13.0 and cutlass-dsl 4.6.2
+- **DeepEP v2 over EFA** ([#6745](https://github.com/aws/deep-learning-containers/pull/6745)) — DeepEP now builds from the
+  [amazon-contributing/DeepEP](https://github.com/amazon-contributing/DeepEP) fork, which adds an NCCL/GIN backend for expert-parallel all-to-all over
+  EFA
+- NCCL 2.30.4 → 2.31.2, required by that backend and checked at runtime. EFA 1.49.0 → 1.50.0
+
+* * *
+
 ## v1.3.0 — 2026-08-17
 
 **Tags:** `server-cuda-v1.3` · `server-sagemaker-cuda-v1.3`

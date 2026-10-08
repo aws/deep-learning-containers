@@ -277,17 +277,18 @@ done
 
 echo "=============== SSH (multi-node launch) ==============="
 
-# --- sshd + keys, used by mpirun to reach worker nodes ---
+# --- sshd + client config for mpirun. Base devel has no keypair
+# (only mpirun-over-SSH frameworks do). ---
 if [ -x /usr/sbin/sshd ]; then
   pass "/usr/sbin/sshd is executable"
 else
   fail "/usr/sbin/sshd not found or not executable"
 fi
 
-if [ -f /root/.ssh/authorized_keys ]; then
-  pass "/root/.ssh/authorized_keys exists"
+if [ -f /root/.ssh/id_rsa ] || [ -f /root/.ssh/authorized_keys ]; then
+  fail "SSH keypair present (/root/.ssh/id_rsa or authorized_keys) — should have been removed"
 else
-  fail "/root/.ssh/authorized_keys not found"
+  pass "no SSH keypair (/root/.ssh/id_rsa, authorized_keys absent)"
 fi
 
 if grep -q "StrictHostKeyChecking no" /root/.ssh/config 2>/dev/null; then

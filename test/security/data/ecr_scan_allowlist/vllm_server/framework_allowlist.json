@@ -85,14 +85,9 @@
         "review_by": "2026-12-08"
     },
     {
-        "vulnerability_id": "RUSTSEC-2026-0185",
-        "reason": "quinn-proto Rust crate vendored inside the upstream vllm wheel; cannot be bumped to 0.11.15 independently of a vllm wheel rebuild. Tracking upstream vllm-project release.",
-        "review_by": "2026-09-25"
-    },
-    {
         "vulnerability_id": "CVE-2026-53923",
-        "reason": "Affects vllm itself; no fixed version published upstream (scanner reports fixed-version 99.999.9999). Tracking upstream vllm-project fix.",
-        "review_by": "2026-09-25"
+        "reason": "Affects vllm < 0.24.0 (fixed in 0.24.0). The 0.30.0 ec2/sagemaker images are not affected; only the hyperpod image, still on vllm 0.20.0.dev361, carries it. Remove once hyperpod moves to vllm >= 0.24.0.",
+        "review_by": "2026-10-29"
     },
     {
         "vulnerability_id": "CVE-2026-27145",
@@ -101,8 +96,8 @@
     },
     {
         "vulnerability_id": "CVE-2026-39822",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of a mooncake-transfer-engine rebuild",
-        "review_by": "2026-09-25"
+        "reason": "go/stdlib statically linked inside mooncake libetcd_wrapper.so (1.25.10 in the 0.30.0 images, 1.24.11 in hyperpod; fixed in Go 1.26.5), cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-56852",
@@ -122,7 +117,7 @@
     {
         "vulnerability_id": "CVE-2026-24747",
         "reason": "torch 2.9.1 is only a version pin in the upstream vllm base image's benchmarks/requirements.txt (benchmark metadata), not the installed package. weights_only unpickler RCE requires loading a malicious checkpoint; the benchmark requirements file is inert. Not exploitable in the runtime.",
-        "review_by": "2026-09-25"
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-56853",

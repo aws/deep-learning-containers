@@ -128,7 +128,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
 # g6 (L4) and g5 (A10G) are both single 24GB cards, so every rung serves this model.
 @pytest.mark.parametrize(
     "instance_type",
-    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.xlarge", "ml.g5.2xlarge"]],
+    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"]],
     indirect=True,
 )
 @pytest.mark.parametrize("model_id", ["deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"], indirect=True)

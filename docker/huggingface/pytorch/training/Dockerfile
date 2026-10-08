@@ -54,10 +54,12 @@ RUN uv pip install --python ${VENV_PYTHON} \
   sentencepiece protobuf einops scipy scikit-learn tensorboard \
   "pillow>=12.3.0" \
   "soupsieve>=2.8.4" \
-  "GitPython>=3.1.55" \
+  "GitPython>=3.1.60" \
+  "anyio>=4.14.2" \
   "pyasn1>=0.6.4" \
   "cryptography>=50.0.0" \
   "aiohttp>=3.14.3" \
+  "urllib3>=2.8.0" \
   && uv cache clean
 
 # --- Efficiency / quantization kernels -----------------------------------

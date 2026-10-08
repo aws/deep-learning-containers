@@ -3,12 +3,13 @@ absl-py==2.5.0
 accelerate==1.15.0
 adagio==0.2.6
 aiohttp-cors==0.8.1
+anyio==4.14.2
 autogluon==1.6.3
 autogluon-common==1.6.3
 autogluon-core==1.6.3
 autogluon-features==1.6.3
 autogluon-multimodal==1.6.3
-autogluon-tabular==1.6.3
+autogluon-tabular[mitra,nori,tabdpt,tabicl]==1.6.3
 autogluon-timeseries==1.6.3
 catboost==1.2.10
 chronos-forecasting==2.3.2
@@ -21,11 +22,13 @@ defusedxml==0.7.1
 distlib==0.4.3
 einx==0.4.3
 evaluate==0.4.6
+faiss-cpu==1.12.0
 formulaic==1.2.2
 frozendict==2.4.7
 fugue==0.9.7
 future==1.0.0
 gdown==6.4.0
+gitpython==3.1.60
 gluonts==0.17.0
 google-api-core==2.37.0
 googleapis-common-protos==1.75.3
@@ -36,6 +39,7 @@ huggingface-hub==1.32.0
 hyperopt==0.2.7
 interface-meta==2.0.1
 jsonschema==4.23.0
+kditransform==1.2.0
 lazy-loader==0.5
 lightgbm==4.7.0
 lightning==2.6.6
@@ -83,6 +87,9 @@ seqeval==1.2.2
 statsforecast==2.0.1
 statsmodels==0.15.0
 stevedore==5.4.1
+synthefy-nori==0.14.0
+tabdpt==1.2.0
+tabicl==2.1.1
 tensorboard==2.21.0
 tensorboard-data-server==0.7.2
 tensorboardx==2.6.5
@@ -94,8 +101,9 @@ toolz==0.12.1
 torchmetrics==1.7.4
 transformers==5.14.1
 triad==1.0.2
+urllib3==2.8.0
 utilsforecast==0.2.11
-virtualenv==21.7.11
+virtualenv==21.7.13
 window-ops==0.0.15
 xgboost-cpu==3.3.0
 xxhash==4.0.1

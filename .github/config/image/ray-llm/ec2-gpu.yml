@@ -16,6 +16,7 @@ metadata:
 build:
   dockerfile: "docker/ray_llm/Dockerfile.cuda"
   target: "ec2"
+  efa_version: "latest"
   builder_base_image: "public.ecr.aws/deep-learning-containers/base:devel-cu130-amzn2023"
   base_image: "public.ecr.aws/deep-learning-containers/base:runtime-cu130-amzn2023"
   python_version: "3.13.12"
@@ -23,6 +24,7 @@ build:
   cuda_version: "13.0.2"
   vllm_version: "0.26.0"
   nccl_tests_version: "v2.20.0"
+  gdrcopy_version: "2.4.4"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

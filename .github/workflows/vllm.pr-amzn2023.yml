@@ -6,6 +6,8 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - ".github/config/image/vllm/*-amzn2023.yml"
+      - "!.github/config/image/vllm/*-cpu-amzn2023.yml"
+      - "!.github/config/image/vllm/*-arm64-amzn2023.yml"
       - ".github/config/model-tests/vllm-model-tests.yml"
       - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
       - ".github/workflows/vllm.pipeline.yml"
@@ -69,6 +71,8 @@ jobs:
           filters: |
             build-change:
               - ".github/config/image/vllm/*-amzn2023.yml"
+              - "!.github/config/image/vllm/*-cpu-amzn2023.yml"
+              - "!.github/config/image/vllm/*-arm64-amzn2023.yml"
               - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/docker/common/**"
               - "scripts/docker/vllm/**"
@@ -113,7 +117,7 @@ jobs:
           pattern: ".github/config/image/vllm/*-amzn2023.yml"
       - id: filter
         run: |
-          FILTERED=$(echo '${{ steps.discover.outputs.configs }}' | jq -c '[.[] | select(.name | contains("hyperpod") | not)]')
+          FILTERED=$(echo '${{ steps.discover.outputs.configs }}' | jq -c '[.[] | select((.name | contains("hyperpod") | not) and (.name | contains("cpu") | not))]')
           echo "configs=${FILTERED}" >> $GITHUB_OUTPUT
 
   pipeline:

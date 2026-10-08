@@ -12,7 +12,7 @@
 #
 # Side effects:
 #   Places TEI upstream source at ${DOCKER_DIR}/tei-src/
-#   (e.g. docker/tei/1.9.3/cpu/tei-src/ and docker/tei/1.9.3/gpu/tei-src/)
+#   (e.g. docker/tei/cpu/tei-src/ and docker/tei/gpu/tei-src/)
 
 set -euo pipefail
 

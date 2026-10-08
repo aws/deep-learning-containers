@@ -46,11 +46,6 @@ suites:
     code_paths:
       - test/pytorch/multi_gpu/**
 
-  pytorch/multi_node:
-    skip_eligible: true
-    code_paths:
-      - test/pytorch/multi_node/**
-
   pytorch/integration/sagemaker:
     skip_eligible: true
     code_paths:

@@ -1,6 +1,75 @@
 # Changelog
 
-Changelog for the Amazon Linux 2023-based vLLM images (`server-cuda`, `server-sagemaker-cuda`).
+Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `server-sagemaker-cuda`; `vllm-arm64`: `server-cpu`,
+`server-sagemaker-cpu`).
+
+* * *
+
+## v1.0.0 — 2026-10-01 (ARM64 CPU)
+
+**Tags:** `server-cpu-v1.0` · `server-sagemaker-cpu-v1.0`
+
+**vLLM source:** [ec4a3a5](https://github.com/vllm-project/vllm/commit/ec4a3a537068db40afbc9374a67da719c8c9b964) (`0.30.0+amzn2023.ec4a3a53`)
+
+**Bundled versions:** Python 3.12 · GCC 14 · tcmalloc
+
+### Highlights
+
+- **Initial release** of vLLM on AWS Graviton (ARM64) CPU for EC2 and SageMaker AI, built from source with the vLLM CPU backend and bf16 kernels
+  ([#6732](https://github.com/aws/deep-learning-containers/pull/6732))
+- **CPU memory defaults:** `VLLM_CPU_KVCACHE_SPACE` defaults to 40% of host RAM (minimum 2 GiB), since GPU memory-utilization flags do not apply on
+  CPU
+- **GCC 14 in the runtime image:** torch-inductor compiles CPU kernels at inference time and emits Armv9 flags on Graviton 4, which the default AL2023
+  GCC 11 cannot compile
+
+* * *
+
+## v2.6.0 — 2026-09-26
+
+**Tags:** `server-cuda-v2.6` · `server-sagemaker-cuda-v2.6`
+
+**vLLM source:** [ec4a3a5](https://github.com/vllm-project/vllm/commit/ec4a3a537068db40afbc9374a67da719c8c9b964) (`0.30.0+amzn2023.ec4a3a53`),
+unchanged from v2.5
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18.post1 · Transformers 5.17.0 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2 · EFA 1.50.0
+
+### Changes
+
+- **DeepEP v2 over EFA** ([#6730](https://github.com/aws/deep-learning-containers/pull/6730)) — DeepEP now builds from the
+  [amazon-contributing/DeepEP](https://github.com/amazon-contributing/DeepEP) fork, which adds an NCCL/GIN backend for expert-parallel all-to-all over
+  EFA.
+- NCCL 2.30.7 → 2.31.2, required by that backend and checked at runtime. NVSHMEM now comes from the `nvidia-nvshmem-cu13` wheel.
+- EFA 1.47.0 → 1.50.0.
+
+* * *
+
+## v2.5.0 — 2026-09-23
+
+**Tags:** `server-cuda-v2.5` · `server-sagemaker-cuda-v2.5`
+
+**vLLM source:** [ec4a3a5](https://github.com/vllm-project/vllm/commit/ec4a3a537068db40afbc9374a67da719c8c9b964) (`0.30.0+amzn2023.ec4a3a53`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18.post1 · Transformers 5.17.0 · DeepEP
+[d4f41e4](https://github.com/deepseek-ai/DeepEP/commit/d4f41e4e93602a15e95f55f6ee8df8f1aaa0e4bb)
+
+### Highlights
+
+- **vLLM 0.30.0** — two minor versions up from 0.27.1 (v2.4)
+  ([compare](https://github.com/vllm-project/vllm/compare/v0.27.1...ec4a3a537068db40afbc9374a67da719c8c9b964))
+- **New models** — DeepSeek-V4.1-Flash, GLM-5.3-Flash, K2-Horizon, Cohere Compass, Bailing V3 VL, Nanbeige4.2
+- **Fast Start** — a per-GPU weight-cache daemon serves post-quantized, TP-sharded weights over CUDA IPC with `--load-format ipc_cache`
+  ([#54921](https://github.com/vllm-project/vllm/pull/54921))
+- **Watermarking** — Gumbel-max generation and detection with per-request opt-out ([#54053](https://github.com/vllm-project/vllm/pull/54053))
+- **HiSparse** — sparse-MLA decode spills KV pages to pinned host memory via `HiSparseConnector`
+  ([#53781](https://github.com/vllm-project/vllm/pull/53781))
+- **FlashInfer 0.6.18.post1** — upgraded from 0.6.16.post3
+
+### Changes
+
+- **Built from `ec4a3a5`, not the `v0.30.0` tag** ([#6775](https://github.com/aws/deep-learning-containers/pull/6775)) — the tag predates upstream's
+  Transformers 5.17 adaptation ([#56108](https://github.com/vllm-project/vllm/pull/56108), never backported), so it cannot run 5.17.0. This ref is
+  that adaptation, keeping lighton-ocr-2-1b and mellum2-12b-a2.5b-thinking working without capping Transformers.
 
 * * *
 

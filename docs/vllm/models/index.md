@@ -29,6 +29,15 @@ release. A *Smoke + Benchmark* tag means both apply.
 | **JetBrains** | [JetBrains/Mellum2-12B-A2.5B-Thinking](https://huggingface.co/JetBrains/Mellum2-12B-A2.5B-Thinking) | Smoke + Benchmark |
 | **Baidu** | [baidu/Unlimited-OCR](https://huggingface.co/baidu/Unlimited-OCR) | Smoke |
 
+### Graviton CPU
+
+The `vllm-arm64` images are tested on every release with:
+
+| Model | Coverage |
+| --- | --- |
+| [Qwen/Qwen3.5-0.8B](https://huggingface.co/Qwen/Qwen3.5-0.8B) | Smoke |
+| [Qwen/Qwen3.5-2B](https://huggingface.co/Qwen/Qwen3.5-2B) | SageMaker endpoint (`ml.c7g`, `ml.c8g`) |
+
 ## Model-Specific Tuning
 
 For recommended serving flags, hardware configurations, and quantization options per model, see [recipes.vllm.ai](https://recipes.vllm.ai/).

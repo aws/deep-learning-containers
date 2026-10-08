@@ -37,6 +37,7 @@ jobs:
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
       sagemaker-matrix: ${{ steps.parse.outputs.matrix || '[]' }}
+      device-type: ${{ steps.device.outputs.device-type }}
     steps:
       - uses: actions/checkout@v6
 
@@ -63,10 +64,23 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install pyyaml
+          DEVICE_TYPE=$(python3 -c "import yaml; print(yaml.safe_load(open('${{ inputs.config-file }}'))['metadata']['device_type'])")
+          CONFIG=.github/config/model-tests/vllm-sagemaker-endpoint-tests.yml
+          if [ "${DEVICE_TYPE}" = "cpu" ]; then
+            CONFIG=.github/config/model-tests/vllm-cpu-sagemaker-endpoint-tests.yml
+          fi
           python3 scripts/ci/parse_model_config.py \
-            --config .github/config/model-tests/vllm-sagemaker-endpoint-tests.yml \
+            --config "${CONFIG}" \
             --section sagemaker \
             --image-config "${{ inputs.config-file }}"
+
+      - name: Resolve device type
+        if: steps.check.outputs.exists == 'true'
+        id: device
+        run: |
+          source .venv/bin/activate
+          DEVICE_TYPE=$(python3 -c "import yaml; print(yaml.safe_load(open('${{ inputs.config-file }}'))['metadata']['device_type'])")
+          echo "device-type=${DEVICE_TYPE}" >> $GITHUB_OUTPUT
 
   # One job per config model; max-parallel 1 keeps a single endpoint live at a time.
   endpoint-test-models:
@@ -102,8 +116,9 @@ jobs:
             vllm/sagemaker/amzn2023/test_sm_model_serving.py
 
   # deepseek pulls from HuggingFace at runtime, so it stays a separate job after the matrix.
+  # Hardcoded GPU model: gated to gpu images via the device-type preflight output.
   endpoint-test-deepseek:
-    if: ${{ always() && needs.preflight.outputs.image-exists == 'true' && fromJson(needs.preflight.outputs.sagemaker-matrix)[0] != null }}
+    if: ${{ always() && needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.device-type == 'gpu' && fromJson(needs.preflight.outputs.sagemaker-matrix)[0] != null }}
     needs: [preflight, endpoint-test-models]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -132,7 +147,7 @@ jobs:
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
           needs.endpoint-test-models.result == 'success' &&
-          needs.endpoint-test-deepseek.result == 'success' }}
+          (needs.endpoint-test-deepseek.result == 'success' || needs.endpoint-test-deepseek.result == 'skipped') }}
     needs: [endpoint-test-models, endpoint-test-deepseek]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}

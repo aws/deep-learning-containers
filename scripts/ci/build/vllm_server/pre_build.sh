@@ -34,6 +34,13 @@ done
 [[ -n "$CONFIG_FILE" ]] || { echo "ERROR: --config-file is required" >&2; exit 1; }
 [[ -f "$CONFIG_FILE" ]] || { echo "ERROR: Config file not found: $CONFIG_FILE" >&2; exit 1; }
 
+# CPU builds have no CUDA wheel cache / sccache; skip the hook.
+DEVICE_TYPE=$(yq '.metadata.device_type' "$CONFIG_FILE")
+if [[ "$DEVICE_TYPE" == "cpu" ]]; then
+  echo "CPU build ($CONFIG_FILE): skipping wheel-cache/sccache pre-build hook"
+  exit 0
+fi
+
 BUCKET="${WHEELS_BUCKET:-dlc-cicd-wheels}"
 
 CUDA_VERSION=$(yq '.build.cuda_version' "$CONFIG_FILE")
