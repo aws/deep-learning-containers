@@ -1,5 +1,5 @@
 image:
-  name: "huggingface-pytorch-inference-sagemaker-cpu"
+  name: "huggingface-pytorch-inference-2.11-sagemaker-cpu"
   description: "Hugging Face PyTorch inference for SageMaker on CPU (layered on the AWS PyTorch DLC)"
 
 metadata:
