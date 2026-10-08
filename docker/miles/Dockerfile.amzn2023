@@ -302,10 +302,10 @@ ENV PIP_CONSTRAINT=/tmp/resolver-constraints.txt \
 
 # Download only the AL2023-compatible release assets recorded in the checked-in
 # checksum file. The upstream Mooncake and router artifacts target glibc 2.39,
-# so they are rebuilt separately for AL2023. fake_int4_quant_cuda intentionally
-# uses the multi-architecture radixark artifact instead of the SM90-only
-# official artifact. The provenance gate requires every difference to be
-# explicitly allowlisted.
+# so they are rebuilt separately for AL2023. fake_int4_quant_cuda is also built
+# from the pinned Miles source so a mutable release asset cannot break future
+# builds. The provenance gate requires every difference to be explicitly
+# allowlisted.
 COPY docker/miles/wheel-manifests/miles-v0.1.1-official-wheel-artifacts.sha256 /tmp/official-wheel-artifacts.sha256
 COPY docker/miles/wheel-manifests/miles-v0.1.1-cu130-torch213-x86_64.sha256 /tmp/miles-wheels.sha256
 COPY docker/miles/wheel-manifests/miles-v0.1.1-artifact-deviations.json /tmp/miles-wheel-deviations.json
@@ -314,6 +314,7 @@ RUN python /tmp/validate_wheel_artifacts.py \
       --official /tmp/official-wheel-artifacts.sha256 \
       --selected /tmp/miles-wheels.sha256 \
       --deviations /tmp/miles-wheel-deviations.json \
+      --source "miles=${MILES_COMMIT}" \
       --source "mooncake=${MOONCAKE_COMMIT}" \
       --source "sgl_router=${SGL_ROUTER_COMMIT}"
 RUN mkdir -p /opt/miles-wheels \
@@ -374,6 +375,20 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/
     && git clone --filter=blob:none https://github.com/radixark/miles.git /opt/miles \
     && git -C /opt/miles fetch origin "${MILES_COMMIT}" \
     && git -C /opt/miles checkout --detach "${MILES_COMMIT}"
+
+# Build the multi-architecture fake-int4 extension from the same immutable
+# Miles source revision used by the image. Build from a temporary copy so the
+# checked-out Miles tree remains pristine.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    mkdir -p /opt/miles-source-wheels /tmp/fake-int4-src \
+    && cp -a \
+      /opt/miles/miles/backends/megatron_utils/kernels/int4_qat/. \
+      /tmp/fake-int4-src/ \
+    && cd /tmp/fake-int4-src \
+    && python setup.py bdist_wheel --dist-dir /opt/miles-source-wheels \
+    && test "$(find /opt/miles-source-wheels -maxdepth 1 -name \
+      'fake_int4_quant_cuda-0.0.0-*.whl' | wc -l)" -eq 1 \
+    && rm -rf /tmp/fake-int4-src
 
 # Install SGLang against the already-installed Torch/CUDA ABI. The explicit
 # CUDA index resolves TorchCodec to the release's +cu130 build in the same
@@ -487,8 +502,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
       -r /opt/miles/requirements.txt \
     && python -m pip install --no-build-isolation \
       -e /opt/miles --no-deps \
-    && python -m pip install \
-      /opt/miles-wheels/fake_int4_quant_cuda-0.0.0-*.whl \
+    && python -m pip install --no-deps \
+      /opt/miles-source-wheels/fake_int4_quant_cuda-0.0.0-*.whl \
     && python -m pip install --force-reinstall --no-deps \
       "nvidia-cudnn-cu13==${CUDNN_VERSION}" \
       apache-tvm-ffi==0.1.11 \
@@ -547,6 +562,7 @@ RUN mkdir -p /opt/aws/dlc \
       echo; \
       echo "[source-built replacement wheels]"; \
       sha256sum /tmp/mooncake/mooncake_transfer_engine_cuda13-*.whl; \
+      sha256sum /opt/miles-source-wheels/fake_int4_quant_cuda-0.0.0-*.whl; \
     } >/opt/aws/dlc/SOURCE_MANIFEST \
     && cp /tmp/official-freeze.txt /opt/aws/dlc/PYTHON_OFFICIAL_FREEZE \
     && cp /tmp/resolver-constraints.txt /opt/aws/dlc/PYTHON_CONSTRAINTS \
@@ -562,6 +578,7 @@ RUN mkdir -p /opt/aws/dlc \
       /tmp/router \
       /tmp/mooncake \
       /opt/miles-wheels \
+      /opt/miles-source-wheels \
       /opt/sgl-model-gateway/target \
       /opt/sglang/rust/target
 

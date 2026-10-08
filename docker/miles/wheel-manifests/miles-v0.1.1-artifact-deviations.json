@@ -1,8 +1,9 @@
 {
   "fake_int4_quant_cuda-0.0.0-cp312-cp312-linux_x86_64.whl": {
-    "kind": "replacement-hash",
-    "replacement_sha256": "c16f6c90ff5958ab4dbfda07ea76feb3c1570e06f1ee7e2d2949d9bdee7efae8",
-    "reason": "Use the radixark multi-architecture SM80/86/89/90/100/103 build instead of the official SM90-only artifact."
+    "kind": "source-build",
+    "source_commit": "2806267d060d51b1d3b62f85a1f9b145047aeef9",
+    "source_name": "miles",
+    "reason": "Build the SM80/86/89/90/100/103 extension from the pinned Miles v0.1.1 source instead of relying on a mutable release asset."
   },
   "hpc_ops-0.0.1.dev0+gab1a402-cp39-abi3-linux_x86_64.whl": {
     "kind": "omitted",
