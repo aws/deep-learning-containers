@@ -7,7 +7,7 @@ fi
 
 ARGS=(
   --host "${SM_HF_SERVE_HOST:-${HOST:-0.0.0.0}}"
-  --port "${SM_HF_SERVE_PORT:-${PORT:-8080}}"
+  --port "${SAGEMAKER_BIND_TO_PORT:-${SM_HF_SERVE_PORT:-${PORT:-8080}}}"
 )
 PREFIX="SM_HF_SERVE_"
 
