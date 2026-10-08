@@ -15,9 +15,9 @@ jobs:
   specs:
     runs-on: ubuntu-latest
     outputs:
-      ec2: ${{ steps.ec2.outputs.release-spec }}
-      sagemaker: ${{ steps.sagemaker.outputs.release-spec }}
-      ec2-arm64: ${{ steps.ec2-arm64.outputs.release-spec }}
+      ec2: ${{ steps.force.outputs.ec2 }}
+      sagemaker: ${{ steps.force.outputs.sagemaker }}
+      ec2-arm64: ${{ steps.force.outputs.ec2-arm64 }}
     steps:
       - uses: actions/checkout@v6
       - id: ec2
@@ -32,6 +32,22 @@ jobs:
         uses: ./.github/actions/generate-release-spec
         with:
           config-file: .github/config/image/llama_cpp/ec2-arm64-amzn2023.yml
+      # Gamma test only: bypass the blocked-day check so the publish actually runs.
+      - id: force
+        env:
+          SPEC_EC2: ${{ steps.ec2.outputs.release-spec }}
+          SPEC_SAGEMAKER: ${{ steps.sagemaker.outputs.release-spec }}
+          SPEC_EC2_ARM64: ${{ steps.ec2-arm64.outputs.release-spec }}
+        run: |
+          emit() {
+            echo "$1<<EOF_SPEC"
+            printf '%s\n' "$2" | sed '/^force_release:/d'
+            echo "force_release: true"
+            echo "EOF_SPEC"
+          } >> "$GITHUB_OUTPUT"
+          emit ec2 "$SPEC_EC2"
+          emit sagemaker "$SPEC_SAGEMAKER"
+          emit ec2-arm64 "$SPEC_EC2_ARM64"
 
   release-ec2:
     needs: [specs]
