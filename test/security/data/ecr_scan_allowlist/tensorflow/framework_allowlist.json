@@ -1,12 +1,12 @@
 [
     {
         "vulnerability_id": "CVE-2025-23308",
-        "reason": "cuda-toolkit-config-common@12.9.79 ships with the nvidia/cuda:12.9.1-base-amzn2023 base image. Advisory affects the NVIDIA driver / privileged GPU tooling reachable only by a local attacker on the host; the container itself does not invoke the affected codepath at training time (nvdisasm and similar privileged binaries are already removed in the Dockerfile). Upstream fix is only available in CUDA 13.0; a 12.9 -> 13.0 bump is out of scope for this PR (TF 2.21 compatibility risk). Will be picked up via the next CUDA base image refresh from NVIDIA.",
-        "review_by": "2026-12-08"
+        "reason": "cuda-toolkit-config-common 12.9.79 ships with the nvidia/cuda:12.9.1-runtime-amzn2023 base image. AL2023 lists every CUDA 12.x stream (cuda-nvdisasm-12-5/12-6/12-8/12-9) as No Fix Planned for this advisory; only the cuda-13-0 stream is Fixed, and CUDA 12.9 is the image contract for TF 2.21. Exploitation requires running nvdisasm on an attacker-supplied ELF file, which is not part of the training entrypoint. Note that the Dockerfile removes /usr/local/cuda/bin/nvdisasm, but triton 3.6.0 bundles its own nvdisasm under site-packages/triton/backends/nvidia/bin/, so the binary is still present in the GPU image. Revisit when the CUDA base image moves to the 13.x stream.",
+        "review_by": "2026-11-06"
     },
     {
         "vulnerability_id": "CVE-2025-23339",
-        "reason": "cuda-toolkit-config-common@12.9.79 ships with the nvidia/cuda:12.9.1-base-amzn2023 base image. Advisory affects an NVML/driver path reachable only by a local privileged caller on the host; not on the in-container training/inference path (nvdisasm and similar privileged binaries are already removed in the Dockerfile). Upstream fix is only available in CUDA 13.0; a 12.9 -> 13.0 bump is out of scope for this PR (TF 2.21 compatibility risk). Will be picked up via the next CUDA base image refresh from NVIDIA.",
-        "review_by": "2026-12-08"
+        "reason": "cuda-toolkit-config-common 12.9.79 ships with the nvidia/cuda:12.9.1-runtime-amzn2023 base image. AL2023 lists every CUDA 12.x stream as No Fix Planned for this advisory; only the cuda-13-0 stream is Fixed, and CUDA 12.9 is the image contract for TF 2.21. Exploitation requires running cuobjdump on an attacker-supplied ELF file, which is not part of the training entrypoint. cuobjdump is retained deliberately for JIT compilation support and is additionally bundled by triton 3.6.0 under site-packages/triton/backends/nvidia/bin/. Revisit when the CUDA base image moves to the 13.x stream.",
+        "review_by": "2026-11-06"
     }
 ]
