@@ -32,7 +32,7 @@ def _completion_ok(resp):
     if isinstance(resp, (str, bytes, bytearray)):
         try:
             resp = json.loads(resp)
-        except Exception:
+        except ValueError:
             return False
     if not isinstance(resp, dict):
         return False
@@ -47,7 +47,7 @@ def _marker_pid():
     try:
         with open(_MARKER) as f:
             return int(f.read().strip())
-    except Exception:
+    except (OSError, ValueError):
         return None
 
 
