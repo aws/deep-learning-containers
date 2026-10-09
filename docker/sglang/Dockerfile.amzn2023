@@ -20,6 +20,8 @@ ARG RUST_VERSION=1.96.1
 ARG FFMPEG_VERSION=8.0.1
 ARG FFMPEG_SHA256=05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41
 ARG FFMPEG_GPG_KEY=FCF986EA15E6E293A5644F10B4322F04D67658D8
+ARG DAV1D_VERSION=1.5.4
+ARG DAV1D_SHA256=686616b7c69eb88d44459391ab25cac13b6647a3b288835c5784e71c1514a5c5
 ARG TORCH_VERSION=2.13.0
 
 # CUDA / GPU
@@ -52,6 +54,46 @@ RUN sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
     ninja-build \
   && dnf clean all && rm -rf /var/cache/dnf
 
+# FFmpeg shared libraries for torchcodec, which sglang prefers for video and audio decoding
+# (without them it falls back to decord / soundfile). AL2023 has no FFmpeg package and SPAL's
+# ffmpeg-free has no H.264/HEVC decoder, so build it here: LGPL-only (no --enable-gpl or
+# --enable-nonfree), shared, from the ffmpeg.org tarball checked by sha256 and GPG signature as
+# in docker/lambda/Dockerfile. FFmpeg's native AV1 decoder is hardware-only, so AV1 comes from
+# dav1d (BSD-2, keeps the build LGPL), from the VideoLAN tarball checked by sha256.
+# Installed into /ffmpeg-out and copied into the runtime stage.
+# Built before python3 is repointed (dnf's meson runs on the system python) and before the
+# sglang clone, so an SGLANG_REF bump reuses this layer.
+COPY ./scripts/docker/sglang/amzn2023/ffmpeg-release.asc /tmp/ffmpeg-release.asc
+RUN dnf install -y --setopt=install_weak_deps=False nasm pkgconfig xz diffutils meson \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && cd /tmp \
+  && curl -fsSLO https://downloads.videolan.org/pub/videolan/dav1d/${DAV1D_VERSION}/dav1d-${DAV1D_VERSION}.tar.xz \
+  && echo "${DAV1D_SHA256}  dav1d-${DAV1D_VERSION}.tar.xz" | sha256sum -c - \
+  && tar xJf dav1d-${DAV1D_VERSION}.tar.xz \
+  # Installed twice: into /usr/local for FFmpeg's pkg-config, and into /ffmpeg-out for runtime.
+  && meson setup dav1d-${DAV1D_VERSION}/build dav1d-${DAV1D_VERSION} \
+    --prefix=/usr/local --libdir=lib --buildtype=release \
+    -Denable_tools=false -Denable_tests=false -Denable_examples=false \
+  && meson compile -C dav1d-${DAV1D_VERSION}/build \
+  && meson install -C dav1d-${DAV1D_VERSION}/build \
+  && meson install -C dav1d-${DAV1D_VERSION}/build --destdir /ffmpeg-out \
+  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz.asc \
+  && echo "${FFMPEG_SHA256}  ffmpeg-${FFMPEG_VERSION}.tar.xz" | sha256sum -c - \
+  && gpg --batch --no-autostart --import /tmp/ffmpeg-release.asc \
+  && gpg --batch --no-autostart --list-keys ${FFMPEG_GPG_KEY} \
+  && gpg --batch --no-autostart --verify ffmpeg-${FFMPEG_VERSION}.tar.xz.asc ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && tar xJf ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && cd ffmpeg-${FFMPEG_VERSION} \
+  && PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./configure --prefix=/usr/local --enable-shared \
+    --disable-static --disable-debug --enable-libdav1d \
+    --disable-doc --disable-htmlpages --disable-manpages --disable-podpages --disable-txtpages \
+  && make -j$(nproc) \
+  && make install DESTDIR=/ffmpeg-out \
+  && strip /ffmpeg-out/usr/local/bin/ffmpeg /ffmpeg-out/usr/local/bin/ffprobe \
+  && cd /tmp && rm -rf ffmpeg-${FFMPEG_VERSION} ffmpeg-${FFMPEG_VERSION}.tar.xz* /tmp/ffmpeg-release.asc \
+  dav1d-${DAV1D_VERSION} dav1d-${DAV1D_VERSION}.tar.xz
+
 # Set target Python as default, preserve dnf's system python
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
@@ -79,31 +121,6 @@ RUN mkdir -p /tmp/gdrcopy && cd /tmp \
 
 # DeepEP IBGDA symlink
 RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
-
-# FFmpeg shared libraries for torchcodec, which sglang prefers for video and audio decoding
-# (without them it falls back to decord / soundfile). AL2023 has no FFmpeg package and SPAL's
-# ffmpeg-free has no H.264/HEVC decoder, so build it here: LGPL-only (no --enable-gpl or
-# --enable-nonfree), shared, from the ffmpeg.org tarball checked by sha256 and GPG signature as
-# in docker/lambda/Dockerfile. Installed into /ffmpeg-out and copied into the runtime stage.
-# Built before the sglang clone so an SGLANG_REF bump reuses this layer.
-COPY ./scripts/docker/sglang/amzn2023/ffmpeg-release.asc /tmp/ffmpeg-release.asc
-RUN dnf install -y --setopt=install_weak_deps=False nasm pkgconfig xz diffutils \
-  && dnf clean all && rm -rf /var/cache/dnf \
-  && cd /tmp \
-  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz \
-  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz.asc \
-  && echo "${FFMPEG_SHA256}  ffmpeg-${FFMPEG_VERSION}.tar.xz" | sha256sum -c - \
-  && gpg --batch --no-autostart --import /tmp/ffmpeg-release.asc \
-  && gpg --batch --no-autostart --list-keys ${FFMPEG_GPG_KEY} \
-  && gpg --batch --no-autostart --verify ffmpeg-${FFMPEG_VERSION}.tar.xz.asc ffmpeg-${FFMPEG_VERSION}.tar.xz \
-  && tar xJf ffmpeg-${FFMPEG_VERSION}.tar.xz \
-  && cd ffmpeg-${FFMPEG_VERSION} \
-  && ./configure --prefix=/usr/local --enable-shared --disable-static --disable-debug \
-    --disable-doc --disable-htmlpages --disable-manpages --disable-podpages --disable-txtpages \
-  && make -j$(nproc) \
-  && make install DESTDIR=/ffmpeg-out \
-  && strip /ffmpeg-out/usr/local/bin/ffmpeg /ffmpeg-out/usr/local/bin/ffprobe \
-  && cd /tmp && rm -rf ffmpeg-${FFMPEG_VERSION} ffmpeg-${FFMPEG_VERSION}.tar.xz* /tmp/ffmpeg-release.asc
 
 WORKDIR /sgl-workspace
 
@@ -244,7 +261,11 @@ RUN HELPER=$(ls /sgl-workspace/sglang/docker/*/apply_deep_gemm_patches.sh 2>/dev
 # --platform is matched literally, so re-check the wheel's platform tag on PyPI after
 # any MOONCAKE_VERSION bump; a retag surfaces as a misleading "no matching distribution".
 # Uses pip (not uv) because uv lacks --platform/--target flags.
-RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_28_x86_64 --only-binary :all: --target /tmp/mooncake \
+# The plain mooncake-transfer-engine wheel is a CUDA 12 build (engine.so links libcudart.so.12,
+# absent here), so PD disaggregation failed at import; upstream installs the -cuda13 package.
+# engine.so also links libcuda.so.1, so check the link instead of importing at build time.
+RUN python3 -m pip install mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION} --platform manylinux_2_28_x86_64 --only-binary :all: --target /tmp/mooncake \
+    && readelf -d /tmp/mooncake/mooncake/engine.so | grep -q "libcudart.so.${CUDA_REF%%.*}" \
     && cp -r /tmp/mooncake/* $(python3 -c "import site; print(site.getsitepackages()[0])") \
     && rm -rf /tmp/mooncake
 
@@ -382,12 +403,13 @@ RUN command -v sglang && command -v killall_sglang \
 # Copy GDRCopy runtime libs
 COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
 
-# FFmpeg from the builder stage (libraries plus ffmpeg/ffprobe). The torchcodec import is the
-# check: it fails if torchcodec can't load these libraries.
+# FFmpeg from the builder stage (FFmpeg and dav1d libraries plus ffmpeg/ffprobe). The torchcodec
+# import is the check: it fails if torchcodec can't load these libraries.
 COPY --from=builder /ffmpeg-out/usr/local/lib/ /usr/local/lib/
 COPY --from=builder /ffmpeg-out/usr/local/bin/ /usr/local/bin/
 RUN echo /usr/local/lib > /etc/ld.so.conf.d/ffmpeg-local.conf && ldconfig \
   && ffmpeg -hide_banner -version | head -1 \
+  && ffmpeg -hide_banner -decoders | grep libdav1d \
   && python${PYTHON_VERSION} -c "import torchcodec; print('torchcodec', torchcodec.__version__)"
 
 # DeepEP IBGDA symlink

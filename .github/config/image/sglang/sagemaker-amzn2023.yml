@@ -33,6 +33,8 @@ build:
   gdrcopy_version: "2.5.2"
   ffmpeg_version: "8.0.1"
   ffmpeg_sha256: "05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41"
+  dav1d_version: "1.5.4"
+  dav1d_sha256: "686616b7c69eb88d44459391ab25cac13b6647a3b288835c5784e71c1514a5c5"
   torch_cuda_arch_list: "9.0;10.0;10.3"
   dlc_major_version: "1"
   dlc_minor_version: "5"
