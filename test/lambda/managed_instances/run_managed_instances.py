@@ -228,7 +228,6 @@ def test_gpu_shared_engine(args, name, version):
 
 
 def delete_function(args, name):
-    """Delete the function if it exists and wait for the name to free up."""
     try:
         # aws lambda delete-function
         _call(args.region, "DELETE", f"{FUNCTIONS}/{_quote(name)}")
