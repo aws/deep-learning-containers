@@ -7,9 +7,9 @@ FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 
 ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
-ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
-ARG SGLANG_KERNEL_VERSION=0.4.6.post1
-ARG FLASHINFER_VERSION=0.6.18
+ARG SGLANG_REF=99c59a2ea62f32fd5497eceaf2ed18cad33389db
+ARG SGLANG_KERNEL_VERSION=0.4.7
+ARG FLASHINFER_VERSION=0.7.0.post1
 ARG DEEPEP_COMMIT=874779c9ccd2294b56304bd6cc5f138f1f71d097
 # DeepEP AWS EFA fork (adds EFA/GIN support); overrides the deepseek-ai upstream.
 ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
@@ -17,6 +17,11 @@ ARG FLASHMLA_COMMIT=15f13e5030374295491c5ce31b02d7e63a7772c6
 ARG MOONCAKE_VERSION=0.3.13
 ARG GDRCOPY_VERSION=2.5.2
 ARG RUST_VERSION=1.96.1
+ARG FFMPEG_VERSION=8.0.1
+ARG FFMPEG_SHA256=05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41
+ARG FFMPEG_GPG_KEY=FCF986EA15E6E293A5644F10B4322F04D67658D8
+ARG DAV1D_VERSION=1.5.4
+ARG DAV1D_SHA256=686616b7c69eb88d44459391ab25cac13b6647a3b288835c5784e71c1514a5c5
 ARG TORCH_VERSION=2.13.0
 
 # CUDA / GPU
@@ -48,6 +53,46 @@ RUN sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
     libfabric-devel \
     ninja-build \
   && dnf clean all && rm -rf /var/cache/dnf
+
+# FFmpeg shared libraries for torchcodec, which sglang prefers for video and audio decoding
+# (without them it falls back to decord / soundfile). AL2023 has no FFmpeg package and SPAL's
+# ffmpeg-free has no H.264/HEVC decoder, so build it here: LGPL-only (no --enable-gpl or
+# --enable-nonfree), shared, from the ffmpeg.org tarball checked by sha256 and GPG signature as
+# in docker/lambda/Dockerfile. FFmpeg's native AV1 decoder is hardware-only, so AV1 comes from
+# dav1d (BSD-2, keeps the build LGPL), from the VideoLAN tarball checked by sha256.
+# Installed into /ffmpeg-out and copied into the runtime stage.
+# Built before python3 is repointed (dnf's meson runs on the system python) and before the
+# sglang clone, so an SGLANG_REF bump reuses this layer.
+COPY ./scripts/docker/sglang/amzn2023/ffmpeg-release.asc /tmp/ffmpeg-release.asc
+RUN dnf install -y --setopt=install_weak_deps=False nasm pkgconfig xz diffutils meson \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && cd /tmp \
+  && curl -fsSLO https://downloads.videolan.org/pub/videolan/dav1d/${DAV1D_VERSION}/dav1d-${DAV1D_VERSION}.tar.xz \
+  && echo "${DAV1D_SHA256}  dav1d-${DAV1D_VERSION}.tar.xz" | sha256sum -c - \
+  && tar xJf dav1d-${DAV1D_VERSION}.tar.xz \
+  # Installed twice: into /usr/local for FFmpeg's pkg-config, and into /ffmpeg-out for runtime.
+  && meson setup dav1d-${DAV1D_VERSION}/build dav1d-${DAV1D_VERSION} \
+    --prefix=/usr/local --libdir=lib --buildtype=release \
+    -Denable_tools=false -Denable_tests=false -Denable_examples=false \
+  && meson compile -C dav1d-${DAV1D_VERSION}/build \
+  && meson install -C dav1d-${DAV1D_VERSION}/build \
+  && meson install -C dav1d-${DAV1D_VERSION}/build --destdir /ffmpeg-out \
+  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz.asc \
+  && echo "${FFMPEG_SHA256}  ffmpeg-${FFMPEG_VERSION}.tar.xz" | sha256sum -c - \
+  && gpg --batch --no-autostart --import /tmp/ffmpeg-release.asc \
+  && gpg --batch --no-autostart --list-keys ${FFMPEG_GPG_KEY} \
+  && gpg --batch --no-autostart --verify ffmpeg-${FFMPEG_VERSION}.tar.xz.asc ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && tar xJf ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && cd ffmpeg-${FFMPEG_VERSION} \
+  && PKG_CONFIG_PATH=/usr/local/lib/pkgconfig ./configure --prefix=/usr/local --enable-shared \
+    --disable-static --disable-debug --enable-libdav1d \
+    --disable-doc --disable-htmlpages --disable-manpages --disable-podpages --disable-txtpages \
+  && make -j$(nproc) \
+  && make install DESTDIR=/ffmpeg-out \
+  && strip /ffmpeg-out/usr/local/bin/ffmpeg /ffmpeg-out/usr/local/bin/ffprobe \
+  && cd /tmp && rm -rf ffmpeg-${FFMPEG_VERSION} ffmpeg-${FFMPEG_VERSION}.tar.xz* /tmp/ffmpeg-release.asc \
+  dav1d-${DAV1D_VERSION} dav1d-${DAV1D_VERSION}.tar.xz
 
 # Set target Python as default, preserve dnf's system python
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
@@ -88,16 +133,37 @@ RUN git clone --branch ${SGLANG_REF} --depth 1 https://github.com/sgl-project/sg
   || (git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-workspace/sglang \
     && cd /sgl-workspace/sglang && git checkout ${SGLANG_REF})
 
+# Apply local patches on top of SGLANG_REF: those committed to
+# scripts/docker/sglang/amzn2023/patches/ plus any the sglang_server pre-build hook
+# downloaded from S3 (PR and main builds). Same contract as the vLLM AL2023 image: no patches
+# is fine, but a patch that no longer applies to SGLANG_REF fails the build instead of
+# producing an unpatched image. git apply output is discarded because its error report
+# quotes the patch's code into the build log; reproduce a failure locally.
+COPY ./scripts/docker/sglang/amzn2023/patches/ /tmp/patches/
+RUN cd /sgl-workspace/sglang \
+  && for p in /tmp/patches/*.patch; do \
+       [ -f "$p" ] || continue; \
+       echo "Applying $(basename "$p")"; \
+       git apply "$p" >/dev/null 2>&1 \
+         || { echo "$(basename "$p") does not apply to SGLANG_REF" >&2; exit 1; }; \
+     done \
+  && rm -rf /tmp/patches
+
 # Stamp the sglang package version for CVE scanner compatibility.
 ARG FRAMEWORK_VERSION
 ENV SETUPTOOLS_SCM_PRETEND_VERSION=${FRAMEWORK_VERSION}.amzn2023.${SGLANG_REF}
 
-# Install sglang from source + flashinfer + sglang-kernel
-# sglang's pyproject.toml pins torch from PyPI for x86_64 (cu128 build).
-# We reinstall torch+torchvision+torchaudio from the cu129 index after to match
-# our CUDA 12.9 toolkit. TORCH_VERSION must match what sgl_kernel wheels on
-# docs.sglang.ai/whl/cu129/ are compiled against (ABI-sensitive).
+# Install sglang from source + flashinfer cubins + sglang-kernel
+# sglang's pyproject.toml pins torch from PyPI for x86_64 (default CUDA build).
+# We reinstall torch+torchvision+torchaudio from the cu130 index after to match
+# our CUDA 13.0 toolkit. TORCH_VERSION must match what sgl_kernel wheels on
+# docs.sglang.ai/whl/cu130/ are compiled against (ABI-sensitive).
 # Uses pip --force-reinstall to bypass local version segment matching issues.
+# flashinfer-cubin ships all of flashinfer's prebuilt kernels as one wheel in site-packages,
+# which the runtime stage copies (same as upstream's Dockerfile). The previous
+# `python3 -m flashinfer --download-cubin` fetched ~43k files one at a time into
+# /root/.cache/flashinfer, which the runtime stage never copied. flashinfer raises at import
+# unless the cubin version equals flashinfer-python's (pinned by sglang), hence the check.
 RUN cd sglang \
     && uv pip install --system --no-cache -e "python[all]" \
     && CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
@@ -107,10 +173,12 @@ RUN cd sglang \
     && uv pip install --system --no-cache --no-deps \
        sglang-kernel==${SGLANG_KERNEL_VERSION} \
        --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
-    && NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
-    && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
-    && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
-       python3 -m flashinfer --download-cubin
+    && uv pip install --system --no-cache --no-deps \
+       flashinfer-cubin==${FLASHINFER_VERSION} \
+       --index-url https://flashinfer.ai/whl \
+    && python3 -c "from importlib.metadata import version as v; \
+       assert v('flashinfer-python') == v('flashinfer-cubin') == '${FLASHINFER_VERSION}', \
+       (v('flashinfer-python'), v('flashinfer-cubin'), '${FLASHINFER_VERSION}')"
 
 # Persist nvidia pip lib paths for subsequent build steps that import torch.
 RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") > /tmp/nvidia_lib_paths
@@ -159,13 +227,45 @@ RUN cd /sgl-workspace/DeepEP \
   && TORCH_CUDA_ARCH_LIST='9.0a 10.0a 10.3a' MAX_JOBS=${BUILD_PARALLEL} \
     uv pip install --system --no-cache --no-build-isolation .
 
+# DeepGEMM from source, only when a local sglang patch ships a DeepGEMM patch helper
+# (docker/*/apply_deep_gemm_patches.sh plus its .patch) for kernel changes newer than the
+# sgl-deep-gemm wheel sglang pins. The helper names the exact DeepGEMM revision and checks
+# that revision, a clean tree and the patch checksum before applying; the rebuilt wheel
+# replaces the PyPI one. Without a helper this step does nothing. Helper and build output
+# are discarded for the same reason as the patch step above; reproduce failures locally.
+# build_sgl_deep_gemm.sh needs `which` (absent from the AL2023 base), libdw headers and a
+# C++20 compiler with <format>: GCC 11, AL2023's default, has none, so build with gcc14.
+# AL2023's libstdc++ already carries GCC 14's symbols, so the module loads at runtime.
+RUN HELPER=$(ls /sgl-workspace/sglang/docker/*/apply_deep_gemm_patches.sh 2>/dev/null | head -n1) \
+  && if [ -z "${HELPER}" ]; then echo "No DeepGEMM patch helper: keeping the sgl-deep-gemm wheel"; exit 0; fi \
+  && REV=$(sed -n 's/^readonly SOURCE_REVISION="\([0-9a-f]\{40\}\)"$/\1/p' "${HELPER}") \
+  && test -n "${REV}" \
+  && dnf install -y --setopt=install_weak_deps=False elfutils-devel which gcc14-c++ \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && git clone https://github.com/sgl-project/DeepGEMM.git /tmp/deep-gemm \
+  && cd /tmp/deep-gemm && git checkout --detach "${REV}" \
+  && { bash "${HELPER}" /tmp/deep-gemm >/dev/null 2>&1 \
+       || { echo "DeepGEMM patch helper failed for ${REV}" >&2; exit 1; }; } \
+  && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
+  && { CXX=gcc14-g++ TVM_FFI_CUDA_ARCH_LIST="9.0 10.0a 10.3a" MAX_JOBS=${BUILD_PARALLEL} \
+         bash build_sgl_deep_gemm.sh >/dev/null 2>&1 \
+       || { echo "DeepGEMM build failed for ${REV}" >&2; exit 1; }; } \
+  && python3 -m pip install --no-cache-dir --no-deps --force-reinstall dist/sgl_deep_gemm-*.whl \
+  && cd / && rm -rf /tmp/deep-gemm \
+  && python3 -c "import deep_gemm" \
+  && echo "Built DeepGEMM ${REV} from source"
+
 # Mooncake: 0.3.12+ wheels are tagged manylinux_2_28 (glibc >= 2.28), which AL2023's
 # glibc 2.34 satisfies natively — unlike the 0.3.9-0.3.11 wheels, which declared
 # manylinux_2_35 and needed a force-install to land here at all.
 # --platform is matched literally, so re-check the wheel's platform tag on PyPI after
 # any MOONCAKE_VERSION bump; a retag surfaces as a misleading "no matching distribution".
 # Uses pip (not uv) because uv lacks --platform/--target flags.
-RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_28_x86_64 --only-binary :all: --target /tmp/mooncake \
+# The plain mooncake-transfer-engine wheel is a CUDA 12 build (engine.so links libcudart.so.12,
+# absent here), so PD disaggregation failed at import; upstream installs the -cuda13 package.
+# engine.so also links libcuda.so.1, so check the link instead of importing at build time.
+RUN python3 -m pip install mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION} --platform manylinux_2_28_x86_64 --only-binary :all: --target /tmp/mooncake \
+    && readelf -d /tmp/mooncake/mooncake/engine.so | grep -q "libcudart.so.${CUDA_REF%%.*}" \
     && cp -r /tmp/mooncake/* $(python3 -c "import site; print(site.getsitepackages()[0])") \
     && rm -rf /tmp/mooncake
 
@@ -195,13 +295,14 @@ ARG CUDA_REF
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.13.0
-ARG SGLANG_KERNEL_VERSION=0.4.6.post1
+ARG SGLANG_KERNEL_VERSION=0.4.7
 ARG EFA_VERSION="latest"
 ARG NCCL_VERSION=2.31.2
 ARG CUDNN_VERSION=9.16.0.29
+ARG NVSHMEM4PY_VERSION=0.3.1
 
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=2
+ARG DLC_MINOR_VERSION=5
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -302,6 +403,15 @@ RUN command -v sglang && command -v killall_sglang \
 # Copy GDRCopy runtime libs
 COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
 
+# FFmpeg from the builder stage (FFmpeg and dav1d libraries plus ffmpeg/ffprobe). The torchcodec
+# import is the check: it fails if torchcodec can't load these libraries.
+COPY --from=builder /ffmpeg-out/usr/local/lib/ /usr/local/lib/
+COPY --from=builder /ffmpeg-out/usr/local/bin/ /usr/local/bin/
+RUN echo /usr/local/lib > /etc/ld.so.conf.d/ffmpeg-local.conf && ldconfig \
+  && ffmpeg -hide_banner -version | head -1 \
+  && ffmpeg -hide_banner -decoders | grep libdav1d \
+  && python${PYTHON_VERSION} -c "import torchcodec; print('torchcodec', torchcodec.__version__)"
+
 # DeepEP IBGDA symlink
 RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
 
@@ -331,10 +441,10 @@ RUN uv pip install --system --no-cache --prerelease=allow \
 # Model-specific deps (required by custom HuggingFace processors at runtime)
 RUN uv pip install --system --no-cache decord lmdb peft
 
-# Re-pin torch (cu129), sgl_kernel, NCCL/cuDNN/cuSparseLt after CVE patches.
+# Re-pin torch (cu130), sgl_kernel, NCCL/cuDNN/cuSparseLt after CVE patches.
 # The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
-# which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
-# Also reinstall sgl_kernel from the sglang wheel index (compiled against torch 2.11.0).
+# which downgrades torch off the cu130 build. Force-reinstall from the cu130 index.
+# Also reinstall sgl_kernel from the sglang wheel index (compiled against torch 2.13.0).
 RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
@@ -347,7 +457,8 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu13==${CUDNN_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu13 \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
-     "nvidia-cutlass-dsl[cu13]==4.6.2" \
+     "nvidia-cutlass-dsl[cu13]==4.8.0" \
+  && python${PYTHON_VERSION} -m pip install --no-cache-dir "nvshmem4py-cu13==${NVSHMEM4PY_VERSION}" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1,<82" "numpy<2.5" "datasets>=2.19" \
   && rm -f /usr/local/nvidia/pip-lib/* \
   && python${PYTHON_VERSION} -c "import glob,os; [os.symlink(f,'/usr/local/nvidia/pip-lib/'+os.path.basename(f)) for d in glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib') for f in glob.glob(d+'/*.so*') if not os.path.exists('/usr/local/nvidia/pip-lib/'+os.path.basename(f))]" \
