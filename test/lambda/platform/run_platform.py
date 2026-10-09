@@ -184,7 +184,7 @@ def test_invoke_and_image(args, name, version):
     )
     print("  PASS echo round-trips through the RIC")
 
-    libs = ["awslambdaric", "boto3", "torch"]
+    libs = args.libs.split(",")
     if args.engine != "none":
         libs.append(args.engine)
     results = invoke(args, name, {"action": "import_check", "libs": libs}, version)
@@ -257,6 +257,7 @@ def main():
     p.add_argument("--capacity-provider-arn", required=True)
     p.add_argument("--execution-role-arn", required=True)
     p.add_argument("--engine", default="none", choices=["none", "vllm", "sglang"])
+    p.add_argument("--libs", default="awslambdaric,boto3", help="comma-separated imports to check")
     p.add_argument("--name-prefix", required=True)
     p.add_argument("--concurrency", type=int, default=4)
     p.add_argument(

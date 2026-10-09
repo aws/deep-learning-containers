@@ -266,6 +266,9 @@ jobs:
           if [[ "$TARGET" == *vllm* ]]; then echo "engine=vllm" >> $GITHUB_OUTPUT;
           elif [[ "$TARGET" == *sglang* ]]; then echo "engine=sglang" >> $GITHUB_OUTPUT;
           else echo "engine=none" >> $GITHUB_OUTPUT; fi
+          LIBS="awslambdaric,boto3"
+          if [[ "$TARGET" != base-* && "$TARGET" != cupy-* ]]; then LIBS="${LIBS},torch"; fi
+          echo "libs=${LIBS}" >> $GITHUB_OUTPUT
 
       - name: Push probe overlay
         if: steps.check.outputs.exists == 'true'
@@ -298,6 +301,7 @@ jobs:
             --capacity-provider-arn "arn:aws:lambda:${{ vars.AWS_REGION }}:${{ vars.CI_AWS_ACCOUNT_ID }}:capacity-provider:lambda-lmi-gpu-cp" \
             --execution-role-arn "arn:aws:iam::${{ vars.CI_AWS_ACCOUNT_ID }}:role/lambda-lmi-gpu-execution-role-${{ vars.AWS_REGION }}" \
             --engine "${{ steps.config.outputs.engine }}" \
+            --libs "${{ steps.config.outputs.libs }}" \
             --memory-size "$MEMORY" \
             --name-prefix "rictest-${{ inputs.tag-suffix }}"
 
