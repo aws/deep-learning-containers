@@ -27,11 +27,14 @@ COPY scripts/docker/vllm/amzn2023/patches/ /tmp/patches/
 # yielding a green build with an unpatched image -- detectable only by inspecting the source.
 # Skip non-existent paths explicitly instead, so "no patches" stays fine and "patch is stale
 # against VLLM_REF" stops the build. Matters because VLLM_REF moves.
+# Apply output is discarded so a failing patch can't quote its contents into the build log
+# (CI may fetch non-public patches, see scripts/ci/build/vllm_server/pre_build.sh).
 RUN cd /src \
   && for p in /tmp/patches/*.patch; do \
        [ -f "$p" ] || continue; \
        echo "Applying $(basename "$p")"; \
-       git apply --verbose "$p" || exit 1; \
+       git apply "$p" >/dev/null 2>&1 \
+         || { echo "ERROR: $(basename "$p") does not apply to ${VLLM_REF}" >&2; exit 1; }; \
      done \
   && echo "all patches applied"
 
@@ -129,6 +132,8 @@ ARG USE_SCCACHE=false
 # Seed sccache cache from build context (synced from S3 before build)
 COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
 
+# `setup.py -q`: without it setuptools logs one line per packaged file, including files
+# added by patches. Compiler and CMake output is unaffected.
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
     export CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-c++ CUDAHOSTCXX=/usr/bin/gcc14-c++ \
     && if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
@@ -150,11 +155,11 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && export CMAKE_CXX_COMPILER_LAUNCHER=sccache \
       && export CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
       && sccache --show-stats \
-      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
+      && python3 setup.py -q bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
       && sccache --show-stats; \
     else \
       echo "🔧 Building vLLM from source (no sccache)..." \
-      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
+      && python3 setup.py -q bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
     fi
 
 # Build the DeepEP wheel from the AWS EFA fork. Its setup.py compiles both the legacy NVSHMEM
@@ -230,11 +235,11 @@ ENV UV_INDEX_STRATEGY="unsafe-best-match"
 ENV UV_LINK_MODE=copy
 
 # Match runtime venv NCCL to the DeepEP wheel's compile-time NCCL (see build stage).
-# Pin transformers < 5.16: vLLM 0.29.0 predates the 5.16 Pixtral rename + rope_parameters changes.
+# Pin transformers to the version upstream vLLM CI tests (requirements/test/cuda.txt).
 ARG NCCL_VERSION
 RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
   && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt \
-  && echo "transformers==5.15.1" >>/etc/uv-overrides.txt
+  && echo "transformers==5.18.0" >>/etc/uv-overrides.txt
 ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch
@@ -251,8 +256,8 @@ RUN --mount=type=cache,target=/root/.cache/uv ls /tmp/vllm-dist/*.whl \
   && uv pip install "${VLLM_WHL}" \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-# Install FlashInfer jit-cache after vllm wheel (pin both flashinfer-python and
-# flashinfer-jit-cache to ensure version match for flashinfer download-cubin)
+# Install FlashInfer jit-cache after vllm wheel (pin flashinfer-python and
+# flashinfer-jit-cache to the same version so the precompiled kernels match)
 ARG FLASHINFER_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
   flashinfer-python==${FLASHINFER_VERSION} flashinfer-jit-cache==${FLASHINFER_VERSION} \
@@ -279,29 +284,42 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     echo "No DeepEP wheels to install; skipping."; \
   fi && rm -rf /tmp/ep_kernels
 
-# Install KV connectors (lmcache, nixl) if requested
+# Install KV connectors (lmcache, nixl, mooncake) if requested. Mirrors upstream's
+# .buildkite/scripts/install-kv-connectors.sh: keep the installed torch stack, then
+# keep only the nixl and mooncake wheels that match this CUDA major (the default
+# mooncake wheel links libcudart.so.12).
 ARG INSTALL_KV_CONNECTORS=true
 COPY --from=source /src/requirements/kv_connectors.txt /tmp/kv_connectors.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
+    set -e; \
     CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
     CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
     if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
-        uv pip install -r /tmp/kv_connectors.txt --no-build || ( \
+        uv pip freeze | grep -E '^(torch|torchaudio|torchvision|triton|cuda-bindings|cuda-python|cuda-toolkit)==' >/tmp/kv-constraints.txt; \
+        uv pip install -c /tmp/kv-constraints.txt -r /tmp/kv_connectors.txt --no-build || ( \
             dnf install -y --setopt=install_weak_deps=False \
                 libcusparse-devel-${CUDA_DASH} \
                 libcublas-devel-${CUDA_DASH} \
                 libcusolver-devel-${CUDA_DASH} \
-            && uv pip install -r /tmp/kv_connectors.txt --no-build-isolation \
+            && uv pip install -c /tmp/kv-constraints.txt -r /tmp/kv_connectors.txt --no-build-isolation \
             && dnf remove -y libcusparse-devel-${CUDA_DASH} libcublas-devel-${CUDA_DASH} libcusolver-devel-${CUDA_DASH} \
             && dnf clean all && rm -rf /var/cache/dnf \
         ); \
-        if [ "$CUDA_MAJOR" -ge 13 ]; then \
-            uv pip install --force-reinstall --no-deps nixl-cu13; \
+        NIXL_VERSION=$(python3 -c "import importlib.metadata as m; print(m.version('nixl'))"); \
+        uv pip uninstall nixl-cu12 nixl-cu13 || true; \
+        uv pip install --no-deps "nixl-cu${CUDA_MAJOR}==${NIXL_VERSION}"; \
+        MOONCAKE_VERSION=$(python3 -c "import importlib.metadata as m; print(m.version('mooncake-transfer-engine'))" 2>/dev/null || true); \
+        if [ "$CUDA_MAJOR" -ge 13 ] && [ -n "$MOONCAKE_VERSION" ]; then \
+            uv pip uninstall mooncake-transfer-engine; \
+            uv pip install -c /tmp/kv-constraints.txt "mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION}"; \
         fi; \
+        rm -f /tmp/kv-constraints.txt; \
     fi
 
-# Download FlashInfer precompiled cubins after all pip installs are done
-RUN flashinfer show-config && flashinfer download-cubin
+# The flashinfer-cubin wheel (from requirements/cuda.txt) already ships every cubin, so
+# there is no `flashinfer download-cubin` step: it only re-fetched the same ~43k files one
+# at a time (~25 min) and added none.
+RUN flashinfer show-config
 
 # =============================================================================
 # STAGE: builder-oss — generates license files without modifying runtime venv

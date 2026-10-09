@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pre-build hook for vLLM (and vLLM-Omni via symlink).
-# Fetches cached wheel from S3 and syncs sccache.
+# Fetches source patches and the cached wheel from S3, and syncs sccache.
 #
 # Usage:
 #   bash .github/scripts/build/vllm/pre_build.sh --config-file <path>
@@ -8,6 +8,8 @@
 # Inputs:
 #   --config-file      - config file path
 #   WHEELS_BUCKET - S3 bucket (env var, default: dlc-cicd-wheels)
+#   VLLM_PATCHES_S3_PREFIX - patch prefix (env var, default:
+#                            s3://dlc-cicd-models/build-patches/vllm_server)
 #
 # Outputs (env vars written to $GITHUB_ENV):
 #   WHEEL_CACHE_HIT    - "true" if wheel found, "false" otherwise
@@ -16,6 +18,7 @@
 #   USE_PREBUILT_WHEEL - "1" if wheel found
 #
 # Side effects:
+#   vllm_server only: copies <prefix>/<vllm_ref>/*.patch into scripts/docker/vllm/amzn2023/patches/
 #   Places wheel in docker/vllm/prebuilt_wheels/ if cache hit
 #   Populates docker/vllm/sccache-cache/ from S3
 
@@ -51,6 +54,19 @@ USE_SCCACHE=$(yq '.build.use_sccache // "false"' "$CONFIG_FILE")
 # same CUDA arches. Empty when the config does not pin one (the Dockerfile ARG
 # default then applies, and the hash is unchanged from before this key existed).
 TORCH_CUDA_ARCH_LIST_CFG=$(yq '.build.torch_cuda_arch_list // ""' "$CONFIG_FILE")
+
+# Patches for the pinned vllm_ref can live in the CI models bucket instead of the repo; every
+# build that runs this hook applies them, releases included. Fetch them before the wheel
+# lookup, because patch files are part of the wheel cache key (lib/source_hash.sh). Only the
+# AL2023 vllm_server Dockerfile applies them; vllm and vllm_omni reach this hook via symlinks.
+if [[ "$(yq -r '.metadata.framework' "$CONFIG_FILE")" == "vllm_server" ]]; then
+  PATCHES_PREFIX="${VLLM_PATCHES_S3_PREFIX:-s3://dlc-cicd-models/build-patches/vllm_server}"
+  PATCHES_DEST="scripts/docker/vllm/amzn2023/patches"
+  mkdir -p "$PATCHES_DEST"
+  aws s3 cp --recursive --only-show-errors --exclude "*" --include "*.patch" \
+    "${PATCHES_PREFIX}/${VLLM_REF}/" "${PATCHES_DEST}/"
+  echo "Patches to apply for ${VLLM_REF}: $(find "$PATCHES_DEST" -maxdepth 1 -name '*.patch' | wc -l)"
+fi
 
 # Prepare build context directories
 mkdir -p docker/vllm/prebuilt_wheels docker/vllm/sccache-cache
