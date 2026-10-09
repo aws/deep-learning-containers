@@ -1,0 +1,65 @@
+image:
+  name: "miles-ec2-amzn2023"
+  description: "Miles 0.1.1 training for EC2 (AL2023, CUDA 13.0, built from source)"
+
+metadata:
+  framework: "miles"
+  framework_version: "0.1.1"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "training"
+  prod_image: "miles:0.1.1-gpu-py312-cu130-amzn2023-ec2"
+
+build:
+  dockerfile: "docker/miles/Dockerfile.amzn2023"
+  target: "ec2"
+  python_version: "3.12"
+  cuda_version: "13.0.3"
+  miles_version: "0.1.1"
+  torch_version: "2.13.0"
+  torchvision_version: "0.28.0"
+  torchaudio_version: "2.11.0"
+  sglang_version: "0.5.21.dev60+g880e3d2"
+  sglang_kernel_version: "0.4.7"
+  flashinfer_version: "0.6.18"
+  transformer_engine_version: "2.17.0"
+  cudnn_version: "9.22.0.52"
+  tilelang_version: "0.1.14"
+  flash_linear_attention_version: "0.5.2"
+  model_opt_version: "0.46.1"
+  megatron_energon_version: "7.4.1"
+  multi_storage_client_version: "1.1.0"
+  nccl4py_version: "0.5.0"
+  efa_version: "latest"
+  rust_version: "1.96.1"
+  ffmpeg_version: "n8.1"
+  gdrcopy_version: "2.5.1"
+  mooncake_version: "0.3.13.dev0+g4dbe5a4c"
+  mooncake_commit: "4dbe5a4c194669850e9abad61172e9878b245b15"
+  nccl_tests_commit: "ae98985f5599617be94042f4aa3637d10014ce89"
+  miles_commit: "2806267d060d51b1d3b62f85a1f9b145047aeef9"
+  sglang_commit: "880e3d2453eb7ef1738350e8c35ba2b956cc93a9"
+  megatron_commit: "f148a32b4385b758b66a77c9c3ad1641f1295d4b"
+  sgl_router_commit: "0e7c1ac7842317f39a9276af36f5f3a68ed85be8"
+  flashqla_commit: "7c7dfe16416ad21b1d03258189fc8d3b8460ae06"
+  mbridge_commit: "89eb10887887bc74853f89a4de258c0702932a1c"
+  emerging_optimizers_commit: "b309e2f01cda75dc96a6dc1a2355a7b3b64b5e16"
+  torch_memory_saver_commit: "b5588e83de86412a48689a6583a4b567e75f7acc"
+  megatron_bridge_commit: "8cd3466d14d2337c8492827b3712482c2b3e4866"
+  nvidia_resiliency_ext_commit: "6c5f2a13c7688d92a7ac7ee6e464721eb8b7345d"
+  miles_wheels_tag: "cu130-torch213-x86_64"
+  miles_wheels_repo: "radixark/miles-wheels"
+  build_parallel: "16"
+  torch_cuda_arch_list: "8.0;8.6;8.9;9.0;10.0;10.3"
+  dlc_major_version: "0"
+  dlc_minor_version: "1"
+
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: false
+  enable_soci: false
+  environment: "gamma"

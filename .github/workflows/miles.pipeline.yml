@@ -1,0 +1,45 @@
+name: "Pipeline - Miles"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      tag-suffix:
+        description: "CI tag suffix (run_id or pr-NUMBER)"
+        required: true
+        type: string
+      build:
+        description: "Whether to build the image"
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      image-uri:
+        description: "Built image URI"
+        value: ${{ jobs.build.outputs.image-uri }}
+
+jobs:
+  build:
+    if: ${{ inputs.build }}
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-sglang-build-runner
+        buildspec-override:true
+    timeout-minutes: 720
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: build
+        uses: ./.github/actions/build-image
+        with:
+          config-file: ${{ inputs.config-file }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-suffix: ${{ inputs.tag-suffix }}

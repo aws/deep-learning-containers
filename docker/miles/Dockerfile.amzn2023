@@ -1,0 +1,812 @@
+# syntax=docker/dockerfile:1.7
+
+# Miles v0.1.1 AL2023 EC2 training DLC.
+#
+# This target deliberately excludes the SageMaker Training adapter. It follows
+# the v0.1.1 release lock while retaining documented AL2023 and multi-GPU
+# artifact replacements plus the EFA, security, and compliance layers needed
+# by a first-party EC2 training image.
+
+# ── Global release inputs ────────────────────────────────────────────────────
+ARG CUDA_VERSION=13.0.3
+ARG PYTHON_VERSION=3.12
+ARG PYTHON_SHORT_VERSION=3.12
+ARG MILES_VERSION=0.1.1
+ARG TORCH_VERSION=2.13.0
+ARG TORCHVISION_VERSION=0.28.0
+ARG TORCHAUDIO_VERSION=2.11.0
+ARG SGLANG_VERSION=0.5.21.dev60+g880e3d2
+ARG SGLANG_KERNEL_VERSION=0.4.7
+ARG FLASHINFER_VERSION=0.6.18
+ARG TRANSFORMER_ENGINE_VERSION=2.17.0
+ARG CUDNN_VERSION=9.22.0.52
+ARG TILELANG_VERSION=0.1.14
+ARG FLASH_LINEAR_ATTENTION_VERSION=0.5.2
+ARG MODEL_OPT_VERSION=0.46.1
+ARG MEGATRON_ENERGON_VERSION=7.4.1
+ARG MULTI_STORAGE_CLIENT_VERSION=1.1.0
+ARG NCCL4PY_VERSION=0.5.0
+ARG EFA_VERSION=latest
+ARG RUST_VERSION=1.96.1
+ARG FFMPEG_VERSION=n8.1
+ARG GDRCOPY_VERSION=2.5.1
+ARG MOONCAKE_VERSION=0.3.13.dev0+g4dbe5a4c
+ARG MOONCAKE_COMMIT=4dbe5a4c194669850e9abad61172e9878b245b15
+ARG NCCL_TESTS_COMMIT=ae98985f5599617be94042f4aa3637d10014ce89
+ARG MILES_COMMIT=2806267d060d51b1d3b62f85a1f9b145047aeef9
+ARG SGLANG_COMMIT=880e3d2453eb7ef1738350e8c35ba2b956cc93a9
+ARG MEGATRON_COMMIT=f148a32b4385b758b66a77c9c3ad1641f1295d4b
+ARG SGL_ROUTER_COMMIT=0e7c1ac7842317f39a9276af36f5f3a68ed85be8
+ARG FLASHQLA_COMMIT=7c7dfe16416ad21b1d03258189fc8d3b8460ae06
+ARG MBRIDGE_COMMIT=89eb10887887bc74853f89a4de258c0702932a1c
+ARG EMERGING_OPTIMIZERS_COMMIT=b309e2f01cda75dc96a6dc1a2355a7b3b64b5e16
+ARG TORCH_MEMORY_SAVER_COMMIT=b5588e83de86412a48689a6583a4b567e75f7acc
+ARG MEGATRON_BRIDGE_COMMIT=8cd3466d14d2337c8492827b3712482c2b3e4866
+ARG NVIDIA_RESILIENCY_EXT_COMMIT=6c5f2a13c7688d92a7ac7ee6e464721eb8b7345d
+ARG MILES_WHEELS_TAG=cu130-torch213-x86_64
+ARG MILES_WHEELS_REPO=radixark/miles-wheels
+ARG BUILD_PARALLEL=16
+ARG torch_cuda_arch_list="8.0;8.6;8.9;9.0;10.0;10.3"
+ARG DLC_MAJOR_VERSION=0
+ARG DLC_MINOR_VERSION=1
+
+
+# ── Stage: build-base ────────────────────────────────────────────────────────
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build-base
+
+ARG PYTHON_VERSION
+
+RUN sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
+    && dnf install -y --allowerasing --setopt=install_weak_deps=False \
+        python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+        gcc gcc-c++ make cmake ninja-build git git-lfs nasm yasm \
+        curl wget tar gzip unzip patch patchelf perl which findutils \
+        numactl numactl-devel \
+        rdma-core rdma-core-devel libibverbs librdmacm \
+        libnl3-devel infiniband-diags \
+        libfabric libfabric-devel \
+        libunwind-devel boost-devel openssl-devel \
+        protobuf-devel protobuf-compiler hiredis-devel libcurl-devel \
+        zlib-devel libffi-devel \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:${PATH}" \
+    UV_HTTP_TIMEOUT=600 \
+    UV_INDEX_STRATEGY=unsafe-best-match \
+    UV_LINK_MODE=copy
+
+RUN python -m pip install --no-cache-dir --upgrade \
+      pip setuptools==84.0.0 wheel==0.48.0 packaging==26.3 \
+      pybind11==3.1.0 cmake==4.4.3 ninja==1.13.2 uv==0.12.16
+
+
+# ── Stage: ffmpeg-builder ────────────────────────────────────────────────────
+# TorchCodec loads the host FFmpeg shared libraries at import time. Build a
+# pinned LGPL configuration so AL2023 has the same video-decoding prerequisite
+# that the upstream SGLang base image installs from apt.
+FROM build-base AS ffmpeg-builder
+
+ARG FFMPEG_VERSION
+
+RUN git clone --depth 1 --branch "${FFMPEG_VERSION}" \
+      https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
+    && cd /tmp/ffmpeg \
+    && ./configure \
+      --prefix=/opt/ffmpeg \
+      --disable-debug \
+      --disable-doc \
+      --disable-static \
+      --enable-shared \
+    && make -j"$(nproc)" \
+    && make install \
+    && mkdir -p /opt/ffmpeg/share/licenses/FFmpeg \
+    && cp LICENSE.md COPYING.LGPLv2.1 \
+      /opt/ffmpeg/share/licenses/FFmpeg/
+
+
+# ── Stage: gdrcopy-builder ───────────────────────────────────────────────────
+# Only the userspace library belongs in the container. The host supplies the
+# gdrdrv kernel module.
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS gdrcopy-builder
+
+ARG GDRCOPY_VERSION
+
+RUN dnf install -y --setopt=install_weak_deps=False gcc git make \
+    && git clone --depth 1 --branch "v${GDRCOPY_VERSION}" \
+      https://github.com/NVIDIA/gdrcopy.git /tmp/gdrcopy \
+    && make -C /tmp/gdrcopy -j"$(nproc)" \
+      prefix=/usr/local CUDA=/usr/local/cuda lib lib_install \
+    && mkdir -p /usr/local/share/licenses/GDRCopy \
+    && cp /tmp/gdrcopy/LICENSE /usr/local/share/licenses/GDRCopy/LICENSE \
+    && rm -rf /tmp/gdrcopy /var/cache/dnf
+
+
+# ── Stage: mooncake-builder ──────────────────────────────────────────────────
+# The Miles v0.1.1 Mooncake artifact contains Torch-versioned EP/PG modules.
+# Rebuild the release source for Torch 2.13 on manylinux 2.28 so it is both
+# upstream-compatible and installable on AL2023.
+FROM pytorch/manylinux2_28-builder:cuda13.0@sha256:15d305359a1b939adb4e6bdf45743f07d64bc964de3633bcdde9e850890de525 AS mooncake-builder
+
+ARG PYTHON_VERSION
+ARG TORCH_VERSION
+ARG MOONCAKE_VERSION
+ARG MOONCAKE_COMMIT
+ARG torch_cuda_arch_list
+ARG BUILD_PARALLEL
+
+ENV PATH="/opt/python/cp312-cp312/bin:/usr/local/go/bin:${PATH}" \
+    CUDA_HOME=/usr/local/cuda \
+    MAX_JOBS="${BUILD_PARALLEL}" \
+    TORCH_CUDA_ARCH_LIST="${torch_cuda_arch_list}" \
+    LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/local/cuda/lib64/stubs:${LD_LIBRARY_PATH}" \
+    LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}"
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python3 -m pip install \
+      "cmake<4" ninja setuptools wheel
+
+RUN git clone --filter=blob:none https://github.com/kvcache-ai/Mooncake.git \
+      /opt/mooncake \
+    && git -C /opt/mooncake fetch origin "${MOONCAKE_COMMIT}" \
+    && git -C /opt/mooncake checkout --detach "${MOONCAKE_COMMIT}" \
+    && git -C /opt/mooncake submodule update --init --recursive \
+    && cd /opt/mooncake \
+    && bash dependencies.sh -y
+
+RUN cmake -G Ninja \
+      -S /opt/mooncake \
+      -B /opt/mooncake/build \
+      -DPython3_EXECUTABLE=/opt/python/cp312-cp312/bin/python3 \
+      -DBUILD_UNIT_TESTS=OFF \
+      -DBUILD_BENCHMARK=OFF \
+      -DUSE_HTTP=ON \
+      -DUSE_ETCD=ON \
+      -DUSE_CUDA=ON \
+      -DWITH_EP=ON \
+      -DSTORE_USE_ETCD=ON \
+      -DEP_TORCH_VERSIONS="${TORCH_VERSION}" \
+      -DTORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" \
+      -DENABLE_SCCACHE=OFF \
+      -DENABLE_DEBUG_SYMBOLS=OFF \
+      -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build /opt/mooncake/build --parallel "${BUILD_PARALLEL}" \
+    && cmake --install /opt/mooncake/build \
+    && mkdir -p /opt/mooncake/build/mooncake-transfer-engine/nvlink-allocator \
+    && cd /opt/mooncake/mooncake-transfer-engine/nvlink-allocator \
+    && bash build.sh \
+      /opt/mooncake/build/mooncake-transfer-engine/nvlink-allocator/
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    cd /opt/mooncake \
+    && sed -i \
+      "s/version = \"0.3.11.post1\"/version = \"${MOONCAKE_VERSION}\"/" \
+      mooncake-wheel/pyproject.toml \
+    && grep -q "version = \"${MOONCAKE_VERSION}\"" \
+      mooncake-wheel/pyproject.toml \
+    && CU13_BUILD=1 \
+      PYTHON_VERSION="${PYTHON_VERSION}" \
+      OUTPUT_DIR=/wheel-output \
+      ./scripts/build_wheel.sh \
+    && python3 - <<'PY'
+import glob
+import zipfile
+
+wheels = glob.glob("/wheel-output/mooncake_transfer_engine_cuda13-*.whl")
+assert len(wheels) == 1, wheels
+with zipfile.ZipFile(wheels[0]) as archive:
+    names = archive.namelist()
+    required = (
+        "/structured_object_store.py",
+        "/mooncake_master",
+        "/ep_2_13_0.cpython-312-x86_64-linux-gnu.so",
+        "/pg_2_13_0.cpython-312-x86_64-linux-gnu.so",
+    )
+    for suffix in required:
+        assert any(name.endswith(suffix) for name in names), suffix
+print(wheels[0])
+PY
+
+
+# ── Stage: rust-build-base ───────────────────────────────────────────────────
+# Both SGLang and the model gateway compile Rust extensions. Keep the Rust
+# toolchain in builder stages so it is not copied into the runtime image.
+FROM build-base AS rust-build-base
+
+ARG RUST_VERSION
+
+RUN curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs \
+      | sh -s -- -y --default-toolchain "${RUST_VERSION}"
+ENV PATH="/root/.cargo/bin:/opt/venv/bin:${PATH}"
+
+
+# ── Stage: router-builder ────────────────────────────────────────────────────
+FROM rust-build-base AS router-builder
+
+ARG SGL_ROUTER_COMMIT
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/root/.cargo/registry \
+    git clone --filter=blob:none https://github.com/radixark/sgl-router-for-miles.git \
+      /opt/sgl-model-gateway \
+    && git -C /opt/sgl-model-gateway fetch origin "${SGL_ROUTER_COMMIT}" \
+    && git -C /opt/sgl-model-gateway checkout --detach "${SGL_ROUTER_COMMIT}" \
+    && cp /opt/sgl-model-gateway/README.md \
+      /opt/sgl-model-gateway/bindings/python/README.md \
+    && sed -i 's|../../README.md|README.md|' \
+      /opt/sgl-model-gateway/bindings/python/pyproject.toml \
+    && python -m pip install --no-cache-dir maturin==1.15.0 \
+    && cd /opt/sgl-model-gateway/bindings/python \
+    && ulimit -n 65536 \
+    && maturin build --release --features vendored-openssl --out /artifacts \
+    && cd /opt/sgl-model-gateway \
+    && cargo build --release --bin sgl-model-gateway --features vendored-openssl \
+    && cp target/release/sgl-model-gateway /artifacts/sgl-model-gateway
+
+
+# ── Stage: framework-builder ─────────────────────────────────────────────────
+FROM rust-build-base AS framework-builder
+
+ARG PYTHON_SHORT_VERSION
+ARG TORCH_VERSION
+ARG TORCHVISION_VERSION
+ARG TORCHAUDIO_VERSION
+ARG SGLANG_VERSION
+ARG SGLANG_KERNEL_VERSION
+ARG FLASHINFER_VERSION
+ARG TRANSFORMER_ENGINE_VERSION
+ARG CUDNN_VERSION
+ARG TILELANG_VERSION
+ARG FLASH_LINEAR_ATTENTION_VERSION
+ARG MODEL_OPT_VERSION
+ARG MEGATRON_ENERGON_VERSION
+ARG MULTI_STORAGE_CLIENT_VERSION
+ARG NCCL4PY_VERSION
+ARG MILES_COMMIT
+ARG SGLANG_COMMIT
+ARG MEGATRON_COMMIT
+ARG FLASHQLA_COMMIT
+ARG MBRIDGE_COMMIT
+ARG EMERGING_OPTIMIZERS_COMMIT
+ARG TORCH_MEMORY_SAVER_COMMIT
+ARG MEGATRON_BRIDGE_COMMIT
+ARG NVIDIA_RESILIENCY_EXT_COMMIT
+ARG SGL_ROUTER_COMMIT
+ARG MOONCAKE_COMMIT
+ARG MILES_WHEELS_TAG
+ARG MILES_WHEELS_REPO
+ARG BUILD_PARALLEL
+ARG torch_cuda_arch_list
+
+ENV CUDA_HOME=/usr/local/cuda \
+    TORCH_CUDA_ARCH_LIST="${torch_cuda_arch_list}" \
+    CMAKE_CUDA_ARCHITECTURES="80;86;89;90;100;103" \
+    MAX_JOBS="${BUILD_PARALLEL}"
+
+# Constrain every package that was versioned in the official v0.1.1 image.
+# Upstream applies four intentional post-solve overrides: Torch's cuDNN 9.20
+# becomes 9.22, Ray upgrades Protobuf 6 to 7, Miles upgrades Pillow to 12.3,
+# and Miles upgrades TileLang from SGLang's 0.1.12 to 0.1.14. A single
+# resolver cannot represent those final-state overrides, so omit them from the
+# SGLang solve and apply their frozen versions afterward.
+COPY docker/miles/requirements/miles-v0.1.1-constraints.txt /tmp/official-freeze.txt
+RUN grep -vE '^(nvidia-cudnn-cu13|protobuf|pillow|tilelang)==' /tmp/official-freeze.txt \
+      >/tmp/resolver-constraints.txt
+ENV PIP_CONSTRAINT=/tmp/resolver-constraints.txt \
+    UV_CONSTRAINT=/tmp/resolver-constraints.txt
+
+# Download only the AL2023-compatible release assets recorded in the checked-in
+# checksum file. The upstream Mooncake and router artifacts target glibc 2.39,
+# so they are rebuilt separately for AL2023. fake_int4_quant_cuda is also built
+# from the pinned Miles source so a mutable release asset cannot break future
+# builds. The provenance gate requires every difference to be explicitly
+# allowlisted.
+COPY docker/miles/wheel-manifests/miles-v0.1.1-official-wheel-artifacts.sha256 /tmp/official-wheel-artifacts.sha256
+COPY docker/miles/wheel-manifests/miles-v0.1.1-cu130-torch213-x86_64.sha256 /tmp/miles-wheels.sha256
+COPY docker/miles/wheel-manifests/miles-v0.1.1-artifact-deviations.json /tmp/miles-wheel-deviations.json
+COPY scripts/docker/miles/validate_wheel_artifacts.py /tmp/validate_wheel_artifacts.py
+RUN python /tmp/validate_wheel_artifacts.py \
+      --official /tmp/official-wheel-artifacts.sha256 \
+      --selected /tmp/miles-wheels.sha256 \
+      --deviations /tmp/miles-wheel-deviations.json \
+      --source "miles=${MILES_COMMIT}" \
+      --source "mooncake=${MOONCAKE_COMMIT}" \
+      --source "sgl_router=${SGL_ROUTER_COMMIT}"
+RUN mkdir -p /opt/miles-wheels \
+    && python - "${MILES_WHEELS_REPO}" "${MILES_WHEELS_TAG}" \
+      /tmp/miles-wheels.sha256 /opt/miles-wheels <<'PY'
+import pathlib
+import subprocess
+import sys
+
+repository, tag, manifest_path, target_path = sys.argv[1:]
+target_dir = pathlib.Path(target_path)
+expected = {
+    line.split(maxsplit=1)[1].lstrip("*")
+    for line in pathlib.Path(manifest_path).read_text().splitlines()
+    if line.strip() and not line.lstrip().startswith("#")
+}
+for name in sorted(expected):
+    print(f"downloading {name}", flush=True)
+    url = f"https://github.com/{repository}/releases/download/{tag}/{name}"
+    subprocess.run(
+        [
+            "curl",
+            "-fSL",
+            "--retry",
+            "3",
+            "--retry-delay",
+            "2",
+            "--output",
+            str(target_dir / name),
+            url,
+        ],
+        check=True,
+    )
+PY
+RUN cd /opt/miles-wheels \
+    && sha256sum -c /tmp/miles-wheels.sha256
+
+# Establish the CUDA/PyTorch ABI before installing native extension wheels.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install \
+      "torch==${TORCH_VERSION}" \
+      "torchvision==${TORCHVISION_VERSION}" \
+      "torchaudio==${TORCHAUDIO_VERSION}" \
+      --index-url https://download.pytorch.org/whl/cu130 \
+      --extra-index-url https://pypi.org/simple
+
+# Exact framework source revisions from the Miles v0.1.1 release lock. Keep
+# SGLang's checkout pristine; Miles' later Pillow and TileLang upgrades are
+# recorded as reviewed final-state metadata differences.
+RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/sglang \
+    && git -C /opt/sglang fetch origin "${SGLANG_COMMIT}" \
+    && git -C /opt/sglang checkout --detach "${SGLANG_COMMIT}" \
+    && git clone --filter=blob:none https://github.com/radixark/Megatron-LM.git \
+      /opt/Megatron-LM \
+    && git -C /opt/Megatron-LM fetch origin "${MEGATRON_COMMIT}" \
+    && git -C /opt/Megatron-LM checkout --detach "${MEGATRON_COMMIT}" \
+    && git -C /opt/Megatron-LM submodule update --init --recursive \
+    && git clone --filter=blob:none https://github.com/radixark/miles.git /opt/miles \
+    && git -C /opt/miles fetch origin "${MILES_COMMIT}" \
+    && git -C /opt/miles checkout --detach "${MILES_COMMIT}"
+
+# Build the multi-architecture fake-int4 extension from the same immutable
+# Miles source revision used by the image. Build from a temporary copy so the
+# checked-out Miles tree remains pristine.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    mkdir -p /opt/miles-source-wheels /tmp/fake-int4-src \
+    && cp -a \
+      /opt/miles/miles/backends/megatron_utils/kernels/int4_qat/. \
+      /tmp/fake-int4-src/ \
+    && cd /tmp/fake-int4-src \
+    && python setup.py bdist_wheel --dist-dir /opt/miles-source-wheels \
+    && test "$(find /opt/miles-source-wheels -maxdepth 1 -name \
+      'fake_int4_quant_cuda-0.0.0-*.whl' | wc -l)" -eq 1 \
+    && rm -rf /tmp/fake-int4-src
+
+# Install SGLang against the already-installed Torch/CUDA ABI. The explicit
+# CUDA index resolves TorchCodec to the release's +cu130 build in the same
+# dependency solve.
+# setuptools-scm normally derives the version from all tags visible today.
+# Pin the package metadata to the value produced when Miles v0.1.1 was built;
+# newer SGLang tags otherwise change the version of this same source commit.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=cache,target=/root/.cargo/registry \
+    python -m pip install \
+      setuptools-rust==1.13.0 setuptools-scm==10.3.4 wheel-stub==0.5.0 \
+    && SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SGLANG="${SGLANG_VERSION}" \
+      CARGO_TARGET_DIR=/tmp/sglang-cargo-target \
+      uv pip install --no-build-isolation \
+      --extra-index-url https://download.pytorch.org/whl/cu130 \
+      -e "/opt/sglang/python[all]" \
+    && PIP_CONSTRAINT=/tmp/official-freeze.txt \
+      python -m pip install "ray[default]==2.58.0" \
+    && python -m pip install --force-reinstall --no-deps \
+      "sglang-kernel==${SGLANG_KERNEL_VERSION}" \
+      --index-url https://docs.sglang.ai/whl/cu130/ \
+    && python -m pip install --force-reinstall --no-deps \
+      --extra-index-url https://flashinfer.ai/whl \
+      --extra-index-url https://flashinfer.ai/whl/cu130 \
+      "flashinfer-python==${FLASHINFER_VERSION}" \
+      "flashinfer-cubin==${FLASHINFER_VERSION}" \
+      "flashinfer-jit-cache==${FLASHINFER_VERSION}" \
+    && python -m pip install --force-reinstall --no-deps \
+      apache-tvm-ffi==0.1.11 \
+      nvidia-cutlass-dsl==4.6.2 \
+      nvidia-cutlass-dsl-libs-base==4.6.2 \
+      nvidia-cutlass-dsl-libs-core==4.6.2 \
+      nvidia-cutlass-dsl-libs-cu12==4.6.2 \
+      nvidia-cutlass-dsl-libs-cu13==4.6.2 \
+    && rm -rf /tmp/sglang-cargo-target
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install \
+      /opt/miles-wheels/flash_attn-2.7.4.post1-*.whl \
+      /opt/miles-wheels/flash_attn_3-3.0.0-*.whl \
+      /opt/miles-wheels/flash_mla-1.0.0+*.whl \
+      /opt/miles-wheels/fast_hadamard_transform-1.1.0-*.whl \
+      /opt/miles-wheels/causal_conv1d-1.6.1-*.whl \
+      /opt/miles-wheels/mamba_ssm-2.3.1-*.whl \
+      /opt/miles-wheels/apex-0.1-*.whl \
+    && python -m pip uninstall -y \
+      transformer-engine transformer-engine-cu12 transformer-engine-cu13 \
+      transformer-engine-torch \
+    && python -m pip install --force-reinstall --no-deps \
+      /opt/miles-wheels/transformer_engine-${TRANSFORMER_ENGINE_VERSION}-py3-none-any.whl \
+      /opt/miles-wheels/transformer_engine_cu13-${TRANSFORMER_ENGINE_VERSION}-*.whl \
+      /opt/miles-wheels/transformer_engine_torch-${TRANSFORMER_ENGINE_VERSION}-*.whl \
+    && python -m pip install --no-deps \
+      nvidia-cudnn-frontend==1.28.0 \
+      nixl==1.4.1 \
+      nixl-cu13==1.4.1 \
+    && python -m pip install \
+      nvdlfw-inspect==0.2.2 \
+      onnx==1.23.0 \
+      onnxscript==0.7.2
+
+COPY docker/miles/patches/v0.1.1/transformer-engine/ /tmp/transformer-engine-patches/
+COPY scripts/docker/miles/verify_transformer_engine_v011.py /tmp/verify_transformer_engine.py
+RUN TE_DIR="$(python -c 'import importlib.util; print(importlib.util.find_spec("transformer_engine").submodule_search_locations[0])')" \
+    && for patch_file in /tmp/transformer-engine-patches/*.patch; do \
+         echo "Applying $(basename "${patch_file}") to ${TE_DIR}"; \
+         patch -d "${TE_DIR}" -p1 < "${patch_file}" || exit 1; \
+       done \
+    && python /tmp/verify_transformer_engine.py transformer_engine_cu13
+
+# Exact direct dependency versions captured from radixark/miles:v0.1.1.
+COPY docker/miles/requirements/miles-v0.1.1-direct.txt /tmp/miles-v0.1.1-direct.txt
+COPY docker/miles/patches/v0.1.1/fla_kda_hoist_next_power_of_2.patch /tmp/fla.patch
+COPY docker/miles/patches/v0.1.1/tilelang_pack_float16x4.patch /tmp/tilelang.patch
+COPY docker/miles/patches/v0.1.1/tile_kernels_target.patch /tmp/tile-kernels.patch
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install -r /tmp/miles-v0.1.1-direct.txt \
+    && python -m pip install \
+      "git+https://github.com/NVIDIA/nvidia-resiliency-ext.git@${NVIDIA_RESILIENCY_EXT_COMMIT}" \
+    && python -m pip install --no-build-isolation \
+      "git+https://github.com/ISEEKYAN/mbridge.git@${MBRIDGE_COMMIT}" \
+      --no-deps \
+    && python -m pip install \
+      "flash-linear-attention==${FLASH_LINEAR_ATTENTION_VERSION}" \
+    && FLA_DIR="$(python -c 'import importlib.util; print(importlib.util.find_spec("fla").submodule_search_locations[0])')" \
+    && patch --fuzz=0 -p1 -d "${FLA_DIR}" < /tmp/fla.patch \
+    && python -m pip install --no-deps \
+      "tilelang==${TILELANG_VERSION}" \
+      apache-tvm-ffi==0.1.11 \
+    && TILELANG_DIR="$(python -c 'import importlib.util; print(importlib.util.find_spec("tilelang").submodule_search_locations[0])')" \
+    && patch --fuzz=0 -p1 -d "${TILELANG_DIR}" < /tmp/tilelang.patch \
+    && python -m pip install --no-deps tile-kernels==1.0.0 \
+    && TILE_KERNELS_DIR="$(python -c 'import importlib.util; print(importlib.util.find_spec("tile_kernels").submodule_search_locations[0])')" \
+    && patch --fuzz=0 -p1 -d "${TILE_KERNELS_DIR}" < /tmp/tile-kernels.patch \
+    && python -m pip install --no-deps --no-build-isolation \
+      "git+https://github.com/QwenLM/FlashQLA.git@${FLASHQLA_COMMIT}" \
+    && python -m pip install --no-build-isolation -e /opt/Megatron-LM \
+    && TMS_CUDA_MAJOR=13 python -m pip install --no-build-isolation \
+      "git+https://github.com/NVIDIA-NeMo/Emerging-Optimizers.git@${EMERGING_OPTIMIZERS_COMMIT}" \
+      "git+https://github.com/fzyzcjy/torch_memory_saver.git@${TORCH_MEMORY_SAVER_COMMIT}" \
+      "nvidia-modelopt[torch]==${MODEL_OPT_VERSION}" \
+    && python -m pip install --no-deps --no-build-isolation \
+      "git+https://github.com/radixark/Megatron-Bridge.git@${MEGATRON_BRIDGE_COMMIT}" \
+    && python -m pip install --no-deps \
+      "megatron-energon==${MEGATRON_ENERGON_VERSION}" \
+      "multi-storage-client==${MULTI_STORAGE_CLIENT_VERSION}"
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install --no-build-isolation \
+      -r /opt/miles/requirements.txt \
+    && python -m pip install --no-build-isolation \
+      -e /opt/miles --no-deps \
+    && python -m pip install --no-deps \
+      /opt/miles-source-wheels/fake_int4_quant_cuda-0.0.0-*.whl \
+    && python -m pip install --force-reinstall --no-deps \
+      "nvidia-cudnn-cu13==${CUDNN_VERSION}" \
+      apache-tvm-ffi==0.1.11 \
+    && python -c \
+      'import inspect; from tvm_ffi.utils import kwargs_wrapper as k; assert "map_dataclass_to_tuple" in inspect.signature(k.make_kwargs_wrapper).parameters' \
+    && python -m pip install "nccl4py==${NCCL4PY_VERSION}"
+
+
+# ── Stage: framework-final ───────────────────────────────────────────────────
+FROM framework-builder AS framework-final
+
+ARG MILES_VERSION
+ARG CUDA_VERSION
+ARG MILES_COMMIT
+ARG SGLANG_COMMIT
+ARG MEGATRON_COMMIT
+ARG SGL_ROUTER_COMMIT
+ARG FLASHQLA_COMMIT
+ARG NVIDIA_RESILIENCY_EXT_COMMIT
+ARG MOONCAKE_COMMIT
+ARG FFMPEG_VERSION
+ARG GDRCOPY_VERSION
+ARG NCCL_TESTS_COMMIT
+
+COPY --from=router-builder /artifacts/sglang_router-*.whl /tmp/router/
+COPY --from=router-builder /artifacts/sgl-model-gateway /usr/local/bin/sgl-model-gateway
+RUN python -m pip install --no-cache-dir --force-reinstall /tmp/router/sglang_router-*.whl \
+    && chmod +x /usr/local/bin/sgl-model-gateway
+
+COPY --from=mooncake-builder /wheel-output/mooncake_transfer_engine_cuda13-*.whl /tmp/mooncake/
+RUN cd /tmp/mooncake \
+    && python -m pip install --no-cache-dir --no-deps \
+      mooncake_transfer_engine_cuda13-0.3.13.dev0+g4dbe5a4c-*.whl \
+    && python -c \
+      'from pathlib import Path; import mooncake; root=Path(mooncake.__file__).parent; assert list(root.glob("ep_2_13_0*.so")); assert list(root.glob("pg_2_13_0*.so")); from mooncake.structured_object_store import FieldSchema, MooncakeBundleTransfer, export_ref, import_ref; MooncakeBundleTransfer.put; MooncakeBundleTransfer.get; MooncakeBundleTransfer.release_result; MooncakeBundleTransfer.cleanup_dataproto'
+
+# Record immutable source and native-artifact provenance before removing build data.
+RUN mkdir -p /opt/aws/dlc \
+    && { \
+      echo "framework=miles"; \
+      echo "framework_version=${MILES_VERSION}"; \
+      echo "cuda_version=${CUDA_VERSION}"; \
+      echo "miles=${MILES_COMMIT}"; \
+      echo "sglang=${SGLANG_COMMIT}"; \
+      echo "megatron_lm=${MEGATRON_COMMIT}"; \
+      echo "sgl_router=${SGL_ROUTER_COMMIT}"; \
+      echo "flash_qla=${FLASHQLA_COMMIT}"; \
+      echo "nvidia_resiliency_ext=${NVIDIA_RESILIENCY_EXT_COMMIT}"; \
+      echo "mooncake=${MOONCAKE_COMMIT}"; \
+      echo "ffmpeg=${FFMPEG_VERSION}"; \
+      echo "gdrcopy=${GDRCOPY_VERSION}"; \
+      echo "nccl_tests=${NCCL_TESTS_COMMIT}"; \
+      echo; \
+      echo "[selected release wheels]"; \
+      cat /tmp/miles-wheels.sha256; \
+      echo; \
+      echo "[source-built replacement wheels]"; \
+      sha256sum /tmp/mooncake/mooncake_transfer_engine_cuda13-*.whl; \
+      sha256sum /opt/miles-source-wheels/fake_int4_quant_cuda-0.0.0-*.whl; \
+    } >/opt/aws/dlc/SOURCE_MANIFEST \
+    && cp /tmp/official-freeze.txt /opt/aws/dlc/PYTHON_OFFICIAL_FREEZE \
+    && cp /tmp/resolver-constraints.txt /opt/aws/dlc/PYTHON_CONSTRAINTS \
+    && cp /tmp/official-wheel-artifacts.sha256 /opt/aws/dlc/WHEEL_ARTIFACTS_OFFICIAL \
+    && cp /tmp/miles-wheels.sha256 /opt/aws/dlc/WHEEL_ARTIFACTS_SELECTED \
+    && cp /tmp/miles-wheel-deviations.json /opt/aws/dlc/WHEEL_ARTIFACT_DEVIATIONS.json \
+    && cp /tmp/validate_wheel_artifacts.py /opt/aws/dlc/validate_wheel_artifacts.py \
+    && python /opt/aws/dlc/validate_wheel_artifacts.py \
+      --source-manifest /opt/aws/dlc/SOURCE_MANIFEST \
+    && python -m pip freeze >/opt/aws/dlc/PYTHON_PACKAGES_LOCK \
+    && rm -rf \
+      /root/.cache \
+      /tmp/router \
+      /tmp/mooncake \
+      /opt/miles-wheels \
+      /opt/miles-source-wheels \
+      /opt/sgl-model-gateway/target \
+      /opt/sglang/rust/target
+
+
+# ── Stage: builder-oss ───────────────────────────────────────────────────────
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
+
+ARG PYTHON_VERSION
+
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+      python${PYTHON_VERSION} curl \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+COPY --from=framework-final /opt/venv /opt/venv
+COPY --from=framework-final /opt/sglang /opt/sglang
+COPY --from=framework-final /opt/Megatron-LM /opt/Megatron-LM
+COPY --from=framework-final /opt/miles /opt/miles
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+
+RUN PATH="/opt/venv/bin:${PATH}" \
+      bash /tmp/setup_oss_compliance.sh python3 \
+    && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+
+# ── Stage: runtime-base ──────────────────────────────────────────────────────
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime-base
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
+ARG MILES_VERSION
+ARG MILES_COMMIT
+ARG EFA_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+LABEL framework="miles"
+LABEL framework_version="${MILES_VERSION}"
+LABEL org.opencontainers.image.title="Miles ${MILES_VERSION} AL2023 EC2 training DLC"
+LABEL org.opencontainers.image.description="Miles ${MILES_VERSION} EC2 training image with EFA and multi-architecture CUDA kernels"
+LABEL org.opencontainers.image.revision="${MILES_COMMIT}"
+
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    VIRTUAL_ENV=/opt/venv \
+    CUDA_HOME=/usr/local/cuda \
+    DLC_CONTAINER_TYPE=training \
+    SGLANG_RUST_BUILD_MODE=never \
+    RAY_DEDUP_LOGS=0 \
+    NCCL_DEBUG=INFO \
+    FI_PROVIDER=efa \
+    FI_LOG_LEVEL=warn \
+    MILES_MOONCAKE_AVAILABLE=1 \
+    MILES_SUPPORTED_CUDA_ARCHES="8.0,8.6,8.9,9.0,10.0,10.3" \
+    PATH="/opt/venv/bin:/opt/ffmpeg/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
+    LIBRARY_PATH="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl/lib:/usr/local/cuda/lib64:/usr/local/lib:${LIBRARY_PATH}" \
+    LD_LIBRARY_PATH="/opt/ffmpeg/lib:/usr/local/nvidia/pip-lib:/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/cudnn/lib:/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl/lib:/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
+
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+# Keep only runtime and JIT requirements in the published stage.
+RUN CUDA_DASH="$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-')" \
+    && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
+    && dnf install -y --allowerasing --setopt=install_weak_deps=False \
+      python${PYTHON_VERSION} python${PYTHON_VERSION}-devel \
+      gcc gcc-c++ make cmake ninja-build git \
+      curl wget tar gzip unzip patch patchelf perl which findutils \
+      procps-ng iproute bind-utils ethtool tmux rsync jq util-linux \
+      openssh-clients openssh-server \
+      numactl \
+      rdma-core libibverbs librdmacm libnl3 infiniband-diags libfabric \
+      libunwind boost-system boost-thread boost-filesystem \
+      protobuf hiredis libcurl openssl-libs zlib libffi \
+      cuda-nvcc-${CUDA_DASH} \
+      cuda-cudart-devel-${CUDA_DASH} \
+      cuda-nvrtc-devel-${CUDA_DASH} \
+      libcublas-devel-${CUDA_DASH} \
+      libcusparse-devel-${CUDA_DASH} \
+      libcusolver-devel-${CUDA_DASH} \
+      libcurand-devel-${CUDA_DASH} \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+COPY --from=framework-final /opt/venv /opt/venv
+COPY --from=framework-final /opt/sglang /opt/sglang
+COPY --from=framework-final /opt/Megatron-LM /opt/Megatron-LM
+COPY --from=framework-final /opt/miles /opt/miles
+COPY --from=framework-final /usr/local/bin/sgl-model-gateway /usr/local/bin/sgl-model-gateway
+COPY --from=framework-final /opt/aws/dlc /opt/aws/dlc
+COPY --from=ffmpeg-builder /opt/ffmpeg /opt/ffmpeg
+COPY --from=gdrcopy-builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
+COPY --from=gdrcopy-builder /usr/local/include/gdrapi.h /usr/local/include/gdrconfig.h /usr/local/include/
+COPY --from=gdrcopy-builder /usr/local/share/licenses/GDRCopy /usr/local/share/licenses/GDRCopy
+
+RUN mkdir -p /usr/local/nvidia/pip-lib \
+    && python - <<'PY'
+import glob
+import os
+
+target = "/usr/local/nvidia/pip-lib"
+for directory in glob.glob("/opt/venv/lib/python*/site-packages/nvidia/*/lib"):
+    for library in glob.glob(f"{directory}/*.so*"):
+        link = os.path.join(target, os.path.basename(library))
+        if not os.path.exists(link):
+            os.symlink(library, link)
+PY
+RUN NCCL_LIB="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl/lib" \
+    && test -s "${NCCL_LIB}/libnccl.so.2" \
+    && ln -sf libnccl.so.2 "${NCCL_LIB}/libnccl.so" \
+    && echo "/opt/ffmpeg/lib" >/etc/ld.so.conf.d/ffmpeg.conf \
+    && echo "/usr/local/nvidia/pip-lib" >/etc/ld.so.conf.d/nvidia-pip.conf \
+    && echo "/usr/local/lib" >/etc/ld.so.conf.d/gdrcopy.conf \
+    && ldconfig
+
+# The staged image leaves AL2023's system Python untouched, so it can use the
+# DLC common-style EFA installer without the MVP's Python-alternatives workaround.
+COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa_amzn2023.sh
+RUN bash /tmp/install_efa_amzn2023.sh "${EFA_VERSION}" \
+    && ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so \
+    && rm -f /tmp/install_efa_amzn2023.sh
+
+
+# ── Stage: nccl-tests-builder ────────────────────────────────────────────────
+# Build the upstream diagnostic suite with the EFA-provided Open MPI so the
+# binaries can exercise real multi-node EC2 communication.
+FROM runtime-base AS nccl-tests-builder
+
+ARG NCCL_TESTS_COMMIT
+ARG BUILD_PARALLEL
+ARG PYTHON_SHORT_VERSION
+
+RUN git clone --filter=blob:none https://github.com/NVIDIA/nccl-tests.git \
+      /tmp/nccl-tests \
+    && git -C /tmp/nccl-tests fetch origin "${NCCL_TESTS_COMMIT}" \
+    && git -C /tmp/nccl-tests checkout --detach "${NCCL_TESTS_COMMIT}" \
+    && NCCL_HOME="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/nccl" \
+    && make -C /tmp/nccl-tests -j"${BUILD_PARALLEL}" \
+      MPI=1 \
+      MPI_HOME=/opt/amazon/openmpi \
+      CUDA_HOME=/usr/local/cuda \
+      NCCL_HOME="${NCCL_HOME}" \
+    && mkdir -p /artifacts \
+    && cp /tmp/nccl-tests/build/*_perf /artifacts/ \
+    && cp /tmp/nccl-tests/LICENSE.txt /artifacts/LICENSE.txt
+
+
+# ── Stage: ec2 ───────────────────────────────────────────────────────────────
+FROM runtime-base AS ec2
+
+ARG CACHE_REFRESH=0
+ARG FFMPEG_VERSION
+ARG GDRCOPY_VERSION
+ARG NCCL_TESTS_COMMIT
+
+# Miles telemetry registration is deferred to a follow-up change so this
+# initial build integration does not modify shared telemetry files.
+COPY scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+
+# Apply security updates after every OS installer.
+RUN echo "security-cache-refresh=${CACHE_REFRESH}" >/dev/null \
+    && dnf upgrade -y --security --releasever latest \
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
+
+COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=builder-oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+COPY --from=nccl-tests-builder /artifacts/*_perf /usr/local/bin/
+COPY --from=nccl-tests-builder /artifacts/LICENSE.txt /usr/local/share/licenses/nccl-tests/LICENSE
+
+RUN printf '\n** FFmpeg; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\n' \
+      "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" \
+      >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    && printf '\nFFmpeg %s https://github.com/FFmpeg/FFmpeg/tree/%s\n' \
+      "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" \
+      >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+    && printf '\n** GDRCopy; version %s -- https://github.com/NVIDIA/gdrcopy/tree/v%s\n' \
+      "${GDRCOPY_VERSION}" "${GDRCOPY_VERSION}" \
+      >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    && printf '\nGDRCopy %s https://github.com/NVIDIA/gdrcopy/tree/v%s\n' \
+      "${GDRCOPY_VERSION}" "${GDRCOPY_VERSION}" \
+      >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+    && printf '\n** nccl-tests; commit %s -- https://github.com/NVIDIA/nccl-tests/tree/%s\n' \
+      "${NCCL_TESTS_COMMIT}" "${NCCL_TESTS_COMMIT}" \
+      >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    && printf '\nnccl-tests %s https://github.com/NVIDIA/nccl-tests/tree/%s\n' \
+      "${NCCL_TESTS_COMMIT}" "${NCCL_TESTS_COMMIT}" \
+      >>/root/THIRD_PARTY_SOURCE_CODE_URLS
+
+COPY scripts/docker/miles/entrypoint.sh /usr/local/bin/miles-ec2-entrypoint
+COPY scripts/docker/miles/smoke_test_ec2_v011.py /opt/miles-smoke-test.py
+COPY docker/miles/requirements/pip-check-allowlist-v0.1.1.txt /opt/aws/dlc/PIP_CHECK_ALLOWLIST
+COPY scripts/docker/miles/validate_pip_check.py /opt/aws/dlc/validate_pip_check.py
+COPY scripts/docker/miles/validate_official_freeze.py /opt/aws/dlc/validate_official_freeze.py
+COPY scripts/docker/miles/validate_cuda_jit_toolchain_v011.py /opt/aws/dlc/validate_cuda_jit_toolchain.py
+
+RUN chmod +x /usr/local/bin/miles-ec2-entrypoint \
+    && mkdir -p /workspace /var/run/sshd \
+    && python -m compileall -q -j0 \
+      /opt/sglang/python /opt/miles /opt/Megatron-LM \
+    && ffmpeg -version \
+    && python /opt/aws/dlc/validate_cuda_jit_toolchain.py \
+    && python /opt/aws/dlc/validate_wheel_artifacts.py \
+      --source-manifest /opt/aws/dlc/SOURCE_MANIFEST \
+    && python /opt/aws/dlc/validate_official_freeze.py \
+    && python /opt/aws/dlc/validate_pip_check.py \
+      /opt/aws/dlc/PIP_CHECK_ALLOWLIST \
+    && python /opt/miles-smoke-test.py \
+    && python -m pip freeze >/opt/aws/dlc/PYTHON_PACKAGES_LOCK \
+    && rm -rf /root/.cache /tmp/* /var/cache/dnf
+
+EXPOSE 22 6379 8265 10001 29599
+WORKDIR /workspace
+ENTRYPOINT ["/usr/local/bin/miles-ec2-entrypoint"]
+CMD ["/bin/bash"]
+
+
+# ── Stage: wheel-export (optional CI artifact) ───────────────────────────────
+FROM scratch AS wheel-export
+COPY --from=router-builder /artifacts/ /wheels/router/
+COPY --from=mooncake-builder /wheel-output/ /wheels/mooncake/

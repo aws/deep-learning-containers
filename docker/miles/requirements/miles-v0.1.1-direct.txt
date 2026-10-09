@@ -1,0 +1,53 @@
+# Exact direct dependency versions observed in radixark/miles:v0.1.1.
+# Source-installed and CUDA-native packages are handled explicitly in the
+# Dockerfile and are intentionally absent here.
+accelerate==1.15.0
+blake3==1.0.9
+blobfile==3.0.0
+boto3==1.43.97
+botocore==1.43.97
+cuda-bindings==13.4.2
+datasets==5.0.1
+httpx[http2]==0.28.1
+hypothesis==6.168.1
+jmespath==1.1.0
+kubernetes_asyncio==36.1.0
+mcp[cli]==2.2.0
+memray==1.20.0
+omegaconf==2.3.1
+onnxscript==0.7.2
+openai==2.6.1
+peft==0.18.1
+pillow==12.3.0
+polars==1.42.1
+prettytable==3.18.0
+psycopg[binary]==3.3.6
+pybase64==1.5.0
+pylatexenc==2.11
+pytest-asyncio==1.4.0
+pyyaml==6.0.1
+qwen-vl-utils==0.0.14
+ray[default]==2.58.0
+ring-flash-attn==0.1.8
+safetensors==0.8.0
+s3transfer==0.19.2
+tensorboard==2.21.0
+torchft-nightly==2026.4.3
+tqdm==4.70.1
+transformers==5.12.1
+typing_extensions==4.16.0
+wandb==0.30.0
+xxhash==3.7.1
+zstandard==0.25.0
+
+# Build/runtime versions whose upstream image resolution affects native tools.
+einops==0.8.2
+filelock==4.0.0
+grpcio-tools==1.84.0
+numpy==2.3.5
+onnx==1.23.0
+protobuf==7.36.2
+pydantic==2.13.5
+pybind11==3.1.0
+setuptools==84.0.0
+wheel==0.48.0

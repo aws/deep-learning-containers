@@ -1,0 +1,32 @@
+# Known metadata deviations in radixark/miles:v0.1.1 that remain applicable to
+# the AL2023 EC2 build. Validation fails if this set changes.
+moviepy 2.2.1 has requirement pillow<12.0,>=9.2.0, but you have pillow 12.3.0.
+sglang 0.5.21.dev60+g880e3d2 has requirement tilelang==0.1.12, but you have tilelang 0.1.14.
+multi-storage-client 1.1.0 requires tzdata, which is not installed.
+multi-storage-client 1.1.0 requires wcmatch, which is not installed.
+multi-storage-client 1.1.0 requires xattr, which is not installed.
+megatron-energon 7.4.1 requires braceexpand, which is not installed.
+megatron-energon 7.4.1 requires filetype, which is not installed.
+megatron-energon 7.4.1 requires mfusepy, which is not installed.
+megatron-energon 7.4.1 requires rapidyaml, which is not installed.
+megatron-energon 7.4.1 requires s3fs, which is not installed.
+megatron-energon 7.4.1 requires webdataset, which is not installed.
+megatron-bridge 0.7.0+8cd3466d requires comet-ml, which is not installed.
+megatron-bridge 0.7.0+8cd3466d requires hydra-core, which is not installed.
+megatron-bridge 0.7.0+8cd3466d requires mlflow, which is not installed.
+megatron-bridge 0.7.0+8cd3466d requires open-clip-torch, which is not installed.
+nixl 1.4.1 requires nixl-cu12, which is not installed.
+multi-storage-client 1.1.0 has requirement filelock<4,>=3.20.3, but you have filelock 4.0.0.
+multi-storage-client 1.1.0 has requirement pyyaml<7,>=6.0.3, but you have pyyaml 6.0.1.
+megatron-bridge 0.7.0+8cd3466d has requirement flashinfer-cubin==0.6.18.post1, but you have flashinfer-cubin 0.6.18.
+megatron-bridge 0.7.0+8cd3466d has requirement flashinfer-python==0.6.18.post1, but you have flashinfer-python 0.6.18.
+megatron-bridge 0.7.0+8cd3466d has requirement pyyaml>=6.0.2, but you have pyyaml 6.0.1.
+flash-qla 0.1.2+7c7dfe1 has requirement apache-tvm-ffi==0.1.9, but you have apache-tvm-ffi 0.1.11.
+flash-qla 0.1.2+7c7dfe1 has requirement tilelang==0.1.9, but you have tilelang 0.1.14.
+grpcio-health-checking 1.81.1 has requirement protobuf<7.0.0,>=6.33.5, but you have protobuf 7.36.2.
+grpcio-reflection 1.81.1 has requirement protobuf<7.0.0,>=6.33.5, but you have protobuf 7.36.2.
+nvidia-cutlass-dsl-libs-base 4.6.2 has requirement protobuf<7,>=6.30.2, but you have protobuf 7.36.2.
+nvidia-cutlass-dsl-libs-core 4.6.2 has requirement protobuf<7,>=6.30.2, but you have protobuf 7.36.2.
+nvidia-cutlass-dsl-libs-cu12 4.6.2 has requirement protobuf<7,>=6.30.2, but you have protobuf 7.36.2.
+nvidia-cutlass-dsl-libs-cu13 4.6.2 has requirement protobuf<7,>=6.30.2, but you have protobuf 7.36.2.
+torch 2.13.0+cu130 has requirement nvidia-cudnn-cu13==9.20.0.48; platform_system == "Linux", but you have nvidia-cudnn-cu13 9.22.0.52.
