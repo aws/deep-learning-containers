@@ -253,7 +253,6 @@ def delete_function(args, name):
 def run(args):
     name = args.function_name
     print(f"=== {name} ===")
-    # The name is fixed, so a function orphaned by a killed job is cleared here.
     delete_function(args, name)
     try:
         version = create_function(args, name)
