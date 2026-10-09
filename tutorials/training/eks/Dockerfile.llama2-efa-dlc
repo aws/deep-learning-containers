@@ -1,0 +1,20 @@
+
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu128-ubuntu22.04-ec2
+###################################################
+## Install fsdp
+
+RUN echo "Using branch aws-do-fsdp ..."
+RUN git clone -b aws-do-fsdp-updated https://github.com/sirutBuasai/llama-cookbook.git /workspace-blog/llama-cookbook
+WORKDIR /workspace-blog/llama-cookbook
+
+RUN pip3 install -U pip setuptools \
+ && pip3 install "fsspec==2023.1.0" \
+                 "huggingface_hub==0.17.0" \
+                 "accelerate>=0.32.0" \
+                 tabulate \
+                 protobuf \
+                 python-etcd \
+ && pip3 install -r requirements.txt \
+ && pip3 install -e .
+
+ENV PYTHONPATH="${PYTHONPATH}:/workspace-blog/llama-recipes/src"
