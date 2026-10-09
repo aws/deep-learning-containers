@@ -227,7 +227,7 @@ jobs:
     timeout-minutes: 120
     concurrency:
       group: ${{ github.workflow }}-managed-instances-test-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
