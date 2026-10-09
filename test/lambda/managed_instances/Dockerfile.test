@@ -3,6 +3,6 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
-COPY single_gpu/ric_probe_handler.py /var/task/ric_probe_handler.py
+COPY ric_probe_handler.py /var/task/ric_probe_handler.py
 
 CMD ["ric_probe_handler.handler"]

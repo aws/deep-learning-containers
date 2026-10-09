@@ -16,7 +16,7 @@ case "${ENGINE}" in none | vllm | sglang) ;; *) echo "engine must be none|vllm|s
 
 PORT="${PORT:-9000}"
 INVOKE_URL="http://localhost:${PORT}/2015-03-31/functions/function/invocations"
-HANDLER_SRC="$(cd "$(dirname "$0")" && pwd)/ric_probe_handler.py"
+HANDLER_SRC="$(cd "$(dirname "$0")/.." && pwd)/ric_probe_handler.py"
 CONTAINER=ric-check
 RC=0
 SHAPE_RC=0
