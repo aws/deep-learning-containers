@@ -256,8 +256,8 @@ RUN --mount=type=cache,target=/root/.cache/uv ls /tmp/vllm-dist/*.whl \
   && uv pip install "${VLLM_WHL}" \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-# Install FlashInfer jit-cache after vllm wheel (pin both flashinfer-python and
-# flashinfer-jit-cache to ensure version match for flashinfer download-cubin)
+# Install FlashInfer jit-cache after vllm wheel (pin flashinfer-python and
+# flashinfer-jit-cache to the same version so the precompiled kernels match)
 ARG FLASHINFER_VERSION
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
   flashinfer-python==${FLASHINFER_VERSION} flashinfer-jit-cache==${FLASHINFER_VERSION} \
@@ -316,8 +316,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         rm -f /tmp/kv-constraints.txt; \
     fi
 
-# Download FlashInfer precompiled cubins after all pip installs are done
-RUN flashinfer show-config && flashinfer download-cubin
+# The flashinfer-cubin wheel (from requirements/cuda.txt) already ships every cubin, so
+# there is no `flashinfer download-cubin` step: it only re-fetched the same ~43k files one
+# at a time (~25 min) and added none.
+RUN flashinfer show-config
 
 # =============================================================================
 # STAGE: builder-oss — generates license files without modifying runtime venv
