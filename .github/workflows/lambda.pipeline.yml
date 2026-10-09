@@ -269,14 +269,14 @@ jobs:
           LIBS="awslambdaric,boto3"
           if [[ "$TARGET" != base-* && "$TARGET" != cupy-* ]]; then LIBS="${LIBS},torch"; fi
           echo "libs=${LIBS}" >> $GITHUB_OUTPUT
+          echo "config=$(basename "${{ inputs.config-file }}" .yml)" >> $GITHUB_OUTPUT
 
       - name: Push probe overlay
         if: steps.check.outputs.exists == 'true'
         id: overlay
         run: |
           REGISTRY="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com"
-          CONFIG=$(basename "${{ inputs.config-file }}" .yml)
-          OVERLAY="${REGISTRY}/ci:ric-probe-${{ inputs.tag-suffix }}-${CONFIG}"
+          OVERLAY="${REGISTRY}/ci:ric-probe-${{ inputs.tag-suffix }}-${{ steps.config.outputs.config }}"
           docker build -f test/lambda/managed_instances/Dockerfile.test \
             --build-arg BASE_IMAGE=${{ steps.image.outputs.image-uri }} \
             -t "$OVERLAY" test/lambda
@@ -303,7 +303,7 @@ jobs:
             --engine "${{ steps.config.outputs.engine }}" \
             --libs "${{ steps.config.outputs.libs }}" \
             --memory-size "$MEMORY" \
-            --name-prefix "rictest-${{ inputs.tag-suffix }}"
+            --function-name "rictest-${{ inputs.tag-suffix }}-${{ steps.config.outputs.config }}"
 
   sglang-upstream-test:
     if: >-

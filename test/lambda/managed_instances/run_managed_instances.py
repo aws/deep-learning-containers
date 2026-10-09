@@ -12,7 +12,6 @@ with SigV4 directly. POST-GA: replace _call with boto3.client("lambda").
 import argparse
 import concurrent.futures
 import json
-import os
 import random
 import sys
 import time
@@ -228,9 +227,34 @@ def test_gpu_shared_engine(args, name, version):
     print("  PASS exactly one process holds the GPU")
 
 
+def delete_function(args, name):
+    """Delete the function if it exists and wait for the name to free up."""
+    try:
+        # aws lambda delete-function
+        _call(args.region, "DELETE", f"{FUNCTIONS}/{_quote(name)}")
+    except ApiError as e:
+        if e.status == 404:
+            return
+        print(f"  WARNING could not delete {name}: {e}")
+        return
+    deadline = time.time() + args.ready_timeout
+    while time.time() < deadline:
+        try:
+            _call(args.region, "GET", f"{FUNCTIONS}/{_quote(name)}/configuration")
+        except ApiError as e:
+            if e.status == 404:
+                print(f"  deleted {name}")
+                return
+            raise
+        time.sleep(5)
+    raise AssertionError(f"{name} still exists {args.ready_timeout}s after delete")
+
+
 def run(args):
-    name = f"{args.name_prefix}-{os.urandom(3).hex()}"
+    name = args.function_name
     print(f"=== {name} ===")
+    # The name is fixed, so a function orphaned by a killed job is cleared here.
+    delete_function(args, name)
     try:
         version = create_function(args, name)
         wait_active(args, name, version)
@@ -239,13 +263,7 @@ def run(args):
         if args.engine != "none":
             test_gpu_shared_engine(args, name, version)
     finally:
-        try:
-            # aws lambda delete-function
-            _call(args.region, "DELETE", f"{FUNCTIONS}/{_quote(name)}")
-            print(f"  deleted {name}")
-        except ApiError as e:
-            if e.status != 404:
-                print(f"  WARNING could not delete {name}: {e}")
+        delete_function(args, name)
 
 
 def main():
@@ -256,7 +274,7 @@ def main():
     p.add_argument("--execution-role-arn", required=True)
     p.add_argument("--engine", default="none", choices=["none", "vllm", "sglang"])
     p.add_argument("--libs", default="awslambdaric,boto3", help="comma-separated imports to check")
-    p.add_argument("--name-prefix", required=True)
+    p.add_argument("--function-name", required=True, help="fixed, so leftovers are reclaimable")
     p.add_argument("--concurrency", type=int, default=4)
     p.add_argument(
         "--accelerator-memory-size",
