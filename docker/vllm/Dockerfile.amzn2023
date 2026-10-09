@@ -27,11 +27,14 @@ COPY scripts/docker/vllm/amzn2023/patches/ /tmp/patches/
 # yielding a green build with an unpatched image -- detectable only by inspecting the source.
 # Skip non-existent paths explicitly instead, so "no patches" stays fine and "patch is stale
 # against VLLM_REF" stops the build. Matters because VLLM_REF moves.
+# Apply output is discarded so a failing patch can't quote its contents into the build log
+# (CI may fetch non-public patches, see scripts/ci/build/vllm_server/pre_build.sh).
 RUN cd /src \
   && for p in /tmp/patches/*.patch; do \
        [ -f "$p" ] || continue; \
        echo "Applying $(basename "$p")"; \
-       git apply --verbose "$p" || exit 1; \
+       git apply "$p" >/dev/null 2>&1 \
+         || { echo "ERROR: $(basename "$p") does not apply to ${VLLM_REF}" >&2; exit 1; }; \
      done \
   && echo "all patches applied"
 
@@ -129,6 +132,8 @@ ARG USE_SCCACHE=false
 # Seed sccache cache from build context (synced from S3 before build)
 COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
 
+# `setup.py -q`: without it setuptools logs one line per packaged file, including files
+# added by patches. Compiler and CMake output is unaffected.
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
     export CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-c++ CUDAHOSTCXX=/usr/bin/gcc14-c++ \
     && if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
@@ -150,11 +155,11 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
       && export CMAKE_CXX_COMPILER_LAUNCHER=sccache \
       && export CMAKE_CUDA_COMPILER_LAUNCHER=sccache \
       && sccache --show-stats \
-      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
+      && python3 setup.py -q bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
       && sccache --show-stats; \
     else \
       echo "🔧 Building vLLM from source (no sccache)..." \
-      && python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
+      && python3 setup.py -q bdist_wheel --dist-dir=dist --py-limited-api=cp38; \
     fi
 
 # Build the DeepEP wheel from the AWS EFA fork. Its setup.py compiles both the legacy NVSHMEM
