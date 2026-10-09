@@ -579,10 +579,10 @@ LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 ARG CACHE_REFRESH=0
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
-RUN dnf upgrade -y --security --releasever latest \
-  && dnf install -y --setopt=install_weak_deps=False \
-    libxcb libX11 libXext libXfixes alsa-lib \
-    gcc gcc-c++ which \
+RUN dnf install -y --setopt=install_weak_deps=False \
+  libxcb libX11 libXext libXfixes alsa-lib \
+  gcc gcc-c++ which \
+  && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-pytorch-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
