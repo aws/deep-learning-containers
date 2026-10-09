@@ -272,7 +272,8 @@ jobs:
         id: overlay
         run: |
           REGISTRY="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com"
-          OVERLAY="${REGISTRY}/ci:ric-probe-${{ inputs.tag-suffix }}"
+          CONFIG=$(basename "${{ inputs.config-file }}" .yml)
+          OVERLAY="${REGISTRY}/ci:ric-probe-${{ inputs.tag-suffix }}-${CONFIG}"
           docker build -f test/lambda/platform/Dockerfile.test \
             --build-arg BASE_IMAGE=${{ steps.image.outputs.image-uri }} \
             -t "$OVERLAY" test/lambda
