@@ -17,6 +17,9 @@ ARG FLASHMLA_COMMIT=15f13e5030374295491c5ce31b02d7e63a7772c6
 ARG MOONCAKE_VERSION=0.3.13
 ARG GDRCOPY_VERSION=2.5.2
 ARG RUST_VERSION=1.96.1
+ARG FFMPEG_VERSION=8.0.1
+ARG FFMPEG_SHA256=05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41
+ARG FFMPEG_GPG_KEY=FCF986EA15E6E293A5644F10B4322F04D67658D8
 ARG TORCH_VERSION=2.13.0
 
 # CUDA / GPU
@@ -76,6 +79,31 @@ RUN mkdir -p /tmp/gdrcopy && cd /tmp \
 
 # DeepEP IBGDA symlink
 RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
+
+# FFmpeg shared libraries for torchcodec, which sglang prefers for video and audio decoding
+# (without them it falls back to decord / soundfile). AL2023 has no FFmpeg package and SPAL's
+# ffmpeg-free has no H.264/HEVC decoder, so build it here: LGPL-only (no --enable-gpl or
+# --enable-nonfree), shared, from the ffmpeg.org tarball checked by sha256 and GPG signature as
+# in docker/lambda/Dockerfile. Installed into /ffmpeg-out and copied into the runtime stage.
+# Built before the sglang clone so an SGLANG_REF bump reuses this layer.
+COPY ./scripts/docker/sglang/amzn2023/ffmpeg-release.asc /tmp/ffmpeg-release.asc
+RUN dnf install -y --setopt=install_weak_deps=False nasm pkgconfig xz diffutils \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && cd /tmp \
+  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && curl -fsSLO https://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.xz.asc \
+  && echo "${FFMPEG_SHA256}  ffmpeg-${FFMPEG_VERSION}.tar.xz" | sha256sum -c - \
+  && gpg --batch --no-autostart --import /tmp/ffmpeg-release.asc \
+  && gpg --batch --no-autostart --list-keys ${FFMPEG_GPG_KEY} \
+  && gpg --batch --no-autostart --verify ffmpeg-${FFMPEG_VERSION}.tar.xz.asc ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && tar xJf ffmpeg-${FFMPEG_VERSION}.tar.xz \
+  && cd ffmpeg-${FFMPEG_VERSION} \
+  && ./configure --prefix=/usr/local --enable-shared --disable-static --disable-debug \
+    --disable-doc --disable-htmlpages --disable-manpages --disable-podpages --disable-txtpages \
+  && make -j$(nproc) \
+  && make install DESTDIR=/ffmpeg-out \
+  && strip /ffmpeg-out/usr/local/bin/ffmpeg /ffmpeg-out/usr/local/bin/ffprobe \
+  && cd /tmp && rm -rf ffmpeg-${FFMPEG_VERSION} ffmpeg-${FFMPEG_VERSION}.tar.xz* /tmp/ffmpeg-release.asc
 
 WORKDIR /sgl-workspace
 
@@ -353,6 +381,14 @@ RUN command -v sglang && command -v killall_sglang \
 
 # Copy GDRCopy runtime libs
 COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
+
+# FFmpeg from the builder stage (libraries plus ffmpeg/ffprobe). The torchcodec import is the
+# check: it fails if torchcodec can't load these libraries.
+COPY --from=builder /ffmpeg-out/usr/local/lib/ /usr/local/lib/
+COPY --from=builder /ffmpeg-out/usr/local/bin/ /usr/local/bin/
+RUN echo /usr/local/lib > /etc/ld.so.conf.d/ffmpeg-local.conf && ldconfig \
+  && ffmpeg -hide_banner -version | head -1 \
+  && python${PYTHON_VERSION} -c "import torchcodec; print('torchcodec', torchcodec.__version__)"
 
 # DeepEP IBGDA symlink
 RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true

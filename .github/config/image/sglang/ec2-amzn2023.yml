@@ -30,6 +30,8 @@ build:
   efa_version: "latest"
   rust_version: "1.96.1"
   gdrcopy_version: "2.5.2"
+  ffmpeg_version: "8.0.1"
+  ffmpeg_sha256: "05ee0b03119b45c0bdb4df654b96802e909e0a752f72e4fe3794f487229e5a41"
   torch_cuda_arch_list: "9.0;10.0;10.3"
   dlc_major_version: "1"
   dlc_minor_version: "5"
