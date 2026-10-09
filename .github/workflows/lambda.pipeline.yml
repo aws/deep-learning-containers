@@ -295,7 +295,6 @@ jobs:
           # Engines need room to load a model; the default fits the smallest instance.
           MEMORY=4096
           if [ "${{ steps.config.outputs.engine }}" != "none" ]; then MEMORY=24576; fi
-          # Stable per PR so a leftover is reclaimed; run ids would never be revisited.
           SLUG="${{ inputs.tag-suffix }}"
           case "$SLUG" in pr-*) ;; *) SLUG=release ;; esac
           python3 test/lambda/managed_instances/run_managed_instances.py \
