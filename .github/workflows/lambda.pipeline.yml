@@ -39,7 +39,7 @@ on:
         required: false
         type: boolean
         default: true
-      run-platform-test:
+      run-managed-instances-test:
         description: "Run the RIC invoke test on real Lambda"
         required: false
         type: boolean
@@ -207,7 +207,7 @@ jobs:
             ${{ steps.image.outputs.image-uri }} \
             -m pytest ${{ steps.config.outputs.tests }} -v
 
-      - name: Run RIC concurrency check
+      - name: Run RIE invoke check
         if: steps.check.outputs.exists == 'true'
         run: |
           chmod +x test/lambda/single_gpu/rie_invoke_check.sh
@@ -221,12 +221,12 @@ jobs:
           bash test/lambda/single_gpu/runai_s3_check.sh \
             ${{ steps.image.outputs.image-uri }} "${{ steps.config.outputs.engine }}"
 
-  platform-test:
-    if: ${{ always() && !failure() && !cancelled() && inputs.run-platform-test }}
+  managed-instances-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-managed-instances-test }}
     needs: [build]
     timeout-minutes: 120
     concurrency:
-      group: ${{ github.workflow }}-platform-test-${{ inputs.config-file }}-${{ github.ref }}
+      group: ${{ github.workflow }}-managed-instances-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -277,7 +277,7 @@ jobs:
           REGISTRY="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com"
           CONFIG=$(basename "${{ inputs.config-file }}" .yml)
           OVERLAY="${REGISTRY}/ci:ric-probe-${{ inputs.tag-suffix }}-${CONFIG}"
-          docker build -f test/lambda/platform/Dockerfile.test \
+          docker build -f test/lambda/managed_instances/Dockerfile.test \
             --build-arg BASE_IMAGE=${{ steps.image.outputs.image-uri }} \
             -t "$OVERLAY" test/lambda
           aws ecr get-login-password --region ${{ vars.AWS_REGION }} \
@@ -295,7 +295,7 @@ jobs:
           # Engines need room to load a model; the default fits the smallest instance.
           MEMORY=4096
           if [ "${{ steps.config.outputs.engine }}" != "none" ]; then MEMORY=24576; fi
-          python3 test/lambda/platform/run_platform.py \
+          python3 test/lambda/managed_instances/run_managed_instances.py \
             --image "${{ steps.overlay.outputs.overlay }}" \
             --region ${{ vars.AWS_REGION }} \
             --capacity-provider-arn "arn:aws:lambda:${{ vars.AWS_REGION }}:${{ vars.CI_AWS_ACCOUNT_ID }}:capacity-provider:lambda-lmi-gpu-cp" \
@@ -347,7 +347,7 @@ jobs:
       inputs.release &&
       !failure() && !cancelled() &&
       needs.build.result == 'success'
-    needs: [build, sanity-test, security-test, telemetry-test, validation-test, platform-test, sglang-upstream-test, vllm-upstream-test]
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, managed-instances-test, sglang-upstream-test, vllm-upstream-test]
     runs-on: ubuntu-latest
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
@@ -387,7 +387,7 @@ jobs:
       (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
-    needs: [build, sanity-test, security-test, telemetry-test, validation-test, platform-test, sglang-upstream-test, vllm-upstream-test, release-gate, release]
+    needs: [build, sanity-test, security-test, telemetry-test, validation-test, managed-instances-test, sglang-upstream-test, vllm-upstream-test, release-gate, release]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

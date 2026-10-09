@@ -178,10 +178,8 @@ def invoke_concurrently(args, name, payload, count, version):
 
 def test_invoke_and_image(args, name, version):
     """Proves: handler called via the RIC, and DLC libraries importable from handler code."""
-    event = {"action": "echo", "marker": "dlc-ric-platform"}
-    assert invoke(args, name, event, version)["marker"] == "dlc-ric-platform", (
-        "echo did not round-trip"
-    )
+    event = {"action": "echo", "marker": "dlc-ric-echo"}
+    assert invoke(args, name, event, version)["marker"] == "dlc-ric-echo", "echo did not round-trip"
     print("  PASS echo round-trips through the RIC")
 
     libs = args.libs.split(",")

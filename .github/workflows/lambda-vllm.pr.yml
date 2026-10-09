@@ -94,7 +94,7 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-validation-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
-      run-platform-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
+      run-managed-instances-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
       run-vllm-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       release: false
     secrets: inherit
