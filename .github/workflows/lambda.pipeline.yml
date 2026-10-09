@@ -303,7 +303,7 @@ jobs:
             --engine "${{ steps.config.outputs.engine }}" \
             --libs "${{ steps.config.outputs.libs }}" \
             --memory-size "$MEMORY" \
-            --function-name "rictest-${{ inputs.tag-suffix }}-${{ steps.config.outputs.config }}"
+            --function-name "rictest-${{ steps.config.outputs.config }}"
 
   sglang-upstream-test:
     if: >-
