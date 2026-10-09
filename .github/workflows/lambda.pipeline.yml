@@ -210,8 +210,8 @@ jobs:
       - name: Run RIC concurrency check
         if: steps.check.outputs.exists == 'true'
         run: |
-          chmod +x test/lambda/single_gpu/ric_concurrency_check.sh
-          bash test/lambda/single_gpu/ric_concurrency_check.sh \
+          chmod +x test/lambda/single_gpu/rie_invoke_check.sh
+          bash test/lambda/single_gpu/rie_invoke_check.sh \
             ${{ steps.image.outputs.image-uri }} 4 "${{ steps.config.outputs.engine }}"
 
       - name: Run runai S3 streaming test

@@ -6,7 +6,7 @@
 #   multi     AWS_LAMBDA_MAX_CONCURRENCY=N -> N forked workers, pre-fork hooks run
 #   ondemand  unset                        -> one worker, no pre-fork hooks
 #
-# Usage: ric_concurrency_check.sh <image> [N] [engine:none|vllm|sglang]
+# Usage: rie_invoke_check.sh <image> [N] [engine:none|vllm|sglang]
 set -uo pipefail
 
 IMAGE="${1:?image uri required}"

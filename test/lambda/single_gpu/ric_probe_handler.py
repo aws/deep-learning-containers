@@ -1,4 +1,4 @@
-"""Diagnostic handler for ric_concurrency_check.sh (not a pytest module).
+"""Diagnostic handler for rie_invoke_check.sh (not a pytest module).
 
 Actions: echo, import_check, get_pid, check_hook, gpu_procs, infer_probe.
 Any other event is delegated to the image's baked serving handler.
