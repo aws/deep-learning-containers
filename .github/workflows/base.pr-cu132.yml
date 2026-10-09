@@ -90,6 +90,6 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       # Opt-in — flip to true to validate EFA against a PR build (2x p4d.24xlarge per run)
-      run-efa-test: true
+      run-efa-test: false
       release: false
     secrets: inherit
