@@ -81,7 +81,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-sglang-build-runner
         buildspec-override:true
-    timeout-minutes: 720
+    timeout-minutes: 360
     env:
       WHEELS_BUCKET: ${{ vars.WHEELS_BUCKET }}
     outputs:
