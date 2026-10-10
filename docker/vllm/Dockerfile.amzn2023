@@ -239,7 +239,7 @@ ENV UV_LINK_MODE=copy
 ARG NCCL_VERSION
 RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
   && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt \
-  && echo "transformers==5.18.0" >>/etc/uv-overrides.txt
+  && echo "transformers==5.19.0" >>/etc/uv-overrides.txt
 ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch

@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "vllm_server"
-  framework_version: "0.31.0"
+  framework_version: "0.31.1"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -20,7 +20,7 @@ build:
   python_version: "3.12"
   cuda_version: "13.0.2"
   # Kept in lockstep with ec2-amzn2023.yml -- same Dockerfile.
-  vllm_ref: "54d93af9fb89d0bb8392bdb72db42bb6a17cb4ca"
+  vllm_ref: "1a3a7a8f01a8c1a3184151b8185072efda11daab"
   # 10.3 == B300 (SM103). Part of the wheel cache key, so changing it forces a recompile.
   torch_cuda_arch_list: "7.0 7.5 8.0 8.9 9.0 10.0 10.3 12.0"
   flashinfer_version: "0.7.0.post1"
