@@ -173,5 +173,40 @@
         "vulnerability_id": "CVE-2026-94439",
         "reason": "go/stdlib 1.25.10 (net/http server keeps serving a CONNECT connection after a 2xx response without hijacking) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2, cannot be patched independently of a mooncake-transfer-engine rebuild",
         "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78663",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 (HTTP/2 server refunds connection flow control twice) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2 and x/net 0.60.0, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78669",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 (HTTP/2 peer can cause excessive CPU use) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2 and x/net 0.60.0, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78659",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 (HTTP server Trailer header handling) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2 and x/net 0.60.0, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56866",
+        "reason": "go/stdlib 1.25.10 (http.Transport writes an HTTP/1 CONNECT request body directly) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94440",
+        "reason": "go/stdlib 1.25.10 (multipart form parsing can bypass memory limits) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56857",
+        "reason": "go/stdlib 1.25.10 (os.Root Mkdir/MkdirAll through a junction; Windows only, not reachable on Linux) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56851",
+        "reason": "golang.org/x/text v0.37.0 (precis Nickname profile out-of-bounds panic) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in x/text 0.41.0, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
     }
 ]
