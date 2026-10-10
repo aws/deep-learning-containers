@@ -1,10 +1,10 @@
-name: "Dispatch - Hugging Face vLLM Release"
+name: "Dispatch - Hugging Face PyTorch Inference Release"
 
 on:
   workflow_dispatch:
     inputs:
       config-file:
-        description: "Path to image config YAML (e.g., .github/config/image/huggingface/vllm/sagemaker.yml)"
+        description: "Path to image config YAML (e.g., .github/config/image/huggingface/pytorch-inference/2.11-sagemaker-cuda.yml)"
         required: true
         type: string
 
@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   pipeline:
-    uses: ./.github/workflows/huggingface-vllm.pipeline.yml
+    uses: ./.github/workflows/huggingface-pytorch-inference.pipeline.yml
     with:
       config-file: ${{ inputs.config-file }}
       tag-suffix: ${{ github.run_id }}
