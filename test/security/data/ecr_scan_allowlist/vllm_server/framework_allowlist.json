@@ -153,5 +153,25 @@
         "vulnerability_id": "CVE-2026-73500",
         "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in etcd 3.7.1, cannot be patched independently of a mooncake-transfer-engine rebuild",
         "review_by": "2026-12-08"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97031",
+        "reason": "go/stdlib 1.25.10 (TLS ECH outer-extension memory exhaustion) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78660",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 (HTTP/2 malformed framing headers) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2 and x/net 0.60.0, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78667",
+        "reason": "go/stdlib 1.25.10 (net/http Range header CPU exhaustion in FileServer/ServeContent) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94439",
+        "reason": "go/stdlib 1.25.10 (net/http server keeps serving a CONNECT connection after a 2xx response without hijacking) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2, cannot be patched independently of a mooncake-transfer-engine rebuild",
+        "review_by": "2026-12-10"
     }
 ]
