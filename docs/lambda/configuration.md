@@ -1,7 +1,7 @@
 # Configuration
 
-The images take no command-line arguments — {{ lambda }} controls `ENTRYPOINT` and `CMD`. Configure them with environment variables, set either in
-the Dockerfile with `ENV` or on the function. Function-level variables win, so one image can serve several models.
+The images take no command-line arguments — {{ lambda }} controls `ENTRYPOINT` and `CMD`. Configure them with environment variables, set either in the
+Dockerfile with `ENV` or on the function. Function-level variables win, so one image can serve several models.
 
 ## vLLM (`vllm:cuda`)
 

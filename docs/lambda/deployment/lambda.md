@@ -66,10 +66,9 @@ aws lambda invoke \
   response.json
 ```
 
-!!! note "Size vCPUs, not just memory"
-    An execution environment's vCPUs are carved out of the instance at `ExecutionEnvironmentMemoryGiBPerVCpu` GiB each. At the default ratio of 2,
-    `--memory-size 16384` asks for 8 vCPUs — every vCPU on a `g6.2xlarge` — and the version fails to activate with
-    `IncompatibleAcceleratorInstanceTypes`. Raising the ratio to 4 asks for 4 vCPUs and fits.
+**Note:** Size vCPUs, not just memory. An execution environment's vCPUs are carved out of the instance at `ExecutionEnvironmentMemoryGiBPerVCpu` GiB
+each. At the default ratio of 2, `--memory-size 16384` asks for 8 vCPUs — every vCPU on a `g6.2xlarge` — and the version fails to activate with
+`IncompatibleAcceleratorInstanceTypes`. Raising the ratio to 4 asks for 4 vCPUs and fits.
 
 For the models validated against each engine, see the [vLLM](../../vllm/models/index.md) and [SGLang](../../sglang/models/index.md) lists. Other
 models supported upstream, including embedding and vision-language models, generally work too.
@@ -148,8 +147,8 @@ Keep the bucket in the same Region as the function.
 
 ## Media and graphics
 
-The GPUs' NVENC and NVDEC engines are separate from the CUDA cores, so transcoding needs no CUDA code. The PyTorch image's FFmpeg is built with
-NVIDIA hardware acceleration:
+The GPUs' NVENC and NVDEC engines are separate from the CUDA cores, so transcoding needs no CUDA code. The PyTorch image's FFmpeg is built with NVIDIA
+hardware acceleration:
 
 ```bash
 ffmpeg -y -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 \

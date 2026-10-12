@@ -14,7 +14,7 @@ nav:
     - PyTorch: pytorch
     - TensorFlow: tensorflow
     - Base: base
-    - AWS Lambda: lambda
+    - Lambda GPU: lambda
   - Blog Posts: tutorials
   - Resources:
     - resources/index.md

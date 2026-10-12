@@ -1,8 +1,8 @@
 # GPU Functions using Lambda DLC
 
-GPU container base images for [{{ lambda }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html). Each
-image bundles CUDA, a GPU stack, and the {{ lambda_short }} Runtime Interface Client (RIC), so you add a handler and deploy — no driver or RIC setup.
-Built on Amazon Linux 2023 with ongoing security patching by {{ aws }}.
+GPU container base images for [{{ lambda }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html). Each image
+bundles CUDA, a GPU stack, and the {{ lambda_short }} Runtime Interface Client (RIC), so you add a handler and deploy — no driver or RIC setup. Built
+on Amazon Linux 2023 with ongoing security patching by {{ aws }}.
 
 These images target {{ lambda_short }} only. They ship a {{ lambda_short }} entrypoint and expect the {{ lambda_short }} Runtime API, so they do not
 serve over a port like the {{ ec2_short }} and {{ sagemaker }} DLCs. For those platforms, use the [vLLM](../vllm/index.md),
@@ -31,15 +31,15 @@ All five are x86-64, GPU-only, CUDA 13.0.3, Python 3.13, `awslambdaric` 4.1.0.
 
 - **Base** — custom CUDA kernels, or a framework none of the other images carry (for example Blender or GROMACS). Smallest image.
 - **CuPy** — GPU array math without an ML framework: signal processing, Monte Carlo simulation, numerical workloads.
-- **PyTorch** — your own model code: classification, detection, diffusion, speech. Also the image for media work, since its FFmpeg is built with
-  NVENC and NVDEC.
+- **PyTorch** — your own model code: classification, detection, diffusion, speech. Also the image for media work, since its FFmpeg is built with NVENC
+  and NVDEC.
 - **vLLM** or **SGLang** — LLM serving with no handler code. Set `MODEL_ID` and deploy; the image runs an OpenAI-compatible server. Pick SGLang for
   structured output and prefix-cache-heavy traffic, vLLM otherwise.
 
 ## How the images run on {{ lambda_short }}
 
-Each image declares `ENTRYPOINT ["<image>_entrypoint.sh", "python", "-m", "awslambdaric"]` and `CMD ["handler.handler"]`. The entrypoint execs the
-RIC when the {{ lambda_short }} Runtime API is present, and the Runtime Interface Emulator when it is not, so the same image runs locally under
+Each image declares `ENTRYPOINT ["<image>_entrypoint.sh", "python", "-m", "awslambdaric"]` and `CMD ["handler.handler"]`. The entrypoint execs the RIC
+when the {{ lambda_short }} Runtime API is present, and the Runtime Interface Emulator when it is not, so the same image runs locally under
 `docker run`.
 
 {{ lambda_short }} gives each execution environment exactly one GPU and runs several concurrent invocations in it, governed by
