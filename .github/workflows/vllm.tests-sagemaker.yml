@@ -135,6 +135,12 @@ jobs:
           uv pip install -r test/vllm/sagemaker/requirements.txt
 
       - name: Run SageMaker endpoint test
+        env:
+          # A reservation covers one instance type, hence the per-type var. Empty when
+          # unset, which leaves the endpoint on the open pool.
+          ML_RESERVATION_ARN: >-
+            ${{ vars.ML_RESERVATION_NAME_G6_XLARGE && format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
+            vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6_XLARGE) || '' }}
         run: |
           source .venv/bin/activate
           cd test/

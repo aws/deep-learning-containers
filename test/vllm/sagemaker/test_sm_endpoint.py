@@ -2,11 +2,16 @@
 
 import json
 import logging
+import os
 from pprint import pformat
 
 import pytest
 from sagemaker.core.resources import Endpoint, EndpointConfig, Model
-from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
+from sagemaker.core.shapes import (
+    ContainerDefinition,
+    ProductionVariant,
+    ProductionVariantCapacityReservationConfig,
+)
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
@@ -15,6 +20,9 @@ from test_utils.instance_capacity import build_instance_pools
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+# ml.g6.xlarge ML Reservation, built from repo vars. Unset means the open pool.
+ML_RESERVATION_ARN = os.environ.get("ML_RESERVATION_ARN", "").strip()
 
 
 @pytest.fixture(scope="function")
@@ -69,20 +77,29 @@ def _deploy_endpoint(aws_session, image_uri, model_id, instance_types):
             execution_role_arn=role_arn,
         )
 
+        variant_kwargs = {
+            "variant_name": "AllTraffic",
+            "model_name": model_name,
+            "initial_instance_count": 1,
+            "instance_pools": build_instance_pools(instance_types),
+            # Cap for walking the whole pool ladder on capacity errors.
+            "variant_instance_provision_timeout_in_seconds": 1800,
+            "inference_ami_version": INFERENCE_AMI_VERSION,
+        }
+        if ML_RESERVATION_ARN:
+            # No preference set, so an unavailable reservation falls through to the
+            # pool ladder instead of failing the deployment.
+            variant_kwargs["capacity_reservation_config"] = (
+                ProductionVariantCapacityReservationConfig(
+                    ml_reservation_arn=ML_RESERVATION_ARN,
+                )
+            )
+            LOGGER.info(f"Using ML Reservation: {ML_RESERVATION_ARN}")
+
         LOGGER.info(f"Creating endpoint config: {endpoint_name}")
         endpoint_config = EndpointConfig.create(
             endpoint_config_name=endpoint_name,
-            production_variants=[
-                ProductionVariant(
-                    variant_name="AllTraffic",
-                    model_name=model_name,
-                    initial_instance_count=1,
-                    instance_pools=build_instance_pools(instance_types),
-                    # Cap for walking the whole pool ladder on capacity errors.
-                    variant_instance_provision_timeout_in_seconds=1800,
-                    inference_ami_version=INFERENCE_AMI_VERSION,
-                ),
-            ],
+            production_variants=[ProductionVariant(**variant_kwargs)],
         )
 
         LOGGER.info(
