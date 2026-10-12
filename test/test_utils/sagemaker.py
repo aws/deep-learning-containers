@@ -93,6 +93,10 @@ def assign_sagemaker_local_job_instance_type(image):
         return "g5.8xlarge"
     elif all(word in image for word in ["huggingface-vllm-omni", "gpu"]):
         return "g5.xlarge"
+    elif (
+        all(word in image for word in ["pytorch", "training", "gpu"]) and "huggingface" not in image
+    ):
+        return "g6.12xlarge"
     return "g5.12xlarge" if "gpu" in image else "c5.18xlarge"
 
 
