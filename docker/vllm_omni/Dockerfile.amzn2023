@@ -49,15 +49,14 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
-# `unzip` and `perl` are build deps from vllm v0.26.0: `perl` for the openssl-sys
-# crate compiled by the Rust frontend (`vllm-rs`, new in v0.26.0). `patch` is new in v0.28.0: vLLM's
-# CMakeLists.txt applies cmake/patches/pytorch_stable_string.patch to torch's
-# stable headers at configure time (CMakeLists.txt:417). The upstream manylinux
-# build base ships `patch`, but the amzn2023 base does not.
+# gcc14 provides C++20 <format> for DeepSelect; elfutils-devel provides
+# libdwfl headers for DeepGEMM's deep_jit backtraces. `unzip` and `perl` are
+# build deps for the Rust frontend (`vllm-rs`). The upstream manylinux build
+# base ships `patch`, but the amzn2023 base does not.
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk patch \
+  tar gzip xz git gcc gcc-c++ gcc14 gcc14-c++ make cmake ninja-build unzip perl gawk patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-  libibverbs-devel \
+  libibverbs-devel elfutils-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Rustup — needed to install the Rust toolchain pinned in the vllm source tree's
@@ -154,7 +153,8 @@ RUN if ! ([ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev
     fi
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
-    if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+    export CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-c++ CUDAHOSTCXX=/usr/bin/gcc14-c++ \
+    && if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && rm -rf dist && mkdir -p dist \
       && cp /tmp/prebuilt_wheels/*.whl dist/; \
