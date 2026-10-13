@@ -8,9 +8,8 @@ concurrency RIC — an in-process `vllm.LLM` per worker would load one model cop
 worker (N copies), which does not fit a single GPU.
 
 Multi-concurrency (AWS_LAMBDA_MAX_CONCURRENCY set) runs this module in every forked
-worker, so an O_EXCL lock file elects a single launcher: the worker that creates it
-starts the server, the others only wait for /health. On-demand takes the same path
-with one worker.
+worker, so the launch goes through `execute_once`: one worker starts the server, the
+others only wait for /health. On-demand takes the same path with one worker.
 
 Customers typically override this handler; this default lets the image serve out of
 the box and gives CI a smoke target.
@@ -34,6 +33,7 @@ import subprocess
 import time
 
 import requests
+from execute_once import execute_once
 
 _MODEL_ID = os.environ.get("MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
 _GPU_MEM_UTIL = os.environ.get("VLLM_GPU_MEM_UTIL", "0.8")
@@ -48,6 +48,17 @@ _PORT = os.environ.get("VLLM_SERVER_PORT", "8000")
 _TIMEOUT = int(os.environ.get("VLLM_SERVER_TIMEOUT", "600"))
 _BASE_URL = f"http://127.0.0.1:{_PORT}"
 _LOCK_PATH = "/tmp/vllm_server_start.lock"
+_RESULT_PATH = "/tmp/vllm_server_start.result"
+
+_proc = None
+
+
+def _noop_serialize(obj, f):
+    pass
+
+
+def _noop_deserialize(data):
+    return None
 
 
 def _server_cmd():
@@ -79,21 +90,26 @@ def _server_cmd():
     return cmd
 
 
+@execute_once(
+    lock_path=_LOCK_PATH,
+    result_path=_RESULT_PATH,
+    timeout=_TIMEOUT,
+    serializer=_noop_serialize,
+    deserializer=_noop_deserialize,
+)
+def _launch_server():
+    global _proc
+    _proc = subprocess.Popen(_server_cmd())
+
+
 def _start_server():
     """Start the one shared vLLM server for this sandbox and block until it is ready."""
-    proc = None
-    # O_EXCL succeeds in exactly one worker: it launches, the others only wait.
-    try:
-        os.close(os.open(_LOCK_PATH, os.O_CREAT | os.O_EXCL))
-    except FileExistsError:
-        pass
-    else:
-        proc = subprocess.Popen(_server_cmd())
+    _launch_server()
 
     deadline = time.monotonic() + _TIMEOUT
     while time.monotonic() < deadline:
-        if proc is not None and proc.poll() is not None:
-            raise RuntimeError(f"vLLM server exited with code {proc.returncode} during startup")
+        if _proc is not None and _proc.poll() is not None:
+            raise RuntimeError(f"vLLM server exited with code {_proc.returncode} during startup")
         try:
             if requests.get(f"{_BASE_URL}/health", timeout=5).status_code == 200:
                 return

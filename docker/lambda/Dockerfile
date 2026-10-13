@@ -668,6 +668,7 @@ COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lamb
 COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/sglang_entrypoint.sh /sglang_entrypoint.sh
 COPY ./scripts/docker/lambda/sglang/handler.py /var/task/handler.py
+COPY ./scripts/docker/lambda/sglang/execute_once.py /var/task/execute_once.py
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:$PATH" \
@@ -755,6 +756,7 @@ COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lamb
 COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/vllm_entrypoint.sh /vllm_entrypoint.sh
 COPY ./scripts/docker/lambda/vllm/handler.py /var/task/handler.py
+COPY ./scripts/docker/lambda/vllm/execute_once.py /var/task/execute_once.py
 RUN chmod +x /vllm_entrypoint.sh \
   && ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python

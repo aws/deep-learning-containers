@@ -1,8 +1,8 @@
 """Single-server election and startup-failure behaviour of the baked serving handler.
 
-Every forked worker runs the handler module, so an O_EXCL lock file in /tmp elects the
-one worker that launches the engine; without it each worker would start its own server
-→ N servers racing for the port and N model copies in VRAM.
+Every forked worker runs the handler module, so `execute_once` elects the one worker
+that launches the engine; without it each worker would start its own server → N servers
+racing for the port and N model copies in VRAM.
 
 Each import below stands for one worker. Imports happen with subprocess and requests
 patched, so these tests are CPU-only and never launch an engine.
@@ -16,16 +16,26 @@ from unittest import mock
 
 import pytest
 
-HANDLER = "/var/task/handler.py"
-LOCK_PATHS = ("/tmp/vllm_server_start.lock", "/tmp/sglang_server_start.lock")
+TASK_ROOT = "/var/task"
+HANDLER = f"{TASK_ROOT}/handler.py"
+# execute_once marks a started server with these; a worker that finds one only waits.
+STATE_PATHS = tuple(
+    f"/tmp/{engine}_server_start.{kind}"
+    for engine in ("vllm", "sglang")
+    for kind in ("lock", "result")
+)
 
 pytestmark = pytest.mark.skipif(
     not os.path.isfile(HANDLER), reason="image ships no baked serving handler"
 )
 
+# The handler imports execute_once from the task root, as it does under the RIC.
+if TASK_ROOT not in sys.path:
+    sys.path.insert(0, TASK_ROOT)
 
-def _clear_locks():
-    for path in LOCK_PATHS:
+
+def _clear_state():
+    for path in STATE_PATHS:
         with contextlib.suppress(FileNotFoundError):
             os.remove(path)
 
@@ -33,7 +43,7 @@ def _clear_locks():
 @pytest.fixture
 def load(monkeypatch):
     """Import the handler as a worker would, returning (module, Popen mock)."""
-    _clear_locks()
+    _clear_state()
     with contextlib.ExitStack() as stack:
 
         def _load(poll=None, returncode=0, health=200, timeout="2"):
@@ -56,7 +66,7 @@ def load(monkeypatch):
             return module, popen
 
         yield _load
-    _clear_locks()
+    _clear_state()
 
 
 def test_first_worker_launches_the_server(load):
