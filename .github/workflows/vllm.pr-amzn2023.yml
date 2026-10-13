@@ -12,6 +12,7 @@ on:
       - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
       - ".github/workflows/vllm.pipeline.yml"
       - ".github/workflows/vllm.pr-amzn2023.yml"
+      - ".github/workflows/vllm.tests-sagemaker.yml"
       - ".github/workflows/vllm.tests-unit.yml"
       - "docker/vllm/Dockerfile.amzn2023"
       - "scripts/docker/common/**"
@@ -84,6 +85,7 @@ jobs:
               - "test/vllm/scripts/amzn2023/**"
             sagemaker-test-change:
               - ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
+              - ".github/workflows/vllm.tests-sagemaker.yml"
               - "test/vllm/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"

@@ -1,13 +1,37 @@
-# vLLM SageMaker Endpoint Test Configuration
+# vLLM SageMaker Serving Test Configuration
 #
-# Config-driven real SageMaker endpoint tests. Each entry deploys a model
-# from S3, sends requests to the configured route, and validates the response.
+# Config-driven tests of the vLLM SageMaker image. Each entry serves a model with
+# its env, sends each test case to /invocations (with the
+# X-Amzn-SageMaker-Custom-Attributes "route=<route>" header when the case sets
+# route), and validates the response.
 #
-# Test script: test/vllm/sagemaker/amzn2023/test_sm_model_serving.py
+# Each entry sets exactly one of these two keys, which picks where it runs:
+#
+#   fleet: "<CodeBuild GPU fleet>"  (local)
+#     CI runs the SageMaker image unmodified as a container on that fleet,
+#     honoring the SageMaker serving contract: the "serve" argument, the model at
+#     /opt/ml/model, SM_VLLM_* env, and /ping plus /invocations on port 8080 with
+#     the custom-attributes route header.
+#     Test script: test/vllm/sagemaker/amzn2023/test_sm_local_serving.py
+#     With network_isolation: true the container runs with --network none and is
+#     probed through docker exec.
+#
+#   instance_type: [...]  (real SageMaker endpoint)
+#     A priority-ordered ladder (max 5); every rung must fit the model.
+#     Test script: test/vllm/sagemaker/amzn2023/test_sm_model_serving.py
+#     Kept for the platform coverage a local container cannot give: the hosting
+#     AMI and driver, the platform model download, network isolation, and IAM.
+#
+# Model source, one of:
+#   s3_model: tarball under s3_prefix. A real endpoint downloads it into
+#     /opt/ml/model; a local run extracts it with the download-model action and
+#     mounts it read-only at /opt/ml/model. download-model flattens an archive with a
+#     single top-level directory and SageMaker does not, so keep the model files at the
+#     archive root.
+#   hf_model: pulled from the HF Hub when the container starts, with HF_TOKEN
+#     injected by the workflow. fleet entries only.
 #
 # Smoke-test entries live in the sibling vllm-model-tests.yml.
-#
-# instance_type may be a priority-ordered ladder (max 5); every rung must fit the model.
 
 s3_prefix: "s3://dlc-cicd-models/llm-models"
 test_fixtures_prefix: "s3://dlc-cicd-models/test-fixtures"
@@ -20,12 +44,7 @@ sagemaker:
   # (non-empty check) mirrors the other entries' validate rule.
   - name: "minicpm5-1b"
     s3_model: "minicpm5-1b.tar.gz"
-    instance_type:
-      - "ml.g6.xlarge"
-      - "ml.g6.2xlarge"
-      - "ml.g6.4xlarge"
-      - "ml.g5.2xlarge"
-      - "ml.g5.12xlarge"
+    fleet: "x86-g6xl-runner"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -48,22 +67,13 @@ sagemaker:
 
   # NVIDIA Nemotron-Nano-12B-v2 — Mamba2-Transformer hybrid (NemotronHForCausalLM),
   # 12B params bf16 (~24GB weights, ~42GB steady-state including Mamba SSM float32
-  # cache + KV pool). Requires ml.g6e.xlarge (L40S 48GB); ml.g6.xlarge (L4 24GB)
-  # cannot fit the model. --trust-remote-code loads the custom
+  # cache + KV pool). The L4 24GB on x86-g6xl-runner cannot fit the model, so it needs
+  # the L40S 48GB on x86-g6exl-runner. --trust-remote-code loads the custom
   # configuration_nemotron_h.py; --mamba-ssm-cache-dtype=float32 is required by
   # the model card to preserve accuracy (skipping it silently degrades quality).
-  # instance_type is a fallback ladder: g6e.xlarge is the cheapest fit, and the larger
-  # sizes are the same single L40S 48GB card, so they need no tensor-parallel change and
-  # serve the model identically — only the capacity pool differs. g6e.xlarge ICE'd for
-  # several days straight in us-west-2 while every g6.xlarge entry above kept passing,
-  # which is what motivated the ladder. g6.xlarge (L4 24GB) is deliberately absent: it
-  # cannot fit this model.
   - name: "nemotron-nano-12b-v2"
     s3_model: "nemotron-nano-12b-v2.tar.gz"
-    instance_type:
-      - "ml.g6e.xlarge"
-      - "ml.g6e.2xlarge"
-      - "ml.g6e.4xlarge"
+    fleet: "x86-g6exl-runner"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -91,12 +101,7 @@ sagemaker:
   # validates serving; full OCR with image input requires multimodal request support.
   - name: "lighton-ocr-2-1b"
     s3_model: "lightonocr-2-1b.tar.gz"
-    instance_type:
-      - "ml.g6.xlarge"
-      - "ml.g6.2xlarge"
-      - "ml.g6.4xlarge"
-      - "ml.g5.2xlarge"
-      - "ml.g5.12xlarge"
+    fleet: "x86-g6xl-runner"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -119,12 +124,7 @@ sagemaker:
 
   - name: "voxtral-mini-4b"
     s3_model: "voxtral-mini-4b.tar.gz"
-    instance_type:
-      - "ml.g6.xlarge"
-      - "ml.g6.2xlarge"
-      - "ml.g6.4xlarge"
-      - "ml.g5.2xlarge"
-      - "ml.g5.12xlarge"
+    fleet: "x86-g6xl-runner"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -149,12 +149,7 @@ sagemaker:
 
   - name: "granite-speech-4-1-2b"
     s3_model: "granite-speech-4.1-2b.tar.gz"
-    instance_type:
-      - "ml.g6.xlarge"
-      - "ml.g6.2xlarge"
-      - "ml.g6.4xlarge"
-      - "ml.g5.2xlarge"
-      - "ml.g5.12xlarge"
+    fleet: "x86-g6xl-runner"
     required_image_pattern:
       os_version: "amzn2023"
     env:
@@ -175,12 +170,7 @@ sagemaker:
 
   - name: "voxtral-mini-4b-network-isolated"
     s3_model: "voxtral-mini-4b-isolated.tar.gz"
-    instance_type:
-      - "ml.g6.xlarge"
-      - "ml.g6.2xlarge"
-      - "ml.g6.4xlarge"
-      - "ml.g5.2xlarge"
-      - "ml.g5.12xlarge"
+    fleet: "x86-g6xl-runner"
     required_image_pattern:
       os_version: "amzn2023"
     network_isolation: true
@@ -205,6 +195,7 @@ sagemaker:
             model: "/opt/ml/model"
         validate: "json_field:text"
 
+  # The one instance_type entry: the real-endpoint platform check for this image.
   - name: "granite-speech-4-1-2b-network-isolated"
     s3_model: "granite-speech-4.1-2b-isolated.tar.gz"
     instance_type:
@@ -244,12 +235,7 @@ sagemaker:
   # at request time, reproducing the original template byte-for-byte.
   - name: "qwen3-reranker-4b"
     s3_model: "qwen3-reranker-4b.tar.gz"
-    instance_type:
-      - "ml.g6.xlarge"
-      - "ml.g6.2xlarge"
-      - "ml.g6.4xlarge"
-      - "ml.g5.2xlarge"
-      - "ml.g5.12xlarge"
+    fleet: "x86-g6xl-runner"
     required_image_pattern:
       os_version: "amzn2023"
     chat_template_file: "test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja"
@@ -279,3 +265,28 @@ sagemaker:
               - "The Eiffel Tower is in Paris."
               - "Tokyo is the capital of Japan."
         validate: "json_field:results.0.relevance_score"
+
+  # DeepSeek-R1-Distill-Qwen-1.5B, pulled from the HF Hub at container start (migrated
+  # from test/vllm/sagemaker/test_sm_endpoint.py, which huggingface-vllm.pipeline.yml
+  # still runs on real SageMaker). The test case sets no route, so the request
+  # exercises vLLM's built-in /invocations dispatch.
+  - name: "deepseek-r1-distill-qwen-1-5b"
+    hf_model: "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+    fleet: "x86-g6xl-runner"
+    required_image_pattern:
+      os_version: "amzn2023"
+    env:
+      SM_VLLM_MODEL: "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+    test_cases:
+      - name: "chat-completion-no-route"
+        content_type: "application/json"
+        request:
+          body:
+            messages:
+              - role: "user"
+                content: "Write a python script to calculate square of n"
+            max_tokens: 2400
+            temperature: 0.01
+            top_p: 0.9
+            top_k: 50
+        validate: "json_field:choices.0.message.content"
