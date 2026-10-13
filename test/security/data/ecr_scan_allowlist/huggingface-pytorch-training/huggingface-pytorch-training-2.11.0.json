@@ -28,5 +28,15 @@
         "vulnerability_id": "CVE-2026-93592",
         "reason": "vllm 0.25.0 is pinned by vllm_version in .github/config/image/huggingface-pytorch-training/2.11-sagemaker.yml and consumed as vllm==${VLLM_VERSION} in docker/huggingface/pytorch/Dockerfile; the fix requires vllm>=0.28.0, which is a framework-version change gated on a release bump rather than a dependency patch.",
         "review_by": "2026-10-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-100647",
+        "reason": "vllm 0.25.0 cache_salt DoS on the OpenAI/Anthropic-compatible server endpoints; fix requires vllm>=0.29.0, which pins torch==2.13.0 and cannot run on this torch 2.11 base. The image does not start a vllm server (vllm is the trl rollout backend). Fixed on the 2.13 line (vllm 0.31.0).",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-104851",
+        "reason": "fsspec 2026.2.0 (from the PyTorch 2.11 base, pinned there by s3fs==2026.2.0) ReferenceFileSystem evaluates Kerchunk reference fields; fix requires fsspec>=2026.6.0, but datasets 5.0.0 on this line caps fsspec<=2026.4.0 and datasets>=5.1.0 needs huggingface-hub>=1.31 (this line pins 1.23.0). Exploitation requires loading an attacker-supplied reference spec. Fixed on the 2.13 line (fsspec/s3fs 2026.7.0).",
+        "review_by": "2026-11-30"
     }
 ]

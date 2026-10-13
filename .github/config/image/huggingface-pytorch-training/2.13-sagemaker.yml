@@ -29,6 +29,8 @@ build:
   diffusers_version: "0.41.0"
   hf_transfer_version: "0.1.9"
   datasets_version: "5.1.0"
+  # fsspec + s3fs (same version); >=2026.6.0 fixes CVE-2026-104851.
+  fsspec_version: "2026.7.0"
   accelerate_version: "1.15.0"
   peft_version: "0.21.2"
   evaluate_version: "0.4.6"

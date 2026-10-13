@@ -22,6 +22,9 @@ ARG ACCELERATE_VERSION=1.15.0
 ARG PEFT_VERSION=0.21.2
 ARG EVALUATE_VERSION=0.4.6
 ARG MATH_VERIFY_VERSION=0.9.0
+# fsspec >=2026.6.0 fixes CVE-2026-104851. The base's s3fs pins fsspec to its own
+# version, so both move together; datasets caps fsspec (5.1.0: <=2026.7.0).
+ARG FSSPEC_VERSION=2026.7.0
 # vllm pins torch exactly (0.25.0-0.26.0 -> torch 2.11, 0.27.0-0.31.0 -> torch 2.13), so
 # VLLM_VERSION must match the base image's torch. trl is installed without its
 # [vllm] extra because older trl releases cap vllm below the pinned version (trl
@@ -48,6 +51,8 @@ RUN uv pip install --python ${VENV_PYTHON} \
   hf-xet==${HF_XET_VERSION} \
   "hf-transfer==${HF_TRANSFER_VERSION}" \
   "datasets==${DATASETS_VERSION}" \
+  "fsspec[http]==${FSSPEC_VERSION}" \
+  "s3fs==${FSSPEC_VERSION}" \
   "accelerate==${ACCELERATE_VERSION}" \
   "peft==${PEFT_VERSION}" \
   "evaluate==${EVALUATE_VERSION}" \
