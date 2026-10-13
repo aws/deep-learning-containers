@@ -1,5 +1,3 @@
-"""Copied from the Lambda GPU workloads examples. Delete once the RIC ships pre-fork hooks."""
-
 import os
 import pickle
 import time
