@@ -190,8 +190,8 @@ def test_invoke_and_image(args, name, version):
     print(f"  PASS imports reached through an invoke: {', '.join(libs)}")
 
 
-def test_concurrency_and_prefork(args, name, version):
-    """Proves: simultaneous invokes get separate workers, and the pre-fork hook runs first."""
+def test_concurrency(args, name, version):
+    """Proves: simultaneous invokes get separate workers, all forked off one parent."""
     results = invoke_concurrently(
         args, name, {"action": "get_pid", "sleep": args.overlap_seconds}, args.concurrency, version
     )
@@ -202,12 +202,9 @@ def test_concurrency_and_prefork(args, name, version):
     )
     print(f"  PASS {args.concurrency} concurrent invokes served by {len(pids)} workers")
 
-    hook = invoke(args, name, {"action": "check_hook"}, version)
-    assert hook["hook_executed"], "register_pre_fork hook never ran"
-    assert hook["hook_ran_in_parent"], (
-        f"pre-fork hook ran in pid {hook['hook_pid']}, not the worker's parent {hook['ppid']}"
-    )
-    print(f"  PASS pre-fork hook ran once in the parent (pid {hook['hook_pid']})")
+    ppids = {r["ppid"] for r in results}
+    assert len(ppids) == 1, f"workers came from {len(ppids)} parents, expected one: {sorted(ppids)}"
+    print(f"  PASS all workers forked off one parent (pid {ppids.pop()})")
 
 
 def test_gpu_shared_engine(args, name, version):
@@ -257,7 +254,7 @@ def run(args):
         version = create_function(args, name)
         wait_active(args, name, version)
         test_invoke_and_image(args, name, version)
-        test_concurrency_and_prefork(args, name, version)
+        test_concurrency(args, name, version)
         if args.engine != "none":
             test_gpu_shared_engine(args, name, version)
     finally:

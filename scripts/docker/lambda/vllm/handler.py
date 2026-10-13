@@ -1,16 +1,16 @@
 """Default AWS Lambda handler for the vLLM serving image.
 
 Follows the Lambda LMI serving pattern: ONE shared vLLM OpenAI-compatible HTTP
-server (`vllm serve`) is started once, and the handler is a thin proxy to it, so a
-single model copy in VRAM is shared across all concurrent invocations. This is the
-correct shape for a GPU serving engine under the multi-mode concurrency RIC — an
-in-process `vllm.LLM` per worker would load one model copy PER worker (N copies),
-which does not fit a single GPU.
+server (`vllm serve`) is started once per execution environment, and the handler is
+a thin proxy to it, so a single model copy in VRAM is shared across all concurrent
+invocations. This is the correct shape for a GPU serving engine under the multi-mode
+concurrency RIC — an in-process `vllm.LLM` per worker would load one model copy PER
+worker (N copies), which does not fit a single GPU.
 
-Multi-concurrency (AWS_LAMBDA_MAX_CONCURRENCY set): start via @register_pre_fork, which
-runs ONCE in the parent before the workers are forked, so all workers proxy to the one
-server. (Module-level would run in every worker → N servers colliding on the port.)
-On-demand (no AWS_LAMBDA_MAX_CONCURRENCY): start at module level.
+Multi-concurrency (AWS_LAMBDA_MAX_CONCURRENCY set) runs this module in every forked
+worker, so an O_EXCL lock file elects a single launcher: the worker that creates it
+starts the server, the others only wait for /health. On-demand takes the same path
+with one worker.
 
 Customers typically override this handler; this default lets the image serve out of
 the box and gives CI a smoke target.
@@ -34,8 +34,6 @@ import subprocess
 import time
 
 import requests
-import torch
-from awslambdaric.lambda_concurrency_hooks import register_pre_fork
 
 _MODEL_ID = os.environ.get("MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
 _GPU_MEM_UTIL = os.environ.get("VLLM_GPU_MEM_UTIL", "0.8")
@@ -49,14 +47,16 @@ _SERVED_NAME = os.environ.get("SERVED_MODEL_NAME")
 _PORT = os.environ.get("VLLM_SERVER_PORT", "8000")
 _TIMEOUT = int(os.environ.get("VLLM_SERVER_TIMEOUT", "600"))
 _BASE_URL = f"http://127.0.0.1:{_PORT}"
-
-# One GPU per sandbox → device_count() is normally 1; auto-adapts if a sandbox is
-# ever granted multiple GPUs. Override VLLM_TP_SIZE to pin explicitly.
-_TP_SIZE = int(os.environ.get("VLLM_TP_SIZE", "0")) or max(1, torch.cuda.device_count())
+_LOCK_PATH = "/tmp/vllm_server_start.lock"
 
 
-def _start_server():
-    """Launch the vLLM OpenAI server once and block until it is ready."""
+def _server_cmd():
+    # Imported here so the workers that only wait skip the torch import.
+    import torch
+
+    # One GPU per sandbox → device_count() is normally 1; auto-adapts if a sandbox is
+    # ever granted multiple GPUs. Override VLLM_TP_SIZE to pin explicitly.
+    tp_size = int(os.environ.get("VLLM_TP_SIZE", "0")) or max(1, torch.cuda.device_count())
     cmd = [
         "vllm",
         "serve",
@@ -68,7 +68,7 @@ def _start_server():
         "--gpu-memory-utilization",
         _GPU_MEM_UTIL,
         "--tensor-parallel-size",
-        str(_TP_SIZE),
+        str(tp_size),
     ]
     if _MAX_MODEL_LEN:
         cmd += ["--max-model-len", _MAX_MODEL_LEN]
@@ -76,11 +76,23 @@ def _start_server():
         cmd += ["--load-format", _LOAD_FORMAT]
     if _SERVED_NAME:
         cmd += ["--served-model-name", _SERVED_NAME]
-    proc = subprocess.Popen(cmd)
+    return cmd
+
+
+def _start_server():
+    """Start the one shared vLLM server for this sandbox and block until it is ready."""
+    proc = None
+    # O_EXCL succeeds in exactly one worker: it launches, the others only wait.
+    try:
+        os.close(os.open(_LOCK_PATH, os.O_CREAT | os.O_EXCL))
+    except FileExistsError:
+        pass
+    else:
+        proc = subprocess.Popen(_server_cmd())
 
     deadline = time.monotonic() + _TIMEOUT
     while time.monotonic() < deadline:
-        if proc.poll() is not None:
+        if proc is not None and proc.poll() is not None:
             raise RuntimeError(f"vLLM server exited with code {proc.returncode} during startup")
         try:
             if requests.get(f"{_BASE_URL}/health", timeout=5).status_code == 200:
@@ -91,10 +103,7 @@ def _start_server():
     raise RuntimeError(f"vLLM server did not become ready within {_TIMEOUT}s")
 
 
-if os.environ.get("AWS_LAMBDA_MAX_CONCURRENCY"):
-    register_pre_fork(_start_server)
-else:
-    _start_server()
+_start_server()
 
 
 def handler(event, context):

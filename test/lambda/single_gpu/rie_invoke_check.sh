@@ -3,8 +3,8 @@
 #
 # Keeps the image entrypoint, so the real chain runs: entrypoint shim -> aws-lambda-rie
 # -> python -m awslambdaric -> handler. Two shapes, per awslambdaric 4.1.0:
-#   multi     AWS_LAMBDA_MAX_CONCURRENCY=N -> N forked workers, pre-fork hooks run
-#   ondemand  unset                        -> one worker, no pre-fork hooks
+#   multi     AWS_LAMBDA_MAX_CONCURRENCY=N -> N forked workers off one parent
+#   ondemand  unset                        -> one worker, no fork
 #
 # Usage: rie_invoke_check.sh <image> [N] [engine:none|vllm|sglang]
 set -uo pipefail
@@ -110,7 +110,7 @@ burst() {
   BURST_PAIRS=""
   BURST_OK=0
   for f in "${tmp}"/*.json; do
-    p="$(jq -r 'select(.pid!=null) | "\(.pid) \(.tid)"' "${f}" 2>/dev/null)"
+    p="$(jq -r 'select(.pid!=null) | "\(.pid) \(.tid) \(.ppid)"' "${f}" 2>/dev/null)"
     [ -n "${p}" ] && BURST_PAIRS+="${p}"$'\n'
     jq -e '.ok==true' "${f}" >/dev/null 2>&1 && BURST_OK=$((BURST_OK + 1))
   done
@@ -120,6 +120,7 @@ burst() {
 
 count_procs() { printf '%s\n' "${BURST_PAIRS}" | awk 'NF{print $1}' | sort -u | grep -c '[0-9]'; }
 count_handlers() { printf '%s\n' "${BURST_PAIRS}" | grep -c '[0-9]'; }
+count_parents() { printf '%s\n' "${BURST_PAIRS}" | awk 'NF{print $3}' | sort -u | grep -c '[0-9]'; }
 
 # docker exec nvidia-smi --query-compute-apps
 gpu_procs() {
@@ -133,8 +134,8 @@ dump_logs_on_failure() {
     docker logs "${CONTAINER}" 2>&1 | grep -iE 'error|traceback|out of memory' | tail -15
 }
 
-# Proves: N overlapping invokes each get their own forked worker, the pre-fork hook runs
-# once in the parent, and on engine images one shared GPU process serves them all.
+# Proves: N overlapping invokes each get their own worker forked off one parent, and on
+# engine images one shared GPU process serves them all.
 echo "########## shape=multi (AWS_LAMBDA_MAX_CONCURRENCY=${N}) ##########"
 SHAPE_RC=0
 start_container multi
@@ -156,6 +157,9 @@ else
     sleep 3
   done
   echo "warmup: $(count_procs)/${N} workers after ${attempt} attempt(s)"
+  PARENTS="$(count_parents)"
+  check "all workers forked off one parent" \
+    "$([ "${PARENTS}" = "1" ] && echo 1 || echo 0)" "observed ${PARENTS} parents"
 
   if [ "${ENGINE}" = "none" ]; then
     burst "${N}" '{"action":"get_pid","sleep":3}'
@@ -169,10 +173,6 @@ else
   check "exactly ${N} worker processes" \
     "$([ "${PROCS}" = "${N}" ] && echo 1 || echo 0)" "observed ${PROCS}"
 
-  RESP="$(invoke '{"action":"check_hook"}' 60)"
-  check "register_pre_fork ran in the parent" \
-    "$(jq_ok "${RESP}" '.hook_ran_in_parent==true')" "got ${RESP}"
-
   if [ "${ENGINE}" != "none" ]; then
     check "${N} real inferences returned a completion" \
       "$([ "${BURST_OK}" = "${N}" ] && echo 1 || echo 0)" "${BURST_OK}/${N} ok"
@@ -183,8 +183,8 @@ fi
 dump_logs_on_failure
 docker rm -f "${CONTAINER}" >/dev/null 2>&1
 
-# Proves: without the env var the RIC never forks, so one worker serves every invoke and
-# no pre-fork hook runs. Unreachable on real Lambda, which always sets the variable.
+# Proves: without the env var the RIC never forks, so one worker serves every invoke.
+# Unreachable on real Lambda, which always sets the variable.
 echo "########## shape=ondemand (no AWS_LAMBDA_MAX_CONCURRENCY) ##########"
 SHAPE_RC=0
 start_container ondemand
@@ -200,10 +200,6 @@ else
   check "single worker process" \
     "$([ -n "${PID1}" ] && [ "${PID1}" = "${PID2}" ] && echo 1 || echo 0)" \
     "pids ${PID1:-?} ${PID2:-?}"
-
-  RESP="$(invoke '{"action":"check_hook"}' 60)"
-  check "no pre-fork hook without MAX_CONCURRENCY" \
-    "$(jq_ok "${RESP}" '.hook_executed==false')" "got ${RESP}"
 
   if [ "${ENGINE}" != "none" ]; then
     RESP="$(invoke '{"action":"infer_probe","payload":{"prompt":"The capital of France is","max_tokens":16}}')"
