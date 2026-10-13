@@ -3,7 +3,9 @@
 CPU-only sanity tests for the Hugging Face PyTorch training DLC.
 
 Scoped to the huggingface-pytorch-training family. Hermetic: no GPU, no Hub
-access — the tiny model and tokenizer are built in a temp dir.
+access — the tiny model and tokenizer are built in a temp dir. Kept out of
+test/sanity/ on purpose: ~40 image families' PR workflows trigger on
+test/sanity/** changes.
 
 Run inside the container on a host without a GPU driver. transformer_engine
 (from the base) dlopens libcuda.so.1 on import, so expose the image's CUDA
@@ -12,7 +14,7 @@ forward-compat libcuda:
         -e HF_IMAGE_CONFIG=.github/config/image/huggingface-pytorch-training/2.13-sagemaker.yml \
         --entrypoint bash <image> -c \
         'LD_LIBRARY_PATH=/usr/local/cuda/compat:$LD_LIBRARY_PATH \
-         python3 test/sanity/scripts/test_sanity_huggingface_pytorch_training.py'
+         python3 test/huggingface/pytorch/test_sanity_training.py'
 
 HF_IMAGE_CONFIG is optional; without it the pinned-version checks skip.
 """
