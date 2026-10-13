@@ -26,12 +26,19 @@ LOGGER.setLevel(logging.INFO)
 # SageMaker allows at most five instance types per production variant.
 MAX_INSTANCE_POOLS = 5
 
-# An ML Reservation covers exactly one instance type. Both are set by CI; unset means
-# every endpoint provisions from the open pool, which is the pre-reservation behavior.
-ML_RESERVATION_ARN = os.environ.get("ML_RESERVATION_ARN", "").strip()
-ML_RESERVATION_INSTANCE_TYPE = os.environ.get(
-    "ML_RESERVATION_INSTANCE_TYPE", "ml.g6.xlarge"
-).strip()
+# An ML Reservation covers exactly one instance type, so each gets its own variable.
+# Adding a reservation means one entry here plus one env line in the workflow. An unset
+# variable leaves that type on the open pool, which is the pre-reservation behavior.
+RESERVATION_ENV_VARS = {
+    "ML_RESERVATION_ARN_G6_XLARGE": "ml.g6.xlarge",
+    "ML_RESERVATION_ARN_G6E_XLARGE": "ml.g6e.xlarge",
+}
+
+ML_RESERVATIONS = {
+    instance_type: os.environ[var].strip()
+    for var, instance_type in RESERVATION_ENV_VARS.items()
+    if os.environ.get(var, "").strip()
+}
 
 # SageMaker reports a dry capacity pool as one of these. None of them indicate an image
 # or test defect, so they trigger instance-type fallback instead of failing the suite.
@@ -82,27 +89,27 @@ def build_instance_pools(instance_type):
 def ml_reservation_config(instance_type):
     """Reservation config for this ladder, or None to provision from the open pool.
 
-    Returns None unless an ARN is set and the reserved type leads the ladder. A
-    reservation for a type we are not asking for first cannot be honored, so attaching
-    it only adds a way for the deploy to go wrong.
+    Keyed on the ladder's first rung, since that is the type SageMaker tries first. A
+    reservation for a lower rung cannot be honored on the first attempt, so attaching it
+    only adds a way for the deploy to go wrong.
 
     ``capacity_reservation_preference`` is deliberately left unset. Its only valid value
     is ``capacity-reservations-only``, which turns a busy reservation into a hard deploy
     failure; unset keeps the instance-pool ladder as fallback.
     """
-    if not ML_RESERVATION_ARN:
-        return None
-
     types = normalize_instance_types(instance_type)
-    if not types or types[0] != ML_RESERVATION_INSTANCE_TYPE:
+    leading = types[0] if types else None
+    arn = ML_RESERVATIONS.get(leading)
+
+    if not arn:
         LOGGER.info(
-            f"[capacity] reservation covers {ML_RESERVATION_INSTANCE_TYPE}, ladder leads "
-            f"with {types[0] if types else 'nothing'}; using open pool"
+            f"[capacity] no reservation for {leading or 'empty ladder'} "
+            f"(have {sorted(ML_RESERVATIONS) or 'none'}); using open pool"
         )
         return None
 
-    LOGGER.info(f"[capacity] using ML Reservation: {ML_RESERVATION_ARN}")
-    return ProductionVariantCapacityReservationConfig(ml_reservation_arn=ML_RESERVATION_ARN)
+    LOGGER.info(f"[capacity] using ML Reservation for {leading}: {arn}")
+    return ProductionVariantCapacityReservationConfig(ml_reservation_arn=arn)
 
 
 def log_capacity_placement(endpoint, label=""):

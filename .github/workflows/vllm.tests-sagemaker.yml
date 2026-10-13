@@ -109,11 +109,14 @@ jobs:
       - name: Run SageMaker endpoint test
         env:
           SM_MODEL_NAME: ${{ matrix.model.name }}
-          # A reservation covers one instance type, hence the per-type var. Empty when
-          # unset, which leaves the endpoint on the open pool.
-          ML_RESERVATION_ARN: >-
+          # A reservation covers one instance type, hence one var each. Empty when unset,
+          # which leaves that type on the open pool.
+          ML_RESERVATION_ARN_G6_XLARGE: >-
             ${{ vars.ML_RESERVATION_NAME_G6_XLARGE && format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
             vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6_XLARGE) || '' }}
+          ML_RESERVATION_ARN_G6E_XLARGE: >-
+            ${{ vars.ML_RESERVATION_NAME_G6E_XLARGE && format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
+            vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6E_XLARGE) || '' }}
         run: |
           source .venv/bin/activate
           cd test/
@@ -141,11 +144,14 @@ jobs:
 
       - name: Run SageMaker endpoint test
         env:
-          # A reservation covers one instance type, hence the per-type var. Empty when
-          # unset, which leaves the endpoint on the open pool.
-          ML_RESERVATION_ARN: >-
+          # A reservation covers one instance type, hence one var each. Empty when unset,
+          # which leaves that type on the open pool.
+          ML_RESERVATION_ARN_G6_XLARGE: >-
             ${{ vars.ML_RESERVATION_NAME_G6_XLARGE && format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
             vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6_XLARGE) || '' }}
+          ML_RESERVATION_ARN_G6E_XLARGE: >-
+            ${{ vars.ML_RESERVATION_NAME_G6E_XLARGE && format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
+            vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6E_XLARGE) || '' }}
         run: |
           source .venv/bin/activate
           cd test/
