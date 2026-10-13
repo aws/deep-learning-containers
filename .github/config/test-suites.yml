@@ -149,7 +149,9 @@ suites:
     code_paths:
       - test/vllm/sagemaker/**
       - test/test_utils/instance_capacity.py
+      - test/vllm/scripts/amzn2023/qwen3_reranker_chat_template.jinja
       - .github/config/model-tests/vllm-sagemaker-endpoint-tests.yml
+      - .github/workflows/vllm.tests-sagemaker.yml
 
   sglang/upstream:
     skip_eligible: true

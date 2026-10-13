@@ -1,7 +1,9 @@
 """Config-driven SageMaker endpoint test for vLLM DLC models.
 
 Supports text, audio, and video models. Reads model configuration from
-.github/config/model-tests/vllm-sagemaker-endpoint-tests.yml (sagemaker section).
+.github/config/model-tests/vllm-sagemaker-endpoint-tests.yml (sagemaker section)
+and runs its ``instance_type:`` entries on real SageMaker endpoints. ``fleet:``
+entries run as a local container instead, in test_sm_local_serving.py.
 
 Each entry deploys a model from S3 with configured env vars, sends
 requests to the specified route, and validates the response.
@@ -9,29 +11,34 @@ requests to the specified route, and validates the response.
 Filtering by image (e.g. ``required_image_pattern: {os_version: amzn2023}``)
 happens in the workflow preflight step via ``scripts/ci/parse_model_config.py``;
 the workflow gates the whole endpoint-test job on the resulting matrix being
-non-empty. This test always runs every entry present in the config file.
+non-empty. This test runs every ``instance_type:`` entry in the config file, or
+only the one named by the ``SM_MODEL_NAME`` environment variable.
 
 Usage:
-    pytest test_sm_model_serving.py --image-uri <ecr_uri> --model-name voxtral-mini-4b
-    pytest test_sm_model_serving.py --image-uri <ecr_uri>  # runs all sagemaker models
+    SM_MODEL_NAME=<name> pytest test_sm_model_serving.py --image-uri <ecr_uri>
+    pytest test_sm_model_serving.py --image-uri <ecr_uri>  # runs all instance_type entries
 """
 
-import io
 import json
 import logging
 import os
 import time
-from pathlib import Path
 
 import boto3
 import pytest
-import yaml
 from sagemaker.core.resources import Endpoint, EndpointConfig, Model
 from sagemaker.core.shapes import (
     ContainerDefinition,
     ModelDataSource,
     ProductionVariant,
     S3ModelDataSource,
+)
+from sm_serving_common import (
+    build_json_body,
+    build_multipart_body,
+    container_env,
+    load_sagemaker_config,
+    validate_response,
 )
 from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
@@ -42,104 +49,6 @@ from test_utils.instance_capacity import (
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-
-CONFIG_PATH = (
-    Path(__file__).parents[4] / ".github/config/model-tests/vllm-sagemaker-endpoint-tests.yml"
-)
-
-
-def pytest_addoption(parser):
-    parser.addoption("--model-name", default=None, help="Run only this model (default: all)")
-
-
-def _load_sagemaker_config(config_path, model_name=None):
-    with open(config_path) as f:
-        cfg = yaml.safe_load(f)
-    models = cfg.get("sagemaker", [])
-    s3_prefix = cfg.get("s3_prefix", "")
-    if model_name:
-        models = [m for m in models if m["name"] == model_name]
-    for m in models:
-        m["s3_path"] = f"{s3_prefix}/{m['s3_model']}"
-        # instance_type may be a single type or a priority-ordered ladder.
-        m["instance_types"] = normalize_instance_types(m["instance_type"])
-    return models
-
-
-def _download_s3(s3_client, s3_uri):
-    bucket = s3_uri.split("/")[2]
-    key = "/".join(s3_uri.split("/")[3:])
-    buf = io.BytesIO()
-    s3_client.download_fileobj(bucket, key, buf)
-    buf.seek(0)
-    return buf.read()
-
-
-def _build_multipart_body(request_cfg, s3_client):
-    boundary = "----FormBoundary7MA4YWxkTrZu0gW"
-    parts = []
-
-    for field_name, field_value in request_cfg.get("fields", {}).items():
-        parts.append(
-            f"--{boundary}\r\n"
-            f'Content-Disposition: form-data; name="{field_name}"\r\n\r\n'
-            f"{field_value}\r\n"
-        )
-
-    if "file_s3" in request_cfg:
-        file_data = _download_s3(s3_client, request_cfg["file_s3"])
-        file_field = request_cfg.get("file_field", "file")
-        file_name = request_cfg.get("file_name", "input.bin")
-        file_ct = request_cfg.get("file_content_type", "application/octet-stream")
-
-        parts.append(
-            f"--{boundary}\r\n"
-            f'Content-Disposition: form-data; name="{file_field}"; filename="{file_name}"\r\n'
-            f"Content-Type: {file_ct}\r\n\r\n"
-        )
-        body = "".join(parts).encode() + file_data + f"\r\n--{boundary}--\r\n".encode()
-    else:
-        parts.append(f"--{boundary}--\r\n")
-        body = "".join(parts).encode()
-
-    content_type = f"multipart/form-data; boundary={boundary}"
-    return body, content_type
-
-
-def _build_json_body(request_cfg):
-    payload = request_cfg.get("body", {})
-    return json.dumps(payload).encode(), "application/json"
-
-
-def _validate(response_body, raw_bytes, rule):
-    if rule.startswith("contains:"):
-        expected = rule[len("contains:") :]
-        if isinstance(response_body, dict):
-            text = response_body.get("text", "")
-            if not text:
-                text = json.dumps(response_body)
-        else:
-            text = raw_bytes.decode("utf-8", errors="replace")
-        assert expected.lower() in text.lower(), (
-            f"Expected '{expected}' in response, got: {text[:500]}"
-        )
-
-    elif rule.startswith("json_field:"):
-        field_path = rule[len("json_field:") :]
-        obj = response_body
-        for part in field_path.replace("]", "").replace("[", ".").split("."):
-            if part.isdigit():
-                obj = obj[int(part)]
-            else:
-                obj = obj[part]
-        assert obj, f"Field '{field_path}' is empty in response"
-
-    elif rule.startswith("binary_size_gt:"):
-        min_size = int(rule[len("binary_size_gt:") :])
-        assert len(raw_bytes) > min_size, f"Response size {len(raw_bytes)} <= {min_size}"
-
-    else:
-        raise ValueError(f"Unknown validation rule: {rule}")
 
 
 def _cleanup(resources):
@@ -163,25 +72,6 @@ def _get_role_arn(region):
         return f"arn:aws:iam::{account}:role/{SAGEMAKER_ROLE}"
 
 
-def _flatten_jinja(template_str):
-    """Flatten newlines into ``{{ "\\n" }}`` so the template survives transport.
-
-    The SM entrypoint reads env vars via ``IFS='=' read`` from a line-oriented
-    ``env`` listing, so multi-line values would break across lines. Replacing
-    physical newlines with ``{{ "\\n" }}`` keeps the value single-line; vLLM's
-    ``--chat-template`` falls back to inline Jinja when the value isn't a valid
-    file path and contains ``{``, ``}``, or newline, and each ``{{ "\\n" }}``
-    expression evaluates to a real newline at request time.
-
-    No literal-quote wrapping is applied. ``standard-supervisor`` (>=0.1.15,
-    pinned in docker/vllm/Dockerfile.amzn2023) ``shlex.quote()``s each argv
-    element before the supervisord ``shlex.split`` round-trip, so the inner
-    double quotes survive intact. Adding outer single quotes here would pass
-    them through verbatim into the rendered template.
-    """
-    return template_str.replace("\n", '{{ "\\n" }}')
-
-
 def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
     """Deploy one endpoint over an instance-pool ladder and wait for InService.
 
@@ -193,13 +83,7 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
     """
     endpoint_name = random_suffix_name(f"vllm-{model_cfg['name']}", 50)
     role_arn = _get_role_arn(region)
-    env_vars = dict(model_cfg.get("env", {}))
-
-    chat_template_file = model_cfg.get("chat_template_file")
-    if chat_template_file:
-        repo_root = Path(__file__).parents[4]
-        template_path = repo_root / chat_template_file
-        env_vars["SM_VLLM_CHAT_TEMPLATE"] = _flatten_jinja(template_path.read_text())
+    env_vars = container_env(model_cfg)
 
     model = endpoint_config = endpoint = None
     try:
@@ -256,7 +140,10 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
 
 def _generate_test_params():
     model_name_filter = os.environ.get("SM_MODEL_NAME")
-    models = _load_sagemaker_config(CONFIG_PATH, model_name_filter)
+    models = [m for m in load_sagemaker_config(model_name_filter) if "fleet" not in m]
+    for m in models:
+        # instance_type may be a single type or a priority-ordered ladder.
+        m["instance_types"] = normalize_instance_types(m["instance_type"])
     return [(m["name"], m) for m in models]
 
 
@@ -309,9 +196,9 @@ def test_model_serving(deployed_model):
         request_cfg = tc["request"]
 
         if content_type.startswith("multipart/form-data"):
-            body, ct = _build_multipart_body(request_cfg, s3_client)
+            body, ct = build_multipart_body(request_cfg, s3_client)
         else:
-            body, ct = _build_json_body(request_cfg)
+            body, ct = build_json_body(request_cfg)
 
         invoke_kwargs = {
             "EndpointName": endpoint_name,
@@ -336,7 +223,7 @@ def test_model_serving(deployed_model):
             if response_body:
                 LOGGER.info(f"  Body: {json.dumps(response_body)[:300]}")
 
-            _validate(response_body, raw_bytes, tc["validate"])
+            validate_response(response_body, raw_bytes, tc["validate"])
             LOGGER.info(f"  PASS: {tc_name}")
 
         except Exception as e:
