@@ -62,7 +62,6 @@ def _noop_deserialize(data):
 
 
 def _server_cmd():
-    # Imported here so the workers that only wait skip the torch import.
     import torch
 
     # One GPU per sandbox → device_count() is normally 1; auto-adapts if a sandbox is

@@ -18,24 +18,21 @@ import pytest
 
 TASK_ROOT = "/var/task"
 HANDLER = f"{TASK_ROOT}/handler.py"
-# execute_once marks a started server with these; a worker that finds one only waits.
-STATE_PATHS = tuple(
-    f"/tmp/{engine}_server_start.{kind}"
-    for engine in ("vllm", "sglang")
-    for kind in ("lock", "result")
-)
 
 pytestmark = pytest.mark.skipif(
     not os.path.isfile(HANDLER), reason="image ships no baked serving handler"
 )
 
-# The handler imports execute_once from the task root, as it does under the RIC.
-if TASK_ROOT not in sys.path:
-    sys.path.insert(0, TASK_ROOT)
+sys.path.insert(0, TASK_ROOT)
 
 
 def _clear_state():
-    for path in STATE_PATHS:
+    for path in (
+        "/tmp/vllm_server_start.lock",
+        "/tmp/vllm_server_start.result",
+        "/tmp/sglang_server_start.lock",
+        "/tmp/sglang_server_start.result",
+    ):
         with contextlib.suppress(FileNotFoundError):
             os.remove(path)
 
