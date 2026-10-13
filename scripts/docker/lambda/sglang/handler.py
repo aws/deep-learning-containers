@@ -51,8 +51,6 @@ _BASE_URL = f"http://127.0.0.1:{_PORT}"
 _LOCK_PATH = "/tmp/sglang_server_start.lock"
 _RESULT_PATH = "/tmp/sglang_server_start.result"
 
-_proc = None
-
 
 def _noop_serialize(obj, f):
     pass
@@ -102,18 +100,17 @@ def _server_cmd():
     deserializer=_noop_deserialize,
 )
 def _launch_server():
-    global _proc
-    _proc = subprocess.Popen(_server_cmd())
+    return subprocess.Popen(_server_cmd())
 
 
 def _start_server():
     """Start the one shared sglang server for this sandbox and block until it is ready."""
-    _launch_server()
+    proc = _launch_server()
 
     deadline = time.monotonic() + _TIMEOUT
     while time.monotonic() < deadline:
-        if _proc is not None and _proc.poll() is not None:
-            raise RuntimeError(f"sglang server exited with code {_proc.returncode} during startup")
+        if proc is not None and proc.poll() is not None:
+            raise RuntimeError(f"sglang server exited with code {proc.returncode} during startup")
         try:
             if requests.get(f"{_BASE_URL}/health", timeout=5).status_code == 200:
                 return
