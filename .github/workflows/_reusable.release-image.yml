@@ -23,11 +23,6 @@ on:
         required: false
         type: string
         default: 'us-west-2'
-      runner-fleet:
-        description: 'CodeBuild runner fleet for steps 2-4 (step 1 runs on the release-runner project)'
-        required: false
-        type: string
-        default: 'default-runner'
       publish-only:
         description: 'If true, only publish images (skip release info, notifications, docs PR)'
         required: false
@@ -165,8 +160,7 @@ jobs:
     environment: ${{ inputs.environment }}
     if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
     runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ inputs.runner-fleet }}
+      - codebuild-release-runner-${{ github.run_id }}-${{ github.run_attempt }}
         buildspec-override:true
     steps:
       - name: Checkout code
@@ -225,8 +219,7 @@ jobs:
     environment: ${{ inputs.environment }}
     if: needs.step1-publish-images.outputs.images-published == '1' && !inputs.publish-only
     runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ inputs.runner-fleet }}
+      - codebuild-release-runner-${{ github.run_id }}-${{ github.run_attempt }}
         buildspec-override:true
     steps:
       - name: Checkout code
@@ -254,7 +247,7 @@ jobs:
     if: needs.step1-publish-images.outputs.images-published == '1' && inputs.environment == 'production' && !inputs.publish-only && !inputs.skip-docs-pr
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ inputs.runner-fleet }}
+        fleet:default-runner
         buildspec-override:true
     steps:
       - name: Decode the GitHub App Private Key
