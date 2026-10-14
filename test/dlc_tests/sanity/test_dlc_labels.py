@@ -8,7 +8,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 # Current dlc_major_version for PyTorch training 2.8+, which supersedes v1 in place
-PYTORCH_TRAINING_CURRENT_MAJOR_VERSION = 2
+PYTORCH_TRAINING_CURRENT_MAJOR_VERSION = 3
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
