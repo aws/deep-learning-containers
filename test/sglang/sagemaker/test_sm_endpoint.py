@@ -10,7 +10,11 @@ from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
-from test_utils.instance_capacity import build_instance_pools
+from test_utils.instance_capacity import (
+    build_instance_pools,
+    log_capacity_placement,
+    ml_reservation_config,
+)
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
@@ -74,6 +78,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     model_name=model_name,
                     initial_instance_count=1,
                     instance_pools=build_instance_pools(instance_type),
+                    capacity_reservation_config=ml_reservation_config(instance_type),
                     inference_ami_version=INFERENCE_AMI_VERSION,
                     container_startup_health_check_timeout_in_seconds=600,
                 ),
@@ -87,6 +92,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
         )
         endpoint.wait_for_status("InService")
         LOGGER.info("Endpoint deployment completed successfully")
+        log_capacity_placement(endpoint, endpoint_name)
 
         yield endpoint
     finally:
