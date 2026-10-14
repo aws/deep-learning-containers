@@ -68,5 +68,60 @@
         "vulnerability_id": "CVE-2026-84445",
         "reason": "google.golang.org/grpc v1.82.1 embedded in mooncake libetcd_wrapper.so, only fix is an unreleased grpc-go dev revision, cannot patch without upstream mooncake rebuild",
         "review_by": "2026-12-18"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56851",
+        "reason": "golang.org/x/text v0.37.0 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships x/text v0.37.0, cannot patch without an upstream mooncake rebuild with x/text 0.41.0+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56857",
+        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships a go1.25.10 build, cannot patch without an upstream mooncake rebuild with Go 1.27.2+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56866",
+        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships a go1.25.10 build, cannot patch without an upstream mooncake rebuild with Go 1.27.2+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78659",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships go1.25.10 with x/net v0.55.0, cannot patch without an upstream mooncake rebuild with Go 1.27.2+ and x/net 0.60.0+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78660",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships go1.25.10 with x/net v0.55.0, cannot patch without an upstream mooncake rebuild with Go 1.27.2+ and x/net 0.60.0+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78663",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships go1.25.10 with x/net v0.55.0, cannot patch without an upstream mooncake rebuild with Go 1.27.2+ and x/net 0.60.0+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78667",
+        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships a go1.25.10 build, cannot patch without an upstream mooncake rebuild with Go 1.27.2+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78669",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships go1.25.10 with x/net v0.55.0, cannot patch without an upstream mooncake rebuild with Go 1.27.2+ and x/net 0.60.0+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94439",
+        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships a go1.25.10 build, cannot patch without an upstream mooncake rebuild with Go 1.27.2+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94440",
+        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships a go1.25.10 build, cannot patch without an upstream mooncake rebuild with Go 1.27.2+",
+        "review_by": "2026-12-13"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97031",
+        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so; latest mooncake-transfer-engine 0.3.13.post1 wheel still ships a go1.25.10 build, cannot patch without an upstream mooncake rebuild with Go 1.27.2+",
+        "review_by": "2026-12-13"
     }
 ]

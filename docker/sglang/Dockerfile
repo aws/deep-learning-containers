@@ -96,6 +96,11 @@ RUN rm -rf \
   /sgl-workspace/sglang/sgl-model-gateway/Cargo.lock \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
   /sgl-workspace/sglang/rust/sglang-grpc/Cargo.lock \
+  # quinn-proto 0.11.16/0.11.17 appear only in these build-time lockfiles
+  # (RUSTSEC-2026-0340/0341/0343); the libs built from rust/ never link quinn and
+  # experimental/sgl-router is never compiled, so these are stale build metadata
+  /sgl-workspace/sglang/rust/Cargo.lock \
+  /sgl-workspace/sglang/experimental/sgl-router/Cargo.lock \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Remove oh-my-zsh to avoid false positive in credentials scan
