@@ -6,8 +6,6 @@ import sys
 import uuid
 import copy
 
-from random import randint
-
 from collections import Counter
 
 from inspect import signature
@@ -284,47 +282,15 @@ def launch_instance(
     if iam_instance_profile_name:
         arguments_dict["IamInstanceProfile"] = {"Name": iam_instance_profile_name}
 
-    reservations = get_available_reservations(
-        ec2_client=client, instance_type=instance_type, min_availability=arguments_dict["MinCount"]
+    instances = launch_instances_with_retry(
+        ec2_resource=boto3.Session(region_name=region).resource("ec2"),
+        ec2_client=client,
+        availability_zone_options=get_availability_zone_ids(client),
+        ec2_create_instances_definition=arguments_dict,
+        fn_name=instance_name,
     )
 
-    while reservations:
-        reservation = reservations.pop(0)
-        arguments_dict["CapacityReservationSpecification"] = {
-            "CapacityReservationTarget": {
-                "CapacityReservationId": reservation["CapacityReservationId"]
-            }
-        }
-        try:
-            response = client.run_instances(**arguments_dict)
-            LOGGER.info(
-                f"Your {instance_type} reservation is ready, please wait to be seated. Launching..."
-            )
-            if is_mainline_context():
-                LOGGER.info(f"Launched instance via {reservation}")
-            return response["Instances"][0]
-        except ClientError as e:
-            LOGGER.error(f"Failed to launch via {instance_type} reservation - {e}")
-            # Refresh available reservations
-            time.sleep(randint(10, 30))
-            reservations = get_available_reservations(
-                ec2_client=client,
-                instance_type=instance_type,
-                min_availability=arguments_dict["MinCount"],
-            )
-
-    # Clean up cap reservation if we don't find one
-    arguments_dict.pop("CapacityReservationSpecification", None)
-    LOGGER.info(f"No capacity reservation available for {instance_type}, trying elsewhere...")
-    response = client.run_instances(**arguments_dict)
-
-    if not response or len(response["Instances"]) < 1:
-        raise Exception(
-            "Unable to launch the instance. \
-                         Did not return any response"
-        )
-
-    return response["Instances"][0]
+    return get_instance_from_id(instances[0].id, region=region)
 
 
 def get_available_reservations(ec2_client, instance_type, min_availability=1):
@@ -377,6 +343,8 @@ def launch_instances_with_retry(
     """
 
     instances = None
+    # Drop an AZ pinned by a previous walk-in attempt so it can't conflict with a reservation's AZ
+    ec2_create_instances_definition.pop("Placement", None)
     reservations = get_available_reservations(
         ec2_client=ec2_client,
         instance_type=ec2_create_instances_definition["InstanceType"],

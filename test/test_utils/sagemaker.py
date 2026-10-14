@@ -10,6 +10,7 @@ import boto3
 import invoke
 
 from botocore.config import Config
+from botocore.exceptions import ClientError
 from invoke.context import Context
 from invoke import exceptions
 from junit_xml import TestSuite, TestCase
@@ -93,6 +94,10 @@ def assign_sagemaker_local_job_instance_type(image):
         return "g5.8xlarge"
     elif all(word in image for word in ["huggingface-vllm-omni", "gpu"]):
         return "g5.xlarge"
+    elif (
+        all(word in image for word in ["pytorch", "training", "gpu"]) and "huggingface" not in image
+    ):
+        return "g6.12xlarge"
     return "g5.12xlarge" if "gpu" in image else "c5.18xlarge"
 
 
@@ -349,11 +354,23 @@ def execute_local_tests(image, pytest_cache_params):
     try:
         key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Launching new Instance for image: {image}")
-        instance_id, ip_address = launch_sagemaker_local_ec2_instance(
-            image,
-            ec2_key_name,
-            region,
-        )
+        try:
+            instance_id, ip_address = launch_sagemaker_local_ec2_instance(
+                image,
+                ec2_key_name,
+                region,
+            )
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "InsufficientInstanceCapacity":
+                raise
+            # Capacity is still unavailable after retrying every AZ, so skip instead of failing
+            print(f"Skipping SageMaker local tests for {image} due to insufficient capacity: {e}")
+            generate_empty_report(
+                os.path.join("test", f"{job_type}_{tag}_sm_local.xml"),
+                job_type,
+                "insufficient_capacity",
+            )
+            return True
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{AL2023_HOME_DIR}")
         ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
