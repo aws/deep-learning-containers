@@ -39,7 +39,7 @@ from ...integration.sagemaker.timeout import timeout
 from .... import invoke_pytorch_helper_function
 from . import invoke_pytorch_estimator
 
-MULTI_GPU_INSTANCE = "ml.g5.12xlarge"
+MULTI_GPU_INSTANCE = "ml.g6.12xlarge"
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 
