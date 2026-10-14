@@ -5,13 +5,12 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - ".github/config/image/miles/ec2-amzn2023.yml"
+      - ".github/config/image/miles/*-amzn2023.yml"
       - ".github/workflows/miles.pipeline.yml"
       - ".github/workflows/miles.pr-amzn2023.yml"
       - "docker/miles/**"
       - "scripts/docker/common/**"
       - "scripts/docker/miles/**"
-      - "scripts/docker/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -31,11 +30,30 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/pr-permission-gate
 
-  pipeline:
+  discover:
     needs: [gatekeeper]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/miles/*-amzn2023.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
     uses: ./.github/workflows/miles.pipeline.yml
     with:
-      config-file: ".github/config/image/miles/ec2-amzn2023.yml"
+      config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: true
     secrets: inherit

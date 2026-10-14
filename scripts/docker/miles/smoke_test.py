@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""CPU-safe build smoke test for the Miles v0.1.1 AL2023 EC2 image."""
+"""CPU-safe build smoke test for the Miles AL2023 images.
+
+Expected framework versions come from /opt/aws/dlc/SOURCE_MANIFEST, which the
+Dockerfile writes from the build args. Third-party package versions are checked
+against uv.lock by validate_uv_lock.py.
+"""
 
 from __future__ import annotations
 
@@ -9,27 +14,37 @@ import json
 import os
 import platform
 import shutil
-from pathlib import Path
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
+
 from packaging.version import Version
+
+SOURCE_MANIFEST = Path("/opt/aws/dlc/SOURCE_MANIFEST")
 
 CPU_SAFE_IMPORTS = (
     "boto3",
     "botocore",
     "torch",
     "ray",
+    "redis",
+    "runai_model_streamer",
     "s3transfer",
     "sglang",
     "miles",
     "sglang_router",
     "mooncake.structured_object_store",
     "torchcodec",
+    "torchtitan",
 )
 
+# megatron is a namespace package shared with Megatron-Bridge, so check
+# megatron.core to prove Megatron-LM itself is installed.
 GPU_RUNTIME_IMPORTS = (
-    "megatron",
+    "megatron.core",
     "transformer_engine",
     "flash_attn",
+    "deep_select",
+    "mscclpp",
 )
 
 
@@ -40,7 +55,17 @@ def package_version(name: str) -> str:
         return "unknown"
 
 
+def read_manifest() -> dict[str, str]:
+    values: dict[str, str] = {}
+    for line in SOURCE_MANIFEST.read_text().splitlines():
+        key, separator, value = line.partition("=")
+        if separator and key and value:
+            values[key] = value
+    return values
+
+
 def main() -> None:
+    manifest = read_manifest()
     require_cuda = os.environ.get("MILES_SMOKE_REQUIRE_CUDA") == "1"
     imported = {}
     for module_name in CPU_SAFE_IMPORTS:
@@ -60,26 +85,21 @@ def main() -> None:
     if require_cuda:
         assert torch.cuda.is_available(), "strict CUDA smoke test requires a GPU"
 
+    cuda_major_minor = ".".join(manifest["cuda_version"].split(".")[:2])
     assert platform.system() == "Linux"
-    assert "amzn" in platform.platform().lower() or os.path.exists(
-        "/etc/system-release"
+    assert "amzn" in platform.platform().lower() or os.path.exists("/etc/system-release")
+    assert Version(torch.__version__).base_version == manifest["torch_version"]
+    assert torch.version.cuda == cuda_major_minor
+    assert Version(package_version("sglang-kernel")).local == "cu" + cuda_major_minor.replace(
+        ".", ""
     )
-    assert package_version("torch").startswith("2.13.0")
-    assert package_version("ray") == "2.58.0"
-    sglang_kernel_version = Version(package_version("sglang-kernel"))
-    assert sglang_kernel_version.base_version == "0.4.7"
-    assert sglang_kernel_version.local == "cu130"
-    assert package_version("flashinfer-python") == "0.6.18"
-    assert package_version("miles") == "0.1.1"
-    assert package_version("torchcodec") == "0.15.0+cu130"
-    assert package_version("boto3") == "1.43.97"
-    assert package_version("botocore") == "1.43.97"
-    assert package_version("s3transfer") == "0.19.2"
+    assert package_version("miles") == manifest["framework_version"]
+    assert package_version("sglang") == manifest["sglang_version"]
     from sglang.srt.connector.s3 import S3Connector
 
     assert S3Connector
-    assert os.environ["MILES_SUPPORTED_CUDA_ARCHES"] == (
-        "8.0,8.6,8.9,9.0,10.0,10.3"
+    assert os.environ["MILES_SUPPORTED_CUDA_ARCHES"] == manifest["torch_cuda_arch_list"].replace(
+        ";", ","
     )
     assert shutil.which("sgl-model-gateway")
     assert shutil.which("mooncake_master")
@@ -87,14 +107,12 @@ def main() -> None:
     assert shutil.which("all_reduce_perf")
     assert os.path.isfile("/opt/amazon/ofi-nccl/lib64/libnccl-net-ofi.so")
     assert os.environ["MILES_MOONCAKE_AVAILABLE"] == "1"
-    mooncake = importlib.import_module("mooncake")
-    mooncake_root = Path(mooncake.__file__).parent
-    assert list(mooncake_root.glob("ep_2_13_0*.so"))
-    assert list(mooncake_root.glob("pg_2_13_0*.so"))
-
-    if require_cuda:
-        importlib.import_module("mooncake.ep")
-        importlib.import_module("mooncake.pg")
+    # Miles' Mooncake backend uses the structured object store API.
+    store = importlib.import_module("mooncake.structured_object_store")
+    for name in ("FieldSchema", "export_ref", "import_ref"):
+        assert hasattr(store, name), f"mooncake.structured_object_store lacks {name}"
+    for name in ("put", "get", "release_result", "cleanup_dataproto"):
+        assert hasattr(store.MooncakeBundleTransfer, name), f"MooncakeBundleTransfer lacks {name}"
 
     report = {
         "imports": imported,

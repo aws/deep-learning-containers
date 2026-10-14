@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
-"""Validate selected Miles wheel artifacts against the official release."""
+"""Validate the locked Miles release wheels against the official release.
+
+The selected artifacts are the direct-URL wheels in the image uv lock. Each one
+must match the official release hash, and every official artifact that is not
+selected must be an approved source build or omission.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
 import re
-from pathlib import Path
+import tomllib
+from pathlib import Path, PurePosixPath
+from urllib.parse import unquote, urlparse
 
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -19,9 +26,9 @@ def parse_args() -> argparse.Namespace:
         default=Path("/opt/aws/dlc/WHEEL_ARTIFACTS_OFFICIAL"),
     )
     parser.add_argument(
-        "--selected",
+        "--lock",
         type=Path,
-        default=Path("/opt/aws/dlc/WHEEL_ARTIFACTS_SELECTED"),
+        default=Path("/opt/aws/dlc/python/uv.lock"),
     )
     parser.add_argument(
         "--deviations",
@@ -54,6 +61,20 @@ def read_hashes(path: Path) -> dict[str, str]:
     return artifacts
 
 
+def read_locked_url_wheels(path: Path) -> dict[str, str]:
+    artifacts: dict[str, str] = {}
+    for package in tomllib.loads(path.read_text())["package"]:
+        if "url" not in package.get("source", {}):
+            continue
+        for wheel in package.get("wheels", []):
+            filename = PurePosixPath(unquote(urlparse(wheel["url"]).path)).name
+            algorithm, _, digest = wheel["hash"].partition(":")
+            if algorithm != "sha256" or not SHA256.fullmatch(digest):
+                raise ValueError(f"{path}: unexpected hash for {filename}: {wheel['hash']}")
+            artifacts[filename] = digest
+    return artifacts
+
+
 def read_key_values(path: Path) -> dict[str, str]:
     values: dict[str, str] = {}
     for raw_line in path.read_text().splitlines():
@@ -76,7 +97,7 @@ def parse_sources(values: list[str]) -> dict[str, str]:
 def main() -> None:
     args = parse_args()
     official = read_hashes(args.official)
-    selected = read_hashes(args.selected)
+    selected = read_locked_url_wheels(args.lock)
     deviations = json.loads(args.deviations.read_text())
     if not isinstance(deviations, dict):
         raise ValueError("artifact deviations must be a JSON object")
@@ -112,6 +133,9 @@ def main() -> None:
         if kind == "source-build":
             source_name = deviation.get("source_name")
             expected_commit = deviation.get("source_commit")
+            if not source_name or not expected_commit:
+                errors.append(f"source-build deviation lacks source_name/source_commit: {filename}")
+                continue
             if sources.get(source_name) != expected_commit:
                 errors.append(
                     f"source replacement mismatch for {filename}: "
@@ -122,9 +146,7 @@ def main() -> None:
 
     unused_deviations = deviations.keys() - accepted.keys()
     if unused_deviations:
-        errors.append(
-            "unused artifact deviations: " + ", ".join(sorted(unused_deviations))
-        )
+        errors.append("unused artifact deviations: " + ", ".join(sorted(unused_deviations)))
 
     report = {
         "accepted": accepted,
