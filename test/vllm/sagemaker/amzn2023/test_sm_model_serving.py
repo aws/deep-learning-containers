@@ -37,6 +37,8 @@ from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.instance_capacity import (
     build_instance_pools,
+    log_capacity_placement,
+    ml_reservation_config,
     normalize_instance_types,
 )
 
@@ -232,6 +234,7 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
                     model_name=endpoint_name,
                     initial_instance_count=1,
                     instance_pools=build_instance_pools(instance_types),
+                    capacity_reservation_config=ml_reservation_config(instance_types),
                     # Cap for walking the whole pool ladder on capacity errors.
                     variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
@@ -251,6 +254,7 @@ def _deploy_endpoint(image_uri, model_cfg, region, instance_types):
         raise
 
     LOGGER.info(f"Endpoint InService: {endpoint_name} on {instance_types}")
+    log_capacity_placement(endpoint, endpoint_name)
     return endpoint_name, model, endpoint_config, endpoint
 
 
