@@ -1,7 +1,8 @@
-"""Verify the image can JIT-compile and link a CUDA extension without a GPU."""
+"""Verify the image's JIT toolchains build kernels without a GPU."""
 
 import os
 
+import torch
 from torch.utils.cpp_extension import load_inline
 
 CUDA_SOURCE = r"""
@@ -30,3 +31,10 @@ def test_cuda_extension_compiles_and_links_nccl(tmp_path):
         build_directory=str(tmp_path),
     )
     assert os.path.isfile(module.__file__)
+
+
+def test_torch_compile_builds_and_runs_a_cpu_kernel(tmp_path, monkeypatch):
+    # A fresh cache forces TorchInductor's C++ codegen to build the kernel.
+    monkeypatch.setenv("TORCHINDUCTOR_CACHE_DIR", str(tmp_path))
+    compiled = torch.compile(lambda values: torch.relu(values).sum())
+    assert compiled(torch.tensor([-1.0, 2.0, 3.0])).item() == 5.0

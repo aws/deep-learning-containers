@@ -16,8 +16,23 @@ on:
         required: false
         type: boolean
         default: true
+      run-sanity-test:
+        description: "Run sanity tests"
+        required: false
+        type: boolean
+        default: true
+      run-security-test:
+        description: "Run security tests"
+        required: false
+        type: boolean
+        default: false
       run-unit-test:
         description: "Run CPU-only unit tests against the image"
+        required: false
+        type: boolean
+        default: true
+      run-upstream-test:
+        description: "Run the upstream Miles CPU suites against the image"
         required: false
         type: boolean
         default: true
@@ -51,6 +66,28 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-suffix: ${{ inputs.tag-suffix }}
 
+  sanity-test:
+    if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.sanity-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  security-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.security-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
   unit-test:
     if: ${{ always() && !cancelled() && inputs.run-unit-test && needs.build.result != 'failure' }}
     needs: [build]
@@ -61,3 +98,15 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  upstream-test:
+    if: ${{ always() && !cancelled() && inputs.run-upstream-test && needs.build.result != 'failure' }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-upstream-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/miles.tests-upstream.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+    secrets: inherit

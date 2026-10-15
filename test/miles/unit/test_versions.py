@@ -1,6 +1,7 @@
 """Verify framework versions match the build's source manifest."""
 
 import os
+import subprocess
 from importlib.metadata import version
 from pathlib import Path
 
@@ -45,3 +46,26 @@ def test_sglang_kernel_is_cuda_build(manifest):
 def test_supported_cuda_arches_match_build(manifest):
     expected = manifest["torch_cuda_arch_list"].replace(";", ",")
     assert os.environ["MILES_SUPPORTED_CUDA_ARCHES"] == expected
+
+
+def git(checkout, *args):
+    return subprocess.run(
+        ["git", "-C", checkout, *args], capture_output=True, text=True, check=True
+    ).stdout.strip()
+
+
+# Miles reports `git diff` of editable checkouts in its environment report, so
+# each shipped checkout must sit at its pinned commit with nothing changed.
+@pytest.mark.parametrize(
+    "checkout, key",
+    [
+        ("/opt/miles", "miles"),
+        ("/opt/sglang", "sglang"),
+        ("/opt/Megatron-LM", "megatron_core"),
+        ("/opt/torchtitan", "torchtitan"),
+    ],
+)
+def test_source_checkout_is_clean_at_pinned_commit(manifest, checkout, key):
+    assert git(checkout, "rev-parse", "HEAD") == manifest[key]
+    assert git(checkout, "diff", "--stat", "HEAD") == ""
+    assert git(checkout, "ls-files", "--others", "--exclude-standard") == ""

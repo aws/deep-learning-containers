@@ -234,21 +234,32 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /opt/aws/dlc/python \
     --no-install-package torch-memory-saver
 
 # Exact framework source revisions from the Miles release lock. Keep the
-# checkouts pristine: Miles reports `git diff` for editable packages.
+# checkouts pristine: Miles reports `git diff` for editable packages. The
+# sparse-checkout exclusions drop CI scripts and test fixtures with
+# credential-shaped strings (fake tokens, test private keys), which the DLC
+# credential scan rejects; excluded paths stay out of `git diff`.
 ARG SGLANG_COMMIT
 ARG MEGATRON_COMMIT
 ARG TORCHTITAN_COMMIT
 RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/sglang \
   && git -C /opt/sglang fetch origin "${SGLANG_COMMIT}" \
   && git -C /opt/sglang checkout --detach "${SGLANG_COMMIT}" \
+  && git -C /opt/sglang sparse-checkout set --no-cone '/*' \
+    '!/sgl-model-gateway/tests/security/mtls_test.rs' \
   && git clone --filter=blob:none https://github.com/radixark/Megatron-LM.git \
     /opt/Megatron-LM \
   && git -C /opt/Megatron-LM fetch origin "${MEGATRON_COMMIT}" \
   && git -C /opt/Megatron-LM checkout --detach "${MEGATRON_COMMIT}" \
+  && git -C /opt/Megatron-LM sparse-checkout set --no-cone '/*' \
+    '!/.github/scripts/trigger_workflow_and_wait.py' \
+    '!/tests/test_utils/python_scripts/test_trigger_workflow_and_wait.py' \
   && git -C /opt/Megatron-LM submodule update --init --recursive \
   && git clone --filter=blob:none https://github.com/radixark/miles.git /opt/miles \
   && git -C /opt/miles fetch origin "${MILES_COMMIT}" \
   && git -C /opt/miles checkout --detach "${MILES_COMMIT}" \
+  && git -C /opt/miles sparse-checkout set --no-cone '/*' \
+    '!/.github/workflows/scripts/ci_failure_analysis.py' \
+    '!/tests/ci/test/test_ci_failure_analysis.py' \
   && git clone --filter=blob:none https://github.com/pytorch/torchtitan.git /opt/torchtitan \
   && git -C /opt/torchtitan fetch origin "${TORCHTITAN_COMMIT}" \
   && git -C /opt/torchtitan checkout --detach "${TORCHTITAN_COMMIT}"
@@ -482,7 +493,9 @@ ENV LANG=C.UTF-8 \
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Keep only runtime and JIT requirements in the published stage.
+# Keep only runtime and JIT requirements in the published stage. The openssl
+# CLI is a JIT requirement: TorchInductor's CPU C++ codegen runs it to checksum
+# precompiled headers.
 RUN CUDA_DASH="$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-')" \
   && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
@@ -494,7 +507,7 @@ RUN CUDA_DASH="$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-')" \
     numactl \
     rdma-core libibverbs librdmacm libnl3 infiniband-diags libfabric \
     libunwind boost-system boost-thread boost-filesystem \
-    protobuf hiredis libcurl openssl-libs zlib libffi \
+    protobuf hiredis libcurl openssl openssl-libs zlib libffi \
     cuda-nvcc-${CUDA_DASH} \
     cuda-cudart-devel-${CUDA_DASH} \
     cuda-nvrtc-devel-${CUDA_DASH} \
@@ -585,34 +598,37 @@ COPY --from=nccl-tests-builder /artifacts/LICENSE.txt /usr/local/share/licenses/
 COPY --from=kube-tools /usr/local/bin/kubectl /usr/local/bin/helm /usr/local/bin/
 COPY --from=kube-tools /usr/local/share/licenses/helm /usr/local/share/licenses/helm
 
+# THIRD_PARTY_SOURCE_CODE_URLS entries are source tarballs: the sanity OSS step
+# (test/sanity/scripts/upload_oss_source.py) downloads tarball URLs and git-clones
+# anything else, and a /tree/ page URL is neither.
 RUN printf '\n** FFmpeg; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\n' \
       "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" \
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-    && printf '\nFFmpeg %s https://github.com/FFmpeg/FFmpeg/tree/%s\n' \
+    && printf '\nFFmpeg %s https://github.com/FFmpeg/FFmpeg/archive/refs/tags/%s.tar.gz\n' \
       "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" \
       >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
     && printf '\n** GDRCopy; version %s -- https://github.com/NVIDIA/gdrcopy/tree/v%s\n' \
       "${GDRCOPY_VERSION}" "${GDRCOPY_VERSION}" \
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-    && printf '\nGDRCopy %s https://github.com/NVIDIA/gdrcopy/tree/v%s\n' \
+    && printf '\nGDRCopy %s https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v%s.tar.gz\n' \
       "${GDRCOPY_VERSION}" "${GDRCOPY_VERSION}" \
       >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
     && printf '\n** nccl-tests; commit %s -- https://github.com/NVIDIA/nccl-tests/tree/%s\n' \
       "${NCCL_TESTS_COMMIT}" "${NCCL_TESTS_COMMIT}" \
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-    && printf '\nnccl-tests %s https://github.com/NVIDIA/nccl-tests/tree/%s\n' \
+    && printf '\nnccl-tests %s https://github.com/NVIDIA/nccl-tests/archive/%s.tar.gz\n' \
       "${NCCL_TESTS_COMMIT}" "${NCCL_TESTS_COMMIT}" \
       >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
     && printf '\n** kubectl; version %s -- https://github.com/kubernetes/kubernetes/tree/%s\n' \
       "${KUBECTL_VERSION}" "${KUBECTL_VERSION}" \
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-    && printf '\nkubectl %s https://github.com/kubernetes/kubernetes/tree/%s\n' \
+    && printf '\nkubectl %s https://github.com/kubernetes/kubernetes/archive/refs/tags/%s.tar.gz\n' \
       "${KUBECTL_VERSION}" "${KUBECTL_VERSION}" \
       >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
     && printf '\n** Helm; version %s -- https://github.com/helm/helm/tree/%s\n' \
       "${HELM_VERSION}" "${HELM_VERSION}" \
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-    && printf '\nHelm %s https://github.com/helm/helm/tree/%s\n' \
+    && printf '\nHelm %s https://github.com/helm/helm/archive/refs/tags/%s.tar.gz\n' \
       "${HELM_VERSION}" "${HELM_VERSION}" \
       >>/root/THIRD_PARTY_SOURCE_CODE_URLS
 

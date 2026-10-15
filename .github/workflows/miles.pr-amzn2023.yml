@@ -9,11 +9,14 @@ on:
       - ".github/workflows/miles.pipeline.yml"
       - ".github/workflows/miles.pr-amzn2023.yml"
       - ".github/workflows/miles.tests-unit.yml"
+      - ".github/workflows/miles.tests-upstream.yml"
       - "docker/miles/**"
       - "scripts/ci/build/miles/**"
       - "scripts/docker/common/**"
       - "scripts/docker/miles/**"
       - "test/miles/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/miles/**"
       - "!docs/**"
 
 permissions:
@@ -59,4 +62,5 @@ jobs:
       config-file: ${{ matrix.config_file }}
       tag-suffix: pr-${{ github.event.pull_request.number }}
       build: true
+      run-security-test: true
     secrets: inherit
