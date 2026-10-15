@@ -649,14 +649,19 @@ RUN echo "security-cache-refresh=${CACHE_REFRESH}" >/dev/null \
   && dnf clean all \
   && rm -rf /var/cache/dnf
 
+# Check the finished image, then drop the check scripts; they are build tooling.
+# The records they read stay in /opt/aws/dlc.
 RUN /opt/aws/dlc/validate_image.sh \
+  && rm -f /opt/aws/dlc/validate_image.sh /opt/aws/dlc/validate_pip_check.py \
+    /opt/aws/dlc/validate_uv_lock.py /opt/aws/dlc/validate_wheel_artifacts.py \
   && rm -rf /root/.cache /tmp/* /var/cache/dnf
 
 
 # ── Stage: sagemaker ─────────────────────────────────────────────────────────
 # SageMaker Training mounts inputs, outputs and code under /opt/ml. The adapter
 # that maps the SageMaker Training contract onto a Miles launch is added in a
-# follow-up change; until then this target matches ec2.
+# follow-up change; until then this target matches ec2. Install it before the
+# final check step so the checks cover it.
 FROM base AS sagemaker
 
 ARG MILES_VERSION
@@ -673,5 +678,9 @@ RUN echo "security-cache-refresh=${CACHE_REFRESH}" >/dev/null \
   && dnf clean all \
   && rm -rf /var/cache/dnf
 
+# Check the finished image, then drop the check scripts; they are build tooling.
+# The records they read stay in /opt/aws/dlc.
 RUN /opt/aws/dlc/validate_image.sh \
+  && rm -f /opt/aws/dlc/validate_image.sh /opt/aws/dlc/validate_pip_check.py \
+    /opt/aws/dlc/validate_uv_lock.py /opt/aws/dlc/validate_wheel_artifacts.py \
   && rm -rf /root/.cache /tmp/* /var/cache/dnf
