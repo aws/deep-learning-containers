@@ -8,9 +8,12 @@ on:
       - ".github/config/image/miles/*-amzn2023.yml"
       - ".github/workflows/miles.pipeline.yml"
       - ".github/workflows/miles.pr-amzn2023.yml"
+      - ".github/workflows/miles.tests-unit.yml"
       - "docker/miles/**"
+      - "scripts/ci/build/miles/**"
       - "scripts/docker/common/**"
       - "scripts/docker/miles/**"
+      - "test/miles/**"
       - "!docs/**"
 
 permissions:

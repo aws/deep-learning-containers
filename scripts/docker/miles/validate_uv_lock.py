@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Check that installed distributions match the image uv lock.
+"""Check that installed distributions match the image uv lock and source manifest.
 
 Every locked package must be installed at its locked version. Anything else in
 the environment must be a source build (local path, VCS, or file install), so
-no registry package can bypass the lock. Locked git sources must name the same
-commits the Dockerfile built, as recorded in SOURCE_MANIFEST.
+no registry package can bypass the lock. Source builds installed from git, or
+editable from a git checkout, must be at the commit SOURCE_MANIFEST records, as
+must the git sources the lock resolved.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import tomllib
 from importlib.metadata import distributions
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 from packaging.utils import canonicalize_name
 from packaging.version import Version
@@ -58,12 +61,29 @@ def read_manifest(path: Path) -> dict[str, str]:
     return values
 
 
+def installed_commit(direct_url: dict) -> str | None:
+    """Commit of a VCS install, or of the checkout behind an editable install."""
+    if "vcs_info" in direct_url:
+        return direct_url["vcs_info"]["commit_id"]
+    if direct_url.get("dir_info", {}).get("editable"):
+        checkout = unquote(urlparse(direct_url["url"]).path)
+        result = subprocess.run(
+            ["git", "-C", checkout, "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return result.stdout.strip() if result.returncode == 0 else ""
+    return None
+
+
 def main() -> None:
     args = parse_args()
-    locked, git_commits = read_lock(args.lock)
+    locked, lock_git_commits = read_lock(args.lock)
     manifest = read_manifest(args.source_manifest)
     installed: dict[str, str] = {}
-    source_builds: dict[str, str] = {}
+    source_commits: dict[str, str] = {}
+    unverifiable_sources: dict[str, str] = {}
     unlocked_registry: list[str] = []
     for distribution in distributions():
         name = distribution.metadata.get("Name")
@@ -71,12 +91,15 @@ def main() -> None:
             continue
         name = canonicalize_name(name)
         installed[name] = distribution.version
-        if name in locked:
-            continue
         direct_url = distribution.read_text("direct_url.json")
         if direct_url:
-            source_builds[name] = json.loads(direct_url)["url"]
-        else:
+            direct_url = json.loads(direct_url)
+            commit = installed_commit(direct_url)
+            if commit is None:
+                unverifiable_sources[name] = direct_url["url"]
+            else:
+                source_commits[name] = commit
+        elif name not in locked:
             unlocked_registry.append(name)
 
     missing = sorted(locked.keys() - installed.keys())
@@ -86,20 +109,27 @@ def main() -> None:
         if name in installed and Version(installed[name]) != Version(version)
     }
     commit_mismatches = {
+        name: {"built": manifest.get(name), "installed": commit}
+        for name, commit in sorted(source_commits.items())
+        if manifest.get(name) != commit
+    }
+    lock_commit_mismatches = {
         name: {"built": manifest.get(name), "locked": commit}
-        for name, commit in sorted(git_commits.items())
+        for name, commit in sorted(lock_git_commits.items())
         if manifest.get(name) != commit
     }
     report = {
         "commit_mismatches": commit_mismatches,
+        "lock_commit_mismatches": lock_commit_mismatches,
         "locked": len(locked),
         "missing": missing,
         "mismatched": mismatched,
-        "source_builds": dict(sorted(source_builds.items())),
+        "source_commits_verified": sorted(set(source_commits) - set(commit_mismatches)),
         "unlocked_registry_installs": sorted(unlocked_registry),
+        "unverifiable_sources": dict(sorted(unverifiable_sources.items())),
     }
     print(json.dumps(report, indent=2, sort_keys=True))
-    if missing or mismatched or unlocked_registry or commit_mismatches:
+    if missing or mismatched or unlocked_registry or commit_mismatches or lock_commit_mismatches:
         raise SystemExit(1)
 
 

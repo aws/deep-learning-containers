@@ -44,6 +44,14 @@ build:
   deepselect_commit: "0f03b68748b304863fdf0181a11458d04ae533a9"
   mscclpp_commit: "0a04f1af0c855cc2c8315a918f55a08107f745c8"
   mscclpp_version: "0.10.1"
+  # Release that scripts/ci/build/miles/pre_build.sh mirrors the locked wheels from.
+  miles_wheels_repo: "radixark/miles-wheels"
+  miles_wheels_tag: "cu130-torch213-x86_64"
+  # Kubernetes clients for Miles' Helm launcher and workbench (upstream install-kube-tools.sh versions).
+  kubectl_version: "v1.36.3"
+  kubectl_sha256: "ebbd080e7c2e275093b55915722043257eb24004363e20acb3c4d71919f88336"
+  helm_version: "v4.2.3"
+  helm_sha256: "e9b88b4ee95b18c706839c28d3a0220e5bc470e9cd9262410c90793c45ff8b7c"
   build_parallel: "16"
   torch_cuda_arch_list: "8.0;8.6;8.9;9.0;10.0;10.3"
   dlc_major_version: "0"

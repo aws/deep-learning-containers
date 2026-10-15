@@ -635,12 +635,12 @@ wheels = [
 [[package]]
 name = "apex"
 version = "0.1"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/apex-0.1-cp312-cp312-linux_x86_64.whl" }
+source = { path = "/opt/miles-wheels/apex-0.1-cp312-cp312-linux_x86_64.whl" }
 dependencies = [
     { name = "packaging" },
 ]
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/apex-0.1-cp312-cp312-linux_x86_64.whl", hash = "sha256:a1c642823771f83ee6314c07e42a233294c5d7afd910acf4bfa3291f9f3e0351" },
+    { filename = "apex-0.1-cp312-cp312-linux_x86_64.whl", hash = "sha256:a1c642823771f83ee6314c07e42a233294c5d7afd910acf4bfa3291f9f3e0351" },
 ]
 
 [package.metadata]
@@ -802,14 +802,14 @@ wheels = [
 [[package]]
 name = "causal-conv1d"
 version = "1.6.1"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl" }
+source = { path = "/opt/miles-wheels/causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl" }
 dependencies = [
     { name = "ninja" },
     { name = "packaging" },
     { name = "torch" },
 ]
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl", hash = "sha256:26ab8fdfd4b08c4b927db2bd5b442eb33214626bc942f47264d0872629f4c96e" },
+    { filename = "causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl", hash = "sha256:26ab8fdfd4b08c4b927db2bd5b442eb33214626bc942f47264d0872629f4c96e" },
 ]
 
 [package.metadata]
@@ -1193,14 +1193,14 @@ wheels = [
 [[package]]
 name = "fast-hadamard-transform"
 version = "1.1.0"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl" }
+source = { path = "/opt/miles-wheels/fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl" }
 dependencies = [
     { name = "ninja" },
     { name = "packaging" },
     { name = "torch" },
 ]
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl", hash = "sha256:17837fcc5bc5b21965e234c6097ba68197b1eb3c4e30d37e824705d85ede7b6f" },
+    { filename = "fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl", hash = "sha256:17837fcc5bc5b21965e234c6097ba68197b1eb3c4e30d37e824705d85ede7b6f" },
 ]
 
 [package.metadata]
@@ -1251,13 +1251,13 @@ wheels = [
 [[package]]
 name = "flash-attn"
 version = "2.7.4.post1"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl" }
+source = { path = "/opt/miles-wheels/flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl" }
 dependencies = [
     { name = "einops" },
     { name = "torch" },
 ]
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl", hash = "sha256:5900a899060e04b890842ca598193ca7238ed9fdec6bd4794caeeef525c8c5bb" },
+    { filename = "flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl", hash = "sha256:5900a899060e04b890842ca598193ca7238ed9fdec6bd4794caeeef525c8c5bb" },
 ]
 
 [package.metadata]
@@ -1269,7 +1269,7 @@ requires-dist = [
 [[package]]
 name = "flash-attn-3"
 version = "3.0.0"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl" }
+source = { path = "/opt/miles-wheels/flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl" }
 dependencies = [
     { name = "einops" },
     { name = "ninja" },
@@ -1277,7 +1277,7 @@ dependencies = [
     { name = "torch" },
 ]
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl", hash = "sha256:6b19fd7c3ced3e70b3a75b6d84d194bb3fcf18fcd609b88cd047d85d467a9498" },
+    { filename = "flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl", hash = "sha256:6b19fd7c3ced3e70b3a75b6d84d194bb3fcf18fcd609b88cd047d85d467a9498" },
 ]
 
 [package.metadata]
@@ -1322,9 +1322,9 @@ wheels = [
 [[package]]
 name = "flash-mla"
 version = "1.0.0+b7643bd"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_mla-1.0.0%2Bb7643bd-cp312-cp312-linux_x86_64.whl" }
+source = { path = "/opt/miles-wheels/flash_mla-1.0.0+b7643bd-cp312-cp312-linux_x86_64.whl" }
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_mla-1.0.0%2Bb7643bd-cp312-cp312-linux_x86_64.whl", hash = "sha256:edf843a8e62c5a385d169293b157025190bea78e293e438403a4c42895530e9b" },
+    { filename = "flash_mla-1.0.0+b7643bd-cp312-cp312-linux_x86_64.whl", hash = "sha256:edf843a8e62c5a385d169293b157025190bea78e293e438403a4c42895530e9b" },
 ]
 
 [[package]]
@@ -2051,7 +2051,7 @@ wheels = [
 [[package]]
 name = "mamba-ssm"
 version = "2.3.1"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl" }
+source = { path = "/opt/miles-wheels/mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl" }
 dependencies = [
     { name = "einops" },
     { name = "ninja" },
@@ -2062,7 +2062,7 @@ dependencies = [
     { name = "triton" },
 ]
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl", hash = "sha256:fcdbd2526b0094926361249b365edf1f473e07b9e00da943c696f557c5d142b5" },
+    { filename = "mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl", hash = "sha256:fcdbd2526b0094926361249b365edf1f473e07b9e00da943c696f557c5d142b5" },
 ]
 
 [package.metadata]
@@ -2332,21 +2332,21 @@ dependencies = [
 requires-dist = [
     { name = "absl-py" },
     { name = "apache-tvm-ffi" },
-    { name = "apex", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/apex-0.1-cp312-cp312-linux_x86_64.whl" },
+    { name = "apex", path = "/opt/miles-wheels/apex-0.1-cp312-cp312-linux_x86_64.whl" },
     { name = "boto3" },
     { name = "botocore" },
-    { name = "causal-conv1d", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl" },
+    { name = "causal-conv1d", path = "/opt/miles-wheels/causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl" },
     { name = "cmake", specifier = "==4.4.3" },
     { name = "cupy-cuda13x" },
     { name = "einops" },
-    { name = "fast-hadamard-transform", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl" },
-    { name = "flash-attn", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl" },
-    { name = "flash-attn-3", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl" },
+    { name = "fast-hadamard-transform", path = "/opt/miles-wheels/fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl" },
+    { name = "flash-attn", path = "/opt/miles-wheels/flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl" },
+    { name = "flash-attn-3", path = "/opt/miles-wheels/flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl" },
     { name = "flash-linear-attention" },
-    { name = "flash-mla", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_mla-1.0.0%2Bb7643bd-cp312-cp312-linux_x86_64.whl" },
+    { name = "flash-mla", path = "/opt/miles-wheels/flash_mla-1.0.0+b7643bd-cp312-cp312-linux_x86_64.whl" },
     { name = "flashinfer-cubin", index = "https://flashinfer.ai/whl/" },
     { name = "flashinfer-jit-cache", index = "https://flashinfer.ai/whl/cu130/" },
-    { name = "mamba-ssm", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl" },
+    { name = "mamba-ssm", path = "/opt/miles-wheels/mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl" },
     { name = "megatron-energon" },
     { name = "miles", git = "https://github.com/radixark/miles.git?rev=a22fd824191c64ba7c5d6c531f125406e4ce9cc6" },
     { name = "mooncake-transfer-engine-cuda13" },
@@ -2388,9 +2388,9 @@ requires-dist = [
     { name = "torchcodec", index = "https://download.pytorch.org/whl/cu130" },
     { name = "torchdata" },
     { name = "torchvision", index = "https://download.pytorch.org/whl/cu130" },
-    { name = "transformer-engine", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine-2.17.0-py3-none-any.whl" },
-    { name = "transformer-engine-cu13", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl" },
-    { name = "transformer-engine-torch", url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl" },
+    { name = "transformer-engine", path = "/opt/miles-wheels/transformer_engine-2.17.0-py3-none-any.whl" },
+    { name = "transformer-engine-cu13", path = "/opt/miles-wheels/transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl" },
+    { name = "transformer-engine-torch", path = "/opt/miles-wheels/transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl" },
     { name = "tyro" },
     { name = "uv" },
     { name = "wheel" },
@@ -4856,25 +4856,25 @@ wheels = [
 [[package]]
 name = "transformer-engine"
 version = "2.17.0"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine-2.17.0-py3-none-any.whl" }
+source = { path = "/opt/miles-wheels/transformer_engine-2.17.0-py3-none-any.whl" }
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine-2.17.0-py3-none-any.whl", hash = "sha256:c274fd74ea2e4caa7132921e1ecfa3847931abbed9f6b8cab61346cdb833bc76" },
+    { filename = "transformer_engine-2.17.0-py3-none-any.whl", hash = "sha256:c274fd74ea2e4caa7132921e1ecfa3847931abbed9f6b8cab61346cdb833bc76" },
 ]
 
 [[package]]
 name = "transformer-engine-cu13"
 version = "2.17.0"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl" }
+source = { path = "/opt/miles-wheels/transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl" }
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:1c8e6627cf02358201f513ab902c7b4f82f179214bd775edc97ce0f2001d82da" },
+    { filename = "transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:1c8e6627cf02358201f513ab902c7b4f82f179214bd775edc97ce0f2001d82da" },
 ]
 
 [[package]]
 name = "transformer-engine-torch"
 version = "2.17.0"
-source = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl" }
+source = { path = "/opt/miles-wheels/transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl" }
 wheels = [
-    { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl", hash = "sha256:e4ca446b6ac59bcb99f58b688008329333a8a947d56f2a689e945724708fb076" },
+    { filename = "transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl", hash = "sha256:e4ca446b6ac59bcb99f58b688008329333a8a947d56f2a689e945724708fb076" },
 ]
 
 [[package]]

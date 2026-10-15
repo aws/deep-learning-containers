@@ -8,9 +8,16 @@
 # constraint-dependencies is the `pip freeze --all` of the official image
 # radixark/miles:v0.1.2 (amd64 sha256:cc095dc90d48040e8fa8058efc8b30e3d33f0dd9828a2fc5fd89609f7c863994)
 # with local file/VCS entries removed, so every shared package keeps the
-# upstream version. Regenerate uv.lock after editing this file:
-#   SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SGLANG=0.5.22.dev37+gb84bec5 SGLANG_BUILD_RUST_EXTS=none \
-#     uvx --from uv==0.12.21 uv lock
+# upstream version.
+#
+# The Miles release wheels install from /opt/miles-wheels, where the Dockerfile
+# copies what scripts/ci/build/miles/pre_build.sh stages into ./wheels. Regenerate
+# uv.lock after editing this file, with the wheels staged and mounted at that path:
+#   bash scripts/ci/build/miles/pre_build.sh --config-file .github/config/image/miles/ec2-amzn2023.yml
+#   docker run --rm -v "$PWD/docker/miles/v0.1.2":/w -w /w \
+#     -v "$PWD/docker/miles/v0.1.2/wheels":/opt/miles-wheels:ro \
+#     -e SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SGLANG=0.5.22.dev37+gb84bec5 -e SGLANG_BUILD_RUST_EXTS=none \
+#     ghcr.io/astral-sh/uv:0.12.21-python3.12-trixie uv lock
 
 [project]
 name = "miles-dlc"
@@ -39,7 +46,7 @@ dependencies = [
     "torchdata",
     "tyro",
     "nvidia-modelopt",
-    # Miles release wheels (radixark/miles-wheels cu130-torch213-x86_64).
+    # Miles release wheels (radixark/miles-wheels cu130-torch213-x86_64), staged locally.
     "apex",
     "causal-conv1d",
     "fast-hadamard-transform",
@@ -610,13 +617,13 @@ torchcodec = { index = "pytorch-cu130" }
 torchvision = { index = "pytorch-cu130" }
 miles = { git = "https://github.com/radixark/miles.git", rev = "a22fd824191c64ba7c5d6c531f125406e4ce9cc6" }
 sglang = { git = "https://github.com/sgl-project/sglang.git", rev = "b84bec5761a6cdc8b1df86b9b89ead80a7a9bb02", subdirectory = "python" }
-apex = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/apex-0.1-cp312-cp312-linux_x86_64.whl" }
-causal-conv1d = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl" }
-fast-hadamard-transform = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl" }
-flash-attn = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl" }
-flash-attn-3 = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl" }
-flash-mla = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/flash_mla-1.0.0%2Bb7643bd-cp312-cp312-linux_x86_64.whl" }
-mamba-ssm = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl" }
-transformer-engine = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine-2.17.0-py3-none-any.whl" }
-transformer-engine-cu13 = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl" }
-transformer-engine-torch = { url = "https://github.com/radixark/miles-wheels/releases/download/cu130-torch213-x86_64/transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl" }
+apex = { path = "/opt/miles-wheels/apex-0.1-cp312-cp312-linux_x86_64.whl" }
+causal-conv1d = { path = "/opt/miles-wheels/causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl" }
+fast-hadamard-transform = { path = "/opt/miles-wheels/fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl" }
+flash-attn = { path = "/opt/miles-wheels/flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl" }
+flash-attn-3 = { path = "/opt/miles-wheels/flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl" }
+flash-mla = { path = "/opt/miles-wheels/flash_mla-1.0.0+b7643bd-cp312-cp312-linux_x86_64.whl" }
+mamba-ssm = { path = "/opt/miles-wheels/mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl" }
+transformer-engine = { path = "/opt/miles-wheels/transformer_engine-2.17.0-py3-none-any.whl" }
+transformer-engine-cu13 = { path = "/opt/miles-wheels/transformer_engine_cu13-2.17.0-py3-none-manylinux_2_28_x86_64.whl" }
+transformer-engine-torch = { path = "/opt/miles-wheels/transformer_engine_torch-2.17.0-cp312-cp312-linux_x86_64.whl" }

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Validate the locked Miles release wheels against the official release.
 
-The selected artifacts are the direct-URL wheels in the image uv lock. Each one
-must match the official release hash, and every official artifact that is not
-selected must be an approved source build or omission.
+The selected artifacts are the wheel files the image uv lock installs from a URL
+or a local path (the staged Miles release wheels). Each one must match the
+official release hash, and every official artifact that is not selected must be
+an approved source build or omission.
 """
 
 from __future__ import annotations
@@ -61,13 +62,15 @@ def read_hashes(path: Path) -> dict[str, str]:
     return artifacts
 
 
-def read_locked_url_wheels(path: Path) -> dict[str, str]:
+def read_locked_file_wheels(path: Path) -> dict[str, str]:
     artifacts: dict[str, str] = {}
     for package in tomllib.loads(path.read_text())["package"]:
-        if "url" not in package.get("source", {}):
+        if not {"url", "path"} & package.get("source", {}).keys():
             continue
         for wheel in package.get("wheels", []):
-            filename = PurePosixPath(unquote(urlparse(wheel["url"]).path)).name
+            filename = (
+                wheel.get("filename") or PurePosixPath(unquote(urlparse(wheel["url"]).path)).name
+            )
             algorithm, _, digest = wheel["hash"].partition(":")
             if algorithm != "sha256" or not SHA256.fullmatch(digest):
                 raise ValueError(f"{path}: unexpected hash for {filename}: {wheel['hash']}")
@@ -97,7 +100,7 @@ def parse_sources(values: list[str]) -> dict[str, str]:
 def main() -> None:
     args = parse_args()
     official = read_hashes(args.official)
-    selected = read_locked_url_wheels(args.lock)
+    selected = read_locked_file_wheels(args.lock)
     deviations = json.loads(args.deviations.read_text())
     if not isinstance(deviations, dict):
         raise ValueError("artifact deviations must be a JSON object")

@@ -40,6 +40,12 @@ ARG NVIDIA_RESILIENCY_EXT_COMMIT=6c5f2a13c7688d92a7ac7ee6e464721eb8b7345d
 ARG DEEPSELECT_COMMIT=0f03b68748b304863fdf0181a11458d04ae533a9
 ARG MSCCLPP_COMMIT=0a04f1af0c855cc2c8315a918f55a08107f745c8
 ARG MSCCLPP_VERSION=0.10.1
+ARG MILES_WHEELS_REPO=radixark/miles-wheels
+ARG MILES_WHEELS_TAG=cu130-torch213-x86_64
+ARG KUBECTL_VERSION=v1.36.3
+ARG KUBECTL_SHA256=ebbd080e7c2e275093b55915722043257eb24004363e20acb3c4d71919f88336
+ARG HELM_VERSION=v4.2.3
+ARG HELM_SHA256=e9b88b4ee95b18c706839c28d3a0220e5bc470e9cd9262410c90793c45ff8b7c
 ARG BUILD_PARALLEL=16
 ARG torch_cuda_arch_list="8.0;8.6;8.9;9.0;10.0;10.3"
 ARG DLC_MAJOR_VERSION=0
@@ -124,6 +130,31 @@ RUN dnf install -y --setopt=install_weak_deps=False gcc git make \
   && rm -rf /tmp/gdrcopy /var/cache/dnf
 
 
+# ── Stage: kube-tools ────────────────────────────────────────────────────────
+# Miles' Kubernetes launcher and workbench drive runs with kubectl and Helm. Use
+# upstream's client versions, pinned here by SHA-256.
+FROM build-base AS kube-tools
+
+ARG KUBECTL_VERSION
+ARG KUBECTL_SHA256
+ARG HELM_VERSION
+ARG HELM_SHA256
+
+RUN curl -fsSL --retry 3 -o /tmp/kubectl \
+  "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+  && echo "${KUBECTL_SHA256}  /tmp/kubectl" | sha256sum -c - \
+  && install -m 0755 /tmp/kubectl /usr/local/bin/kubectl \
+  && curl -fsSL --retry 3 -o /tmp/helm.tar.gz \
+    "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" \
+  && echo "${HELM_SHA256}  /tmp/helm.tar.gz" | sha256sum -c - \
+  && tar -xzf /tmp/helm.tar.gz -C /tmp \
+  && install -m 0755 /tmp/linux-amd64/helm /usr/local/bin/helm \
+  && mkdir -p /usr/local/share/licenses/helm \
+  && cp /tmp/linux-amd64/LICENSE /usr/local/share/licenses/helm/LICENSE \
+  && kubectl version --client \
+  && helm version --short
+
+
 # ── Stage: rust-build-base ───────────────────────────────────────────────────
 # Both SGLang and the model gateway compile Rust extensions. Keep the Rust
 # toolchain in builder stages so it is not copied into the runtime image.
@@ -187,6 +218,10 @@ ARG SGL_ROUTER_COMMIT
 RUN python /opt/aws/dlc/validate_wheel_artifacts.py \
   --source "miles=${MILES_COMMIT}" \
   --source "sgl_router=${SGL_ROUTER_COMMIT}"
+
+# The Miles release wheels come from the build context, staged by
+# scripts/ci/build/miles/pre_build.sh; uv checks each against its locked hash.
+COPY docker/miles/v${MILES_VERSION}/wheels/ /opt/miles-wheels/
 
 # Install the locked third-party set. --locked fails if uv.lock is stale. The
 # skipped packages are locked only for their dependencies and built below.
@@ -335,6 +370,8 @@ ARG MEGATRON_BRIDGE_COMMIT
 ARG NVIDIA_RESILIENCY_EXT_COMMIT
 ARG DEEPSELECT_COMMIT
 ARG MSCCLPP_COMMIT
+ARG MILES_WHEELS_REPO
+ARG MILES_WHEELS_TAG
 ARG FFMPEG_VERSION
 ARG GDRCOPY_VERSION
 ARG NCCL_TESTS_COMMIT
@@ -354,7 +391,7 @@ RUN { \
       echo "torch_cuda_arch_list=${TORCH_CUDA_ARCH_LIST}"; \
       echo "miles=${MILES_COMMIT}"; \
       echo "sglang=${SGLANG_COMMIT}"; \
-      echo "megatron_lm=${MEGATRON_COMMIT}"; \
+      echo "megatron_core=${MEGATRON_COMMIT}"; \
       echo "torchtitan=${TORCHTITAN_COMMIT}"; \
       echo "sgl_router=${SGL_ROUTER_COMMIT}"; \
       echo "flash_qla=${FLASHQLA_COMMIT}"; \
@@ -363,8 +400,9 @@ RUN { \
       echo "torch_memory_saver=${TORCH_MEMORY_SAVER_COMMIT}"; \
       echo "megatron_bridge=${MEGATRON_BRIDGE_COMMIT}"; \
       echo "nvidia_resiliency_ext=${NVIDIA_RESILIENCY_EXT_COMMIT}"; \
-      echo "deepselect=${DEEPSELECT_COMMIT}"; \
+      echo "deep_select=${DEEPSELECT_COMMIT}"; \
     echo "mscclpp=${MSCCLPP_COMMIT}"; \
+    echo "miles_wheels=${MILES_WHEELS_REPO}@${MILES_WHEELS_TAG}"; \
       echo "ffmpeg=${FFMPEG_VERSION}"; \
       echo "gdrcopy=${GDRCOPY_VERSION}"; \
       echo "nccl_tests=${NCCL_TESTS_COMMIT}"; \
@@ -531,6 +569,8 @@ ARG MILES_VERSION
 ARG FFMPEG_VERSION
 ARG GDRCOPY_VERSION
 ARG NCCL_TESTS_COMMIT
+ARG KUBECTL_VERSION
+ARG HELM_VERSION
 
 # Miles telemetry registration is deferred to a follow-up change so this
 # initial build integration does not modify shared telemetry files.
@@ -542,6 +582,8 @@ COPY --from=builder-oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FR
 COPY --from=builder-oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 COPY --from=nccl-tests-builder /artifacts/*_perf /usr/local/bin/
 COPY --from=nccl-tests-builder /artifacts/LICENSE.txt /usr/local/share/licenses/nccl-tests/LICENSE
+COPY --from=kube-tools /usr/local/bin/kubectl /usr/local/bin/helm /usr/local/bin/
+COPY --from=kube-tools /usr/local/share/licenses/helm /usr/local/share/licenses/helm
 
 RUN printf '\n** FFmpeg; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\n' \
       "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" \
@@ -560,12 +602,22 @@ RUN printf '\n** FFmpeg; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
     && printf '\nnccl-tests %s https://github.com/NVIDIA/nccl-tests/tree/%s\n' \
       "${NCCL_TESTS_COMMIT}" "${NCCL_TESTS_COMMIT}" \
+      >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+    && printf '\n** kubectl; version %s -- https://github.com/kubernetes/kubernetes/tree/%s\n' \
+      "${KUBECTL_VERSION}" "${KUBECTL_VERSION}" \
+      >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    && printf '\nkubectl %s https://github.com/kubernetes/kubernetes/tree/%s\n' \
+      "${KUBECTL_VERSION}" "${KUBECTL_VERSION}" \
+      >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+    && printf '\n** Helm; version %s -- https://github.com/helm/helm/tree/%s\n' \
+      "${HELM_VERSION}" "${HELM_VERSION}" \
+      >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    && printf '\nHelm %s https://github.com/helm/helm/tree/%s\n' \
+      "${HELM_VERSION}" "${HELM_VERSION}" \
       >>/root/THIRD_PARTY_SOURCE_CODE_URLS
 
 COPY scripts/docker/miles/entrypoint.sh /usr/local/bin/miles-entrypoint
 COPY docker/miles/v${MILES_VERSION}/pip-check-allowlist.txt /opt/aws/dlc/PIP_CHECK_ALLOWLIST
-COPY scripts/docker/miles/smoke_test.py /opt/aws/dlc/smoke_test.py
-COPY scripts/docker/miles/validate_cuda_jit_toolchain.py /opt/aws/dlc/validate_cuda_jit_toolchain.py
 COPY scripts/docker/miles/validate_image.sh /opt/aws/dlc/validate_image.sh
 COPY scripts/docker/miles/validate_pip_check.py /opt/aws/dlc/validate_pip_check.py
 COPY scripts/docker/miles/validate_uv_lock.py /opt/aws/dlc/validate_uv_lock.py
