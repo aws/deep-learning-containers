@@ -42,10 +42,10 @@ ARG MSCCLPP_COMMIT=0a04f1af0c855cc2c8315a918f55a08107f745c8
 ARG MSCCLPP_VERSION=0.10.1
 ARG MILES_WHEELS_REPO=radixark/miles-wheels
 ARG MILES_WHEELS_TAG=cu130-torch213-x86_64
-ARG KUBECTL_VERSION=v1.36.3
-ARG KUBECTL_SHA256=ebbd080e7c2e275093b55915722043257eb24004363e20acb3c4d71919f88336
-ARG HELM_VERSION=v4.2.3
-ARG HELM_SHA256=e9b88b4ee95b18c706839c28d3a0220e5bc470e9cd9262410c90793c45ff8b7c
+ARG KUBECTL_VERSION=v1.36.5
+ARG KUBECTL_SHA256=33bc88a24c3b09cf55bfd59e6ca977881b61fc3f25ab65bc80c65b430248648e
+ARG HELM_VERSION=v4.3.1
+ARG HELM_SHA256=0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b
 ARG BUILD_PARALLEL=16
 ARG torch_cuda_arch_list="8.0;8.6;8.9;9.0;10.0;10.3"
 ARG DLC_MAJOR_VERSION=0
@@ -131,8 +131,9 @@ RUN dnf install -y --setopt=install_weak_deps=False gcc git make \
 
 
 # ── Stage: kube-tools ────────────────────────────────────────────────────────
-# Miles' Kubernetes launcher and workbench drive runs with kubectl and Helm. Use
-# upstream's client versions, pinned here by SHA-256.
+# Miles' Kubernetes launcher and workbench drive runs with kubectl and Helm,
+# pinned here by SHA-256. These are newer patch releases than upstream's
+# (kubectl v1.36.3, Helm v4.2.3) because they carry Go CVE fixes.
 FROM build-base AS kube-tools
 
 ARG KUBECTL_VERSION
@@ -235,9 +236,13 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /opt/aws/dlc/python \
 
 # Exact framework source revisions from the Miles release lock. Keep the
 # checkouts pristine: Miles reports `git diff` for editable packages. The
-# sparse-checkout exclusions drop CI scripts and test fixtures with
-# credential-shaped strings (fake tokens, test private keys), which the DLC
-# credential scan rejects; excluded paths stay out of `git diff`.
+# sparse-checkout exclusions drop files the DLC scans reject that nothing here
+# builds or runs: CI scripts and test fixtures with credential-shaped strings
+# (fake tokens, test private keys), and dependency manifests for builds the
+# image never runs (Megatron-LM's dev lock, sglang's Go bindings and
+# experimental router, torchtitan's CI requirements), which the ECR scan reads
+# as installed software. sglang's rust/ locks stay: its Rust extensions are
+# built from them below. Excluded paths stay out of `git diff`.
 ARG SGLANG_COMMIT
 ARG MEGATRON_COMMIT
 ARG TORCHTITAN_COMMIT
@@ -246,6 +251,8 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/
   && git -C /opt/sglang checkout --detach "${SGLANG_COMMIT}" \
   && git -C /opt/sglang sparse-checkout set --no-cone '/*' \
     '!/sgl-model-gateway/tests/security/mtls_test.rs' \
+    '!/sgl-model-gateway/bindings/golang/' \
+    '!/experimental/sgl-router/Cargo.lock' \
   && git clone --filter=blob:none https://github.com/radixark/Megatron-LM.git \
     /opt/Megatron-LM \
   && git -C /opt/Megatron-LM fetch origin "${MEGATRON_COMMIT}" \
@@ -253,6 +260,7 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/
   && git -C /opt/Megatron-LM sparse-checkout set --no-cone '/*' \
     '!/.github/scripts/trigger_workflow_and_wait.py' \
     '!/tests/test_utils/python_scripts/test_trigger_workflow_and_wait.py' \
+    '!/uv.lock' \
   && git -C /opt/Megatron-LM submodule update --init --recursive \
   && git clone --filter=blob:none https://github.com/radixark/miles.git /opt/miles \
   && git -C /opt/miles fetch origin "${MILES_COMMIT}" \
@@ -262,7 +270,8 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/
     '!/tests/ci/test/test_ci_failure_analysis.py' \
   && git clone --filter=blob:none https://github.com/pytorch/torchtitan.git /opt/torchtitan \
   && git -C /opt/torchtitan fetch origin "${TORCHTITAN_COMMIT}" \
-  && git -C /opt/torchtitan checkout --detach "${TORCHTITAN_COMMIT}"
+  && git -C /opt/torchtitan checkout --detach "${TORCHTITAN_COMMIT}" \
+  && git -C /opt/torchtitan sparse-checkout set --no-cone '/*' '!/.ci/'
 
 # Build the multi-architecture fake-int4 extension from the same immutable
 # Miles source revision used by the image. Build from a temporary copy so the
@@ -392,6 +401,11 @@ COPY --from=router-builder /artifacts/sgl-model-gateway /usr/local/bin/sgl-model
 RUN uv pip install --no-deps /tmp/router/sglang_router-*.whl \
   && chmod +x /usr/local/bin/sgl-model-gateway
 
+# ray_dist.jar only serves Ray Java workers, and Miles drives Ray from Python.
+# Drop it and the Jackson and httpcore5 jars bundled inside, as the DLC Ray
+# images do.
+RUN rm /opt/venv/lib/python*/site-packages/ray/jars/ray_dist.jar
+
 # Record immutable source and native-artifact provenance before removing build data.
 RUN { \
       echo "framework=miles"; \
@@ -495,7 +509,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Keep only runtime and JIT requirements in the published stage. The openssl
 # CLI is a JIT requirement: TorchInductor's CPU C++ codegen runs it to checksum
-# precompiled headers.
+# precompiled headers. The CUDA repo publishes no security advisories, so the
+# targets' security upgrade never picks up a newer forward-compat driver;
+# upgrade it here.
 RUN CUDA_DASH="$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-')" \
   && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
@@ -515,6 +531,7 @@ RUN CUDA_DASH="$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-')" \
     libcusparse-devel-${CUDA_DASH} \
     libcusolver-devel-${CUDA_DASH} \
     libcurand-devel-${CUDA_DASH} \
+  && dnf upgrade -y cuda-compat-${CUDA_DASH} \
   && dnf clean all \
   && rm -rf /var/cache/dnf
 

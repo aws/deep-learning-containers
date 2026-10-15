@@ -2,8 +2,9 @@
 # relative to the Miles checkout (/opt/miles). A file path removes the file (use
 # this when it fails to import); a pytest node ID deselects that test. Every
 # entry needs a reason: either it also fails on the upstream radixark/miles
-# image, or it needs a file this image deliberately leaves out of the checkout.
-# Remove entries once the reason no longer holds.
+# image, or it comes from a deliberate difference from that image (a file left
+# out of the checkout, a newer tool). Remove entries once the reason no longer
+# holds.
 
 # tinker and typed-argument-parser (tap) are CI-only test dependencies
 # (tests/ci/requirements-ci-cpu.txt) that the upstream image does not ship.
@@ -21,3 +22,13 @@ tests/fast/utils/test_arguments.py::TestSecretArgumentsAreClassified::test_every
 # leaves out because its test strings fail the DLC credential scan (see the
 # sparse-checkout note in docker/miles/Dockerfile.amzn2023).
 tests/ci/test/test_lark_notify.py
+
+# The second server must exit within 30 seconds, but first imports Megatron-Bridge
+# and modelopt: about 18 s on a c7a.8xlarge for this image and upstream's alike,
+# about 37 s on the CI default-runner fleet.
+tests/fast/utils/workers/e2e/test_serve_entrypoint.py::TestStartupFailures::test_port_conflict_fails_fast
+
+# Helm v4.3 prints a blank line before each --- document separator. The image ships
+# Helm v4.3.1 for its Go CVE fixes; against this snapshot, recorded with upstream's
+# v4.2.3, the 19-line diff is only those blank lines.
+tests/fast/charts/miles_run/test_snapshot.py::TestGeneratedValuesSnapshot::test_those_values_render_exactly_the_recorded_manifests

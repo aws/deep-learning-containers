@@ -115,7 +115,10 @@ jobs:
 
       # CPU hosts have no driver. The image's CUDA forward-compat libcuda lets GPU
       # libraries such as TransformerEngine load, as they would on a GPU host.
+      # run_suite.py exits 0 when a suite selects no tests, so a suite renamed or a
+      # test tree moved by a Miles bump would otherwise pass silently.
       - name: Run ${{ matrix.suite }}
+        shell: bash
         env:
           SUITE: ${{ matrix.suite }}
           PARTITION_ID: ${{ matrix.partition-id }}
@@ -126,7 +129,11 @@ jobs:
             if [[ -n "${PARTITION_ID}" ]]; then
               args+=(--auto-partition-id "${PARTITION_ID}" --auto-partition-size 4)
             fi
-            python tests/ci/run_suite.py "${args[@]}"'
+            python tests/ci/run_suite.py "${args[@]}"' | tee "${RUNNER_TEMP}/suite.log"
+          if grep -q "No tests to run" "${RUNNER_TEMP}/suite.log"; then
+            echo "::error::${SUITE} selected no tests"
+            exit 1
+          fi
 
       - name: Cleanup
         if: always()

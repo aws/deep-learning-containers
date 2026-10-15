@@ -47,11 +47,12 @@ build:
   # Release that scripts/ci/build/miles/pre_build.sh mirrors the locked wheels from.
   miles_wheels_repo: "radixark/miles-wheels"
   miles_wheels_tag: "cu130-torch213-x86_64"
-  # Kubernetes clients for Miles' Helm launcher and workbench (upstream install-kube-tools.sh versions).
-  kubectl_version: "v1.36.3"
-  kubectl_sha256: "ebbd080e7c2e275093b55915722043257eb24004363e20acb3c4d71919f88336"
-  helm_version: "v4.2.3"
-  helm_sha256: "e9b88b4ee95b18c706839c28d3a0220e5bc470e9cd9262410c90793c45ff8b7c"
+  # Kubernetes clients for Miles' Helm launcher and workbench. Newer patch releases than
+  # upstream's install-kube-tools.sh (v1.36.3 / v4.2.3) for their Go CVE fixes.
+  kubectl_version: "v1.36.5"
+  kubectl_sha256: "33bc88a24c3b09cf55bfd59e6ca977881b61fc3f25ab65bc80c65b430248648e"
+  helm_version: "v4.3.1"
+  helm_sha256: "0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b"
   build_parallel: "16"
   torch_cuda_arch_list: "8.0;8.6;8.9;9.0;10.0;10.3"
   dlc_major_version: "0"
