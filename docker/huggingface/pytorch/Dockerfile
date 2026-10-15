@@ -1,31 +1,35 @@
 # HuggingFace PyTorch training DLC for SageMaker, layered on the AWS PyTorch training DLC.
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/pytorch:2.11.0-cu130-amzn2023-sagemaker
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/pytorch:2.13.0-cu133-amzn2023-sagemaker
 
 FROM ${BASE_IMAGE} AS install
 
 ARG FRAMEWORK=huggingface-pytorch-training
-ARG FRAMEWORK_VERSION=2.11.0
+ARG FRAMEWORK_VERSION=2.13.0
 ARG CONTAINER_TYPE=training
 ARG DLC_MAJOR_VERSION=1
 
 LABEL maintainer="Hugging Face"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 
-ARG TRANSFORMERS_VERSION=5.13.1
-ARG HUGGINGFACE_HUB_VERSION=1.23.0
-ARG HF_XET_VERSION=1.5.1
-ARG TRL_VERSION=1.8.0
-ARG DIFFUSERS_VERSION=0.39.0
+ARG TRANSFORMERS_VERSION=5.17.0
+ARG HUGGINGFACE_HUB_VERSION=1.33.0
+ARG HF_XET_VERSION=1.7.0
+ARG TRL_VERSION=1.15.0
+ARG DIFFUSERS_VERSION=0.41.0
 ARG HF_TRANSFER_VERSION=0.1.9
-ARG DATASETS_VERSION=5.0.0
-ARG ACCELERATE_VERSION=1.14.0
-ARG PEFT_VERSION=0.19.1
+ARG DATASETS_VERSION=5.1.0
+ARG ACCELERATE_VERSION=1.15.0
+ARG PEFT_VERSION=0.21.2
 ARG EVALUATE_VERSION=0.4.6
 ARG MATH_VERIFY_VERSION=0.9.0
-# vllm >= 0.24 required: earlier versions ship CVE-affected deps (mooncake
-# etc.). trl's [vllm] extra caps vllm at 0.23, so trl is installed without it —
-# vllm itself provides the extra's remaining deps (fastapi, pydantic, uvicorn).
-ARG VLLM_VERSION=0.25.0
+# fsspec >=2026.6.0 fixes CVE-2026-104851. The base's s3fs pins fsspec to its own
+# version, so both move together; datasets caps fsspec (5.1.0: <=2026.7.0).
+ARG FSSPEC_VERSION=2026.7.0
+# vllm pins torch exactly (0.25.0-0.26.0 -> torch 2.11, 0.27.0-0.31.0 -> torch 2.13), so
+# VLLM_VERSION must match the base image's torch. trl is installed without its
+# [vllm] extra because older trl releases cap vllm below the pinned version (trl
+# 1.8 caps it at 0.23); vllm itself provides the extra's remaining deps.
+ARG VLLM_VERSION=0.31.0
 ARG VENV_PYTHON=/opt/venv/bin/python
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -38,12 +42,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # clears 9 HIGH advisories up to GHSA-94p4-4cq8-9g67; pyasn1 0.6.4 clears
 # CVE-2026-59885 and CVE-2026-59886; cryptography 50.0.0 clears CVE-2026-69247
 # and CVE-2026-69249; aiohttp 3.14.3 clears CVE-2026-69244.
+# uv pip install does not honor the requirements of packages already in the
+# base, so restate them: the base's mlflow requires pyarrow<26, and datasets
+# would otherwise pull pyarrow 26.
 RUN uv pip install --python ${VENV_PYTHON} \
   transformers==${TRANSFORMERS_VERSION} \
   huggingface-hub==${HUGGINGFACE_HUB_VERSION} \
   hf-xet==${HF_XET_VERSION} \
   "hf-transfer==${HF_TRANSFER_VERSION}" \
   "datasets==${DATASETS_VERSION}" \
+  "fsspec[http]==${FSSPEC_VERSION}" \
+  "s3fs==${FSSPEC_VERSION}" \
   "accelerate==${ACCELERATE_VERSION}" \
   "peft==${PEFT_VERSION}" \
   "evaluate==${EVALUATE_VERSION}" \
@@ -60,6 +69,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "cryptography>=50.0.0" \
   "aiohttp>=3.14.3" \
   "urllib3>=2.8.0" \
+  "pyarrow<26" \
   && uv cache clean
 
 # --- Efficiency / quantization kernels -----------------------------------

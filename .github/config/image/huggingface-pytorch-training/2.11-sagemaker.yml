@@ -12,7 +12,7 @@ metadata:
   device_type: "gpu"
   job_type: "training"
   contributor: "huggingface"
-  prod_image: "huggingface-pytorch-training:2.11-transformers5.13-cu130-amzn2023-sagemaker"
+  prod_image: "huggingface-pytorch-training:2.11-transformers5.13-cu130-amzn2023"
 
 build:
   dockerfile: "docker/huggingface/pytorch/Dockerfile"
@@ -27,6 +27,9 @@ build:
   diffusers_version: "0.39.0"
   hf_transfer_version: "0.1.9"
   datasets_version: "5.0.0"
+  # The base's fsspec/s3fs version; datasets 5.0.0 caps fsspec <=2026.4.0, so
+  # the CVE-2026-104851 fix (>=2026.6.0) is only reachable on the 2.13 line.
+  fsspec_version: "2026.2.0"
   accelerate_version: "1.14.0"
   peft_version: "0.19.1"
   evaluate_version: "0.4.6"
