@@ -11,7 +11,7 @@ Run inside the container on a host without a GPU driver. transformer_engine
 (from the base) dlopens libcuda.so.1 on import, so expose the image's CUDA
 forward-compat libcuda:
     docker run --rm -v $(pwd):/workdir --workdir /workdir \
-        -e HF_IMAGE_CONFIG=.github/config/image/huggingface-pytorch-training/2.13-sagemaker.yml \
+        -e HF_IMAGE_CONFIG=.github/config/image/huggingface-pytorch-training/2.13.yml \
         --entrypoint bash <image> -c \
         'LD_LIBRARY_PATH=/usr/local/cuda/compat:$LD_LIBRARY_PATH \
          python3 test/huggingface/pytorch/test_sanity_training.py'
