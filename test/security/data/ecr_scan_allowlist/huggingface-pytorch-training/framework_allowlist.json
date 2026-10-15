@@ -1,7 +1,7 @@
 [
     {
         "vulnerability_id": "CVE-2026-24747",
-        "reason": "Inspector matched torch 2.9.1 only in /opt/venv/lib/python3.12/site-packages/benchmarks/requirements.txt; the installed runtime torch comes from the PyTorch base image (2.11.0 or 2.13.0), so the vulnerable package version is not present. Remove this entry when the upstream package stops shipping the stale benchmark manifest.",
-        "review_by": "2026-10-31"
+        "reason": "False positive: Inspector matches torch==2.9.1 only in /opt/venv/lib/python3.12/site-packages/benchmarks/requirements.txt, a benchmark manifest shipped inside the PyNvVideoCodec 2.0.4 wheel (pinned exactly by vllm, the trl rollout backend). The installed torch is the base image's (2.11.0 or 2.13.0). PyNvVideoCodec 2.2.3 still ships the manifest with torch==2.9.1, so no upgrade clears it. Remove when vllm/PyNvVideoCodec stop shipping it.",
+        "review_by": "2026-11-30"
     }
 ]
