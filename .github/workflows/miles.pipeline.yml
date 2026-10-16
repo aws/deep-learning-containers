@@ -31,6 +31,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-single-gpu-test:
+        description: "Run single-GPU functional tests against the image"
+        required: false
+        type: boolean
+        default: true
       run-upstream-test:
         description: "Run the upstream Miles CPU suites against the image"
         required: false
@@ -95,6 +100,17 @@ jobs:
       group: ${{ github.workflow }}-unit-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     uses: ./.github/workflows/miles.tests-unit.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  single-gpu-test:
+    if: ${{ always() && !cancelled() && inputs.run-single-gpu-test && needs.build.result != 'failure' }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/miles.tests-single-gpu.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}

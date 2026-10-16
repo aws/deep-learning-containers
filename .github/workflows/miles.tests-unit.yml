@@ -70,9 +70,9 @@ jobs:
           image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       # Test the image exactly as shipped: run its own pytest and install nothing,
-      # so a missing dependency cannot be masked by the test harness. The shared
-      # test/conftest.py needs extra packages and no Miles test uses its fixtures;
-      # PYTHONPATH only lets pytest import the test package (standard library only).
+      # so a missing dependency cannot be masked by the test harness. Mount only the
+      # Miles tests: with the repository's test/ on the import path, folders such as
+      # test/tensorflow pass for real packages to libraries that probe for them.
       - name: Run unit tests
         env:
           IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
@@ -80,8 +80,7 @@ jobs:
         run: |
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
             -e MILES_IMAGE_TARGET="${IMAGE_TARGET}" \
-            -v "$(pwd)":/workdir --workdir /workdir \
+            -v "$(pwd)/test/miles":/tests:ro \
             "${IMAGE_URI}" -c 'sleep infinity')
           trap 'docker kill "${CONTAINER_ID}" >/dev/null' EXIT
-          docker exec -e PYTHONPATH=/workdir/test "${CONTAINER_ID}" \
-            python -m pytest --noconftest -p no:cacheprovider /workdir/test/miles/unit/ -v
+          docker exec "${CONTAINER_ID}" python -m pytest -p no:cacheprovider /tests/unit/ -v

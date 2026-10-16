@@ -120,6 +120,11 @@
         "review_by": "2026-12-15"
     },
     {
+        "vulnerability_id": "CVE-2026-97032",
+        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.5 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
+        "review_by": "2026-12-15"
+    },
+    {
         "vulnerability_id": "CVE-2026-44513",
         "reason": "diffusers 0.37.0 is pinned by SGLang and the upstream radixark/miles image; kept for upstream parity. Miles itself never imports diffusers",
         "review_by": "2026-12-15"
