@@ -10,6 +10,7 @@ from megatron.core.models.gpt import GPTModel
 from megatron.core.models.gpt.gpt_layer_specs import get_gpt_layer_with_transformer_engine_spec
 from megatron.core.tensor_parallel.random import model_parallel_cuda_manual_seed
 from megatron.core.transformer import TransformerConfig
+from megatron.core.transformer.module import Float16Module
 
 VOCAB_SIZE = 512
 SEQ_LENGTH = 128
@@ -44,12 +45,15 @@ def build_model(seed):
         bf16=True,
         params_dtype=torch.bfloat16,
     )
-    return GPTModel(
+    model = GPTModel(
         config=config,
         transformer_layer_spec=get_gpt_layer_with_transformer_engine_spec(),
         vocab_size=VOCAB_SIZE,
         max_sequence_length=SEQ_LENGTH,
     ).cuda()
+    # Megatron trains bf16 models through Float16Module, which casts every parameter,
+    # the learned position embedding included, to bf16.
+    return Float16Module(config, model)
 
 
 def make_batch():
