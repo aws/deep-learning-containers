@@ -1,15 +1,14 @@
 """Default AWS Lambda handler for the sglang serving image.
 
 Follows the Lambda LMI serving pattern: ONE shared sglang OpenAI-compatible HTTP
-server (`python -m sglang.launch_server`) is started once, and the handler is a
-thin proxy to it, so a single model copy in VRAM is shared across all concurrent
-invocations. An in-process `sgl.Engine` per worker would load one model copy PER
-worker (N copies), which does not fit a single GPU.
+server (`python -m sglang.launch_server`) is started once per execution environment,
+and the handler is a thin proxy to it, so a single model copy in VRAM is shared
+across all concurrent invocations. An in-process `sgl.Engine` per worker would load
+one model copy PER worker (N copies), which does not fit a single GPU.
 
-Multi-concurrency (AWS_LAMBDA_MAX_CONCURRENCY set): start via @register_pre_fork, which
-runs ONCE in the parent before the workers are forked, so all workers proxy to the one
-server. (Module-level would run in every worker → N servers colliding on the port.)
-On-demand (no AWS_LAMBDA_MAX_CONCURRENCY): start at module level.
+Multi-concurrency (AWS_LAMBDA_MAX_CONCURRENCY set) runs this module in every forked
+worker, so the launch goes through `execute_once`: one worker starts the server, the
+others only wait for /health. On-demand takes the same path with one worker.
 
 Customers typically override this handler; this default lets the image serve out of
 the box and gives CI a smoke target.
@@ -34,8 +33,7 @@ import subprocess
 import time
 
 import requests
-import torch
-from awslambdaric.lambda_concurrency_hooks import register_pre_fork
+from execute_once import execute_once
 
 _MODEL_ID = os.environ.get("MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
 _MEM_FRACTION = os.environ.get("SGLANG_MEM_FRACTION", "0.8")
@@ -50,14 +48,24 @@ _SERVED_NAME = os.environ.get("SERVED_MODEL_NAME")
 _PORT = os.environ.get("SGLANG_SERVER_PORT", "8000")
 _TIMEOUT = int(os.environ.get("SGLANG_SERVER_TIMEOUT", "600"))
 _BASE_URL = f"http://127.0.0.1:{_PORT}"
-
-# One GPU per sandbox → device_count() is normally 1; auto-adapts if a sandbox is
-# ever granted multiple GPUs. Override SGLANG_TP_SIZE to pin explicitly.
-_TP_SIZE = int(os.environ.get("SGLANG_TP_SIZE", "0")) or max(1, torch.cuda.device_count())
+_LOCK_PATH = "/tmp/sglang_server_start.lock"
+_RESULT_PATH = "/tmp/sglang_server_start.result"
 
 
-def _start_server():
-    """Launch the sglang OpenAI server once and block until it is ready."""
+def _noop_serialize(obj, f):
+    pass
+
+
+def _noop_deserialize(data):
+    return None
+
+
+def _server_cmd():
+    import torch
+
+    # One GPU per sandbox → device_count() is normally 1; auto-adapts if a sandbox is
+    # ever granted multiple GPUs. Override SGLANG_TP_SIZE to pin explicitly.
+    tp_size = int(os.environ.get("SGLANG_TP_SIZE", "0")) or max(1, torch.cuda.device_count())
     cmd = [
         "python",
         "-m",
@@ -73,7 +81,7 @@ def _start_server():
         "--attention-backend",
         _ATTENTION_BACKEND,
         "--tp-size",
-        str(_TP_SIZE),
+        str(tp_size),
     ]
     if _MAX_TOTAL_TOKENS:
         cmd += ["--max-total-tokens", _MAX_TOTAL_TOKENS]
@@ -81,11 +89,27 @@ def _start_server():
         cmd += ["--load-format", _LOAD_FORMAT]
     if _SERVED_NAME:
         cmd += ["--served-model-name", _SERVED_NAME]
-    proc = subprocess.Popen(cmd)
+    return cmd
+
+
+@execute_once(
+    lock_path=_LOCK_PATH,
+    result_path=_RESULT_PATH,
+    timeout=_TIMEOUT,
+    serializer=_noop_serialize,
+    deserializer=_noop_deserialize,
+)
+def _launch_server():
+    return subprocess.Popen(_server_cmd())
+
+
+def _start_server():
+    """Start the one shared sglang server for this sandbox and block until it is ready."""
+    proc = _launch_server()
 
     deadline = time.monotonic() + _TIMEOUT
     while time.monotonic() < deadline:
-        if proc.poll() is not None:
+        if proc is not None and proc.poll() is not None:
             raise RuntimeError(f"sglang server exited with code {proc.returncode} during startup")
         try:
             if requests.get(f"{_BASE_URL}/health", timeout=5).status_code == 200:
@@ -96,10 +120,7 @@ def _start_server():
     raise RuntimeError(f"sglang server did not become ready within {_TIMEOUT}s")
 
 
-if os.environ.get("AWS_LAMBDA_MAX_CONCURRENCY"):
-    register_pre_fork(_start_server)
-else:
-    _start_server()
+_start_server()
 
 
 def handler(event, context):

@@ -12,6 +12,7 @@ on:
       - "docker/lambda/**"
       - "scripts/docker/lambda/sglang/**"
       - "scripts/docker/lambda/sglang_entrypoint.sh"
+      - "scripts/docker/lambda/execute_once.py"
       - "scripts/docker/common/**"
       - "scripts/docker/telemetry/**"
       - "test/lambda/**"
@@ -55,6 +56,7 @@ jobs:
               - "docker/lambda/**"
               - "scripts/docker/lambda/sglang/**"
               - "scripts/docker/lambda/sglang_entrypoint.sh"
+              - "scripts/docker/lambda/execute_once.py"
               - "scripts/docker/common/**"
               - "test/security/data/ecr_scan_allowlist/lambda/**"
             validation-test-change:
@@ -94,6 +96,7 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
       run-validation-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
+      run-managed-instances-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
       run-sglang-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
       release: false
     secrets: inherit

@@ -1,17 +1,14 @@
-"""Concurrency-mode dispatch and startup-failure behaviour of the baked serving handler.
+"""Single-server election and startup-failure behaviour of the baked serving handler.
 
-The engine handlers start ONE shared OpenAI server per execution environment. With
-AWS_LAMBDA_MAX_CONCURRENCY set the start is deferred to @register_pre_fork so it runs
-once in the parent before workers fork; without it the start happens at module level.
-A module-level start under multi-concurrency would give N servers racing for the port
-and N model copies in VRAM.
+Every forked worker runs the handler module, so `execute_once` elects the one worker
+that launches the engine; without it each worker would start its own server → N servers
+racing for the port and N model copies in VRAM.
 
-Imports happen with subprocess, requests and register_pre_fork patched, so these tests
-are CPU-only and never launch an engine.
+Each import below stands for one worker. Imports happen with subprocess and requests
+patched, so these tests are CPU-only and never launch an engine.
 """
 
 import contextlib
-import importlib
 import importlib.util
 import os
 import sys
@@ -19,29 +16,39 @@ from unittest import mock
 
 import pytest
 
-HANDLER = "/var/task/handler.py"
+TASK_ROOT = "/var/task"
+HANDLER = f"{TASK_ROOT}/handler.py"
 
 pytestmark = pytest.mark.skipif(
     not os.path.isfile(HANDLER), reason="image ships no baked serving handler"
 )
 
+sys.path.insert(0, TASK_ROOT)
+
+
+def _clear_state():
+    for path in (
+        "/tmp/vllm_server_start.lock",
+        "/tmp/vllm_server_start.result",
+        "/tmp/sglang_server_start.lock",
+        "/tmp/sglang_server_start.result",
+    ):
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(path)
+
 
 @pytest.fixture
 def load(monkeypatch):
+    """Import the handler as a worker would, returning (module, Popen mock)."""
+    _clear_state()
     with contextlib.ExitStack() as stack:
 
-        def _load(max_concurrency=None, poll=None, returncode=0, health=200, timeout="2"):
-            if max_concurrency is None:
-                monkeypatch.delenv("AWS_LAMBDA_MAX_CONCURRENCY", raising=False)
-            else:
-                monkeypatch.setenv("AWS_LAMBDA_MAX_CONCURRENCY", max_concurrency)
+        def _load(poll=None, returncode=0, health=200, timeout="2"):
             monkeypatch.setenv("VLLM_SERVER_TIMEOUT", timeout)
             monkeypatch.setenv("SGLANG_SERVER_TIMEOUT", timeout)
 
-            hooks = importlib.import_module("awslambdaric.lambda_concurrency_hooks")
             popen = stack.enter_context(mock.patch("subprocess.Popen"))
             get = stack.enter_context(mock.patch("requests.get"))
-            register = stack.enter_context(mock.patch.object(hooks, "register_pre_fork"))
             popen.return_value.poll.return_value = poll
             popen.return_value.returncode = returncode
             get.return_value.status_code = health
@@ -53,56 +60,53 @@ def load(monkeypatch):
                 spec.loader.exec_module(module)
             finally:
                 sys.modules.pop("baked_handler", None)
-            return module, popen, register
+            return module, popen
 
         yield _load
+    _clear_state()
 
 
-def test_multi_concurrency_does_not_start_server_at_import(load):
-    _, popen, register = load(max_concurrency="10")
-    register.assert_called_once()
+def test_first_worker_launches_the_server(load):
+    _, popen = load()
+    popen.assert_called_once()
+
+
+def test_later_workers_do_not_launch_a_second_server(load):
+    load()
+    _, popen = load()
     popen.assert_not_called()
 
 
-def test_registered_pre_fork_hook_starts_the_server(load):
-    _, popen, register = load(max_concurrency="10")
-    register.call_args[0][0]()
-    popen.assert_called_once()
-
-
-def test_on_demand_starts_server_at_import(load):
-    _, popen, register = load()
-    popen.assert_called_once()
-    register.assert_not_called()
-
-
 def test_server_is_launched_as_a_shared_localhost_http_server(load):
-    _, popen, _ = load()
+    _, popen = load()
     cmd = popen.call_args[0][0]
     assert "--host" in cmd and cmd[cmd.index("--host") + 1] == "127.0.0.1"
     assert "--port" in cmd
 
 
 def test_server_exiting_during_startup_raises_with_its_exit_code(load):
-    _, _, register = load(max_concurrency="10", poll=1, returncode=1, health=503)
     with pytest.raises(RuntimeError, match=r"exited with code 1"):
-        register.call_args[0][0]()
+        load(poll=1, returncode=1, health=503)
 
 
 def test_live_but_unready_server_times_out(load):
-    _, _, register = load(max_concurrency="10", poll=None, health=503)
     with pytest.raises(RuntimeError, match=r"did not become ready"):
-        register.call_args[0][0]()
+        load(health=503)
+
+
+def test_waiting_worker_times_out_when_the_server_never_becomes_ready(load):
+    load()
+    with pytest.raises(RuntimeError, match=r"did not become ready"):
+        load(health=503)
 
 
 def test_healthy_server_completes_startup(load):
-    _, popen, register = load(max_concurrency="10", poll=None, health=200)
-    register.call_args[0][0]()
+    _, popen = load(health=200)
     popen.assert_called_once()
 
 
 def test_handler_accepts_both_bytes_and_dict_payloads(load):
-    module, _, _ = load()
+    module, _ = load()
     with mock.patch("requests.post") as post:
         post.return_value.json.return_value = {"ok": True}
         assert module.handler({"prompt": "hi"}, None) == {"ok": True}
@@ -111,7 +115,7 @@ def test_handler_accepts_both_bytes_and_dict_payloads(load):
 
 
 def test_payload_shape_selects_the_openai_route(load):
-    module, _, _ = load()
+    module, _ = load()
     with mock.patch("requests.post") as post:
         post.return_value.json.return_value = {}
         module.handler({"messages": [{"role": "user", "content": "hi"}]}, None)

@@ -23,5 +23,10 @@
         "vulnerability_id": "CVE-2026-93592",
         "reason": "vllm 0.26.0 is pinned by vllm_version in .github/config/image/ray-llm/ec2-gpu.yml; the fix requires vllm>=0.28.0, which is a framework-version change gated on a ray-llm release bump rather than a dependency patch.",
         "review_by": "2026-10-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-100647",
+        "reason": "vllm 0.26.0 denial of service via the cache_salt parameter on the OpenAI- and Anthropic-compatible API endpoints, which lacks maximum length validation and stalls the single EngineCore scheduler thread. Fixed in vllm 0.29.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2026-11-05"
     }
 ]

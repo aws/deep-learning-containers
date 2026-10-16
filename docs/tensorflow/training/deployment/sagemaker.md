@@ -104,8 +104,8 @@ processor = FrameworkProcessor(
 
 ## Multi-Node Training over EFA
 
-SageMaker provisions EFA on the instance types that support it (e.g., `ml.p5.48xlarge`, `ml.p4d.24xlarge`). The GPU image ships with EFA 1.49.0 and
-OpenMPI 4.1.8 pre-installed — no extra plumbing in your training script.
+SageMaker provisions EFA on the instance types that support it (e.g., `ml.p5.48xlarge`, `ml.p4d.24xlarge`). The GPU image ships the latest EFA
+installer at build time, plus OpenMPI 4.1.8, pre-installed — no extra plumbing in your training script.
 
 Multi-node peer discovery is handled by the `sagemaker_tensorflow_container` training toolkit, which parses `/opt/ml/input/config/resourceconfig.json`
 at container start to enumerate hosts, current host rank, and network interface. Peers are addressed by the SageMaker-assigned hostnames (e.g.,

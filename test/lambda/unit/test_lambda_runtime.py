@@ -8,13 +8,6 @@ def test_awslambdaric_importable():
     importlib.import_module("awslambdaric")
 
 
-def test_pre_fork_hook_available():
-    """register_pre_fork is GA in awslambdaric>=4.1.0; the serving handlers use it to
-    start one shared engine in the parent before workers fork."""
-    hooks = importlib.import_module("awslambdaric.lambda_concurrency_hooks")
-    assert callable(hooks.register_pre_fork)
-
-
 def test_rie_binary_exists():
     rie = "/usr/local/bin/aws-lambda-rie"
     assert os.path.isfile(rie), f"RIE not found at {rie}"

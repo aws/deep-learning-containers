@@ -1,0 +1,8 @@
+# Bakes the probe handler into a DLC image. Lambda cannot bind-mount, so the handler
+# has to ship inside the image under test. Build context is test/lambda.
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+COPY ric_probe_handler.py /var/task/ric_probe_handler.py
+
+CMD ["ric_probe_handler.handler"]

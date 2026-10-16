@@ -24,8 +24,8 @@ The GPU images bundle the full distributed-training stack so you can launch mult
 
 - **PyTorch 2.14.0** with `torchvision` 0.29.0 and `torchaudio` 2.11.0 (CUDA 13.3 wheels for the GPU variant, CPU wheels for the CPU variant)
 - **CUDA 13.3.1** with cuDNN and **NCCL 2.30.7** for multi-GPU collectives
-- **[EFA](https://aws.amazon.com/hpc/efa/) 1.50.0** with **OpenMPI** and the **AWS NCCL OFI plugin** for low-latency multi-node communication on
-  EFA-capable instances
+- **[EFA](https://aws.amazon.com/hpc/efa/)** with **OpenMPI** and the **AWS NCCL OFI plugin** for low-latency multi-node communication on EFA-capable
+  instances — built with the latest EFA installer at image build time
 - **[GDRCopy](https://github.com/NVIDIA/gdrcopy) 2.6** userspace library for direct GPU-to-NIC memory copies
 - **[flash-attn](https://github.com/Dao-AILab/flash-attention) 2.8.3.post1** — fused attention kernels for transformer training
 - **[Transformer Engine](https://github.com/NVIDIA/TransformerEngine) 2.18.0** — FP8/BF16 mixed-precision primitives optimized for Hopper and newer

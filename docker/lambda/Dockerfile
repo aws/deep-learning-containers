@@ -579,9 +579,10 @@ LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 ARG CACHE_REFRESH=0
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
-RUN dnf upgrade -y --security --releasever latest \
-  && dnf install -y --setopt=install_weak_deps=False \
-    libxcb libX11 libXext libXfixes alsa-lib \
+RUN dnf install -y --setopt=install_weak_deps=False \
+  libxcb libX11 libXext libXfixes alsa-lib \
+  gcc gcc-c++ which \
+  && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-pytorch-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
@@ -667,6 +668,7 @@ COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lamb
 COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/sglang_entrypoint.sh /sglang_entrypoint.sh
 COPY ./scripts/docker/lambda/sglang/handler.py /var/task/handler.py
+COPY ./scripts/docker/lambda/execute_once.py /var/task/execute_once.py
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:$PATH" \
@@ -754,6 +756,7 @@ COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lamb
 COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/vllm_entrypoint.sh /vllm_entrypoint.sh
 COPY ./scripts/docker/lambda/vllm/handler.py /var/task/handler.py
+COPY ./scripts/docker/lambda/execute_once.py /var/task/execute_once.py
 RUN chmod +x /vllm_entrypoint.sh \
   && ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python

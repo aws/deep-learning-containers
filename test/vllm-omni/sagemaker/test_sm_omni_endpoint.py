@@ -21,6 +21,8 @@ from test_utils.huggingface_helper import get_hf_token
 from test_utils.instance_capacity import (
     build_instance_pools,
     is_capacity_error,
+    log_capacity_placement,
+    ml_reservation_config,
     normalize_instance_types,
 )
 
@@ -122,6 +124,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
                     model_name=model_name,
                     initial_instance_count=1,
                     instance_pools=build_instance_pools(instance_type),
+                    capacity_reservation_config=ml_reservation_config(instance_type),
                     variant_instance_provision_timeout_in_seconds=1800,
                     inference_ami_version=INFERENCE_AMI_VERSION,
                 ),
@@ -135,6 +138,7 @@ def model_endpoint(aws_session, image_uri, model_id, instance_type):
         )
         # Leave enough of the runner's credential session for inference and cleanup.
         endpoint.wait_for_status("InService", timeout=2700)
+        log_capacity_placement(endpoint, endpoint_name)
 
         yield endpoint
     finally:
@@ -263,6 +267,7 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
                         model_name=model_name,
                         initial_instance_count=1,
                         instance_pools=build_instance_pools(instance_type),
+                        capacity_reservation_config=ml_reservation_config(instance_type),
                         variant_instance_provision_timeout_in_seconds=1800,
                         inference_ami_version=INFERENCE_AMI_VERSION,
                     ),
@@ -282,6 +287,7 @@ def async_endpoint(aws_session, image_uri, model_id, instance_type):
             )
             # Leave enough of the runner's credential session for inference and cleanup.
             endpoint.wait_for_status("InService", timeout=2700)
+            log_capacity_placement(endpoint, endpoint_name)
         except Exception as e:
             if model_id == VIDEO_MODEL_ID and is_capacity_error(e):
                 candidates = normalize_instance_types(instance_type)
@@ -455,6 +461,7 @@ def lora_endpoint(aws_session, image_uri, instance_type):
                     model_name=model_name,
                     initial_instance_count=1,
                     instance_pools=build_instance_pools(instance_type),
+                    capacity_reservation_config=ml_reservation_config(instance_type),
                     variant_instance_provision_timeout_in_seconds=1800,
                     # ~15 GB baked artifact downloads from S3 during provisioning;
                     # give it room, plus a generous /ping window for model load.
@@ -468,6 +475,7 @@ def lora_endpoint(aws_session, image_uri, instance_type):
         LOGGER.info(f"Deploying LoRA endpoint: {endpoint_name} on {instance_type}")
         endpoint = Endpoint.create(endpoint_name=endpoint_name, endpoint_config_name=endpoint_name)
         endpoint.wait_for_status("InService", timeout=2700)
+        log_capacity_placement(endpoint, endpoint_name)
 
         yield endpoint
     finally:

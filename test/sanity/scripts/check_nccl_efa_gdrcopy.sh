@@ -8,12 +8,15 @@ set -uo pipefail
 # init, NCCL over Libfabric, GDRDMA) needs EFA hardware and lives in
 # test/efa/test_efa.py, which runs on 2x p4d.24xlarge.
 #
-# Usage: check_nccl_efa_gdrcopy.sh <nccl_version> <efa_version> <gdrcopy_version>
-# Example: check_nccl_efa_gdrcopy.sh 2.29.7-1 1.49.0 2.6
+# The EFA installer version is not asserted: images request "latest", so there is
+# no expected value to compare against. The version it resolved to is recorded in
+# /opt/amazon/efa_installed_packages inside the image.
+#
+# Usage: check_nccl_efa_gdrcopy.sh <nccl_version> <gdrcopy_version>
+# Example: check_nccl_efa_gdrcopy.sh 2.29.7-1 2.6
 
-NCCL_VERSION="${1:?Usage: check_nccl_efa_gdrcopy.sh <nccl_version> <efa_version> <gdrcopy_version>}"
-EFA_VERSION="${2:?Usage: check_nccl_efa_gdrcopy.sh <nccl_version> <efa_version> <gdrcopy_version>}"
-GDRCOPY_VERSION="${3:?Usage: check_nccl_efa_gdrcopy.sh <nccl_version> <efa_version> <gdrcopy_version>}"
+NCCL_VERSION="${1:?Usage: check_nccl_efa_gdrcopy.sh <nccl_version> <gdrcopy_version>}"
+GDRCOPY_VERSION="${2:?Usage: check_nccl_efa_gdrcopy.sh <nccl_version> <gdrcopy_version>}"
 FAILED=0
 
 pass() { echo "PASS: $1"; }
@@ -226,19 +229,6 @@ if [ -n "$OFI_PLUGIN" ]; then
 else
   fail "aws-ofi-nccl plugin (libnccl-net*.so) not found under /opt/amazon/ofi-nccl"
   ls -laR /opt/amazon/ofi-nccl 2>/dev/null | head -20
-fi
-
-# --- EFA installer version. The installer records the packages it installed;
-#     treat a missing file as informational since its path is not contractual. ---
-if [ -f /opt/amazon/efa_installed_packages ]; then
-  if grep -q "${EFA_VERSION}" /opt/amazon/efa_installed_packages; then
-    pass "EFA installer ${EFA_VERSION} recorded in /opt/amazon/efa_installed_packages"
-  else
-    fail "EFA ${EFA_VERSION} not recorded in /opt/amazon/efa_installed_packages"
-    cat /opt/amazon/efa_installed_packages
-  fi
-else
-  echo "INFO: /opt/amazon/efa_installed_packages not present, skipping EFA version assertion"
 fi
 
 # --- rdma-core userspace, needed by the efa provider ---

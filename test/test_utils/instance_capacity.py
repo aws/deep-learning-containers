@@ -16,14 +16,29 @@ families — a model sized for L40S will not fit L4.
 """
 
 import logging
+import os
 
-from sagemaker.core.shapes import InstancePool
+from sagemaker.core.shapes import InstancePool, ProductionVariantCapacityReservationConfig
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 # SageMaker allows at most five instance types per production variant.
 MAX_INSTANCE_POOLS = 5
+
+# An ML Reservation covers exactly one instance type, so each gets its own variable.
+# Adding a reservation means one entry here plus one env line in the workflow. An unset
+# variable leaves that type on the open pool, which is the pre-reservation behavior.
+RESERVATION_ENV_VARS = {
+    "ML_RESERVATION_ARN_G6_XLARGE": "ml.g6.xlarge",
+    "ML_RESERVATION_ARN_G6E_XLARGE": "ml.g6e.xlarge",
+}
+
+ML_RESERVATIONS = {
+    instance_type: os.environ[var].strip()
+    for var, instance_type in RESERVATION_ENV_VARS.items()
+    if os.environ.get(var, "").strip()
+}
 
 # SageMaker reports a dry capacity pool as one of these. None of them indicate an image
 # or test defect, so they trigger instance-type fallback instead of failing the suite.
@@ -69,6 +84,53 @@ def build_instance_pools(instance_type):
         InstancePool(instance_type=candidate, priority=priority)
         for priority, candidate in enumerate(types, start=1)
     ]
+
+
+def ml_reservation_config(instance_type):
+    """Reservation config for this ladder, or None to provision from the open pool.
+
+    Keyed on the ladder's first rung, since that is the type SageMaker tries first. A
+    reservation for a lower rung cannot be honored on the first attempt, so attaching it
+    only adds a way for the deploy to go wrong.
+
+    ``capacity_reservation_preference`` is deliberately left unset. Its only valid value
+    is ``capacity-reservations-only``, which turns a busy reservation into a hard deploy
+    failure; unset keeps the instance-pool ladder as fallback.
+    """
+    types = normalize_instance_types(instance_type)
+    leading = types[0] if types else None
+    arn = ML_RESERVATIONS.get(leading)
+
+    if not arn:
+        LOGGER.info(
+            f"[capacity] no reservation for {leading or 'empty ladder'} "
+            f"(have {sorted(ML_RESERVATIONS) or 'none'}); using open pool"
+        )
+        return None
+
+    LOGGER.info(f"[capacity] using ML Reservation for {leading}: {arn}")
+    return ProductionVariantCapacityReservationConfig(ml_reservation_arn=arn)
+
+
+def log_capacity_placement(endpoint, label=""):
+    """Log the instance type an InService endpoint landed on and whether it was reserved.
+
+    Sending the reservation config only proves what we asked for. SageMaker reports what
+    it did in ``used_by_current_endpoint``, without which a healthy open pool looks
+    identical to a working reservation. Best-effort: this must never fail a passing test.
+    """
+    try:
+        variant = (endpoint.refresh() or endpoint).production_variants[0]
+        pools = [
+            f"{p.instance_type} x{p.current_instance_count}"
+            for p in variant.instance_pools or []
+            if p.current_instance_count
+        ]
+        reservation = variant.capacity_reservation_config
+        held = f"reserved={reservation.used_by_current_endpoint}" if reservation else "open pool"
+        LOGGER.info(f"[capacity] {label} on {pools or 'unreported'}, {held}")
+    except Exception as e:
+        LOGGER.warning(f"[capacity] {label} placement unknown: {e}")
 
 
 def deploy_with_capacity_fallback(instance_type, deploy, label):
