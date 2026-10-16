@@ -235,14 +235,16 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /opt/aws/dlc/python \
     --no-install-package torch-memory-saver
 
 # Exact framework source revisions from the Miles release lock. Keep the
-# checkouts pristine: Miles reports `git diff` for editable packages. The
-# sparse-checkout exclusions drop files the DLC scans reject that nothing here
-# builds or runs: CI scripts and test fixtures with credential-shaped strings
-# (fake tokens, test private keys), and dependency manifests for builds the
-# image never runs (Megatron-LM's dev lock, sglang's Go bindings and
-# experimental router, torchtitan's CI requirements), which the ECR scan reads
-# as installed software. sglang's rust/ locks stay: its Rust extensions are
-# built from them below. Excluded paths stay out of `git diff`.
+# checkouts pristine: Miles reports `git diff` for editable packages. SGLang,
+# Megatron-LM and torchtitan check out only what the packages need: tests,
+# benchmarks, docs, examples and CI or dev tooling stay out. They hold the
+# fixtures with fake tokens and test private keys that the DLC credential scan
+# rejects, and dependency manifests for builds the image never runs, which the
+# ECR scan reads as installed software. Kept on purpose: sglang's rust/ (the
+# Rust extensions are built from it below and its runtime loader points
+# there), torchtitan's tests/assets (its debug configs read them), and all of
+# Miles (upstream's CPU suites run from its tests/). Excluded paths stay out
+# of `git diff`.
 ARG SGLANG_COMMIT
 ARG MEGATRON_COMMIT
 ARG TORCHTITAN_COMMIT
@@ -250,17 +252,16 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/
   && git -C /opt/sglang fetch origin "${SGLANG_COMMIT}" \
   && git -C /opt/sglang checkout --detach "${SGLANG_COMMIT}" \
   && git -C /opt/sglang sparse-checkout set --no-cone '/*' \
-    '!/sgl-model-gateway/tests/security/mtls_test.rs' \
-    '!/sgl-model-gateway/bindings/golang/' \
-    '!/experimental/sgl-router/Cargo.lock' \
+    '!/.claude/' '!/.devcontainer/' '!/.github/' '!/3rdparty/' '!/benchmark/' \
+    '!/docker/' '!/docs/' '!/examples/' '!/experimental/' '!/sgl-model-gateway/' \
+    '!/test/' '!/tools/' \
   && git clone --filter=blob:none https://github.com/radixark/Megatron-LM.git \
     /opt/Megatron-LM \
   && git -C /opt/Megatron-LM fetch origin "${MEGATRON_COMMIT}" \
   && git -C /opt/Megatron-LM checkout --detach "${MEGATRON_COMMIT}" \
   && git -C /opt/Megatron-LM sparse-checkout set --no-cone '/*' \
-    '!/.github/scripts/trigger_workflow_and_wait.py' \
-    '!/tests/test_utils/python_scripts/test_trigger_workflow_and_wait.py' \
-    '!/uv.lock' \
+    '!/.agents/' '!/.claude/' '!/.github/' '!/.gitlab/' '!/docker/' '!/docs/' \
+    '!/examples/' '!/images/' '!/skills/' '!/tasks/' '!/tests/' '!/uv.lock' \
   && git -C /opt/Megatron-LM submodule update --init --recursive \
   && git clone --filter=blob:none https://github.com/radixark/miles.git /opt/miles \
   && git -C /opt/miles fetch origin "${MILES_COMMIT}" \
@@ -271,7 +272,9 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/
   && git clone --filter=blob:none https://github.com/pytorch/torchtitan.git /opt/torchtitan \
   && git -C /opt/torchtitan fetch origin "${TORCHTITAN_COMMIT}" \
   && git -C /opt/torchtitan checkout --detach "${TORCHTITAN_COMMIT}" \
-  && git -C /opt/torchtitan sparse-checkout set --no-cone '/*' '!/.ci/'
+  && git -C /opt/torchtitan sparse-checkout set --no-cone '/*' \
+    '!/.ci/' '!/.claude/' '!/.github/' '!/agent_tooling/' '!/benchmarks/' \
+    '!/docs/' '!/tests/integration_tests/' '!/tests/unit_tests/'
 
 # Build the multi-architecture fake-int4 extension from the same immutable
 # Miles source revision used by the image. Build from a temporary copy so the
@@ -511,7 +514,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # CLI is a JIT requirement: TorchInductor's CPU C++ codegen runs it to checksum
 # precompiled headers. The CUDA repo publishes no security advisories, so the
 # targets' security upgrade never picks up a newer forward-compat driver;
-# upgrade it here.
+# upgrade it here. The CUDA -devel packages also install about 1.7 GB of static
+# libraries that only static linking uses; the JIT toolchains link the shared
+# libraries. Keep libcudart_static.a, which nvcc links by default.
 RUN CUDA_DASH="$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-')" \
   && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
@@ -532,6 +537,8 @@ RUN CUDA_DASH="$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-')" \
     libcusolver-devel-${CUDA_DASH} \
     libcurand-devel-${CUDA_DASH} \
   && dnf upgrade -y cuda-compat-${CUDA_DASH} \
+  && find /usr/local/cuda/targets/x86_64-linux/lib -name 'lib*_static*.a' \
+    ! -name libcudart_static.a -delete \
   && dnf clean all \
   && rm -rf /var/cache/dnf
 

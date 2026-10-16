@@ -23,6 +23,10 @@ tests/fast/utils/test_arguments.py::TestSecretArgumentsAreClassified::test_every
 # sparse-checkout note in docker/miles/Dockerfile.amzn2023).
 tests/ci/test/test_lark_notify.py
 
+# Checks that SGLang's own Anthropic tests exist under the SGLang checkout's
+# test/, which the image leaves out (see the same sparse-checkout note).
+tests/fast/router/test_sglang_anthropic_conversion.py::test_sglang_anthropic_conversion_contract
+
 # The second server must exit within 30 seconds, but first imports Megatron-Bridge
 # and modelopt: about 18 s on a c7a.8xlarge for this image and upstream's alike,
 # about 37 s on the CI default-runner fleet.
@@ -32,3 +36,10 @@ tests/fast/utils/workers/e2e/test_serve_entrypoint.py::TestStartupFailures::test
 # Helm v4.3.1 for its Go CVE fixes; against this snapshot, recorded with upstream's
 # v4.2.3, the 19-line diff is only those blank lines.
 tests/fast/charts/miles_run/test_snapshot.py::TestGeneratedValuesSnapshot::test_those_values_render_exactly_the_recorded_manifests
+
+# These download mistralai/Mistral-7B-Instruct-v0.3's Xet-backed tokenizer.model
+# from Hugging Face. Since 2026-10-15 the hub's file metadata reports 130 bytes for
+# the 587404-byte file, so huggingface_hub 1.33.0 (upstream's version) fails its
+# consistency check. The repo itself has not changed since 2025-12-03.
+tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolResponses::test_tokenize_tool_responses[mistralai/Mistral-7B-Instruct-v0.3-1]
+tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolResponses::test_tokenize_tool_responses[mistralai/Mistral-7B-Instruct-v0.3-2]

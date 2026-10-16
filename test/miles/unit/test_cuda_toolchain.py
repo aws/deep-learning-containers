@@ -1,6 +1,7 @@
 """Verify the image's JIT toolchains build kernels without a GPU."""
 
 import os
+import subprocess
 
 import torch
 from torch.utils.cpp_extension import load_inline
@@ -31,6 +32,23 @@ def test_cuda_extension_compiles_and_links_nccl(tmp_path):
         build_directory=str(tmp_path),
     )
     assert os.path.isfile(module.__file__)
+
+
+def test_nvcc_builds_a_cuda_program(tmp_path):
+    # nvcc links the CUDA runtime statically by default.
+    source = tmp_path / "program.cu"
+    source.write_text("__global__ void kernel() {}\nint main() { kernel<<<1, 1>>>(); }\n")
+    subprocess.run(
+        [
+            "nvcc",
+            "-gencode=arch=compute_90,code=sm_90",
+            str(source),
+            "-o",
+            str(tmp_path / "program"),
+        ],
+        check=True,
+    )
+    assert (tmp_path / "program").is_file()
 
 
 def test_torch_compile_builds_and_runs_a_cpu_kernel(tmp_path, monkeypatch):
