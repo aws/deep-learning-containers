@@ -295,8 +295,10 @@ RUN --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.c
   uv pip install --no-deps --no-build-isolation -e /opt/sglang/python \
   && rm -rf /tmp/sglang-cargo-target
 
-# Upstream source patches for the locked TransformerEngine, flash-linear-attention,
-# TileLang and TileKernels releases. Each fails the build if it no longer applies.
+# Source patches for the locked TransformerEngine, flash-linear-attention, TileLang
+# and TileKernels releases: upstream Miles' patches, plus
+# transformer-engine/te_fa4_training_needs_sm90.patch of our own (its header says
+# why). Each fails the build if it no longer applies.
 COPY docker/miles/v${MILES_VERSION}/patches/ /tmp/miles-patches/
 COPY scripts/docker/miles/verify_transformer_engine.py /tmp/verify_transformer_engine.py
 RUN TE_DIR="$(python -c 'import importlib.util; print(importlib.util.find_spec("transformer_engine").submodule_search_locations[0])')" \

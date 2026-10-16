@@ -51,7 +51,8 @@ def test_flash_attention_matches_reference_forward_and_backward():
         assert relative_error(actual_grad, expected_grad) < 5e-2
 
 
-def test_transformer_engine_attention_matches_reference():
+def test_transformer_engine_attention_matches_reference_forward_and_backward():
+    # TransformerEngine picks the attention backend per GPU; training needs its backward too.
     q, k, v = attention_inputs()
     attention = te.DotProductAttention(
         num_attention_heads=8, kv_channels=64, attn_mask_type="causal", qkv_format="bshd"
@@ -59,6 +60,12 @@ def test_transformer_engine_attention_matches_reference():
     out = attention(q, k, v)
     expected = reference_attention(q, k, v, causal=True).reshape(out.shape)
     assert relative_error(out, expected) < 2e-2
+
+    grad = torch.randn_like(out)
+    grads = torch.autograd.grad(out, (q, k, v), grad)
+    expected_grads = torch.autograd.grad(expected, (q, k, v), grad.float())
+    for actual_grad, expected_grad in zip(grads, expected_grads):
+        assert relative_error(actual_grad, expected_grad) < 5e-2
 
 
 def test_transformer_engine_linear_matches_torch_forward_and_backward():
