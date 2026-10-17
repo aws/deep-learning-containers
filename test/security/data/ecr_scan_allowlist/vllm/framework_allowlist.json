@@ -16,98 +16,98 @@
     },
     {
         "vulnerability_id": "CVE-2026-46600",
-        "reason": "golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-10-25"
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); mooncake main has bumped x/net to v0.60.0 (>= the 0.56.0 fix) but the latest release (v0.3.14-rc1) still ships v0.55.0, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-56852",
-        "reason": "golang.org/x/text v0.32.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-10-25"
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); mooncake main has bumped x/text to v0.42.0 (>= the 0.39.0 fix) but the latest release (v0.3.14-rc1) still ships v0.37.0, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-24747",
-        "reason": "torch 2.9.1 is only a version pin in the upstream vllm/vllm-openai base image's benchmarks/requirements.txt (benchmark metadata), not the installed package. Installed torch is 2.11.0 (>= 2.10.0 fix). weights_only unpickler RCE requires loading a malicious checkpoint; the benchmark requirements file is inert. Not exploitable in the runtime.",
-        "review_by": "2026-10-17"
+        "reason": "torch 2.9.1 is only a version pin in the upstream vllm/vllm-openai:v0.31.0 base image's benchmarks/requirements.txt (benchmark metadata), not the installed package. Installed torch on both images is 2.13.0+cu130, well above the 2.10.0 fix. The weights_only unpickler RCE requires loading a malicious checkpoint; the benchmark requirements file is inert. Not exploitable in the runtime.",
+        "review_by": "2026-11-14"
     },
     {
         "vulnerability_id": "CVE-2026-39822",
-        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10; mooncake main has moved to go1.26.9 which carries the go/stdlib 1.26.5 fix but is unreleased, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-33811",
         "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-33814",
         "reason": "go/stdlib 1.25.9 and golang.org/x/net v0.48.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-42499",
         "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-39836",
         "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-39820",
         "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-39821",
-        "reason": "golang.org/x/net v0.48.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10; mooncake main has moved to go1.26.9 which carries the go/stdlib 1.26.6 fix but is unreleased, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-42504",
-        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10; mooncake main has moved to go1.26.9 which carries the go/stdlib 1.26.4 fix but is unreleased, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-27145",
-        "reason": "go/stdlib 1.24.11 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10; mooncake main has moved to go1.26.9 which carries the go/stdlib 1.26.4 fix but is unreleased, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "RUSTSEC-2026-0185",
         "reason": "quinn-proto Rust crate vendored inside the upstream vllm wheel; cannot be bumped to 0.11.15 independently of a vllm wheel rebuild. Tracking upstream vllm-project release.",
-        "review_by": "2026-10-17"
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-53923",
         "reason": "Affects vllm itself; no fixed version published upstream (scanner reports fixed-version 99.999.9999). Tracking upstream vllm-project fix.",
-        "review_by": "2026-10-17"
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-56853",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, net/http ReadHeaderTimeout not applied to the HTTP/2 preface read, cannot be patched independently of a mooncake-transfer-engine rebuild with Go 1.26.6+",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); net/http ReadHeaderTimeout not applied to the HTTP/2 preface read; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10; mooncake main has moved to go1.26.9 which carries the go/stdlib 1.26.6 fix but is unreleased, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-56862",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, crypto/tls KeyUpdate flood DoS, cannot be patched independently of a mooncake-transfer-engine rebuild with Go 1.26.6+",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); crypto/tls KeyUpdate flood DoS; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10; mooncake main has moved to go1.26.9 which carries the go/stdlib 1.26.6 fix but is unreleased, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-56859",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, encoding/xml DecodeElement depth-counter reset leading to stack exhaustion, cannot be patched independently of a mooncake-transfer-engine rebuild with Go 1.26.6+",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); encoding/xml DecodeElement depth-counter reset leading to stack exhaustion; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10; mooncake main has moved to go1.26.9 which carries the go/stdlib 1.26.6 fix but is unreleased, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-33818",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, stack exhaustion unmarshalling deeply nested recursive structures, cannot be patched independently of a mooncake-transfer-engine rebuild with Go 1.26.6+",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); stack exhaustion unmarshalling deeply nested recursive structures; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10; mooncake main has moved to go1.26.9 which carries the go/stdlib 1.26.6 fix but is unreleased, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "CVE-2026-84304",
-        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake libetcd_wrapper.so, fragmented HTTP/2 DATA frame memory amplification DoS, cannot be patched independently of a mooncake-transfer-engine rebuild with grpc-go >=1.83.1",
-        "review_by": "2026-10-25"
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); fragmented HTTP/2 DATA frame memory amplification DoS; mooncake main has bumped grpc to v1.83.2 (>= the 1.83.1 fix) but the latest release (v0.3.14-rc1) still ships v1.82.1, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
     },
     {
         "vulnerability_id": "GHSA-2v4p-qf9q-27wj",
@@ -115,8 +115,68 @@
         "review_by": "2026-10-25"
     },
     {
-        "vulnerability_id": "CVE-2026-84445",
-        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake libetcd_wrapper.so, xds server only and no released fix (scanner points at a 1.85.0-dev pseudo-version), cannot be patched independently of a mooncake-transfer-engine rebuild",
-        "review_by": "2026-12-17"
+        "vulnerability_id": "CVE-2026-56857",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); os.Root.Mkdir/MkdirAll can escape a junction target on Windows (not reachable in this Linux container); latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10 and mooncake main is only at go1.26.9, both below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56866",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); net/http Transport writes an HTTP/1 CONNECT body without framing, enabling request smuggling; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10 and mooncake main is only at go1.26.9, both below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78667",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); net/http FileServer/ServeContent CPU exhaustion from a Range header with many small ranges; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10 and mooncake main is only at go1.26.9, both below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94439",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); net/http server keeps serving requests after a 2xx reply to an HTTP/1 CONNECT without hijacking the connection; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10 and mooncake main is only at go1.26.9, both below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94440",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); mime/multipart form parsing can bypass memory limits and read an arbitrarily long line; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10 and mooncake main is only at go1.26.9, both below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97031",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); crypto/tls server memory exhaustion from duplicate ECH outer extension references; latest released mooncake (v0.3.14-rc1) still builds with toolchain go1.25.10 and mooncake main is only at go1.26.9, both below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78659",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); HTTP/2 Trailer header values accumulate unboundedly in Request.Trailer; mooncake main has bumped x/net to v0.60.0 but is unreleased and its toolchain (go1.26.9) is still below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78660",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); lax HTTP/2 framing-header validation enables request smuggling through a coerced proxy; mooncake main has bumped x/net to v0.60.0 but is unreleased and its toolchain (go1.26.9) is still below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78663",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); HTTP/2 server double-refunds connection-level flow control, letting a peer exceed the advertised window; mooncake main has bumped x/net to v0.60.0 but is unreleased and its toolchain (go1.26.9) is still below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78669",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); HTTP/2 CPU exhaustion from many streams plus repeated SETTINGS_INITIAL_WINDOW_SIZE frames; mooncake main has bumped x/net to v0.60.0 but is unreleased and its toolchain (go1.26.9) is still below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56851",
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); the precis Nickname profile panics with an out-of-bounds slice on crafted input; mooncake main has bumped x/text to v0.42.0 (>= the 0.41.0 fix) but the latest release (v0.3.14-rc1) still ships v0.37.0, so this cannot be patched independently of an upstream mooncake release",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97032",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); HTTP/2 server crash from concurrent unsynchronised HPACK encoder access; mooncake main has bumped x/net to v0.60.0 but is unreleased and its toolchain (go1.26.9) is still below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-105192",
+        "reason": "lmcache 0.5.5 in the upstream vllm/vllm-openai:v0.31.0 base image; unauthenticated ZeroMQ ROUTER socket in LMCache multiprocess (distributed) mode. The only published fix is lmcache 0.5.6, which adds a hard grpcio-observability==1.78.0 requirement and so forces grpcio from 1.84.0 down to 1.78.0; verified with a resolver dry-run against the image. Installing 0.5.6 without that dependency is not viable either, as lmcache/v1/mp_observability/otel_init.py imports grpc_observability. Needs framework owner review to decide between accepting the grpcio downgrade and waiting for upstream lmcache to relax the pin.",
+        "review_by": "2026-10-31"
     }
 ]
