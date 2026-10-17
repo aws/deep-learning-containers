@@ -168,5 +168,15 @@
         "vulnerability_id": "CVE-2026-56851",
         "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); the precis Nickname profile panics with an out-of-bounds slice on crafted input; mooncake main has bumped x/text to v0.42.0 (>= the 0.41.0 fix) but the latest release (v0.3.14-rc1) still ships v0.37.0, so this cannot be patched independently of an upstream mooncake release",
         "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97032",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so (mooncake-transfer-engine-cuda13 0.3.13.post1, transitive of lmcache in the upstream vllm/vllm-openai:v0.31.0 base image); HTTP/2 server crash from concurrent unsynchronised HPACK encoder access; mooncake main has bumped x/net to v0.60.0 but is unreleased and its toolchain (go1.26.9) is still below the go/stdlib 1.27.2 fix, so this cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2026-12-16"
+    },
+    {
+        "vulnerability_id": "CVE-2026-105192",
+        "reason": "lmcache 0.5.5 in the upstream vllm/vllm-openai:v0.31.0 base image; unauthenticated ZeroMQ ROUTER socket in LMCache multiprocess (distributed) mode. The only published fix is lmcache 0.5.6, which adds a hard grpcio-observability==1.78.0 requirement and so forces grpcio from 1.84.0 down to 1.78.0; verified with a resolver dry-run against the image. Installing 0.5.6 without that dependency is not viable either, as lmcache/v1/mp_observability/otel_init.py imports grpc_observability. Needs framework owner review to decide between accepting the grpcio downgrade and waiting for upstream lmcache to relax the pin.",
+        "review_by": "2026-10-31"
     }
 ]
