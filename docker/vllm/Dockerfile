@@ -36,7 +36,6 @@ RUN uv pip install --system \
 RUN uv pip install --system \
   "cbor2>=5.9.0" \
   "pillow>=12.1.1" \
-  "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
   "model-hosting-container-standards>=0.1.16,<1.0.0" \
   "pyasn1>=0.6.3" \
