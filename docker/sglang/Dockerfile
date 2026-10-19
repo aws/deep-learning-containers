@@ -38,23 +38,15 @@ RUN pip install \
 RUN pip install \
   "aiohttp>=3.14.0" \
   "black>=26.3.1" \
-  "certifi>=2025.6.15" \
   "diffusers>=0.38.0" \
-  "jinja2>=3.1.6" \
   "lxml>=6.1.0" \
   "nltk>=3.10.3" \
   "pillow>=12.1.1" \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
-  "requests>=2.32.4" \
-  "setuptools>=80.9.0" \
   "starlette>=1.3.1" \
-  "tqdm>=4.66.3" \
-  "urllib3>=2.4.0" \
   "virtualenv>=20.26.6" \
-  "werkzeug>=3.1.3" \
-  "xgrammar>=0.1.32" \
-  "zipp>=3.19.1"
+  "xgrammar>=0.1.32"
 
 # Copy artifacts
 # ===============
