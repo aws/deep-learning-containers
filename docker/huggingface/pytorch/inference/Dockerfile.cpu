@@ -42,6 +42,7 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
 # Security constraints for transitive dependencies:
 # anyio: GHSA-82r6-8w77-94w6
 # cryptography: CVE-2026-69247
+# fsspec: CVE-2026-104851 (s3fs must upgrade with its matching fsspec pin)
 # gitpython: CVE-2026-87817
 # sqlparse: CVE-2026-59893, CVE-2026-71491, CVE-2026-54284
 # tornado: CVE-2026-82397
@@ -52,6 +53,8 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "transformers[accelerate,audio,chat_template,kernels,video,vision]==${TRANSFORMERS_VERSION}" \
   "anyio>=4.14.2" \
   "cryptography>=50.0.0" \
+  "fsspec[http]>=2026.6.0" \
+  "s3fs>=2026.6.0" \
   "gitpython>=3.1.60" \
   "sqlparse>=0.6.0" \
   "tornado>=6.5.8" \
