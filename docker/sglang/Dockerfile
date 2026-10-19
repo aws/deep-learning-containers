@@ -40,6 +40,7 @@ RUN pip install \
   "black>=26.3.1" \
   "certifi>=2025.6.15" \
   "diffusers>=0.38.0" \
+  "jinja2>=3.1.6" \
   "lxml>=6.1.0" \
   "nltk>=3.10.3" \
   "pillow>=12.1.1" \
@@ -47,8 +48,10 @@ RUN pip install \
   "python_multipart>=0.0.22" \
   "setuptools>=80.9.0" \
   "starlette>=1.3.1" \
+  "tqdm>=4.66.3" \
   "virtualenv>=20.26.6" \
-  "xgrammar>=0.1.32"
+  "xgrammar>=0.1.32" \
+  "zipp>=3.19.1"
 
 # Copy artifacts
 # ===============
