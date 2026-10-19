@@ -36,6 +36,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-multi-gpu-test:
+        description: "Run multi-GPU functional tests on a reserved GPU instance"
+        required: false
+        type: boolean
+        default: true
       run-upstream-test:
         description: "Run the upstream Miles CPU suites against the image"
         required: false
@@ -111,6 +116,17 @@ jobs:
       group: ${{ github.workflow }}-single-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     uses: ./.github/workflows/miles.tests-single-gpu.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  multi-gpu-test:
+    if: ${{ always() && !cancelled() && inputs.run-multi-gpu-test && needs.build.result != 'failure' }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-multi-gpu-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/miles.tests-multi-gpu.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
