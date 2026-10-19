@@ -46,10 +46,13 @@ RUN pip install \
   "pillow>=12.1.1" \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
+  "requests>=2.32.4" \
   "setuptools>=80.9.0" \
   "starlette>=1.3.1" \
   "tqdm>=4.66.3" \
+  "urllib3>=2.4.0" \
   "virtualenv>=20.26.6" \
+  "werkzeug>=3.1.3" \
   "xgrammar>=0.1.32" \
   "zipp>=3.19.1"
 
