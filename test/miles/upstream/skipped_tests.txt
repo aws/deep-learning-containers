@@ -1,10 +1,10 @@
 # Upstream Miles CPU tests that cannot pass in this image, one per line,
 # relative to the Miles checkout (/opt/miles). A file path removes the file (use
 # this when it fails to import); a pytest node ID deselects that test. Every
-# entry needs a reason: either it also fails on the upstream radixark/miles
-# image, or it comes from a deliberate difference from that image (a file left
-# out of the checkout, a newer tool). Remove entries once the reason no longer
-# holds.
+# entry needs a reason: it also fails on the upstream radixark/miles image, it
+# comes from a deliberate difference from that image (a file left out of the
+# checkout, a newer tool), or it depends on timing the shared CI runners do not
+# meet. Remove entries once the reason no longer holds.
 
 # tinker and typed-argument-parser (tap) are CI-only test dependencies
 # (tests/ci/requirements-ci-cpu.txt) that the upstream image does not ship.
@@ -43,3 +43,8 @@ tests/fast/charts/miles_run/test_snapshot.py::TestGeneratedValuesSnapshot::test_
 # consistency check. The repo itself has not changed since 2025-12-03.
 tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolResponses::test_tokenize_tool_responses[mistralai/Mistral-7B-Instruct-v0.3-1]
 tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolResponses::test_tokenize_tool_responses[mistralai/Mistral-7B-Instruct-v0.3-2]
+
+# Races a 0.3-second RPC deadline against a worker exit; on the shared CI runners the
+# in-flight call is sometimes cancelled first. It failed once in about a dozen CI
+# runs, so it cannot gate a release.
+tests/fast/utils/workers/e2e/test_worker_errors.py::TestNonExceptionExits::test_calls_in_flight_when_worker_exits_finish_by_deadline

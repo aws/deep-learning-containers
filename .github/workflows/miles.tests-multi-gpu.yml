@@ -12,13 +12,6 @@ on:
         required: false
         type: string
         default: ""
-      instance-types:
-        description: >-
-          Comma-separated instance types with capacity reservations, in priority order;
-          the first with free capacity runs the tests.
-        required: false
-        type: string
-        default: "p4de.24xlarge,p4d.24xlarge,g6e.12xlarge"
 
 permissions:
   contents: read
@@ -31,6 +24,7 @@ jobs:
         buildspec-override:true
     outputs:
       image-uri: ${{ steps.image.outputs.image-uri }}
+      aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
     steps:
       - uses: actions/checkout@v6
@@ -51,24 +45,20 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-  # The runner launches a reserved GPU instance and drives it over SSH; see
-  # test/test_utils/gpu_instance.py.
+  # gpu-p4d-runners pods get four A100s of a reserved p4d.24xlarge.
   multi-gpu-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    timeout-minutes: 120
+    runs-on: gpu-p4d-runners
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       # The SGLang test serves this model; it is the one the single-GPU tests use.
       - name: Download model from S3
@@ -77,22 +67,43 @@ jobs:
         with:
           s3-path: s3://dlc-cicd-models/llm-models/qwen3.5-0.8b.tar.gz
           model-name: qwen3.5-0.8b
-          min-free-gb: "20"
 
-      - name: Run multi-GPU tests
+      # Pass the pod's own GPUs to the container. No ports are published.
+      - name: Start container
         env:
-          TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
-          MILES_TEST_MODEL_DIR: ${{ steps.model.outputs.model-dir }}
-          MULTI_GPU_INSTANCE_TYPES: ${{ inputs.instance-types }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
+          IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
         run: |
-          source .venv/bin/activate
-          PYTHONPATH="$(pwd)/test:${PYTHONPATH:-}" pytest -v --no-header \
-            test/miles/multi_gpu/test_multi_gpu.py
+          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
+          echo "Pod GPUs: ${POD_GPUS}"
+          docker pull "${IMAGE_URI}"
+          CONTAINER_ID=$(docker run -d --rm --init --gpus "\"device=${POD_GPUS}\"" \
+            --shm-size=16g --ulimit memlock=-1 \
+            -e MILES_TEST_MODEL_DIR=/models/qwen3.5-0.8b \
+            "${IMAGE_URI}" sleep infinity)
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> "${GITHUB_ENV}"
+          docker exec "${CONTAINER_ID}" nvidia-smi --query-gpu=name --format=csv,noheader \
+            | sort | uniq -c | sed 's/^ */Multi-GPU tests ran on /' >> "${GITHUB_STEP_SUMMARY}"
 
-      - name: Release model lock
+      # The pods share a Docker daemon that cannot see the pod's files, so copy them in.
+      - name: Copy tests and model into the container
+        env:
+          MODEL_DIR: ${{ steps.model.outputs.model-dir }}
+        run: |
+          docker cp test/miles "${CONTAINER_ID}:/tests"
+          docker exec "${CONTAINER_ID}" mkdir -p /models
+          docker cp "${MODEL_DIR}" "${CONTAINER_ID}:/models/qwen3.5-0.8b"
+
+      # Run through the image entrypoint, which adds the CUDA forward-compat driver
+      # when the host driver is older, as `docker run <image> <command>` would.
+      - name: Run multi-GPU tests
+        run: |
+          docker exec "${CONTAINER_ID}" \
+            miles-entrypoint python -m pytest -p no:cacheprovider /tests/multi_gpu/ -v
+
+      - name: Cleanup
         if: always()
         env:
           LOCK_PID: ${{ steps.model.outputs.lock-pid }}
         run: |
+          docker kill "${CONTAINER_ID}" >/dev/null 2>&1 || true
           if [[ -n "${LOCK_PID}" ]]; then kill "${LOCK_PID}" 2>/dev/null || true; fi
