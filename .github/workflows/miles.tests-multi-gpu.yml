@@ -45,11 +45,12 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
-  # gpu-p4d-runners pods get four A100s of a reserved p4d.24xlarge.
+  # gpu-efa-runners pods get four GPUs of a reserved p4d.24xlarge (A100) or p5.48xlarge
+  # (H100); the job summary records which.
   multi-gpu-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
-    runs-on: gpu-p4d-runners
+    runs-on: gpu-efa-runners
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6
@@ -107,3 +108,56 @@ jobs:
         run: |
           docker kill "${CONTAINER_ID}" >/dev/null 2>&1 || true
           if [[ -n "${LOCK_PID}" ]]; then kill "${LOCK_PID}" 2>/dev/null || true; fi
+
+  # Upstream's own short GRPO runs on Qwen2.5-0.5B, from the Miles checkout in the
+  # image. The disaggregated run trains with Megatron on two GPUs while SGLang serves
+  # rollouts on the other two, pushing weights to the engines after every step; the
+  # colocated run shares two GPUs between both. Miles' --ci-test mode, which both set,
+  # checks that the trainer's log-probs match SGLang's and that every engine picks up
+  # the new weights. They download the model and data from Hugging Face, as upstream.
+  rl-e2e-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on: gpu-efa-runners
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # Same source layout as upstream CI. No ports are published; Ray stays inside.
+      - name: Start container
+        env:
+          IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
+          HF_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
+        run: |
+          POD_GPUS=$(nvidia-smi --query-gpu=uuid --format=csv,noheader | paste -sd,)
+          echo "Pod GPUs: ${POD_GPUS}"
+          docker pull "${IMAGE_URI}"
+          CONTAINER_ID=$(docker run -d --rm --init --gpus "\"device=${POD_GPUS}\"" \
+            --shm-size=16g --ulimit memlock=-1 \
+            -e HF_TOKEN \
+            -e PYTHONPATH=/opt/miles:/opt/sglang/python:/opt/Megatron-LM \
+            --workdir /opt/miles "${IMAGE_URI}" sleep infinity)
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> "${GITHUB_ENV}"
+          docker exec "${CONTAINER_ID}" nvidia-smi --query-gpu=name --format=csv,noheader \
+            | sort | uniq -c | sed 's/^ */RL end-to-end tests ran on /' >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Run disaggregated GRPO (2 training GPUs, 2 rollout GPUs)
+        run: |
+          docker exec "${CONTAINER_ID}" \
+            miles-entrypoint python tests/e2e/short/test_qwen2.5_0.5B_gsm8k_async_short.py
+
+      - name: Run colocated GRPO (2 GPUs shared by training and rollout)
+        if: ${{ !cancelled() }}
+        run: |
+          docker exec "${CONTAINER_ID}" \
+            miles-entrypoint python tests/e2e/short/test_qwen2.5_0.5B_gsm8k_short.py
+
+      - name: Cleanup
+        if: always()
+        run: docker kill "${CONTAINER_ID}" >/dev/null 2>&1 || true

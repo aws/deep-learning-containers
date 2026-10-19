@@ -130,6 +130,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
+    secrets: inherit
 
   upstream-test:
     if: ${{ always() && !cancelled() && inputs.run-upstream-test && needs.build.result != 'failure' }}
