@@ -46,38 +46,38 @@
     },
     {
         "vulnerability_id": "GHSA-hrxh-6v49-42gf",
-        "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-25"
+        "reason": "google.golang.org/grpc v1.79.3 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-46600",
-        "reason": "golang.org/x/net v0.48.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-25"
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-56852",
-        "reason": "golang.org/x/text v0.32.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-25"
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-56862",
-        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, crypto/tls KeyUpdate flood DoS, cannot be patched independently of an upstream mooncake-transfer-engine rebuild with Go 1.26.6+",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-56853",
-        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, net/http ReadHeaderTimeout not applied to the HTTP/2 preface read, cannot be patched independently of an upstream mooncake-transfer-engine rebuild with Go 1.26.6+",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-33818",
-        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, stack exhaustion unmarshalling deeply nested recursive structures, cannot be patched independently of an upstream mooncake-transfer-engine rebuild with Go 1.26.6+",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-56859",
-        "reason": "go/stdlib 1.25.9 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, encoding/xml DecodeElement depth-counter reset leading to stack exhaustion, cannot be patched independently of an upstream mooncake-transfer-engine rebuild with Go 1.26.6+",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-73500",
@@ -96,28 +96,28 @@
     },
     {
         "vulnerability_id": "CVE-2026-24747",
-        "reason": "torch 2.9.1 is bundled in benchmarks/requirements.txt inside the image; upgrading this embedded dependency requires an upstream package rebuild",
-        "review_by": "2026-10-28"
+        "reason": "false positive: torch 2.9.1 is only a version pin in the upstream vllm base image's benchmarks/requirements.txt, not an installed package; installed torch already contains the weights_only unpickler fix",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-42504",
         "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-28"
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-27145",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-28"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild with Go 1.26.4+; x509 VerifyHostname CPU exhaustion",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-39821",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-28"
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-39822",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
-        "review_by": "2026-10-28"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild with Go 1.26.5+",
+        "review_by": "2026-11-28"
     },
     {
         "vulnerability_id": "CVE-2026-97031",
@@ -172,6 +172,11 @@
     {
         "vulnerability_id": "CVE-2026-56857",
         "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
+        "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97032",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
         "review_by": "2026-11-28"
     }
 ]
