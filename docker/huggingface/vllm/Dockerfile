@@ -34,6 +34,15 @@ RUN uv pip install --system --break-system-packages \
   && uv cache clean \
   && rm -rf /tmp/uv*
 
+# CVE-2026-105192: the base ships lmcache 0.5.5; 0.5.6 fixes it. --no-deps
+# because 0.5.6 adds grpcio-observability==1.78.0, which pins grpcio==1.78.0 and
+# conflicts with the grpcio>=1.79.3 CVE pin above. lmcache only imports it
+# behind try/except ImportError (gRPC metrics export), and every other
+# requirement is identical to 0.5.5.
+RUN uv pip install --system --break-system-packages --no-deps "lmcache==0.5.6" \
+  && uv cache clean \
+  && rm -rf /tmp/uv*
+
 
 # Same as vllm Dockerfile to make telemetry work
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
