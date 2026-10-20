@@ -34,7 +34,7 @@ dependencies = [
     # Compat / security pins.
     "cython<3",
     # aiohttp>=3.14.3 — CVE-2026-69244 (HIGH) OOB heap read in the C parser.
-    "aiohttp>=3.14.3",
+    "aiohttp>=3.14.4",
     # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 DoS pins.
     "pyasn1>=0.6.4",
     "urllib3",
