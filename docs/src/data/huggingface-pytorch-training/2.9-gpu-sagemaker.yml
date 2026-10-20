@@ -6,6 +6,7 @@ cuda: cu130
 transformers: "5.3.0"
 os: ubuntu22.04
 platform: sagemaker
+eop: "2026-10-15"
 
 # Image tags (first tag is used in available_images.md)
 tags:
