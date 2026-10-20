@@ -1,0 +1,24 @@
+DLC patch, not one of upstream Miles' patches. TransformerEngine 2.17 picks
+flash-attn-4 on any GPU from sm80 up, but flash-attn-4 4.0.0b19 works reliably only
+on sm90+. Below that, its backward pass asserts (flash_attn/cute/interface.py), and
+its forward pass fails to compile for grouped-query attention over packed sequences
+(pack_gqa.store_O), which Miles' log-prob pass hits on Qwen models. So training and
+log-probs on A100, A10G, L4 or L40S failed. Keep flash-attn-4 out of
+TransformerEngine below sm90, where it then uses FlashAttention 2 or cuDNN.
+Hopper and Blackwell are unchanged.
+
+--- a/pytorch/attention/dot_product_attention/utils.py
++++ b/pytorch/attention/dot_product_attention/utils.py
+@@ -501,6 +501,12 @@
+         if use_flash_attention_4 and FlashAttentionUtils.v4_is_installed:
+             logger.debug("Disabling FlashAttention 4 for compute capability < sm80")
+         use_flash_attention_4 = False
++    # flash-attn-4 targets SM90+. Below that its backward pass asserts, and its forward
++    # pass fails to compile for grouped-query attention over packed sequences.
++    if device_compute_capability < (9, 0):
++        if use_flash_attention_4 and FlashAttentionUtils.v4_is_installed:
++            logger.debug("Disabling FlashAttention 4 for compute capability < sm90")
++        use_flash_attention_4 = False
+     # On SM90, prefer FA3 over FA4 when FA3 is available.
+     # FA3 is more mature on Hopper; FA4's SM90 backward has limitations
+     # (MLA, non-standard head dims, SplitKV).

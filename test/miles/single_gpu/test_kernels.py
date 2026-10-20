@@ -2,6 +2,7 @@
 with match reference implementations on the GPU."""
 
 import importlib
+import itertools
 
 import pytest
 import torch
@@ -66,6 +67,42 @@ def test_transformer_engine_attention_matches_reference_forward_and_backward():
     expected_grads = torch.autograd.grad(expected, (q, k, v), grad.float())
     for actual_grad, expected_grad in zip(grads, expected_grads):
         assert relative_error(actual_grad, expected_grad) < 5e-2
+
+
+def test_transformer_engine_packed_gqa_attention_matches_reference_without_grad():
+    # Miles computes log-probs in a forward-only pass over packed sequences, and Qwen
+    # models share each key/value head across several query heads.
+    torch.manual_seed(0)
+    seqlens, heads, groups, head_dim = [100, 37, 256], 14, 2, 64
+    total = sum(seqlens)
+    q = torch.randn(total, heads, head_dim, device="cuda", dtype=torch.bfloat16)
+    k, v = (
+        torch.randn(total, groups, head_dim, device="cuda", dtype=torch.bfloat16) for _ in range(2)
+    )
+    bounds = [0, *itertools.accumulate(seqlens)]
+    cu_seqlens = torch.tensor(bounds, device="cuda", dtype=torch.int32)
+    attention = te.DotProductAttention(
+        num_attention_heads=heads,
+        kv_channels=head_dim,
+        num_gqa_groups=groups,
+        attn_mask_type="padding_causal",
+        qkv_format="thd",
+    ).eval()
+    with torch.no_grad():
+        out = attention(
+            q,
+            k,
+            v,
+            cu_seqlens_q=cu_seqlens,
+            cu_seqlens_kv=cu_seqlens,
+            max_seqlen_q=max(seqlens),
+            max_seqlen_kv=max(seqlens),
+        ).view(total, heads, head_dim)
+    for start, end in zip(bounds[:-1], bounds[1:]):
+        expected = reference_attention(
+            q[None, start:end], k[None, start:end], v[None, start:end], causal=True
+        )[0]
+        assert relative_error(out[start:end], expected) < 2e-2
 
 
 def test_transformer_engine_linear_matches_torch_forward_and_backward():
