@@ -6,6 +6,7 @@ Called by agent-currency-fix.yml workflow.
 """
 
 import argparse
+import datetime
 import json
 import os
 import re
@@ -77,12 +78,16 @@ def parse_args():
 
 
 def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
-    """Use GitHub API to get structured failure info. Returns (error_text, failed_job_names)."""
+    """Use GitHub API to get structured failure info.
+
+    Returns (error_text, failed_job_names, logs_found).
+    """
     print("Using GitHub API for structured failure extraction")
     import urllib.request
 
     results = []
     failed_job_names = []
+    logs_found = 0
     for run_id in run_ids.strip().split():
         if not run_id:
             continue
@@ -102,14 +107,15 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
             results.append(f"Failed to fetch jobs for run {run_id}: {e}")
             continue
 
-        # Find failed jobs and steps
+        # Find failed jobs and steps. Must match the job names the pipeline emits.
         tracked_jobs = [
-            "build-image",
+            "build",
             "sanity-test",
             "security-test",
             "telemetry-test",
             "upstream-tests",
-            "sagemaker-test",
+            "model-tests",
+            "sagemaker-tests",
         ]
         for job in data.get("jobs", []):
             if job.get("conclusion") != "failure":
@@ -147,12 +153,19 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
             try:
                 resp = urllib.request.urlopen(zip_req)
                 z = zipfile.ZipFile(io.BytesIO(resp.read()))
-                target = job["name"].replace(" / ", " _ ")
+                # GitHub replaces every "/" in a job name with "_" in the zip entry names,
+                # including the ones inside the config path the pipeline puts in the name.
+                target = job["name"].replace(" / ", " _ ").replace("/", "_")
                 for name in z.namelist():
                     if target in name:
                         log_lines = z.read(name).decode(errors="replace").splitlines()
+                        kept = log_lines[-MAX_LOG_LINES:]
+                        truncated = len(log_lines) - len(kept)
                         results.append(f"  Log ({name}, {len(log_lines)} lines):")
-                        results.extend(f"    {line}" for line in log_lines)
+                        if truncated:
+                            results.append(f"    [... {truncated} earlier lines omitted ...]")
+                        results.extend(f"    {line}" for line in kept)
+                        logs_found += 1
                         break
                 else:
                     results.append(f"  No matching log file for '{target}' in zip")
@@ -161,33 +174,7 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
 
             results.append("")
 
-    return "\n".join(results) or "No failure info extracted.", failed_job_names
-
-
-def _extract_via_grep(logs_dir: str) -> str:
-    """Fallback: grep log files for error keywords."""
-    logs_path = Path(logs_dir)
-    if not logs_path.exists():
-        return "No logs available."
-
-    error_lines = []
-    keywords = ["error", "failed", "failure", "cve-", "not found", "exception", "denied"]
-
-    for log_file in sorted(logs_path.rglob("*.txt")):
-        try:
-            lines = log_file.read_text(errors="replace").splitlines()
-        except Exception:
-            continue
-        for i, line in enumerate(lines):
-            if any(kw in line.lower() for kw in keywords):
-                start, end = max(0, i - 2), min(len(lines), i + 3)
-                error_lines.append(f"--- {log_file.name}:{i + 1} ---")
-                error_lines.extend(lines[start:end])
-                error_lines.append("")
-        if len(error_lines) > MAX_LOG_LINES:
-            break
-
-    return "\n".join(error_lines[:MAX_LOG_LINES]) or "No error patterns found in logs."
+    return "\n".join(results) or "No failure info extracted.", failed_job_names, logs_found
 
 
 def read_file(path: str) -> str:
@@ -195,28 +182,6 @@ def read_file(path: str) -> str:
         return Path(path).read_text()
     except (FileNotFoundError, PermissionError):
         return ""
-
-
-def detect_failed_jobs(logs_dir: str) -> list:
-    """Detect which CI jobs failed based on log filenames."""
-    logs_path = Path(logs_dir)
-    if not logs_path.exists():
-        return []
-    # Log files are named like "8_security-test _ ecr-vulnerability-scan.txt"
-    job_names = set()
-    for f in logs_path.rglob("*.txt"):
-        name = f.stem.lower()
-        for job in [
-            "build-image",
-            "sanity-test",
-            "security-test",
-            "telemetry-test",
-            "upstream-tests",
-            "sagemaker-test",
-        ]:
-            if job in name:
-                job_names.add(job)
-    return list(job_names)
 
 
 def load_context_files(framework: str, failed_jobs: list) -> dict:
@@ -260,7 +225,16 @@ def load_context_files(framework: str, failed_jobs: list) -> dict:
             for p in files:
                 paths.add(p.replace("{framework}", framework))
 
-    return {p: content for p in sorted(paths) if (content := read_file(p))}
+    loaded = {}
+    for path in sorted(paths):
+        content = read_file(path)
+        if content:
+            loaded[path] = content
+        else:
+            # Surface stale map entries instead of dropping them silently. Some paths are
+            # per-framework alternates, so a miss is not always a problem.
+            print(f"note: context file not found, skipped: {path}")
+    return loaded
 
 
 def _parse_simple_yaml(text: str) -> dict:
@@ -430,9 +404,11 @@ def build_prompt(framework, branch, error_lines, context_files, previous_fixes, 
         lang = {"py": "python", "sh": "bash", "yml": "yaml", "json": "json"}.get(ext, "")
         files_section += f"\n### {path}:\n```{lang}\n{content}\n```\n"
 
+    today = datetime.date.today()
     prompt = f"""## Context
 Framework: {framework}
 Branch: {branch}
+Today: {today.isoformat()} (use {(today + datetime.timedelta(days=90)).isoformat()} for any allowlist review_by)
 
 ### CI Error Lines:
 ```
@@ -451,15 +427,27 @@ def main():
     args = parse_args()
     print(f"=== Currency Fix Agent: {args.framework} @ {args.branch} ===\n")
 
-    error_lines, api_failed_jobs = extract_failure_info(args.run_ids, args.token, args.repo)
-    # Use API-detected jobs if available, otherwise fall back to log filename detection
-    failed_jobs = api_failed_jobs
+    error_lines, failed_jobs, logs_found = extract_failure_info(
+        args.run_ids, args.token, args.repo
+    )
+
+    # Without a log the model can only guess, and a plausible-looking guess is worse than
+    # no commit at all. Stop here and let the attempt counter escalate to a human.
+    if failed_jobs and not logs_found:
+        print(error_lines)
+        print(
+            "\nERROR: matched failed jobs but retrieved no logs. Refusing to propose a fix "
+            "from an empty failure context."
+        )
+        sys.exit(1)
+
     context_files = load_context_files(args.framework, failed_jobs)
     previous_fixes = get_previous_fixes()
 
     print(f"Error lines extracted: {len(error_lines.splitlines())} lines")
     print(f"Error lines preview: {error_lines[:500]}")
     print(f"Failed jobs detected: {failed_jobs or 'none (including all files)'}")
+    print(f"Logs retrieved: {logs_found}")
     print(f"Context files loaded: {list(context_files.keys())}")
     print()
 
