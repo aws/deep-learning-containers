@@ -9,6 +9,7 @@ on:
       - ".github/workflows/miles.pipeline.yml"
       - ".github/workflows/miles.pr-amzn2023.yml"
       - ".github/workflows/miles.tests-multi-gpu.yml"
+      - ".github/workflows/miles.tests-multi-node.yml"
       - ".github/workflows/miles.tests-single-gpu.yml"
       - ".github/workflows/miles.tests-unit.yml"
       - ".github/workflows/miles.tests-upstream.yml"

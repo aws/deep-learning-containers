@@ -46,6 +46,16 @@ on:
         required: false
         type: boolean
         default: true
+      run-efa-test:
+        description: "Run the shared two-node EFA tests"
+        required: false
+        type: boolean
+        default: true
+      run-multi-node-test:
+        description: "Run the two-node GRPO test on reserved EFA instances"
+        required: false
+        type: boolean
+        default: true
     outputs:
       image-uri:
         description: "Built image URI"
@@ -139,6 +149,31 @@ jobs:
       group: ${{ github.workflow }}-upstream-test-${{ inputs.config-file }}-${{ github.ref }}
       cancel-in-progress: true
     uses: ./.github/workflows/miles.tests-upstream.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+    secrets: inherit
+
+  # The two-node jobs run to completion: cancelling one mid-run would leave its EFA
+  # instances to the stale-instance sweep.
+  efa-test:
+    if: ${{ always() && !cancelled() && inputs.run-efa-test && needs.build.result != 'failure' }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  multi-node-test:
+    if: ${{ always() && !cancelled() && inputs.run-multi-node-test && needs.build.result != 'failure' }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-multi-node-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/miles.tests-multi-node.yml
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
