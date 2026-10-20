@@ -427,9 +427,7 @@ def main():
     args = parse_args()
     print(f"=== Currency Fix Agent: {args.framework} @ {args.branch} ===\n")
 
-    error_lines, failed_jobs, logs_found = extract_failure_info(
-        args.run_ids, args.token, args.repo
-    )
+    error_lines, failed_jobs, logs_found = extract_failure_info(args.run_ids, args.token, args.repo)
 
     # Without a log the model can only guess, and a plausible-looking guess is worse than
     # no commit at all. Stop here and let the attempt counter escalate to a human.
