@@ -32,6 +32,12 @@ tests/fast/router/test_sglang_anthropic_conversion.py::test_sglang_anthropic_con
 # about 37 s on the CI default-runner fleet.
 tests/fast/utils/workers/e2e/test_serve_entrypoint.py::TestStartupFailures::test_port_conflict_fails_fast
 
+# Starts the serve subprocess twice and gives each start 60 seconds to answer. The same
+# imports made each start take 38-55 s on the default-runner fleet, and on 2026-10-20
+# the first start missed the deadline. test_serve_call_argv_and_env, which starts it
+# once, still runs.
+tests/fast/utils/workers/serving/test_serve.py::TestServeEndToEnd::test_restart_detected_by_stable_boot_uuid_client
+
 # Helm v4.3 prints a blank line before each --- document separator. The image ships
 # Helm v4.3.1 for its Go CVE fixes; against this snapshot, recorded with upstream's
 # v4.2.3, the 19-line diff is only those blank lines.
