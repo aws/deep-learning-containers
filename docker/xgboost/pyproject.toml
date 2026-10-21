@@ -6,7 +6,7 @@ dependencies = [
     "xgboost==3.2.0",
     "boto3==1.38.0",
     "botocore==1.38.0",
-    "certifi==2025.4.26",
+    "certifi==2026.10.19",
     "cryptography==50.0.0",
     "cuda-python==12.9.0",
     "dask-cuda==26.4.0",
@@ -49,6 +49,6 @@ override-dependencies = [
     "itsdangerous>=2.2.0",
     "werkzeug==3.1.8",
     "urllib3==2.8.0",
-    "certifi==2025.4.26",
-    "pillow==12.3.0",
+    "certifi==2026.10.19",
+    "pillow==13.0.0",
 ]
