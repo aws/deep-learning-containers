@@ -13,7 +13,7 @@ common:
 
 # Job-specific files
 jobs:
-  build-image:
+  build:
     - "scripts/docker/common/install_efa.sh"
 
   sanity-test:
@@ -31,6 +31,11 @@ jobs:
     - "test/{framework}/scripts/{framework}_test_setup.sh"
     - "test/{framework}/scripts/{framework}_ec2_examples_test.sh"
 
-  sagemaker-test:
+  sagemaker-tests:
     - "scripts/docker/{framework}/sagemaker_entrypoint.sh"
-    - "test/{framework}/scripts/{framework}_sagemaker_examples_test.sh"
+    - "test/{framework}/scripts/ubuntu/{framework}_sagemaker_examples_test.sh"
+
+  model-tests:
+    - "test/{framework}/scripts/{framework}_model_smoke_test.sh"
+    - "test/{framework}/scripts/amzn2023/{framework}_model_smoke_test.sh"
+    - ".github/config/model-tests/{framework}-model-tests.yml"

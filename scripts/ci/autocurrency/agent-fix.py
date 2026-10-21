@@ -6,6 +6,7 @@ Called by agent-currency-fix.yml workflow.
 """
 
 import argparse
+import datetime
 import json
 import os
 import re
@@ -19,7 +20,6 @@ MODEL_ID = "us.anthropic.claude-opus-4-6-v1"
 MAX_TOKENS = 16384
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 MAX_LOG_LINES = 500
-MAX_LLM_RETRIES = 3
 CONTEXT_MAP_PATH = ".github/config/agent-context-files.yml"
 
 SEARCH_REPLACE_PATTERN = re.compile(
@@ -77,12 +77,14 @@ def parse_args():
 
 
 def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
-    """Use GitHub API to get structured failure info. Returns (error_text, failed_job_names)."""
+    """Use GitHub API to get structured failure info."""
     print("Using GitHub API for structured failure extraction")
     import urllib.request
 
     results = []
     failed_job_names = []
+    logs_found = 0
+    tracked = tracked_job_names()
     for run_id in run_ids.strip().split():
         if not run_id:
             continue
@@ -102,15 +104,7 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
             results.append(f"Failed to fetch jobs for run {run_id}: {e}")
             continue
 
-        # Find failed jobs and steps
-        tracked_jobs = [
-            "build-image",
-            "sanity-test",
-            "security-test",
-            "telemetry-test",
-            "upstream-tests",
-            "sagemaker-test",
-        ]
+        tracked_jobs = tracked
         for job in data.get("jobs", []):
             if job.get("conclusion") != "failure":
                 continue
@@ -147,12 +141,17 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
             try:
                 resp = urllib.request.urlopen(zip_req)
                 z = zipfile.ZipFile(io.BytesIO(resp.read()))
-                target = job["name"].replace(" / ", " _ ")
+                target = job["name"].replace(" / ", " _ ").replace("/", "_")
                 for name in z.namelist():
                     if target in name:
                         log_lines = z.read(name).decode(errors="replace").splitlines()
+                        kept = log_lines[-MAX_LOG_LINES:]
+                        truncated = len(log_lines) - len(kept)
                         results.append(f"  Log ({name}, {len(log_lines)} lines):")
-                        results.extend(f"    {line}" for line in log_lines)
+                        if truncated:
+                            results.append(f"    [... {truncated} earlier lines omitted ...]")
+                        results.extend(f"    {line}" for line in kept)
+                        logs_found += 1
                         break
                 else:
                     results.append(f"  No matching log file for '{target}' in zip")
@@ -161,33 +160,7 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
 
             results.append("")
 
-    return "\n".join(results) or "No failure info extracted.", failed_job_names
-
-
-def _extract_via_grep(logs_dir: str) -> str:
-    """Fallback: grep log files for error keywords."""
-    logs_path = Path(logs_dir)
-    if not logs_path.exists():
-        return "No logs available."
-
-    error_lines = []
-    keywords = ["error", "failed", "failure", "cve-", "not found", "exception", "denied"]
-
-    for log_file in sorted(logs_path.rglob("*.txt")):
-        try:
-            lines = log_file.read_text(errors="replace").splitlines()
-        except Exception:
-            continue
-        for i, line in enumerate(lines):
-            if any(kw in line.lower() for kw in keywords):
-                start, end = max(0, i - 2), min(len(lines), i + 3)
-                error_lines.append(f"--- {log_file.name}:{i + 1} ---")
-                error_lines.extend(lines[start:end])
-                error_lines.append("")
-        if len(error_lines) > MAX_LOG_LINES:
-            break
-
-    return "\n".join(error_lines[:MAX_LOG_LINES]) or "No error patterns found in logs."
+    return "\n".join(results) or "No failure info extracted.", failed_job_names, logs_found
 
 
 def read_file(path: str) -> str:
@@ -197,26 +170,23 @@ def read_file(path: str) -> str:
         return ""
 
 
-def detect_failed_jobs(logs_dir: str) -> list:
-    """Detect which CI jobs failed based on log filenames."""
-    logs_path = Path(logs_dir)
-    if not logs_path.exists():
-        return []
-    # Log files are named like "8_security-test _ ecr-vulnerability-scan.txt"
-    job_names = set()
-    for f in logs_path.rglob("*.txt"):
-        name = f.stem.lower()
-        for job in [
-            "build-image",
-            "sanity-test",
-            "security-test",
-            "telemetry-test",
-            "upstream-tests",
-            "sagemaker-test",
-        ]:
-            if job in name:
-                job_names.add(job)
-    return list(job_names)
+def load_context_map() -> dict:
+    """Parse the job -> context file map. Returns {} when the file is absent."""
+    mapping_path = Path(CONTEXT_MAP_PATH)
+    if not mapping_path.exists():
+        return {}
+    try:
+        import yaml
+
+        return yaml.safe_load(mapping_path.read_text()) or {}
+    except ImportError:
+        return _parse_simple_yaml(mapping_path.read_text())
+
+
+def tracked_job_names() -> list:
+    """Job names to watch, from the context map keys, longest first."""
+    jobs = (load_context_map().get("jobs") or {}).keys()
+    return sorted(jobs, key=len, reverse=True)
 
 
 def load_context_files(framework: str, failed_jobs: list) -> dict:
@@ -260,7 +230,14 @@ def load_context_files(framework: str, failed_jobs: list) -> dict:
             for p in files:
                 paths.add(p.replace("{framework}", framework))
 
-    return {p: content for p in sorted(paths) if (content := read_file(p))}
+    loaded = {}
+    for path in sorted(paths):
+        content = read_file(path)
+        if content:
+            loaded[path] = content
+        else:
+            print(f"note: context file not found, skipped: {path}")
+    return loaded
 
 
 def _parse_simple_yaml(text: str) -> dict:
@@ -423,16 +400,18 @@ def call_bedrock(system: str, user: str) -> str:
     return json.loads(resp["body"].read())["content"][0]["text"]
 
 
-def build_prompt(framework, branch, error_lines, context_files, previous_fixes, retry_context=""):
+def build_prompt(framework, branch, error_lines, context_files, previous_fixes):
     files_section = ""
     for path, content in context_files.items():
         ext = Path(path).suffix.lstrip(".")
         lang = {"py": "python", "sh": "bash", "yml": "yaml", "json": "json"}.get(ext, "")
         files_section += f"\n### {path}:\n```{lang}\n{content}\n```\n"
 
+    today = datetime.date.today()
     prompt = f"""## Context
 Framework: {framework}
 Branch: {branch}
+Today: {today.isoformat()} (use {(today + datetime.timedelta(days=90)).isoformat()} for any allowlist review_by)
 
 ### CI Error Lines:
 ```
@@ -441,9 +420,6 @@ Branch: {branch}
 {files_section}
 ### Previous fix attempts on this branch:
 {previous_fixes}"""
-
-    if retry_context:
-        prompt += f"\n\n### RETRY — Previous attempt failed:\n{retry_context}\n\nFix ONLY the failed SEARCH blocks. Do NOT resend already-applied blocks."
     return prompt
 
 
@@ -451,69 +427,58 @@ def main():
     args = parse_args()
     print(f"=== Currency Fix Agent: {args.framework} @ {args.branch} ===\n")
 
-    error_lines, api_failed_jobs = extract_failure_info(args.run_ids, args.token, args.repo)
-    # Use API-detected jobs if available, otherwise fall back to log filename detection
-    failed_jobs = api_failed_jobs
+    error_lines, failed_jobs, logs_found = extract_failure_info(args.run_ids, args.token, args.repo)
+
+    if failed_jobs and not logs_found:
+        print(error_lines)
+        print(
+            "\nERROR: matched failed jobs but retrieved no logs. Refusing to propose a fix "
+            "from an empty failure context."
+        )
+        sys.exit(1)
+
     context_files = load_context_files(args.framework, failed_jobs)
     previous_fixes = get_previous_fixes()
 
     print(f"Error lines extracted: {len(error_lines.splitlines())} lines")
     print(f"Error lines preview: {error_lines[:500]}")
     print(f"Failed jobs detected: {failed_jobs or 'none (including all files)'}")
+    print(f"Logs retrieved: {logs_found}")
     print(f"Context files loaded: {list(context_files.keys())}")
     print()
 
-    retry_context = ""
-    for attempt in range(1, MAX_LLM_RETRIES + 1):
-        print(f"--- Attempt {attempt}/{MAX_LLM_RETRIES} ---")
+    prompt = build_prompt(args.framework, args.branch, error_lines, context_files, previous_fixes)
+    print(f"Prompt size: {len(prompt)} chars")
+    response = call_bedrock(SYSTEM_PROMPT, prompt)
+    print(f"LLM response ({len(response)} chars):")
+    print(response[:2000])
+    if len(response) > 2000:
+        print(f"  ... ({len(response) - 2000} more chars)")
+    print()
 
-        prompt = build_prompt(
-            args.framework, args.branch, error_lines, context_files, previous_fixes, retry_context
-        )
-        print(f"Prompt size: {len(prompt)} chars")
-        response = call_bedrock(SYSTEM_PROMPT, prompt)
-        print(f"LLM response ({len(response)} chars):")
-        print(response[:2000])
-        if len(response) > 2000:
-            print(f"  ... ({len(response) - 2000} more chars)")
-        print()
+    if response.strip().startswith("TRANSIENT:"):
+        print(f"Transient: {response.strip().split(':', 1)[1].strip()}")
+        sys.exit(0)
 
-        if response.strip().startswith("TRANSIENT:"):
-            print(f"Transient: {response.strip().split(':', 1)[1].strip()}")
-            sys.exit(0)
+    blocks = parse_blocks(response)
+    if not blocks:
+        print("ERROR: could not parse search/replace blocks from the response.")
+        print(f"  Response preview: {response[:300]}")
+        sys.exit(1)
+    print(f"Parsed {len(blocks)} block(s): {[b['path'] for b in blocks]}")
 
-        blocks = parse_blocks(response)
-        if blocks:
-            paths = [b["path"] for b in blocks]
-            print(f"Parsed {len(blocks)} block(s): {paths}")
-        if not blocks:
-            retry_context = (
-                f"Could not parse search/replace blocks from response.\n"
-                f"Response started with: {response[:300]}...\n"
-                f"Use exact format: <filepath>\\n<<<<<<< SEARCH\\n...\\n=======\\n...\\n>>>>>>> REPLACE"
-            )
-            print("No blocks parsed, retrying...")
-            print(f"  Response preview: {response[:200]}")
-            continue
+    modified, errors = apply_blocks(blocks, set(context_files.keys()))
+    if errors:
+        print(f"ERROR: {len(modified)} block(s) applied, {len(errors)} failed.")
+        for e in errors:
+            print(f"  {e[:300]}")
+        sys.exit(1)
 
-        modified, errors = apply_blocks(blocks, set(context_files.keys()))
-        if errors:
-            retry_context = f"{len(modified)} applied, {len(errors)} failed:\n" + "\n".join(errors)
-            print(f"{'Partial' if modified else 'All failed'}: {len(errors)} error(s), retrying...")
-            for e in errors:
-                print(f"  ERROR: {e[:300]}")
-            continue
-
-        # Success
-        desc_match = re.search(r"^DESCRIPTION:\s*(.+)$", response, re.MULTILINE)
-        description = desc_match.group(1).strip() if desc_match else "automated fix"
-        Path("/tmp/agent-fix-description.txt").write_text(description)
-        print(f"✅ {len(modified)} edit(s) applied: {modified}")
-        print(f"Description: {description}")
-        return
-
-    print(f"ERROR: Failed after {MAX_LLM_RETRIES} attempts.")
-    sys.exit(1)
+    desc_match = re.search(r"^DESCRIPTION:\s*(.+)$", response, re.MULTILINE)
+    description = desc_match.group(1).strip() if desc_match else "automated fix"
+    Path("/tmp/agent-fix-description.txt").write_text(description)
+    print(f"{len(modified)} edit(s) applied: {modified}")
+    print(f"Description: {description}")
 
 
 if __name__ == "__main__":
