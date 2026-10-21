@@ -411,6 +411,17 @@ RUN uv pip install --no-deps /tmp/router/sglang_router-*.whl \
 # images do.
 RUN rm /opt/venv/lib/python*/site-packages/ray/jars/ray_dist.jar
 
+# Ray's runtime-env agent imports aiohttp and its dependencies from a private set that
+# Ray's build pins, ahead of site-packages: aiohttp 3.14.3 for Ray 2.58.0, open to
+# GHSA-2g87-pp6c-29x5 (CVE-2026-111064). Swapping aiohttp alone breaks the agent, since
+# aiohttp 3.14.4 needs a newer yarl than the set holds. Empty the set so the agent uses
+# the locked aiohttp and dependencies, as Ray's dashboard already does. Fails the build
+# if Ray no longer bundles aiohttp there.
+RUN AGENT_LIBS="$(python -c 'import pathlib, ray; print(pathlib.Path(ray.__file__).parent / "_private/runtime_env/agent/thirdparty_files")')" \
+  && test -d "${AGENT_LIBS}/aiohttp" \
+  && rm -r "${AGENT_LIBS}" \
+  && mkdir "${AGENT_LIBS}"
+
 # Record immutable source and native-artifact provenance before removing build data.
 RUN { \
       echo "framework=miles"; \
