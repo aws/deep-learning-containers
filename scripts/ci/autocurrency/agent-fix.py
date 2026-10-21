@@ -78,10 +78,7 @@ def parse_args():
 
 
 def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
-    """Use GitHub API to get structured failure info.
-
-    Returns (error_text, failed_job_names, logs_found).
-    """
+    """Use GitHub API to get structured failure info."""
     print("Using GitHub API for structured failure extraction")
     import urllib.request
 
@@ -108,8 +105,6 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
             results.append(f"Failed to fetch jobs for run {run_id}: {e}")
             continue
 
-        # Find failed jobs and steps. The names come from the context map, whose keys must
-        # match the job names the pipeline emits.
         tracked_jobs = tracked
         for job in data.get("jobs", []):
             if job.get("conclusion") != "failure":
@@ -147,8 +142,6 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
             try:
                 resp = urllib.request.urlopen(zip_req)
                 z = zipfile.ZipFile(io.BytesIO(resp.read()))
-                # GitHub replaces every "/" in a job name with "_" in the zip entry names,
-                # including the ones inside the config path the pipeline puts in the name.
                 target = job["name"].replace(" / ", " _ ").replace("/", "_")
                 for name in z.namelist():
                     if target in name:
@@ -192,10 +185,7 @@ def load_context_map() -> dict:
 
 
 def tracked_job_names() -> list:
-    """Job names to watch, taken from the context map so the two cannot drift.
-
-    Longest first, so a short name never shadows a more specific one.
-    """
+    """Job names to watch, from the context map keys, longest first."""
     jobs = (load_context_map().get("jobs") or {}).keys()
     return sorted(jobs, key=len, reverse=True)
 
@@ -247,8 +237,6 @@ def load_context_files(framework: str, failed_jobs: list) -> dict:
         if content:
             loaded[path] = content
         else:
-            # Surface stale map entries instead of dropping them silently. Some paths are
-            # per-framework alternates, so a miss is not always a problem.
             print(f"note: context file not found, skipped: {path}")
     return loaded
 
@@ -445,8 +433,6 @@ def main():
 
     error_lines, failed_jobs, logs_found = extract_failure_info(args.run_ids, args.token, args.repo)
 
-    # Without a log the model can only guess, and a plausible-looking guess is worse than
-    # no commit at all. Stop here and let the attempt counter escalate to a human.
     if failed_jobs and not logs_found:
         print(error_lines)
         print(

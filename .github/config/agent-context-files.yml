@@ -36,7 +36,6 @@ jobs:
     - "test/{framework}/scripts/ubuntu/{framework}_sagemaker_examples_test.sh"
 
   model-tests:
-    # the shared smoke script still lives under amzn2023/ for vllm
     - "test/{framework}/scripts/{framework}_model_smoke_test.sh"
     - "test/{framework}/scripts/amzn2023/{framework}_model_smoke_test.sh"
     - ".github/config/model-tests/{framework}-model-tests.yml"
