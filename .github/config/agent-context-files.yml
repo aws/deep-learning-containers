@@ -13,7 +13,7 @@ common:
 
 # Job-specific files
 jobs:
-  build-image:
+  build:
     - "scripts/docker/common/install_efa.sh"
 
   sanity-test:

@@ -1,6 +1,6 @@
 # Currency Fix Agent — diagnoses and fixes CI failures on auto-update PRs.
 # Triggers once per CI cycle via Merge Conditions. Pushes [agent-fix] commits.
-# Max 3 attempts per PR branch, then escalates to human.
+# One attempt per PR branch, then escalates to human (MAX_ATTEMPTS).
 
 name: Currency Fix Agent
 
@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  MAX_ATTEMPTS: 3
+  MAX_ATTEMPTS: 1
 
 jobs:
   fix-agent:

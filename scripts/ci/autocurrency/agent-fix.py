@@ -20,7 +20,7 @@ MODEL_ID = "us.anthropic.claude-opus-4-6-v1"
 MAX_TOKENS = 16384
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 MAX_LOG_LINES = 500
-MAX_LLM_RETRIES = 3
+MAX_LLM_RETRIES = 1
 CONTEXT_MAP_PATH = ".github/config/agent-context-files.yml"
 
 SEARCH_REPLACE_PATTERN = re.compile(
@@ -88,6 +88,7 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
     results = []
     failed_job_names = []
     logs_found = 0
+    tracked = tracked_job_names()
     for run_id in run_ids.strip().split():
         if not run_id:
             continue
@@ -107,16 +108,9 @@ def extract_failure_info(run_ids: str, token: str, repo: str) -> tuple:
             results.append(f"Failed to fetch jobs for run {run_id}: {e}")
             continue
 
-        # Find failed jobs and steps. Must match the job names the pipeline emits.
-        tracked_jobs = [
-            "build",
-            "sanity-test",
-            "security-test",
-            "telemetry-test",
-            "upstream-tests",
-            "model-tests",
-            "sagemaker-tests",
-        ]
+        # Find failed jobs and steps. The names come from the context map, whose keys must
+        # match the job names the pipeline emits.
+        tracked_jobs = tracked
         for job in data.get("jobs", []):
             if job.get("conclusion") != "failure":
                 continue
@@ -182,6 +176,28 @@ def read_file(path: str) -> str:
         return Path(path).read_text()
     except (FileNotFoundError, PermissionError):
         return ""
+
+
+def load_context_map() -> dict:
+    """Parse the job -> context file map. Returns {} when the file is absent."""
+    mapping_path = Path(CONTEXT_MAP_PATH)
+    if not mapping_path.exists():
+        return {}
+    try:
+        import yaml
+
+        return yaml.safe_load(mapping_path.read_text()) or {}
+    except ImportError:
+        return _parse_simple_yaml(mapping_path.read_text())
+
+
+def tracked_job_names() -> list:
+    """Job names to watch, taken from the context map so the two cannot drift.
+
+    Longest first, so a short name never shadows a more specific one.
+    """
+    jobs = (load_context_map().get("jobs") or {}).keys()
+    return sorted(jobs, key=len, reverse=True)
 
 
 def load_context_files(framework: str, failed_jobs: list) -> dict:
