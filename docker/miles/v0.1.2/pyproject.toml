@@ -8,7 +8,8 @@
 # constraint-dependencies is the `pip freeze --all` of the official image
 # radixark/miles:v0.1.2 (amd64 sha256:cc095dc90d48040e8fa8058efc8b30e3d33f0dd9828a2fc5fd89609f7c863994)
 # with local file/VCS entries removed, so every shared package keeps the
-# upstream version.
+# upstream version. The exceptions are security fixes released after v0.1.2:
+# certifi 2026.10.19, pillow 13.0.0, uv 0.13.4 and virtualenv 21.14.7.
 #
 # The Miles release wheels install from /opt/miles-wheels, where the Dockerfile
 # copies what scripts/ci/build/miles/pre_build.sh stages into ./wheels. Regenerate
@@ -17,7 +18,7 @@
 #   docker run --rm -v "$PWD/docker/miles/v0.1.2":/w -w /w \
 #     -v "$PWD/docker/miles/v0.1.2/wheels":/opt/miles-wheels:ro \
 #     -e SETUPTOOLS_SCM_PRETEND_VERSION_FOR_SGLANG=0.5.22.dev37+gb84bec5 -e SGLANG_BUILD_RUST_EXTS=none \
-#     ghcr.io/astral-sh/uv:0.12.21-python3.12-trixie uv lock
+#     ghcr.io/astral-sh/uv:0.13.4-python3.12-trixie uv lock
 
 [project]
 name = "miles-dlc"
@@ -121,7 +122,7 @@ override-dependencies = [
     # opentelemetry-sdk 1.45.0 pins opentelemetry-api==1.45.0.
     "opentelemetry-api==1.45.1",
     # moviepy caps pillow<12.
-    "pillow==12.3.0",
+    "pillow==13.0.0",
     # grpcio-health-checking, grpcio-reflection and the cutlass-dsl libs cap protobuf<7.
     "protobuf==7.36.2",
     # SGLang pins tilelang==0.1.12.
@@ -161,7 +162,7 @@ constraint-dependencies = [
     "botocore==1.43.106",
     "build==1.6.1",
     "cache_dit==1.5.1",
-    "certifi==2026.7.22",
+    "certifi==2026.10.19",
     "cffi==2.1.1",
     "cfgv==3.5.0",
     "charset-normalizer==3.5.2",
@@ -384,7 +385,7 @@ constraint-dependencies = [
     "pathspec==1.1.1",
     "peft==0.18.1",
     "pexpect==4.9.0",
-    "pillow==12.3.0",
+    "pillow==13.0.0",
     "pip==26.2.1",
     "platformdirs==4.12.2",
     "plotext==5.3.2",
@@ -514,10 +515,10 @@ constraint-dependencies = [
     "typing-inspection==0.4.4",
     "tyro==1.0.16",
     "urllib3==2.8.0",
-    "uv==0.12.21",
+    "uv==0.13.4",
     "uvicorn==0.54.0",
     "uvloop==0.23.0",
-    "virtualenv==21.14.2",
+    "virtualenv==21.14.7",
     "vsa==0.0.4",
     "wadler_lindig==0.1.7",
     "wandb==0.30.0",
