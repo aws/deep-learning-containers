@@ -20,7 +20,6 @@ MODEL_ID = "us.anthropic.claude-opus-4-6-v1"
 MAX_TOKENS = 16384
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 MAX_LOG_LINES = 500
-MAX_LLM_RETRIES = 1
 CONTEXT_MAP_PATH = ".github/config/agent-context-files.yml"
 
 SEARCH_REPLACE_PATTERN = re.compile(
@@ -401,7 +400,7 @@ def call_bedrock(system: str, user: str) -> str:
     return json.loads(resp["body"].read())["content"][0]["text"]
 
 
-def build_prompt(framework, branch, error_lines, context_files, previous_fixes, retry_context=""):
+def build_prompt(framework, branch, error_lines, context_files, previous_fixes):
     files_section = ""
     for path, content in context_files.items():
         ext = Path(path).suffix.lstrip(".")
@@ -421,9 +420,6 @@ Today: {today.isoformat()} (use {(today + datetime.timedelta(days=90)).isoformat
 {files_section}
 ### Previous fix attempts on this branch:
 {previous_fixes}"""
-
-    if retry_context:
-        prompt += f"\n\n### RETRY — Previous attempt failed:\n{retry_context}\n\nFix ONLY the failed SEARCH blocks. Do NOT resend already-applied blocks."
     return prompt
 
 
@@ -451,57 +447,38 @@ def main():
     print(f"Context files loaded: {list(context_files.keys())}")
     print()
 
-    retry_context = ""
-    for attempt in range(1, MAX_LLM_RETRIES + 1):
-        print(f"--- Attempt {attempt}/{MAX_LLM_RETRIES} ---")
+    prompt = build_prompt(args.framework, args.branch, error_lines, context_files, previous_fixes)
+    print(f"Prompt size: {len(prompt)} chars")
+    response = call_bedrock(SYSTEM_PROMPT, prompt)
+    print(f"LLM response ({len(response)} chars):")
+    print(response[:2000])
+    if len(response) > 2000:
+        print(f"  ... ({len(response) - 2000} more chars)")
+    print()
 
-        prompt = build_prompt(
-            args.framework, args.branch, error_lines, context_files, previous_fixes, retry_context
-        )
-        print(f"Prompt size: {len(prompt)} chars")
-        response = call_bedrock(SYSTEM_PROMPT, prompt)
-        print(f"LLM response ({len(response)} chars):")
-        print(response[:2000])
-        if len(response) > 2000:
-            print(f"  ... ({len(response) - 2000} more chars)")
-        print()
+    if response.strip().startswith("TRANSIENT:"):
+        print(f"Transient: {response.strip().split(':', 1)[1].strip()}")
+        sys.exit(0)
 
-        if response.strip().startswith("TRANSIENT:"):
-            print(f"Transient: {response.strip().split(':', 1)[1].strip()}")
-            sys.exit(0)
+    blocks = parse_blocks(response)
+    if not blocks:
+        print("ERROR: could not parse search/replace blocks from the response.")
+        print(f"  Response preview: {response[:300]}")
+        sys.exit(1)
+    print(f"Parsed {len(blocks)} block(s): {[b['path'] for b in blocks]}")
 
-        blocks = parse_blocks(response)
-        if blocks:
-            paths = [b["path"] for b in blocks]
-            print(f"Parsed {len(blocks)} block(s): {paths}")
-        if not blocks:
-            retry_context = (
-                f"Could not parse search/replace blocks from response.\n"
-                f"Response started with: {response[:300]}...\n"
-                f"Use exact format: <filepath>\\n<<<<<<< SEARCH\\n...\\n=======\\n...\\n>>>>>>> REPLACE"
-            )
-            print("No blocks parsed, retrying...")
-            print(f"  Response preview: {response[:200]}")
-            continue
+    modified, errors = apply_blocks(blocks, set(context_files.keys()))
+    if errors:
+        print(f"ERROR: {len(modified)} block(s) applied, {len(errors)} failed.")
+        for e in errors:
+            print(f"  {e[:300]}")
+        sys.exit(1)
 
-        modified, errors = apply_blocks(blocks, set(context_files.keys()))
-        if errors:
-            retry_context = f"{len(modified)} applied, {len(errors)} failed:\n" + "\n".join(errors)
-            print(f"{'Partial' if modified else 'All failed'}: {len(errors)} error(s), retrying...")
-            for e in errors:
-                print(f"  ERROR: {e[:300]}")
-            continue
-
-        # Success
-        desc_match = re.search(r"^DESCRIPTION:\s*(.+)$", response, re.MULTILINE)
-        description = desc_match.group(1).strip() if desc_match else "automated fix"
-        Path("/tmp/agent-fix-description.txt").write_text(description)
-        print(f"✅ {len(modified)} edit(s) applied: {modified}")
-        print(f"Description: {description}")
-        return
-
-    print(f"ERROR: Failed after {MAX_LLM_RETRIES} attempts.")
-    sys.exit(1)
+    desc_match = re.search(r"^DESCRIPTION:\s*(.+)$", response, re.MULTILINE)
+    description = desc_match.group(1).strip() if desc_match else "automated fix"
+    Path("/tmp/agent-fix-description.txt").write_text(description)
+    print(f"{len(modified)} edit(s) applied: {modified}")
+    print(f"Description: {description}")
 
 
 if __name__ == "__main__":
