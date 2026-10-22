@@ -3,7 +3,8 @@
 Launches one GPU instance from a capacity reservation (the first instance type in
 MULTI_GPU_INSTANCE_TYPES with free capacity wins), then runs each payload in scripts/
 inside the image under test, across every GPU the instance has, followed by upstream's
-short GRPO runs from the Miles checkout in the image.
+short GRPO runs from the Miles checkout in the image and, for the EC2 image
+(MILES_CUSTOMER_TYPE=ec2), its checkpoint-resume and SFT runs.
 
 Usage:
     TEST_IMAGE_URI=<ecr-image-uri> MILES_TEST_MODEL_DIR=<hf-model-dir> [HF_TOKEN=<token>] \
@@ -137,10 +138,34 @@ def test_sglang_tensor_parallel_serving(gpu_host):
 def test_upstream_grpo_run(gpu_host, script):
     """Upstream's short Qwen2.5-0.5B GRPO run passes. Its --ci-test mode checks that the
     trainer's log-probs match SGLang's and that every engine picks up the new weights."""
+    run_upstream_test(gpu_host, f"tests/e2e/short/{script}")
+
+
+# The SageMaker image has the same training stack, so only the EC2 image spends GPU time
+# on these.
+@pytest.mark.skipif(os.environ.get("MILES_CUSTOMER_TYPE") != "ec2", reason="EC2 image only")
+@pytest.mark.parametrize(
+    "script",
+    [
+        # Saves a checkpoint every step, resumes from it and checks that the model hashes
+        # match, then repeats with asynchronous saving.
+        "tests/e2e/ckpt/test_qwen3_0.6B_ckpt.py",
+        # Pure SFT, evaluated on GSM8K from the snapshots the trainer exports.
+        "tests/e2e/short/test_qwen3_0.6B_sft_snapshot_eval.py",
+    ],
+    ids=["checkpoint-resume", "sft"],
+)
+def test_upstream_workflow_run(gpu_host, script):
+    """Upstream's short Qwen3-0.6B run of a training workflow beyond the GRPO loop passes
+    its --ci-test checks."""
+    run_upstream_test(gpu_host, script)
+
+
+def run_upstream_test(gpu_host, script):
     conn, instance_type, _ = gpu_host
     result = run_in_container(
         conn,
-        f"python tests/e2e/short/{script}",
+        f"python {script}",
         exec_args=f"-w /opt/miles -e PYTHONPATH={UPSTREAM_PYTHONPATH}",
         timeout=3600,
     )

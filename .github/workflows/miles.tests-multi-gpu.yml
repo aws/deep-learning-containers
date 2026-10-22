@@ -32,6 +32,7 @@ jobs:
     outputs:
       image-uri: ${{ steps.image.outputs.image-uri }}
       image-exists: ${{ steps.check.outputs.exists }}
+      customer-type: ${{ steps.config.outputs.customer-type }}
     steps:
       - uses: actions/checkout@v6
 
@@ -51,9 +52,16 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+      - name: Read customer type
+        id: config
+        env:
+          CONFIG_FILE: ${{ inputs.config-file }}
+        run: echo "customer-type=$(yq '.metadata.customer_type' "${CONFIG_FILE}")" >> "${GITHUB_OUTPUT}"
+
   # The runner launches a reserved GPU instance and drives it over SSH; see
   # test/test_utils/gpu_instance.py. The same instance then runs upstream's short GRPO
-  # runs, which download their model and data from Hugging Face, as upstream CI does.
+  # runs and, for the EC2 image, its checkpoint-resume and SFT runs. They download their
+  # models and data from Hugging Face, as upstream CI does.
   multi-gpu-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
@@ -85,6 +93,7 @@ jobs:
           TEST_IMAGE_URI: ${{ needs.preflight.outputs.image-uri }}
           MILES_TEST_MODEL_DIR: ${{ steps.model.outputs.model-dir }}
           MULTI_GPU_INSTANCE_TYPES: ${{ inputs.instance-types }}
+          MILES_CUSTOMER_TYPE: ${{ needs.preflight.outputs.customer-type }}
           AWS_REGION: ${{ vars.AWS_REGION }}
           HF_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
         run: |
