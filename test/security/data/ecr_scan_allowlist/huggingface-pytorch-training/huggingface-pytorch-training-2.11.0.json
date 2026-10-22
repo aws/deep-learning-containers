@@ -38,5 +38,10 @@
         "vulnerability_id": "CVE-2026-104851",
         "reason": "fsspec 2026.2.0 (from the PyTorch 2.11 base, pinned there by s3fs==2026.2.0) ReferenceFileSystem evaluates Kerchunk reference fields; fix requires fsspec>=2026.6.0, but datasets 5.0.0 on this line caps fsspec<=2026.4.0 and datasets>=5.1.0 needs huggingface-hub>=1.31 (this line pins 1.23.0). Exploitation requires loading an attacker-supplied reference spec. Fixed on the 2.13 line (fsspec/s3fs 2026.7.0).",
         "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-105759",
+        "reason": "Temporary exception: vllm 0.25.0 is pinned to this torch 2.11 training stack. Its optional Rust HTTP frontend can create unbounded Prometheus labels from arbitrary HTTP methods (DoS). The upstream package fix requires vllm>=0.30.0, which pins torch==2.13.0 and is incompatible with this base; a separate pip or OS dependency update cannot patch the compiled Rust frontend. The frontend is retained, without a custom source patch or binary removal. The training image does not start the Rust HTTP server by default; vllm is included as the TRL rollout backend. Revisit on a compatible framework upgrade. Upstream advisory: https://github.com/vllm-project/vllm/security/advisories/GHSA-5fj9-pfhr-6j48.",
+        "review_by": "2026-11-21"
     }
 ]
