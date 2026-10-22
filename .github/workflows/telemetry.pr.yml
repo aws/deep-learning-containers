@@ -1,0 +1,85 @@
+name: "PR - Telemetry"
+
+# Framework PR workflows don't watch telemetry paths. This workflow diffs
+# deep_learning_container.py against the PR base and tests only the images a
+# change can affect; see scripts/ci/select_telemetry_configs.py.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/workflows/_reusable.telemetry-tests.yml"
+      - ".github/workflows/telemetry.pipeline.yml"
+      - ".github/workflows/telemetry.pr.yml"
+      - "scripts/ci/select_telemetry_configs.py"
+      - "scripts/docker/telemetry/**"
+      - "test/ci/telemetry/**"
+      - "test/telemetry/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  # Validates the region and framework registry, which no image test checks
+  # when a PR only adds entries to it.
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install pytest pyyaml
+
+      - name: Run telemetry selection unit tests
+        run: python -m pytest test/ci/telemetry --confcutdir test/ci/telemetry -v
+
+  select:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.select.outputs.configs }}
+    steps:
+      # The PR merge commit and its base parent, which the selector diffs.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - id: select
+        run: python3 scripts/ci/select_telemetry_configs.py --base-ref HEAD^1
+
+  pipeline:
+    needs: [gatekeeper, select]
+    if: ${{ needs.select.outputs.configs != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.select.outputs.configs) }}
+    uses: ./.github/workflows/telemetry.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+    secrets: inherit

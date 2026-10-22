@@ -18,11 +18,9 @@ on:
       # Shared TF scripts belong in scripts/docker/common/**, not at the
       # scripts/docker/tensorflow/ root.
       - "scripts/docker/tensorflow/**"
-      - "scripts/docker/telemetry/**"
       - "test/tensorflow/integration/inference/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/tensorflow/**"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -46,7 +44,6 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -72,9 +69,6 @@ jobs:
               - "test/tensorflow/integration/inference/**"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "scripts/docker/telemetry/**"
-              - "test/telemetry/**"
 
   discover:
     needs: [gatekeeper]
@@ -101,7 +95,7 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false
     secrets: inherit
