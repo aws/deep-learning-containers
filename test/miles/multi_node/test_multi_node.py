@@ -35,6 +35,10 @@ EXPORT_HF_TOKEN = (
 )
 NCCL_LOG_DIR = "/tmp/nccl-logs"
 LOG_TAIL_LINES = 400
+ENGINE_EVENTS = (
+    "Uvicorn running|Started server process|launch_server|op=health|Killing|SIGTERM|SIGQUIT"
+    "|crashed|restart|ConnectError|Traceback|Error"
+)
 
 
 def private_ip(conn):
@@ -48,7 +52,7 @@ def private_ip(conn):
     ).stdout.strip()
 
 
-def run_in_container(conn, container, command, env=None, timeout=600):
+def run_in_container(conn, container, command, env=None, timeout=600, tail_lines=LOG_TAIL_LINES):
     """Run a shell command in the container through the image entrypoint."""
     env_args = " ".join(f"-e {name}={shlex.quote(value)}" for name, value in (env or {}).items())
     result = conn.run(
@@ -58,9 +62,22 @@ def run_in_container(conn, container, command, env=None, timeout=600):
         warn=True,
     )
     for name, output in (("stdout", result.stdout), ("stderr", result.stderr)):
-        tail = "\n".join(output.splitlines()[-LOG_TAIL_LINES:])
-        LOGGER.info(f"{container}: {command} {name} (last {LOG_TAIL_LINES} lines):\n{tail}")
+        tail = "\n".join(output.splitlines()[-tail_lines:])
+        LOGGER.info(f"{container}: {command} {name} (last {tail_lines} lines):\n{tail}")
     return result
+
+
+def log_engine_lifecycle(conn, container):
+    """Log, from the node's Ray logs, where each server bound and when anything was
+    health-checked, killed, restarted or crashed. The run's own output keeps only
+    what Ray forwards to the driver."""
+    run_in_container(
+        conn,
+        container,
+        f"grep -h -E {shlex.quote(ENGINE_EVENTS)} /tmp/ray/session_latest/logs/*.out "
+        "/tmp/ray/session_latest/logs/*.err 2>/dev/null | tail -n 600",
+        tail_lines=600,
+    )
 
 
 @pytest.fixture(scope="module")
@@ -136,7 +153,14 @@ def test_grpo_across_nodes_broadcasts_weights_over_efa(ray_cluster):
             "NCCL_DEBUG_FILE": f"{NCCL_LOG_DIR}/%h-%p.log",
         },
         timeout=3600,
+        tail_lines=3000,
     )
+    if not result.ok:
+        for conn, container in (
+            (head_conn, MASTER_CONTAINER_NAME),
+            (worker_conn, WORKER_CONTAINER_NAME),
+        ):
+            log_engine_lifecycle(conn, container)
     assert result.ok, f"The two-node GRPO run failed (exit {result.return_code})"
 
     # NCCL logs the transport of every connection it sets up. Only connections to the
