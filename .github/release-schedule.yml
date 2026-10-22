@@ -154,3 +154,16 @@ schedules:
   - cron: "30 18 * * 5"
     workflow: llama-cpp.autorelease-sagemaker-arm64-amzn2023.yml
     gpu: minimal
+
+  # Friday — Lambda (pre-GA, private registry only; revisit the slot at GA)
+  - cron: "00 19 * * 5"
+    workflow: lambda-core.autorelease-gpu.yml
+    gpu: light
+
+  - cron: "30 19 * * 5"
+    workflow: lambda-vllm.autorelease-gpu.yml
+    gpu: heavy
+
+  - cron: "00 20 * * 5"
+    workflow: lambda-sglang.autorelease-gpu.yml
+    gpu: heavy

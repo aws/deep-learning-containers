@@ -1,9 +1,8 @@
-# Lambda vLLM release workflow — manual dispatch only.
-# Discovers the Lambda vLLM config(s) and runs the pipeline for each.
-
-name: "Dispatch - Lambda vLLM Release"
+name: "Auto Release - Lambda SGLang GPU"
 
 on:
+  schedule:
+    - cron: '00 20 * * 5'
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +22,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/lambda/vllm/*.yml"
+          pattern: ".github/config/image/lambda/sglang/*.yml"
 
   pipeline:
     needs: [discover]
@@ -35,6 +34,6 @@ jobs:
     with:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
-      run-vllm-upstream-test: true
+      run-sglang-upstream-test: true
       release: true
     secrets: inherit
