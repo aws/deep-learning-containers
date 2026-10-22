@@ -91,6 +91,7 @@ display_names:
     tensorflow-inference-arm64: "TensorFlow Inference ARM64"
     pytorch-training-neuronx: "PyTorch Training NeuronX"
     pytorch-inference-neuronx: "PyTorch Inference NeuronX"
+    torch-neuronx: "PyTorch NeuronX"
     tensorflow-inference-neuronx: "TensorFlow Inference NeuronX"
     huggingface-pytorch-training: "HuggingFace PyTorch Training"
     huggingface-pytorch-inference: "HuggingFace PyTorch Inference"
@@ -232,6 +233,7 @@ image_categories:
       - huggingface-tensorflow-inference
   - title: "NeuronX (Trainium / Inferentia)"
     repositories:
+      - torch-neuronx
       - pytorch-training-neuronx
       - pytorch-inference-neuronx
       - tensorflow-inference-neuronx
@@ -278,6 +280,7 @@ table_order:
   - tensorflow-inference
   - tensorflow-inference-arm64
   - whisperx
+  - torch-neuronx
   - pytorch-training-neuronx
   - pytorch-inference-neuronx
   - tensorflow-inference-neuronx
