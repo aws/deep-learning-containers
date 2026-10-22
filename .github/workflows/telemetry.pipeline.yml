@@ -1,0 +1,37 @@
+name: "Pipeline - Telemetry"
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  # Check to see if the prod image already passed the current telemetry suite
+  check:
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.check-test-pass.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ""
+      suites: '["telemetry"]'
+
+  telemetry-test:
+    if: ${{ always() && !cancelled() && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [check]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.telemetry-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ""
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}

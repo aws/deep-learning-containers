@@ -11,11 +11,9 @@ on:
       - "docker/ray_llm/**"
       - "scripts/docker/common/**"
       - "scripts/docker/ray_llm/**"
-      - "scripts/docker/telemetry/**"
       - "test/ray-llm/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/ray_llm/**"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -38,7 +36,6 @@ jobs:
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
       ec2-test-change: ${{ steps.changes.outputs.ec2-test-change }}
       eks-multi-node-test-change: ${{ steps.changes.outputs.eks-multi-node-test-change }}
@@ -57,9 +54,6 @@ jobs:
               - "test/security/data/ecr_scan_allowlist/ray_llm/**"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "scripts/docker/telemetry/**"
-              - "test/telemetry/**"
             unit-test-change:
               - "test/ray-llm/unit/**"
             ec2-test-change:
@@ -94,7 +88,7 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-ec2-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ec2-test-change == 'true' }}
       run-eks-multi-node-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.eks-multi-node-test-change == 'true' }}
