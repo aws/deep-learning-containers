@@ -1,7 +1,0 @@
-[
-    {
-        "vulnerability_id": "CVE-2026-94624",
-        "reason": "Temporary exception: the HF vLLM image remains on its existing vllm 0.31.0 base. Inspector reports the P2P KV-offloading socket-exhaustion fix in vllm>=0.32.0. This is vulnerable vllm code, not a separately updatable pip or OS dependency; upgrading the serving framework or maintaining a source backport is outside the scope of this PyTorch inference PR. Exploitation requires OffloadingConnector with TieringOffloadingSpec and a P2P secondary tier, which this image does not enable by default. Revisit on the next HF vLLM framework release. Upstream fix: https://github.com/vllm-project/vllm/pull/51504.",
-        "review_by": "2026-11-21"
-    }
-]

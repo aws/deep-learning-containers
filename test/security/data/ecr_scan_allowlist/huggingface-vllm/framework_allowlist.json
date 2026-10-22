@@ -178,5 +178,10 @@
         "vulnerability_id": "CVE-2026-97032",
         "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, cannot be patched independently of an upstream mooncake-transfer-engine rebuild",
         "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94624",
+        "reason": "vllm 0.31.0 is the framework version of this image (inherited from the AWS vLLM 0.31.0 base); the fix is in 0.32.0, which requires a framework version bump. Only reachable when OffloadingConnector is configured with TieringOffloadingSpec and a P2P secondary tier, which this image does not enable by default",
+        "review_by": "2026-11-28"
     }
 ]
