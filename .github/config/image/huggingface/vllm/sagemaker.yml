@@ -21,7 +21,7 @@ build:
   python_version: "3.12"
   cuda_version: "13.0.2"
   transformers_version: "5.15.0"
-  huggingface_hub_version: "1.27.0"
+  huggingface_hub_version: "1.33.0"
   hf_xet_version: "1.6.0"
   ffmpeg_tag: "n8.1"
   dlc_major_version: "1"
