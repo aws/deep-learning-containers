@@ -12,7 +12,6 @@ on:
       - "docker/pytorch/2.12/cuda/**"
       - "scripts/docker/common/**"
       - "scripts/docker/pytorch/**"
-      - "scripts/docker/telemetry/**"
       - "test/efa/**"
       - "test/pytorch/multi_gpu/**"
       - "test/pytorch/single_gpu/**"
@@ -20,7 +19,6 @@ on:
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/pytorch_runtime/pytorch_runtime-2.12.*.json"
       - "test/security/data/ecr_scan_allowlist/pytorch_runtime/framework_allowlist.json"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -53,7 +51,6 @@ jobs:
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       single-gpu-test-change: ${{ steps.changes.outputs.single-gpu-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -80,9 +77,6 @@ jobs:
             sagemaker-test-change:
               - "test/pytorch/integration/sagemaker/**"
               - ".github/workflows/pytorch.tests-sagemaker.yml"
-            telemetry-test-change:
-              - "scripts/docker/telemetry/**"
-              - "test/telemetry/**"
             unit-test-change:
               - "test/pytorch/unit/**"
 
@@ -118,7 +112,7 @@ jobs:
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-single-gpu-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.single-gpu-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       release: false
     secrets: inherit

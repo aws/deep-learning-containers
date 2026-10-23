@@ -248,6 +248,7 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - **Test-only runs:** when build is skipped (only test files changed), test jobs receive empty `image-uri` → `resolve-image-uri` action falls back to prod image from `metadata.prod_image`.
 - **Graceful skip:** `check-image-exists` action probes ECR; if image not found (first release scenario), tests skip cleanly.
 - **PR change detection:** `dorny/paths-filter` outputs per-test-suite flags. The pipeline receives `run-*-test` booleans. If `build-change` is true, all tests run.
+- **Telemetry changes:** framework PR callers must not list `scripts/docker/telemetry/**` or `test/telemetry/**` (enforced by `test/ci/telemetry`). `telemetry.pr.yml` owns them: `scripts/ci/select_telemetry_configs.py` diffs `deep_learning_container.py` against the PR base. A new `REGION_MAPPING` entry tests no images. A new `--framework` choice tests that framework's released configs. Any other telemetry change tests every released config of a registered framework through `telemetry.pipeline.yml`.
 
 ### Concurrency
 - Pipeline jobs include `${{ inputs.config-file }}` in concurrency group keys to allow parallel runs of different configs.
