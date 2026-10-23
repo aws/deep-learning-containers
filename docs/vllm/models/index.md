@@ -43,7 +43,8 @@ The `vllm-arm64` images are tested on every release with:
 Starting with v2.7, the `server-cuda` and `server-sagemaker-cuda` images serve Reflection's
 [Beam](https://huggingface.co/reflection/Beam-1.0-501B-A23B) (`BeamForCausalLM`, 501B total / 23B active parameters). Upstream vLLM added Beam after
 the commit these images are built from ([#62052](https://github.com/vllm-project/vllm/pull/62052),
-[#62074](https://github.com/vllm-project/vllm/pull/62074)), so the images backport it. Beam is not part of the regression suite above.
+[#62074](https://github.com/vllm-project/vllm/pull/62074)), so the images backport it. Beam is validated offline rather than in the regression suite
+above.
 
 Serve the NVFP4 checkpoint on four B200 or B300 GPUs with the `beam` reasoning and tool-call parsers:
 
