@@ -38,6 +38,7 @@ RUN uv pip install --system --break-system-packages \
   "aiohttp>=3.14.4" \
   "pillow>=13.0.0" \
   "certifi>=2026.10.19" \
+  "uv>=0.13.4" \
   && uv cache clean \
   && rm -rf /tmp/uv*
 
