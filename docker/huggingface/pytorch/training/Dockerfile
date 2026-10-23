@@ -40,8 +40,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Security floors for ECR findings: soupsieve fixes GHSA-2wc2-fm75-p42x and
 # GHSA-836r-79rf-4m37; Pillow 13.0.0 fixes CVE-2026-112895/112896/112897,
 # CVE-2026-112397/112400/112403/112404 (TIFF, JPEG, GIF, PDF and ImageMorph).
-# GitPython 3.1.55
-# clears 9 HIGH advisories up to GHSA-94p4-4cq8-9g67; pyasn1 0.6.4 clears
+# GitPython 3.2.1 fixes CVE-2026-114145 and earlier advisories;
+# graphql-core 3.2.12 fixes CVE-2026-75507/75508 while retaining Graphene compatibility.
+# pyasn1 0.6.4 clears
 # CVE-2026-59885 and CVE-2026-59886; cryptography 50.0.0 clears CVE-2026-69247
 # and CVE-2026-69249; aiohttp 3.14.4 clears CVE-2026-111064/111066 and
 # GHSA-2g87-pp6c-29x5; certifi 2026.10.19 clears GHSA-6q48-6c7w-9gw2.
@@ -66,7 +67,8 @@ RUN uv pip install --python ${VENV_PYTHON} \
   sentencepiece protobuf einops scipy scikit-learn tensorboard \
   "pillow>=13.0.0" \
   "soupsieve>=2.8.4" \
-  "GitPython>=3.1.60" \
+  "GitPython>=3.2.1" \
+  "graphql-core>=3.2.12,<3.3" \
   "anyio>=4.14.2" \
   "pyasn1>=0.6.4" \
   "cryptography>=50.0.0" \
