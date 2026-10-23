@@ -1,6 +1,8 @@
 """Verify the CUDA stack does real work on the GPU: libraries, compilers and JIT paths."""
 
+import json
 import os
+import subprocess
 
 import torch
 import triton
@@ -39,6 +41,16 @@ def test_gpu_is_visible():
 def test_gpu_architecture_is_one_the_image_builds_for():
     major, minor = torch.cuda.get_device_capability()
     assert f"{major}.{minor}" in os.environ["MILES_SUPPORTED_CUDA_ARCHES"].split(",")
+
+
+def test_nvtop_reports_the_gpu():
+    # nvtop reads the GPU through NVML, from the driver the container runtime mounts.
+    snapshot = subprocess.run(
+        ["nvtop", "--snapshot"], check=True, capture_output=True, text=True
+    ).stdout
+    assert snapshot.lstrip().startswith("["), snapshot
+    names = [device["device_name"] for device in json.loads(snapshot)]
+    assert torch.cuda.get_device_name(0) in names, snapshot
 
 
 def test_cublas_matmul_matches_cpu():

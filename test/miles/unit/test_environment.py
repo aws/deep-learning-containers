@@ -54,6 +54,7 @@ def test_binary_on_path(binary):
         "ethtool",
         "git",
         "jq",
+        "nvtop",
         "patch",
         "patchelf",
         "perl",
@@ -77,6 +78,10 @@ def test_kubernetes_client_runs(command):
 
 def test_ffmpeg_runs():
     subprocess.run(["ffmpeg", "-version"], check=True, capture_output=True)
+
+
+def test_nvtop_runs():
+    subprocess.run(["nvtop", "--version"], check=True, capture_output=True)
 
 
 def test_ofi_nccl_plugin_installed():

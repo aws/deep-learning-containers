@@ -25,6 +25,7 @@ ARG EFA_VERSION=latest
 ARG RUST_VERSION=1.96.1
 ARG FFMPEG_VERSION=n8.1
 ARG GDRCOPY_VERSION=2.5.1
+ARG NVTOP_VERSION=3.3.2
 ARG NCCL_TESTS_COMMIT=ae98985f5599617be94042f4aa3637d10014ce89
 ARG MILES_COMMIT=ace18d49e9c942bfa45451b12ac3bbbc7486969a
 ARG SGLANG_COMMIT=3a938213c1b349e1a8df0b5fdc57ef36a41c743b
@@ -128,6 +129,27 @@ RUN dnf install -y --setopt=install_weak_deps=False gcc git make \
   && mkdir -p /usr/local/share/licenses/GDRCopy \
   && cp /tmp/gdrcopy/LICENSE /usr/local/share/licenses/GDRCopy/LICENSE \
   && rm -rf /tmp/gdrcopy /var/cache/dnf
+
+
+# ── Stage: nvtop-builder ─────────────────────────────────────────────────────
+# Upstream installs nvtop from Ubuntu; AL2023 does not package it. Build the
+# pinned release with only its NVIDIA backend, which loads NVML from the driver at
+# run time, so the binary needs nothing beyond ncurses.
+FROM build-base AS nvtop-builder
+
+ARG NVTOP_VERSION
+
+RUN dnf install -y --setopt=install_weak_deps=False ncurses-devel \
+  && git clone --depth 1 --branch "${NVTOP_VERSION}" \
+    https://github.com/Syllo/nvtop.git /tmp/nvtop \
+  && cmake -S /tmp/nvtop -B /tmp/nvtop/build -DCMAKE_BUILD_TYPE=Release \
+    -DNVIDIA_SUPPORT=ON -DAMDGPU_SUPPORT=OFF -DINTEL_SUPPORT=OFF -DMSM_SUPPORT=OFF \
+    -DPANFROST_SUPPORT=OFF -DPANTHOR_SUPPORT=OFF -DV3D_SUPPORT=OFF \
+    -DMETAX_SUPPORT=OFF -DENFLAME_SUPPORT=OFF -DTPU_SUPPORT=OFF \
+    -DROCKCHIP_SUPPORT=OFF \
+  && cmake --build /tmp/nvtop/build -j"$(nproc)" \
+  && mkdir -p /artifacts \
+  && cp /tmp/nvtop/build/src/nvtop /tmp/nvtop/COPYING /artifacts/
 
 
 # ── Stage: kube-tools ────────────────────────────────────────────────────────
@@ -398,6 +420,7 @@ ARG MILES_WHEELS_REPO
 ARG MILES_WHEELS_TAG
 ARG FFMPEG_VERSION
 ARG GDRCOPY_VERSION
+ARG NVTOP_VERSION
 ARG NCCL_TESTS_COMMIT
 
 COPY --from=router-builder /artifacts/sglang_router-*.whl /tmp/router/
@@ -444,6 +467,7 @@ RUN { \
     echo "miles_wheels=${MILES_WHEELS_REPO}@${MILES_WHEELS_TAG}"; \
       echo "ffmpeg=${FFMPEG_VERSION}"; \
       echo "gdrcopy=${GDRCOPY_VERSION}"; \
+      echo "nvtop=${NVTOP_VERSION}"; \
       echo "nccl_tests=${NCCL_TESTS_COMMIT}"; \
       echo; \
       echo "[source-built replacement wheels]"; \
@@ -616,6 +640,7 @@ FROM runtime-base AS base
 ARG MILES_VERSION
 ARG FFMPEG_VERSION
 ARG GDRCOPY_VERSION
+ARG NVTOP_VERSION
 ARG NCCL_TESTS_COMMIT
 ARG KUBECTL_VERSION
 ARG HELM_VERSION
@@ -632,6 +657,8 @@ COPY --from=nccl-tests-builder /artifacts/*_perf /usr/local/bin/
 COPY --from=nccl-tests-builder /artifacts/LICENSE.txt /usr/local/share/licenses/nccl-tests/LICENSE
 COPY --from=kube-tools /usr/local/bin/kubectl /usr/local/bin/helm /usr/local/bin/
 COPY --from=kube-tools /usr/local/share/licenses/helm /usr/local/share/licenses/helm
+COPY --from=nvtop-builder /artifacts/nvtop /usr/local/bin/nvtop
+COPY --from=nvtop-builder /artifacts/COPYING /usr/local/share/licenses/nvtop/COPYING
 
 # THIRD_PARTY_SOURCE_CODE_URLS entries are source tarballs: the sanity OSS step
 # (test/sanity/scripts/upload_oss_source.py) downloads tarball URLs and git-clones
@@ -647,6 +674,12 @@ RUN printf '\n** FFmpeg; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
     && printf '\nGDRCopy %s https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v%s.tar.gz\n' \
       "${GDRCOPY_VERSION}" "${GDRCOPY_VERSION}" \
+      >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+    && printf '\n** nvtop; version %s -- https://github.com/Syllo/nvtop/tree/%s\n' \
+      "${NVTOP_VERSION}" "${NVTOP_VERSION}" \
+      >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    && printf '\nnvtop %s https://github.com/Syllo/nvtop/archive/refs/tags/%s.tar.gz\n' \
+      "${NVTOP_VERSION}" "${NVTOP_VERSION}" \
       >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
     && printf '\n** nccl-tests; commit %s -- https://github.com/NVIDIA/nccl-tests/tree/%s\n' \
       "${NCCL_TESTS_COMMIT}" "${NCCL_TESTS_COMMIT}" \
