@@ -355,7 +355,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Install the built vllm wheel + deps into the runtime venv (/var/lang).
 # The wheel is installed --no-deps because vllm's requirements/cuda.txt pins
-# nvidia-cutlass-dsl[cu13]==4.5.2 → cuda-python 12.9 → cuda-bindings<12.10, which
+# nvidia-cutlass-dsl[cu13]==4.8.0 → cuda-python 12.9 → cuda-bindings<12.10, which
 # is IRRECONCILABLE with torch 2.11.0+cu130 (needs cuda-bindings>=13.0.3). That
 # cutlass-dsl/quack/humming cluster is only for the FA4 cute-DSL attention path,
 # which we don't use (flashinfer is the attention backend). So we install the real
@@ -378,6 +378,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   && uv pip install --python "${UV_PYTHON}" --no-deps "${VLLM_WHL}" \
   && uv pip install --python "${UV_PYTHON}" \
      "flashinfer-python==${FLASHINFER_VERSION}" "flashinfer-cubin==${FLASHINFER_VERSION}" \
+     --extra-index-url "https://flashinfer.ai/whl/" \
   # bump vllm transitive deps with fixed CVEs (ECR scan) to match the other images
   && uv pip install --python "${UV_PYTHON}" "pillow>=12.3.0" \
   # runai-model-streamer S3 loader — enables `--load-format runai_streamer`
