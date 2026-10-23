@@ -20,6 +20,8 @@ dependencies = [
     "setuptools>=80.9.0,<81",
     "protobuf==3.20.2",
     "cryptography>=50.0.0",
+    "pillow>=13.0.0",
+    "certifi>=2026.10.19",
 ]
 
 [tool.uv]
