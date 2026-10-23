@@ -29,6 +29,7 @@ build:
   rust_version: "1.96.1"
   ffmpeg_version: "n8.1"
   gdrcopy_version: "2.5.1"
+  nvtop_version: "3.3.2"
   nccl_tests_commit: "ae98985f5599617be94042f4aa3637d10014ce89"
   miles_commit: "a22fd824191c64ba7c5d6c531f125406e4ce9cc6"
   sglang_commit: "b84bec5761a6cdc8b1df86b9b89ead80a7a9bb02"
