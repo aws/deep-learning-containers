@@ -3,7 +3,7 @@
 # Multi-stage build:
 #
 #   sqlite-builder ─── (compiles SQLite from source)
-#   nginx-builder ──── (builds fixed nginx 1.31.5 from source — nginx CVEs)
+#   nginx-builder ──── (builds fixed nginx 1.31.7 from source — nginx CVEs)
 #   wheel-builder ──── (builds sagemaker_xgboost_container wheel)
 #   base ──────────── (miniforge, MLIO, XGBoost, system deps)
 #   xgboost-sagemaker  (SageMaker serving layer on top of base)
@@ -38,10 +38,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ── Stage: nginx-builder ─────────────────────────────────────────────────────
 # Focal has no fixed nginx — apt is ESM-only (20.04 EOL) and nginx.org's focal
 # builds stop at 1.28.0. Fixes for CVE-2026-42533/-42055/-42946 land only in
-# nginx mainline, so build 1.31.5 from source.
+# nginx mainline, so build 1.31.7 from source.
 FROM ubuntu:${UBUNTU_VERSION} AS nginx-builder
-ARG NGINX_VERSION=1.31.5
-ARG NGINX_SHA256=e951607d534836624bd36b6b45a71dbfb055237deae3738da6bbf3270dada279
+ARG NGINX_VERSION=1.31.7
+ARG NGINX_SHA256=89ea8a3dc171511f7325043b50e4c036248d9fad5feb7ec809c0b82d5df42c65
 RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries
 RUN apt-get update && apt-get install -y --no-install-recommends \
   build-essential wget ca-certificates libpcre2-dev zlib1g-dev libssl-dev \
@@ -208,7 +208,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 
 RUN sqlite3 --version
 
-# nginx 1.31.5, built from source in the nginx-builder stage.
+# nginx 1.31.7, built from source in the nginx-builder stage.
 COPY --from=nginx-builder /usr/sbin/nginx /usr/sbin/nginx
 COPY --from=nginx-builder /etc/nginx /etc/nginx
 RUN mkdir -p /var/log/nginx /var/lib/nginx/body /var/lib/nginx/proxy \
