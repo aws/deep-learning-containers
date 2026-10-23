@@ -1,0 +1,14 @@
+# Table Configuration - PyTorch NeuronX
+columns:
+  - field: framework_version
+    header: "Framework"
+  - field: python
+    header: "Python"
+  - field: sdk
+    header: "SDK"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: example_uri
+    header: "Example URI"
