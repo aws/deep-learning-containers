@@ -1,0 +1,124 @@
+# Variables substituted by deploy_ray_service.sh:
+#   ${DLC_IMAGE} ${RAY_VERSION} ${NAMESPACE} ${RAY_SERVICE_NAME}
+#   ${MODEL_ID} ${MODEL_SOURCE}
+---
+apiVersion: ray.io/v1
+kind: RayService
+metadata:
+  name: ${RAY_SERVICE_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  serviceUnhealthySecondThreshold: 1200
+  deploymentUnhealthySecondThreshold: 1200
+  serveConfigV2: |
+    applications:
+      - name: qwen
+        import_path: ray.serve.llm:build_pd_openai_app
+        route_prefix: /
+        args:
+          prefill_config:
+            model_loading_config:
+              model_id: ${MODEL_ID}
+              model_source: ${MODEL_SOURCE}
+            engine_kwargs:
+              # Fits the measured KV cache on one 24 GB L4
+              max_model_len: 4096
+              dtype: bfloat16
+              gpu_memory_utilization: 0.90
+              # Skips CUDA graph capture to reduce peak GPU memory
+              enforce_eager: true
+              # NIXL producer: writes the KV cache
+              kv_transfer_config:
+                kv_connector: NixlConnector
+                kv_role: kv_both
+                engine_id: prefill
+                # NIXL defaults to UCX, which runs at TCP speed even on EFA
+                kv_connector_extra_config:
+                  backends: ["LIBFABRIC"]
+            deployment_config:
+              num_replicas: 1
+          decode_config:
+            model_loading_config:
+              model_id: ${MODEL_ID}
+              model_source: ${MODEL_SOURCE}
+            engine_kwargs:
+              max_model_len: 4096
+              dtype: bfloat16
+              gpu_memory_utilization: 0.90
+              enforce_eager: true
+              # NIXL consumer: this phase reads the KV cache and decodes.
+              kv_transfer_config:
+                kv_connector: NixlConnector
+                kv_role: kv_both
+                engine_id: decode
+                kv_connector_extra_config:
+                  backends: ["LIBFABRIC"]
+            deployment_config:
+              num_replicas: 1
+  rayClusterConfig:
+    rayVersion: "${RAY_VERSION}"
+    # --- Head pod: CPU-only, runs on the system node group ------------------
+    headGroupSpec:
+      rayStartParams:
+        dashboard-host: "0.0.0.0"
+        num-gpus: "0"
+      template:
+        spec:
+          nodeSelector:
+            role: system
+          containers:
+            - name: ray-head
+              image: "${DLC_IMAGE}"
+              imagePullPolicy: Always
+              env:
+                - { name: HF_HOME, value: /home/ray/hf-cache }
+              ports:
+                - { containerPort: 6379, name: gcs }
+                - { containerPort: 8265, name: dashboard }
+                - { containerPort: 8000, name: serve }
+              resources:
+                limits:   { cpu: "3", memory: 12Gi }
+                requests: { cpu: "2", memory: 8Gi }
+              lifecycle:
+                preStop: { exec: { command: ["/bin/sh", "-c", "ray stop"] } }
+    # --- Worker pods: one GPU + one EFA interface each, single AZ ------------
+    workerGroupSpecs:
+      - groupName: gpu-workers
+        replicas: 2
+        minReplicas: 2
+        maxReplicas: 2
+        rayStartParams:
+          num-gpus: "1"
+        template:
+          spec:
+            nodeSelector:
+              role: gpu-worker
+            containers:
+              - name: ray-worker
+                image: "${DLC_IMAGE}"
+                imagePullPolicy: Always
+                env:
+                  - { name: HF_HOME, value: /home/ray/hf-cache }
+                  # Do not add NCCL_SOCKET_IFNAME: the DLC auto-detects it.
+                  - { name: FI_PROVIDER, value: efa }
+                  # Required by NIXL for hybrid Mamba/Gated-DeltaNet models
+                  - { name: VLLM_SSM_CONV_STATE_LAYOUT, value: "DS" }
+                  - name: VLLM_HOST_IP
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: status.podIP
+                resources:
+                  # Headroom above the ~18 GiB checkpoint lets the page cache
+                  # hold it: weight loading drops from ~145s to ~2s.
+                  limits:   { nvidia.com/gpu: "1", vpc.amazonaws.com/efa: "1", cpu: "16", memory: 64Gi }
+                  requests: { nvidia.com/gpu: "1", vpc.amazonaws.com/efa: "1", cpu: "8", memory: 32Gi }
+                securityContext:
+                  # NIXL registers CUDA VRAM with the EFA NIC; IPC_LOCK is not enough.
+                  privileged: true
+                volumeMounts:
+                  - { name: shm, mountPath: /dev/shm }
+                lifecycle:
+                  preStop: { exec: { command: ["/bin/sh", "-c", "ray stop"] } }
+            volumes:
+              - name: shm
+                emptyDir: { medium: Memory, sizeLimit: 8Gi }
