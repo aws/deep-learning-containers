@@ -5,6 +5,47 @@ Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `s
 
 * * *
 
+## v2.7.0 — 2026-10-14
+
+**Tags:** `server-cuda-v2.7` · `server-sagemaker-cuda-v2.7`
+
+**vLLM source:** [1a3a7a8](https://github.com/vllm-project/vllm/commit/1a3a7a8f01a8c1a3184151b8185072efda11daab) (`0.31.1+amzn2023.1a3a7a8f`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.7.0.post1 · Transformers 5.19.0 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2
+
+### Highlights
+
+- **Reflection Beam** — the images serve Reflection's [Beam](https://huggingface.co/reflection/Beam-1.0-501B-A23B) (`BeamForCausalLM`, 501B total /
+  23B active parameters), with the `beam` reasoning and tool-call parsers and the DFlash2 drafter for speculative decoding. Upstream vLLM added Beam
+  after `1a3a7a8` ([#62052](https://github.com/vllm-project/vllm/pull/62052), [#62074](https://github.com/vllm-project/vllm/pull/62074)), so this
+  release backports it. See [Reflection Beam](../models/index.md#reflection-beam).
+- **vLLM 0.31.1** — up from 0.30.0 (v2.6), built from upstream main past the v0.31.1 branch cut
+  ([compare](https://github.com/vllm-project/vllm/compare/ec4a3a537068db40afbc9374a67da719c8c9b964...1a3a7a8f01a8c1a3184151b8185072efda11daab))
+- **New models** — EmbeddingGemma 2 multimodal embeddings ([#60254](https://github.com/vllm-project/vllm/pull/60254)) and the zerank-2 reranker
+  ([#60415](https://github.com/vllm-project/vllm/pull/60415)); DFlash2 drafters for GLM-5.3-Flash
+  ([#56983](https://github.com/vllm-project/vllm/pull/56983))
+- **Response-template parsers** — `--tool-call-parser hf` and `--reasoning-parser hf` read the output format from the checkpoint's
+  `response_template`, so models that ship one need no model-specific parser ([#58604](https://github.com/vllm-project/vllm/pull/58604))
+- **FlashInfer 0.7.0.post1** — upgraded from 0.6.18.post1
+
+### Changes
+
+- **Upstream breaking changes:** per-request `mm_processor_kwargs` and `media_io_kwargs` are rejected unless the server starts with
+  `--trust-request-mm-kwargs` ([#58830](https://github.com/vllm-project/vllm/pull/58830)); `max_tokens` caps the output and is no longer reserved from
+  the context window ([#57035](https://github.com/vllm-project/vllm/pull/57035)); `tokenizer_mode="slow"` is removed
+  ([#58545](https://github.com/vllm-project/vllm/pull/58545)); `--enable-mamba-fine-grained-prefix-cache` is renamed to
+  `--enable-mamba-shared-prefix-checkpoint` ([#57382](https://github.com/vllm-project/vllm/pull/57382)).
+- **Scheduling:** `--max-num-active-seqs` caps running requests independently of `--max-num-seqs`
+  ([#56758](https://github.com/vllm-project/vllm/pull/56758)).
+- Transformers 5.15.1 → 5.19.0, the version upstream CI tests ([#6880](https://github.com/aws/deep-learning-containers/pull/6880)).
+- **KV connectors** ([#6880](https://github.com/aws/deep-learning-containers/pull/6880)) — NIXL 1.4.1 → 1.5.0, and only the matching `nixl-cu13` wheel
+  is installed. Mooncake now installs `mooncake-transfer-engine-cuda13`; the default wheel links `libcudart.so.12`.
+- EFA installs the latest release at build time instead of a pinned version, and the image no longer contains a pre-generated root SSH keypair
+  ([#6785](https://github.com/aws/deep-learning-containers/pull/6785)).
+
+* * *
+
 ## v1.0.0 — 2026-10-01 (ARM64 CPU)
 
 **Tags:** `server-cpu-v1.0` · `server-sagemaker-cpu-v1.0`
@@ -31,7 +72,7 @@ Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `s
 **vLLM source:** [ec4a3a5](https://github.com/vllm-project/vllm/commit/ec4a3a537068db40afbc9374a67da719c8c9b964) (`0.30.0+amzn2023.ec4a3a53`),
 unchanged from v2.5
 
-**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18.post1 · Transformers 5.17.0 · DeepEP
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18.post1 · Transformers 5.15.1 · DeepEP
 [874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2 · EFA 1.50.0
 
 ### Changes
