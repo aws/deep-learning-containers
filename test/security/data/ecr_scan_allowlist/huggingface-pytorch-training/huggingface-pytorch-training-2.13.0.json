@@ -1,0 +1,7 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-94624",
+        "reason": "vllm 0.31.0 is pinned by this torch 2.13 line (vllm 0.27.0-0.31.0 require torch==2.13.0); fix requires vllm>=0.32.0, a framework bump. vllm is present only as the trl online-RL rollout backend; the vulnerable path needs OffloadingConnector with TieringOffloadingSpec and a P2P secondary tier, which training jobs do not configure.",
+        "review_by": "2026-11-30"
+    }
+]
