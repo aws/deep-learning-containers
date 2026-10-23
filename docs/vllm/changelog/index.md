@@ -5,6 +5,25 @@ Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `s
 
 * * *
 
+## v2.7.0 — 2026-10-14
+
+**Tags:** `server-cuda-v2.7` · `server-sagemaker-cuda-v2.7`
+
+**vLLM source:** [1a3a7a8](https://github.com/vllm-project/vllm/commit/1a3a7a8f01a8c1a3184151b8185072efda11daab) (`0.31.1+amzn2023.1a3a7a8f`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.7.0.post1 · Transformers 5.19.0 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2
+
+### Changes
+
+- **Reflection Beam support** — [Beam](https://huggingface.co/reflection/Beam-1.0-501B-A23B) (501B total / 23B active parameters) with the `beam`
+  reasoning and tool-call parsers and DFlash2 speculative decoding, backported onto `1a3a7a8` and validated offline.
+- vLLM 0.30.0 → 0.31.1, FlashInfer 0.6.18.post1 → 0.7.0.post1, Transformers 5.15.1 → 5.19.0
+  ([#6880](https://github.com/aws/deep-learning-containers/pull/6880)).
+- NIXL 1.4.1 → 1.5.0; Mooncake now installs its CUDA 13 wheel.
+
+* * *
+
 ## v1.0.0 — 2026-10-01 (ARM64 CPU)
 
 **Tags:** `server-cpu-v1.0` · `server-sagemaker-cpu-v1.0`
@@ -31,7 +50,7 @@ Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `s
 **vLLM source:** [ec4a3a5](https://github.com/vllm-project/vllm/commit/ec4a3a537068db40afbc9374a67da719c8c9b964) (`0.30.0+amzn2023.ec4a3a53`),
 unchanged from v2.5
 
-**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18.post1 · Transformers 5.17.0 · DeepEP
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · FlashInfer 0.6.18.post1 · Transformers 5.15.1 · DeepEP
 [874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2 · EFA 1.50.0
 
 ### Changes
