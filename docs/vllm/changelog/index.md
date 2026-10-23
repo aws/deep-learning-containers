@@ -17,8 +17,7 @@ Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `s
 ### Changes
 
 - **Reflection Beam support** — [Beam](https://huggingface.co/reflection/Beam-1.0-501B-A23B) (501B total / 23B active parameters) with the `beam`
-  reasoning and tool-call parsers and DFlash2 speculative decoding, backported onto `1a3a7a8` and validated offline. See
-  [Reflection Beam](../models/index.md#reflection-beam).
+  reasoning and tool-call parsers and DFlash2 speculative decoding, backported onto `1a3a7a8` and validated offline.
 - vLLM 0.30.0 → 0.31.1, FlashInfer 0.6.18.post1 → 0.7.0.post1, Transformers 5.15.1 → 5.19.0
   ([#6880](https://github.com/aws/deep-learning-containers/pull/6880)).
 - NIXL 1.4.1 → 1.5.0; Mooncake now installs its CUDA 13 wheel.
