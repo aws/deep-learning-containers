@@ -1,0 +1,17 @@
+# Wheel artifacts referenced by the official radixark/miles:v0.1.3 freeze.
+# hpc_ops-0.0.1.dev0+gab1a402-cp39-abi3-linux_x86_64.whl is in that freeze without a
+# hash: the SGLang v0.5.22 base image builds it from Tencent/hpc-ops@ab1a402 rather
+# than taking it from a release, and the image leaves it out (an optional
+# Hopper-only SGLang backend), as it did for v0.1.2.
+a39d91e30aa97d24fc357aa0ee01d5e7065cd2d02daa655fa109e5949e90e855  apex-0.1-cp312-cp312-linux_x86_64.whl
+4bc49e666cdc565e653916fb32ae3c7b367930b305870504ad60c5d423082a24  causal_conv1d-1.6.1-cp312-cp312-linux_x86_64.whl
+2c64afb60263e848596e8232a41a7ce060f3cdd767ac6ca2576bfb2dbb0df39d  fake_int4_quant_cuda-0.0.0-cp312-cp312-linux_x86_64.whl
+40667deef8a41b507ae357f9f9855fe31338f711549db5d99ab18b0113e5b115  fast_hadamard_transform-1.1.0-cp312-cp312-linux_x86_64.whl
+7b24ef33122b9dbe8167d613f433344dfa2c32956859920429b8ebfd4130910f  flash_attn-2.7.4.post1-cp312-cp312-linux_x86_64.whl
+6b19fd7c3ced3e70b3a75b6d84d194bb3fcf18fcd609b88cd047d85d467a9498  flash_attn_3-3.0.0-cp310-abi3-linux_x86_64.whl
+745a950c3378d61a83c892d14edf13ec48318c79a5749bd3bf5ac31052b1347a  flash_mla-1.0.0+b7643bd-cp312-cp312-linux_x86_64.whl
+86cc0901d5d75ed5216b88e05c9d80ad8e308c1c3804de4a189c0e9946b6c556  mamba_ssm-2.3.1-cp312-cp312-linux_x86_64.whl
+da9b52368dafabafc432fda72c8b0632b2880e209680cefe6f1dbaab18e9652b  sglang_router-0.3.2-cp38-abi3-manylinux_2_39_x86_64.whl
+468ebc317039ce673d0cace07158e15a33801a64e7a856a4791160e69ab10c7f  transformer_engine-2.17.0+miles-py3-none-any.whl
+43aa1f20da8141bb56c31432334ae0af809bc987c3513ff435eb0de2a43ef2fd  transformer_engine_cu13-2.17.0+miles-py3-none-manylinux_2_28_x86_64.whl
+3bcd366f254a705c1ddfbff3173bca949eb84506976d7f83dfa9359c90e1bcac  transformer_engine_torch-2.17.0+miles-cp312-cp312-linux_x86_64.whl

@@ -1,17 +1,17 @@
 image:
   name: "miles-sagemaker-amzn2023"
-  description: "Miles 0.1.2 training for SageMaker (AL2023, CUDA 13.0, built from source)"
+  description: "Miles 0.1.3 training for SageMaker (AL2023, CUDA 13.0, built from source)"
 
 metadata:
   framework: "miles"
-  framework_version: "0.1.2"
+  framework_version: "0.1.3"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
   arch_type: "x86"
   device_type: "gpu"
   job_type: "training"
-  prod_image: "miles:0.1.2-gpu-py312-cu130-amzn2023-sagemaker"
+  prod_image: "miles:0.1.3-gpu-py312-cu130-amzn2023-sagemaker"
 
 build:
   dockerfile: "docker/miles/Dockerfile.amzn2023"
@@ -22,19 +22,19 @@ build:
   python_version: "3.12"
   cuda_version: "13.0.3"
   uv_version: "0.13.4"
-  miles_version: "0.1.2"
-  torch_version: "2.13.0"
-  sglang_version: "0.5.22.dev37+gb84bec5"
+  miles_version: "0.1.3"
+  torch_version: "2.14.1"
+  sglang_version: "0.5.23.dev51+g3a93821"
   efa_version: "latest"
   rust_version: "1.96.1"
   ffmpeg_version: "n8.1"
   gdrcopy_version: "2.5.1"
   nccl_tests_commit: "ae98985f5599617be94042f4aa3637d10014ce89"
-  miles_commit: "a22fd824191c64ba7c5d6c531f125406e4ce9cc6"
-  sglang_commit: "b84bec5761a6cdc8b1df86b9b89ead80a7a9bb02"
-  megatron_commit: "fd15ee20a4f03b03680529baf4b8f7eeed64df1d"
+  miles_commit: "ace18d49e9c942bfa45451b12ac3bbbc7486969a"
+  sglang_commit: "3a938213c1b349e1a8df0b5fdc57ef36a41c743b"
+  megatron_commit: "2fbe25a442a539b2796cdf40e77dfb2c90782529"
   torchtitan_commit: "086bf6c166ec85c1298eb5596fa9bf95f6a2d840"
-  sgl_router_commit: "374ff283397254d1a3c9577058d7089bcb91a7b1"
+  sgl_router_commit: "b6839b5ad4494d60e05753c8852c17c62ba47f11"
   flashqla_commit: "7c7dfe16416ad21b1d03258189fc8d3b8460ae06"
   mbridge_commit: "89eb10887887bc74853f89a4de258c0702932a1c"
   emerging_optimizers_commit: "b309e2f01cda75dc96a6dc1a2355a7b3b64b5e16"
@@ -46,7 +46,7 @@ build:
   mscclpp_version: "0.10.1"
   # Release that scripts/ci/build/miles/pre_build.sh mirrors the locked wheels from.
   miles_wheels_repo: "radixark/miles-wheels"
-  miles_wheels_tag: "cu130-torch213-x86_64"
+  miles_wheels_tag: "cu130-torch214-x86_64"
   # Kubernetes clients for Miles' Helm launcher and workbench. Newer patch releases than
   # upstream's install-kube-tools.sh (v1.36.3 / v4.2.3) for their Go CVE fixes.
   kubectl_version: "v1.36.5"

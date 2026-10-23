@@ -8,7 +8,7 @@ then an NCCL broadcast from the trainer to the engines over the network. Miles'
 picks up the new weights.
 
 The arguments are those of upstream's tests/e2e/short/test_qwen2.5_0.5B_gsm8k_async_short.py
-(v0.1.2), with three changes: 8 training and 8 rollout GPUs instead of 2 and 2, Ray's
+(v0.1.3), with three changes: 8 training and 8 rollout GPUs instead of 1 and 1, Ray's
 object store instead of a Mooncake store bound to 127.0.0.1, and no Ray start or stop.
 
 Usage:
@@ -55,6 +55,8 @@ def execute():
         "--dynamic-sampling-filter-path "
         "miles.rollout.filter_hub.dynamic_sampling_filters.check_reward_nonzero_std "
         "--global-batch-size 32 "
+        "--pause-generation-mode in_place "
+        "--namespaced-radix-cache "
     )
 
     eval_args = (
@@ -99,10 +101,9 @@ def execute():
         "--rollout-num-gpus-per-engine 1 --sglang-mem-fraction-static 0.65 --sglang-enable-metrics "
     )
 
-    ci_args = "--ci-test "
+    ci_args = "--ci-test --sglang-enable-prefill-weight-versions --ci-assert-prefill-lag-max 3 "
 
-    fault_tolerance_args = (
-        "--use-fault-tolerance "
+    health_check_args = (
         "--rollout-health-check-interval 5 "
         "--rollout-health-check-timeout 10 "
         "--rollout-health-check-first-wait 0 "
@@ -130,7 +131,7 @@ def execute():
         f"{eval_args} "
         f"{sglang_args} "
         f"{ci_args} "
-        f"{fault_tolerance_args} "
+        f"{health_check_args} "
         f"{misc_args} "
     )
 

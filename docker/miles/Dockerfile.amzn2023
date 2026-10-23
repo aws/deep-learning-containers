@@ -18,19 +18,19 @@ ARG CUDA_VERSION=13.0.3
 ARG PYTHON_VERSION=3.12
 ARG PYTHON_SHORT_VERSION=3.12
 ARG UV_VERSION=0.13.4
-ARG MILES_VERSION=0.1.2
-ARG TORCH_VERSION=2.13.0
-ARG SGLANG_VERSION=0.5.22.dev37+gb84bec5
+ARG MILES_VERSION=0.1.3
+ARG TORCH_VERSION=2.14.1
+ARG SGLANG_VERSION=0.5.23.dev51+g3a93821
 ARG EFA_VERSION=latest
 ARG RUST_VERSION=1.96.1
 ARG FFMPEG_VERSION=n8.1
 ARG GDRCOPY_VERSION=2.5.1
 ARG NCCL_TESTS_COMMIT=ae98985f5599617be94042f4aa3637d10014ce89
-ARG MILES_COMMIT=a22fd824191c64ba7c5d6c531f125406e4ce9cc6
-ARG SGLANG_COMMIT=b84bec5761a6cdc8b1df86b9b89ead80a7a9bb02
-ARG MEGATRON_COMMIT=fd15ee20a4f03b03680529baf4b8f7eeed64df1d
+ARG MILES_COMMIT=ace18d49e9c942bfa45451b12ac3bbbc7486969a
+ARG SGLANG_COMMIT=3a938213c1b349e1a8df0b5fdc57ef36a41c743b
+ARG MEGATRON_COMMIT=2fbe25a442a539b2796cdf40e77dfb2c90782529
 ARG TORCHTITAN_COMMIT=086bf6c166ec85c1298eb5596fa9bf95f6a2d840
-ARG SGL_ROUTER_COMMIT=374ff283397254d1a3c9577058d7089bcb91a7b1
+ARG SGL_ROUTER_COMMIT=b6839b5ad4494d60e05753c8852c17c62ba47f11
 ARG FLASHQLA_COMMIT=7c7dfe16416ad21b1d03258189fc8d3b8460ae06
 ARG MBRIDGE_COMMIT=89eb10887887bc74853f89a4de258c0702932a1c
 ARG EMERGING_OPTIMIZERS_COMMIT=b309e2f01cda75dc96a6dc1a2355a7b3b64b5e16
@@ -41,7 +41,7 @@ ARG DEEPSELECT_COMMIT=0f03b68748b304863fdf0181a11458d04ae533a9
 ARG MSCCLPP_COMMIT=0a04f1af0c855cc2c8315a918f55a08107f745c8
 ARG MSCCLPP_VERSION=0.10.1
 ARG MILES_WHEELS_REPO=radixark/miles-wheels
-ARG MILES_WHEELS_TAG=cu130-torch213-x86_64
+ARG MILES_WHEELS_TAG=cu130-torch214-x86_64
 ARG KUBECTL_VERSION=v1.36.5
 ARG KUBECTL_SHA256=33bc88a24c3b09cf55bfd59e6ca977881b61fc3f25ab65bc80c65b430248648e
 ARG HELM_VERSION=v4.3.1
@@ -252,9 +252,9 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/
   && git -C /opt/sglang fetch origin "${SGLANG_COMMIT}" \
   && git -C /opt/sglang checkout --detach "${SGLANG_COMMIT}" \
   && git -C /opt/sglang sparse-checkout set --no-cone '/*' \
-    '!/.claude/' '!/.devcontainer/' '!/.github/' '!/3rdparty/' '!/benchmark/' \
-    '!/docker/' '!/docs/' '!/examples/' '!/experimental/' '!/sgl-model-gateway/' \
-    '!/test/' '!/tools/' \
+    '!/.agents/' '!/.claude/' '!/.devcontainer/' '!/.github/' '!/3rdparty/' \
+    '!/benchmark/' '!/docker/' '!/docs/' '!/examples/' '!/experimental/' \
+    '!/sgl-model-gateway/' '!/test/' '!/tools/' \
   && git clone --filter=blob:none https://github.com/radixark/Megatron-LM.git \
     /opt/Megatron-LM \
   && git -C /opt/Megatron-LM fetch origin "${MEGATRON_COMMIT}" \
@@ -295,10 +295,9 @@ RUN --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.c
   uv pip install --no-deps --no-build-isolation -e /opt/sglang/python \
   && rm -rf /tmp/sglang-cargo-target
 
-# Source patches for the locked TransformerEngine, flash-linear-attention, TileLang
-# and TileKernels releases: upstream Miles' patches, plus
-# transformer-engine/te_fa4_needs_sm90.patch of our own (its header says
-# why). Each fails the build if it no longer applies.
+# Source patches: upstream Miles' patches for the locked flash-linear-attention,
+# TileLang and TileKernels releases, plus transformer-engine/te_fa4_needs_sm90.patch
+# of our own (its header says why). Each fails the build if it no longer applies.
 COPY docker/miles/v${MILES_VERSION}/patches/ /tmp/miles-patches/
 COPY scripts/docker/miles/verify_transformer_engine.py /tmp/verify_transformer_engine.py
 RUN TE_DIR="$(python -c 'import importlib.util; print(importlib.util.find_spec("transformer_engine").submodule_search_locations[0])')" \
@@ -412,11 +411,10 @@ RUN uv pip install --no-deps /tmp/router/sglang_router-*.whl \
 RUN rm /opt/venv/lib/python*/site-packages/ray/jars/ray_dist.jar
 
 # Ray's runtime-env agent imports aiohttp and its dependencies from a private set that
-# Ray's build pins, ahead of site-packages: aiohttp 3.14.3 for Ray 2.58.0, open to
-# GHSA-2g87-pp6c-29x5 (CVE-2026-111064). Swapping aiohttp alone breaks the agent, since
-# aiohttp 3.14.4 needs a newer yarl than the set holds. Empty the set so the agent uses
-# the locked aiohttp and dependencies, as Ray's dashboard already does. Fails the build
-# if Ray no longer bundles aiohttp there.
+# Ray's build pins, ahead of site-packages: aiohttp 3.14.3 for Ray 2.58.1, open to
+# GHSA-2g87-pp6c-29x5 (CVE-2026-111064). Empty the set so the agent uses the locked
+# aiohttp and dependencies, as Ray's dashboard already does. Fails the build if Ray no
+# longer bundles aiohttp there.
 RUN AGENT_LIBS="$(python -c 'import pathlib, ray; print(pathlib.Path(ray.__file__).parent / "_private/runtime_env/agent/thirdparty_files")')" \
   && test -d "${AGENT_LIBS}/aiohttp" \
   && rm -r "${AGENT_LIBS}" \
