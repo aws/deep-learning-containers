@@ -1,0 +1,66 @@
+image:
+  name: "miles-ec2-amzn2023"
+  description: "Miles 0.1.3 training for EC2 (AL2023, CUDA 13.0, built from source)"
+
+metadata:
+  framework: "miles"
+  framework_version: "0.1.3"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "training"
+  prod_image: "miles:0.1.3-gpu-py312-cu130-amzn2023-ec2"
+
+build:
+  dockerfile: "docker/miles/Dockerfile.amzn2023"
+  target: "ec2"
+  # Python dependency pins live in docker/miles/v{miles_version}/{pyproject.toml,uv.lock},
+  # installed via `uv sync --locked`. The commits below pin the source builds.
+  python_version: "3.12"
+  cuda_version: "13.0.3"
+  uv_version: "0.13.4"
+  miles_version: "0.1.3"
+  torch_version: "2.14.1"
+  sglang_version: "0.5.23.dev51+g3a93821"
+  efa_version: "latest"
+  rust_version: "1.96.1"
+  ffmpeg_version: "n8.1"
+  gdrcopy_version: "2.5.1"
+  nvtop_version: "3.3.2"
+  nccl_tests_commit: "ae98985f5599617be94042f4aa3637d10014ce89"
+  miles_commit: "ace18d49e9c942bfa45451b12ac3bbbc7486969a"
+  sglang_commit: "3a938213c1b349e1a8df0b5fdc57ef36a41c743b"
+  megatron_commit: "2fbe25a442a539b2796cdf40e77dfb2c90782529"
+  torchtitan_commit: "086bf6c166ec85c1298eb5596fa9bf95f6a2d840"
+  sgl_router_commit: "b6839b5ad4494d60e05753c8852c17c62ba47f11"
+  flashqla_commit: "7c7dfe16416ad21b1d03258189fc8d3b8460ae06"
+  mbridge_commit: "89eb10887887bc74853f89a4de258c0702932a1c"
+  emerging_optimizers_commit: "b309e2f01cda75dc96a6dc1a2355a7b3b64b5e16"
+  torch_memory_saver_commit: "b5588e83de86412a48689a6583a4b567e75f7acc"
+  megatron_bridge_commit: "8cd3466d14d2337c8492827b3712482c2b3e4866"
+  nvidia_resiliency_ext_commit: "6c5f2a13c7688d92a7ac7ee6e464721eb8b7345d"
+  deepselect_commit: "0f03b68748b304863fdf0181a11458d04ae533a9"
+  mscclpp_commit: "0a04f1af0c855cc2c8315a918f55a08107f745c8"
+  mscclpp_version: "0.10.1"
+  # Release that scripts/ci/build/miles/pre_build.sh mirrors the locked wheels from.
+  miles_wheels_repo: "radixark/miles-wheels"
+  miles_wheels_tag: "cu130-torch214-x86_64"
+  # Kubernetes clients for Miles' Helm launcher and workbench. Newer patch releases than
+  # upstream's install-kube-tools.sh (v1.36.3 / v4.2.3) for their Go CVE fixes.
+  kubectl_version: "v1.36.5"
+  kubectl_sha256: "33bc88a24c3b09cf55bfd59e6ca977881b61fc3f25ab65bc80c65b430248648e"
+  helm_version: "v4.3.1"
+  helm_sha256: "0403a88ae20913d11b10a2467b50087721fea7581736da6b9d3992f5357fe54b"
+  build_parallel: "16"
+  torch_cuda_arch_list: "8.0;8.6;8.9;9.0;10.0;10.3"
+  dlc_major_version: "0"
+  dlc_minor_version: "1"
+
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: false
+  enable_soci: false
+  environment: "gamma"

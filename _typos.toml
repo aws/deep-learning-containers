@@ -1,3 +1,8 @@
+[default]
+# Local version segments such as "+g4dbe5a4c" are git short hashes.
+extend-ignore-re = ["\\+g[0-9a-f]{7,40}"]
+
 [default.extend-words]
 WHT = "WHT"
+arange = "arange"
 certifi = "certifi"
