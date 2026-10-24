@@ -20,7 +20,9 @@ megatron-energon 7.4.1 requires webdataset, which is not installed.
 # Upstream ships pillow 12.3.0 here; the DLC raises it to 13.0.0 for security fixes
 # (see pyproject.toml).
 moviepy 2.2.1 has requirement pillow<12.0,>=9.2.0, but you have pillow 13.0.0.
-multi-storage-client 1.1.0 has requirement filelock<4,>=3.20.3, but you have filelock 4.0.8.
+# Upstream ships filelock 4.0.8 here; the DLC raises it to 4.2.4 for a security fix
+# (see pyproject.toml).
+multi-storage-client 1.1.0 has requirement filelock<4,>=3.20.3, but you have filelock 4.2.4.
 multi-storage-client 1.1.0 has requirement pyyaml<7,>=6.0.3, but you have pyyaml 6.0.1.
 multi-storage-client 1.1.0 requires tzdata, which is not installed.
 multi-storage-client 1.1.0 requires wcmatch, which is not installed.
