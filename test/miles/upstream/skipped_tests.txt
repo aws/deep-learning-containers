@@ -75,3 +75,13 @@ tests/fast/utils/soak/core/test_runner.py::TestSoakRunnerTail::test_a_tail_excee
 # passes the v1 case in 154 s.
 tests/fast/rollout/session/test_session_server_benchmark.py::test_session_server_benchmark[v1]
 tests/fast/rollout/session/test_session_server_benchmark.py::test_session_server_benchmark[v2]
+
+# New in v0.1.3. A CPU performance benchmark of agentic rollouts, its only test, budgeted
+# at 190 s. It overran on the default-runner fleet in 4 of 4 runs. On a c7a.8xlarge,
+# upstream's v0.1.3 image passes it in 134 s.
+tests/fast/rollout/test_agentic_rollout_benchmark.py
+
+# New in v0.1.3. It monkeypatches the time module itself and fails after 100 sleeps, so
+# any thread that calls time.sleep while it runs counts against its scripted poll
+# budget. It failed once in four CI runs.
+tests/fast/utils/external_utils/command_utils/helm_backend/orchestrator/test_observer_scheduling_grace.py::TestMissingUnstartedPodBudget::test_a_new_generation_gets_its_own_scheduling_grace
