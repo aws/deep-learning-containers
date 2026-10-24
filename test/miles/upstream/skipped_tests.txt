@@ -54,3 +54,24 @@ tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolRespons
 # in-flight call is sometimes cancelled first. It failed once in about a dozen CI
 # runs, so it cannot gate a release.
 tests/fast/utils/workers/e2e/test_worker_errors.py::TestNonExceptionExits::test_calls_in_flight_when_worker_exits_finish_by_deadline
+
+# New in v0.1.3. These run Qwen3.5 models on CPU tensors. With flash-linear-attention
+# and causal-conv1d installed, as in this image and upstream's, transformers sends the
+# GatedDeltaNet layers to their GPU kernels, which fail on a CPU host. They fail the same
+# way on radixark/miles:v0.1.3. Upstream's CPU CI passes them because it runs a bare pip
+# install that has neither package.
+tests/fast/backends/test_fsdp_hf_compat.py::test_gated_deltanet_kernels_receive_packed_boundaries
+tests/fast/backends/test_fsdp_hf_compat.py::test_qwen3_5_vision_tower_never_sees_language_model_packing_kwargs
+tests/fast/backends/test_fsdp_hub_kernels.py::test_hub_kernels_serve_qwen3_5_gated_deltanet_with_the_packed_document_boundaries
+
+# New in v0.1.3. Times out waiting for the soak runner's third event. It failed all 8
+# runs on radixark/miles:v0.1.3 on an idle c7a.8xlarge and under load. Upstream's CPU CI,
+# which passes it, runs a bare pip install with torch 2.11.
+tests/fast/utils/soak/core/test_runner.py::TestSoakRunnerTail::test_a_tail_exceeding_its_budget_drains_training_then_fails_the_soak
+
+# New in v0.1.3. A CPU performance benchmark of the session server, budgeted at 250 s per
+# version on upstream's hosted 4-vCPU runners. On the default-runner fleet each of its
+# three runs took about 107 s, so it overran. On a c7a.8xlarge, upstream's v0.1.3 image
+# passes the v1 case in 154 s.
+tests/fast/rollout/session/test_session_server_benchmark.py::test_session_server_benchmark[v1]
+tests/fast/rollout/session/test_session_server_benchmark.py::test_session_server_benchmark[v2]
