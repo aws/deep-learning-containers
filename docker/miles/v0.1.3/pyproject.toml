@@ -9,7 +9,7 @@
 # radixark/miles:v0.1.3 (amd64 sha256:539a2b07a94fd71b7de8c824d30ce24fbc3177f8190e6a67a6c45127889a2437)
 # with local file/VCS entries removed, so every shared package keeps the
 # upstream version. The exceptions are security fixes that v0.1.3 does not
-# have: certifi 2026.10.19, pillow 13.0.0 and virtualenv 21.14.9.
+# have: certifi 2026.10.19, filelock 4.2.4, pillow 13.0.0 and virtualenv 21.14.13.
 #
 # The Miles release wheels install from /opt/miles-wheels, where the Dockerfile
 # copies what scripts/ci/build/miles/pre_build.sh stages into ./wheels. Regenerate
@@ -208,7 +208,7 @@ constraint-dependencies = [
     "executing==2.3.0",
     "fastapi==0.162.0",
     "fastokens==0.3.4",
-    "filelock==4.2.0",
+    "filelock==4.2.4",
     "fla-core==0.5.2",
     "flash-attn-4==4.0.0b35",
     "flash-linear-attention==0.5.2",
@@ -530,7 +530,7 @@ constraint-dependencies = [
     "urllib3==2.8.0",
     "uvicorn==0.54.0",
     "uvloop==0.23.0",
-    "virtualenv==21.14.9",
+    "virtualenv==21.14.13",
     "vsa==0.0.4",
     "wadler_lindig==0.1.7",
     "wandb==0.31.0",
