@@ -38,14 +38,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # --- HuggingFace training stack ------------------------------------------
 # Security floors for ECR findings: soupsieve fixes GHSA-2wc2-fm75-p42x and
-# GHSA-836r-79rf-4m37; Pillow 13.0.0 fixes CVE-2026-112895/112896/112897,
-# CVE-2026-112397/112400/112403/112404 (TIFF, JPEG, GIF, PDF and ImageMorph).
-# GitPython 3.2.1 fixes CVE-2026-114145 and earlier advisories;
-# graphql-core 3.2.12 fixes CVE-2026-75507/75508 while retaining Graphene compatibility.
-# pyasn1 0.6.4 clears
-# CVE-2026-59885 and CVE-2026-59886; cryptography 50.0.0 clears CVE-2026-69247
-# and CVE-2026-69249; aiohttp 3.14.4 clears CVE-2026-111064/111066 and
-# GHSA-2g87-pp6c-29x5; certifi 2026.10.19 clears GHSA-6q48-6c7w-9gw2.
+# GHSA-836r-79rf-4m37; Pillow 13.0.0 clears the CVE-2026-112xxx/96xxx batch;
+# GitPython 3.2.1 clears CVE-2026-114145; pyasn1 0.6.4 clears CVE-2026-59885
+# and CVE-2026-59886; cryptography 50.0.0 clears CVE-2026-69247 and
+# CVE-2026-69249; aiohttp 3.14.4 clears CVE-2026-111064/111066 and
+# GHSA-2g87-pp6c-29x5; certifi 2026.10.19 drops the compromised emSign root
+# (GHSA-6q48-6c7w-9gw2); graphql-core 3.2.12 clears CVE-2026-75507/75508
+# (stays on 3.2.x for the base's mlflow -> graphene).
 # uv pip install does not honor the requirements of packages already in the
 # base, so restate them: the base's mlflow requires pyarrow<26, and datasets
 # would otherwise pull pyarrow 26.
@@ -68,12 +67,12 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "pillow>=13.0.0" \
   "soupsieve>=2.8.4" \
   "GitPython>=3.2.1" \
-  "graphql-core>=3.2.12,<3.3" \
   "anyio>=4.14.2" \
   "pyasn1>=0.6.4" \
   "cryptography>=50.0.0" \
   "aiohttp>=3.14.4" \
   "certifi>=2026.10.19" \
+  "graphql-core>=3.2.12" \
   "urllib3>=2.8.0" \
   "pyarrow<26" \
   && uv cache clean
@@ -114,8 +113,8 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf clean all
 
 # HF auto-optimization layer — sourced by the entrypoint to set training perf
-# defaults at run time. See scripts/docker/huggingface/pytorch/training/hf_optimizations.sh.
-COPY --chmod=755 ./scripts/docker/huggingface/pytorch/training/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
+# defaults at run time. See scripts/docker/huggingface/pytorch/hf_optimizations.sh.
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
 
 # =====================================================================
 # sagemaker — HuggingFace training for SageMaker AI
@@ -124,6 +123,6 @@ FROM install AS sagemaker
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training:hf-pytorch"
 
-COPY --chmod=755 ./scripts/docker/huggingface/pytorch/training/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 CMD ["train"]

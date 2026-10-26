@@ -1,8 +1,8 @@
 [
     {
         "vulnerability_id": "CVE-2026-27145",
-        "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-12-31"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, x509 VerifyHostname CPU exhaustion; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10, below the fixed go1.26.4, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     },
     {
         "vulnerability_id": "CVE-2026-33811",
@@ -21,13 +21,13 @@
     },
     {
         "vulnerability_id": "CVE-2026-39821",
-        "reason": "golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-12-31"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10, below the fixed go1.26.6, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     },
     {
         "vulnerability_id": "CVE-2026-39822",
-        "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.5+",
-        "review_by": "2026-12-31"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10, below the fixed go1.26.5, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     },
     {
         "vulnerability_id": "CVE-2026-39836",
@@ -41,18 +41,18 @@
     },
     {
         "vulnerability_id": "CVE-2026-42504",
-        "reason": "go/stdlib 1.25.9 embedded in mooncake libetcd_wrapper.so, MIME header parsing CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-12-31"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, MIME header parsing CPU exhaustion; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10, below the fixed go1.26.4, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     },
     {
         "vulnerability_id": "CVE-2026-46600",
-        "reason": "golang.org/x/net v0.48.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-10-25"
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds x/net v0.55.0, below the fixed v0.56.0; upstream Mooncake main has bumped x/net to v0.60.0 but no release carries it, so it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     },
     {
         "vulnerability_id": "CVE-2026-56852",
-        "reason": "golang.org/x/text v0.32.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-10-25"
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds x/text v0.37.0, below the fixed v0.39.0; upstream Mooncake main has bumped x/text to v0.42.0 but no release carries it, so it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     },
     {
         "vulnerability_id": "GHSA-hrxh-6v49-42gf",
@@ -86,8 +86,8 @@
     },
     {
         "vulnerability_id": "CVE-2026-84304",
-        "reason": "google.golang.org/grpc v1.79.3 embedded in mooncake libetcd_wrapper.so, HTTP/2 DATA-frame fragmentation memory-exhaustion DoS, cannot patch without upstream mooncake rebuild with grpc-go 1.83.1+",
-        "review_by": "2026-12-31"
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake libetcd_wrapper.so, HTTP/2 DATA-frame fragmentation memory-exhaustion DoS; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds grpc v1.82.1, below the fixed v1.83.1; upstream Mooncake main has bumped grpc to v1.83.2 but no release carries it, so it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     },
     {
         "vulnerability_id": "CVE-2026-84445",
@@ -103,5 +103,65 @@
         "vulnerability_id": "CVE-2026-73500",
         "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 embedded in mooncake libetcd_wrapper.so, TLS listener connection-exhaustion DoS, cannot patch without upstream mooncake rebuild with etcd client 3.7.1+",
         "review_by": "2026-12-31"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56857",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 and upstream Mooncake main is on the go1.26.9 toolchain, still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56866",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 and upstream Mooncake main is on the go1.26.9 toolchain, still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78667",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 and upstream Mooncake main is on the go1.26.9 toolchain, still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94439",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 and upstream Mooncake main is on the go1.26.9 toolchain, still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94440",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 and upstream Mooncake main is on the go1.26.9 toolchain, still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97031",
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 and upstream Mooncake main is on the go1.26.9 toolchain, still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78659",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 / x/net v0.55.0, and although upstream Mooncake main has bumped x/net to v0.60.0 its go1.26.9 toolchain is still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78660",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 / x/net v0.55.0, and although upstream Mooncake main has bumped x/net to v0.60.0 its go1.26.9 toolchain is still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78663",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 / x/net v0.55.0, and although upstream Mooncake main has bumped x/net to v0.60.0 its go1.26.9 toolchain is still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78669",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 / x/net v0.55.0, and although upstream Mooncake main has bumped x/net to v0.60.0 its go1.26.9 toolchain is still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97032",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds go1.25.10 / x/net v0.55.0, and although upstream Mooncake main has bumped x/net to v0.60.0 its go1.26.9 toolchain is still below the fixed go1.27.2, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-56851",
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds x/text v0.37.0, below the fixed v0.41.0; upstream Mooncake main has bumped x/text to v0.42.0 but no release carries it, so it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     }
 ]
