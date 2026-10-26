@@ -7,37 +7,37 @@
     {
         "vulnerability_id": "CVE-2022-29361",
         "reason": "Werkzeug 0.15.6 \u2014 HTTP request smuggling. Container behind SageMaker ALB; not directly exposed.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2022-45198",
         "reason": "Pillow 9.1.1 \u2014 bumped to 12.2.0 in requirements.txt.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2022-49026",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2022-49267",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime. MMC sysfs sprintf() overflow not reachable; no MMC subsystem in container.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2022-49390",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2022-49698",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2023-25577",
         "reason": "Werkzeug 0.15.6 \u2014 multipart DoS. SageMaker controls input; not internet-facing.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2023-30861",
@@ -47,12 +47,12 @@
     {
         "vulnerability_id": "CVE-2023-43804",
         "reason": "urllib3 1.26.x \u2014 Cookie header leak on redirect. Container only makes outbound calls to S3/SageMaker APIs.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2023-44271",
         "reason": "Pillow 9.1.1 \u2014 bumped to 12.2.0 in requirements.txt.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2023-46136",
@@ -62,97 +62,97 @@
     {
         "vulnerability_id": "CVE-2023-4863",
         "reason": "Pillow 9.1.1 \u2014 bumped to 12.2.0 in requirements.txt.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2023-50447",
         "reason": "Pillow 9.1.1 \u2014 bumped to 12.2.0 in requirements.txt. If this still appears, conda env has stale version.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2023-52757",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime. SMB client deadlock not applicable.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2023-52854",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2023-52975",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2023-53034",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-34069",
         "reason": "Werkzeug 0.15.6 \u2014 debugger RCE. Debugger not enabled in production container.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2024-35867",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-38541",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-39689",
         "reason": "certifi \u2014 bumped to 2025.4.26 in requirements.txt.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2024-46787",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-219.239 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the userfaultfd huge-PMD race is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-47691",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-49950",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-50047",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-50061",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-50067",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-50073",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-53168",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-53218",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-56326",
@@ -162,77 +162,77 @@
     {
         "vulnerability_id": "CVE-2024-56551",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-56640",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-56664",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2024-58093",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-21726",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-21727",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-21780",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-21796",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-21855",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-21991",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-21993",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-22004",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-22020",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-22035",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-22079",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-27516",
@@ -247,42 +247,42 @@
     {
         "vulnerability_id": "CVE-2025-37752",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-37785",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-37797",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-37798",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-37838",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-37849",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-37890",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-38000",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-38083",
@@ -292,12 +292,12 @@
     {
         "vulnerability_id": "CVE-2025-38350",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-38352",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-38477",
@@ -312,17 +312,17 @@
     {
         "vulnerability_id": "CVE-2025-38618",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-38666",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-39735",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2025-39993",
@@ -347,7 +347,7 @@
     {
         "vulnerability_id": "CVE-2025-53066",
         "reason": "openjdk-8 \u2014 JAXP vulnerability. Java only used for MMS model server, not in data path.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2025-66418",
@@ -402,7 +402,7 @@
     {
         "vulnerability_id": "CVE-2026-23074",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2026-23272",
@@ -422,7 +422,7 @@
     {
         "vulnerability_id": "CVE-2026-31431",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2026-31448",
@@ -432,37 +432,37 @@
     {
         "vulnerability_id": "CVE-2026-31504",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2026-31533",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2026-33811",
         "reason": "libcap \u2014 Go net LookupCNAME double-free. Go not used in container.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-33814",
         "reason": "libcap \u2014 Go net/http2 SETTINGS infinite loop. Go not used in container.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-33846",
         "reason": "gnutls \u2014 DTLS fragment heap overwrite. DTLS not used in container.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-39820",
         "reason": "libcap \u2014 Go net/mail ParseAddress DoS. Go not used in container.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-39892",
         "reason": "cryptography 45.0.5 \u2014 bumped to 46.0.7 in requirements.txt.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-41254",
@@ -472,27 +472,27 @@
     {
         "vulnerability_id": "CVE-2026-42009",
         "reason": "gnutls \u2014 DTLS packet ordering undefined behavior. DTLS not used in container.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-42010",
         "reason": "gnutls \u2014 RSA-PSK NUL character auth bypass. DTLS/RSA-PSK not used in serving/training.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-42499",
         "reason": "libcap \u2014 Go net/mail consumePhrase DoS. Go not used in container.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-42945",
         "reason": "nginx \u2014 ngx_http_rewrite_module double-free. Rewrite rules not chained in XGBoost MMS config.",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-43033",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2026-43071",
@@ -502,7 +502,7 @@
     {
         "vulnerability_id": "CVE-2026-43078",
         "reason": "linux-libc-dev \u2014 kernel headers only, not runtime.",
-        "review_by": "2026-10-15"
+        "review_by": "2027-03-02"
     },
     {
         "vulnerability_id": "CVE-2026-43284",
@@ -597,16 +597,371 @@
     {
         "vulnerability_id": "CVE-2026-97687",
         "reason": "urllib3 1.26.20 pinned transitively by botocore 1.20.52 (legacy sagemaker-containers stack) in /miniconda3; urllib3>=2 unsatisfiable without a botocore bump",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-97689",
         "reason": "urllib3 1.26.20 pinned transitively by botocore 1.20.52 (legacy sagemaker-containers stack) in /miniconda3; urllib3>=2 unsatisfiable without a botocore bump",
-        "review_by": "2026-10-15"
+        "review_by": "2026-11-30"
     },
     {
         "vulnerability_id": "CVE-2026-54873",
         "reason": "openssl 3.6.3 in the bundled miniconda3 environment; fix 4.0.3 not available on conda-forge",
         "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53176",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so IB/isert: Reject login PDUs shorter than ISER_HEADERS_LEN is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112404",
+        "reason": "Pillow: Pillow's TIFF tile and RGBA decode paths can read beyond row data produced by libtiff. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112403",
+        "reason": "Pillow: Pillow's JPEG decoder can write a full-width scanline into a buffer sized for a requested draft. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31414",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so netfilter: nf_conntrack_expect: use expect->helper Use expect->helper in ctnetlink and /proc to dump is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52910",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-242.262 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so bpf: Free reuseport cBPF prog after RCU grace period. Eulgyu Kim reported the splat below is not a runtime attack surface for this image. Exploit reported by the scanner but requires local kernel access on the host, not reachable from within the container.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112897",
+        "reason": "Pillow: Pillow can return uninitialized memory as pixels when libtiff performs a short decode of JPEG-. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112895",
+        "reason": "Pillow: Pillow can exhaust resources while parsing an existing PDF during an append operation. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52958",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so libceph: Fix potential out-of-bounds access in osdmap_decode() When decoding osd_state is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112397",
+        "reason": "Pillow: Pillow's ImageMorph.MorphOp.apply() can access memory before a row buffer for a zero-width image. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46331",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so net/sched: fix pedit partial COW leading to page cache corruption tcf_pedit_act() computes the COW is not a runtime attack surface for this image. Exploit reported by the scanner but requires local kernel access on the host, not reachable from within the container.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43503",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so It was discovered that a logic flaw existed in the XFRM ESP-in-TCP subsystem in the Linux kernel is not a runtime attack surface for this image. Exploit reported by the scanner but requires local kernel access on the host, not reachable from within the container.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43407",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so libceph: Fix potential out-of-bounds access in ceph_handle_auth_reply() This patch fixes an out-of- is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96639",
+        "reason": "Pillow: multi-frame loaders can retain an ImagingCore allocation created for a narrow frame mode while. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53212",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so netfilter: nft_tunnel: fix use-after-free on object destroy nft_tunnel_obj_destroy() calls is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43198",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so tcp: fix potential race in tcp_v6_syn_recv_sock() Code in tcp_v6_syn_recv_sock() after the call is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52924",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so sctp: purge outqueue on stale COOKIE-ECHO handling sctp_stream_update() is only invoked is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96643",
+        "reason": "Pillow: Exif.load() in src/PIL/Image.py repeatedly slices the remaining EXIF data while it begins. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53002",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so netfilter: conntrack: remove sprintf usage Replace it with scnprintf, the buffer sizes are expected is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2022-49149",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-242.262 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so rxrpc: Fix call timer start racing with call destruction The rxrpc_call struct has a timer used is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112392",
+        "reason": "Pillow: Pillow's rank-based filters can dereference invalid image storage for a zero-size image. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23455",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so netfilter: nf_conntrack_h323: check for zero length in DecodeQ931() In DecodeQ931(), the UserUserIE is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112400",
+        "reason": "Pillow: Pillow can retain a rejected GIF frame size after a decompression-bomb exception. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31405",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so media: dvb-net: fix OOB access in ULE extension header tables The ule_mandatory_ext_handlers[] is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96644",
+        "reason": "Pillow: src/PIL/WmfImagePlugin.py passes unchecked 32-bit WMF or EMF dimensions to the native drawwmf. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38177",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-219.239 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so sch_hfsc: make hfsc_qlen_notify() idempotent hfsc_qlen_notify() is not idempotent either and not is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43493",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so crypto: pcrypt - Fix handling of MAY_BACKLOG requests MAY_BACKLOG requests can return EBUSY. Handle is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52993",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so tipc: fix double-free in tipc_buf_append() tipc_msg_validate() can potentially reallocate the skb it is not a runtime attack surface for this image. Exploit reported by the scanner but requires local kernel access on the host, not reachable from within the container.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112393",
+        "reason": "Pillow: Pillow has a heap buffer overflow and stale-heap disclosure in _tiffWriteProc when saving compressed. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52914",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so batman-adv: fix fragment reassembly length accounting batman-adv keeps a running payload length is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112390",
+        "reason": "Pillow: Pillow can enter an infinite loop while determining the frame count of a MIC image. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "GHSA-78g4-xqwv-q3g8",
+        "reason": "Pillow: ### Summary Every Pillow wheel from 11.1.0 onward bundles a libopenjp2 containing a heap-buffer-. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23209",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-229.249 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so macvlan: fix error recovery in macvlan_common_newlink() valis provided a nice repro to crash is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96778",
+        "reason": "Pillow: ImagingJpegEncode() in src/libImaging/JpegEncode.c can call jpeg_write_marker() for a JPEG COM. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112892",
+        "reason": "Pillow: Pillow's MSP RLE decoder can expand a small file into an unbounded in-memory buffer. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53043",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-238.258 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so ocfs2/dlm: validate qr_numregions in dlm_match_regions() Patch series \"ocfs2/dlm: fix two bugs is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43011",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so net/x25: Fix potential double free of skb When alloc_skb fails in x25_queue_rx_frame it calls is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112893",
+        "reason": "Pillow: Pillow can free an invalid glyph pointer during FreeType rendering with an active stroker. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96640",
+        "reason": "Pillow: PdfParser.linearize_page_tree() in src/PIL/PdfParser.py treats a PDF /Pages graph as a tree without. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112402",
+        "reason": "Pillow: Pillow can double free image memory when ImagingScaleAffine encounters a selective allocation. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112405",
+        "reason": "Pillow: Pillow's Image.merge() can dereference a null image8 plane. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112406",
+        "reason": "Pillow: Pillow can enter an infinite loop while rewriting PDF pages. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31659",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so batman-adv: reject oversized global TT response buffers batadv_tt_prepare_tvlv_global_data() builds is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23112",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-229.249 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the nvmet-tcp PDU iovec bounds-check gap is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23392",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so netfilter: nf_tables: release flowtable after rcu grace period on error Call synchronize_rcu() is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43456",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-242.262 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so bonding: fix type confusion in bond_setup_by_slave() kernel BUG at net/core/skbuff.c:2306! Oops is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46043",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the RDMA/rxe pad and ICRC validation gap in rxe_rcv is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31657",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so batman-adv: hold claim backbone gateways by reference batadv_bla_add_claim() can replace is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43037",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so ip6_tunnel: clear skb2->cb[] in ip4ip6_err() Oskar Kjos reported the following problem. ip4ip6_err() is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43499",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so rtmutex: Use waiter::task instead of current in remove_waiter() remove_waiter() is used by is not a runtime attack surface for this image. Exploit reported by the scanner but requires local kernel access on the host, not reachable from within the container.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112900",
+        "reason": "Pillow: Pillow is vulnerable to argument injection when invoking Ghostscript for EPS input. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46119",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so libceph: Fix slab-out-of-bounds access in auth message processing If a (potentially corrupted) is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96642",
+        "reason": "Pillow: the TarIO initializer in src/PIL/TarIO.py accepts a negative octal member size and computes. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-92392",
+        "reason": "curl/libcurl 8.22.0 vendored inside the Miniforge conda environment at /miniconda3, not installed from apt. Fixing requires a Miniforge release that bundles curl >= 8.23.0; it is not reachable by rebuilding on this base. The container uses curl only for outbound calls to AWS endpoints over TLS.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-45988",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so rxrpc: Fix re-decryption of RESPONSE packets If a RESPONSE packet gets a temporary failure during is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31607",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so usbip: validate number_of_packets in usbip_pack_ret_submit() When a USB/IP client receives is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2022-49182",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-242.262 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so net: hns3: add vlan list lock to protect vlan list When adding port base VLAN, vf VLAN need is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31637",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so rxrpc: reject undecryptable rxkad response tickets rxkad_decrypt_ticket() decrypts the RXKAD is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52989",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so nvmet-tcp: propagate nvmet_tcp_build_pdu_iovec() errors to its callers Currently is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112399",
+        "reason": "Pillow: Pillow can allocate an APNG disposal background at the full canvas size before applying. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96637",
+        "reason": "Pillow: SpiderImageFile.seek() in src/PIL/SpiderImagePlugin.py reparses a later SPIDER stack frame. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2025-38724",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-241.261 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so nfsd: handle get_client_locked() failure in nfsd4_setclientid_confirm() Lei Lu recently reported is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53224",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-238.258 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so sctp: validate embedded INIT chunk and address list lengths in cookie sctp_unpack_cookie() only is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31402",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so nfsd: fix heap overflow in NFSv4.0 LOCK replay cache The NFSv4.0 replay cache uses a fixed 112-byte is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112894",
+        "reason": "Pillow: Pillow takes quadratic time to reserve PDF object identifiers when saving many frames with save_all. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52955",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so libceph: Fix potential out-of-bounds access in crush_decode() A message of type CEPH_MSG_OSD_MAP is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2022-49170",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-242.262 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so f2fs: fix to do sanity check on curseg->alloc_type As Wenqing Liu reported in bugzilla is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46135",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so nvmet-tcp: fix race between ICReq handling and queue teardown nvmet_tcp_handle_icreq() updates is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112896",
+        "reason": "Pillow: Pillow's TIFF encoder can read beyond a ColorMap buffer when retained TIFF metadata has a plane size. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53006",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so ipv6: fix possible UAF in icmpv6_rcv() Caching saddr and daddr before pskb_pull() is problematic is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43038",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is not installable from the standard Focal archive: Focal is past standard-support EOL and kernel updates are Ubuntu Pro/ESM-only. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so ipv6: icmp: clear skb2->cb[] in ip6_err_gen_icmpv6_unreach() Sashiko AI-review observed is not a runtime attack surface for this image.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "GHSA-xvh5-g6gv-559v",
+        "reason": "Pillow: ``` ============================================================================ Memory disclosure. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
     }
 ]

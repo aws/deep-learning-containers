@@ -6,7 +6,7 @@ dependencies = [
     "xgboost==3.2.0",
     "boto3==1.38.0",
     "botocore==1.38.0",
-    "certifi==2025.4.26",
+    "certifi==2026.10.19",
     "cryptography==50.0.0",
     "cuda-python==12.9.0",
     "dask-cuda==26.4.0",
@@ -19,7 +19,7 @@ dependencies = [
     "numba==0.65.1",
     "numpy==2.1.0",
     "pandas==2.2.3",
-    "Pillow==12.3.0",
+    "Pillow==13.0.0",
     "psutil==7.0.0",
     "pynvml==12.0.0",
     "python-dateutil==2.9.0",
@@ -39,6 +39,7 @@ dependencies = [
     "idna>=3.15",
     "tornado>=6.5.8",
     "msgpack>=1.2.1",
+    "fsspec>=2026.6.0",
 ]
 
 [tool.uv]
@@ -49,6 +50,6 @@ override-dependencies = [
     "itsdangerous>=2.2.0",
     "werkzeug==3.1.8",
     "urllib3==2.8.0",
-    "certifi==2025.4.26",
-    "pillow==12.3.0",
+    "certifi==2026.10.19",
+    "pillow==13.0.0",
 ]
