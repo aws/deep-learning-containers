@@ -6,10 +6,10 @@ FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 
 # What deep_learning_container.py imports, and the `python` that bash_telemetry.sh runs
 RUN dnf install -y \
-    python-unversioned-command \
-    python3-botocore \
-    python3-packaging \
-    python3-requests \
+  python-unversioned-command \
+  python3-botocore \
+  python3-packaging \
+  python3-requests \
   && dnf clean all
 
 # GPU images link /usr/local/cuda to the toolkit, so the telemetry tag takes its GPU branch
