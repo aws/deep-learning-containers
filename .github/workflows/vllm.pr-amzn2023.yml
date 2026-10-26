@@ -67,10 +67,12 @@ jobs:
         id: changes
         with:
           filters: |
+            # paths-filter matches a file if any pattern matches, so a "!" pattern here
+            # matches every other file. List the GPU configs instead of excluding the rest.
             build-change:
-              - ".github/config/image/vllm/*-amzn2023.yml"
-              - "!.github/config/image/vllm/*-cpu-amzn2023.yml"
-              - "!.github/config/image/vllm/*-arm64-amzn2023.yml"
+              - ".github/config/image/vllm/ec2-amzn2023.yml"
+              - ".github/config/image/vllm/hyperpod-amzn2023.yml"
+              - ".github/config/image/vllm/sagemaker-amzn2023.yml"
               - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/ci/build/vllm_server/**"
               - "scripts/docker/common/**"
