@@ -22,11 +22,11 @@ build:
   cuda_version: "13.3.0"
   # vllm 0.31.0 caps transformers <5.18.0; bump both together.
   transformers_version: "5.17.0"
-  # diffusers 0.42.0 requires huggingface-hub >=1.32.0,<3.0.
+  # diffusers 0.41.0 caps huggingface-hub <2.0.
   huggingface_hub_version: "1.33.0"
   hf_xet_version: "1.7.0"
   trl_version: "1.15.0"
-  diffusers_version: "0.42.0"
+  diffusers_version: "0.41.0"
   hf_transfer_version: "0.1.9"
   datasets_version: "5.1.0"
   # fsspec + s3fs (same version); >=2026.6.0 fixes CVE-2026-104851.

@@ -11,6 +11,7 @@ ARG FRAMEWORK_VERSION=2.11.0
 ARG CONTAINER_TYPE=inference
 ARG TRANSFORMERS_VERSION=5.20.2
 ARG HF_SERVE_VERSION=0.2.0
+ARG DIFFUSERS_VERSION=0.42.0
 ARG VENV_PYTHON=/opt/venv/bin/python
 
 LABEL maintainer="Hugging Face"
@@ -55,6 +56,7 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
 RUN uv pip install --python ${VENV_PYTHON} \
   "hf-serve[cpu]==${HF_SERVE_VERSION}" \
   "torch==${FRAMEWORK_VERSION}" \
+  "diffusers==${DIFFUSERS_VERSION}" \
   "transformers[accelerate,audio,chat_template,kernels,video,vision]==${TRANSFORMERS_VERSION}" \
   "aiohttp>=3.14.4" \
   "anyio>=4.14.2" \
