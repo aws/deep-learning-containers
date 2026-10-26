@@ -141,7 +141,9 @@ def classify(base_source: str | None, head: Registry) -> Scope:
         reasons.append(f"--framework choices added: {sorted(added)}")
     if new_regions:
         reasons.append(f"REGION_MAPPING entries added: {new_regions}")
-    return Scope("; ".join(reasons) or "registry reordered or reformatted only", frameworks, removed)
+    return Scope(
+        "; ".join(reasons) or "registry reordered or reformatted only", frameworks, removed
+    )
 
 
 def config_frameworks() -> dict[str, list[str]]:
@@ -204,9 +206,12 @@ def main(argv=None) -> int:
     # would silently stop reporting telemetry.
     still_used = {f: configs[f] for f in sorted(scope.removed) if f in configs}
     if still_used:
-        print(f"::error file={DLC_SCRIPT}::removed --framework choices are still in use: {still_used}")
+        print(
+            f"::error file={DLC_SCRIPT}::removed --framework choices are still in use: {still_used}"
+        )
         return 1
-    for framework in sorted(scope.frameworks - set(configs)):
+    # The mock needs no config, but a new framework's images need its exact name.
+    for framework in sorted(scope.frameworks - {MOCK_FRAMEWORK} - set(configs)):
         print(
             f"::warning file={DLC_SCRIPT}::No config in {CONFIG_DIR} has metadata.framework "
             f"'{framework}'; check the name, as images built with another name report nothing"

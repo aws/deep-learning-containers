@@ -280,6 +280,13 @@ def test_main_warns_when_new_framework_has_no_config(repo, capsys):
     assert "::warning" in capsys.readouterr().out
 
 
+def test_main_does_not_warn_about_the_mock_framework(repo, capsys):
+    (repo / stt.CONFIG_DIR / "base" / "cu130-runtime.yml").unlink()
+    commit(repo, "logic", {stt.DLC_SCRIPT: edit(SCRIPT, LOGIC_CHANGE)})
+    assert selected(repo, "--base-ref", "main") == [stt.MOCK_FRAMEWORK]
+    assert "::warning" not in capsys.readouterr().out
+
+
 def test_main_fails_when_a_removed_framework_is_still_in_use(repo, capsys):
     commit(repo, "drop vllm", {stt.DLC_SCRIPT: edit(SCRIPT, REMOVE_FRAMEWORK)})
     assert stt.main(["--base-ref", "main"]) == 1
