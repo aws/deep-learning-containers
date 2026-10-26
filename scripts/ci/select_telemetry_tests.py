@@ -34,13 +34,22 @@ from pathlib import Path
 import yaml
 
 DLC_SCRIPT = "scripts/docker/telemetry/deep_learning_container.py"
-# A change under these paths can change the telemetry test of every image.
+# A change under these paths can change the telemetry test of every image: the
+# suite, the shared test code it loads, and the workflows and actions that run it.
 SUITE_PATHS = (
+    ".github/actions/check-image-exists/",
+    ".github/actions/ecr-authenticate/",
+    ".github/actions/resolve-image-uri/",
     ".github/workflows/_reusable.telemetry-tests.yml",
     ".github/workflows/telemetry.pipeline.yml",
     "scripts/ci/telemetry_mock/",
     "scripts/docker/telemetry/",
+    "test/conftest.py",
+    "test/requirements.txt",
     "test/telemetry/",
+    "test/test_utils/__init__.py",
+    "test/test_utils/aws.py",
+    "test/test_utils/constants.py",
 )
 # The framework the mock reports for a change that can affect every framework.
 MOCK_FRAMEWORK = "base"

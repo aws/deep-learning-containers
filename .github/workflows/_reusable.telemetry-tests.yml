@@ -64,6 +64,14 @@ jobs:
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
 
+      # Only the prod fallback may be missing (before an image's first release).
+      # An image this run built must exist, or the tests would skip and pass.
+      - name: Require the built image
+        if: inputs.image-uri != '' && steps.check.outputs.exists != 'true'
+        run: |
+          echo "::error::${{ inputs.image-uri }} was built for this run but is not in ECR"
+          exit 1
+
       - name: Parse config
         if: steps.check.outputs.exists == 'true'
         id: parse

@@ -242,6 +242,8 @@ def test_main_logic_change_tests_the_mock_as_the_mock_framework(repo):
         ".github/workflows/_reusable.telemetry-tests.yml",
         ".github/workflows/telemetry.pipeline.yml",
         "scripts/ci/telemetry_mock/Dockerfile",
+        "test/test_utils/aws.py",
+        ".github/actions/ecr-authenticate/action.yml",
     ],
 )
 def test_main_suite_change_tests_the_mock_as_the_mock_framework(repo, path):

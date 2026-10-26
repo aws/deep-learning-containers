@@ -7,7 +7,11 @@ on:
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
+    # SUITE_PATHS in select_telemetry_tests.py, plus the selector and its unit tests
     paths:
+      - ".github/actions/check-image-exists/**"
+      - ".github/actions/ecr-authenticate/**"
+      - ".github/actions/resolve-image-uri/**"
       - ".github/workflows/_reusable.telemetry-tests.yml"
       - ".github/workflows/telemetry.pipeline.yml"
       - ".github/workflows/telemetry.pr.yml"
@@ -15,7 +19,12 @@ on:
       - "scripts/ci/telemetry_mock/**"
       - "scripts/docker/telemetry/**"
       - "test/ci/telemetry/**"
+      - "test/conftest.py"
+      - "test/requirements.txt"
       - "test/telemetry/**"
+      - "test/test_utils/__init__.py"
+      - "test/test_utils/aws.py"
+      - "test/test_utils/constants.py"
 
 permissions:
   contents: read
@@ -47,9 +56,10 @@ jobs:
           python-version: "3.12"
 
       - name: Install test dependencies
-        run: pip install pytest pyyaml
+        # botocore, packaging, and requests are what deep_learning_container.py imports
+        run: pip install botocore packaging pytest pyyaml requests
 
-      - name: Run telemetry selection unit tests
+      - name: Run telemetry unit tests
         run: python -m pytest test/ci/telemetry --confcutdir test/ci/telemetry -v
 
   select:
