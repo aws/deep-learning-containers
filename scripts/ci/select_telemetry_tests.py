@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
-"""Select the image configs whose telemetry tests a PR needs.
+"""Select the telemetry tests a PR needs.
 
 Every image copies scripts/docker/telemetry/deep_learning_container.py, so a path
-trigger on it reruns every framework's PR workflow. Most edits to the file are
-registry additions that leave existing images' telemetry unchanged. This script
-diffs the file against the PR base and narrows the telemetry test matrix:
+trigger on it reruns every framework's PR workflow. This script diffs the file
+against the PR base so telemetry.pr.yml tests only what a change can affect. The
+tests run on a mock image that telemetry.pipeline.yml builds from the checkout
+(scripts/ci/telemetry_mock), so they never depend on a released image:
 
-    only new REGION_MAPPING entries     -> no configs
-    new --framework choices             -> released configs of those frameworks
+    only new REGION_MAPPING entries     -> no image test
+    new --framework choices             -> the mock, as each new framework
     any other change to the file, or a
-    change to the telemetry test suite  -> released configs of every registered framework
+    change to the telemetry test suite  -> the mock, as MOCK_FRAMEWORK
 
 Usage:
-    python3 scripts/ci/select_telemetry_configs.py [--base-ref origin/main]
+    python3 scripts/ci/select_telemetry_tests.py [--base-ref origin/main]
 
 --base-ref defaults to HEAD^1, the base side of the PR merge commit that CI checks out.
 
 Output (written to $GITHUB_OUTPUT, or stdout if not in CI):
-    configs=<json-array>   [{"config_file": "...", "name": "..."}], the discover-configs shape
+    frameworks=<json-array>   the --framework values to test the mock image as
 """
 
 import argparse
 import ast
+import dataclasses
 import json
 import os
 import subprocess
@@ -36,9 +38,12 @@ DLC_SCRIPT = "scripts/docker/telemetry/deep_learning_container.py"
 SUITE_PATHS = (
     ".github/workflows/_reusable.telemetry-tests.yml",
     ".github/workflows/telemetry.pipeline.yml",
+    "scripts/ci/telemetry_mock/",
     "scripts/docker/telemetry/",
     "test/telemetry/",
 )
+# The framework the mock reports for a change that can affect every framework.
+MOCK_FRAMEWORK = "base"
 CONFIG_DIR = ".github/config/image"
 
 
@@ -57,8 +62,9 @@ class Registry:
 @dataclass(frozen=True)
 class Scope:
     reason: str
-    run_all: bool = False
+    # The --framework values to test the mock image as; empty means no image test
     frameworks: frozenset[str] = frozenset()
+    removed: frozenset[str] = frozenset()
 
 
 def _literal(node, what):
@@ -109,41 +115,42 @@ def parse_registry(source: str) -> Registry:
 
 def classify(base_source: str | None, head: Registry) -> Scope:
     """Decide which telemetry tests the change from base_source to head needs."""
+    every = frozenset({MOCK_FRAMEWORK})
     if base_source is None:
-        return Scope(f"{DLC_SCRIPT} is new", run_all=True)
+        return Scope(f"{DLC_SCRIPT} is new", every)
     try:
         base = parse_registry(base_source)
     except (RegistryError, SyntaxError) as e:
-        return Scope(f"cannot read the base registry ({e})", run_all=True)
-
-    if base.logic != head.logic:
-        return Scope("telemetry code changed outside the registry", run_all=True)
-    changed = sorted(r for r, bucket in base.regions.items() if head.regions.get(r) != bucket)
-    if changed:
-        return Scope(f"REGION_MAPPING entries changed or removed: {changed}", run_all=True)
-    removed = sorted(set(base.frameworks) - set(head.frameworks))
-    if removed:
-        return Scope(f"--framework choices removed: {removed}", run_all=True)
+        return Scope(f"cannot read the base registry ({e})", every)
 
     added = frozenset(head.frameworks) - frozenset(base.frameworks)
-    if added:
-        return Scope(f"--framework choices added: {sorted(added)}", frameworks=added)
+    removed = frozenset(base.frameworks) - frozenset(head.frameworks)
+    changed = sorted(r for r, bucket in base.regions.items() if head.regions.get(r) != bucket)
     new_regions = sorted(set(head.regions) - set(base.regions))
+
+    reasons = []
+    if base.logic != head.logic:
+        reasons.append("telemetry code changed outside the registry")
+    if changed:
+        reasons.append(f"REGION_MAPPING entries changed or removed: {changed}")
+    if removed:
+        reasons.append(f"--framework choices removed: {sorted(removed)}")
+    # Anything but a registry addition can affect every framework.
+    frameworks = added | every if reasons else added
+    if added:
+        reasons.append(f"--framework choices added: {sorted(added)}")
     if new_regions:
-        return Scope(f"only REGION_MAPPING entries added: {new_regions}")
-    return Scope("registry reordered or reformatted only")
+        reasons.append(f"REGION_MAPPING entries added: {new_regions}")
+    return Scope("; ".join(reasons) or "registry reordered or reformatted only", frameworks, removed)
 
 
-def released_configs() -> list[tuple[str, dict]]:
-    """Return (framework, discover-configs entry) for every released image config."""
-    released = []
+def config_frameworks() -> dict[str, list[str]]:
+    """Return metadata.framework -> the image configs that declare it."""
+    configs = {}
     for path in sorted(Path(CONFIG_DIR).rglob("*.yml")):
-        config = yaml.safe_load(path.read_text())
-        # Unreleased configs are left out of PR CI, so leave them out here too.
-        if config["release"]["release"]:
-            entry = {"config_file": path.as_posix(), "name": config["image"]["name"]}
-            released.append((config["metadata"]["framework"], entry))
-    return released
+        framework = yaml.safe_load(path.read_text())["metadata"]["framework"]
+        configs.setdefault(framework, []).append(path.as_posix())
+    return configs
 
 
 def git(*args: str, check: bool = True) -> subprocess.CompletedProcess:
@@ -155,7 +162,7 @@ def is_suite_path(path: str) -> bool:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description="Select image configs for telemetry tests.")
+    parser = argparse.ArgumentParser(description="Select the telemetry tests a PR needs.")
     parser.add_argument("--base-ref", default="HEAD^1", help="Ref to diff HEAD against.")
     args = parser.parse_args(argv)
 
@@ -174,28 +181,40 @@ def main(argv=None) -> int:
         print(f"::error::cannot diff HEAD against {args.base_ref}: {e.stderr.strip()}")
         return 1
 
-    suite_changes = [f for f in changed if f != DLC_SCRIPT and is_suite_path(f)]
-    if suite_changes:
-        scope = Scope(f"telemetry test suite changed: {suite_changes}", run_all=True)
-    elif DLC_SCRIPT in changed:
+    scope = Scope(f"{DLC_SCRIPT} is unchanged")
+    if DLC_SCRIPT in changed:
         base = git("show", f"{merge_base}:{DLC_SCRIPT}", check=False)
         scope = classify(base.stdout if base.returncode == 0 else None, head)
-    else:
-        scope = Scope(f"{DLC_SCRIPT} and the telemetry test suite are unchanged")
-
-    released = released_configs()
-    wanted = set(head.frameworks) if scope.run_all else scope.frameworks
-    configs = [entry for framework, entry in released if framework in wanted]
-    print(f"::notice::Telemetry tests for {len(configs)} config(s): {scope.reason}")
-    for config in configs:
-        print(f"  {config['config_file']}")
-    for framework in sorted(scope.frameworks - {framework for framework, _ in released}):
-        print(
-            f"::warning file={DLC_SCRIPT}::No released config in {CONFIG_DIR} has "
-            f"metadata.framework '{framework}', so no image tests its telemetry"
+    suite_changes = [f for f in changed if f != DLC_SCRIPT and is_suite_path(f)]
+    if suite_changes:
+        scope = dataclasses.replace(
+            scope,
+            reason=f"{scope.reason}; telemetry test suite changed: {suite_changes}",
+            frameworks=scope.frameworks | {MOCK_FRAMEWORK},
         )
 
-    line = f"configs={json.dumps(configs, separators=(',', ':'))}"
+    if MOCK_FRAMEWORK in scope.frameworks and MOCK_FRAMEWORK not in head.frameworks:
+        print(
+            f"::error::MOCK_FRAMEWORK '{MOCK_FRAMEWORK}' is not a --framework choice; "
+            f"point it at one in {Path(__file__).name}"
+        )
+        return 1
+    configs = config_frameworks()
+    # The mock can't test a removed framework, but every image still built with it
+    # would silently stop reporting telemetry.
+    still_used = {f: configs[f] for f in sorted(scope.removed) if f in configs}
+    if still_used:
+        print(f"::error file={DLC_SCRIPT}::removed --framework choices are still in use: {still_used}")
+        return 1
+    for framework in sorted(scope.frameworks - set(configs)):
+        print(
+            f"::warning file={DLC_SCRIPT}::No config in {CONFIG_DIR} has metadata.framework "
+            f"'{framework}'; check the name, as images built with another name report nothing"
+        )
+
+    frameworks = sorted(scope.frameworks)
+    print(f"::notice::Telemetry tests on the mock image as {frameworks}: {scope.reason}")
+    line = f"frameworks={json.dumps(frameworks, separators=(',', ':'))}"
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
             f.write(line + "\n")

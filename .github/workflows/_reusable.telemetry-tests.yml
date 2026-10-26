@@ -22,6 +22,11 @@ on:
         required: false
         type: string
         default: ""
+      framework:
+        description: "Overrides metadata.framework from config-file, for an image built as another framework (the telemetry mock)."
+        required: false
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -64,7 +69,8 @@ jobs:
         id: parse
         run: |
           CONFIG_FILE="${{ inputs.config-file }}"
-          echo "framework=$(yq '.metadata.framework' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          FRAMEWORK="${{ inputs.framework }}"
+          echo "framework=${FRAMEWORK:-$(yq '.metadata.framework' "$CONFIG_FILE")}" >> $GITHUB_OUTPUT
           echo "framework-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "job-type=$(yq '.metadata.job_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
           echo "arch-type=$(yq '.metadata.arch_type' "$CONFIG_FILE")" >> $GITHUB_OUTPUT

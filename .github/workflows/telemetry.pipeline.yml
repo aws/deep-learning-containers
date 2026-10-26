@@ -3,8 +3,12 @@ name: "Pipeline - Telemetry"
 on:
   workflow_call:
     inputs:
-      config-file:
-        description: "Path to image config YAML"
+      framework:
+        description: "The --framework value the mock image reports"
+        required: true
+        type: string
+      tag-suffix:
+        description: "Suffix for the mock image tag (e.g., pr-NUMBER)"
         required: true
         type: string
 
@@ -12,26 +16,51 @@ permissions:
   contents: read
 
 jobs:
-  # Check to see if the prod image already passed the current telemetry suite
-  check:
+  # Built from this checkout's telemetry scripts every run, so the test never
+  # depends on a released image.
+  mock:
     concurrency:
-      group: ${{ github.workflow }}-check-${{ inputs.config-file }}-${{ github.ref }}
+      group: ${{ github.workflow }}-mock-${{ inputs.framework }}-${{ github.ref }}
       cancel-in-progress: true
-    uses: ./.github/workflows/_reusable.check-test-pass.yml
-    with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ""
-      suites: '["telemetry"]'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build and push mock image
+        id: build
+        env:
+          MOCK_CONFIG: scripts/ci/telemetry_mock/config.yml
+          FRAMEWORK: ${{ inputs.framework }}
+          # The run id keeps a superseded run's tests on their own image.
+          IMAGE: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:telemetry-mock-${{ inputs.tag-suffix }}-${{ github.run_id }}-${{ inputs.framework }}
+        run: |
+          docker build --file scripts/ci/telemetry_mock/Dockerfile \
+            --build-arg FRAMEWORK="${FRAMEWORK}" \
+            --build-arg FRAMEWORK_VERSION="$(yq '.metadata.framework_version' "${MOCK_CONFIG}")" \
+            --build-arg CONTAINER_TYPE="$(yq '.metadata.job_type' "${MOCK_CONFIG}")" \
+            --tag "${IMAGE}" .
+          docker push "${IMAGE}"
+          docker rmi "${IMAGE}" >/dev/null || true
+          echo "image-uri=${IMAGE}" >> "${GITHUB_OUTPUT}"
 
   telemetry-test:
-    if: ${{ always() && !cancelled() && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
-    needs: [check]
+    needs: [mock]
     concurrency:
-      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.framework }}-${{ github.ref }}
       cancel-in-progress: false
     uses: ./.github/workflows/_reusable.telemetry-tests.yml
     with:
-      config-file: ${{ inputs.config-file }}
-      image-uri: ""
-      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
-      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
+      config-file: scripts/ci/telemetry_mock/config.yml
+      image-uri: ${{ needs.mock.outputs.image-uri }}
+      framework: ${{ inputs.framework }}

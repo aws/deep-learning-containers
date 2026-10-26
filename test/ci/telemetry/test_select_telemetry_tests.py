@@ -1,8 +1,8 @@
-"""Unit tests for select_telemetry_configs.
+"""Unit tests for select_telemetry_tests.
 
-A PR that only adds a REGION_MAPPING entry must test no images, a PR that adds a
---framework choice must test only that framework's images, and every other
-telemetry change must test every released image of a registered framework.
+A PR that only adds a REGION_MAPPING entry must run no image test, a PR that adds a
+--framework choice must test the mock image as that framework only, and every other
+telemetry change must test the mock image as MOCK_FRAMEWORK.
 """
 
 import json
@@ -10,7 +10,7 @@ import subprocess
 import textwrap
 
 import pytest
-import select_telemetry_configs as sts
+import select_telemetry_tests as stt
 
 SCRIPT = textwrap.dedent(
     """\
@@ -28,6 +28,7 @@ SCRIPT = textwrap.dedent(
         parser.add_argument(
             "--framework",
             choices=[
+                "base",
                 "pytorch",
                 "vllm",
             ],
@@ -42,6 +43,9 @@ ADD_REGION = (
     '    "us-west-2": "d8c0d063",\n    "me-west-1": "1b9ff200",\n',
 )
 ADD_FRAMEWORK = ('            "vllm",\n', '            "vllm",\n            "miles",\n')
+REMOVE_FRAMEWORK = ('            "vllm",\n', "")
+LOGIC_CHANGE = ("TIMEOUT_SECS = 5", "TIMEOUT_SECS = 6")
+MOCK = {stt.MOCK_FRAMEWORK}
 
 
 def edit(source, *replacements):
@@ -52,18 +56,15 @@ def edit(source, *replacements):
 
 
 def scope(base, head):
-    return sts.classify(base, sts.parse_registry(head))
+    return stt.classify(base, stt.parse_registry(head))
 
 
 def test_unchanged_script_tests_nothing():
-    result = scope(SCRIPT, SCRIPT)
-    assert not result.run_all
-    assert not result.frameworks
+    assert not scope(SCRIPT, SCRIPT).frameworks
 
 
 def test_new_region_tests_nothing():
     result = scope(SCRIPT, edit(SCRIPT, ADD_REGION))
-    assert not result.run_all
     assert not result.frameworks
     assert "me-west-1" in result.reason
 
@@ -80,21 +81,15 @@ def test_comment_and_reorder_tests_nothing():
             '            "vllm",\n            "pytorch",\n',
         ),
     )
-    result = scope(SCRIPT, head)
-    assert not result.run_all
-    assert not result.frameworks
+    assert not scope(SCRIPT, head).frameworks
 
 
-def test_new_framework_tests_only_that_framework():
-    result = scope(SCRIPT, edit(SCRIPT, ADD_FRAMEWORK))
-    assert not result.run_all
-    assert result.frameworks == {"miles"}
+def test_new_framework_tests_the_mock_as_that_framework_only():
+    assert scope(SCRIPT, edit(SCRIPT, ADD_FRAMEWORK)).frameworks == {"miles"}
 
 
-def test_new_framework_and_region_tests_only_that_framework():
-    result = scope(SCRIPT, edit(SCRIPT, ADD_FRAMEWORK, ADD_REGION))
-    assert not result.run_all
-    assert result.frameworks == {"miles"}
+def test_new_framework_and_region_tests_the_mock_as_that_framework_only():
+    assert scope(SCRIPT, edit(SCRIPT, ADD_FRAMEWORK, ADD_REGION)).frameworks == {"miles"}
 
 
 @pytest.mark.parametrize(
@@ -102,22 +97,30 @@ def test_new_framework_and_region_tests_only_that_framework():
     [
         pytest.param(('"us-west-2": "d8c0d063"', '"us-west-2": "00000000"'), id="changed-bucket"),
         pytest.param(('    "us-west-2": "d8c0d063",\n', ""), id="removed-region"),
-        pytest.param(('            "vllm",\n', ""), id="removed-framework"),
-        pytest.param(("TIMEOUT_SECS = 5", "TIMEOUT_SECS = 6"), id="logic-change"),
+        pytest.param(REMOVE_FRAMEWORK, id="removed-framework"),
+        pytest.param(LOGIC_CHANGE, id="logic-change"),
         pytest.param(("required=True", "required=False"), id="framework-argument-change"),
     ],
 )
-def test_other_script_changes_test_everything(replacement):
-    assert scope(SCRIPT, edit(SCRIPT, replacement)).run_all
+def test_other_script_changes_test_the_mock_as_the_mock_framework(replacement):
+    assert scope(SCRIPT, edit(SCRIPT, replacement)).frameworks == MOCK
 
 
-def test_new_script_tests_everything():
-    assert scope(None, SCRIPT).run_all
+def test_logic_change_with_new_framework_tests_both():
+    assert scope(SCRIPT, edit(SCRIPT, LOGIC_CHANGE, ADD_FRAMEWORK)).frameworks == MOCK | {"miles"}
 
 
-def test_unreadable_base_registry_tests_everything():
+def test_removed_framework_is_reported():
+    assert scope(SCRIPT, edit(SCRIPT, REMOVE_FRAMEWORK)).removed == {"vllm"}
+
+
+def test_new_script_tests_the_mock_as_the_mock_framework():
+    assert scope(None, SCRIPT).frameworks == MOCK
+
+
+def test_unreadable_base_registry_tests_the_mock_as_the_mock_framework():
     base = edit(SCRIPT, ("REGION_MAPPING = {", "REGIONS = {"))
-    assert scope(base, SCRIPT).run_all
+    assert scope(base, SCRIPT).frameworks == MOCK
 
 
 @pytest.mark.parametrize(
@@ -134,20 +137,20 @@ def test_unreadable_base_registry_tests_everything():
     ],
 )
 def test_parse_registry_rejects_unexpected_registry(replacement, message):
-    with pytest.raises(sts.RegistryError, match=message):
-        sts.parse_registry(edit(SCRIPT, replacement))
+    with pytest.raises(stt.RegistryError, match=message):
+        stt.parse_registry(edit(SCRIPT, replacement))
 
 
 # --------------------------------------------------------------------------- #
-#                         Config selection and main()                         #
+#                                   main()                                    #
 # --------------------------------------------------------------------------- #
 
+# config path -> metadata.framework
 CONFIGS = {
-    "pytorch/ec2.yml": ("pytorch-ec2", "pytorch", True),
-    "vllm/ec2.yml": ("vllm-ec2", "vllm", True),
-    "vllm/hyperpod.yml": ("vllm-hyperpod", "vllm", False),
-    "miles/ec2.yml": ("miles-ec2", "miles", True),
-    "sklearn/sagemaker.yml": ("sklearn-sagemaker", "sklearn", True),
+    "base/cu130-runtime.yml": "base",
+    "pytorch/ec2.yml": "pytorch",
+    "vllm/ec2.yml": "vllm",
+    "miles/ec2.yml": "miles",
 }
 
 
@@ -183,7 +186,10 @@ def commit(repo, message, files):
         write(repo, path, text)
     git(repo, "add", "-A")
     git(repo, "commit", "-q", "-m", message)
-    return git(repo, "rev-parse", "HEAD")
+
+
+def config(framework):
+    return f"image:\n  name: {framework}-image\nmetadata:\n  framework: {framework}\n"
 
 
 @pytest.fixture
@@ -192,12 +198,9 @@ def repo(tmp_path, monkeypatch):
     repo = tmp_path / "repo"
     repo.mkdir()
     git(repo, "init", "-q", "-b", "main")
-    files = {sts.DLC_SCRIPT: SCRIPT, "test/telemetry/test_telemetry.py": "def test_x(): pass\n"}
-    for path, (name, framework, release) in CONFIGS.items():
-        files[f"{sts.CONFIG_DIR}/{path}"] = (
-            f"image:\n  name: {name}\nmetadata:\n  framework: {framework}\n"
-            f"release:\n  release: {str(release).lower()}\n"
-        )
+    files = {stt.DLC_SCRIPT: SCRIPT, "test/telemetry/test_telemetry.py": "def test_x(): pass\n"}
+    for path, framework in CONFIGS.items():
+        files[f"{stt.CONFIG_DIR}/{path}"] = config(framework)
     commit(repo, "base", files)
     git(repo, "checkout", "-q", "-b", "pr")
     monkeypatch.chdir(repo)
@@ -206,30 +209,29 @@ def repo(tmp_path, monkeypatch):
 
 
 def selected(repo, *args):
-    """Run main() and return the selected config names."""
+    """Run main() and return the frameworks to test the mock image as."""
     output = repo.parent / "github_output"
     output.write_text("")
-    assert sts.main(list(args)) == 0
+    assert stt.main(list(args)) == 0
     (line,) = output.read_text().splitlines()
     key, value = line.split("=", 1)
-    assert key == "configs"
-    return sorted(c["name"] for c in json.loads(value))
+    assert key == "frameworks"
+    return json.loads(value)
 
 
-def test_main_region_add_selects_no_configs(repo):
-    commit(repo, "add region", {sts.DLC_SCRIPT: edit(SCRIPT, ADD_REGION)})
+def test_main_region_add_runs_no_image_test(repo):
+    commit(repo, "add region", {stt.DLC_SCRIPT: edit(SCRIPT, ADD_REGION)})
     assert selected(repo, "--base-ref", "main") == []
 
 
-def test_main_framework_add_selects_only_its_configs(repo):
-    commit(repo, "add miles", {sts.DLC_SCRIPT: edit(SCRIPT, ADD_FRAMEWORK, ADD_REGION)})
-    assert selected(repo, "--base-ref", "main") == ["miles-ec2"]
+def test_main_framework_add_tests_the_mock_as_that_framework(repo):
+    commit(repo, "add miles", {stt.DLC_SCRIPT: edit(SCRIPT, ADD_FRAMEWORK, ADD_REGION)})
+    assert selected(repo, "--base-ref", "main") == ["miles"]
 
 
-def test_main_logic_change_selects_released_configs_of_registered_frameworks(repo):
-    commit(repo, "logic", {sts.DLC_SCRIPT: edit(SCRIPT, ("TIMEOUT_SECS = 5", "TIMEOUT_SECS = 6"))})
-    # vllm-hyperpod is unreleased; miles and sklearn are not registered
-    assert selected(repo, "--base-ref", "main") == ["pytorch-ec2", "vllm-ec2"]
+def test_main_logic_change_tests_the_mock_as_the_mock_framework(repo):
+    commit(repo, "logic", {stt.DLC_SCRIPT: edit(SCRIPT, LOGIC_CHANGE)})
+    assert selected(repo, "--base-ref", "main") == [stt.MOCK_FRAMEWORK]
 
 
 @pytest.mark.parametrize(
@@ -239,21 +241,28 @@ def test_main_logic_change_selects_released_configs_of_registered_frameworks(rep
         "scripts/docker/telemetry/bash_telemetry.sh.template",
         ".github/workflows/_reusable.telemetry-tests.yml",
         ".github/workflows/telemetry.pipeline.yml",
+        "scripts/ci/telemetry_mock/Dockerfile",
     ],
 )
-def test_main_suite_change_selects_everything(repo, path):
-    commit(repo, "suite", {path: "changed\n", sts.DLC_SCRIPT: edit(SCRIPT, ADD_REGION)})
-    assert selected(repo, "--base-ref", "main") == ["pytorch-ec2", "vllm-ec2"]
+def test_main_suite_change_tests_the_mock_as_the_mock_framework(repo, path):
+    commit(repo, "suite", {path: "changed\n", stt.DLC_SCRIPT: edit(SCRIPT, ADD_REGION)})
+    assert selected(repo, "--base-ref", "main") == [stt.MOCK_FRAMEWORK]
 
 
-def test_main_selector_only_change_selects_no_configs(repo):
-    commit(repo, "selector", {"scripts/ci/select_telemetry_configs.py": "# changed\n"})
+def test_main_suite_change_with_new_framework_tests_both(repo):
+    files = {"test/telemetry/test_telemetry.py": "changed\n"}
+    commit(repo, "suite", {**files, stt.DLC_SCRIPT: edit(SCRIPT, ADD_FRAMEWORK)})
+    assert selected(repo, "--base-ref", "main") == sorted([stt.MOCK_FRAMEWORK, "miles"])
+
+
+def test_main_selector_only_change_runs_no_image_test(repo):
+    commit(repo, "selector", {"scripts/ci/select_telemetry_tests.py": "# changed\n"})
     assert selected(repo, "--base-ref", "main") == []
 
 
 def test_main_ignores_base_branch_changes_on_merge_commit(repo):
     """CI checks out the PR merge commit; only the PR side of the merge may widen the scope."""
-    commit(repo, "add region", {sts.DLC_SCRIPT: edit(SCRIPT, ADD_REGION)})
+    commit(repo, "add region", {stt.DLC_SCRIPT: edit(SCRIPT, ADD_REGION)})
     git(repo, "checkout", "-q", "main")
     commit(
         repo,
@@ -264,21 +273,42 @@ def test_main_ignores_base_branch_changes_on_merge_commit(repo):
     assert selected(repo) == []
 
 
-def test_main_warns_when_new_framework_has_no_released_config(repo, capsys):
+def test_main_warns_when_new_framework_has_no_config(repo, capsys):
     head = edit(SCRIPT, (ADD_FRAMEWORK[0], ADD_FRAMEWORK[0] + '            "milez",\n'))
-    commit(repo, "typo", {sts.DLC_SCRIPT: head})
-    assert selected(repo, "--base-ref", "main") == []
+    commit(repo, "typo", {stt.DLC_SCRIPT: head})
+    assert selected(repo, "--base-ref", "main") == ["milez"]
     assert "::warning" in capsys.readouterr().out
+
+
+def test_main_fails_when_a_removed_framework_is_still_in_use(repo, capsys):
+    commit(repo, "drop vllm", {stt.DLC_SCRIPT: edit(SCRIPT, REMOVE_FRAMEWORK)})
+    assert stt.main(["--base-ref", "main"]) == 1
+    assert "vllm/ec2.yml" in capsys.readouterr().out
+
+
+def test_main_allows_a_framework_rename_that_moves_its_configs(repo):
+    head = edit(SCRIPT, ('            "vllm",\n', '            "vllm_server",\n'))
+    files = {stt.DLC_SCRIPT: head, f"{stt.CONFIG_DIR}/vllm/ec2.yml": config("vllm_server")}
+    commit(repo, "rename vllm", files)
+    assert selected(repo, "--base-ref", "main") == sorted([stt.MOCK_FRAMEWORK, "vllm_server"])
+
+
+def test_main_fails_when_the_mock_framework_is_not_registered(repo, capsys):
+    head = edit(SCRIPT, ('            "base",\n', ""), LOGIC_CHANGE)
+    files = {stt.DLC_SCRIPT: head, f"{stt.CONFIG_DIR}/base/cu130-runtime.yml": config("pytorch")}
+    commit(repo, "drop base", files)
+    assert stt.main(["--base-ref", "main"]) == 1
+    assert "MOCK_FRAMEWORK" in capsys.readouterr().out
 
 
 def test_main_fails_when_registry_is_unreadable(repo, capsys):
     commit(
-        repo, "restructure", {sts.DLC_SCRIPT: edit(SCRIPT, ("REGION_MAPPING = {", "REGIONS = {"))}
+        repo, "restructure", {stt.DLC_SCRIPT: edit(SCRIPT, ("REGION_MAPPING = {", "REGIONS = {"))}
     )
-    assert sts.main(["--base-ref", "main"]) == 1
+    assert stt.main(["--base-ref", "main"]) == 1
     assert "::error" in capsys.readouterr().out
 
 
 def test_main_fails_when_base_ref_is_unknown(repo, capsys):
-    assert sts.main(["--base-ref", "no-such-ref"]) == 1
+    assert stt.main(["--base-ref", "no-such-ref"]) == 1
     assert "::error" in capsys.readouterr().out

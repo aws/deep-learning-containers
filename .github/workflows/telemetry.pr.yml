@@ -1,8 +1,8 @@
 name: "PR - Telemetry"
 
 # Framework PR workflows don't watch telemetry paths. This workflow diffs
-# deep_learning_container.py against the PR base and tests only the images a
-# change can affect; see scripts/ci/select_telemetry_configs.py.
+# deep_learning_container.py against the PR base and tests only what a change
+# can affect, on a mock image; see scripts/ci/select_telemetry_tests.py.
 on:
   pull_request:
     branches: [main]
@@ -11,7 +11,8 @@ on:
       - ".github/workflows/_reusable.telemetry-tests.yml"
       - ".github/workflows/telemetry.pipeline.yml"
       - ".github/workflows/telemetry.pr.yml"
-      - "scripts/ci/select_telemetry_configs.py"
+      - "scripts/ci/select_telemetry_tests.py"
+      - "scripts/ci/telemetry_mock/**"
       - "scripts/docker/telemetry/**"
       - "test/ci/telemetry/**"
       - "test/telemetry/**"
@@ -34,7 +35,7 @@ jobs:
       - uses: ./.github/actions/pr-permission-gate
 
   # Validates the region and framework registry, which no image test checks
-  # when a PR only adds entries to it.
+  # when a PR only adds regions to it.
   unit-test:
     runs-on: ubuntu-latest
     steps:
@@ -54,7 +55,7 @@ jobs:
   select:
     runs-on: ubuntu-latest
     outputs:
-      configs: ${{ steps.select.outputs.configs }}
+      frameworks: ${{ steps.select.outputs.frameworks }}
     steps:
       # The PR merge commit and its base parent, which the selector diffs.
       - uses: actions/checkout@v6
@@ -70,16 +71,17 @@ jobs:
         run: pip install pyyaml
 
       - id: select
-        run: python3 scripts/ci/select_telemetry_configs.py --base-ref HEAD^1
+        run: python3 scripts/ci/select_telemetry_tests.py --base-ref HEAD^1
 
   pipeline:
     needs: [gatekeeper, select]
-    if: ${{ needs.select.outputs.configs != '[]' }}
+    if: ${{ needs.select.outputs.frameworks != '[]' }}
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.select.outputs.configs) }}
+        framework: ${{ fromJson(needs.select.outputs.frameworks) }}
     uses: ./.github/workflows/telemetry.pipeline.yml
     with:
-      config-file: ${{ matrix.config_file }}
+      framework: ${{ matrix.framework }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
     secrets: inherit
