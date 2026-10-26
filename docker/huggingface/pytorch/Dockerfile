@@ -44,10 +44,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # CVE-2026-69249; aiohttp 3.14.4 clears CVE-2026-111064/111066 and
 # GHSA-2g87-pp6c-29x5; certifi 2026.10.19 drops the compromised emSign root
 # (GHSA-6q48-6c7w-9gw2); graphql-core 3.2.12 clears CVE-2026-75507/75508
-# (stays on 3.2.x for the base's mlflow -> graphene).
+# (stays on 3.2.x for the base's mlflow -> graphene); brotli 1.2.1 clears
+# CVE-2026-111497 / GHSA-9v8h-qqgm-4m35; filelock 4.2.1 clears CVE-2026-112940;
+# mlflow 3.17.2 (base ships 3.16.0) clears CVE-2026-53995.
 # uv pip install does not honor the requirements of packages already in the
 # base, so restate them: the base's mlflow requires pyarrow<26, and datasets
-# would otherwise pull pyarrow 26.
+# would otherwise pull pyarrow 26; the base's sagemaker-train requires
+# graphene>=3, which upgrading mlflow would otherwise downgrade to 2.0.
 RUN uv pip install --python ${VENV_PYTHON} \
   transformers==${TRANSFORMERS_VERSION} \
   huggingface-hub==${HUGGINGFACE_HUB_VERSION} \
@@ -74,7 +77,11 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "certifi>=2026.10.19" \
   "graphql-core>=3.2.12" \
   "urllib3>=2.8.0" \
+  "brotli>=1.2.1" \
+  "filelock>=4.2.1" \
+  "mlflow>=3.17.2" \
   "pyarrow<26" \
+  "graphene>=3,<4" \
   && uv cache clean
 
 # --- Efficiency / quantization kernels -----------------------------------
