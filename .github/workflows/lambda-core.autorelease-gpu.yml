@@ -1,9 +1,8 @@
-# Lambda release workflow — manual dispatch only.
-# Discovers all Lambda config files and runs the pipeline for each variant.
-
-name: "Dispatch - Lambda Core Release"
+name: "Auto Release - Lambda Core GPU"
 
 on:
+  schedule:
+    - cron: '00 19 * * 5'
   workflow_dispatch:
 
 concurrency:

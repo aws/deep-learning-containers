@@ -19,7 +19,7 @@ docker run --gpus all -p 8000:8000 \
 | `--port` | Server port | `8000` |
 | `--tensor-parallel-size` | Number of GPUs | `1` |
 | `--max-model-len` | Maximum sequence length | Model default |
-| `--gpu-memory-utilization` | Fraction of GPU memory to use | `0.9` |
+| `--gpu-memory-utilization` | Fraction of GPU memory to use | `0.92` |
 | `--enforce-eager` | Disable CUDA graphs | `false` |
 | `--quantization` | Quantization method (awq, gptq, fp8, …) | None |
 | `--dtype` | Data type (auto, float16, bfloat16) | `auto` |
@@ -37,7 +37,7 @@ flag (`SM_VLLM_ENFORCE_EAGER=true` → `--enforce-eager`), and `false` omits the
 | `SM_VLLM_MODEL` | Model ID or path (auto-detected from `/opt/ml/model` or `HF_MODEL_ID` if unset) | — |
 | `SM_VLLM_TENSOR_PARALLEL_SIZE` | Number of GPUs | `1` |
 | `SM_VLLM_MAX_MODEL_LEN` | Maximum sequence length | Model default |
-| `SM_VLLM_GPU_MEMORY_UTILIZATION` | Fraction of GPU memory to use | `0.9` |
+| `SM_VLLM_GPU_MEMORY_UTILIZATION` | Fraction of GPU memory to use | `0.92` |
 | `SM_VLLM_ENFORCE_EAGER` | Disable CUDA graphs | `false` |
 | `SM_VLLM_QUANTIZATION` | Quantization method (awq, gptq, fp8, …) | None |
 | `SM_VLLM_DTYPE` | Data type (auto, float16, bfloat16) | `auto` |
