@@ -38,7 +38,7 @@ dependencies = [
     "fonttools>=4.60.2",
     "idna>=3.15",
     "tornado>=6.5.8",
-    "msgpack>=1.2.1",
+    "msgpack>=1.2.4",
     "fsspec>=2026.6.0",
 ]
 
