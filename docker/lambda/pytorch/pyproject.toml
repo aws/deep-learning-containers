@@ -10,7 +10,7 @@ dependencies = [
     "click==8.3.3",
     "diffusers==0.38.0",
     "librosa==0.11.0",
-    "msgpack==1.2.1",
+    "msgpack==1.2.3",
     "numpy==2.4.2",
     "opencv-python-headless==4.13.0.92",
     "pillow==13.0.0",
