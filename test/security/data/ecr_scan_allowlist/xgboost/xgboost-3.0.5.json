@@ -963,5 +963,75 @@
         "vulnerability_id": "GHSA-xvh5-g6gv-559v",
         "reason": "Pillow: ``` ============================================================================ Memory disclosure. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
         "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112391",
+        "reason": "Pillow: PdfParser can recurse without limit in get_value() and linearize_page_tree(). Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112398",
+        "reason": "Pillow: heap buffer overflow in FlashPix (FPX) JPEG decoding. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input. The FPX plugin also needs olefile, which is not installed, so it never loads.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112394",
+        "reason": "Pillow: P;2L and P;4L raw decoders can read past the end of an input buffer. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112395",
+        "reason": "Pillow: tiled-TIFF decoder can read past the tile buffer while copying four-byte pixels. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112396",
+        "reason": "Pillow: heap use-after-free when libtiff rejects a tag while encoding TIFF to an in-memory buffer. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112401",
+        "reason": "Pillow: quadratic copying while parsing GIF comments. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112891",
+        "reason": "Pillow: quadratic copying when saving a GIF with a long comment. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112898",
+        "reason": "Pillow: Image.quantize() with an empty palette can disclose uninitialized stack memory. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112901",
+        "reason": "Pillow: regular-expression denial of service in the XBM header parser. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-114501",
+        "reason": "Pillow: Arrow export assumes image rows are contiguous and can read past the first block. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96636",
+        "reason": "Pillow: MpoImageFile.seek() and DcxImageFile.seek() replace the image size without rerunning its checks. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96638",
+        "reason": "Pillow: BMP RLE decoder lets crafted delta escapes amplify memory use. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-96641",
+        "reason": "Pillow: integer overflow in PILfont text-width accumulation. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "GHSA-vx6w-vv9f-6gvg",
+        "reason": "Pillow: EPS load(scale) lets Ghostscript render past the decompression bomb limit. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2026-11-30"
     }
 ]
