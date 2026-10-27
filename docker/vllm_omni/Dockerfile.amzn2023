@@ -1,7 +1,7 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG FRAMEWORK_VERSION=0.29.0rc1
-ARG FLASHINFER_VERSION=0.6.18
+ARG FRAMEWORK_VERSION=0.30.0
+ARG FLASHINFER_VERSION=0.6.18.post1
 # DeepEP v2 from the AWS EFA fork (amazon-contributing/DeepEP).
 ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
 ARG DEEPEP_COMMIT_HASH=874779c9ccd2294b56304bd6cc5f138f1f71d097
@@ -49,15 +49,14 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
-# `unzip` and `perl` are build deps from vllm v0.26.0: `perl` for the openssl-sys
-# crate compiled by the Rust frontend (`vllm-rs`, new in v0.26.0). `patch` is new in v0.28.0: vLLM's
-# CMakeLists.txt applies cmake/patches/pytorch_stable_string.patch to torch's
-# stable headers at configure time (CMakeLists.txt:417). The upstream manylinux
-# build base ships `patch`, but the amzn2023 base does not.
+# gcc14 provides C++20 <format> for DeepSelect; elfutils-devel provides
+# libdwfl headers for DeepGEMM's deep_jit backtraces. `unzip` and `perl` are
+# build deps for the Rust frontend (`vllm-rs`). The upstream manylinux build
+# base ships `patch`, but the amzn2023 base does not.
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk patch \
+  tar gzip xz git gcc gcc-c++ gcc14 gcc14-c++ make cmake ninja-build unzip perl gawk patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-  libibverbs-devel \
+  libibverbs-devel elfutils-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Rustup — needed to install the Rust toolchain pinned in the vllm source tree's
@@ -154,7 +153,8 @@ RUN if ! ([ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev
     fi
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
-    if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+    export CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-c++ CUDAHOSTCXX=/usr/bin/gcc14-c++ \
+    && if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && rm -rf dist && mkdir -p dist \
       && cp /tmp/prebuilt_wheels/*.whl dist/; \
@@ -394,7 +394,7 @@ ENV HF_XET_HIGH_PERFORMANCE=1
 # =============================================================================
 FROM runtime AS omni-deps
 
-ARG VLLM_OMNI_VERSION=0.29.0rc1
+ARG VLLM_OMNI_VERSION=0.30.0
 
 # System deps for omni-modality (TTS, audio, image/video)
 # Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, ffmpeg.
@@ -408,19 +408,12 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
 # so no --prerelease=allow flag needed.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_OMNI_VERSION}
 
-# s3tokenizer: CosyVoice3's model code (cosyvoice3.py) hard-imports it at load
-# time in vllm-omni 0.26.0 (new vs 0.21.0rc1). Upstream ships it only in the
-# `dev` optional-dependency group ("s3tokenizer==0.3.0", "# for tts test"), so
-# the base `vllm-omni` install above does NOT pull it and CosyVoice3 fails with
-# `ModuleNotFoundError: No module named 's3tokenizer'`. Pin to the version
-# upstream tests against.
+# CosyVoice3 requires s3tokenizer. vllm-omni 0.30.0 now includes this pin in
+# its common requirements; keep it explicit as part of the DLC image contract.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install "s3tokenizer==0.3.0"
 
-# transformers <5.9.0 cap DROPPED in vllm-omni v0.26.0: upstream removed the
-# cap from requirements/common.txt and handles the breakage in code via
-# `transformers_keys_to_ignore_compat` (vllm_omni/model_executor/models/utils.py).
-# Requirement is now just `transformers >= 5.5.3` — resolved transitively by the
-# vllm-omni wheel install above, no explicit pin needed here.
+# vllm-omni 0.30.0 resolves its tested transformers range transitively:
+# transformers>=5.13.0,<5.15.
 
 # Remove stray top-level benchmarks/ and samples/ dirs shipped by the
 # PyNvVideoCodec 2.0.4 wheel (new in upstream vllm v0.26.0's requirements/cuda.txt).
@@ -460,7 +453,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=8
+ARG DLC_MINOR_VERSION=9
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
