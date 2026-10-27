@@ -19,6 +19,7 @@ on:
       - "test/sglang/scripts/**"
       - "test/telemetry/**"
       - "!docker/sglang/Dockerfile.amzn2023"
+      - "!scripts/docker/sglang/amzn2023/**"
       - "!docs/**"
 
 permissions:
@@ -61,7 +62,10 @@ jobs:
               - ".github/config/image/sglang/*-ubuntu.yml"
               - "docker/sglang/Dockerfile"
               - "scripts/docker/common/**"
-              - "scripts/docker/sglang/**"
+              # Everything under scripts/docker/sglang/ except the AL2023-only amzn2023/ dir.
+              # A "!" pattern would match any file outside it (any-pattern-matches rule).
+              - "scripts/docker/sglang/*"
+              - "scripts/docker/sglang/!(amzn2023)/**"
               - "test/security/data/ecr_scan_allowlist/sglang/**"
             model-test-change:
               - ".github/config/model-tests/sglang-model-tests.yml"
