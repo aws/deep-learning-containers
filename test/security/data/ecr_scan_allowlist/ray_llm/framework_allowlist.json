@@ -78,5 +78,25 @@
         "vulnerability_id": "RUSTSEC-2026-0341",
         "reason": "quinn-proto 0.11.15 vendored in the uv binary at /usr/local/bin/uv: the cap on chunks buffered by the stream reassembler is only enforced on the defragmentation path, so out-of-order frames can over-allocate memory. Fixed in quinn-proto 0.11.17 (shipped in uv 0.13.6), but the uv binary comes from the base DLC image (base:runtime-cu130-amzn2023), so it clears once the base image bumps its uv pin.",
         "review_by": "2026-11-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-111064",
+        "reason": "aiohttp 3.14.3 keepalive timeout is not applied to the initial portion of a request, so an idle connection can be held open indefinitely. Fixed in aiohttp 3.14.4. Ray 2.58.0 vendors its own aiohttp 3.14.3 copy for the runtime_env agent under ray/_private/runtime_env/agent/thirdparty_files/; the top-level aiohttp is already bumped past the fix, but the vendored copy can only change with a new Ray release.",
+        "review_by": "2026-12-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-111066",
+        "reason": "aiohttp 3.14.3 multipart request processing can retain an unbounded number of open file descriptors, letting an unauthenticated caller exhaust them. Fixed in aiohttp 3.14.4. Ray 2.58.0 vendors its own aiohttp 3.14.3 copy for the runtime_env agent under ray/_private/runtime_env/agent/thirdparty_files/; the top-level aiohttp is already bumped past the fix, but the vendored copy can only change with a new Ray release.",
+        "review_by": "2026-12-27"
+    },
+    {
+        "vulnerability_id": "GHSA-2g87-pp6c-29x5",
+        "reason": "aiohttp 3.14.3 has several paths where attacker-controlled requests cause excessive memory or CPU use. Fixed in aiohttp 3.14.4. Ray 2.58.0 vendors its own aiohttp 3.14.3 copy for the runtime_env agent under ray/_private/runtime_env/agent/thirdparty_files/; the top-level aiohttp is already bumped past the fix, but the vendored copy can only change with a new Ray release.",
+        "review_by": "2026-12-27"
+    },
+    {
+        "vulnerability_id": "GHSA-6q48-6c7w-9gw2",
+        "reason": "certifi 2026.7.22 bundles the revoked 'emSign ECC Root CA - G3' root, whose compromised intermediates could be used to issue certificates that pass verification. Fixed in certifi 2026.10.18; this image's own copy is bumped past the fix, but a second copy is installed in /usr/local by the base DLC image (base:runtime-cu130-amzn2023) as a dependency of requests, so that one clears once the base image refreshes its lockfile.",
+        "review_by": "2026-11-27"
     }
 ]
