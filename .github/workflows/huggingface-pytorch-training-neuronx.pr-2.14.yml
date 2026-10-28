@@ -11,8 +11,7 @@ on:
       - ".github/buildspec-cb-fleet.yml"
       - "docker/huggingface/pytorch/Dockerfile.neuronx"
       - "scripts/docker/common/setup_oss_compliance.sh"
-      - "test/huggingface/training_sanity.py"
-      - "test/huggingface/neuron/**"
+      - "test/huggingface/test_sanity_training.py"
   workflow_dispatch:
 
 permissions:
@@ -59,4 +58,4 @@ jobs:
             -v "$GITHUB_WORKSPACE:/workdir:ro" --workdir /workdir \
             -e HF_IMAGE_CONFIG="$CONFIG_FILE" \
             --entrypoint python3 "$IMAGE_URI" \
-            test/huggingface/neuron/test_sanity_training.py
+            test/huggingface/test_sanity_training.py

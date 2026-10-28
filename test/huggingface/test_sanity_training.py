@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
-"""
-CPU-only sanity tests for the Hugging Face PyTorch training DLC.
+"""CPU sanity tests for Hugging Face GPU and Torch NeuronX training DLCs.
 
-Scoped to the huggingface-pytorch-training family. Hermetic: no GPU, no Hub
-access — the tiny model and tokenizer are built in a temp dir. Kept out of
-test/sanity/ on purpose: ~40 image families' PR workflows trigger on
-test/sanity/** changes.
+Run from the repository root with the matching image config:
+    docker run --rm -v "$(pwd):/workdir" --workdir /workdir \
+        -e HF_IMAGE_CONFIG=<image-config.yml> \
+        --entrypoint python3 <image> \
+        test/huggingface/test_sanity_training.py
 
-Run inside the container on a host without a GPU driver. transformer_engine
-(from the base) dlopens libcuda.so.1 on import, so expose the image's CUDA
-forward-compat libcuda:
-    docker run --rm -v $(pwd):/workdir --workdir /workdir \
-        -e HF_IMAGE_CONFIG=.github/config/image/huggingface-pytorch-training/2.13.yml \
-        --entrypoint bash <image> -c \
-        'LD_LIBRARY_PATH=/usr/local/cuda/compat:$LD_LIBRARY_PATH \
-         python3 test/huggingface/pytorch/test_sanity_training.py'
+GPU images may need /usr/local/cuda/compat on LD_LIBRARY_PATH for imports
+on hosts without GPU drivers. Models and tokenizers are built locally;
+these tests do not compile or train on accelerator hardware.
 
-HF_IMAGE_CONFIG is optional; without it the pinned-version checks skip.
+HF_IMAGE_CONFIG supplies version pins and metadata.device_type (gpu or
+neuronx). Without it, version and image-specific checks are skipped.
 """
 
 import importlib
@@ -30,8 +26,6 @@ import tempfile
 import unittest
 import warnings
 
-ENTRYPOINT = "/usr/local/bin/sagemaker_entrypoint.sh"
-
 # build.* keys in the image config that are not Python package pins.
 NON_PACKAGE_KEYS = {"python_version", "cuda_version", "dlc_major_version", "dlc_minor_version"}
 
@@ -42,21 +36,31 @@ WORDS = (
 ).split()
 
 
-def _expected_pins():
-    """(package, version) pins from HF_IMAGE_CONFIG's build block, or None if unset."""
+def _image_config():
     path = os.environ.get("HF_IMAGE_CONFIG")
     if not path:
         return None
     import yaml
 
     with open(path) as f:
-        config = yaml.safe_load(f)
+        return yaml.safe_load(f)
+
+
+IMAGE_CONFIG = _image_config()
+DEVICE_TYPE = IMAGE_CONFIG["metadata"]["device_type"] if IMAGE_CONFIG else None
+ENTRYPOINT = "/usr/local/bin/sagemaker_entrypoint.sh"
+
+
+def _expected_pins():
+    """Read package and framework versions from the selected image config."""
+    if IMAGE_CONFIG is None:
+        return None
     pins = {
         key[: -len("_version")].replace("_", "-"): str(value)
-        for key, value in config["build"].items()
+        for key, value in IMAGE_CONFIG["build"].items()
         if key.endswith("_version") and key not in NON_PACKAGE_KEYS
     }
-    return pins, str(config["metadata"]["framework_version"])
+    return pins, str(IMAGE_CONFIG["metadata"]["framework_version"])
 
 
 def _build_tiny_model(path):
@@ -130,11 +134,25 @@ class TestDependencyConsistency(unittest.TestCase):
 class TestImports(unittest.TestCase):
     def test_stack_imports(self):
         for module in (
-            "transformers",
+            "torch",
             "huggingface_hub",
+            "transformers",
+            "trl",
+            "peft",
             "datasets",
             "accelerate",
-            "peft",
+        ):
+            with self.subTest(module=module):
+                importlib.import_module(module)
+
+    def test_trl_sft_imports(self):
+        from trl import SFTConfig, SFTTrainer  # noqa: F401
+
+
+@unittest.skipUnless(DEVICE_TYPE == "gpu", "requires a GPU image config")
+class TestGpuImports(unittest.TestCase):
+    def test_stack_imports(self):
+        for module in (
             "evaluate",
             "diffusers",
             "math_verify",
@@ -177,23 +195,21 @@ class TestImports(unittest.TestCase):
                 importlib.import_module(module)
 
 
-class TestCpuTraining(unittest.TestCase):
-    """Training paths that run on CPU against a hermetic tiny model.
+@unittest.skipUnless(DEVICE_TYPE == "neuronx", "requires a NeuronX image config")
+class TestNeuronImports(unittest.TestCase):
+    def test_neuron_import(self):
+        importlib.import_module("torch_neuronx")
 
-    trl's SFT/GRPO training step always runs a Triton kernel (fused LM head),
-    which needs a GPU, so trl trainers are only constructed here — that still
-    exercises dataset preparation, PEFT wrapping and the model patching.
-    """
+
+class TestCpuTraining(unittest.TestCase):
+    """CPU LoRA training and TRL SFT construction with a local tiny model."""
 
     @classmethod
     def setUpClass(cls):
         cls.workdir = tempfile.mkdtemp(prefix="hf-sanity-")
+        cls.addClassCleanup(shutil.rmtree, cls.workdir)
         cls.model_path = os.path.join(cls.workdir, "tiny-qwen2")
         cls.tokenizer = _build_tiny_model(cls.model_path)
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.workdir, ignore_errors=True)
 
     def _common_args(self, name):
         return dict(
@@ -274,6 +290,7 @@ class TestCpuTraining(unittest.TestCase):
         self.assertIn("input_ids", trainer.train_dataset.column_names)
         self.assertTrue(any("lora_B" in name for name, _ in trainer.model.named_parameters()))
 
+    @unittest.skipUnless(DEVICE_TYPE == "gpu", "requires a GPU image config")
     def test_trl_grpo_trainer_builds(self):
         """Construction loads the model and prepares the reward and generation setup."""
         from datasets import Dataset
@@ -293,6 +310,7 @@ class TestCpuTraining(unittest.TestCase):
         )
 
 
+@unittest.skipUnless(DEVICE_TYPE == "gpu", "requires a GPU image config")
 class TestEntrypoint(unittest.TestCase):
     def test_entrypoint_runs_user_command_with_hf_defaults(self):
         """Non-`train` args must run through the launch chain with hf_optimizations applied."""
