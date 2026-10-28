@@ -32,6 +32,11 @@ exclude-dependencies = [
   "nixl-cu12",
   "nvidia-cutlass-dsl-libs-cu12",
 ]
+override-dependencies = [
+  # Security fixes (Pillow 12.1-13.0). moviepy (from sglang[diffusion], used only for video
+  # output in diffusion mode) caps Pillow below 12; nothing else does.
+  "pillow>=13.0.0",
+]
 
 [[tool.uv.index]]
 name = "pytorch-cu130"

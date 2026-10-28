@@ -18,10 +18,12 @@ one consistent, reproducible environment:
 - torch, torchvision and torchaudio come from the PyTorch CUDA 13.0 index (`tool.uv.sources`).
 - `exclude-dependencies` drops what the image doesn't need (`aisimulate`, and the CUDA 12 libraries
   that the `nixl` / `nvidia-cutlass-dsl` meta-packages always pull in).
+- `override-dependencies` lifts an upstream cap only for a security fix, with the reason next to it
+  (SGLang: `pillow>=13.0.0` over moviepy's `pillow<12`).
 - `ai-dynamo`, `ai-dynamo-runtime` and `gpu-memory-service` are built from source at
   `build.dynamo_ref` and installed over the locked versions. The build fails if their version
-  differs from the lock, and `uv pip check` must pass apart from the declared exclusions
-  (`scripts/docker/dynamo/check_environment.py`).
+  differs from the lock, and `uv pip check` must pass apart from the declared exclusions and
+  overrides (`scripts/docker/dynamo/check_environment.py`).
 - CI (`dynamo.pr.yml`) runs `uv lock --check`, and `test/dynamo/test_image.py` checks that the image
   matches the lock exactly.
 
@@ -53,6 +55,9 @@ The target and `BACKEND` must match. CI passes every `build:` key of the config 
    `uv lock --upgrade` (or `--upgrade-package <name>`).
 1. In each config, update `metadata.framework_version` (Dynamo), `metadata.backend_version` (from the
    lock), `metadata.prod_image` and `build.dynamo_ref` (the release's commit).
+1. Recheck each `override-dependencies` entry (drop it once upstream allows the fixed version) and
+   the image-scan allowlist `test/security/data/ecr_scan_allowlist/dynamo/dynamo-<version>.json`
+   (CVEs that a backend's exact pins block; start a new file for the new version).
 1. If the release moves NIXL to a version that needs a LIBFABRIC fix, add
    `scripts/docker/dynamo/nixl/patches/<nixl-version>/`; drop it once a NIXL release includes the fix.
 

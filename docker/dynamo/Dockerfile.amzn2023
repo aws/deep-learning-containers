@@ -239,6 +239,14 @@ RUN NCCL_LIB=$(python3 -c "import nvidia.nccl, os; print(os.path.join(nvidia.ncc
   && echo "${NCCL_LIB}" >/etc/ld.so.conf.d/nccl.conf && ldconfig \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python
 
+# Files that nothing in the image uses and that carry outdated pinned dependencies (image scan):
+# - ray/jars/ray_dist.jar: Ray's Java worker runtime (jackson, guava); this image is Python-only.
+# - ray/_private/runtime_env/agent/thirdparty_files: Ray's vendored aiohttp (and its dependencies) for
+#   the runtime-env agent, which only prepends it to sys.path; without it the agent uses the locked aiohttp.
+# - benchmarks/: PyNvVideoCodec's sample benchmark scripts; their requirements.txt pins old torch.
+RUN SP=$(python3 -c "import sysconfig; print(sysconfig.get_paths()['purelib'])") \
+  && rm -rf "${SP}/ray/jars/ray_dist.jar" "${SP}/ray/_private/runtime_env/agent/thirdparty_files" "${SP}/benchmarks"
+
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
   && dnf upgrade -y --releasever latest cuda-compat-13-0 \
@@ -255,7 +263,8 @@ ENTRYPOINT []
 FROM dynamo AS vllm
 ARG BACKEND
 RUN test "${BACKEND}" = vllm || { echo "target vllm needs --build-arg BACKEND=vllm (got ${BACKEND})" >&2; exit 1; } \
-  && python3 -c "import dynamo.vllm, vllm; print('dynamo OK, vllm', vllm.__version__)"
+  && python3 -c "import dynamo.vllm, vllm; print('dynamo OK, vllm', vllm.__version__)" \
+  && rm -rf /tmp/* /root/.cache
 ENV VLLM_USAGE_SOURCE=production-docker-image
 # vllm 0.29+ passes the plain float triton_utils.LOG2E into @triton.jit kernels.
 ENV TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1
@@ -263,7 +272,8 @@ ENV TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1
 FROM dynamo AS sglang
 ARG BACKEND
 RUN test "${BACKEND}" = sglang || { echo "target sglang needs --build-arg BACKEND=sglang (got ${BACKEND})" >&2; exit 1; } \
-  && python3 -c "import dynamo.sglang, sglang; print('dynamo OK, sglang', sglang.__version__)"
+  && python3 -c "import dynamo.sglang, sglang; print('dynamo OK, sglang', sglang.__version__)" \
+  && rm -rf /tmp/* /root/.cache
 
 FROM dynamo AS trtllm
 ARG BACKEND
@@ -288,10 +298,14 @@ ENV PATH="${PATH}:/usr/lib64/openmpi/bin" \
 # own loader directory, so torch keeps the locked NVRTC 13.0. Without the binding TensorRT-LLM falls
 # back to a pure-Python NIXL agent that isn't installed, and disaggregated serving fails.
 ARG TRTLLM_NVRTC_BUILTINS_VERSION=13.4.92
+# --releasever latest: these packages (and their dependencies) are installed after the security upgrade
+# in the dynamo stage, so take them from the latest AL2023 release too.
+# jupyterlab (a TensorRT-LLM dependency) ships its frontend build tooling (staging/) and test fixtures
+# (tests/), whose vendored npm lockfiles carry outdated packages; neither is used at runtime.
 RUN test "${BACKEND}" = trtllm || { echo "target trtllm needs --build-arg BACKEND=trtllm (got ${BACKEND})" >&2; exit 1; } \
-  && dnf install -y --setopt=install_weak_deps=False zeromq \
+  && dnf install -y --releasever latest --setopt=install_weak_deps=False zeromq \
   && if [ ! -d /opt/amazon/openmpi ]; then \
-    dnf install -y --setopt=install_weak_deps=False openmpi \
+    dnf install -y --releasever latest --setopt=install_weak_deps=False openmpi \
     && echo /usr/lib64/openmpi/lib >/etc/ld.so.conf.d/openmpi.conf; \
   fi \
   && dnf clean all && rm -rf /var/cache/dnf \
@@ -299,7 +313,10 @@ RUN test "${BACKEND}" = trtllm || { echo "target trtllm needs --build-arg BACKEN
   && B=$(find /tmp/nvrtc -name 'libnvrtc-builtins.so.13.4' | head -1) && test -n "$B" \
   && mkdir -p /opt/trtllm/lib && cp "$B" /opt/trtllm/lib/ && rm -rf /tmp/nvrtc \
   && echo /opt/trtllm/lib >/etc/ld.so.conf.d/trtllm.conf && ldconfig \
+  && JL=$(python3 -c "import jupyterlab, os; print(os.path.dirname(jupyterlab.__file__))") \
+  && rm -rf "${JL}/staging" "${JL}/tests" && python3 -c "import jupyterlab" \
   && test -d "${NIXL_PLUGIN_DIR}" \
   && python3 -c "from mpi4py import MPI; print(MPI.Get_library_version().splitlines()[0])" \
   && LD_LIBRARY_PATH=/usr/local/cuda/compat:${LD_LIBRARY_PATH} \
-    python3 -c "import dynamo.trtllm, tensorrt_llm, tensorrt_llm.tensorrt_llm_transfer_agent_binding; print('dynamo OK, tensorrt_llm', tensorrt_llm.__version__, '+ C++ transfer agent')"
+    python3 -c "import dynamo.trtllm, tensorrt_llm, tensorrt_llm.tensorrt_llm_transfer_agent_binding; print('dynamo OK, tensorrt_llm', tensorrt_llm.__version__, '+ C++ transfer agent')" \
+  && rm -rf /tmp/* /root/.cache

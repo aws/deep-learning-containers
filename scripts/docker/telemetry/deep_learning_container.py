@@ -250,6 +250,7 @@ def parse_args():
             "huggingface-pytorch-training",
             "llama_cpp",
             "whisperx",
+            "dynamo",
         ],
         help="framework of container image.",
         required=True,
