@@ -1,0 +1,62 @@
+name: "PR - Hugging Face PyTorch Training NeuronX 2.14"
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/huggingface-pytorch-training-neuronx/2.14.yml"
+      - ".github/workflows/huggingface-pytorch-training-neuronx.pr-2.14.yml"
+      - ".github/actions/build-image/**"
+      - ".github/buildspec-cb-fleet.yml"
+      - "docker/huggingface/pytorch/Dockerfile.neuronx"
+      - "scripts/docker/common/setup_oss_compliance.sh"
+      - "test/huggingface/training_sanity.py"
+      - "test/huggingface/neuron/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  build-and-test:
+    needs: [gatekeeper]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    timeout-minutes: 120
+    env:
+      CONFIG_FILE: .github/config/image/huggingface-pytorch-training-neuronx/2.14.yml
+    steps:
+      - uses: actions/checkout@v6
+      - id: build
+        uses: ./.github/actions/build-image
+        with:
+          config-file: ${{ env.CONFIG_FILE }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-suffix: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+      - name: Run Hugging Face Neuron training sanity tests
+        env:
+          IMAGE_URI: ${{ steps.build.outputs.image-uri }}
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/workdir:ro" --workdir /workdir \
+            -e HF_IMAGE_CONFIG="$CONFIG_FILE" \
+            --entrypoint python3 "$IMAGE_URI" \
+            test/huggingface/neuron/test_sanity_training.py
