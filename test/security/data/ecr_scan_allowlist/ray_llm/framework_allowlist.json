@@ -21,12 +21,62 @@
     },
     {
         "vulnerability_id": "CVE-2026-93592",
-        "reason": "vllm 0.26.0 is pinned by vllm_version in .github/config/image/ray-llm/ec2-gpu.yml; the fix requires vllm>=0.28.0, which is a framework-version change gated on a ray-llm release bump rather than a dependency patch.",
-        "review_by": "2026-10-30"
+        "reason": "vllm 0.26.0 is pinned by ray[llm] 2.58.0, which hard-pins vllm[audio]==0.26.0; the fix requires vllm>=0.28.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-100647",
         "reason": "vllm 0.26.0 denial of service via the cache_salt parameter on the OpenAI- and Anthropic-compatible API endpoints, which lacks maximum length validation and stalls the single EngineCore scheduler thread. Fixed in vllm 0.29.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
         "review_by": "2026-11-05"
+    },
+    {
+        "vulnerability_id": "CVE-2026-105759",
+        "reason": "vllm 0.26.0 unbounded Prometheus label cardinality: the Rust frontend's track_http_metrics middleware records the raw HTTP method token as a metric label, so unauthenticated requests with arbitrary method tokens to routes such as /tokenize grow the registry until the server exhausts memory. Fixed in vllm 0.30.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2027-01-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-114050",
+        "reason": "vllm 0.26.0 denial of service: a client-supplied multimodal uuid is used verbatim as cache identity with no consistency check on cache hits, letting an unauthenticated caller desynchronize the processor caches and kill the serving instance. Fixed in vllm 0.31.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2027-01-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-114052",
+        "reason": "vllm 0.26.0 memory exhaustion in MOSS-Audio serving: a processor is cached for every distinct request-controlled mm_processor_kwargs value in an unbounded dictionary, so repeated /tokenize requests can exhaust host memory. Fixed in vllm 0.31.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2027-01-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-114053",
+        "reason": "vllm 0.26.0 forwards the request-supplied mm_processor_kwargs.code_revision to Transformers AutoProcessor.from_pretrained, letting a caller choose which revision of a model's dynamic processor code is imported when trust_remote_code is enabled. Fixed in vllm 0.31.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2027-01-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-114055",
+        "reason": "vllm 0.26.0 uncontrolled resource consumption: per-request mm_processor_kwargs let a remote client set large image size, patch, crop or frame counts in several multimodal processors and exhaust memory. Fixed in vllm 0.31.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2027-01-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-115912",
+        "reason": "vllm 0.26.0 deserialization of untrusted data: with shared-memory multimodal caching enabled, workers trust forged shared-memory address and monotonic_id values in features.kwargs_data and pass attacker-selected bytes to pickle.loads(). Fixed in vllm 0.32.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2027-01-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94624",
+        "reason": "vllm 0.26.0 denial of service in P2P KV offloading: arbitrary remote host and port values in kv_transfer_params create unreachable peer sessions that retain ZeroMQ sockets until the context quota is exhausted, crashing the engine. Fixed in vllm 0.32.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2027-01-26"
+    },
+    {
+        "vulnerability_id": "GHSA-hq85-5cpj-mr62",
+        "reason": "uv 0.13.0 bundles the revoked 'emSign ECC Root CA - G3' root in its vendored webpki-root-certs store, so uv would accept certificates issued from the compromised intermediates. Fixed in uv 0.13.4, but uv is installed by the base DLC image (base:runtime-cu130-amzn2023) rather than by this image's dependency files, so it clears once the base image bumps its uv pin.",
+        "review_by": "2026-11-27"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0340",
+        "reason": "quinn-proto 0.11.15 vendored in the uv binary at /usr/local/bin/uv: a peer's transport parameters can make ACK-frequency handling clamp a duration with an inverted range and panic. Fixed in quinn-proto 0.11.18 (shipped in uv 0.13.6), but the uv binary comes from the base DLC image (base:runtime-cu130-amzn2023), so it clears once the base image bumps its uv pin.",
+        "review_by": "2026-11-27"
+    },
+    {
+        "vulnerability_id": "RUSTSEC-2026-0341",
+        "reason": "quinn-proto 0.11.15 vendored in the uv binary at /usr/local/bin/uv: the cap on chunks buffered by the stream reassembler is only enforced on the defragmentation path, so out-of-order frames can over-allocate memory. Fixed in quinn-proto 0.11.17 (shipped in uv 0.13.6), but the uv binary comes from the base DLC image (base:runtime-cu130-amzn2023), so it clears once the base image bumps its uv pin.",
+        "review_by": "2026-11-27"
     }
 ]
