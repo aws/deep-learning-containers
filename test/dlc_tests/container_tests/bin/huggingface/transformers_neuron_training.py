@@ -12,7 +12,6 @@ import os
 from pathlib import Path
 
 import torch
-from accelerate import ParallelismConfig
 from datasets import Dataset
 from torch.distributed.tensor import DTensor
 from transformers import AutoModelForCausalLM, Qwen3Config, Trainer, TrainingArguments, set_seed
@@ -76,7 +75,6 @@ def main(parallel_mode):
             model=model,
             args=TrainingArguments(
                 output_dir=str(root / "output"),
-                parallelism_config=ParallelismConfig(tp_size=tp_size) if tp_size > 1 else None,
                 per_device_train_batch_size=2,
                 max_steps=12,
                 learning_rate=1e-2,
