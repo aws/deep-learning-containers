@@ -37,8 +37,12 @@ dependencies = [
 
     # Compat / security pins.
     "cython<3",  # TF/numpy ABI compat.
-    # aiohttp>=3.14.3 — CVE-2026-69244 (HIGH) OOB heap read in the C parser.
-    "aiohttp>=3.14.3",
+    # aiohttp>=3.14.5 — CVE-2026-69244 (HIGH) OOB heap read in the C parser;
+    # CVE-2026-111064 + CVE-2026-111066 + GHSA-2g87-pp6c-29x5 (HIGH) DoS.
+    "aiohttp>=3.14.5",
+    # certifi>=2026.10.23 — GHSA-6q48-6c7w-9gw2 (CRITICAL) drops the
+    # compromised emSign ECC Root CA - G3 from the bundled CA store.
+    "certifi>=2026.10.23",
     # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 DoS pins.
     "pyasn1>=0.6.4",
     "urllib3",
