@@ -107,7 +107,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
 
-        extra_build_args = deepcopy(image_config.get("build_args", {}))
+        extra_build_args = {}
         labels = {}
 
         tag_override = image_config.get("skip_build", "False").lower() == "true"

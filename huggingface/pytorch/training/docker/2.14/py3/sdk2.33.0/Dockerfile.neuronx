@@ -4,10 +4,11 @@ ARG BASE_IMAGE=public.ecr.aws/neuron/torch-neuronx:2.14.0-neuronx-py314-sdk2.33.
 FROM ${BASE_IMAGE} AS install
 
 ARG CONTAINER_TYPE=training
-ARG DLC_MAJOR_VERSION=1
+# Python is inherited from the pinned base; recorded for DLC validation.
+ARG PYTHON_VERSION=3.14.7
 
 LABEL maintainer="Hugging Face"
-LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_major_version="1"
 
 ARG TRANSFORMERS_VERSION=5.21.0
 ARG HUGGINGFACE_HUB_VERSION=1.33.0
