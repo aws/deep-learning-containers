@@ -259,8 +259,9 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - `x86-pytorch-build-runner` — PyTorch builds (all variants)
 - `x86-vllm-build-runner` — GPU compilation (vLLM, vLLM-Omni)
 - `x86-sglang-build-runner` — GPU compilation (SGLang)
-- `x86-g6xl-runner` — single-GPU tests (1x L4)
-- `x86-g6exl-runner` — multi-GPU tests (4x L4)
-- `x86-g6e12xl-runner` — large multi-GPU tests (4x L4, more memory)
+- `x86-g6xl-runner` — single-GPU tests (g6.xlarge, 1x L4)
+- `x86-g6exl-runner` — single-GPU tests needing more GPU memory (g6e.4xlarge, 1x L40S 48 GB). Short of EC2 capacity: its jobs run on the self-hosted runners below for now
+- `x86-g6e12xl-runner` — multi-GPU tests (g6e.12xlarge, 4x L40S)
+- Self-hosted `[self-hosted, gpu-l40s-1x]` — temporary EC2 runners (g6e.4xlarge, 1x L40S) that take the `x86-g6exl-runner` jobs; workflows select them in `runs-on` when the fleet is `x86-g6exl-runner`
 - `default-runner` — CPU-only jobs (sanity, telemetry, security, SageMaker endpoint tests)
 - `release-runner` — release publish job (step 1 of `_reusable.release-image.yml`); its own CodeBuild project (label `codebuild-release-runner-*`) with a 24 h timeout and an auto-scaling fleet
