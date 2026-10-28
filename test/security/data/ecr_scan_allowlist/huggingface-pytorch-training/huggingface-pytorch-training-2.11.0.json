@@ -63,5 +63,15 @@
         "vulnerability_id": "CVE-2026-115912",
         "reason": "vllm 0.25.0 pinned by this torch 2.11 line; fix requires vllm>=0.32.0, which pins torch==2.13.0 and cannot run on this base. Exploitation needs an authenticated caller submitting forged multimodal features to a vllm server; vllm here is only trl's in-process rollout backend.",
         "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94624",
+        "reason": "vllm 0.25.0 pinned by this torch 2.11 line; fix requires vllm>=0.32.0, which pins torch==2.13.0 and cannot run on this base. The vulnerable path needs OffloadingConnector with TieringOffloadingSpec and a P2P secondary tier, which training jobs do not configure; vllm here is only trl's in-process rollout backend.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-114053",
+        "reason": "vllm 0.25.0 pinned by this torch 2.11 line; fix requires vllm>=0.31.0, which pins torch==2.13.0 and cannot run on this base. Exploitation needs a client sending mm_processor_kwargs.code_revision to a vllm server; vllm here is only trl's in-process rollout backend. Fixed on the 2.13 line (vllm 0.31.0).",
+        "review_by": "2026-11-30"
     }
 ]
