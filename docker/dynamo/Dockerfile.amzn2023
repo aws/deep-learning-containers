@@ -1,0 +1,306 @@
+# NVIDIA Dynamo DLC on Amazon Linux 2023: the Dynamo runtime plus one inference backend.
+#
+#   docker build -f docker/dynamo/Dockerfile.amzn2023 --target <backend> \
+#     --build-arg BACKEND=<backend> --build-arg EFA_FLAVOR=efa|noefa --build-arg DYNAMO_REF=<ref> .
+#
+# - Backend (vllm, sglang, trtllm): its Python environment is docker/dynamo/<backend>/uv.lock, installed
+#   with `uv sync --frozen`. Dynamo pins the exact backend release it supports, so the lock is
+#   resolved from `ai-dynamo[<backend>]==<version>`.
+# - Dynamo (ai-dynamo, ai-dynamo-runtime, gpu-memory-service) is built from source at DYNAMO_REF
+#   and installed over the locked versions; `uv pip check` verifies the result.
+# - EFA_FLAVOR=efa adds EFA, the aws-ofi-nccl plugin and nccl-tests; noefa leaves them out.
+ARG CUDA_VERSION=13.0.2
+ARG PYTHON_VERSION=3.12
+ARG UV_VERSION=0.13.6
+ARG BACKEND=vllm
+ARG EFA_FLAVOR=efa
+
+# =============================================================================
+# dynamo-source / dynamo-build: Dynamo wheels from source
+# =============================================================================
+FROM alpine/git AS dynamo-source
+
+ARG DYNAMO_REPO=https://github.com/ai-dynamo/dynamo.git
+ARG DYNAMO_REF=main
+
+RUN git init -q /src && cd /src \
+  && git remote add origin ${DYNAMO_REPO} \
+  && git fetch -q --depth 1 origin ${DYNAMO_REF} \
+  && git checkout -q FETCH_HEAD \
+  && echo "NVIDIA Dynamo Source Manifest" >/src/DYNAMO_SOURCE_MANIFEST \
+  && echo "Base: ${DYNAMO_REPO} @ ${DYNAMO_REF}" >>/src/DYNAMO_SOURCE_MANIFEST \
+  && echo "HEAD: $(git rev-parse HEAD)" >>/src/DYNAMO_SOURCE_MANIFEST
+
+# Builds the ai-dynamo (pure Python), ai-dynamo-runtime (Rust/maturin) and
+# gpu-memory-service (Python + C++ extension) wheels.
+# Feature set matches upstream's runtime images minus media-ffmpeg.
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS dynamo-build
+
+ARG PYTHON_VERSION
+ARG UV_VERSION
+ARG DYNAMO_RUST_VERSION=1.96.1
+ARG DYNAMO_PROTOC_VERSION=25.3
+ARG DYNAMO_RUNTIME_FEATURES="kv-indexer,slot-tracker,select-service,mm-routing,ais-forward-pass,request-trace-s3,nvtx"
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel \
+  gcc gcc-c++ clang-devel cmake make perl git tar gzip unzip pkgconf-pkg-config openssl-devel \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN curl -fsSL -o /tmp/protoc.zip \
+  "https://github.com/protocolbuffers/protobuf/releases/download/v${DYNAMO_PROTOC_VERSION}/protoc-${DYNAMO_PROTOC_VERSION}-linux-x86_64.zip" \
+  && unzip -q -o /tmp/protoc.zip -d /usr/local bin/protoc 'include/*' \
+  && rm /tmp/protoc.zip && protoc --version
+
+RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${DYNAMO_RUST_VERSION}
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+RUN uv venv /opt/build-venv --python ${PYTHON_VERSION} \
+  && VIRTUAL_ENV=/opt/build-venv uv pip install "maturin[patchelf]>=1.0,<2.0"
+ENV PATH="/opt/build-venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/build-venv"
+
+COPY --from=dynamo-source /src /opt/dynamo
+WORKDIR /opt/dynamo
+
+ARG DYNAMO_CARGO_BUILD_JOBS=16
+RUN --mount=type=cache,target=/root/.cargo/registry --mount=type=cache,target=/root/.cargo/git --mount=type=cache,target=/opt/dynamo/target export CARGO_BUILD_JOBS=${DYNAMO_CARGO_BUILD_JOBS} \
+  && uv build --wheel --out-dir /opt/dynamo/dist \
+  && cd lib/bindings/python \
+  && maturin build --release --compatibility linux \
+    --features "${DYNAMO_RUNTIME_FEATURES}" --out /opt/dynamo/dist \
+  && cd /opt/dynamo \
+  && uv build --wheel --out-dir /opt/dynamo/dist lib/gpu_memory_service \
+  && ls -l /opt/dynamo/dist
+
+# =============================================================================
+# runtime-noefa: CUDA runtime + Python + uv + DLC conventions (no EFA)
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime-noefa
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG UV_VERSION
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=general \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  CUDA_HOME=/usr/local/cuda \
+  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib64:/opt/amazon/efa/lib64:/usr/local/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:/root/.local/bin:${PATH}" \
+  VIRTUAL_ENV=/opt/venv \
+  UV_PROJECT_ENVIRONMENT=/opt/venv \
+  UV_PYTHON_DOWNLOADS=never \
+  UV_LINK_MODE=copy \
+  HF_XET_HIGH_PERFORMANCE=1
+
+# Python, and the toolchain the backends JIT-compile kernels with at runtime (Triton/Inductor,
+# FlashInfer, SGLang/vLLM custom ops). The CUDA repo gets a lower priority so AL2023-vended
+# packages win when both repos provide them.
+RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
+  && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False \
+    python${PYTHON_VERSION} python${PYTHON_VERSION}-devel \
+    ca-certificates curl git tar gzip unzip which hostname findutils shadow-utils procps-ng \
+    gcc gcc-c++ make \
+    libibverbs rdma-core numactl-libs \
+    cuda-nvcc-${CUDA_DASH} \
+    cuda-cuobjdump-${CUDA_DASH} \
+    cuda-cudart-devel-${CUDA_DASH} \
+    cuda-nvrtc-devel-${CUDA_DASH} \
+    libcurand-devel-${CUDA_DASH} \
+    libcublas-devel-${CUDA_DASH} \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
+  && uv --version
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc
+
+# =============================================================================
+# runtime-efa: + EFA, aws-ofi-nccl and nccl-tests (all_reduce_perf)
+# =============================================================================
+FROM runtime-noefa AS runtime-efa
+
+ARG EFA_VERSION="latest"
+ARG NCCL_TESTS_VERSION=v2.20.0
+COPY ./scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa_amzn2023.sh
+# libnccl-devel (cuda-rhel9 repo) is only needed to build the ofi-nccl check and nccl-tests;
+# at runtime all_reduce_perf uses the NCCL from the Python environment (see the final stage).
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
+  && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
+  && ldconfig \
+  && mkdir -p /opt/amazon/efa && ln -sf /opt/amazon/efa/lib64 /opt/amazon/efa/lib \
+  && bash /tmp/install_efa_amzn2023.sh ${EFA_VERSION} \
+  && cd /tmp \
+  && NCCL_TESTS_DIR="/tmp/nccl-tests-${NCCL_TESTS_VERSION#v}" \
+  && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
+  && make -C "${NCCL_TESTS_DIR}/src" BUILDDIR="${NCCL_TESTS_DIR}/build" \
+    MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=/usr CUDA_HOME=/usr/local/cuda \
+    NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_90,code=sm_90" \
+    CXXSTD="-std=c++17" \
+    "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
+  && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \
+  && cd / && rm -rf "${NCCL_TESTS_DIR}" /tmp/install_efa_amzn2023.sh \
+  && dnf remove -y libnccl libnccl-devel \
+  && dnf clean all && rm -rf /var/cache/dnf /usr/local/cuda/bin/nvdisasm*
+
+# =============================================================================
+# python-env: the backend's locked environment + Dynamo from source (shared by both flavors)
+# =============================================================================
+FROM runtime-noefa AS python-env
+
+ARG BACKEND
+ARG PYTHON_VERSION
+COPY docker/dynamo/${BACKEND}/pyproject.toml docker/dynamo/${BACKEND}/uv.lock /opt/dynamo-env/
+COPY scripts/docker/dynamo/check_environment.py /opt/dynamo-env/check_environment.py
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --project /opt/dynamo-env \
+  --python /usr/bin/python${PYTHON_VERSION} \
+  --no-install-package ai-dynamo --no-install-package ai-dynamo-runtime
+
+# Dynamo from source, at the release the lock was resolved for. --no-deps: its dependencies
+# are already locked and installed; the environment check proves the source build agrees.
+RUN --mount=type=bind,from=dynamo-build,source=/opt/dynamo/dist,target=/tmp/dynamo-dist \
+  LOCKED=$(python3 -c "import tomllib; print(next(p['version'] for p in tomllib.load(open('/opt/dynamo-env/uv.lock', 'rb'))['package'] if p['name'] == 'ai-dynamo'))") \
+  && for w in /tmp/dynamo-dist/ai_dynamo-*.whl /tmp/dynamo-dist/ai_dynamo_runtime-*.whl; do \
+    case "$(basename $w)" in *-${LOCKED}-*) ;; *) echo "ERROR: $w is not ai-dynamo ${LOCKED} from uv.lock" >&2; exit 1 ;; esac; \
+  done \
+  && uv pip install --no-deps /tmp/dynamo-dist/ai_dynamo-*.whl /tmp/dynamo-dist/ai_dynamo_runtime-*.whl \
+    /tmp/dynamo-dist/gpu_memory_service-*.whl \
+  && python3 /opt/dynamo-env/check_environment.py /opt/dynamo-env/pyproject.toml \
+  && python3 -c "import dynamo.frontend, gpu_memory_service.cli.server" \
+  && rm -rf /root/.cache
+
+# OSS compliance in an isolated stage (only its license files are copied out), so the pip it
+# needs never lands in the shipped environment.
+FROM python-env AS oss
+ARG PYTHON_VERSION
+COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN uv pip install pip \
+  && bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+
+# Builds NIXL's LIBFABRIC (EFA) plugin for the backend's NIXL when the base has EFA and either
+# scripts/docker/dynamo/nixl/patches/<nixl-version>/ has patches or the backend's NIXL ships without
+# LIBFABRIC; otherwise a no-op.
+#   nixl-cu13 1.5.0 (SGLang): ai-dynamo/nixl#2308 (not in a release yet). The progress thread posts
+#   transfers and reads the CQ without the endpoint lock, racing control messages; on EFA this
+#   aborts the worker ("Packet already processed") during disaggregated KV transfer.
+#   TensorRT-LLM bundles its own NIXL (BUNDLED_NIXL_VERSION) without LIBFABRIC.
+FROM runtime-${EFA_FLAVOR} AS nixl-libfabric-build
+ARG BUNDLED_NIXL_VERSION=""
+ENV BUNDLED_NIXL_VERSION=${BUNDLED_NIXL_VERSION}
+COPY --from=python-env /opt/venv /opt/venv
+RUN --mount=type=bind,source=scripts/docker/dynamo/nixl,target=/tmp/nixl-src bash /tmp/nixl-src/build_libfabric_plugin.sh build /tmp/nixl-src/patches /opt/nixl-libfabric
+
+# =============================================================================
+# dynamo: runtime (with or without EFA) + the backend environment
+# =============================================================================
+FROM runtime-${EFA_FLAVOR} AS dynamo
+
+COPY --from=python-env /opt/venv /opt/venv
+COPY --from=python-env /opt/dynamo-env /opt/dynamo-env
+COPY --from=dynamo-source /src/DYNAMO_SOURCE_MANIFEST /opt/dynamo/DYNAMO_SOURCE_MANIFEST
+COPY --from=oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
+COPY --from=oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
+COPY --from=oss /root/LINUX_PACKAGES_LICENSES /root/LINUX_PACKAGES_LICENSES
+COPY --from=oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+COPY --from=oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
+
+ARG BUNDLED_NIXL_VERSION=""
+RUN --mount=type=bind,from=nixl-libfabric-build,source=/opt/nixl-libfabric,target=/tmp/nixl-libfabric --mount=type=bind,source=scripts/docker/dynamo/nixl,target=/tmp/nixl-src \
+  BUNDLED_NIXL_VERSION=${BUNDLED_NIXL_VERSION} bash /tmp/nixl-src/build_libfabric_plugin.sh install /tmp/nixl-libfabric
+
+# NCCL comes from the Python environment (nvidia-nccl-cu13); register it with the loader so
+# non-Python tools (nccl-tests in the EFA flavor) find it too.
+RUN NCCL_LIB=$(python3 -c "import nvidia.nccl, os; print(os.path.join(nvidia.nccl.__path__[0], 'lib'))") \
+  && echo "${NCCL_LIB}" >/etc/ld.so.conf.d/nccl.conf && ldconfig \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
+  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+# The Dynamo operator sets command/args per component (frontend, workers),
+# so no entrypoint (matches the upstream Dynamo runtime images).
+WORKDIR /workspace
+ENTRYPOINT []
+
+# =============================================================================
+# Backend targets (build with the matching BACKEND)
+# =============================================================================
+FROM dynamo AS vllm
+ARG BACKEND
+RUN test "${BACKEND}" = vllm || { echo "target vllm needs --build-arg BACKEND=vllm (got ${BACKEND})" >&2; exit 1; } \
+  && python3 -c "import dynamo.vllm, vllm; print('dynamo OK, vllm', vllm.__version__)"
+ENV VLLM_USAGE_SOURCE=production-docker-image
+# vllm 0.29+ passes the plain float triton_utils.LOG2E into @triton.jit kernels.
+ENV TRITON_ALLOW_NON_CONSTEXPR_GLOBALS=1
+
+FROM dynamo AS sglang
+ARG BACKEND
+RUN test "${BACKEND}" = sglang || { echo "target sglang needs --build-arg BACKEND=sglang (got ${BACKEND})" >&2; exit 1; } \
+  && python3 -c "import dynamo.sglang, sglang; print('dynamo OK, sglang', sglang.__version__)"
+
+FROM dynamo AS trtllm
+ARG BACKEND
+ARG PYTHON_VERSION
+# TensorRT-LLM imports mpi4py, which needs an MPI library. The EFA flavor has the EFA installer's
+# Open MPI (/opt/amazon/openmpi); the non-EFA flavor gets AL2023's Open MPI.
+# KV transfer: TensorRT-LLM's bundled NIXL (UCX by default; TRTLLM_NIXL_KVCACHE_BACKEND=LIBFABRIC with
+# the plugin built above for EFA).
+# Open MPI must not load UCX: AL2023's openmpi (non-EFA flavor) pulls in UCX 1.12, and once MPI init
+# loads that libucp, TensorRT-LLM's bundled NIXL UCX plugin (built for its own UCX 1.22) fails with an
+# undefined symbol. TensorRT-LLM uses MPI only to start and coordinate its workers.
+ENV PATH="${PATH}:/usr/lib64/openmpi/bin" \
+  OMPI_ALLOW_RUN_AS_ROOT=1 \
+  OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 \
+  OMPI_MCA_pml=^ucx \
+  OMPI_MCA_osc=^ucx \
+  OMPI_MCA_btl=^uct \
+  NIXL_PLUGIN_DIR=/opt/venv/lib/python${PYTHON_VERSION}/site-packages/tensorrt_llm/libs/nixl/plugins
+# The C++ KV transfer agent (tensorrt_llm_transfer_agent_binding) needs, beyond the Python
+# environment: libzmq.so.5 (its NIXL and UCX wrappers), and libnvrtc-builtins.so.13.4 as a DT_NEEDED
+# entry only (it imports no NVRTC symbols). That file comes alone from the pinned NVRTC wheel into its
+# own loader directory, so torch keeps the locked NVRTC 13.0. Without the binding TensorRT-LLM falls
+# back to a pure-Python NIXL agent that isn't installed, and disaggregated serving fails.
+ARG TRTLLM_NVRTC_BUILTINS_VERSION=13.4.92
+RUN test "${BACKEND}" = trtllm || { echo "target trtllm needs --build-arg BACKEND=trtllm (got ${BACKEND})" >&2; exit 1; } \
+  && dnf install -y --setopt=install_weak_deps=False zeromq \
+  && if [ ! -d /opt/amazon/openmpi ]; then \
+    dnf install -y --setopt=install_weak_deps=False openmpi \
+    && echo /usr/lib64/openmpi/lib >/etc/ld.so.conf.d/openmpi.conf; \
+  fi \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && uv pip install --no-deps --target /tmp/nvrtc "nvidia-cuda-nvrtc==${TRTLLM_NVRTC_BUILTINS_VERSION}" \
+  && B=$(find /tmp/nvrtc -name 'libnvrtc-builtins.so.13.4' | head -1) && test -n "$B" \
+  && mkdir -p /opt/trtllm/lib && cp "$B" /opt/trtllm/lib/ && rm -rf /tmp/nvrtc \
+  && echo /opt/trtllm/lib >/etc/ld.so.conf.d/trtllm.conf && ldconfig \
+  && test -d "${NIXL_PLUGIN_DIR}" \
+  && python3 -c "from mpi4py import MPI; print(MPI.Get_library_version().splitlines()[0])" \
+  && LD_LIBRARY_PATH=/usr/local/cuda/compat:${LD_LIBRARY_PATH} \
+    python3 -c "import dynamo.trtllm, tensorrt_llm, tensorrt_llm.tensorrt_llm_transfer_agent_binding; print('dynamo OK, tensorrt_llm', tensorrt_llm.__version__, '+ C++ transfer agent')"

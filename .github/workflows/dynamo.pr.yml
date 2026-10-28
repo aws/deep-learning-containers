@@ -1,0 +1,120 @@
+name: "PR - Dynamo"
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/dynamo/*.yml"
+      - ".github/workflows/dynamo.pipeline.yml"
+      - ".github/workflows/dynamo.pr.yml"
+      - ".github/workflows/dynamo.tests-image.yml"
+      - ".github/workflows/dynamo.tests-serving.yml"
+      - "docker/dynamo/**"
+      - "scripts/docker/common/**"
+      - "scripts/docker/dynamo/**"
+      - "scripts/docker/telemetry/**"
+      - "test/dynamo/**"
+      - "test/efa/**"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/dynamo/**"
+      - "test/telemetry/**"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  check-changes:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
+      image-test-change: ${{ steps.changes.outputs.image-test-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      serving-test-change: ${{ steps.changes.outputs.serving-test-change }}
+      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: changes
+        with:
+          filters: |
+            build-change:
+              - ".github/config/image/dynamo/*.yml"
+              - ".github/workflows/dynamo.pipeline.yml"
+              - "docker/dynamo/**"
+              - "scripts/docker/common/**"
+              - "scripts/docker/dynamo/**"
+              - "test/security/data/ecr_scan_allowlist/dynamo/**"
+            efa-test-change:
+              - "test/efa/**"
+            image-test-change:
+              - ".github/workflows/dynamo.tests-image.yml"
+              - "test/dynamo/test_image.py"
+            sanity-test-change:
+              - "test/sanity/**"
+            serving-test-change:
+              - ".github/workflows/dynamo.tests-serving.yml"
+              - "test/dynamo/test_serving.py"
+            telemetry-test-change:
+              - "scripts/docker/telemetry/**"
+              - "test/telemetry/**"
+
+  # docker/dynamo/<backend>/uv.lock must match its pyproject.toml (regenerate with `uv lock`).
+  lock-check:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    env:
+      UV_VERSION: "0.13.6" # keep in sync with UV_VERSION in docker/dynamo/Dockerfile.amzn2023
+    steps:
+      - uses: actions/checkout@v6
+      - run: curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+      - run: |
+          for project in docker/dynamo/*/pyproject.toml; do
+            echo "::group::$(dirname "$project")"
+            ~/.local/bin/uv lock --check --directory "$(dirname "$project")"
+            echo "::endgroup::"
+          done
+
+  discover:
+    needs: [gatekeeper]
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/dynamo/*.yml"
+
+  pipeline:
+    needs: [check-changes, discover, lock-check]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/dynamo.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      build: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
+      run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-image-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.image-test-change == 'true' }}
+      run-serving-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.serving-test-change == 'true' }}
+      run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
+    secrets: inherit

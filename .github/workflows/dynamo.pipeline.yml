@@ -1,0 +1,198 @@
+name: "Pipeline - Dynamo"
+
+# Builds and tests one NVIDIA Dynamo DLC config (.github/config/image/dynamo/*.yml),
+# built from docker/dynamo/Dockerfile.amzn2023 (target = metadata.backend).
+# No release jobs yet: releasing needs the `dynamo` ECR repo and release-logic support.
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      tag-suffix:
+        description: "CI tag suffix (run_id or pr-NUMBER)"
+        required: true
+        type: string
+      build:
+        description: "Whether to build the image (false = skip build, test against prod)"
+        required: false
+        type: boolean
+        default: true
+      run-sanity-test:
+        description: "Run sanity tests"
+        required: false
+        type: boolean
+        default: true
+      run-security-test:
+        description: "Run security tests"
+        required: false
+        type: boolean
+        default: false
+      run-telemetry-test:
+        description: "Run telemetry tests"
+        required: false
+        type: boolean
+        default: true
+      run-image-test:
+        description: "Run Dynamo image contract tests (CPU)"
+        required: false
+        type: boolean
+        default: true
+      run-serving-test:
+        description: "Run Dynamo serving tests (aggregated + disaggregated, GPU)"
+        required: false
+        type: boolean
+        default: true
+      run-efa-test:
+        description: "Run EFA integration tests (EFA flavor only)"
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      image-uri:
+        description: "Built image URI (empty if build was skipped)"
+        value: ${{ jobs.build.outputs.image-uri }}
+
+jobs:
+  ci-config:
+    runs-on: ubuntu-latest
+    outputs:
+      device-type: ${{ steps.parse.outputs.device-type }}
+      backend: ${{ steps.parse.outputs.backend }}
+      efa-flavor: ${{ steps.parse.outputs.efa-flavor }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: parse
+        run: |
+          echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          echo "backend=$(yq '.metadata.backend' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          echo "efa-flavor=$(yq '.build.efa_flavor' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+
+  build:
+    if: ${{ inputs.build }}
+    needs: [ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    # No CUDA compilation (backends come from locked wheels); the Rust build of the Dynamo
+    # runtime is the longest step.
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    timeout-minutes: 240
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: build
+        uses: ./.github/actions/build-image
+        with:
+          config-file: ${{ inputs.config-file }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-suffix: ${{ inputs.tag-suffix }}
+
+  # Check to see which tests have passed before on the given image build
+  check:
+    if: ${{ always() && !failure() && !cancelled() }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.check-test-pass.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      suites: '["sanity", "telemetry", "efa", "dynamo/image", "dynamo/serving"]'
+
+  sanity-test:
+    if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
+    needs: [build, check]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.sanity-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sanity'] || '' }}
+
+  security-test:
+    if: ${{ always() && !failure() && !cancelled() && inputs.run-security-test }}
+    needs: [build]
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/_reusable.security-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+
+  telemetry-test:
+    if: ${{ always() && !cancelled() && inputs.run-telemetry-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['telemetry'] != true }}
+    needs: [build, check]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.telemetry-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['telemetry'] || '' }}
+
+  image-tests:
+    if: ${{ always() && !cancelled() && inputs.run-image-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['dynamo/image'] != true }}
+    needs: [build, check]
+    concurrency:
+      group: ${{ github.workflow }}-image-tests-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/dynamo.tests-image.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['dynamo/image'] || '' }}
+
+  serving-tests:
+    if: ${{ always() && !cancelled() && inputs.run-serving-test && needs.ci-config.outputs.device-type == 'gpu' && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['dynamo/serving'] != true }}
+    needs: [build, check, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-serving-tests-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/dynamo.tests-serving.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['dynamo/serving'] || '' }}
+    secrets: inherit
+
+  efa-test:
+    if: >-
+      ${{ always() && !cancelled() && inputs.run-efa-test &&
+          needs.ci-config.outputs.device-type == 'gpu' &&
+          needs.ci-config.outputs.efa-flavor == 'efa' &&
+          needs.build.result != 'failure' &&
+          fromJSON(needs.check.outputs.skips || '{}')['efa'] != true }}
+    needs: [build, check, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-efa-test-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/_reusable.efa-tests.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['efa'] || '' }}
+      # The NIXL LIBFABRIC smoke test uses the nixl Python package; TensorRT-LLM bundles NIXL as
+      # native libraries only (test_image.py checks its LIBFABRIC plugin instead).
+      run-nixl-tests: ${{ needs.ci-config.outputs.backend != 'trtllm' }}
+      # The NIXL disaggregated prefill/decode test drives `vllm serve`; vLLM images only.
+      run-nixl-disagg: ${{ needs.ci-config.outputs.backend == 'vllm' }}
+      container-entrypoint: "/bin/bash"
+      container-cmd: "-c 'sleep infinity'"
