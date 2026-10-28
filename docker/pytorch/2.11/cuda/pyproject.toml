@@ -18,7 +18,7 @@ dependencies = [
     "starlette>=1.3.1",
     "GitPython>=3.2.1",  # CVE-2026-87817, CVE-2026-114145
     "Mako>=1.3.12",
-    "msgpack>=1.2.1",  # CVE GHSA-6v7p-g79w-8964 (transitive via deepspeed)
+    "msgpack>=1.2.3",  # CVE GHSA-6v7p-g79w-8964, CVE-2026-114613 (transitive via deepspeed)
     "soupsieve>=2.8.4",   # CVE GHSA-2wc2-fm75-p42x, GHSA-836r-79rf-4m37 (transitive via beautifulsoup4)
     "click>=8.3.3",       # CVE-2026-7246 (transitive)
     # CVE-2026-55379, CVE-2026-96637, CVE-2026-96639, CVE-2026-96640, CVE-2026-96642,
@@ -33,6 +33,7 @@ dependencies = [
     "certifi>=2026.10.19",  # GHSA-6q48-6c7w-9gw2 (transitive)
     "fsspec>=2026.6.0",  # CVE-2026-104851 (transitive via torch)
     "filelock>=4.2.1",  # CVE-2026-112940 (transitive via torch)
+    "oauthlib>=4.0.0",  # GHSA-3jp2-3mrg-2vxc (transitive via fastai / fastprogress / python-fasthtml)
 ]
 
 [project.optional-dependencies]
