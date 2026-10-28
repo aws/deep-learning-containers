@@ -46,7 +46,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # (GHSA-6q48-6c7w-9gw2); graphql-core 3.2.12 clears CVE-2026-75507/75508
 # (stays on 3.2.x for the base's mlflow -> graphene); brotli 1.2.1 clears
 # CVE-2026-111497 / GHSA-9v8h-qqgm-4m35; filelock 4.2.1 clears CVE-2026-112940;
-# mlflow 3.17.2 (base ships 3.16.0) clears CVE-2026-53995.
+# mlflow 3.17.2 (base ships 3.16.0) clears CVE-2026-53995; oauthlib 4.0.0
+# clears GHSA-3jp2-3mrg-2vxc; msgpack 1.2.3 clears CVE-2026-114613.
 # uv pip install does not honor the requirements of packages already in the
 # base, so restate them: the base's mlflow requires pyarrow<26, and datasets
 # would otherwise pull pyarrow 26; the base's sagemaker-train requires
@@ -80,6 +81,8 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "brotli>=1.2.1" \
   "filelock>=4.2.1" \
   "mlflow>=3.17.2" \
+  "oauthlib>=4.0.0" \
+  "msgpack>=1.2.3" \
   "pyarrow<26" \
   "graphene>=3,<4" \
   && uv cache clean
