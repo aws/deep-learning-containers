@@ -243,9 +243,13 @@ RUN NCCL_LIB=$(python3 -c "import nvidia.nccl, os; print(os.path.join(nvidia.ncc
 # - ray/jars/ray_dist.jar: Ray's Java worker runtime (jackson, guava); this image is Python-only.
 # - ray/_private/runtime_env/agent/thirdparty_files: Ray's vendored aiohttp (and its dependencies) for
 #   the runtime-env agent, which only prepends it to sys.path; without it the agent uses the locked aiohttp.
-# - benchmarks/: PyNvVideoCodec's sample benchmark scripts; their requirements.txt pins old torch.
+# - PyNvVideoCodec's extra top-level folders (benchmarks/, samples/): example scripts whose
+#   requirements.txt files pin old torch. The library itself is PyNvVideoCodec/ only.
 RUN SP=$(python3 -c "import sysconfig; print(sysconfig.get_paths()['purelib'])") \
-  && rm -rf "${SP}/ray/jars/ray_dist.jar" "${SP}/ray/_private/runtime_env/agent/thirdparty_files" "${SP}/benchmarks"
+  && rm -rf "${SP}/ray/jars/ray_dist.jar" "${SP}/ray/_private/runtime_env/agent/thirdparty_files" \
+  && for d in $(cat "${SP}"/pynvvideocodec-*.dist-info/top_level.txt 2>/dev/null); do \
+    [ "$d" = PyNvVideoCodec ] || rm -rf "${SP:?}/${d}"; \
+  done
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --security --releasever latest --setopt=install_weak_deps=False \
