@@ -1,6 +1,6 @@
 """Train a tiny Transformers model on two Neuron ranks using TP or FSDP.
 
-Inspired by training_scripts/finetune_overfit.py. Run on Trainium with:
+Run on Trainium with:
     HF_DEACTIVATE_ASYNC_LOAD=1 torchrun --standalone --nproc_per_node=2 \
         transformers_neuron_training.py --parallel-mode tp
 Repeat with --parallel-mode fsdp to exercise FSDP2.
