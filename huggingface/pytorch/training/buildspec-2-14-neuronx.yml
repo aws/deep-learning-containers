@@ -44,4 +44,4 @@ images:
       EVALUATE_VERSION: "0.4.6"
       DLC_MAJOR_VERSION: "1"
     test_configs:
-      test_platforms: [sanity, security]
+      test_platforms: [sanity, security, ec2]
