@@ -3,11 +3,11 @@
 `Dockerfile.amzn2023` builds the [NVIDIA Dynamo](https://github.com/ai-dynamo/dynamo) runtime with one
 inference backend, with or without EFA. Image configs: `.github/config/image/dynamo/`.
 
-| Path                       | What                                                                                      |
-| -------------------------- | ----------------------------------------------------------------------------------------- |
+| Path                       | What                                                                                                |
+| -------------------------- | --------------------------------------------------------------------------------------------------- |
 | `Dockerfile.amzn2023`      | Shared base and EFA stages, Dynamo built from source, one target per backend (vllm, sglang, trtllm) |
-| `<backend>/pyproject.toml` | The backend's Python environment: `ai-dynamo[<backend>]==<version>`, index and exclusions |
-| `<backend>/uv.lock`        | Every package pinned; the image installs it with `uv sync --frozen`                       |
+| `<backend>/pyproject.toml` | The backend's Python environment: `ai-dynamo[<backend>]==<version>`, index and exclusions           |
+| `<backend>/uv.lock`        | Every package pinned; the image installs it with `uv sync --frozen`                                 |
 
 ## How dependencies are controlled
 

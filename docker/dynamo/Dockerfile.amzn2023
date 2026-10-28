@@ -231,8 +231,7 @@ COPY --from=oss /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES /root/BUILD_FROM_SOURC
 COPY --from=oss /usr/local/bin/testOSSCompliance /usr/local/bin/testOSSCompliance
 
 ARG BUNDLED_NIXL_VERSION=""
-RUN --mount=type=bind,from=nixl-libfabric-build,source=/opt/nixl-libfabric,target=/tmp/nixl-libfabric --mount=type=bind,source=scripts/docker/dynamo/nixl,target=/tmp/nixl-src \
-  BUNDLED_NIXL_VERSION=${BUNDLED_NIXL_VERSION} bash /tmp/nixl-src/build_libfabric_plugin.sh install /tmp/nixl-libfabric
+RUN --mount=type=bind,from=nixl-libfabric-build,source=/opt/nixl-libfabric,target=/tmp/nixl-libfabric --mount=type=bind,source=scripts/docker/dynamo/nixl,target=/tmp/nixl-src BUNDLED_NIXL_VERSION=${BUNDLED_NIXL_VERSION} bash /tmp/nixl-src/build_libfabric_plugin.sh install /tmp/nixl-libfabric
 
 # NCCL comes from the Python environment (nvidia-nccl-cu13); register it with the loader so
 # non-Python tools (nccl-tests in the EFA flavor) find it too.

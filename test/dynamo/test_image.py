@@ -100,15 +100,23 @@ def test_backend_version_matches_config():
         "gpu_memory_service.cli.server",
         # TensorRT-LLM bundles NIXL as native libraries, without the nixl Python package; its KV
         # transfer goes through the C++ transfer agent binding (no pure-Python fallback installed).
-        *(["nixl._api"] if BACKEND != "trtllm" else ["tensorrt_llm.tensorrt_llm_transfer_agent_binding"]),
+        *(
+            ["nixl._api"]
+            if BACKEND != "trtllm"
+            else ["tensorrt_llm.tensorrt_llm_transfer_agent_binding"]
+        ),
     ],
 )
 def test_dynamo_modules_import(module):
     # In a subprocess with CUDA's compat libcuda: some backends (TensorRT-LLM) load the driver
     # library at import time, and CPU test runners have no driver.
     env = dict(os.environ)
-    env["LD_LIBRARY_PATH"] = ":".join(filter(None, ["/usr/local/cuda/compat", env.get("LD_LIBRARY_PATH")]))
-    result = subprocess.run([sys.executable, "-c", f"import {module}"], env=env, capture_output=True, text=True)
+    env["LD_LIBRARY_PATH"] = ":".join(
+        filter(None, ["/usr/local/cuda/compat", env.get("LD_LIBRARY_PATH")])
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", f"import {module}"], env=env, capture_output=True, text=True
+    )
     assert result.returncode == 0, result.stderr[-3000:]
 
 
@@ -144,7 +152,9 @@ d = os.path.dirname(importlib.util.find_spec("tensorrt_llm").origin)
 ctypes.CDLL(os.path.join(d, "libs/nixl/plugins/libplugin_UCX.so"), mode=os.RTLD_NOW)
 """
     env = dict(os.environ)
-    env["LD_LIBRARY_PATH"] = ":".join(filter(None, ["/usr/local/cuda/compat", env.get("LD_LIBRARY_PATH")]))
+    env["LD_LIBRARY_PATH"] = ":".join(
+        filter(None, ["/usr/local/cuda/compat", env.get("LD_LIBRARY_PATH")])
+    )
     result = subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr[-2000:]
 
@@ -160,9 +170,15 @@ def test_nixl_libfabric_plugin_ready_for_efa():
     if nixl is None:
         spec = importlib.util.find_spec("tensorrt_llm")
         assert spec is not None, "no nixl-cuXX wheel and no tensorrt_llm"
-        plugin = Path(spec.submodule_search_locations[0]) / "libs/nixl/plugins/libplugin_LIBFABRIC.so"
+        plugin = (
+            Path(spec.submodule_search_locations[0]) / "libs/nixl/plugins/libplugin_LIBFABRIC.so"
+        )
         assert plugin.is_file(), f"{plugin} missing"
-        assert Path("/opt/nixl/LIBFABRIC_PLUGIN_SOURCE").read_text().startswith("tensorrt_llm-bundled-nixl ")
+        assert (
+            Path("/opt/nixl/LIBFABRIC_PLUGIN_SOURCE")
+            .read_text()
+            .startswith("tensorrt_llm-bundled-nixl ")
+        )
     elif nixl.version in NIXL_PATCHED_VERSIONS:
         assert patches.is_file(), f"{nixl.metadata['Name']} {nixl.version} plugin not rebuilt"
         assert "nixl-2308" in patches.read_text()
