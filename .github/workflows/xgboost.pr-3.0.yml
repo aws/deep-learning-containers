@@ -14,7 +14,6 @@ on:
       - "scripts/docker/xgboost/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/xgboost/**"
-      - "test/telemetry/**"
       - "test/xgboost/**"
       - "!docs/**"
 
@@ -39,7 +38,6 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       integ-test-change: ${{ steps.changes.outputs.integ-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -57,8 +55,6 @@ jobs:
               - "test/xgboost/**"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "test/telemetry/**"
             unit-test-change:
               - "docker/xgboost/3.0-5/**"
 
