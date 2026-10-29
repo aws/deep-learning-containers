@@ -173,7 +173,7 @@ RUN uv pip install --no-cache-dir botocore
 
 # Patch CVEs (device-agnostic Python deps; mirrors the GPU vLLM image).
 RUN uv pip install --no-cache-dir \
-  "pillow>=12.1.1" \
+  "pillow>=13.0.0" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
   "cbor2>=5.9.0" \
@@ -183,7 +183,16 @@ RUN uv pip install --no-cache-dir \
   # setuptools path traversal (CVE-2025-47273); latest also re-vendors jaraco.context>=6.1.0 for its Zip Slip (CVE-2026-23949)
   "setuptools>=78.1.1" \
   # 8.0.1 fixes AttributeError on fastapi 0.138 _IncludedRouter that 500s /health (instrumentator #371)
-  "prometheus-fastapi-instrumentator>=8.0.1"
+  "prometheus-fastapi-instrumentator>=8.0.1" \
+  # Transitive deps of vllm. opentelemetry-sdk pins opentelemetry-api exactly, so both move together.
+  "aiohttp>=3.14.4" \
+  "certifi>=2026.10.18" \
+  "dnspython>=2.9.0" \
+  "filelock>=4.2.1" \
+  "opentelemetry-api>=1.45.1" \
+  "opentelemetry-sdk>=1.45.1" \
+  # The venv's pip comes from ensurepip (23.2.1) and is only upgraded here
+  "pip>=26.2"
 
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
