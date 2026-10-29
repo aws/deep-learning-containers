@@ -91,13 +91,13 @@
     },
     {
         "vulnerability_id": "CVE-2026-56852",
-        "reason": "golang.org/x/text v0.37.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-10-25"
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine-cuda13 0.3.13.post1 (latest on PyPI) still embeds x/text v0.37.0, below the fixed v0.39.0; upstream Mooncake main has bumped x/text to v0.42.0 but no released wheel carries it, so it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-28"
     },
     {
         "vulnerability_id": "CVE-2026-46600",
-        "reason": "golang.org/x/net v0.55.0 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-10-25"
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine-cuda13 0.3.13.post1 (latest on PyPI) still embeds x/net v0.55.0, below the fixed v0.56.0; upstream Mooncake main has bumped x/net to v0.60.0 but no released wheel carries it, so it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-28"
     },
     {
         "vulnerability_id": "CVE-2026-39821",
@@ -121,8 +121,8 @@
     },
     {
         "vulnerability_id": "GHSA-36hh-v3qg-5jq4",
-        "reason": "pyo3 0.21.2 in flaxlib Cargo.lock and pyo3 0.22.6 in upstream sglang sglang-radix-tree Cargo.lock, cannot patch without upstream rebuild",
-        "review_by": "2026-12-18"
+        "reason": "pyo3 0.21.2 bundled in the flaxlib wheel's Cargo.lock under site-packages/flaxlib; the fix requires pyo3 0.29.0, which can only arrive in a new flaxlib release, so it cannot be patched independently of an upstream wheel rebuild",
+        "review_by": "2026-12-28"
     },
     {
         "vulnerability_id": "CVE-2026-84445",
