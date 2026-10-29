@@ -17,15 +17,23 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - name: Checkout base branch
         uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
+      - name: Setup python
+        run: |
+          uv venv --python 3.12
+          echo "${PWD}/.venv/bin" >> "${GITHUB_PATH}"
+
       - name: Install dependencies
-        run: pip install -r docs/requirements.txt
+        run: uv pip install -r docs/requirements.txt
 
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force

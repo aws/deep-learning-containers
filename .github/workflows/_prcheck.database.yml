@@ -14,18 +14,21 @@ permissions:
 
 jobs:
   database-tests:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v6
 
       - name: Setup python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+        run: |
+          uv venv --python 3.12
+          echo "${PWD}/.venv/bin" >> "${GITHUB_PATH}"
 
       - name: Install test dependencies
-        run: pip install pytest boto3 moto pyyaml
+        run: uv pip install pytest boto3 moto pyyaml
 
       # loads only test/db conftest and excludes the container-test
       # harness (which imports test_utils and is not needed here).

@@ -43,7 +43,10 @@ on:
 
 jobs:
   ci-config:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       customer-type: ${{ steps.parse.outputs.customer-type }}
     steps:
@@ -137,7 +140,10 @@ jobs:
       !failure() && !cancelled() &&
       needs.build.result == 'success'
     needs: [build, sanity-test, security-test, sagemaker-tests]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       should-release: ${{ steps.check.outputs.should-release }}
       release-spec: ${{ steps.spec.outputs.release-spec }}
@@ -177,7 +183,10 @@ jobs:
       !contains(github.workflow_ref, '.pr') &&
       inputs.release
     needs: [ci-config, build, sanity-test, security-test, sagemaker-tests, release-gate, release]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/notify-slack-failure
