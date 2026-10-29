@@ -497,9 +497,12 @@ def test_framework_and_neuron_sdk_version(neuron):
         tested_framework = tested_framework[len("huggingface_") :]
 
     package_names = {}  # maps a package name to a framework name
+    # Native Torch Neuron (PyTorch 2.13+) requires a Neuron device when imported.
+    is_native_torch_neuron = False
     if tested_framework == "pytorch":
         if "training" in image or "neuronx" in image:
             package_names = {"torch-neuronx": "torch_neuronx"}
+            is_native_torch_neuron = Version(tag_framework_version) >= Version("2.13")
             # transformers is only available for the inference image
         else:
             package_names = {"torch-neuron": "torch_neuron"}
@@ -524,14 +527,19 @@ def test_framework_and_neuron_sdk_version(neuron):
             ctx = Context()
             start_container(container_name, image, ctx)
 
-        output = run_cmd_on_container(
-            container_name,
-            ctx,
-            f"import {framework}; print({framework}.__version__)",
-            executable="python",
-        )
+        if is_native_torch_neuron:
+            # torch_neuronx.__version__ is read from this package metadata.
+            version_cmd = (
+                f'from importlib.metadata import version; print(version("{package_name}"))'
+            )
+        else:
+            version_cmd = f"import {framework}; print({framework}.__version__)"
+        output = run_cmd_on_container(container_name, ctx, version_cmd, executable="python")
 
         installed_framework_version = output.stdout.strip().split("+")[0]
+        if is_native_torch_neuron and len(installed_framework_version.split(".")) == 5:
+            # The release manifest omits the fifth (build) component.
+            installed_framework_version = installed_framework_version.rsplit(".", 1)[0]
         version_list = release_manifest[package_name]
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "

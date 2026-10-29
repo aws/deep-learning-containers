@@ -1,0 +1,47 @@
+# HuggingFace PyTorch DLC layered on the AWS Torch NeuronX DLC.
+ARG BASE_IMAGE=public.ecr.aws/neuron/torch-neuronx:2.14.0-neuronx-py314-sdk2.33.0-ubuntu26.04
+
+FROM ${BASE_IMAGE} AS install
+
+ARG CONTAINER_TYPE=training
+# Python is inherited from the pinned base; recorded for DLC validation.
+ARG PYTHON_VERSION=3.14.7
+
+LABEL maintainer="Hugging Face"
+LABEL dlc_major_version="1"
+
+ARG TRANSFORMERS_VERSION=5.21.0
+ARG HUGGINGFACE_HUB_VERSION=1.33.0
+ARG HF_XET_VERSION=1.7.0
+ARG DATASETS_VERSION=5.1.0
+ARG ACCELERATE_VERSION=1.15.0
+ARG PEFT_VERSION=0.21.2
+ARG TRL_VERSION=1.16.0
+ARG DIFFUSERS_VERSION=0.41.0
+ARG EVALUATE_VERSION=0.4.6
+
+# Use the base's Python environment and pip so its inherited PIP_CONSTRAINT
+# keeps torch pinned to the version used to build torch-neuronx.
+RUN python3 -m pip install --no-cache-dir \
+  "transformers==${TRANSFORMERS_VERSION}" \
+  "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
+  "hf-xet==${HF_XET_VERSION}" \
+  "datasets==${DATASETS_VERSION}" \
+  "accelerate==${ACCELERATE_VERSION}" \
+  "peft==${PEFT_VERSION}" \
+  "trl==${TRL_VERSION}" \
+  "diffusers==${DIFFUSERS_VERSION}" \
+  "evaluate==${EVALUATE_VERSION}" \
+  sentencepiece protobuf einops \
+  && python3 -m pip check
+
+# Remove base-image build leftovers flagged by DLC sanity and security tests.
+RUN rm -f /tmp/uv-*.lock /usr/local/bin/bazel /usr/local/bin/bazelisk /usr/bin/pebble \
+  && rm -rf /workspace/torchtitan_neuron/.ci \
+  && find /usr/local/lib/python3.14/site-packages/neuron_agentic_development -name 'requirements*.txt' -delete
+
+ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE}
+
+# Regenerate OSS compliance docs to include the added HuggingFace packages.
+COPY setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN bash /tmp/setup_oss_compliance.sh python3 && rm /tmp/setup_oss_compliance.sh
