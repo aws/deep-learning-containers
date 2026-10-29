@@ -19,7 +19,6 @@ on:
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/sklearn/**"
       - "test/sklearn/**"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -44,7 +43,6 @@ jobs:
       integ-test-change: ${{ steps.changes.outputs.integ-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -66,8 +64,6 @@ jobs:
               - ".github/workflows/sklearn.tests-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "test/telemetry/**"
             unit-test-change:
               - "docker/sklearn/1.9-0/**"
 

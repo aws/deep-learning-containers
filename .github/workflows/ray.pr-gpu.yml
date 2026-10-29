@@ -13,14 +13,12 @@ on:
       - "docker/ray/uv.lock"
       - "scripts/docker/common/**"
       - "scripts/docker/ray/**"
-      - "scripts/docker/telemetry/**"
       - "test/ray/ec2/**"
       - "test/ray/sagemaker/**"
       - "test/ray/test_ffmpeg_codecs.sh"
       - "test/ray/test_ffmpeg_gpu.sh"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/ray/**"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -46,7 +44,6 @@ jobs:
       serve-test-change: ${{ steps.changes.outputs.serve-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -70,9 +67,6 @@ jobs:
               - "test/ray/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "scripts/docker/telemetry/**"
-              - "test/telemetry/**"
 
   discover:
     needs: [gatekeeper]
@@ -99,7 +93,7 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-ffmpeg-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ffmpeg-test-change == 'true' }}
       run-serve-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.serve-test-change == 'true' }}

@@ -14,11 +14,9 @@ on:
       - "scripts/docker/lambda/sglang_entrypoint.sh"
       - "scripts/docker/lambda/execute_once.py"
       - "scripts/docker/common/**"
-      - "scripts/docker/telemetry/**"
       - "test/lambda/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/lambda/**"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -43,7 +41,6 @@ jobs:
       validation-test-change: ${{ steps.changes.outputs.validation-test-change }}
       upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -65,9 +62,6 @@ jobs:
               - ".github/workflows/sglang.tests-upstream.yml"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "scripts/docker/telemetry/**"
-              - "test/telemetry/**"
 
   discover:
     needs: [gatekeeper]
@@ -94,7 +88,7 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-validation-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
       run-managed-instances-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
       run-sglang-upstream-test: false
