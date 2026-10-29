@@ -8,5 +8,20 @@
         "vulnerability_id": "CVE-2025-23339",
         "reason": "cuda-cuobjdump-12-9 12.9.82 (scanner attributes it to cuda-toolkit-config-common 12.9.79) — AL2023 status for the 12.9 package is NoFixPlanned; fixed only in the CUDA 13 packages, and the CUDA major is the image contract.",
         "review_by": "2027-01-27"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23273",
+        "reason": "libnvjpeg-12-9 12.4.0.76 (scanner attributes it to cuda-toolkit-config-common 12.9.79) — AL2023 status for the 12.9 package is PendingFix; fixed only in the CUDA 13 packages, and the CUDA major is the image contract.",
+        "review_by": "2027-01-27"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23274",
+        "reason": "libnvjpeg-12-9 12.4.0.76 (scanner attributes it to cuda-toolkit-config-common 12.9.79) — AL2023 status for the 12.9 package is PendingFix; fixed only in the CUDA 13 packages, and the CUDA major is the image contract.",
+        "review_by": "2027-01-27"
+    },
+    {
+        "vulnerability_id": "CVE-2025-23275",
+        "reason": "libnvjpeg-12-9 12.4.0.76 (scanner attributes it to cuda-toolkit-config-common 12.9.79) — AL2023 status for the 12.9 package is PendingFix; fixed only in the CUDA 13 packages, and the CUDA major is the image contract.",
+        "review_by": "2027-01-27"
     }
 ]

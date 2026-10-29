@@ -75,7 +75,8 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-2 to pick up fixes for NVIDIA Display Driver CVEs
-  && dnf upgrade -y --releasever latest cuda-compat-13-2 \
+  # Fail instead of skipping the NVIDIA repo when its metadata can't be fetched, which would keep the old package.
+  && dnf upgrade -y --releasever latest --setopt=cuda.skip_if_unavailable=False cuda-compat-13-2 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=uv /uv /usr/local/bin/uv
@@ -188,7 +189,8 @@ ARG CACHE_REFRESH=0
 RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-2 to pick up fixes for NVIDIA Display Driver CVEs
-  && dnf upgrade -y --releasever latest cuda-compat-13-2 \
+  # Fail instead of skipping the NVIDIA repo when its metadata can't be fetched, which would keep the old package.
+  && dnf upgrade -y --releasever latest --setopt=cuda.skip_if_unavailable=False cuda-compat-13-2 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=uv /uv /usr/local/bin/uv
