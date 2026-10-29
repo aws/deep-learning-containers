@@ -26,9 +26,26 @@ dependencies = [
     "awscli>=1.35.0",
     "pip>=25.0",
     # CVE-2026-69244 floor; ray[default] would otherwise resolve aiohttp 3.14.1.
-    "aiohttp>=3.14.3",
+    # Raised to 3.14.4 for CVE-2026-111064 / CVE-2026-111066 / GHSA-2g87-pp6c-29x5.
+    "aiohttp>=3.14.4",
     # CVE-2026-63374 / CVE-2026-63349 floor; transitively resolved anyio 4.14.1.
     "anyio>=4.14.2",
+    # Transitive CVE floors. These are not direct Ray Train deps, but the
+    # versions pulled in by ray/torch/datasets were vulnerable, so pin the floor
+    # here to keep a future re-resolution from silently regressing.
+    # Pillow image-parsing CVEs (CVE-2026-112390..112406, CVE-2026-1129xx,
+    # CVE-2026-9663x/9664x, GHSA-78g4-xqwv-q3g8, GHSA-xvh5-g6gv-559v).
+    "pillow>=13.0.0",
+    # GHSA-6q48-6c7w-9gw2 floor; resolved 2026.6.17.
+    "certifi>=2026.10.23",
+    # CVE-2026-112940 floor; resolved 3.29.7.
+    "filelock>=4.2.1",
+    # CVE-2026-104851 floor; also forces datasets past its fsspec<=2026.4.0 cap.
+    "fsspec>=2026.6.0",
+    # CVE-2026-114613 floor; resolved 1.2.1.
+    "msgpack>=1.2.3",
+    # CVE-2026-113718 / CVE-2026-113722 / CVE-2026-113723 / CVE-2026-113725 floor.
+    "virtualenv>=21.14.9",
     # TODO(ray-train): evaluate adding peft/trl for LoRA / RLHF fine-tuning use
     # cases (larger image + CVE surface — deferred from v1).
     # NOTE: torchaudio is intentionally omitted — no cu130 wheel past 2.11.0, and

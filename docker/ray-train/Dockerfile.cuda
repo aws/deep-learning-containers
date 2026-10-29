@@ -181,6 +181,16 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf upgrade -y cuda-compat-* libcap \
   && dnf clean all
 
+# Patch the base image's system-python tooling (/usr/local, NOT /opt/venv — the
+# venv's own versions come from uv.lock). These ship in the base DLC and lag
+# behind: certifi for GHSA-6q48-6c7w-9gw2, uv for GHSA-hq85-5cpj-mr62. The uv
+# upgrade also replaces /usr/local/bin/uv, which carries the vulnerable bundled
+# quinn-proto (RUSTSEC-2026-0340, RUSTSEC-2026-0341); uv >=0.13.4 bundles
+# quinn-proto 0.11.18. Drop this block once the base image ships the fixes.
+RUN /usr/local/bin/python${PYTHON_SHORT_VERSION} -m pip install --no-cache-dir --upgrade \
+  "certifi>=2026.10.23" "uv>=0.13.6" \
+  && rm -rf /root/.cache/pip
+
 # OSS compliance (from isolated stage)
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS
 COPY --from=builder-oss /root/PYTHON_PACKAGES_LICENSES /root/PYTHON_PACKAGES_LICENSES
