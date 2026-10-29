@@ -78,10 +78,9 @@ jobs:
   srt-backend-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
-        buildspec-override:true
+    # x86-g6exl-runner (g6e.4xlarge, 1x L40S) is short of EC2 capacity: this job runs on the
+    # self-hosted L40S runners (label gpu-l40s-1x) until it recovers.
+    runs-on: [self-hosted, gpu-l40s-1x]
     steps:
       - uses: actions/checkout@v6
 

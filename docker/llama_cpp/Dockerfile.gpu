@@ -70,7 +70,13 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip \
   # Upgrade cuda-compat (CUDA base ships an older one) to clear
   # CVE-2026-24193 / CVE-2025-33219, which --security does not flag.
-  && dnf upgrade -y "cuda-compat-$(echo "${CUDA_VERSION%.*}" | tr '.' '-')" \
+  # Stated as a version floor rather than a bare upgrade: when the NVIDIA repo is
+  # unreachable, `dnf upgrade <pkg>` prints "Nothing to do" and exits 0, silently
+  # keeping the base image's vulnerable version in a layer that is then cached and
+  # reused on later builds. A floor makes dnf fail the build instead, and also
+  # forces a deliberate update if a future CUDA base moves off this driver branch.
+  && dnf install -y --refresh \
+    "cuda-compat-$(echo "${CUDA_VERSION%.*}" | tr '.' '-') >= 1:580.159.03" \
   && dnf clean all && rm -rf /var/cache/dnf \
   && alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
@@ -78,7 +84,10 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf /usr/bin/yum
 
 RUN ${PYTHON} -m pip install --no-cache-dir requests botocore packaging \
-  && ${PYTHON} -m pip install --no-cache-dir "urllib3>=2.7.0"
+  # Floors applied after the base install so they win over the transitive
+  # versions requests/botocore resolve to. certifi >=2026.10.19 clears
+  # GHSA-6q48-6c7w-9gw2 (emSign root CA with compromised intermediate keys).
+  && ${PYTHON} -m pip install --no-cache-dir "urllib3>=2.7.0" "certifi>=2026.10.19"
 
 # Binaries + llama.cpp .so files (libllama, libggml*, libggml-cuda, CPU backends).
 COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/

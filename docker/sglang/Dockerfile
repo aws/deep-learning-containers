@@ -38,14 +38,16 @@ RUN pip install \
 RUN pip install \
   "aiohttp>=3.14.0" \
   "black>=26.3.1" \
+  "certifi>=2026.10.18" \
   "diffusers>=0.38.0" \
+  "filelock>=4.2.1" \
   "lxml>=6.1.0" \
   "nltk>=3.10.3" \
-  "pillow>=12.1.1" \
+  "pillow>=13.0.0" \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
   "starlette>=1.3.1" \
-  "virtualenv>=20.26.6" \
+  "virtualenv>=21.14.9" \
   "xgrammar>=0.1.32"
 
 # Copy artifacts
@@ -88,6 +90,9 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # Remove all Rust build-time artifacts to patch CVEs
+# sglang-radix-tree target/ and Cargo.lock are leftover build output (zip crate
+# reached only through tch -> torch-sys build scripts); the compiled extension
+# already lives in python/sglang/srt/mem_cache/rust_tree_core/ and is a separate copy
 RUN rm -rf \
   /root/.cargo/ \
   /root/.rustup/ \
@@ -97,6 +102,8 @@ RUN rm -rf \
   /sgl-workspace/sglang/sgl-model-gateway/bindings/golang/ \
   /sgl-workspace/sglang/rust/sglang-grpc/Cargo.lock \
   /sgl-workspace/sglang/rust/Cargo.lock \
+  /sgl-workspace/sglang/rust/sglang-radix-tree/target/ \
+  /sgl-workspace/sglang/rust/sglang-radix-tree/Cargo.lock \
   /sgl-workspace/sglang/experimental/sgl-router/Cargo.lock \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 

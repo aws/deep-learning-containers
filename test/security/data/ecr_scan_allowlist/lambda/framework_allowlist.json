@@ -151,5 +151,10 @@
         "vulnerability_id": "CVE-2026-97031",
         "reason": "Go stdlib CVE in the aws-lambda-rie binary (built with Go 1.26.7). Fixed in Go 1.27.2. Latest RIE release is v1.37 (2026-08-31), still built with Go 1.26.7; we download releases/latest so this auto-resolves on the next RIE release. Not reachable at Lambda runtime: lambda_entrypoint.sh only execs the RIE when AWS_LAMBDA_RUNTIME_API is unset, which is local testing only.",
         "review_by": "2026-12-31"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97032",
+        "reason": "Go stdlib CVE in the aws-lambda-rie binary (built with Go 1.26.7). Fixed in Go 1.27.2. Latest RIE release is v1.37 (2026-08-31), still built with Go 1.26.7; we download releases/latest so this auto-resolves on the next RIE release. Not reachable at Lambda runtime: lambda_entrypoint.sh only execs the RIE when AWS_LAMBDA_RUNTIME_API is unset, which is local testing only.",
+        "review_by": "2026-12-31"
     }
 ]

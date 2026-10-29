@@ -1,0 +1,97 @@
+name: "PR - Telemetry"
+
+# Framework PR workflows don't watch telemetry paths. This workflow diffs
+# deep_learning_container.py against the PR base and tests only what a change
+# can affect, on a mock image; see scripts/ci/select_telemetry_tests.py.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    # SUITE_PATHS in select_telemetry_tests.py, plus the selector and its unit tests
+    paths:
+      - ".github/actions/check-image-exists/**"
+      - ".github/actions/ecr-authenticate/**"
+      - ".github/actions/resolve-image-uri/**"
+      - ".github/workflows/_reusable.telemetry-tests.yml"
+      - ".github/workflows/telemetry.pipeline.yml"
+      - ".github/workflows/telemetry.pr.yml"
+      - "scripts/ci/select_telemetry_tests.py"
+      - "scripts/ci/telemetry_mock/**"
+      - "scripts/docker/telemetry/**"
+      - "test/ci/telemetry/**"
+      - "test/conftest.py"
+      - "test/requirements.txt"
+      - "test/telemetry/**"
+      - "test/test_utils/__init__.py"
+      - "test/test_utils/aws.py"
+      - "test/test_utils/constants.py"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  # Validates the region and framework registry, which no image test checks
+  # when a PR only adds regions to it.
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        # botocore, packaging, and requests are what deep_learning_container.py imports
+        run: pip install botocore packaging pytest pyyaml requests
+
+      - name: Run telemetry unit tests
+        run: python -m pytest test/ci/telemetry --confcutdir test/ci/telemetry -v
+
+  select:
+    runs-on: ubuntu-latest
+    outputs:
+      frameworks: ${{ steps.select.outputs.frameworks }}
+    steps:
+      # The PR merge commit and its base parent, which the selector diffs.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - id: select
+        run: python3 scripts/ci/select_telemetry_tests.py --base-ref HEAD^1
+
+  pipeline:
+    needs: [gatekeeper, select]
+    if: ${{ needs.select.outputs.frameworks != '[]' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        framework: ${{ fromJson(needs.select.outputs.frameworks) }}
+    uses: ./.github/workflows/telemetry.pipeline.yml
+    with:
+      framework: ${{ matrix.framework }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+    secrets: inherit

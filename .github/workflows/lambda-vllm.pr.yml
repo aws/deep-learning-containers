@@ -14,11 +14,9 @@ on:
       - "scripts/docker/lambda/vllm_entrypoint.sh"
       - "scripts/docker/lambda/execute_once.py"
       - "scripts/docker/common/**"
-      - "scripts/docker/telemetry/**"
       - "test/lambda/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/lambda/**"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -42,7 +40,6 @@ jobs:
       build-change: ${{ steps.changes.outputs.build-change }}
       validation-test-change: ${{ steps.changes.outputs.validation-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       upstream-test-change: ${{ steps.changes.outputs.upstream-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -63,9 +60,6 @@ jobs:
               - "test/lambda/**"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "scripts/docker/telemetry/**"
-              - "test/telemetry/**"
             upstream-test-change:
               - ".github/workflows/vllm.tests-upstream.yml"
 
@@ -94,7 +88,7 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-validation-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
       run-managed-instances-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.validation-test-change == 'true' }}
       run-vllm-upstream-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.upstream-test-change == 'true' }}
