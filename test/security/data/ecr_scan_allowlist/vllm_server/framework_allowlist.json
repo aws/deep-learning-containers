@@ -213,5 +213,25 @@
         "vulnerability_id": "CVE-2026-4538",
         "reason": "torch 2.9.1 is only a version pin in the upstream vllm base image's benchmarks/requirements.txt and samples/requirements.txt (metadata), not the installed package, and the scanner reports no fixed version. The pt2 loading handler deserialization needs a local caller loading a crafted artifact; the requirements files are inert. Not exploitable in the runtime.",
         "review_by": "2026-11-10"
+    },
+    {
+        "vulnerability_id": "CVE-2026-115915",
+        "reason": "vllm 0.31.1 in the AL2023 images; fixed in vllm 0.32.0. ImageMediaIO decodes image bytes from requests through Pillow without restricting formats, so it is reachable when serving a multimodal model with image inputs. Short-term allowlist while the AL2023 images move to vllm 0.32.0 (tracked separately).",
+        "review_by": "2026-10-31"
+    },
+    {
+        "vulnerability_id": "CVE-2026-115912",
+        "reason": "vllm 0.31.1 in the AL2023 images; fixed in vllm 0.32.0. Needs an authenticated caller submitting forged shared-memory multimodal features, so only multimodal deployments are exposed. Short-term allowlist while the AL2023 images move to vllm 0.32.0 (tracked separately).",
+        "review_by": "2026-10-31"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94624",
+        "reason": "vllm 0.31.1 in the AL2023 images; fixed in vllm 0.32.0. The vulnerable path needs OffloadingConnector with TieringOffloadingSpec and a peer-to-peer secondary tier, which the images don't configure by default. Short-term allowlist while the AL2023 images move to vllm 0.32.0 (tracked separately).",
+        "review_by": "2026-10-31"
+    },
+    {
+        "vulnerability_id": "CVE-2026-97032",
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; no released mooncake-transfer-engine wheel carries the fix, so it cannot be patched independently of an upstream mooncake rebuild (allowlisted the same way for vllm, sglang and sglang_server). Short review date to revisit with the vllm 0.32.0 move.",
+        "review_by": "2026-10-31"
     }
 ]
