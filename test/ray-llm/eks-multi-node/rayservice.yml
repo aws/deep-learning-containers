@@ -75,6 +75,8 @@ spec:
           spec:
             nodeSelector:
               node-type: g6-ray-llm
+              # Set by run_eks_test.sh so both workers share one GPU type.
+              node.kubernetes.io/instance-type: "${INSTANCE_TYPE}"
             tolerations:
               - key: nvidia.com/gpu
                 operator: Equal
