@@ -343,5 +343,10 @@
         "vulnerability_id": "GHSA-xvh5-g6gv-559v",
         "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
         "review_by": "2026-11-26"
+    },
+    {
+        "vulnerability_id": "CVE-2026-116178",
+        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.30.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
+        "review_by": "2027-01-27"
     }
 ]
