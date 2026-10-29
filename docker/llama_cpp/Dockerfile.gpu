@@ -70,7 +70,13 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-pip \
   # Upgrade cuda-compat (CUDA base ships an older one) to clear
   # CVE-2026-24193 / CVE-2025-33219, which --security does not flag.
-  && dnf upgrade -y "cuda-compat-$(echo "${CUDA_VERSION%.*}" | tr '.' '-')" \
+  # Stated as a version floor rather than a bare upgrade: when the NVIDIA repo is
+  # unreachable, `dnf upgrade <pkg>` prints "Nothing to do" and exits 0, silently
+  # keeping the base image's vulnerable version in a layer that is then cached and
+  # reused on later builds. A floor makes dnf fail the build instead, and also
+  # forces a deliberate update if a future CUDA base moves off this driver branch.
+  && dnf install -y --refresh \
+    "cuda-compat-$(echo "${CUDA_VERSION%.*}" | tr '.' '-') >= 1:580.159.03" \
   && dnf clean all && rm -rf /var/cache/dnf \
   && alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
   && alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
