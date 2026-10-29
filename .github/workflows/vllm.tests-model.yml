@@ -85,10 +85,9 @@ jobs:
       fail-fast: false
       matrix:
         include: ${{ fromJson(needs.preflight.outputs.codebuild-fleet-matrix) }}
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ matrix.fleet }}
-        buildspec-override:true
+    # x86-g6exl-runner (g6e.4xlarge, 1x L40S) is short of EC2 capacity: its jobs run on the
+    # self-hosted L40S runners (label gpu-l40s-1x) until it recovers.
+    runs-on: ${{ matrix.fleet == 'x86-g6exl-runner' && fromJSON('["self-hosted", "gpu-l40s-1x"]') || format('codebuild-runner-{0}-{1} fleet:{2} buildspec-override:true', github.run_id, github.run_attempt, matrix.fleet) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6

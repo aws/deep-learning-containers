@@ -9,7 +9,7 @@
 #
 # codebuild-fleet runners:
 #   x86-g6xl-runner    = g6.xlarge    (1x L4 24GB)
-#   x86-g6exl-runner   = g6e.xlarge   (1x L40S 48GB)
+#   x86-g6exl-runner   = g6e.4xlarge  (1x L40S 48GB; self-hosted gpu-l40s-1x while the fleet lacks capacity)
 #   x86-g6e12xl-runner = g6e.12xlarge (4x L40S 192GB)
 #   x86-g612xl-runner  = g6.12xlarge  (4x L4 96GB)
 #   x86-g512xl-runner  = g5.12xlarge  (4x A10G 96GB)
