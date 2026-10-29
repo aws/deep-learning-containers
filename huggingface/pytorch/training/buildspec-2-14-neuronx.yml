@@ -31,7 +31,7 @@ images:
     os_version: &OS_VERSION ubuntu26.04
     transformers_version: &TRANSFORMERS_VERSION 5.21.0
     datasets_version: &DATASETS_VERSION 5.1.0
-    tag: !join [*VERSION, "-transformers", *TRANSFORMERS_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *NEURON_SDK_VERSION, "-", *OS_VERSION, "-ec2"]
+    tag: !join [*VERSION, "-transformers", *TRANSFORMERS_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *NEURON_SDK_VERSION, "-", *OS_VERSION]
     docker_file: !join ["docker/", *SHORT_VERSION, "/", *DOCKER_PYTHON_VERSION, "/", *NEURON_SDK_VERSION, "/Dockerfile.", *DEVICE_TYPE]
     test_configs:
       test_platforms: [sanity, security, ec2]

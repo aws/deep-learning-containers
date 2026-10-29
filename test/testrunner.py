@@ -386,9 +386,19 @@ def main():
         and not is_sglang_image_present
     )
     is_hf_trcomp_image_present = is_hf_image_present and is_trcomp_image_present
+    is_hf_neuronx_training_ec2 = (
+        specific_test_type == "ec2"
+        and not benchmark_mode
+        and is_hf_image_present
+        and all(
+            all(part in image_uri for part in ("huggingface-pytorch-training", "neuronx"))
+            for image_uri in all_image_list
+        )
+    )
     if (
         (is_hf_image_present or is_ag_image_present)
         and specific_test_type in ("ecs", "ec2", "eks", "bai")
+        and not is_hf_neuronx_training_ec2
     ) or (
         is_hf_trcomp_image_present
         and (
