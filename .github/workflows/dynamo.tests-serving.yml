@@ -65,13 +65,12 @@ jobs:
           CONFIG_FILE="${{ inputs.config-file }}"
           echo "backend=$(yq '.metadata.backend' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
 
+  # The self-hosted L40S runners that take x86-g6exl-runner's jobs while that fleet lacks capacity
+  # (1x L40S): the aggregated case runs; the disaggregated one (2 GPUs) skips itself.
   serving-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
-        buildspec-override:true
+    runs-on: [self-hosted, gpu-l40s-1x]
     steps:
       - uses: actions/checkout@v6
 
