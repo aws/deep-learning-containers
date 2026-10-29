@@ -2,7 +2,7 @@ ARG CUDA_VERSION=13.0.2
 # Short CUDA tag — also the docker/base/<dir> name (cu129, cu130, ...)
 ARG CUDA_VERSION_SHORT=cu130
 # uv release to copy the binary from (pinned via the config build: block)
-ARG UV_VERSION=0.11.33
+ARG UV_VERSION=0.13.6
 
 # ============================================================
 # uv binary source (pinned)
@@ -65,7 +65,8 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
-  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
+  # Fail instead of skipping the NVIDIA repo when its metadata can't be fetched, which would keep the old package.
+  && dnf upgrade -y --releasever latest --setopt=cuda.skip_if_unavailable=False cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=uv /uv /usr/local/bin/uv
@@ -147,7 +148,8 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
     curl automake autoconf cmake gcc gcc-c++ git make tar \
   && dnf upgrade -y --security --releasever latest \
   # Explicitly upgrade cuda-compat-13-0 to pick up fix for CVE-2025-33219
-  && dnf upgrade -y --releasever latest cuda-compat-13-0 \
+  # Fail instead of skipping the NVIDIA repo when its metadata can't be fetched, which would keep the old package.
+  && dnf upgrade -y --releasever latest --setopt=cuda.skip_if_unavailable=False cuda-compat-13-0 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=uv /uv /usr/local/bin/uv
