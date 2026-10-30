@@ -38,6 +38,7 @@ dependencies = [
     "fsspec>=2026.6.0",  # CVE-2026-104851 (transitive via torch)
     "filelock>=4.2.1",  # CVE-2026-112940 (transitive via torch)
     "oauthlib>=4.0.0",  # GHSA-3jp2-3mrg-2vxc (transitive via fastai / fastprogress / python-fasthtml)
+    "pip>=26.1",  # CVE-2025-8869, CVE-2026-3219, CVE-2026-6357 (venv seed pip; transitive via sagemaker-training)
 ]
 
 [project.optional-dependencies]
