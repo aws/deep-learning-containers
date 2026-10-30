@@ -45,6 +45,12 @@ dependencies = [
     "certifi>=2026.10.23",
     # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 DoS pins.
     "pyasn1>=0.6.4",
+    # multidict>=6.9.1 — CVE-2026-104874 (MEDIUM).
+    "multidict>=6.9.1",
+    # pip>=26.2 — CVE-2025-8869, CVE-2026-3219, CVE-2026-6357, CVE-2026-8643 and
+    # CVE-2026-13346 (MEDIUM) in the venv seed pip (23.2.1), which serve.py uses
+    # to install customer requirements at start-up.
+    "pip>=26.2",
     "urllib3",
 ]
 
