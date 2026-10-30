@@ -1,0 +1,33 @@
+[project]
+name = "dlc-strands-decider"
+version = "1.0.0"
+requires-python = "==3.13.*"
+dependencies = [
+    # From the commit in [tool.uv.sources]: v0.2.0 lacks GET /ping and POST /invocations (the SageMaker serving
+    # contract), which came after it. Move to the first release that has them.
+    "strands-decider[cuda]",
+    # 2.7.1 is the torch strands-decider's kernels and transformers pin are tested with.
+    "torch==2.7.1",
+    # 5.20 imports torch.distributed.checkpoint.hf_storage, which torch 2.7 does not have.
+    "transformers==5.19.0",
+    # The base image's packages: `uv sync` removes anything not in this lock.
+    # botocore and packaging are required by the DLC telemetry script.
+    "botocore",
+    "packaging",
+    "requests",
+    "certifi>=2026.10.18",
+    "urllib3>=2.8.0",
+]
+
+[tool.uv]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+
+[tool.uv.sources]
+strands-decider = { git = "https://github.com/strands-labs/strands-decider", rev = "13faf5214f7cbea07d005278f1aeaf3973611eba" }
+torch = { index = "pytorch-cu128" }
+
+# torch 2.7.1 has no CUDA 12.9 build; cu128 wheels bring their own CUDA libraries and run on the cu129 base.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
