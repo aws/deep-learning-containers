@@ -12,8 +12,12 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import logging
 import re
 import time
+
+from contextlib import contextmanager
+from datetime import datetime, timezone
 
 import boto3
 import botocore.exceptions
@@ -23,6 +27,13 @@ from botocore.config import Config
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
 from test.test_utils.ecr import reupload_image_to_test_ecr
+
+LOGGER = logging.getLogger(__name__)
+
+# A training job that can't get capacity can sit in the "Pending" secondary status for hours instead
+# of failing with CapacityError. Its instances still count against the account quota, so other jobs
+# fail with ResourceLimitExceeded. Jobs that get capacity leave "Pending" within a few minutes.
+TRAINING_JOB_PENDING_TIMEOUT_MINUTES = 15
 
 # It is possible to have such low capacity on certain instance types that the test is never able to
 # run due to ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing
@@ -87,8 +98,70 @@ class SMThrottlingError(Exception):
     pass
 
 
+class TrainingJobCleanupSession(sagemaker.Session):
+    """
+    sagemaker.Session that cleans up after a training job it is waiting on:
+    - If the job is still waiting for capacity after TRAINING_JOB_PENDING_TIMEOUT_MINUTES, stop it
+      and raise CapacityError, so callers fall back to the next region like for a failed job.
+    - If waiting is interrupted, e.g. by a test timeout, stop the job, so it doesn't keep holding
+      quota and run after the test has already failed.
+    """
+
+    def wait_for_job(self, job, *args, **kwargs):
+        with self._stop_job_on_error(job):
+            self._wait_while_pending(job)
+            return super().wait_for_job(job, *args, **kwargs)
+
+    def logs_for_job(self, job_name, wait=False, *args, **kwargs):
+        if not wait:
+            return super().logs_for_job(job_name, wait, *args, **kwargs)
+        with self._stop_job_on_error(job_name):
+            self._wait_while_pending(job_name)
+            return super().logs_for_job(job_name, wait, *args, **kwargs)
+
+    @contextmanager
+    def _stop_job_on_error(self, job_name):
+        try:
+            yield
+        except BaseException:
+            self._stop_job_if_in_progress(job_name)
+            raise
+
+    def _wait_while_pending(self, job_name, poll=30):
+        while True:
+            desc = self.sagemaker_client.describe_training_job(TrainingJobName=job_name)
+            if desc.get("SecondaryStatus") not in ("Starting", "Pending"):
+                return
+            pending = [
+                transition
+                for transition in desc.get("SecondaryStatusTransitions", [])
+                if transition["Status"] == "Pending"
+            ]
+            if pending:
+                pending_time = datetime.now(timezone.utc) - pending[-1]["StartTime"]
+                if pending_time.total_seconds() > TRAINING_JOB_PENDING_TIMEOUT_MINUTES * 60:
+                    raise sagemaker.exceptions.CapacityError(
+                        message=(
+                            f"CapacityError: training job {job_name} was still waiting for "
+                            f"capacity after {TRAINING_JOB_PENDING_TIMEOUT_MINUTES} minutes"
+                        ),
+                        allowed_statuses=["Completed"],
+                        actual_status=desc["TrainingJobStatus"],
+                    )
+            time.sleep(poll)
+
+    def _stop_job_if_in_progress(self, job_name):
+        try:
+            desc = self.sagemaker_client.describe_training_job(TrainingJobName=job_name)
+            if desc["TrainingJobStatus"] == "InProgress":
+                LOGGER.warning(f"Stopping training job {job_name}")
+                self.sagemaker_client.stop_training_job(TrainingJobName=job_name)
+        except botocore.exceptions.ClientError as e:
+            LOGGER.warning(f"Failed to stop training job {job_name}: {e}")
+
+
 def get_sagemaker_session(region, default_bucket=None):
-    return sagemaker.Session(
+    return TrainingJobCleanupSession(
         boto_session=boto3.Session(region_name=region), default_bucket=default_bucket
     )
 
