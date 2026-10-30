@@ -134,5 +134,6 @@ def handler(event, context):
     path = "/v1/chat/completions" if "messages" in body else "/v1/completions"
 
     resp = requests.post(f"{_BASE_URL}{path}", json=body, timeout=_TIMEOUT)
-    resp.raise_for_status()
+    if not resp.ok:
+        raise RuntimeError(f"vLLM server returned {resp.status_code}: {resp.text}")
     return resp.json()

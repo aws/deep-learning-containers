@@ -14,7 +14,10 @@ concurrency:
 
 jobs:
   enforce-all-checks:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - name: Wait for all checks to complete
         uses: actions/github-script@v9

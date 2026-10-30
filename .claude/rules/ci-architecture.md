@@ -264,5 +264,5 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - `x86-g6exl-runner` — single-GPU tests needing more GPU memory (g6e.4xlarge, 1x L40S 48 GB). Short of EC2 capacity: its jobs run on the self-hosted runners below for now
 - `x86-g6e12xl-runner` — multi-GPU tests (g6e.12xlarge, 4x L40S)
 - Self-hosted `[self-hosted, gpu-l40s-1x]` — temporary EC2 runners (g6e.4xlarge, 1x L40S) that take the `x86-g6exl-runner` jobs; workflows select them in `runs-on` when the fleet is `x86-g6exl-runner`
-- `default-runner` — CPU-only jobs (sanity, telemetry, security, SageMaker endpoint tests)
+- `default-runner` — every CPU-only job: gates, change detection, config discovery, PR checks, scheduled jobs, sanity, telemetry, security, SageMaker endpoint tests. No workflow uses GitHub-hosted runners (`ubuntu-latest`): the fleet runs Amazon Linux 2023, not the GitHub Ubuntu image, so jobs get Python from `uv venv --python 3.12` (not `actions/setup-python`) and install tools like `gh` themselves (the buildspec provides uv, yq and jq)
 - `release-runner` — release publish job (step 1 of `_reusable.release-image.yml`); its own CodeBuild project (label `codebuild-release-runner-*`) with a 24 h timeout and an auto-scaling fleet

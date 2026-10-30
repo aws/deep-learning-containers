@@ -31,7 +31,10 @@ permissions:
 
 jobs:
   check-releases:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - name: Decode the GitHub App Private Key
         id: decode
@@ -53,11 +56,15 @@ jobs:
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Install yq
+      - name: Install gh
         run: |
-          sudo wget -qO /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
+          if ! command -v gh &> /dev/null; then
+            GH_VERSION="2.74.0"
+            curl -sL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" | tar xz
+            mv "gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
+            rm -rf "gh_${GH_VERSION}_linux_amd64"
+          fi
+          gh --version
 
       - name: Check upstream releases
         env:
@@ -68,7 +75,10 @@ jobs:
         run: bash scripts/ci/autocurrency/check-upstream-releases.sh
 
   notify-on-failure:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     needs: check-releases
     if: failure()
     steps:
@@ -105,10 +115,23 @@ jobs:
           key: check-releases-failure-notified
 
   clear-failure-marker:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     needs: check-releases
     if: success()
     steps:
+      - name: Install gh
+        run: |
+          if ! command -v gh &> /dev/null; then
+            GH_VERSION="2.74.0"
+            curl -sL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_amd64.tar.gz" | tar xz
+            mv "gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh
+            rm -rf "gh_${GH_VERSION}_linux_amd64"
+          fi
+          gh --version
+
       - name: Delete failure marker cache
         env:
           GH_TOKEN: ${{ github.token }}
