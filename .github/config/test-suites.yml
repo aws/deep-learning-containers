@@ -235,3 +235,13 @@ suites:
     skip_eligible: true
     code_paths:
       - test/whisperx/sagemaker/**
+
+  dynamo/image:
+    skip_eligible: true
+    code_paths:
+      - test/dynamo/test_image.py
+
+  dynamo/serving:
+    skip_eligible: true
+    code_paths:
+      - test/dynamo/test_serving.py

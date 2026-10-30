@@ -1,0 +1,42 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-115915",
+        "reason": "vllm 0.31.0 (vLLM image) is pinned exactly by ai-dynamo[vllm]==1.6.1 (vllm[flashinfer]==0.31.0); the fix needs vllm>=0.32.0, which takes a Dynamo release that supports it. The vulnerable ImageMediaIO path decodes image bytes in requests, so it is reachable only when serving a multimodal model with image inputs. Bump with the first Dynamo release pinning vllm>=0.32.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-115912",
+        "reason": "vllm 0.31.0 (vLLM image) is pinned exactly by ai-dynamo[vllm]==1.6.1 (vllm[flashinfer]==0.31.0); the fix needs vllm>=0.32.0, which takes a Dynamo release that supports it. Exploitation needs an authenticated caller submitting forged shared-memory multimodal features, so only multimodal deployments are exposed. Bump with the first Dynamo release pinning vllm>=0.32.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-94624",
+        "reason": "vllm 0.31.0 (vLLM image) is pinned exactly by ai-dynamo[vllm]==1.6.1 (vllm[flashinfer]==0.31.0); the fix needs vllm>=0.32.0, which takes a Dynamo release that supports it. The vulnerable path needs OffloadingConnector with TieringOffloadingSpec and a peer-to-peer secondary tier; Dynamo transfers KV cache with NIXL and the image does not configure KV offloading. Bump with the first Dynamo release pinning vllm>=0.32.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-44513",
+        "reason": "diffusers 0.37.0 (SGLang image) is pinned exactly by sglang[diffusion]==0.5.21, which ai-dynamo[sglang]==1.6.1 requires; the fix needs diffusers>=0.38.0. The trust_remote_code bypass is in DiffusionPipeline.from_pretrained, used only by SGLang's diffusion (image/video generation) mode with an operator-chosen model, not by LLM serving. Bump with the first Dynamo/SGLang release that moves the pin.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-45804",
+        "reason": "diffusers 0.37.0 (SGLang image) is pinned exactly by sglang[diffusion]==0.5.21, which ai-dynamo[sglang]==1.6.1 requires; the fix needs diffusers>=0.38.0. The trust_remote_code bypass is in DiffusionPipeline.from_pretrained/download, used only by SGLang's diffusion (image/video generation) mode with an operator-chosen model, not by LLM serving. Bump with the first Dynamo/SGLang release that moves the pin.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-9856",
+        "reason": "transformers 5.5.4 (TensorRT-LLM image) is pinned exactly by tensorrt-llm==1.3.0rc29, which ai-dynamo[trtllm]==1.6.1 requires; the fix needs transformers>=5.10.0. The path traversal is in save_pretrained(), which serving does not call (models are loaded, not saved). Bump with the first Dynamo/TensorRT-LLM release that moves the pin.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-104851",
+        "reason": "fsspec 2024.9.0 (TensorRT-LLM image) is capped by datasets==3.1.0 (fsspec<=2024.9.0), pinned exactly by tensorrt-llm==1.3.0rc29, which ai-dynamo[trtllm]==1.6.1 requires; the fix needs fsspec>=2026.6.0. The issue is in ReferenceFileSystem evaluating Kerchunk reference files, which serving does not open. Bump with the first Dynamo/TensorRT-LLM release that moves the pin.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-23949",
+        "reason": "jaraco.context 5.3.0 vendored inside setuptools 79.0.1 (TensorRT-LLM image); tensorrt-llm==1.3.0rc29, required by ai-dynamo[trtllm]==1.6.1, caps setuptools<80, and the vendored copy cannot be upgraded separately. The Zip Slip is in jaraco.context.tarball(), which setuptools uses only to fetch and unpack source distributions at build time; the image builds nothing at runtime. Bump with the first Dynamo/TensorRT-LLM release that lifts the cap.",
+        "review_by": "2026-11-30"
+    }
+]

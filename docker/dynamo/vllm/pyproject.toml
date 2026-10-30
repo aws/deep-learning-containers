@@ -1,0 +1,44 @@
+# Python environment of the Dynamo vLLM DLC (docker/dynamo/Dockerfile.amzn2023, target vllm).
+# uv.lock next to this file pins every package; the image installs it with `uv sync --frozen`.
+# After changing this file or bumping Dynamo, regenerate the lock (see docker/dynamo/README.md):
+#   uv lock --directory docker/dynamo/vllm
+[project]
+name = "dynamo-dlc-vllm"
+version = "0"
+requires-python = "==3.12.*"
+dependencies = [
+  # Dynamo pins the exact vLLM (and NIXL) release it supports through this extra. The image
+  # builds ai-dynamo / ai-dynamo-runtime / gpu-memory-service from source at the same
+  # release and installs them over the locked versions (same dependency metadata).
+  "ai-dynamo[vllm]==1.6.1",
+  # Listed so tool.uv.sources applies (sources only apply to direct dependencies); the
+  # versions come from vLLM's own pins.
+  "torch",
+  "torchvision",
+  "torchaudio",
+  # DLC additions.
+  "botocore",
+]
+
+[tool.uv]
+required-version = ">=0.13"
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+exclude-dependencies = [
+  # Only used by Dynamo's planner/profiler simulation, not by dynamo.vllm or
+  # dynamo.frontend; it pulls ~50 packages (jax, flax, tfp-nightly).
+  "aisimulate",
+  # The nixl / nvidia-cutlass-dsl meta-packages always depend on their CUDA 12 libraries;
+  # this image is CUDA 13 and gets the cu13 ones through their [cu13] extras.
+  "nixl-cu12",
+  "nvidia-cutlass-dsl-libs-cu12",
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu130" }
+torchvision = { index = "pytorch-cu130" }
+torchaudio = { index = "pytorch-cu130" }
