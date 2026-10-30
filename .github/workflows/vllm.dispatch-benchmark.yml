@@ -35,7 +35,10 @@ env:
 
 jobs:
   load-benchmarks:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
       runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
@@ -274,7 +277,10 @@ jobs:
     name: benchmark-report
     if: always()
     needs: [benchmark-codebuild-fleet, benchmark-runner-scale-sets]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - name: Checkout code
         uses: actions/checkout@v6

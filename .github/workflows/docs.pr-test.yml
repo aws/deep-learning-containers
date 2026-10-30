@@ -18,7 +18,10 @@ env:
 
 jobs:
   gatekeeper:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -35,7 +38,10 @@ jobs:
   check-changes:
     needs: [gatekeeper]
     if: success()
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
       cancel-in-progress: true

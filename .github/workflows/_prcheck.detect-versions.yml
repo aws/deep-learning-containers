@@ -18,7 +18,10 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'auto-update') &&
       startsWith(github.event.pull_request.head.ref, 'auto-update/') &&
       github.event.pull_request.user.login == 'aws-deep-learning-containers-ci[bot]'
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     permissions:
       contents: write
       pull-requests: write
@@ -44,12 +47,6 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
           token: ${{ steps.app-token.outputs.token }}
-
-      - name: Install yq
-        run: |
-          sudo wget -qO /usr/local/bin/yq \
-            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
 
       - name: Run version detection
         env:

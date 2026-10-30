@@ -46,24 +46,30 @@ jobs:
   # Validates the region and framework registry, which no image test checks
   # when a PR only adds regions to it.
   unit-test:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
 
       - name: Setup python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+        run: |
+          uv venv --python 3.12
+          echo "${PWD}/.venv/bin" >> "${GITHUB_PATH}"
 
       - name: Install test dependencies
         # botocore, packaging, and requests are what deep_learning_container.py imports
-        run: pip install botocore packaging pytest pyyaml requests
+        run: uv pip install botocore packaging pytest pyyaml requests
 
       - name: Run telemetry unit tests
         run: python -m pytest test/ci/telemetry --confcutdir test/ci/telemetry -v
 
   select:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       frameworks: ${{ steps.select.outputs.frameworks }}
     steps:
@@ -73,12 +79,12 @@ jobs:
           fetch-depth: 2
 
       - name: Setup python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+        run: |
+          uv venv --python 3.12
+          echo "${PWD}/.venv/bin" >> "${GITHUB_PATH}"
 
       - name: Install dependencies
-        run: pip install pyyaml
+        run: uv pip install pyyaml
 
       - id: select
         run: python3 scripts/ci/select_telemetry_tests.py --base-ref HEAD^1
