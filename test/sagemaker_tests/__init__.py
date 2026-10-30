@@ -24,6 +24,7 @@ import botocore.exceptions
 import sagemaker
 
 from botocore.config import Config
+from sagemaker.instance_group import InstanceGroup
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
 from test.test_utils.ecr import reupload_image_to_test_ecr
@@ -32,8 +33,15 @@ LOGGER = logging.getLogger(__name__)
 
 # A training job that can't get capacity can sit in the "Pending" secondary status for hours instead
 # of failing with CapacityError. Its instances still count against the account quota, so other jobs
-# fail with ResourceLimitExceeded. Jobs that get capacity leave "Pending" within a few minutes.
-TRAINING_JOB_PENDING_TIMEOUT_MINUTES = 15
+# fail with ResourceLimitExceeded. Jobs that get capacity leave "Pending" within a few minutes, and
+# this has to be short enough to try every fallback instance type within the 40 minute test timeout.
+TRAINING_JOB_PENDING_TIMEOUT_MINUTES = 10
+
+# Instance types with the same number of GPUs to try, in order, when a training job can't get
+# capacity or quota for the requested instance type
+TRAINING_INSTANCE_TYPE_FALLBACKS = {
+    "ml.g6.12xlarge": ["ml.g5.12xlarge", "ml.g6e.12xlarge"],
+}
 
 # It is possible to have such low capacity on certain instance types that the test is never able to
 # run due to ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing
@@ -164,6 +172,36 @@ def get_sagemaker_session(region, default_bucket=None):
     return TrainingJobCleanupSession(
         boto_session=boto3.Session(region_name=region), default_bucket=default_bucket
     )
+
+
+def get_instance_type_fallbacks(job_args):
+    """
+    Return job_args, followed by a copy of it for each fallback in TRAINING_INSTANCE_TYPE_FALLBACKS.
+    The instance type comes from "instance_type", or from "instance_groups" when all groups use the
+    same one.
+
+    :param job_args: dict of training job arguments, e.g. estimator parameters
+    :return: list of dicts
+    """
+    instance_groups = job_args.get("instance_groups")
+    if instance_groups:
+        group_instance_types = {group.instance_type for group in instance_groups}
+        if len(group_instance_types) != 1:
+            return [job_args]
+        return [job_args] + [
+            {
+                **job_args,
+                "instance_groups": [
+                    InstanceGroup(group.instance_group_name, fallback, group.instance_count)
+                    for group in instance_groups
+                ],
+            }
+            for fallback in TRAINING_INSTANCE_TYPE_FALLBACKS.get(group_instance_types.pop(), [])
+        ]
+    return [job_args] + [
+        {**job_args, "instance_type": fallback}
+        for fallback in TRAINING_INSTANCE_TYPE_FALLBACKS.get(job_args.get("instance_type"), [])
+    ]
 
 
 def get_sagemaker_client(region):

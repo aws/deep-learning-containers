@@ -93,6 +93,7 @@ def invoke_pytorch_helper_function(
     Used to invoke SM job defined in the helper functions in respective test file. The ECR image and
     the sagemaker session are passed explicitly depending on the AWS region.
     This function will rerun for all SM regions after a defined wait time if capacity issues occur.
+    In each region, it tries the fallback instance types for the requested one before moving on.
 
     :param ecr_image: ECR image in us-west-2 region
     :param sagemaker_regions: List of SageMaker regions
@@ -101,7 +102,12 @@ def invoke_pytorch_helper_function(
 
     :return: None
     """
-    from .. import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+    from .. import (
+        get_ecr_image_region,
+        get_sagemaker_session,
+        get_ecr_image,
+        get_instance_type_fallbacks,
+    )
 
     ecr_image_region = get_ecr_image_region(ecr_image)
     error = None
@@ -111,24 +117,25 @@ def invoke_pytorch_helper_function(
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
-        try:
-            helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
-            return
-        except sagemaker.exceptions.UnexpectedStatusException as e:
-            if "CapacityError" in str(e):
-                error = e
-                continue
-            else:
-                raise e
-        except botocore.exceptions.ClientError as e:
-            if any(
-                exception_type in str(e)
-                for exception_type in ["ThrottlingException", "ResourceLimitExceeded"]
-            ):
-                error = e
-                continue
-            else:
-                raise e
+        for function_args in get_instance_type_fallbacks(helper_function_args):
+            try:
+                helper_function(tested_ecr_image, sagemaker_session, **function_args)
+                return
+            except sagemaker.exceptions.UnexpectedStatusException as e:
+                if "CapacityError" in str(e):
+                    error = e
+                    continue
+                else:
+                    raise e
+            except botocore.exceptions.ClientError as e:
+                if any(
+                    exception_type in str(e)
+                    for exception_type in ["ThrottlingException", "ResourceLimitExceeded"]
+                ):
+                    error = e
+                    continue
+                else:
+                    raise e
     if "CapacityError" in str(error):
         raise SMInstanceCapacityError from error
     elif "ResourceLimitExceeded" in str(error):

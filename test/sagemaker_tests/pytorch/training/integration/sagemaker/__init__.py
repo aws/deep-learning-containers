@@ -28,6 +28,7 @@ from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
 from ..... import (
     get_ecr_image,
     get_ecr_image_region,
+    get_instance_type_fallbacks,
     get_sagemaker_session,
     LOW_AVAILABILITY_INSTANCE_TYPES,
     SMInstanceCapacityError,
@@ -62,7 +63,8 @@ def invoke_pytorch_estimator(
     """
     Used to invoke PyTorch training job. The ECR image and the sagemaker session are used depending
     on the AWS region. This function will rerun for all SM regions after a defined wait time if
-    capacity issues occur.
+    capacity issues occur. In each region, it tries the fallback instance types for the requested
+    one before moving on.
 
     :param ecr_image: ECR image in us-west-2 region
     :param sagemaker_regions: List of SageMaker regions
@@ -87,42 +89,42 @@ def invoke_pytorch_estimator(
             estimator_parameter["environment"] = {"AWS_REGION": test_region}
         else:
             estimator_parameter["environment"]["AWS_REGION"] = test_region
-        try:
-            pytorch = PyTorch(
-                image_uri=tested_ecr_image,
-                sagemaker_session=sagemaker_session,
-                **estimator_parameter,
-            )
+        for job_parameter in get_instance_type_fallbacks(estimator_parameter):
+            try:
+                pytorch = PyTorch(
+                    image_uri=tested_ecr_image,
+                    sagemaker_session=sagemaker_session,
+                    **job_parameter,
+                )
 
-            if disable_sm_profiler:
-                if sagemaker_session.boto_region_name in ("cn-north-1", "cn-northwest-1"):
-                    pytorch.disable_profiler = True
+                if disable_sm_profiler:
+                    if sagemaker_session.boto_region_name in ("cn-north-1", "cn-northwest-1"):
+                        pytorch.disable_profiler = True
 
-            if upload_s3_data_args:
-                training_input = upload_s3_data(pytorch, **upload_s3_data_args)
-                inputs = {"training": training_input}
+                if upload_s3_data_args:
+                    training_input = upload_s3_data(pytorch, **upload_s3_data_args)
+                    inputs = {"training": training_input}
 
-            if job_name:
-                job_name = utils.unique_name_from_base(job_name)
+                unique_job_name = utils.unique_name_from_base(job_name) if job_name else None
 
-            pytorch.fit(inputs=inputs, job_name=job_name)
-            return pytorch, sagemaker_session
+                pytorch.fit(inputs=inputs, job_name=unique_job_name)
+                return pytorch, sagemaker_session
 
-        except sagemaker.exceptions.UnexpectedStatusException as e:
-            if "CapacityError" in str(e):
-                error = e
-                continue
-            else:
-                raise e
-        except botocore.exceptions.ClientError as e:
-            if any(
-                exception_type in str(e)
-                for exception_type in ["ThrottlingException", "ResourceLimitExceeded"]
-            ):
-                error = e
-                continue
-            else:
-                raise e
+            except sagemaker.exceptions.UnexpectedStatusException as e:
+                if "CapacityError" in str(e):
+                    error = e
+                    continue
+                else:
+                    raise e
+            except botocore.exceptions.ClientError as e:
+                if any(
+                    exception_type in str(e)
+                    for exception_type in ["ThrottlingException", "ResourceLimitExceeded"]
+                ):
+                    error = e
+                    continue
+                else:
+                    raise e
 
     instance_types = []
     if "instance_type" in estimator_parameter:
