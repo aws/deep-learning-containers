@@ -11,7 +11,7 @@ dependencies = [
     "boto3",
     "botocore",
     "pyyaml",
-    "requests",
+    "requests>=2.33.0",  # CVE-2026-25645
     "packaging",
     "urllib3>=2.8.0",  # CVE-2026-97687, CVE-2026-97689
     "python-multipart>=0.0.30",
@@ -35,7 +35,6 @@ dependencies = [
     "filelock>=4.2.1",  # CVE-2026-112940 (transitive via torch)
     "oauthlib>=4.0.0",  # GHSA-3jp2-3mrg-2vxc (transitive via fastai / fastprogress / python-fasthtml)
     "pip>=26.1",  # CVE-2025-8869, CVE-2026-3219, CVE-2026-6357 (venv seed pip; transitive via sagemaker-training)
-    "requests>=2.33.0",  # CVE-2026-25645 (transitive)
 ]
 
 [project.optional-dependencies]
