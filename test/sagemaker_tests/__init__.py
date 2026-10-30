@@ -33,8 +33,9 @@ LOGGER = logging.getLogger(__name__)
 
 # A training job that can't get capacity can sit in the "Pending" secondary status for hours instead
 # of failing with CapacityError. Its instances still count against the account quota, so other jobs
-# fail with ResourceLimitExceeded. Jobs that get capacity leave "Pending" within a few minutes, and
-# this has to be short enough to try every fallback instance type within the 40 minute test timeout.
+# fail with ResourceLimitExceeded. While another instance type is left to try in the region, give up
+# on the job after this long. Jobs that do get capacity can take over 10 minutes (seen on p4d), so a
+# job with nothing else to try keeps waiting until the test timeout stops it.
 TRAINING_JOB_PENDING_TIMEOUT_MINUTES = 10
 
 # Instance types with the same number of GPUs to try, in order, when a training job can't get
@@ -109,11 +110,13 @@ class SMThrottlingError(Exception):
 class TrainingJobCleanupSession(sagemaker.Session):
     """
     sagemaker.Session that cleans up after a training job it is waiting on:
-    - If the job is still waiting for capacity after TRAINING_JOB_PENDING_TIMEOUT_MINUTES, stop it
-      and raise CapacityError, so callers fall back to the next region like for a failed job.
+    - If pending_timeout_minutes is set and the job is still waiting for capacity after that long,
+      stop it and raise CapacityError, so callers move on like for a job that failed with it.
     - If waiting is interrupted, e.g. by a test timeout, stop the job, so it doesn't keep holding
       quota and run after the test has already failed.
     """
+
+    pending_timeout_minutes = None
 
     def wait_for_job(self, job, *args, **kwargs):
         with self._stop_job_on_error(job):
@@ -136,6 +139,8 @@ class TrainingJobCleanupSession(sagemaker.Session):
             raise
 
     def _wait_while_pending(self, job_name, poll=30):
+        if not self.pending_timeout_minutes:
+            return
         while True:
             desc = self.sagemaker_client.describe_training_job(TrainingJobName=job_name)
             if desc.get("SecondaryStatus") not in ("Starting", "Pending"):
@@ -147,11 +152,11 @@ class TrainingJobCleanupSession(sagemaker.Session):
             ]
             if pending:
                 pending_time = datetime.now(timezone.utc) - pending[-1]["StartTime"]
-                if pending_time.total_seconds() > TRAINING_JOB_PENDING_TIMEOUT_MINUTES * 60:
+                if pending_time.total_seconds() > self.pending_timeout_minutes * 60:
                     raise sagemaker.exceptions.CapacityError(
                         message=(
                             f"CapacityError: training job {job_name} was still waiting for "
-                            f"capacity after {TRAINING_JOB_PENDING_TIMEOUT_MINUTES} minutes"
+                            f"capacity after {self.pending_timeout_minutes} minutes"
                         ),
                         allowed_statuses=["Completed"],
                         actual_status=desc["TrainingJobStatus"],

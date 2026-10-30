@@ -107,6 +107,7 @@ def invoke_pytorch_helper_function(
         get_sagemaker_session,
         get_ecr_image,
         get_instance_type_fallbacks,
+        TRAINING_JOB_PENDING_TIMEOUT_MINUTES,
     )
 
     ecr_image_region = get_ecr_image_region(ecr_image)
@@ -117,7 +118,12 @@ def invoke_pytorch_helper_function(
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
-        for function_args in get_instance_type_fallbacks(helper_function_args):
+        variants = get_instance_type_fallbacks(helper_function_args)
+        for index, function_args in enumerate(variants):
+            # Only give up on a job waiting for capacity if there's another instance type to try
+            sagemaker_session.pending_timeout_minutes = (
+                TRAINING_JOB_PENDING_TIMEOUT_MINUTES if index < len(variants) - 1 else None
+            )
             try:
                 helper_function(tested_ecr_image, sagemaker_session, **function_args)
                 return

@@ -34,6 +34,7 @@ from ..... import (
     SMInstanceCapacityError,
     SMResourceLimitExceededError,
     SMThrottlingError,
+    TRAINING_JOB_PENDING_TIMEOUT_MINUTES,
 )
 
 
@@ -89,7 +90,12 @@ def invoke_pytorch_estimator(
             estimator_parameter["environment"] = {"AWS_REGION": test_region}
         else:
             estimator_parameter["environment"]["AWS_REGION"] = test_region
-        for job_parameter in get_instance_type_fallbacks(estimator_parameter):
+        variants = get_instance_type_fallbacks(estimator_parameter)
+        for index, job_parameter in enumerate(variants):
+            # Only give up on a job waiting for capacity if there's another instance type to try
+            sagemaker_session.pending_timeout_minutes = (
+                TRAINING_JOB_PENDING_TIMEOUT_MINUTES if index < len(variants) - 1 else None
+            )
             try:
                 pytorch = PyTorch(
                     image_uri=tested_ecr_image,
