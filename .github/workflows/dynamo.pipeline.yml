@@ -57,7 +57,10 @@ on:
 
 jobs:
   ci-config:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       device-type: ${{ steps.parse.outputs.device-type }}
       backend: ${{ steps.parse.outputs.backend }}

@@ -25,7 +25,10 @@ permissions:
 
 jobs:
   gatekeeper:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -35,7 +38,10 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       efa-test-change: ${{ steps.changes.outputs.efa-test-change }}
@@ -69,22 +75,29 @@ jobs:
   # docker/dynamo/<backend>/uv.lock must match its pyproject.toml (regenerate with `uv lock`).
   lock-check:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     env:
       UV_VERSION: "0.13.6" # keep in sync with UV_VERSION in docker/dynamo/Dockerfile.amzn2023
     steps:
       - uses: actions/checkout@v6
-      - run: curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+      # Into the job's temp dir: the runner host is reused and has its own uv on PATH.
+      - run: curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | env UV_INSTALL_DIR="${RUNNER_TEMP}/uv" UV_NO_MODIFY_PATH=1 sh
       - run: |
           for project in docker/dynamo/*/pyproject.toml; do
             echo "::group::$(dirname "$project")"
-            ~/.local/bin/uv lock --check --directory "$(dirname "$project")"
+            "${RUNNER_TEMP}/uv/uv" lock --check --directory "$(dirname "$project")"
             echo "::endgroup::"
           done
 
   discover:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       configs: ${{ steps.discover.outputs.configs }}
     steps:
