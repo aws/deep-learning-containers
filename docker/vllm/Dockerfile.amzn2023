@@ -220,9 +220,10 @@ COPY --from=build /root/.cache/sccache/ /
 # built with go1.25.10, x/net v0.55.0, x/text v0.37.0, grpc v1.82.1 and etcd v3.5.21, which
 # carry 32 Go CVEs (3 CRITICAL). Upstream fixed only go.mod/go.sum after that release
 # (kvcache-ai/Mooncake#4707), so build the same wrapper source at MOONCAKE_VERSION with a
-# current Go and the module versions from that fix. Built on AL2023 (glibc 2.34) like the
-# runtime image; x86_64 only, like the rest of this Dockerfile. Drop this stage once a PyPI
-# release ships a patched wrapper.
+# current Go and the newest patch releases of that fix's modules (x/net 0.62.0 also fixes
+# CVE-2026-78661 and CVE-2026-97045, published after it). Built on AL2023 (glibc 2.34) like
+# the runtime image; x86_64 only, like the rest of this Dockerfile. Drop this stage once a
+# PyPI release ships a patched wrapper.
 FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS mooncake-etcd
 
 ARG MOONCAKE_VERSION
@@ -244,10 +245,10 @@ RUN git clone --depth 1 --branch "v${MOONCAKE_VERSION}" https://github.com/kvcac
 WORKDIR /src/mooncake/mooncake-common/etcd
 # Same go build as upstream's mooncake-common/etcd/CMakeLists.txt, plus -trimpath.
 RUN go get \
-  go.etcd.io/etcd/api/v3@v3.5.34 \
-  go.etcd.io/etcd/client/v3@v3.5.34 \
-  golang.org/x/net@v0.60.0 \
-  golang.org/x/text@v0.42.0 \
+  go.etcd.io/etcd/api/v3@v3.5.35 \
+  go.etcd.io/etcd/client/v3@v3.5.35 \
+  golang.org/x/net@v0.62.0 \
+  golang.org/x/text@v0.43.0 \
   google.golang.org/grpc@v1.83.2 \
   && go mod tidy \
   && go build -buildmode=c-shared -trimpath -o /out/libetcd_wrapper.so etcd_wrapper.go \
