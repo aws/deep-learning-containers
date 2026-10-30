@@ -8,6 +8,10 @@ ARG DEEPEP_COMMIT_HASH=874779c9ccd2294b56304bd6cc5f138f1f71d097
 ARG NCCL_VERSION=2.31.2
 ARG NVSHMEM_PIP_VERSION=3.3.24
 ARG GDRCOPY_VERSION=2.5.2
+# Mooncake KV connector; its Go etcd client is rebuilt in the mooncake-etcd stage.
+ARG MOONCAKE_VERSION=0.3.13.post1
+ARG GO_VERSION=1.27.3
+ARG GO_SHA256=65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -210,6 +214,46 @@ FROM scratch AS sccache-export
 COPY --from=build /root/.cache/sccache/ /
 
 # =============================================================================
+# STAGE: mooncake-etcd — rebuild Mooncake's Go etcd client with a patched toolchain
+# =============================================================================
+# The mooncake-transfer-engine wheels on PyPI (through 0.3.13.post1) ship libetcd_wrapper.so
+# built with go1.25.10, x/net v0.55.0, x/text v0.37.0, grpc v1.82.1 and etcd v3.5.21, which
+# carry 32 Go CVEs (3 CRITICAL). Upstream fixed only go.mod/go.sum after that release
+# (kvcache-ai/Mooncake#4707), so build the same wrapper source at MOONCAKE_VERSION with a
+# current Go and the module versions from that fix. Built on AL2023 (glibc 2.34) like the
+# runtime image; x86_64 only, like the rest of this Dockerfile. Drop this stage once a PyPI
+# release ships a patched wrapper.
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS mooncake-etcd
+
+ARG MOONCAKE_VERSION
+ARG GO_VERSION
+ARG GO_SHA256
+
+RUN dnf install -y --setopt=install_weak_deps=False git gcc tar gzip \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN curl --retry 3 -fsSL -o /tmp/go.tar.gz "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+  && echo "${GO_SHA256}  /tmp/go.tar.gz" | sha256sum -c - \
+  && tar -C /usr/local -xzf /tmp/go.tar.gz \
+  && rm /tmp/go.tar.gz
+ENV PATH="/usr/local/go/bin:${PATH}" \
+  GOTOOLCHAIN=local \
+  CGO_ENABLED=1
+
+RUN git clone --depth 1 --branch "v${MOONCAKE_VERSION}" https://github.com/kvcache-ai/Mooncake.git /src/mooncake
+WORKDIR /src/mooncake/mooncake-common/etcd
+# Same go build as upstream's mooncake-common/etcd/CMakeLists.txt, plus -trimpath.
+RUN go get \
+  go.etcd.io/etcd/api/v3@v3.5.34 \
+  go.etcd.io/etcd/client/v3@v3.5.34 \
+  golang.org/x/net@v0.60.0 \
+  golang.org/x/text@v0.42.0 \
+  google.golang.org/grpc@v1.83.2 \
+  && go mod tidy \
+  && go build -buildmode=c-shared -trimpath -o /out/libetcd_wrapper.so etcd_wrapper.go \
+  && go version -m /out/libetcd_wrapper.so
+
+# =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS deps
@@ -287,8 +331,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Install KV connectors (lmcache, nixl, mooncake) if requested. Mirrors upstream's
 # .buildkite/scripts/install-kv-connectors.sh: keep the installed torch stack, then
 # keep only the nixl and mooncake wheels that match this CUDA major (the default
-# mooncake wheel links libcudart.so.12).
+# mooncake wheel links libcudart.so.12). Mooncake is pinned to the version whose etcd
+# wrapper the mooncake-etcd stage rebuilds.
 ARG INSTALL_KV_CONNECTORS=true
+ARG MOONCAKE_VERSION
 COPY --from=source /src/requirements/kv_connectors.txt /tmp/kv_connectors.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
     set -e; \
@@ -296,6 +342,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
     if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
         uv pip freeze | grep -E '^(torch|torchaudio|torchvision|triton|cuda-bindings|cuda-python|cuda-toolkit)==' >/tmp/kv-constraints.txt; \
+        echo "mooncake-transfer-engine==${MOONCAKE_VERSION}" >>/tmp/kv-constraints.txt; \
         uv pip install -c /tmp/kv-constraints.txt -r /tmp/kv_connectors.txt --no-build || ( \
             dnf install -y --setopt=install_weak_deps=False \
                 libcusparse-devel-${CUDA_DASH} \
@@ -308,13 +355,29 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         NIXL_VERSION=$(python3 -c "import importlib.metadata as m; print(m.version('nixl'))"); \
         uv pip uninstall nixl-cu12 nixl-cu13 || true; \
         uv pip install --no-deps "nixl-cu${CUDA_MAJOR}==${NIXL_VERSION}"; \
-        MOONCAKE_VERSION=$(python3 -c "import importlib.metadata as m; print(m.version('mooncake-transfer-engine'))" 2>/dev/null || true); \
-        if [ "$CUDA_MAJOR" -ge 13 ] && [ -n "$MOONCAKE_VERSION" ]; then \
+        MOONCAKE_INSTALLED=$(python3 -c "import importlib.metadata as m; print(m.version('mooncake-transfer-engine'))" 2>/dev/null || true); \
+        if [ "$CUDA_MAJOR" -ge 13 ] && [ -n "$MOONCAKE_INSTALLED" ]; then \
             uv pip uninstall mooncake-transfer-engine; \
-            uv pip install -c /tmp/kv-constraints.txt "mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION}"; \
+            uv pip install -c /tmp/kv-constraints.txt "mooncake-transfer-engine-cuda13==${MOONCAKE_INSTALLED}"; \
         fi; \
         rm -f /tmp/kv-constraints.txt; \
     fi
+
+# Swap in the etcd wrapper rebuilt by the mooncake-etcd stage. Fail if the rebuild lacks a
+# function the original exports, since engine.so, store.so and the other Mooncake libraries
+# link against them.
+COPY --from=mooncake-etcd /out/libetcd_wrapper.so /tmp/libetcd_wrapper.so
+RUN set -e; \
+    WRAPPER="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/mooncake/libetcd_wrapper.so"; \
+    if [ -f "$WRAPPER" ]; then \
+        nm -D --defined-only "$WRAPPER" | awk '$2 == "T" && $3 !~ /^(_cgo|x_cgo|_?crosscall)/ {print $3}' | sort >/tmp/old.exports; \
+        nm -D --defined-only /tmp/libetcd_wrapper.so | awk '$2 == "T" {print $3}' | sort >/tmp/new.exports; \
+        MISSING=$(comm -23 /tmp/old.exports /tmp/new.exports); \
+        if [ -n "$MISSING" ]; then echo "ERROR: rebuilt libetcd_wrapper.so lacks: $MISSING" >&2; exit 1; fi; \
+        cp /tmp/libetcd_wrapper.so "$WRAPPER"; \
+        echo "Replaced $WRAPPER ($(wc -l </tmp/old.exports) exported functions kept)"; \
+    fi; \
+    rm -f /tmp/libetcd_wrapper.so /tmp/old.exports /tmp/new.exports
 
 # The flashinfer-cubin wheel (from requirements/cuda.txt) already ships every cubin, so
 # there is no `flashinfer download-cubin` step: it only re-fetched the same ~43k files one
