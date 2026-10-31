@@ -245,3 +245,8 @@ suites:
     skip_eligible: true
     code_paths:
       - test/dynamo/test_serving.py
+
+  dynamo/hyperpod:
+    skip_eligible: true
+    code_paths:
+      - test/dynamo/hyperpod/**

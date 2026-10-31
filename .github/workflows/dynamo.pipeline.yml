@@ -45,6 +45,11 @@ on:
         required: false
         type: boolean
         default: true
+      run-hyperpod-test:
+        description: "Run the HyperPod test (disaggregated DGD on HyperPod with the inference add-on, GPU)"
+        required: false
+        type: boolean
+        default: true
       run-efa-test:
         description: "Run EFA integration tests (EFA flavor only)"
         required: false
@@ -109,7 +114,7 @@ jobs:
     with:
       config-file: ${{ inputs.config-file }}
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
-      suites: '["sanity", "telemetry", "efa", "dynamo/image", "dynamo/serving"]'
+      suites: '["sanity", "telemetry", "efa", "dynamo/image", "dynamo/serving", "dynamo/hyperpod"]'
 
   sanity-test:
     if: ${{ always() && !cancelled() && inputs.run-sanity-test && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['sanity'] != true }}
@@ -173,6 +178,20 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
       image-content-hash: ${{ needs.check.outputs.image-content-hash }}
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['dynamo/serving'] || '' }}
+    secrets: inherit
+
+  hyperpod-tests:
+    if: ${{ always() && !cancelled() && inputs.run-hyperpod-test && needs.ci-config.outputs.device-type == 'gpu' && needs.build.result != 'failure' && fromJSON(needs.check.outputs.skips || '{}')['dynamo/hyperpod'] != true }}
+    needs: [build, check, ci-config]
+    concurrency:
+      group: ${{ github.workflow }}-hyperpod-tests-${{ inputs.config-file }}-${{ github.ref }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/dynamo.tests-hyperpod.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      image-uri: ${{ needs.build.outputs.image-uri || '' }}
+      image-content-hash: ${{ needs.check.outputs.image-content-hash }}
+      suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['dynamo/hyperpod'] || '' }}
     secrets: inherit
 
   efa-test:

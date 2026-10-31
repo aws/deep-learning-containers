@@ -1,0 +1,134 @@
+name: Reusable Dynamo HyperPod Tests
+
+# The image on SageMaker HyperPod with the HyperPod Inference add-on: a disaggregated DynamoGraphDeployment with the
+# prefill and decode workers on different nodes, KV over NIXL (LIBFABRIC on EFA images). The runner drives the cluster
+# with kubectl (test/dynamo/hyperpod/run_hyperpod_test.py): it scales the GPU instance groups up, deploys, checks the
+# answers, and scales them back down. Tests run one at a time on the cluster.
+#
+# Repository variables: HYPERPOD_EKS_CLUSTER, HYPERPOD_CLUSTER, HYPERPOD_PREFILL_GROUP, HYPERPOD_DECODE_GROUP (two
+# EFA-capable GPU groups in one subnet).
+
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Path to image config YAML"
+        required: true
+        type: string
+      image-uri:
+        description: "Image URI to test. If empty, derives prod URI from config."
+        required: false
+        type: string
+        default: ""
+      image-content-hash:
+        description: "Image hash computed from hash_image_content.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+      suite-code-hash:
+        description: "Test code hash computed from hash_suite_code.py for caching a test pass."
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      image-uri: ${{ steps.image.outputs.image-uri }}
+      image-exists: ${{ steps.check.outputs.exists }}
+      backend: ${{ steps.parse.outputs.backend }}
+      efa-flavor: ${{ steps.parse.outputs.efa-flavor }}
+      runtime-version: ${{ steps.parse.outputs.runtime-version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Resolve image URI
+        id: image
+        uses: ./.github/actions/resolve-image-uri
+        with:
+          image-uri: ${{ inputs.image-uri }}
+          ci-aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          prod-aws-account-id: ${{ vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          config-file: ${{ inputs.config-file }}
+
+      - name: Check image exists
+        id: check
+        uses: ./.github/actions/check-image-exists
+        with:
+          image-uri: ${{ steps.image.outputs.image-uri }}
+
+      - name: Parse config
+        id: parse
+        run: |
+          CONFIG_FILE="${{ inputs.config-file }}"
+          echo "backend=$(yq '.metadata.backend' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "efa-flavor=$(yq '.build.efa_flavor' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+          echo "runtime-version=$(yq '.metadata.framework_version' "$CONFIG_FILE")" >> $GITHUB_OUTPUT
+
+  hyperpod-test:
+    if: ${{ needs.preflight.outputs.image-exists == 'true' }}
+    needs: [preflight]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    # Waiting for the other images' tests (one at a time) plus GPU nodes, image pull and model load.
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install kubectl
+        run: |
+          curl -fsSL "https://dl.k8s.io/release/v1.34.0/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl
+          chmod +x /usr/local/bin/kubectl
+
+      - name: Run HyperPod test
+        run: |
+          python3 test/dynamo/hyperpod/run_hyperpod_test.py \
+            --image-uri "${{ needs.preflight.outputs.image-uri }}" \
+            --runtime-version "${{ needs.preflight.outputs.runtime-version }}" \
+            --backend "${{ needs.preflight.outputs.backend }}" \
+            --efa-flavor "${{ needs.preflight.outputs.efa-flavor }}" \
+            --eks-cluster "${{ vars.HYPERPOD_EKS_CLUSTER }}" \
+            --hyperpod-cluster "${{ vars.HYPERPOD_CLUSTER }}" \
+            --prefill-group "${{ vars.HYPERPOD_PREFILL_GROUP }}" \
+            --decode-group "${{ vars.HYPERPOD_DECODE_GROUP }}" \
+            --region "${{ vars.AWS_REGION }}" \
+            --log-dir hyperpod-test-logs
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: hyperpod-test-${{ needs.preflight.outputs.backend }}-${{ needs.preflight.outputs.efa-flavor }}
+          path: hyperpod-test-logs/
+          retention-days: 14
+
+  # Record a PASS row in the ci-images-table if the test passed.
+  record-test-pass:
+    if: >-
+      ${{ always() && !cancelled() && !failure() &&
+          inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
+          needs.hyperpod-test.result == 'success' }}
+    needs: [hyperpod-test]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/record-test-pass
+        with:
+          suite: dynamo/hyperpod
+          image-content-hash: ${{ inputs.image-content-hash }}
+          suite-code-hash: ${{ inputs.suite-code-hash }}
+          ci-image-uri: ${{ inputs.image-uri }}
+          ci-images-table-account-id: ${{ vars.CI_IMAGES_TABLE_ACCOUNT_ID }}
