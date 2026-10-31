@@ -17,7 +17,16 @@ from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
 from .... import invoke_pytorch_helper_function
+from ...integration import MULTI_GPU_INSTANCE
 from . import _test_mnist_distributed
+
+
+def _gpu_instance_type(instance_type, dist_backend):
+    # nccl runs through the smdistributed MPI launcher, which crashed setting up NCCL on single GPU
+    # instances ("double free or corruption"), so keep it on multi-GPU instances
+    if dist_backend == "nccl":
+        return MULTI_GPU_INSTANCE
+    return instance_type or "ml.g4dn.12xlarge"
 
 
 @pytest.mark.processor("cpu")
@@ -50,7 +59,7 @@ def test_mnist_distributed_cpu(
 def test_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
-    instance_type = instance_type or "ml.g4dn.12xlarge"
+    instance_type = _gpu_instance_type(instance_type, dist_gpu_backend)
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
@@ -93,7 +102,7 @@ def test_hc_mnist_distributed_cpu(
 def test_hc_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
-    instance_type = instance_type or "ml.g4dn.12xlarge"
+    instance_type = _gpu_instance_type(instance_type, dist_gpu_backend)
     training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
         "framework_version": framework_version,
