@@ -41,7 +41,8 @@ TRAINING_JOB_PENDING_TIMEOUT_MINUTES = 10
 # Instance types with the same number of GPUs to try, in order, when a training job can't get
 # capacity or quota for the requested instance type
 TRAINING_INSTANCE_TYPE_FALLBACKS = {
-    "ml.g6.12xlarge": ["ml.g5.12xlarge", "ml.g6e.12xlarge"],
+    "ml.g6.xlarge": ["ml.g6e.xlarge", "ml.g5.xlarge", "ml.g4dn.xlarge"],
+    "ml.g6.12xlarge": ["ml.g6e.12xlarge", "ml.g5.12xlarge"],
 }
 
 # It is possible to have such low capacity on certain instance types that the test is never able to
