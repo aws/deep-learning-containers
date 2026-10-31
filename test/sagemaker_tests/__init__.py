@@ -38,11 +38,12 @@ LOGGER = logging.getLogger(__name__)
 # job with nothing else to try keeps waiting until the test timeout stops it.
 TRAINING_JOB_PENDING_TIMEOUT_MINUTES = 10
 
-# Instance types with the same number of GPUs to try, in order, when a training job can't get
-# capacity or quota for the requested instance type
+# Instance types with at least as many GPUs to try, in order, when a training job can't get capacity
+# or quota for the requested instance type. 4-GPU G instances rarely had training capacity in
+# us-west-2, so ml.p4d.24xlarge (8 GPUs, usually available within minutes) is the last resort.
 TRAINING_INSTANCE_TYPE_FALLBACKS = {
     "ml.g6.xlarge": ["ml.g6e.xlarge", "ml.g5.xlarge", "ml.g4dn.xlarge"],
-    "ml.g6.12xlarge": ["ml.g6e.12xlarge", "ml.g5.12xlarge"],
+    "ml.g6.12xlarge": ["ml.g6e.12xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge", "ml.p4d.24xlarge"],
 }
 
 # It is possible to have such low capacity on certain instance types that the test is never able to
