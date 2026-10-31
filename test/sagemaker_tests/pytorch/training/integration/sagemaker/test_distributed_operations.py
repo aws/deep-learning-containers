@@ -32,6 +32,7 @@ from ...integration import (
     fastai_path,
     mnist_script,
     DEFAULT_TIMEOUT,
+    MULTI_GPU_INSTANCE,
     mnist_path,
     gpt2_path,
 )
@@ -39,7 +40,6 @@ from ...integration.sagemaker.timeout import timeout
 from .... import invoke_pytorch_helper_function
 from . import invoke_pytorch_estimator
 
-MULTI_GPU_INSTANCE = "ml.g6.12xlarge"
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 
@@ -146,7 +146,7 @@ def test_dist_operations_multi_gpu(
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.team("conda")
-def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
+def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions, instance_type):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     if Version(image_framework_version) in SpecifierSet(">=1.9,<1.13"):
         pytest.skip("Fast ai is not supported on PyTorch v1.9.x, v1.10.x, v1.11.x, v1.12.x")
@@ -159,7 +159,8 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
             "source_dir": fastai_path,
             "role": "SageMakerRole",
             "instance_count": 1,
-            "instance_type": MULTI_GPU_INSTANCE,
+            # train_distributed.py runs a single process, so it only uses one GPU
+            "instance_type": instance_type or "ml.g6.xlarge",
             "framework_version": framework_version,
         }
 

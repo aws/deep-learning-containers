@@ -12,17 +12,38 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import logging
 import re
 import time
+
+from contextlib import contextmanager
+from datetime import datetime, timezone
 
 import boto3
 import botocore.exceptions
 import sagemaker
 
 from botocore.config import Config
+from sagemaker.instance_group import InstanceGroup
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
 from test.test_utils.ecr import reupload_image_to_test_ecr
+
+LOGGER = logging.getLogger(__name__)
+
+# A training job that can't get capacity can sit in the "Pending" secondary status for hours instead
+# of failing with CapacityError. Its instances still count against the account quota, so other jobs
+# fail with ResourceLimitExceeded. While another instance type is left to try in the region, give up
+# on the job after this long. Jobs that do get capacity can take over 10 minutes (seen on p4d), so a
+# job with nothing else to try keeps waiting until the test timeout stops it.
+TRAINING_JOB_PENDING_TIMEOUT_MINUTES = 10
+
+# Instance types with the same number of GPUs to try, in order, when a training job can't get
+# capacity or quota for the requested instance type
+TRAINING_INSTANCE_TYPE_FALLBACKS = {
+    "ml.g6.xlarge": ["ml.g6e.xlarge", "ml.g5.xlarge", "ml.g4dn.xlarge"],
+    "ml.g6.12xlarge": ["ml.g6e.12xlarge", "ml.g5.12xlarge"],
+}
 
 # It is possible to have such low capacity on certain instance types that the test is never able to
 # run due to ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing
@@ -87,10 +108,106 @@ class SMThrottlingError(Exception):
     pass
 
 
+class TrainingJobCleanupSession(sagemaker.Session):
+    """
+    sagemaker.Session that cleans up after a training job it is waiting on:
+    - If pending_timeout_minutes is set and the job is still waiting for capacity after that long,
+      stop it and raise CapacityError, so callers move on like for a job that failed with it.
+    - If waiting is interrupted, e.g. by a test timeout, stop the job, so it doesn't keep holding
+      quota and run after the test has already failed.
+    """
+
+    pending_timeout_minutes = None
+
+    def wait_for_job(self, job, *args, **kwargs):
+        with self._stop_job_on_error(job):
+            self._wait_while_pending(job)
+            return super().wait_for_job(job, *args, **kwargs)
+
+    def logs_for_job(self, job_name, wait=False, *args, **kwargs):
+        if not wait:
+            return super().logs_for_job(job_name, wait, *args, **kwargs)
+        with self._stop_job_on_error(job_name):
+            self._wait_while_pending(job_name)
+            return super().logs_for_job(job_name, wait, *args, **kwargs)
+
+    @contextmanager
+    def _stop_job_on_error(self, job_name):
+        try:
+            yield
+        except BaseException:
+            self._stop_job_if_in_progress(job_name)
+            raise
+
+    def _wait_while_pending(self, job_name, poll=30):
+        if not self.pending_timeout_minutes:
+            return
+        while True:
+            desc = self.sagemaker_client.describe_training_job(TrainingJobName=job_name)
+            if desc.get("SecondaryStatus") not in ("Starting", "Pending"):
+                return
+            pending = [
+                transition
+                for transition in desc.get("SecondaryStatusTransitions", [])
+                if transition["Status"] == "Pending"
+            ]
+            if pending:
+                pending_time = datetime.now(timezone.utc) - pending[-1]["StartTime"]
+                if pending_time.total_seconds() > self.pending_timeout_minutes * 60:
+                    raise sagemaker.exceptions.CapacityError(
+                        message=(
+                            f"CapacityError: training job {job_name} was still waiting for "
+                            f"capacity after {self.pending_timeout_minutes} minutes"
+                        ),
+                        allowed_statuses=["Completed"],
+                        actual_status=desc["TrainingJobStatus"],
+                    )
+            time.sleep(poll)
+
+    def _stop_job_if_in_progress(self, job_name):
+        try:
+            desc = self.sagemaker_client.describe_training_job(TrainingJobName=job_name)
+            if desc["TrainingJobStatus"] == "InProgress":
+                LOGGER.warning(f"Stopping training job {job_name}")
+                self.sagemaker_client.stop_training_job(TrainingJobName=job_name)
+        except botocore.exceptions.ClientError as e:
+            LOGGER.warning(f"Failed to stop training job {job_name}: {e}")
+
+
 def get_sagemaker_session(region, default_bucket=None):
-    return sagemaker.Session(
+    return TrainingJobCleanupSession(
         boto_session=boto3.Session(region_name=region), default_bucket=default_bucket
     )
+
+
+def get_instance_type_fallbacks(job_args):
+    """
+    Return job_args, followed by a copy of it for each fallback in TRAINING_INSTANCE_TYPE_FALLBACKS.
+    The instance type comes from "instance_type", or from "instance_groups" when all groups use the
+    same one.
+
+    :param job_args: dict of training job arguments, e.g. estimator parameters
+    :return: list of dicts
+    """
+    instance_groups = job_args.get("instance_groups")
+    if instance_groups:
+        group_instance_types = {group.instance_type for group in instance_groups}
+        if len(group_instance_types) != 1:
+            return [job_args]
+        return [job_args] + [
+            {
+                **job_args,
+                "instance_groups": [
+                    InstanceGroup(group.instance_group_name, fallback, group.instance_count)
+                    for group in instance_groups
+                ],
+            }
+            for fallback in TRAINING_INSTANCE_TYPE_FALLBACKS.get(group_instance_types.pop(), [])
+        ]
+    return [job_args] + [
+        {**job_args, "instance_type": fallback}
+        for fallback in TRAINING_INSTANCE_TYPE_FALLBACKS.get(job_args.get("instance_type"), [])
+    ]
 
 
 def get_sagemaker_client(region):

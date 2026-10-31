@@ -45,6 +45,8 @@ call_model_fn_once_script = os.path.join(resources_path, "call_model_fn_once.py"
 
 ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 40
+# For tests that need several GPUs on one instance
+MULTI_GPU_INSTANCE = "ml.g6.12xlarge"
 
 
 def get_framework_from_image_uri(image_uri):

@@ -73,7 +73,9 @@ def assign_sagemaker_remote_job_instance_type(image):
         return "ml.g5.8xlarge"
     elif "gpu" in image:
         if "pytorch" in image and "training" in image and "huggingface" not in image:
-            return "ml.g6.12xlarge"
+            # Single GPU instances are cheaper and easier to get. Tests that need several GPUs on
+            # one instance set their own instance type.
+            return "ml.g6.xlarge"
         return "ml.g5.12xlarge"
     elif "tensorflow" in image:
         return "ml.c5.4xlarge"
