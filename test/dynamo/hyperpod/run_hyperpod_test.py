@@ -386,7 +386,12 @@ def check_workers():
     # TensorRT-LLM without EFA uses its own transceiver, not NIXL.
     if BACKEND == "trtllm" and not EFA:
         return
-    expected = f"Backend {'LIBFABRIC' if EFA else 'UCX'} was instantiated"
+    nixl_backend = "LIBFABRIC" if EFA else "UCX"
+    # vLLM and SGLang create NIXL agents through its Python API; TensorRT-LLM through its own C++ transfer agent.
+    if BACKEND == "trtllm":
+        expected = f"using NIXL backend: {nixl_backend}"
+    else:
+        expected = f"Backend {nixl_backend} was instantiated"
     for role in ("prefill", "decode"):
         if expected not in logs_of(role):
             raise AssertionError(f"{role}: no '{expected}' in its log")
