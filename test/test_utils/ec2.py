@@ -290,6 +290,8 @@ def launch_instance(
         fn_name=instance_name,
     )
 
+    # A just-launched instance can briefly be missing from DescribeInstances (eventual consistency)
+    client.get_waiter("instance_exists").wait(InstanceIds=[instances[0].id])
     return get_instance_from_id(instances[0].id, region=region)
 
 
