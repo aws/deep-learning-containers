@@ -63,18 +63,26 @@ RUN mkdir -p /root/.openfold3 \
 RUN pip install flask gunicorn
 
 # CVE remediation (run last so nothing reinstalls/downgrades the patched
-# versions): upgrade vulnerable pure-Python utility libs in BOTH the base and
-# openfold3 envs, then purge the conda package cache — stale extracted tarballs
-# under /opt/conda/pkgs keep the old versions' METADATA that the ECR scanner flags.
-# openssl, curl, and torch are upstream-pinned in OpenFold3's conda lock and are
-# tracked via the ECR scan allowlist instead.
-RUN for PIP in /opt/conda/bin/pip /opt/conda/envs/openfold3/bin/pip; do \
+# versions): upgrade the vulnerable conda native libs in place (openssl stays on
+# 3.x, the ABI the locked env was built against), upgrade vulnerable pure-Python
+# utility libs in BOTH the base and openfold3 envs, then purge the conda package
+# cache — stale extracted tarballs under /opt/conda/pkgs keep the old versions'
+# METADATA that the ECR scanner flags. torch is upstream-pinned in OpenFold3's
+# conda lock and is tracked via the ECR scan allowlist instead.
+RUN mamba install -n base -c conda-forge --yes \
+    "openssl>=3.6.5,<4" "libcurl>=8.23.0" "brotli-python>=1.2.1" \
+  && mamba install -n openfold3 -c conda-forge --yes \
+    "openssl>=3.6.5,<4" "brotli>=1.2.1" "brotli-python>=1.2.1" "biopython>=1.87" \
+  && for PIP in /opt/conda/bin/pip /opt/conda/envs/openfold3/bin/pip; do \
     "$PIP" install --upgrade \
       "GitPython>=3.1.50" "urllib3>=2.7.0" "pillow>=12.2.0" \
       "dulwich>=1.2.5" "msgpack>=1.2.1" "click>=8.3.3" \
-      "virtualenv>=21.7.13"; \
+      "virtualenv>=21.7.13" "certifi>=2026.10.18" "filelock>=4.2.1" \
+      "h2>=4.4.1" "hpack>=4.2.0" "idna>=3.15" "requests>=2.33.0" \
+      "pip>=26.2" "setuptools>=83.0.0" "wheel>=0.46.2"; \
   done \
-  && /opt/conda/envs/openfold3/bin/pip install --upgrade --no-deps "pytorch-lightning>=2.6.6" \
+  && /opt/conda/envs/openfold3/bin/pip install --upgrade --no-deps \
+    "pytorch-lightning>=2.6.6" "fsspec>=2026.6.0" \
   && rm -rf /opt/conda/pkgs/* \
   && /opt/conda/bin/conda clean --all --yes
 
