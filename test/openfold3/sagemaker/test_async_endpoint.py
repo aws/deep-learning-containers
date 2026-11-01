@@ -7,8 +7,10 @@ set by the workflow:
   SM_ROLE_ARN     the SageMaker execution role ARN
   AWS_REGION      region (default us-west-2)
 
-One 4-GPU endpoint (ml.g6.12xlarge) serves every case; the suite is skipped
-if SageMaker has no capacity (ICE). The handler's GPU pool
+One multi-GPU endpoint serves every case. Its production variant lists a
+priority-ordered ladder of instance types (SageMaker instance pools), so SageMaker
+falls back to the next type on ICE within a single deploy; the suite is skipped
+if no type has capacity. The handler's GPU pool
 leases one GPU per concurrent request, so "1 GPU" means a single in-flight
 request and "4 GPU" means four concurrent requests fanned across the four GPUs.
 
@@ -44,6 +46,11 @@ from sagemaker.core.shapes import (
 )
 from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION
+from test_utils.instance_capacity import (
+    build_instance_pools,
+    is_capacity_error,
+    log_capacity_placement,
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -52,9 +59,18 @@ IMAGE_URI = os.environ["TEST_IMAGE_URI"]
 ROLE_ARN = os.environ["SM_ROLE_ARN"]
 REGION = os.environ.get("AWS_REGION", "us-west-2")
 
-# Only g6.12xlarge (4x L4) is viable: g6e has 0 endpoint quota, g5 is rejected by the cu13 AMI.
-INSTANCE_TYPES = ["ml.g6.12xlarge"]
-# Retry deploy on capacity errors (ICE) before giving up.
+# Instance-pool ladder, cheapest first (SageMaker allows five). Every rung has 4 GPUs with
+# at least 24 GB each for the concurrency test, on Ampere or Ada (A10G, L4, L40S), which the
+# image's torch 2.5.1 (cu124) supports; Blackwell g7e is not. The CUDA 13 hosting AMI
+# supports all three families.
+INSTANCE_TYPES = [
+    "ml.g6.12xlarge",  # 4x L4
+    "ml.g5.12xlarge",  # 4x A10G
+    "ml.g6.24xlarge",  # 4x L4
+    "ml.g5.24xlarge",  # 4x A10G
+    "ml.g6e.12xlarge",  # 4x L40S
+]
+# Retry the whole ladder on capacity errors (ICE) before giving up.
 DEPLOY_ATTEMPTS = 3
 DEPLOY_RETRY_WAIT = 300
 # On exhausted ICE retries: release runs skip (capacity shouldn't block release); PR runs fail.
@@ -156,15 +172,10 @@ def _invoke(endpoint_name: str, query_files: list[str]) -> list[tuple[float, dic
     return [_poll_one(out, fail, start) for out, fail in submitted]
 
 
-def _is_capacity_error(exc: Exception) -> bool:
-    """True if the deploy failed for lack of instance capacity (ICE), not a real defect."""
-    return "insufficientinstancecapacity" in str(exc).lower()
+def _deploy(name: str):
+    """Create model + async endpoint config + endpoint on the INSTANCE_TYPES ladder; wait for InService.
 
-
-def _deploy(name: str, instance_type: str):
-    """Create model + async endpoint config + endpoint on instance_type; wait for InService.
-
-    Returns (model, endpoint_config, endpoint). Raises on failure (caller handles ICE fallback).
+    Returns (model, endpoint_config, endpoint). Raises on failure (caller handles ICE retries).
     """
     LOGGER.info(f"Creating model: {name}")
     model = Model.create(
@@ -177,7 +188,7 @@ def _deploy(name: str, instance_type: str):
         # Validate the production no-outbound-network posture (MSA off by default).
         enable_network_isolation=True,
     )
-    LOGGER.info(f"Creating async endpoint config: {name} on {instance_type}")
+    LOGGER.info(f"Creating async endpoint config: {name} on {INSTANCE_TYPES}")
     endpoint_config = EndpointConfig.create(
         endpoint_config_name=name,
         production_variants=[
@@ -185,7 +196,7 @@ def _deploy(name: str, instance_type: str):
                 variant_name="AllTraffic",
                 model_name=name,
                 initial_instance_count=1,
-                instance_type=instance_type,
+                instance_pools=build_instance_pools(INSTANCE_TYPES),
                 inference_ami_version=INFERENCE_AMI_VERSION,
                 container_startup_health_check_timeout_in_seconds=STARTUP_HEALTH_CHECK_TIMEOUT,
             ),
@@ -199,9 +210,10 @@ def _deploy(name: str, instance_type: str):
             ),
         ),
     )
-    LOGGER.info(f"Deploying endpoint {name} on {instance_type} (~10-15 min incl. warmup)...")
+    LOGGER.info(f"Deploying endpoint {name} (~10-15 min incl. warmup)...")
     endpoint = Endpoint.create(endpoint_name=name, endpoint_config_name=name)
     endpoint.wait_for_status("InService")
+    log_capacity_placement(endpoint, name)
     return model, endpoint_config, endpoint
 
 
@@ -217,44 +229,44 @@ def _cleanup(model, endpoint_config, endpoint):
 
 @pytest.fixture(scope="module")
 def endpoint_name():
-    """Deploy one 4-GPU async endpoint, retrying instances on capacity errors (ICE).
+    """Deploy one multi-GPU async endpoint, retrying on capacity errors (ICE).
 
-    ICE is an AWS-side capacity issue, not an image defect: retry each instance a
-    few times (waiting between tries). If all attempts still hit ICE, a release run
-    skips (capacity shouldn't block the release) while a PR run fails (human re-triggers).
+    ICE is an AWS-side capacity issue, not an image defect. Each deploy already falls
+    back down the instance ladder; when every rung is dry, wait and retry the ladder a
+    few times. If all attempts still hit ICE, a release run skips (capacity shouldn't
+    block the release) while a PR run fails (human re-triggers).
     """
     _preflight_s3()
     _sweep_stale()
 
     last_error = None
-    # Each instance gets DEPLOY_ATTEMPTS tries; capacity is intermittent so a wait often clears it.
-    attempts = [(it, n) for it in INSTANCE_TYPES for n in range(DEPLOY_ATTEMPTS)]
-    for i, (instance_type, _) in enumerate(attempts):
+    # Capacity is intermittent, so a wait between ladder attempts often clears it.
+    for attempt in range(DEPLOY_ATTEMPTS):
         name = random_suffix_name("openfold3-async", 50)
         model = endpoint_config = endpoint = None
         try:
-            model, endpoint_config, endpoint = _deploy(name, instance_type)
+            model, endpoint_config, endpoint = _deploy(name)
         except Exception as e:
             _cleanup(model, endpoint_config, endpoint)
-            if not _is_capacity_error(e):
+            if not is_capacity_error(e):
                 raise  # a real deploy failure — surface it
             last_error = e
-            if i + 1 < len(attempts):
+            if attempt + 1 < DEPLOY_ATTEMPTS:
                 LOGGER.warning(
-                    f"[capacity] {instance_type} ICE; retrying in {DEPLOY_RETRY_WAIT}s. {e}"
+                    f"[capacity] no capacity on {INSTANCE_TYPES}; retrying in {DEPLOY_RETRY_WAIT}s. {e}"
                 )
                 time.sleep(DEPLOY_RETRY_WAIT)
             continue
 
         try:
-            LOGGER.info(f"Endpoint InService on {instance_type}; settling {SETTLE_SECONDS}s")
+            LOGGER.info(f"Endpoint InService; settling {SETTLE_SECONDS}s")
             time.sleep(SETTLE_SECONDS)
             yield name
         finally:
             _cleanup(model, endpoint_config, endpoint)
         return
 
-    msg = f"No SageMaker capacity after {len(attempts)} attempts (ICE). Last: {last_error}"
+    msg = f"No SageMaker capacity after {DEPLOY_ATTEMPTS} attempts (ICE). Last: {last_error}"
     if RELEASE_RUN:
         pytest.skip(msg)  # don't let AWS capacity block the weekly release
     raise AssertionError(msg)  # PR runs surface ICE so a human can re-trigger
