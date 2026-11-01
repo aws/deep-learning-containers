@@ -62,12 +62,12 @@ use_new_test_structure = false
 
 ### On by default
 sanity_tests = false
-security_tests = false
+security_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = false
 eks_tests = false
-ec2_tests = false
+ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
 
