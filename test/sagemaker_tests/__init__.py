@@ -145,14 +145,17 @@ class TrainingJobCleanupSession(sagemaker.Session):
             return
         while True:
             desc = self.sagemaker_client.describe_training_job(TrainingJobName=job_name)
-            if desc.get("SecondaryStatus") not in ("Starting", "Pending"):
+            status = desc.get("SecondaryStatus")
+            if status not in ("Starting", "Pending"):
                 return
             pending = [
                 transition
                 for transition in desc.get("SecondaryStatusTransitions", [])
                 if transition["Status"] == "Pending"
             ]
-            if pending:
+            # Only a job that is waiting for capacity right now counts. One that got capacity can
+            # go back to Starting, and must not be stopped for its earlier time in Pending.
+            if status == "Pending" and pending:
                 pending_time = datetime.now(timezone.utc) - pending[-1]["StartTime"]
                 if pending_time.total_seconds() > self.pending_timeout_minutes * 60:
                     raise sagemaker.exceptions.CapacityError(
