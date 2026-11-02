@@ -42,7 +42,9 @@ WARMUP_REQUESTS = [
     },
     {
         "state": "The order arrived on time and works as described.",
-        "questions": {"is_positive": {"type": "noul", "instructions": "Is the customer satisfied?"}},
+        "questions": {
+            "is_positive": {"type": "noul", "instructions": "Is the customer satisfied?"}
+        },
     },
 ]
 
@@ -60,12 +62,21 @@ def warm_up_after_load() -> None:
         for request in WARMUP_REQUESTS:
             started = time.perf_counter()
             engine.evaluate(SystemOneRequest.model_validate(request))
-            log(f"warm-up request ({len(request['questions'])} questions): {time.perf_counter() - started:.1f} s")
+            log(
+                f"warm-up request ({len(request['questions'])} questions): {time.perf_counter() - started:.1f} s"
+            )
         started = time.perf_counter()
         max_batch = kwargs.get("max_batch", 32)
         for n in range(2, max_batch + 1):
-            questions = {f"q{i}": {"type": "noul", "instructions": f"Is point {i} about money?"} for i in range(n)}
-            engine.evaluate(SystemOneRequest.model_validate({"state": WARMUP_REQUESTS[0]["state"], "questions": questions}))
+            questions = {
+                f"q{i}": {"type": "noul", "instructions": f"Is point {i} about money?"}
+                for i in range(n)
+            }
+            engine.evaluate(
+                SystemOneRequest.model_validate(
+                    {"state": WARMUP_REQUESTS[0]["state"], "questions": questions}
+                )
+            )
         log(f"warm-up of 2 to {max_batch} questions: {time.perf_counter() - started:.1f} s")
         return app
 
