@@ -74,6 +74,15 @@ jobs:
           image-uri: ${{ needs.preflight.outputs.image-uri }}
 
       - name: Run SageMaker endpoint tests
+        env:
+          # A reservation covers one instance type, hence one var each. Empty when unset,
+          # which leaves that type on the open pool.
+          ML_RESERVATION_ARN_G6_XLARGE: >-
+            ${{ vars.ML_RESERVATION_NAME_G6_XLARGE && format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
+            vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6_XLARGE) || '' }}
+          ML_RESERVATION_ARN_G6E_XLARGE: >-
+            ${{ vars.ML_RESERVATION_NAME_G6E_XLARGE && format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
+            vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6E_XLARGE) || '' }}
         run: |
           uv venv --python 3.12
           source .venv/bin/activate

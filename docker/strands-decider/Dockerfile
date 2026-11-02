@@ -51,7 +51,7 @@ COPY ./docker/strands-decider/pyproject.toml ./docker/strands-decider/uv.lock /t
 RUN --mount=type=cache,target=/root/.cache/uv --mount=type=bind,from=builder,source=/wheels,target=/tmp/wheels cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project \
   && uv pip install --python /usr/local/bin/python3 --no-deps /tmp/wheels/*.whl \
-  && rm -rf /tmp/deps
+  && rm -rf /tmp/deps /tmp/uv-*.lock
 
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN bash /tmp/setup_oss_compliance.sh python3 \

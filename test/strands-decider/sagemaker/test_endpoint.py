@@ -13,16 +13,30 @@ from sagemaker.core.resources import Endpoint, EndpointConfig, Model
 from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
+from test_utils.instance_capacity import (
+    build_instance_pools,
+    log_capacity_placement,
+    ml_reservation_config,
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 MODEL = "strands-decider-2B-qwen3.5-v1-2610"
 MODEL_DATA_URL = f"s3://dlc-cicd-models/strands-decider-models/{MODEL}.tar.gz"
-INSTANCE_TYPE = "ml.g6.xlarge"
+# SageMaker falls back down this ladder when a type has no capacity. The model needs ~5 GB of GPU memory,
+# so every rung fits it: the g6 sizes (one L4), one L40S, one A10G.
+INSTANCE_TYPES = [
+    "ml.g6.xlarge",
+    "ml.g6.2xlarge",
+    "ml.g6.4xlarge",
+    "ml.g6e.xlarge",
+    "ml.g5.2xlarge",
+]
 # Model load plus the warm-up (about 70 s on the Qwen3.5 models).
 STARTUP_HEALTH_CHECK_TIMEOUT = 900
-DEPLOY_TIMEOUT = 1800
+# SageMaker retries a dry pool for a while before it falls back or fails.
+DEPLOY_TIMEOUT = 3600
 
 REQUEST = {
     "state": "Help! My payouts have been failing for 3 days and nobody answers my emails!",
@@ -73,7 +87,8 @@ def endpoint(aws_session, image_uri):
                     variant_name="AllTraffic",
                     model_name=name,
                     initial_instance_count=1,
-                    instance_type=INSTANCE_TYPE,
+                    instance_pools=build_instance_pools(INSTANCE_TYPES),
+                    capacity_reservation_config=ml_reservation_config(INSTANCE_TYPES),
                     # The torch wheels bring CUDA 12.8: the CU12 (driver 550) AMI.
                     inference_ami_version=INFERENCE_AMI_VERSION_CU12,
                     container_startup_health_check_timeout_in_seconds=STARTUP_HEALTH_CHECK_TIMEOUT,
@@ -83,6 +98,7 @@ def endpoint(aws_session, image_uri):
         LOGGER.info(f"Deploying {name} with {image_uri} and {MODEL_DATA_URL}")
         endpoint = Endpoint.create(endpoint_name=name, endpoint_config_name=name)
         endpoint.wait_for_status("InService", timeout=DEPLOY_TIMEOUT)
+        log_capacity_placement(endpoint, name)
         yield endpoint
     finally:
         _cleanup([endpoint, endpoint_config, model])
