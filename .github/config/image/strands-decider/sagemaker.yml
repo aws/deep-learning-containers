@@ -1,0 +1,36 @@
+image:
+  name: "strands-decider-sagemaker"
+  description: "strands-decider decision models (Qwen3.5 and Gemma 4 adapters) for SageMaker real-time inference"
+
+metadata:
+  framework: "strands_decider"
+  # The commit pinned in docker/strands-decider/pyproject.toml (after v0.2.0, which lacks the SageMaker paths and
+  # Gemma 4). Move both to the first release that has them.
+  framework_version: "0.2.1.dev8"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "inference"
+  prod_image: "strands-decider:0.2-gpu-py313-cu128-amzn2023-sagemaker"
+
+build:
+  dockerfile: "docker/strands-decider/Dockerfile"
+  target: "sagemaker"
+  base_devel_image: "public.ecr.aws/deep-learning-containers/base:devel-cu129-amzn2023"
+  base_runtime_image: "public.ecr.aws/deep-learning-containers/base:runtime-cu129-amzn2023"
+  python_version: "3.13"
+  # The CUDA runtime the torch 2.7.1+cu128 wheels bring (torch has no CUDA 12.9 build); the base is cu129.
+  cuda_version: "12.8"
+  causal_conv1d_version: "1.7.0"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  # Off until the prod repositories exist and the version is a strands-decider release.
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: true
+  environment: "production"
