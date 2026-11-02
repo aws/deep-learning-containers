@@ -9,7 +9,8 @@ benchmark:
   codebuild-fleet:
     - name: "qwen3-asr-1.7b"
       s3_model: "qwen3-asr-1.7b.tar.gz"
-      fleet: "x86-g6e12xl-runner"
+      # One GPU (tensor parallel 1): runs on the self-hosted gpu-l40s-1x runners.
+      fleet: "x86-g6exl-runner"
       extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype bfloat16"
       test_script: "vllm_asr_benchmark_test.sh"
       test_fixtures:

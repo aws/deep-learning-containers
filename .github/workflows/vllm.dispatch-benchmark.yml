@@ -62,8 +62,8 @@ jobs:
       max-parallel: 2
       matrix:
         include: ${{ fromJson(needs.load-benchmarks.outputs.codebuild-fleet-matrix) }}
-    # x86-g6exl-runner (g6e.4xlarge, 1x L40S) is short of EC2 capacity: its jobs run on the
-    # self-hosted L40S runners (label gpu-l40s-1x) until it recovers.
+    # x86-g6exl-runner (g6e.4xlarge, 1x L40S) jobs run on the self-hosted L40S runners (label gpu-l40s-1x); there is
+    # no CodeBuild fleet of that name.
     runs-on: ${{ matrix.fleet == 'x86-g6exl-runner' && fromJSON('["self-hosted", "gpu-l40s-1x"]') || format('codebuild-runner-{0}-{1} fleet:{2} buildspec-override:true', github.run_id, github.run_attempt, matrix.fleet) }}
     steps:
       - name: Checkout code
