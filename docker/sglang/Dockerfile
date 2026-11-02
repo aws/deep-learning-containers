@@ -105,6 +105,7 @@ RUN rm -rf \
   /sgl-workspace/sglang/rust/sglang-radix-tree/target/ \
   /sgl-workspace/sglang/rust/sglang-radix-tree/Cargo.lock \
   /sgl-workspace/sglang/experimental/sgl-router/Cargo.lock \
+  /sgl-workspace/sglang/sgl-router/Cargo.lock \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Remove oh-my-zsh to avoid false positive in credentials scan
