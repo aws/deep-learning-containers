@@ -287,7 +287,7 @@
     {
         "vulnerability_id": "CVE-2025-38083",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-220.240 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the net_sched prio_tune race is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
+        "review_by": "2026-11-02"
     },
     {
         "vulnerability_id": "CVE-2025-38350",
@@ -302,12 +302,12 @@
     {
         "vulnerability_id": "CVE-2025-38477",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-222.242 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the sch_qfq aggregate race is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
+        "review_by": "2026-11-02"
     },
     {
         "vulnerability_id": "CVE-2025-38617",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-222.242 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the net/packet ring race is not a runtime attack surface for this image. Exploit reported by Inspector but requires local kernel-level access on the host, not reachable from within the container.",
-        "review_by": "2026-12-01"
+        "review_by": "2026-11-02"
     },
     {
         "vulnerability_id": "CVE-2025-38618",
@@ -327,17 +327,17 @@
     {
         "vulnerability_id": "CVE-2025-39993",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-224.244 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the media/rc use-after-free is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
+        "review_by": "2026-11-02"
     },
     {
         "vulnerability_id": "CVE-2025-40018",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-224.244 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the ipvs ftp netns cleanup bug is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
+        "review_by": "2026-11-02"
     },
     {
         "vulnerability_id": "CVE-2025-40215",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-227.247 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the xfrm ipcomp tunnel deletion bug is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
+        "review_by": "2026-11-02"
     },
     {
         "vulnerability_id": "CVE-2025-50106",
@@ -407,7 +407,7 @@
     {
         "vulnerability_id": "CVE-2026-23272",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the nf_tables set nelems bug is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
+        "review_by": "2026-11-02"
     },
     {
         "vulnerability_id": "CVE-2026-23949",
@@ -512,7 +512,7 @@
     {
         "vulnerability_id": "CVE-2026-43414",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the qla2xxx scsi double-free is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
+        "review_by": "2026-11-02"
     },
     {
         "vulnerability_id": "CVE-2026-43494",
@@ -1033,30 +1033,5 @@
         "vulnerability_id": "GHSA-vx6w-vv9f-6gvg",
         "reason": "Pillow: EPS load(scale) lets Ghostscript render past the decompression bomb limit. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
         "review_by": "2026-11-30"
-    },
-    {
-        "vulnerability_id": "CVE-2025-38001",
-        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-219.239 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the net_sched hfsc reentrant-enqueue bug is not a runtime attack surface for this image. A public exploit exists, but it targets the running kernel, which this image doesn't ship.",
-        "review_by": "2026-12-01"
-    },
-    {
-        "vulnerability_id": "CVE-2022-49082",
-        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-244.264 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the mpt3sas use-after-free is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
-    },
-    {
-        "vulnerability_id": "CVE-2025-37997",
-        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-219.239 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the netfilter ipset region-locking bug is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
-    },
-    {
-        "vulnerability_id": "CVE-2025-40019",
-        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-225.245 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the crypto essiv size-check bug is not a runtime attack surface for this image. A public exploit exists, but it targets the running kernel, which this image doesn't ship.",
-        "review_by": "2026-12-01"
-    },
-    {
-        "vulnerability_id": "CVE-2025-39730",
-        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-244.264 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the NFS filehandle bounds-check bug is not a runtime attack surface for this image. No exploit available.",
-        "review_by": "2026-12-01"
     }
 ]
