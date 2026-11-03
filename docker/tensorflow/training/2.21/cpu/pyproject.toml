@@ -15,7 +15,7 @@ dependencies = [
     "soupsieve>=2.8.4",  # GHSA-2wc2-fm75-p42x + GHSA-836r-79rf-4m37 (HIGH)
     "mistune>=3.3.0",  # CVE-2026-59922 + CVE-2026-49851 (HIGH)
     "GitPython>=3.2.1",  # CVE-2026-114145 + GHSA-23mf-xhv8-69c2 + GHSA-f9j4-qggq-h239 + GHSA-m64x-33q8-m5h7 + GHSA-w8jc-g24h-crhw (HIGH)
-    "pyasn1>=0.6.4",  # CVE-2026-59885 + CVE-2026-59886 (HIGH)
+    "pyasn1>=0.6.5",  # CVE-2026-119194/119195/119196/119197; CVE-2026-59885 + CVE-2026-59886 (HIGH)
     "keras>=3.15.0",  # CVE-2026-12481 (CRITICAL) + CVE-2026-12484 (HIGH)
     "jupyterlab>=4.6.4",  # GHSA-pppj-hq3g-57pj + GHSA-gx64-gj6p-pc4c + CVE-2026-102831 (HIGH)
     "notebook>=7.6.3",  # CVE-2026-102831 (HIGH)
@@ -72,6 +72,9 @@ sagemaker = [
 ]
 
 [tool.uv]
+# CVE-2026-111497: pyarrow wheels before 26.0.1 statically bundle Brotli 1.2.0 or older.
+# mlflow 3.17.2 still declares pyarrow<26 (mlflow main already allows <27), so override it.
+override-dependencies = ["pyarrow>=26.0.1"]
 environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
 
 [[tool.uv.index]]
