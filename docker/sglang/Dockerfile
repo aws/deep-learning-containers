@@ -44,6 +44,7 @@ RUN pip install \
   "lxml>=6.1.0" \
   "nltk>=3.10.3" \
   "pillow>=13.0.0" \
+  "pyarrow>=26.0.1" \
   "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
   "starlette>=1.3.1" \
