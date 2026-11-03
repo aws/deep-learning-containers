@@ -15,6 +15,7 @@ dependencies = [
     "boto3>=1.35.0",
     "awscli>=1.35.0",
     "pip>=25.0",
+    "pyasn1>=0.6.5",  # CVE-2026-119194/119195/119196/119197 (transitive)
 ]
 
 [tool.uv]
