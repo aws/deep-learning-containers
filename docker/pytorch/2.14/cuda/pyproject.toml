@@ -49,7 +49,7 @@ sagemaker = [
     "Brotli>=1.2.1",  # CVE-2026-111497, GHSA-9v8h-qqgm-4m35 (transitive via tritonclient -> geventhttpclient)
     "tornado>=6.5.8",  # GHSA-3x9g-8vmp-wqvf, GHSA-mgf9-4vpg-hj56, CVE-2026-82397 (transitive)
     "cryptography>=50.0.0",  # CVE-2026-69247, CVE-2026-69249 (transitive)
-    "pyasn1>=0.6.4",  # CVE-2026-59884 / CVE-2026-59885 / CVE-2026-59886 (transitive)
+    "pyasn1>=0.6.5",  # CVE-2026-119194/119195/119196/119197; CVE-2026-59884 / CVE-2026-59885 / CVE-2026-59886 (transitive)
     "sqlparse>=0.6.0",  # CVE-2026-54284, CVE-2026-59893, CVE-2026-71491 (transitive via mlflow-skinny)
 ]
 
