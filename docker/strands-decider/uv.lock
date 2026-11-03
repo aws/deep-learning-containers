@@ -124,7 +124,7 @@ requires-dist = [
     { name = "certifi", specifier = ">=2026.10.18" },
     { name = "packaging" },
     { name = "requests" },
-    { name = "strands-decider", extras = ["cuda"], git = "https://github.com/strands-labs/strands-decider?rev=13faf5214f7cbea07d005278f1aeaf3973611eba" },
+    { name = "strands-decider", extras = ["cuda"], git = "https://github.com/strands-labs/strands-decider?rev=63abfbc0e8df12c90688f6617ec94cf9ae1fb070" },
     { name = "torch", specifier = "==2.7.1", index = "https://download.pytorch.org/whl/cu128" },
     { name = "transformers", specifier = "==5.19.0" },
     { name = "urllib3", specifier = ">=2.8.0" },
@@ -702,8 +702,8 @@ wheels = [
 
 [[package]]
 name = "strands-decider"
-version = "0.2.1.dev8+g13faf52"
-source = { git = "https://github.com/strands-labs/strands-decider?rev=13faf5214f7cbea07d005278f1aeaf3973611eba#13faf5214f7cbea07d005278f1aeaf3973611eba" }
+version = "0.2.1.dev15+g63abfbc"
+source = { git = "https://github.com/strands-labs/strands-decider?rev=63abfbc0e8df12c90688f6617ec94cf9ae1fb070#63abfbc0e8df12c90688f6617ec94cf9ae1fb070" }
 dependencies = [
     { name = "accelerate" },
     { name = "fastapi" },

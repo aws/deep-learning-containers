@@ -3,8 +3,8 @@ name = "dlc-strands-decider"
 version = "1.0.0"
 requires-python = "==3.13.*"
 dependencies = [
-    # From the commit in [tool.uv.sources]: v0.2.0 lacks GET /ping and POST /invocations (the SageMaker serving
-    # contract), which came after it. Move to the first release that has them.
+    # From the commit in [tool.uv.sources]: v0.2.0 lacks the SageMaker serving contract (GET /ping, POST
+    # /invocations), Gemma 4, --warmup and --device-map, which came after it. Move to the first release with them.
     "strands-decider[cuda]",
     # 2.7.1 is the torch strands-decider's kernels and transformers pin are tested with.
     "torch==2.7.1",
@@ -23,7 +23,7 @@ dependencies = [
 environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
 
 [tool.uv.sources]
-strands-decider = { git = "https://github.com/strands-labs/strands-decider", rev = "13faf5214f7cbea07d005278f1aeaf3973611eba" }
+strands-decider = { git = "https://github.com/strands-labs/strands-decider", rev = "63abfbc0e8df12c90688f6617ec94cf9ae1fb070" }
 torch = { index = "pytorch-cu128" }
 
 # torch 2.7.1 has no CUDA 12.9 build; cu128 wheels bring their own CUDA libraries and run on the cu129 base.

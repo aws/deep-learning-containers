@@ -22,7 +22,6 @@ PINS = dict(
     if "==" in dep
 )
 ENTRYPOINT = "/usr/local/bin/sagemaker_entrypoint.sh"
-LAUNCHER = "/usr/local/bin/sagemaker_serve.py"
 
 
 def test_python_version():
@@ -77,10 +76,39 @@ def test_entrypoint_is_executable():
     assert os.access(ENTRYPOINT, os.X_OK)
 
 
-def test_launcher_serves_the_upstream_cli():
-    # The launcher wraps `strands-decider serve`; every upstream option still reaches it.
+def test_serve_has_the_options_the_entrypoint_uses():
     out = subprocess.run(
-        [sys.executable, LAUNCHER, "serve", "--help"], capture_output=True, text=True, check=True
+        ["strands-decider", "serve", "--help"], capture_output=True, text=True, check=True
     ).stdout
-    for option in ("--host", "--port", "--device", "--max-batch", "--strict-window"):
+    for option in ("--host", "--port", "--device", "--max-batch", "--no-warmup", "--device-map"):
         assert option in out
+
+
+def _entrypoint_command(tmp_path, **env):
+    """The `strands-decider` command line the entrypoint runs, with a stand-in that prints it."""
+    fake = tmp_path / "strands-decider"
+    fake.write_text('#!/bin/bash\necho "$@"\n')
+    fake.chmod(0o755)
+    run_env = {**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}", **env}
+    out = subprocess.run(
+        [ENTRYPOINT, "serve"], capture_output=True, text=True, check=True, env=run_env
+    ).stdout
+    return out.split()
+
+
+def test_entrypoint_serves_the_sagemaker_contract_by_default(tmp_path):
+    args = _entrypoint_command(tmp_path)
+    assert args[:2] == ["serve", "/opt/ml/model"]
+    assert args[args.index("--port") + 1] == "8080"
+    assert args[args.index("--host") + 1] == "0.0.0.0"
+    assert args[args.index("--device") + 1] == "cuda"
+    assert "--no-warmup" not in args and "--device-map" not in args
+
+
+def test_entrypoint_maps_the_environment_to_serve_options(tmp_path):
+    args = _entrypoint_command(
+        tmp_path, DECIDER_WARMUP="0", DECIDER_DEVICE_MAP="auto", DECIDER_ARGS="--max-batch 8"
+    )
+    assert "--no-warmup" in args
+    assert args[args.index("--device-map") + 1] == "auto"
+    assert args[args.index("--max-batch") + 1] == "8"

@@ -58,9 +58,7 @@ RUN bash /tmp/setup_oss_compliance.sh python3 \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* /tmp/tmp* /root/.cache
 
-# DECIDER_CHECKPOINT is the model folder SageMaker copies to /opt/ml/model; DECIDER_ARGS adds
-# `strands-decider serve` options, such as "--max-batch 8 --strict-window". DECIDER_WARMUP and DECIDER_DEVICE_MAP:
-# see sagemaker_serve.py.
+# The serving options, as environment variables: see sagemaker_entrypoint.sh.
 ENV DECIDER_CHECKPOINT=/opt/ml/model \
   DECIDER_DEVICE=cuda \
   DECIDER_ARGS="" \
@@ -69,7 +67,6 @@ ENV DECIDER_CHECKPOINT=/opt/ml/model \
   HF_HUB_OFFLINE=1
 
 COPY ./scripts/docker/strands_decider/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
-COPY ./scripts/docker/strands_decider/sagemaker_serve.py /usr/local/bin/sagemaker_serve.py
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 EXPOSE 8080
