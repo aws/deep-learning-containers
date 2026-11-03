@@ -183,5 +183,15 @@
         "vulnerability_id": "CVE-2026-94624",
         "reason": "vllm 0.31.0 is the framework version of this image (inherited from the AWS vLLM 0.31.0 base); the fix is in 0.32.0, which requires a framework version bump. Only reachable when OffloadingConnector is configured with TieringOffloadingSpec and a P2P secondary tier, which this image does not enable by default",
         "review_by": "2026-11-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-115915",
+        "reason": "vllm 0.31.0 is the framework version of this out-of-band 0.31 rebuild (CVE-2026-111497 libbrotli1 fix); fixed only in vllm 0.32.0, which ships as huggingface-vllm 0.32. ImageMediaIO decodes request image bytes through Pillow without restricting formats, so it is reachable on multimodal requests; Pillow is pinned >=13.0.0 in this image, which fixes the known decoder CVEs. Customers should move to huggingface-vllm 0.32.",
+        "review_by": "2026-11-30"
+    },
+    {
+        "vulnerability_id": "CVE-2026-115912",
+        "reason": "vllm 0.31.0 is the framework version of this out-of-band 0.31 rebuild (CVE-2026-111497 libbrotli1 fix); fixed only in vllm 0.32.0, which ships as huggingface-vllm 0.32. Needs an authenticated caller submitting forged shared-memory multimodal features, so only multimodal deployments with shared-memory caching are exposed.",
+        "review_by": "2026-11-30"
     }
 ]

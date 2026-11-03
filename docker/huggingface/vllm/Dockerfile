@@ -32,6 +32,8 @@ RUN uv pip install --system --break-system-packages \
   "starlette>=1.3.1" \
   "aiohttp>=3.14.4" \
   "pyasn1>=0.6.5" \
+  "filelock>=4.2.1" \
+  "dnspython>=2.9.0" \
   "pillow>=13.0.0" \
   "uv>=0.13.4" \
   && uv cache clean \
