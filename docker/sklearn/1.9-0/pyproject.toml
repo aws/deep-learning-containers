@@ -7,7 +7,7 @@ dependencies = [
     "numpy==2.5.1",
     "scipy==1.18.0",
     "pandas==2.2.3",
-    "pyarrow==25.0.0",
+    "pyarrow==26.0.1",  # CVE-2026-111497: older wheels bundle Brotli 1.2.0
     "boto3==1.43.46",
     "Flask==3.1.3",
     "gunicorn==26.0.0",
