@@ -10,3 +10,5 @@ self-hosted-runner:
     - gpu-efa-runners        # 4x A100/H100 160-320GB VRAM
     - gpu-p4d-runners        # 4x A100 160GB VRAM (reserved)
     - gpu-l40s-1x            # 1x L40S 48GB VRAM (EC2 g6e.4xlarge; takes x86-g6exl-runner jobs)
+    - gpu-l40s-4x            # 4x L40S 192GB VRAM (EC2 g6e.12xlarge; takes x86-g6e12xl-runner jobs)
+    - gpu-l40s-8x            # 8x L40S 384GB VRAM (EC2 g6e.48xlarge)

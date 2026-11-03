@@ -74,10 +74,9 @@ jobs:
           - model: strands-decider-26B-A4B-gemma4-v1-2610
             fleet: x86-g6e12xl-runner
             device-map: auto
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ matrix.fleet }}
-        buildspec-override:true
+    # x86-g6e12xl-runner (g6e.12xlarge, 4x L40S) jobs run on the self-hosted 4-GPU L40S runners (label gpu-l40s-4x);
+    # there is no CodeBuild fleet of that name.
+    runs-on: ${{ matrix.fleet == 'x86-g6e12xl-runner' && fromJSON('["self-hosted", "gpu-l40s-4x"]') || format('codebuild-runner-{0}-{1} fleet:{2} buildspec-override:true', github.run_id, github.run_attempt, matrix.fleet) }}
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v6

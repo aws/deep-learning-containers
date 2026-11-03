@@ -262,7 +262,8 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - `x86-sglang-build-runner` — GPU compilation (SGLang)
 - `x86-g6xl-runner` — single-GPU tests (g6.xlarge, 1x L4)
 - `x86-g6exl-runner` — single-GPU tests needing more GPU memory (1x L40S 48 GB). Not a CodeBuild fleet: workflows map the name to the self-hosted runners below in `runs-on`
-- Multi-GPU tests use runner scale sets (e.g. `gpu-l40s-4gpu-runners`); there is no multi-GPU CodeBuild fleet
-- Self-hosted `[self-hosted, gpu-l40s-1x]` — EC2 runners (g6e.4xlarge, 1x L40S, in a shared capacity reservation) that take the `x86-g6exl-runner` jobs
+- `x86-g6e12xl-runner` — multi-GPU tests (4x L40S). Not a CodeBuild fleet: workflows map the name to the self-hosted `gpu-l40s-4x` runners in `runs-on`
+- Multi-GPU tests also use runner scale sets (e.g. `gpu-l40s-4gpu-runners`); there is no multi-GPU CodeBuild fleet
+- Self-hosted EC2 runners, each in a shared capacity reservation: `[self-hosted, gpu-l40s-1x]` (g6e.4xlarge, 1x L40S) take the `x86-g6exl-runner` jobs; `[self-hosted, gpu-l40s-4x]` (g6e.12xlarge, 4x L40S) the `x86-g6e12xl-runner` jobs; `[self-hosted, gpu-l40s-8x]` (g6e.48xlarge, 8x L40S) jobs that need 8 GPUs
 - `default-runner` — every CPU-only job: gates, change detection, config discovery, PR checks, scheduled jobs, sanity, telemetry, security, SageMaker endpoint tests. No workflow uses GitHub-hosted runners (`ubuntu-latest`): the fleet runs Amazon Linux 2023, not the GitHub Ubuntu image, so jobs get Python from `uv venv --python 3.12` (not `actions/setup-python`) and install tools like `gh` themselves (the buildspec provides uv, yq and jq)
 - `release-runner` — release publish job (step 1 of `_reusable.release-image.yml`); its own CodeBuild project (label `codebuild-release-runner-*`) with a 24 h timeout and an auto-scaling fleet
