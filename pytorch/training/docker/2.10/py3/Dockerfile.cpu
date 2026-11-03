@@ -334,6 +334,11 @@ RUN pip install --no-cache-dir -U \
     "awscli>=1.45.34" \
     "s3transfer>=0.19.0"
 
+# CVE-2026-111497: pyarrow wheels before 26.0.1 statically bundle Brotli 1.2.0 or older.
+# mlflow (pulled in by sagemaker>=3) still declares pyarrow<26, so upgrade it without
+# re-resolving; test_pip_check allows that mlflow/pyarrow mismatch.
+RUN pip install --no-cache-dir --no-deps -U "pyarrow>=26.0.1"
+
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh

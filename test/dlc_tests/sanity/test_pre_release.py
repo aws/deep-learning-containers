@@ -636,6 +636,12 @@ def test_pip_check(image):
         r"^aiobotocore \d+(\.\d+)* has requirement botocore<\d+(\.\d+)*,>=\d+(\.\d+)*, but you have botocore \d+(\.\d+)*\.$"
     )
 
+    # CVE-2026-111497: pyarrow wheels before 26.0.1 statically bundle Brotli 1.2.0 or older. mlflow 3.17
+    # still declares pyarrow<26 (mlflow main already allows <27), so images upgrade pyarrow past that cap.
+    allowed_exceptions.append(
+        r"^mlflow \d+(\.\d+)* has requirement pyarrow<\d+(\.\d+)*,>=\d+(\.\d+)*, but you have pyarrow \d+(\.\d+)*\.$"
+    )
+
     # The v0.22 version of tensorflow-io has a bug fixed in v0.23 https://github.com/tensorflow/io/releases/tag/v0.23.0
     allowed_exceptions.append(
         rf"^tensorflow-io 0.22.0 requires tensorflow, which is not installed.$"
