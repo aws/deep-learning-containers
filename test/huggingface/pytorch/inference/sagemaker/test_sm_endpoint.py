@@ -12,13 +12,15 @@ from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
+from test_utils.instance_capacity import build_instance_pools
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 STARTUP_HEALTH_CHECK_TIMEOUT = 3600
 ENDPOINT_WAIT_TIMEOUT = 4200
-INSTANCE_TYPE = "ml.g6.xlarge"
+INSTANCE_TYPES = ["ml.g5.xlarge", "ml.g6.xlarge"]
+INSTANCE_PROVISION_TIMEOUT = 600
 
 
 @pytest.fixture(scope="function")
@@ -48,7 +50,8 @@ def _build_production_variant(model_name):
         variant_name="AllTraffic",
         model_name=model_name,
         initial_instance_count=1,
-        instance_type=INSTANCE_TYPE,
+        instance_pools=build_instance_pools(INSTANCE_TYPES),
+        variant_instance_provision_timeout_in_seconds=INSTANCE_PROVISION_TIMEOUT,
         inference_ami_version=INFERENCE_AMI_VERSION,
         container_startup_health_check_timeout_in_seconds=STARTUP_HEALTH_CHECK_TIMEOUT,
     )
