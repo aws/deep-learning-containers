@@ -7,14 +7,18 @@ import stat
 import tempfile
 import time
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 
 import boto3
+from botocore.exceptions import ClientError
 from fabric import Connection
 from test_utils import random_suffix_name
 from test_utils.constants import DEFAULT_REGION, EC2_INSTANCE_ROLE_NAME
 
 LOGGER = logging.getLogger(__name__)
+
+# The CI account's cleanup job deletes leaked "dlc-ssh-*" groups only once this tag is old enough.
+SSH_SG_CREATED_AT_TAG_KEY = "dlc-ssh-created-at"
 
 
 class LoggedConnection(Connection):
@@ -212,6 +216,17 @@ class AWSSessionManager:
             GroupName=group_name,
             Description="Ephemeral SSH access for DLC tests",
             VpcId=vpc_id,
+            TagSpecifications=[
+                {
+                    "ResourceType": "security-group",
+                    "Tags": [
+                        {
+                            "Key": SSH_SG_CREATED_AT_TAG_KEY,
+                            "Value": datetime.now(timezone.utc).isoformat(),
+                        }
+                    ],
+                }
+            ],
         )
         sg_id = response["GroupId"]
         self.ec2.authorize_security_group_ingress(
@@ -234,8 +249,14 @@ class AWSSessionManager:
         return sg_id
 
     def delete_security_group(self, sg_id):
-        """Delete a security group."""
-        self.ec2.delete_security_group(GroupId=sg_id)
+        """Delete a security group. A group that is already gone counts as deleted."""
+        try:
+            self.ec2.delete_security_group(GroupId=sg_id)
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "InvalidGroup.NotFound":
+                raise
+            LOGGER.info(f"Security group {sg_id} was already deleted")
+            return
         LOGGER.info(f"Deleted security group {sg_id}")
 
     # ===========================================

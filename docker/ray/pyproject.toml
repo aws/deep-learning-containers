@@ -12,7 +12,7 @@ dependencies = [
     "numpy==2.5.3",
     "opencv-python==4.14.0.94",
     "pandas==3.0.6",
-    "pillow==12.3.0",
+    "pillow==13.0.0",
     "pyyaml==6.0.3",
     "msgpack>=1.2.1",
     "aiohttp>=3.14.3",

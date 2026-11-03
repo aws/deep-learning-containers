@@ -19,7 +19,6 @@ on:
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/sklearn/**"
       - "test/sklearn/**"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -28,7 +27,10 @@ permissions:
 
 jobs:
   gatekeeper:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -38,13 +40,15 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       integ-test-change: ${{ steps.changes.outputs.integ-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
     steps:
       - uses: actions/checkout@v6
@@ -66,14 +70,15 @@ jobs:
               - ".github/workflows/sklearn.tests-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "test/telemetry/**"
             unit-test-change:
               - "docker/sklearn/1.9-0/**"
 
   discover:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       configs: ${{ steps.discover.outputs.configs }}
     steps:

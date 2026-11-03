@@ -31,7 +31,7 @@ smoke-test:
 
     # JetBrains Mellum2 reasoning MoE (12B total / 2.5B active, bf16 ~23GB).
     # MellumForCausalLM support added upstream in vLLM 0.23.0 (PR #43992).
-    # Fits a single L40S (g6e.xl, 48GB) at tp=1; qwen3 reasoning parser emits <think> blocks.
+    # Fits a single L40S (g6e.4xlarge, 48GB) at tp=1; qwen3 reasoning parser emits <think> blocks.
     - name: "mellum2-12b-a2.5b-thinking"
       s3_model: "mellum2-12b-a2.5b-thinking.tar.gz"
       fleet: "x86-g6exl-runner"
@@ -39,7 +39,7 @@ smoke-test:
 
     # NVIDIA Nemotron-Nano-12B-v2: Mamba2-Transformer hybrid (NemotronHForCausalLM),
     # 12B params bf16 (~24GB weights). Requires vllm>=0.10.1 for hybrid support.
-    # Fits a single L40S (g6e.xl, 48GB) at tp=1 with ~42GB steady-state (23% headroom).
+    # Fits a single L40S (g6e.4xlarge, 48GB) at tp=1 with ~42GB steady-state (23% headroom).
     # --mamba_ssm_cache_dtype float32 is required by the model card — without it,
     # SSM cache defaults to bf16 and accuracy degrades. --trust-remote-code is needed
     # to load the custom configuration_nemotron_h.py from the HF repo.

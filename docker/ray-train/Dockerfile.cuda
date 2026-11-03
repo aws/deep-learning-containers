@@ -153,6 +153,17 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
 COPY --from=builder-base /opt/venv /opt/venv
 COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
 
+# Ray's runtime-env agent imports aiohttp and its dependencies from a private set that
+# Ray's build pins, ahead of site-packages: aiohttp 3.14.3 for Ray 2.58.0, open to
+# CVE-2026-111064, CVE-2026-111066 and GHSA-2g87-pp6c-29x5. Swapping aiohttp alone breaks
+# the agent, since newer aiohttp needs a newer yarl than the set holds. Empty the set so
+# the agent uses the locked aiohttp and dependencies, as Ray's dashboard already does.
+# Fails the build if Ray no longer bundles aiohttp there.
+RUN AGENT_LIBS=/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/ray/_private/runtime_env/agent/thirdparty_files \
+  && test -d "${AGENT_LIBS}/aiohttp" \
+  && rm -r "${AGENT_LIBS}" \
+  && mkdir "${AGENT_LIBS}"
+
 # GDRCopy userspace lib
 COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
 RUN ldconfig
@@ -180,6 +191,18 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf upgrade -y --security --releasever latest \
   && dnf upgrade -y cuda-compat-* libcap \
   && dnf clean all
+
+# Patch the base image's system-python tooling (/usr/local, NOT /opt/venv — the
+# venv's own versions come from uv.lock). These ship in the base DLC and lag
+# behind: certifi for GHSA-6q48-6c7w-9gw2, uv for GHSA-hq85-5cpj-mr62.
+# /usr/local/bin/uv carries the vulnerable bundled quinn-proto (RUSTSEC-2026-0340,
+# RUSTSEC-2026-0341); uv >=0.13.4 bundles quinn-proto 0.11.18. The base already has
+# the latest uv package installed, but /usr/local/bin/uv is a separately pinned
+# binary, so a plain upgrade is a no-op; --force-reinstall rewrites the binary.
+# Drop this block once the base image ships the fixes.
+RUN /usr/local/bin/python${PYTHON_SHORT_VERSION} -m pip install --no-cache-dir --upgrade "certifi>=2026.10.23" \
+  && /usr/local/bin/python${PYTHON_SHORT_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps "uv>=0.13.6" \
+  && rm -rf /root/.cache/pip
 
 # OSS compliance (from isolated stage)
 COPY --from=builder-oss /root/THIRD_PARTY_SOURCE_CODE_URLS /root/THIRD_PARTY_SOURCE_CODE_URLS

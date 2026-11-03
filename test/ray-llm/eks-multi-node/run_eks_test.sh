@@ -41,32 +41,67 @@ echo "=== Pre-cleanup any stale RayService ${SERVICE_NAME} ==="
 kubectl delete rayservice "${SERVICE_NAME}" -n "${NAMESPACE}" --ignore-not-found=true --timeout=180s || true
 kubectl wait --for=delete pod -l "ray.io/cluster" -n "${NAMESPACE}" --timeout=240s 2>/dev/null || true
 
-echo "=== Applying RayService manifest ==="
-envsubst '${IMAGE_URI} ${RAY_VERSION}' < "${SCRIPT_DIR}/rayservice.yml" | kubectl apply -f -
+# Tried in order; both workers share one type so TP=2 never spans L4 and L40S.
+INSTANCE_TYPES=(g6.12xlarge g6e.12xlarge)
+TIMEOUT_WORKERS_FIRST=600
 
-CLUSTER_NAME=""
-for _ in $(seq 1 60); do
-    CLUSTER_NAME=$(kubectl get raycluster -n "${NAMESPACE}" \
-        -l "ray.io/originated-from-cr-name=${SERVICE_NAME}" \
-        -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-    [[ -n "${CLUSTER_NAME}" ]] && break
-    sleep 5
+# Called as an `if` condition, where set -e is off, so every step returns explicitly.
+deploy_on() {
+    export INSTANCE_TYPE="$1"
+    local worker_timeout="$2"
+
+    echo "=== Applying RayService manifest (workers on ${INSTANCE_TYPE}) ==="
+    envsubst '${IMAGE_URI} ${RAY_VERSION} ${INSTANCE_TYPE}' < "${SCRIPT_DIR}/rayservice.yml" \
+        | kubectl apply -f - || return 1
+
+    CLUSTER_NAME=""
+    for _ in $(seq 1 60); do
+        CLUSTER_NAME=$(kubectl get raycluster -n "${NAMESPACE}" \
+            -l "ray.io/originated-from-cr-name=${SERVICE_NAME}" \
+            -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+        [[ -n "${CLUSTER_NAME}" ]] && break
+        sleep 5
+    done
+    if [[ -z "${CLUSTER_NAME}" ]]; then
+        echo "FAIL: RayCluster for RayService ${SERVICE_NAME} did not appear within 5 min"
+        exit 1
+    fi
+    echo "RayCluster: ${CLUSTER_NAME}"
+
+    # Head runs on the CPU pool, so this is a hard failure, not a reason to fall back.
+    echo "=== Waiting for head pod Ready (timeout ${TIMEOUT_READY}s) ==="
+    kubectl wait --for=condition=Ready pod \
+        -l "ray.io/cluster=${CLUSTER_NAME},ray.io/node-type=head" \
+        -n "${NAMESPACE}" --timeout="${TIMEOUT_READY}s" || { echo "FAIL: head pod not Ready"; exit 1; }
+
+    echo "=== Waiting for worker pods to reach Running (timeout ${worker_timeout}s) ==="
+    kubectl wait --for=jsonpath='{.status.phase}=Running' pod \
+        -l "ray.io/cluster=${CLUSTER_NAME},ray.io/node-type=worker" \
+        -n "${NAMESPACE}" --timeout="${worker_timeout}s" || return 1
+}
+
+DEPLOYED=""
+for i in "${!INSTANCE_TYPES[@]}"; do
+    t="${INSTANCE_TYPES[$i]}"
+    wait_s="${TIMEOUT_READY}"
+    [[ "${i}" -eq 0 ]] && wait_s="${TIMEOUT_WORKERS_FIRST}"
+    echo "=== Attempt $((i + 1)) of ${#INSTANCE_TYPES[@]}: ${t} ==="
+    if deploy_on "${t}" "${wait_s}"; then
+        DEPLOYED="${t}"
+        break
+    fi
+    echo "Workers did not reach Running on ${t}:"
+    kubectl get pods -l "ray.io/cluster=${CLUSTER_NAME},ray.io/node-type=worker" -n "${NAMESPACE}" -o wide || true
+    kubectl get events -n "${NAMESPACE}" --field-selector reason=FailedScheduling \
+        --sort-by=.lastTimestamp 2>/dev/null | tail -5 || true
+    # Required before the next attempt: the namespace GPU quota fits only one pair.
+    cleanup
 done
-if [[ -z "${CLUSTER_NAME}" ]]; then
-    echo "FAIL: RayCluster for RayService ${SERVICE_NAME} did not appear within 5 min"
+if [[ -z "${DEPLOYED}" ]]; then
+    echo "FAIL: none of ${INSTANCE_TYPES[*]} could host ${EXPECTED_TP} worker nodes"
     exit 1
 fi
-echo "RayCluster: ${CLUSTER_NAME}"
-
-echo "=== Waiting for head pod Ready (timeout ${TIMEOUT_READY}s) ==="
-kubectl wait --for=condition=Ready pod \
-    -l "ray.io/cluster=${CLUSTER_NAME},ray.io/node-type=head" \
-    -n "${NAMESPACE}" --timeout="${TIMEOUT_READY}s"
-
-echo "=== Waiting for worker pods to reach Running (timeout ${TIMEOUT_READY}s) ==="
-kubectl wait --for=jsonpath='{.status.phase}=Running' pod \
-    -l "ray.io/cluster=${CLUSTER_NAME},ray.io/node-type=worker" \
-    -n "${NAMESPACE}" --timeout="${TIMEOUT_READY}s"
+echo "Workers running on ${DEPLOYED}"
 
 echo "=== Cluster status ==="
 kubectl get pods -l "ray.io/cluster=${CLUSTER_NAME}" -n "${NAMESPACE}" -o wide

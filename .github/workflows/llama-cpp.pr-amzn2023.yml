@@ -12,11 +12,9 @@ on:
       - "docker/llama_cpp/Dockerfile.*"
       - "scripts/docker/common/**"
       - "scripts/docker/llama_cpp/**"
-      - "scripts/docker/telemetry/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/llama_cpp/**"
       - "test/llama_cpp/**"
-      - "test/telemetry/**"
       - "!docs/**"
 
 permissions:
@@ -25,7 +23,10 @@ permissions:
 
 jobs:
   gatekeeper:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -35,13 +36,15 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       model-test-change: ${{ steps.changes.outputs.model-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4
@@ -60,13 +63,13 @@ jobs:
               - "test/llama_cpp/sagemaker/**"
             sanity-test-change:
               - "test/sanity/**"
-            telemetry-test-change:
-              - "scripts/docker/telemetry/**"
-              - "test/telemetry/**"
 
   discover:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       configs: ${{ steps.discover.outputs.configs }}
     steps:
@@ -89,7 +92,7 @@ jobs:
       build: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-model-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.model-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false

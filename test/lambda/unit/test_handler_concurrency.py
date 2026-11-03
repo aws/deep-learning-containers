@@ -122,3 +122,13 @@ def test_payload_shape_selects_the_openai_route(load):
         assert post.call_args[0][0].endswith("/v1/chat/completions")
         module.handler({"prompt": "hi"}, None)
         assert post.call_args[0][0].endswith("/v1/completions")
+
+
+def test_rejected_request_surfaces_the_server_status_and_body(load):
+    module, _ = load()
+    with mock.patch("requests.post") as post:
+        post.return_value.ok = False
+        post.return_value.status_code = 400
+        post.return_value.text = '{"message": "When using `tool_choice`, `tools` must be set."}'
+        with pytest.raises(RuntimeError, match=r"400: .*`tools` must be set"):
+            module.handler({"messages": [], "tool_choice": "auto"}, None)

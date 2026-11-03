@@ -15,10 +15,8 @@ on:
       - "docker/whisperx/**"
       - "scripts/docker/whisperx/**"
       - "scripts/docker/common/**"
-      - "scripts/docker/telemetry/**"
       - "scripts/ci/build/whisperx/**"
       - "test/sanity/**"
-      - "test/telemetry/**"
       - "test/whisperx/**"
       - "test/security/data/ecr_scan_allowlist/whisperx/**"
       - "!docs/**"
@@ -29,7 +27,10 @@ permissions:
 
 jobs:
   gatekeeper:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -39,12 +40,14 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
       ec2-test-change: ${{ steps.changes.outputs.ec2-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
     steps:
@@ -58,7 +61,6 @@ jobs:
               - "docker/whisperx/**"
               - "scripts/docker/whisperx/**"
               - "scripts/docker/common/**"
-              - "scripts/docker/telemetry/**"
               - "scripts/ci/build/whisperx/**"
               - "test/security/data/ecr_scan_allowlist/whisperx/**"
             sanity-test-change:
@@ -67,8 +69,6 @@ jobs:
               - "scripts/docker/whisperx/**"
               - "test/whisperx/test_*.py"
               - ".github/workflows/whisperx.tests-unit.yml"
-            telemetry-test-change:
-              - "test/telemetry/**"
             ec2-test-change:
               - "test/whisperx/ec2/**"
               - ".github/workflows/whisperx.tests-ec2.yml"
@@ -78,7 +78,10 @@ jobs:
 
   discover:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       configs: ${{ steps.discover.outputs.configs }}
     steps:
@@ -102,7 +105,7 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-unit-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true' }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-ec2-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.ec2-test-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false

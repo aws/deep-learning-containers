@@ -1,0 +1,11 @@
+# Describes the telemetry mock image to _reusable.telemetry-tests.yml.
+# telemetry.pipeline.yml builds the image with these values and passes the
+# framework under test, so there is no framework here.
+image:
+  name: "telemetry-mock"
+  description: "Stand-in DLC image for testing telemetry changes"
+
+metadata:
+  framework_version: "1.0.0"
+  arch_type: "x86"
+  job_type: "general"

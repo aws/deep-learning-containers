@@ -1,0 +1,12 @@
+[
+    {
+        "vulnerability_id": "CVE-2026-75507",
+        "reason": "graphql-core 3.2.8 — fix only in the 3.3.x line; graphene 3.4.3 (latest release, pulled in transitively by mlflow) requires graphql-core<3.3, so no compatible fixed version is installable",
+        "review_by": "2026-11-25"
+    },
+    {
+        "vulnerability_id": "CVE-2026-75508",
+        "reason": "graphql-core 3.2.8 — fix only in the 3.3.x line; graphene 3.4.3 (latest release, pulled in transitively by mlflow) requires graphql-core<3.3, so no compatible fixed version is installable",
+        "review_by": "2026-11-25"
+    }
+]

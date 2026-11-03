@@ -178,7 +178,10 @@ jobs:
       !failure() && !cancelled() &&
       needs.build.result == 'success'
     needs: [build, sanity-test, security-test, unit-test, integ-test, sagemaker-test]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       environment: ${{ steps.check.outputs.environment }}
       release-spec: ${{ steps.spec.outputs.release-spec }}

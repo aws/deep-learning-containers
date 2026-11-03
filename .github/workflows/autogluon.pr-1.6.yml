@@ -13,10 +13,8 @@ on:
       - "docker/autogluon/**"
       - "scripts/docker/autogluon/**"
       - "scripts/docker/common/setup_oss_compliance.sh"
-      - "scripts/docker/telemetry/**"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/autogluon/**"
-      - "test/telemetry/**"
       - "test/autogluon/**"
       - "!docs/**"
 
@@ -26,7 +24,10 @@ permissions:
 
 jobs:
   gatekeeper:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -36,13 +37,15 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
       unit-test-change: ${{ steps.changes.outputs.unit-test-change }}
       sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - uses: actions/checkout@v6
       - uses: dorny/paths-filter@v4
@@ -64,13 +67,13 @@ jobs:
             sagemaker-test-change:
               - "test/autogluon/sagemaker/**"
               - ".github/workflows/autogluon.tests-sagemaker.yml"
-            telemetry-test-change:
-              - "scripts/docker/telemetry/**"
-              - "test/telemetry/**"
 
   discover:
     needs: [gatekeeper]
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     outputs:
       configs: ${{ steps.discover.outputs.configs }}
     steps:
@@ -94,7 +97,7 @@ jobs:
       run-sanity-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true' }}
       run-unit-test: ${{ (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.unit-test-change == 'true') && endsWith(matrix.config_file, '-cpu.yml') }}
       run-security-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
-      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true' }}
+      run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-sagemaker-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true' }}
       release: false
     secrets: inherit

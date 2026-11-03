@@ -248,6 +248,7 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - **Test-only runs:** when build is skipped (only test files changed), test jobs receive empty `image-uri` → `resolve-image-uri` action falls back to prod image from `metadata.prod_image`.
 - **Graceful skip:** `check-image-exists` action probes ECR; if image not found (first release scenario), tests skip cleanly.
 - **PR change detection:** `dorny/paths-filter` outputs per-test-suite flags. The pipeline receives `run-*-test` booleans. If `build-change` is true, all tests run.
+- **Telemetry changes:** framework PR callers must not list `scripts/docker/telemetry/**` or `test/telemetry/**` (enforced by `test/ci/telemetry`). `telemetry.pr.yml` owns them: `scripts/ci/select_telemetry_tests.py` diffs `deep_learning_container.py` against the PR base. A new `REGION_MAPPING` entry runs no image test. Other changes run the telemetry suite through `telemetry.pipeline.yml` on a mock image that `scripts/ci/telemetry_mock` builds from the checkout, never a released image. A new `--framework` choice tests the mock as that framework; any other telemetry change tests it as `MOCK_FRAMEWORK` (`base`). Unit tests in `test/ci/telemetry` run on every telemetry PR and cover the script's framework, version, and device branches, which the mock doesn't take. Each framework's images run their own telemetry tests when they next build.
 
 ### Concurrency
 - Pipeline jobs include `${{ inputs.config-file }}` in concurrency group keys to allow parallel runs of different configs.
@@ -259,8 +260,9 @@ sglang.pr-amzn2023.yml (trigger + gatekeeper + check-changes + discover-configs)
 - `x86-pytorch-build-runner` — PyTorch builds (all variants)
 - `x86-vllm-build-runner` — GPU compilation (vLLM, vLLM-Omni)
 - `x86-sglang-build-runner` — GPU compilation (SGLang)
-- `x86-g6xl-runner` — single-GPU tests (1x L4)
-- `x86-g6exl-runner` — multi-GPU tests (4x L4)
-- `x86-g6e12xl-runner` — large multi-GPU tests (4x L4, more memory)
-- `default-runner` — CPU-only jobs (sanity, telemetry, security, SageMaker endpoint tests)
+- `x86-g6xl-runner` — single-GPU tests (g6.xlarge, 1x L4)
+- `x86-g6exl-runner` — single-GPU tests needing more GPU memory (1x L40S 48 GB). Not a CodeBuild fleet: workflows map the name to the self-hosted runners below in `runs-on`
+- Multi-GPU tests use runner scale sets (e.g. `gpu-l40s-4gpu-runners`); there is no multi-GPU CodeBuild fleet
+- Self-hosted `[self-hosted, gpu-l40s-1x]` — EC2 runners (g6e.4xlarge, 1x L40S, in a shared capacity reservation) that take the `x86-g6exl-runner` jobs
+- `default-runner` — every CPU-only job: gates, change detection, config discovery, PR checks, scheduled jobs, sanity, telemetry, security, SageMaker endpoint tests. No workflow uses GitHub-hosted runners (`ubuntu-latest`): the fleet runs Amazon Linux 2023, not the GitHub Ubuntu image, so jobs get Python from `uv venv --python 3.12` (not `actions/setup-python`) and install tools like `gh` themselves (the buildspec provides uv, yq and jq)
 - `release-runner` — release publish job (step 1 of `_reusable.release-image.yml`); its own CodeBuild project (label `codebuild-release-runner-*`) with a 24 h timeout and an auto-scaling fleet

@@ -9,5 +9,8 @@ dependencies = [
     "botocore",
     "packaging",
     "requests",
+    # certifi and urllib3 are transitive (via requests); pinned with a floor
+    # to keep the CA bundle and HTTP stack on a patched release.
+    "certifi>=2026.10.18",
     "urllib3>=2.8.0",
 ]

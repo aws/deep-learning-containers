@@ -67,7 +67,10 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf /usr/bin/yum
 
 RUN ${PYTHON} -m pip install --no-cache-dir requests botocore packaging \
-  && ${PYTHON} -m pip install --no-cache-dir "urllib3>=2.7.0"
+  # Floors applied after the base install so they win over the transitive
+  # versions requests/botocore resolve to. certifi >=2026.10.19 clears
+  # GHSA-6q48-6c7w-9gw2 (emSign root CA with compromised intermediate keys).
+  && ${PYTHON} -m pip install --no-cache-dir "urllib3>=2.7.0" "certifi>=2026.10.19"
 
 # Binaries + llama.cpp .so files (libllama, libggml*, per-microarch backends).
 COPY --from=builder /src/llama.cpp/build/bin/ /opt/llama.cpp/bin/

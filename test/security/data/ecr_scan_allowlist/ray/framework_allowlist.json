@@ -8,5 +8,20 @@
         "vulnerability_id": "CVE-2025-23308",
         "reason": "cuda-toolkit-config-common — NoFixPlanned upstream (fixed only in CUDA 13+)",
         "review_by": "2026-12-19"
+    },
+    {
+        "vulnerability_id": "CVE-2026-111064",
+        "reason": "aiohttp 3.14.3 vendored in ray 2.59.0 at site-packages/ray/_private/runtime_env/agent/thirdparty_files/; top-level aiohttp is already 3.14.4 — the bundled copy needs a new Ray release bump",
+        "review_by": "2026-12-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-111066",
+        "reason": "aiohttp 3.14.3 vendored in ray 2.59.0 at site-packages/ray/_private/runtime_env/agent/thirdparty_files/; top-level aiohttp is already 3.14.4 — the bundled copy needs a new Ray release bump",
+        "review_by": "2026-12-28"
+    },
+    {
+        "vulnerability_id": "GHSA-2g87-pp6c-29x5",
+        "reason": "aiohttp 3.14.3 vendored in ray 2.59.0 at site-packages/ray/_private/runtime_env/agent/thirdparty_files/; top-level aiohttp is already 3.14.4 — the bundled copy needs a new Ray release bump",
+        "review_by": "2026-12-28"
     }
 ]

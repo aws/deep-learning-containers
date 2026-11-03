@@ -14,12 +14,20 @@ permissions:
 
 jobs:
   validate-schedule:
-    runs-on: ubuntu-latest
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install yq
-        run: pip install pyyaml
+      - name: Setup python
+        run: |
+          uv venv --python 3.12
+          echo "${PWD}/.venv/bin" >> "${GITHUB_PATH}"
+
+      - name: Install dependencies
+        run: uv pip install pyyaml
 
       - name: Validate release schedule
         run: python3 scripts/ci/check_release_schedule.py

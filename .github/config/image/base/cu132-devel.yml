@@ -18,7 +18,7 @@ build:
   target: "devel"
   python_version: "3.13.12"
   cuda_version: "13.2.1"
-  uv_version: "0.11.33"
+  uv_version: "0.13.6"
   nccl_version: "2.29.7-1"
   gdrcopy_version: "2.6"
   efa_version: "latest"

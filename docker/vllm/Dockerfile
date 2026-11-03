@@ -40,6 +40,8 @@ RUN uv pip install --system \
   "PyJWT>=2.12.0" \
   "model-hosting-container-standards>=0.1.16,<1.0.0" \
   "pyasn1>=0.6.3" \
+  "certifi>=2026.10.18" \
+  "uv>=0.13.4" \
   && uv cache clean
 
 # Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
