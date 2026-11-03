@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.22
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.23
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -105,6 +105,7 @@ RUN rm -rf \
   /sgl-workspace/sglang/rust/sglang-radix-tree/target/ \
   /sgl-workspace/sglang/rust/sglang-radix-tree/Cargo.lock \
   /sgl-workspace/sglang/experimental/sgl-router/Cargo.lock \
+  /sgl-workspace/sglang/sgl-router/Cargo.lock \
   && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Remove oh-my-zsh to avoid false positive in credentials scan
