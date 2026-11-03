@@ -72,6 +72,9 @@ sagemaker = [
 ]
 
 [tool.uv]
+# CVE-2026-111497: pyarrow wheels before 26.0.1 statically bundle Brotli 1.2.0 or older.
+# mlflow 3.17.2 still declares pyarrow<26 (mlflow main already allows <27), so override it.
+override-dependencies = ["pyarrow>=26.0.1"]
 environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
 
 [[tool.uv.index]]
