@@ -9,10 +9,13 @@ metadata:
   framework_version: "0.2.1.dev8"
   os_version: "amzn2023"
   customer_type: "sagemaker"
+  platform: "sagemaker"
   arch_type: "x86"
   device_type: "gpu"
   job_type: "inference"
-  prod_image: "strands-decider:0.2-gpu-py313-cu128-amzn2023-sagemaker"
+  # Image "serve" (the serving command): tags serve-sagemaker-cuda, -v1, -v1.0, -v1.0.0; the version comes from
+  # build.dlc_major_version / dlc_minor_version.
+  prod_image: "strands-decider:serve-sagemaker-cuda-v1"
 
 build:
   dockerfile: "docker/strands-decider/Dockerfile"
