@@ -53,6 +53,7 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
 # CVE-2026-112397, CVE-2026-112400, CVE-2026-112403, CVE-2026-112404
 # gitpython: CVE-2026-87817, CVE-2026-114145
 # graphql-core: CVE-2026-75507, CVE-2026-75508
+# pyasn1: CVE-2026-119194, CVE-2026-119195, CVE-2026-119196, CVE-2026-119197
 # sqlparse: CVE-2026-59893, CVE-2026-71491, CVE-2026-54284
 # tornado: CVE-2026-82397
 # urllib3: CVE-2026-97687, CVE-2026-97689
@@ -73,6 +74,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "pillow>=13.0.0" \
   "gitpython>=3.2.1" \
   "graphql-core>=3.2.12,<3.3" \
+  "pyasn1>=0.6.5" \
   "sqlparse>=0.6.0" \
   "tornado>=6.5.8" \
   "urllib3>=2.8.0" \
