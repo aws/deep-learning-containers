@@ -185,7 +185,8 @@ jobs:
     needs: [build, check, ci-config]
     concurrency:
       group: ${{ github.workflow }}-hyperpod-tests-${{ inputs.config-file }}-${{ github.ref }}
-      cancel-in-progress: true
+      # A newer run waits rather than cancels: a killed test can't scale the shared HyperPod groups back down.
+      cancel-in-progress: false
     uses: ./.github/workflows/dynamo.tests-hyperpod.yml
     with:
       config-file: ${{ inputs.config-file }}

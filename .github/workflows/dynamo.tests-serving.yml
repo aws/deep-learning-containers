@@ -2,6 +2,9 @@ name: Reusable Dynamo Serving Tests
 
 # GPU tests run inside the image: the Dynamo frontend plus backend worker(s) serve chat
 # completions, aggregated (1 GPU) and disaggregated over NIXL (2 GPUs, prefill + decode).
+# CI runs on 1-GPU runners, so only the aggregated case runs here; disaggregated serving is
+# covered in CI by the HyperPod test (dynamo.tests-hyperpod.yml, prefill and decode on two nodes).
+# On a 2+ GPU host (e.g. a dev box) both cases run.
 
 on:
   workflow_call:

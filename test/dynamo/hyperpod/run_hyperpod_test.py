@@ -8,7 +8,12 @@ Runs on the CI runner, not inside the image. It:
 2. deploys a DynamoGraphDeployment in its own namespace: a frontend, and a prefill and a decode worker pinned to
    different nodes, so the KV cache moves between nodes over NIXL (LIBFABRIC on EFA images, UCX otherwise),
 3. sends chat requests through the frontend and checks the answers, the workers' restarts and the NIXL backend,
-4. saves logs, deletes the namespace, and scales the GPU groups back to 0 unless another test is waiting.
+4. saves logs, deletes the namespace, and scales the GPU groups back to the counts they had before CI scaled them up
+   (normally 0), unless another test is waiting.
+
+While it runs, a background thread heartbeats its namespace and renews the lock (a Lease), so a holder that dies
+(cancelled or timed-out job) is detected within LEASE_STALE_S: the next test takes the lock over and deletes the dead
+holder's namespace, and a dead test's namespace never keeps the GPU groups up.
 
 Usage: run_hyperpod_test.py --image-uri URI --runtime-version 1.6.1 --backend vllm --efa-flavor efa
     --eks-cluster NAME --hyperpod-cluster NAME --prefill-group GROUP --decode-group GROUP [--region us-west-2]
@@ -20,9 +25,12 @@ import argparse
 import calendar
 import json
 import os
+import signal
 import socket
 import subprocess
+import sys
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -33,11 +41,17 @@ CI_NAMESPACE_LABEL = "dynamo-ci=hyperpod"
 NODE_TIMEOUT_S = 45 * 60  # on-demand GPU capacity can be slow to arrive
 READY_TIMEOUT_S = 30 * 60  # first pull of a ~15 GB image, then the model download and load
 REQUESTS = 3
-# One test at a time: a ConfigMap in kube-system whose creation is the lock. A holder that died leaves it behind; it's
-# taken over once older than LOCK_STALE_S (longer than one test's timeouts).
-LOCK = ["-n", "kube-system", "configmap/dynamo-ci-hyperpod-lock"]
-LOCK_STALE_S = 90 * 60
-LOCK_WAIT_S = 4 * 60 * 60
+# One test at a time: a Lease in kube-system whose creation is the lock. The holder renews it every HEARTBEAT_S; one not
+# renewed for LEASE_STALE_S belongs to a dead holder and is taken over.
+LOCK = ["-n", "kube-system", "lease/dynamo-ci-hyperpod-lock"]
+# The GPU groups' counts before CI scaled them up, restored by the last test out (created by the first test in).
+BASELINE = ["-n", "kube-system", "configmap/dynamo-ci-hyperpod-baseline"]
+HEARTBEAT_ANNOTATION = "dynamo-ci/heartbeat"
+HEARTBEAT_S = 60
+LEASE_STALE_S = 5 * 60
+# Budget against the workflow's 300-minute job timeout: lock wait 180 + after the lock at most ~105 (nodes 45, pods 30,
+# model 10, requests ~6, KV check 2, namespace delete 10) + setup and log upload.
+LOCK_WAIT_S = 3 * 60 * 60
 
 
 def configure(argv=None):
@@ -169,6 +183,8 @@ def worker_container(mode, group):
             {
                 "name": "main",
                 "image": IMAGE,
+                # CI tags (pr-NUMBER) move between commits and the GPU nodes are reused: always pull.
+                "imagePullPolicy": "Always",
                 "command": command,
                 "args": args,
                 "env": environment,
@@ -191,7 +207,9 @@ def dgd_manifest():
         "spec": {
             "components": [
                 component(
-                    "Frontend", "frontend", {"containers": [{"name": "main", "image": IMAGE}]}
+                    "Frontend",
+                    "frontend",
+                    {"containers": [{"name": "main", "image": IMAGE, "imagePullPolicy": "Always"}]},
                 ),
                 component("prefill", "prefill", worker_container("prefill", PREFILL_GROUP)),
                 component("decode", "decode", worker_container("decode", DECODE_GROUP)),
@@ -233,8 +251,28 @@ def set_counts(counts):
         "--instance-groups", json.dumps(update))  # fmt: skip
 
 
+def baseline():
+    raw = kubectl("get", *BASELINE, "-o", "jsonpath={.data.counts}", check=False).strip()
+    return json.loads(raw) if raw else None
+
+
 def scale_up():
+    """Scale the groups up to what the workers need. The first test in records the groups' counts before CI touched
+    them, so the last test out restores them instead of scaling to 0 (holding the lock, so no one else is scaling)."""
     groups = instance_groups()
+    recorded = baseline()
+    missing = {
+        g: groups[g]["TargetCount"]
+        for g in wanted_counts()
+        if recorded is None or g not in recorded
+    }
+    if missing:
+        counts = {**(recorded or {}), **missing}
+        manifest = {"apiVersion": "v1", "kind": "ConfigMap",
+                    "metadata": {"name": BASELINE[2].split("/")[1], "namespace": "kube-system"},
+                    "data": {"counts": json.dumps(counts)}}  # fmt: skip
+        kubectl("apply", "-f", "-", stdin=json.dumps(manifest))
+        log(f"baseline counts: {counts}")
     short = {name: n for name, n in wanted_counts().items() if groups[name]["TargetCount"] < n}
     if short:
         set_counts(short)
@@ -256,23 +294,53 @@ def gpu_nodes_ready():
     return all(ready.get(group, 0) >= n for group, n in wanted_counts().items())
 
 
+def now_micro():
+    return time.strftime("%Y-%m-%dT%H:%M:%S.000000Z", time.gmtime())
+
+
+def age_s(stamp):
+    """Seconds since a Kubernetes timestamp (2026-11-03T01:02:03Z or with microseconds)."""
+    return time.time() - calendar.timegm(
+        time.strptime(stamp.split(".")[0].rstrip("Z"), "%Y-%m-%dT%H:%M:%S")
+    )
+
+
+HOLDING_LOCK = False
+
+
 def acquire_lock():
+    name = LOCK[2].split("/")[1]
+
     def take():
-        created = run("kubectl", "create", "configmap", LOCK[2].split("/")[1], "-n", "kube-system",
-                      f"--from-literal=holder={NAMESPACE}", check=False, capture=True)  # fmt: skip
-        if created:
+        global HOLDING_LOCK
+        lease = {"apiVersion": "coordination.k8s.io/v1", "kind": "Lease",
+                 "metadata": {"name": name, "namespace": "kube-system"},
+                 "spec": {"holderIdentity": NAMESPACE, "leaseDurationSeconds": LEASE_STALE_S,
+                          "acquireTime": now_micro(), "renewTime": now_micro()}}  # fmt: skip
+        if run("kubectl", "create", "-f", "-", stdin=json.dumps(lease), check=False, capture=True):
+            HOLDING_LOCK = True
             return True
-        stamp = kubectl(
-            "get", *LOCK, "-o", "jsonpath={.metadata.creationTimestamp}", check=False
-        ).strip()
+        current = json.loads(kubectl("get", *LOCK, "-o", "json"))
+        spec = current["spec"]
         if (
-            stamp
-            and time.time() - calendar.timegm(time.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ"))
-            > LOCK_STALE_S
+            age_s(spec.get("renewTime") or current["metadata"]["creationTimestamp"])
+            <= LEASE_STALE_S
         ):
-            log(f"taking over a stale lock from {stamp}")
-            kubectl("delete", *LOCK, check=False)
-        return False
+            return False
+        # A dead holder: take the lease over. replace carries the resourceVersion, so only one waiter wins.
+        holder = spec.get("holderIdentity", "")
+        log(f"taking over the lock from {holder} (not renewed since {spec.get('renewTime')})")
+        current["spec"] = lease["spec"]
+        if not run(
+            "kubectl", "replace", "-f", "-", stdin=json.dumps(current), check=False, capture=True
+        ):
+            return False
+        HOLDING_LOCK = True
+        if holder.startswith("dynamo-ci-") and holder != NAMESPACE:
+            kubectl(
+                "delete", "namespace", holder, "--ignore-not-found", "--wait=false", check=False
+            )
+        return True
 
     log("waiting for the HyperPod test lock")
     wait_for("the HyperPod test lock", take, LOCK_WAIT_S, interval_s=30)
@@ -280,20 +348,68 @@ def acquire_lock():
 
 
 def release_lock():
-    holder = kubectl("get", *LOCK, "-o", "jsonpath={.data.holder}", check=False).strip()
+    global HOLDING_LOCK
+    holder = kubectl("get", *LOCK, "-o", "jsonpath={.spec.holderIdentity}", check=False).strip()
     if holder == NAMESPACE:
         kubectl("delete", *LOCK, check=False)
+    HOLDING_LOCK = False
+
+
+def heartbeat(stop):
+    """Until stop is set: mark this test's namespace alive and renew the lock while holding it."""
+    while not stop.wait(HEARTBEAT_S):
+        try:
+            kubectl(
+                "annotate",
+                "namespace",
+                NAMESPACE,
+                "--overwrite",
+                f"{HEARTBEAT_ANNOTATION}={int(time.time())}",
+            )
+            if HOLDING_LOCK:
+                kubectl(
+                    "patch",
+                    *LOCK,
+                    "--type",
+                    "merge",
+                    "-p",
+                    json.dumps({"spec": {"renewTime": now_micro()}}),
+                )
+        except RuntimeError as e:
+            log(f"heartbeat: {e}")
+
+
+def live_other_tests():
+    """Other CI test namespaces that are alive (heartbeat within LEASE_STALE_S). Dead ones are deleted."""
+    live = []
+    for ns in json.loads(kubectl("get", "namespaces", "-l", CI_NAMESPACE_LABEL, "-o", "json"))[
+        "items"
+    ]:
+        name = ns["metadata"]["name"]
+        if name == NAMESPACE or ns.get("status", {}).get("phase") == "Terminating":
+            continue
+        beat = ns["metadata"].get("annotations", {}).get(HEARTBEAT_ANNOTATION)
+        idle = time.time() - int(beat) if beat else age_s(ns["metadata"]["creationTimestamp"])
+        if idle > LEASE_STALE_S:
+            log(f"deleting {name}: no heartbeat for {int(idle)} s")
+            kubectl("delete", "namespace", name, "--wait=false", check=False)
+        else:
+            live.append(name)
+    return live
 
 
 def scale_down_if_idle():
-    """Scale the GPU groups to 0 unless another CI test namespace exists (a test creates its namespace before it
-    waits for the lock, so the last test out turns the nodes off)."""
-    others = kubectl("get", "namespaces", "-l", CI_NAMESPACE_LABEL, "-o", "name").split()
-    others = [n for n in others if n != f"namespace/{NAMESPACE}"]
+    """Restore the GPU groups' baseline counts unless another live CI test exists (a test creates its namespace
+    before it waits for the lock, so the last test out restores them). Called while holding the lock."""
+    others = live_other_tests()
     if others:
         log(f"leaving the GPU groups up for {len(others)} other test(s): {' '.join(others)}")
         return
-    set_counts({group: 0 for group in wanted_counts()})
+    recorded = baseline()
+    if recorded is None:
+        return
+    set_counts(recorded)
+    kubectl("delete", *BASELINE, "--ignore-not-found", check=False)
 
 
 # ===== Test =====
@@ -436,8 +552,12 @@ def main():
         f"{IMAGE}: {BACKEND}, {'EFA' if EFA else 'no EFA'}; prefill on {PREFILL_GROUP}, decode on {DECODE_GROUP}"
     )
     port_forward = None
+    interrupted = False
     kubectl("create", "namespace", NAMESPACE)
     kubectl("label", "namespace", NAMESPACE, CI_NAMESPACE_LABEL)
+    kubectl("annotate", "namespace", NAMESPACE, f"{HEARTBEAT_ANNOTATION}={int(time.time())}")
+    stop = threading.Event()
+    threading.Thread(target=heartbeat, args=(stop,), daemon=True).start()
     try:
         acquire_lock()
         scale_up()
@@ -457,25 +577,29 @@ def main():
         send_requests(port)
         check_workers()
         log("PASS")
+    except (KeyboardInterrupt, SystemExit):
+        # Cancelled or timed out: the runner kills the process seconds later, so clean up quickly.
+        interrupted = True
+        raise
     finally:
         if port_forward:
             port_forward.terminate()
         try:
-            save_logs()
+            if not interrupted:
+                save_logs()
         finally:
-            kubectl(
-                "delete",
-                "namespace",
-                NAMESPACE,
-                "--ignore-not-found",
-                "--wait=true",
-                "--timeout=10m",
-                check=False,
-            )
-            release_lock()
-            scale_down_if_idle()
+            wait = ["--wait=false"] if interrupted else ["--wait=true", "--timeout=10m"]
+            kubectl("delete", "namespace", NAMESPACE, "--ignore-not-found", *wait, check=False)
+            if HOLDING_LOCK:
+                try:
+                    scale_down_if_idle()
+                finally:
+                    release_lock()
+            stop.set()
 
 
 if __name__ == "__main__":
     configure()
+    # The runner stops a cancelled job with SIGINT, then SIGTERM: both run the cleanup in main().
+    signal.signal(signal.SIGTERM, lambda signum, frame: sys.exit(128 + signum))
     main()
