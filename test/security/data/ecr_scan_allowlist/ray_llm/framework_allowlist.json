@@ -98,5 +98,15 @@
         "vulnerability_id": "GHSA-6q48-6c7w-9gw2",
         "reason": "certifi 2026.7.22 bundles the revoked 'emSign ECC Root CA - G3' root, whose compromised intermediates could be used to issue certificates that pass verification. Fixed in certifi 2026.10.18; this image's own copy is bumped past the fix, but a second copy is installed in /usr/local by the base DLC image (base:runtime-cu130-amzn2023) as a dependency of requests, so that one clears once the base image refreshes its lockfile.",
         "review_by": "2026-11-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-115915",
+        "reason": "vllm 0.26.0 ImageMediaIO passes attacker-controlled image bytes to Pillow through Image.open() without restricting them. Fixed in vllm 0.32.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, and the newest Ray (2.59.0) still pins vllm 0.27.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2026-12-03"
+    },
+    {
+        "vulnerability_id": "CVE-2026-116178",
+        "reason": "vllm 0.26.0 denial of service: inconsistent multimodal metadata sent to the disaggregated inference endpoint crashes the engine. Fixed in vllm 0.30.0, but ray[llm] 2.58.0 hard-pins vllm[audio]==0.26.0, and the newest Ray (2.59.0) still pins vllm 0.27.0, so this cannot be patched without Ray moving its pin.",
+        "review_by": "2026-12-03"
     }
 ]
