@@ -313,9 +313,20 @@ def use_pair(pair):
     PREFILL_GROUP, DECODE_GROUP = pair
 
 
+def release_other_pairs(pair):
+    """Put every other pair's groups back to their baseline counts: the instance quota is per account, so a pair left
+    scaled up (e.g. for a queued test) would block this one."""
+    recorded = baseline() or {}
+    groups = instance_groups()
+    others = {g: recorded[g] for other in PAIRS if other != pair for g in other
+              if g not in pair and g in recorded and groups[g]["TargetCount"] != recorded[g]}  # fmt: skip
+    if others:
+        set_counts(others)
+
+
 def get_gpu_nodes():
-    """Scale a group pair up and wait for its nodes; on a pair that gets none in time, scale it back and try the next.
-    Starts with the pair that last worked in this queue."""
+    """Scale a group pair up and wait for its nodes; on a pair that gets none in time, try the next. The pair being
+    tried is recorded, so a queued test starts with the pair whose groups are already up (or that last worked)."""
     active = state()["active"]
     pairs = sorted(PAIRS, key=lambda pair: ",".join(pair) != active)
     for i, pair in enumerate(pairs):
@@ -323,23 +334,20 @@ def get_gpu_nodes():
         last = i == len(pairs) - 1
         timeout = NODE_TIMEOUT_S - PAIR_NODE_TIMEOUT_S * i if last else PAIR_NODE_TIMEOUT_S
         log(f"GPU groups: prefill {PREFILL_GROUP}, decode {DECODE_GROUP}")
+        release_other_pairs(pair)
         scale_up()
-        try:
-            wait_for("GPU nodes", gpu_nodes_ready, timeout, interval_s=30)
-        except TimeoutError:
-            if last:
-                raise
-            # No capacity there (HyperPod keeps retrying the launch): give the groups back and try the next pair.
-            recorded = baseline() or {}
-            set_counts({g: recorded.get(g, 0) for g in wanted_counts()})
-            log(
-                f"no GPU nodes in {PREFILL_GROUP}/{DECODE_GROUP} after {timeout} s; trying the next pair"
-            )
-            continue
         current = state()
         if current["active"] != ",".join(pair):
             save_state(current["counts"] or {}, ",".join(pair))
-        return
+        try:
+            wait_for("GPU nodes", gpu_nodes_ready, timeout, interval_s=30)
+            return
+        except TimeoutError:
+            if last:
+                raise
+            log(
+                f"no GPU nodes in {PREFILL_GROUP}/{DECODE_GROUP} after {timeout} s; trying the next pair"
+            )
 
 
 def gpu_nodes_ready():
