@@ -39,7 +39,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # --- HuggingFace training stack ------------------------------------------
 # Security floors for ECR findings: soupsieve fixes GHSA-2wc2-fm75-p42x and
 # GHSA-836r-79rf-4m37; Pillow 13.0.0 clears the CVE-2026-112xxx/96xxx batch;
-# GitPython 3.2.1 clears CVE-2026-114145; pyasn1 0.6.4 clears CVE-2026-59885
+# GitPython 3.2.1 clears CVE-2026-114145; pyasn1 0.6.5 clears CVE-2026-119194/119195/119196/119197 and CVE-2026-59885
 # and CVE-2026-59886; cryptography 50.0.0 clears CVE-2026-69247 and
 # CVE-2026-69249; aiohttp 3.14.4 clears CVE-2026-111064/111066 and
 # GHSA-2g87-pp6c-29x5; certifi 2026.10.19 drops the compromised emSign root
@@ -72,7 +72,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "soupsieve>=2.8.4" \
   "GitPython>=3.2.1" \
   "anyio>=4.14.2" \
-  "pyasn1>=0.6.4" \
+  "pyasn1>=0.6.5" \
   "cryptography>=50.0.0" \
   "aiohttp>=3.14.4" \
   "certifi>=2026.10.19" \
@@ -123,8 +123,8 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf clean all
 
 # HF auto-optimization layer — sourced by the entrypoint to set training perf
-# defaults at run time. See scripts/docker/huggingface/pytorch/hf_optimizations.sh.
-COPY --chmod=755 ./scripts/docker/huggingface/pytorch/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
+# defaults at run time. See scripts/docker/huggingface/pytorch/training/hf_optimizations.sh.
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/training/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
 
 # =====================================================================
 # sagemaker — HuggingFace training for SageMaker AI
@@ -133,6 +133,6 @@ FROM install AS sagemaker
 
 ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training:hf-pytorch"
 
-COPY --chmod=755 ./scripts/docker/huggingface/pytorch/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+COPY --chmod=755 ./scripts/docker/huggingface/pytorch/training/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
 CMD ["train"]

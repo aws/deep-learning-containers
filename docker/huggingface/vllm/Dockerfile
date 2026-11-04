@@ -18,12 +18,16 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends curl unzip \
   && rm -rf /var/lib/apt/lists/*
 
-# --break-system-packages: the 0.29 base runs `apt-get upgrade` after its own uv
+# --break-system-packages: the upstream base runs `apt-get upgrade` after its own uv
 # installs, which pulls in the distro python3.12 and its PEP 668
 # /usr/lib/python3.12/EXTERNALLY-MANAGED marker. Without the flag uv refuses with
 # "The interpreter at /usr is externally managed". The target env is unchanged:
 # /usr/local/lib/python3.12/dist-packages, where vllm itself lives.
+# Security floors: Pillow 13 fixes the TIFF/JPEG/GIF/PDF/ImageMorph CVEs;
+# aiohttp 3.14.4 fixes CVE-2026-111064/111066 and GHSA-2g87-pp6c-29x5.
+# certifi 2026.10.19 removes compromised roots (GHSA-6q48-6c7w-9gw2).
 RUN uv pip install --system --break-system-packages \
+  "vllm==${FRAMEWORK_VERSION}" \
   "transformers==${TRANSFORMERS_VERSION}" \
   "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
   "hf-xet==${HF_XET_VERSION}" \
@@ -33,7 +37,9 @@ RUN uv pip install --system --break-system-packages \
   "aiohttp>=3.14.4" \
   "pyasn1>=0.6.5" \
   "pillow>=13.0.0" \
+  "certifi>=2026.10.19" \
   "uv>=0.13.4" \
+  "filelock>=4.2.1" \
   && uv cache clean \
   && rm -rf /tmp/uv*
 
