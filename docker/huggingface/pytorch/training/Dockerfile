@@ -123,7 +123,7 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
   && dnf clean all
 
 # HF auto-optimization layer — sourced by the entrypoint to set training perf
-# defaults at run time. See scripts/docker/huggingface/pytorch/hf_optimizations.sh.
+# defaults at run time. See scripts/docker/huggingface/pytorch/training/hf_optimizations.sh.
 COPY --chmod=755 ./scripts/docker/huggingface/pytorch/training/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
 
 # =====================================================================
