@@ -155,6 +155,8 @@ RUN curl -L --output /tmp/Miniforge3.sh \
 ENV PATH=/miniconda3/bin:${PATH}
 
 # Conda packages
+# CVE-2026-111497: conda-forge's libarrow links Brotli dynamically; older libarrow 22.0.0
+# builds still accept libbrotlidec 1.2.0, so require 1.2.1.
 RUN conda config --system --set auto_update_conda false \
   && conda install -y --solver=libmamba \
     python=${PYTHON_VERSION} \
@@ -162,6 +164,8 @@ RUN conda config --system --set auto_update_conda false \
     openssl=3.6.3 \
     "libcurl>=8.19.0" \
     pyarrow=${PYARROW_VERSION} \
+    "libbrotlidec>=1.2.1" \
+    "libbrotlienc>=1.2.1" \
   && conda clean -afy
 
 # Build MLIO from source with Arrow integration
@@ -216,8 +220,11 @@ RUN mkdir -p /var/log/nginx /var/lib/nginx/body /var/lib/nginx/proxy \
   && /usr/sbin/nginx -v
 
 # Install XGBoost
+# pyarrow comes from conda (above), not the PyPI wheel: the wheel compiles in its own Brotli
+# (1.1.0 in 22.0.0, CVE-2026-111497), while conda's uses the patched shared libbrotlidec. MLIO is
+# built against conda's Arrow 22, so the version stays 22.0.0.
 RUN python3 -m pip install --no-cache -I \
-  xgboost==${XGBOOST_VERSION} numpy==2.1.0 pyarrow==22.0.0 pandas==2.2.3
+  xgboost==${XGBOOST_VERSION} numpy==2.1.0 pandas==2.2.3
 
 ENV LD_LIBRARY_PATH=/miniconda3/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:$LD_LIBRARY_PATH
 
