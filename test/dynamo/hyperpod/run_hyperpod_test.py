@@ -15,9 +15,12 @@ While it runs, a background thread heartbeats its namespace and renews the lock 
 (cancelled or timed-out job) is detected within LEASE_STALE_S: the next test takes the lock over and deletes the dead
 holder's namespace, and a dead test's namespace never keeps the GPU groups up.
 
+With --fallback-groups, a pair of groups whose nodes don't come up within PAIR_NODE_TIMEOUT_S (no on-demand capacity in
+that AZ) is scaled back and the fallback pair is tried; later tests in the same queue start with the pair that worked.
+
 Usage: run_hyperpod_test.py --image-uri URI --runtime-version 1.6.1 --backend vllm --efa-flavor efa
-    --eks-cluster NAME --hyperpod-cluster NAME --prefill-group GROUP --decode-group GROUP [--region us-west-2]
-    [--log-dir DIR] [--model Qwen/Qwen3-0.6B]
+    --eks-cluster NAME --hyperpod-cluster NAME --prefill-group GROUP --decode-group GROUP
+    [--fallback-groups PREFILL,DECODE] [--region us-west-2] [--log-dir DIR] [--model Qwen/Qwen3-0.6B]
 (--help for details)
 """
 
@@ -39,12 +42,16 @@ from pathlib import Path
 GROUP_LABEL = "sagemaker.amazonaws.com/instance-group-name"
 CI_NAMESPACE_LABEL = "dynamo-ci=hyperpod"
 NODE_TIMEOUT_S = 45 * 60  # on-demand GPU capacity can be slow to arrive
+# Nodes normally join in 3-6 min; a pair that has none after this lacks capacity, so try the fallback pair (which then
+# gets the rest of NODE_TIMEOUT_S).
+PAIR_NODE_TIMEOUT_S = 15 * 60
 READY_TIMEOUT_S = 30 * 60  # first pull of a ~15 GB image, then the model download and load
 REQUESTS = 3
 # One test at a time: a Lease in kube-system whose creation is the lock. The holder renews it every HEARTBEAT_S; one not
 # renewed for LEASE_STALE_S belongs to a dead holder and is taken over.
 LOCK = ["-n", "kube-system", "lease/dynamo-ci-hyperpod-lock"]
-# The GPU groups' counts before CI scaled them up, restored by the last test out (created by the first test in).
+# The GPU groups' counts before CI scaled them up, restored by the last test out (created by the first test in), and
+# the group pair that last got nodes, which later tests try first.
 BASELINE = ["-n", "kube-system", "configmap/dynamo-ci-hyperpod-baseline"]
 HEARTBEAT_ANNOTATION = "dynamo-ci/heartbeat"
 HEARTBEAT_S = 60
@@ -76,6 +83,8 @@ def configure(argv=None):
     )
     parser.add_argument("--decode-group", required=True,
                         help="instance group for the decode worker (in the prefill group's subnet, for EFA)")  # fmt: skip
+    parser.add_argument("--fallback-groups", default="",
+                        help="PREFILL,DECODE groups to use when the main pair gets no nodes (e.g. another AZ)")  # fmt: skip
     parser.add_argument("--region", default="us-west-2")
     parser.add_argument("--log-dir", default="hyperpod-test-logs")
     parser.add_argument("--model", default="Qwen/Qwen3-0.6B")
@@ -89,7 +98,7 @@ def configure(argv=None):
         HYPERPOD_CLUSTER, \
         PREFILL_GROUP, \
         DECODE_GROUP
-    global REGION, LOG_DIR, MODEL, NAMESPACE, DGD
+    global REGION, LOG_DIR, MODEL, NAMESPACE, DGD, PAIRS
     IMAGE, RUNTIME_VERSION, BACKEND, EFA = (
         args.image_uri,
         args.runtime_version,
@@ -98,6 +107,12 @@ def configure(argv=None):
     )
     EKS_CLUSTER, HYPERPOD_CLUSTER = args.eks_cluster, args.hyperpod_cluster
     PREFILL_GROUP, DECODE_GROUP = args.prefill_group, args.decode_group
+    PAIRS = [(PREFILL_GROUP, DECODE_GROUP)]
+    if args.fallback_groups:
+        fallback = tuple(g.strip() for g in args.fallback_groups.split(","))
+        if len(fallback) != 2 or not all(fallback):
+            parser.error("--fallback-groups takes PREFILL,DECODE")
+        PAIRS.append(fallback)
     REGION, LOG_DIR, MODEL = args.region, Path(args.log_dir), args.model
     run_id = (
         f"{os.environ.get('GITHUB_RUN_ID', 'local')}-{os.environ.get('GITHUB_RUN_ATTEMPT', '1')}"
@@ -251,16 +266,34 @@ def set_counts(counts):
         "--instance-groups", json.dumps(update))  # fmt: skip
 
 
+def state():
+    """The shared state in BASELINE: {"counts": {group: count before CI}, "active": "PREFILL,DECODE" or ""}."""
+    data = json.loads(
+        kubectl("get", *BASELINE, "-o", "jsonpath={.data}", check=False).strip() or "{}"
+    )
+    return {
+        "counts": json.loads(data["counts"]) if "counts" in data else None,
+        "active": data.get("active", ""),
+    }
+
+
+def save_state(counts, active):
+    manifest = {"apiVersion": "v1", "kind": "ConfigMap",
+                "metadata": {"name": BASELINE[2].split("/")[1], "namespace": "kube-system"},
+                "data": {"counts": json.dumps(counts), "active": active}}  # fmt: skip
+    kubectl("apply", "-f", "-", stdin=json.dumps(manifest))
+
+
 def baseline():
-    raw = kubectl("get", *BASELINE, "-o", "jsonpath={.data.counts}", check=False).strip()
-    return json.loads(raw) if raw else None
+    return state()["counts"]
 
 
 def scale_up():
     """Scale the groups up to what the workers need. The first test in records the groups' counts before CI touched
     them, so the last test out restores them instead of scaling to 0 (holding the lock, so no one else is scaling)."""
     groups = instance_groups()
-    recorded = baseline()
+    current = state()
+    recorded = current["counts"]
     missing = {
         g: groups[g]["TargetCount"]
         for g in wanted_counts()
@@ -268,14 +301,45 @@ def scale_up():
     }
     if missing:
         counts = {**(recorded or {}), **missing}
-        manifest = {"apiVersion": "v1", "kind": "ConfigMap",
-                    "metadata": {"name": BASELINE[2].split("/")[1], "namespace": "kube-system"},
-                    "data": {"counts": json.dumps(counts)}}  # fmt: skip
-        kubectl("apply", "-f", "-", stdin=json.dumps(manifest))
+        save_state(counts, current["active"])
         log(f"baseline counts: {counts}")
     short = {name: n for name, n in wanted_counts().items() if groups[name]["TargetCount"] < n}
     if short:
         set_counts(short)
+
+
+def use_pair(pair):
+    global PREFILL_GROUP, DECODE_GROUP
+    PREFILL_GROUP, DECODE_GROUP = pair
+
+
+def get_gpu_nodes():
+    """Scale a group pair up and wait for its nodes; on a pair that gets none in time, scale it back and try the next.
+    Starts with the pair that last worked in this queue."""
+    active = state()["active"]
+    pairs = sorted(PAIRS, key=lambda pair: ",".join(pair) != active)
+    for i, pair in enumerate(pairs):
+        use_pair(pair)
+        last = i == len(pairs) - 1
+        timeout = NODE_TIMEOUT_S - PAIR_NODE_TIMEOUT_S * i if last else PAIR_NODE_TIMEOUT_S
+        log(f"GPU groups: prefill {PREFILL_GROUP}, decode {DECODE_GROUP}")
+        scale_up()
+        try:
+            wait_for("GPU nodes", gpu_nodes_ready, timeout, interval_s=30)
+        except TimeoutError:
+            if last:
+                raise
+            # No capacity there (HyperPod keeps retrying the launch): give the groups back and try the next pair.
+            recorded = baseline() or {}
+            set_counts({g: recorded.get(g, 0) for g in wanted_counts()})
+            log(
+                f"no GPU nodes in {PREFILL_GROUP}/{DECODE_GROUP} after {timeout} s; trying the next pair"
+            )
+            continue
+        current = state()
+        if current["active"] != ",".join(pair):
+            save_state(current["counts"] or {}, ",".join(pair))
+        return
 
 
 def gpu_nodes_ready():
@@ -306,6 +370,7 @@ def age_s(stamp):
 
 
 HOLDING_LOCK = False
+NAMESPACE_DELETED = threading.Event()
 
 
 def acquire_lock():
@@ -359,13 +424,9 @@ def heartbeat(stop):
     """Until stop is set: mark this test's namespace alive and renew the lock while holding it."""
     while not stop.wait(HEARTBEAT_S):
         try:
-            kubectl(
-                "annotate",
-                "namespace",
-                NAMESPACE,
-                "--overwrite",
-                f"{HEARTBEAT_ANNOTATION}={int(time.time())}",
-            )
+            if not NAMESPACE_DELETED.is_set():
+                kubectl("annotate", "namespace", NAMESPACE, "--overwrite",
+                        f"{HEARTBEAT_ANNOTATION}={int(time.time())}")  # fmt: skip
             if HOLDING_LOCK:
                 kubectl(
                     "patch",
@@ -560,8 +621,7 @@ def main():
     threading.Thread(target=heartbeat, args=(stop,), daemon=True).start()
     try:
         acquire_lock()
-        scale_up()
-        wait_for("GPU nodes", gpu_nodes_ready, NODE_TIMEOUT_S, interval_s=30)
+        get_gpu_nodes()
         log("GPU nodes ready")
         kubectl("apply", "-f", "-", stdin=json.dumps(dgd_manifest()))
         wait_for(
@@ -589,6 +649,7 @@ def main():
                 save_logs()
         finally:
             wait = ["--wait=false"] if interrupted else ["--wait=true", "--timeout=10m"]
+            NAMESPACE_DELETED.set()  # the heartbeat keeps renewing the lock, but stops annotating the namespace
             kubectl("delete", "namespace", NAMESPACE, "--ignore-not-found", *wait, check=False)
             if HOLDING_LOCK:
                 try:

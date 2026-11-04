@@ -6,7 +6,8 @@ name: Reusable Dynamo HyperPod Tests
 # answers, and scales them back down. Tests run one at a time on the cluster.
 #
 # Repository variables: HYPERPOD_EKS_CLUSTER, HYPERPOD_CLUSTER, HYPERPOD_PREFILL_GROUP, HYPERPOD_DECODE_GROUP (two
-# EFA-capable GPU groups in one subnet).
+# EFA-capable GPU groups in one subnet), and optionally HYPERPOD_FALLBACK_GROUPS ("PREFILL,DECODE", a pair in another
+# AZ, tried when the main pair gets no on-demand capacity).
 
 on:
   workflow_call:
@@ -101,6 +102,7 @@ jobs:
             --hyperpod-cluster "${{ vars.HYPERPOD_CLUSTER }}" \
             --prefill-group "${{ vars.HYPERPOD_PREFILL_GROUP }}" \
             --decode-group "${{ vars.HYPERPOD_DECODE_GROUP }}" \
+            --fallback-groups "${{ vars.HYPERPOD_FALLBACK_GROUPS }}" \
             --region "${{ vars.AWS_REGION }}" \
             --log-dir hyperpod-test-logs
 
