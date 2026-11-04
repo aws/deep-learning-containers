@@ -107,7 +107,7 @@ jobs:
           # TEMPORARY: bypasses buggy `cuda>=13.3` label check in
           # nvidia-container-toolkit 1.19.1 (fixed upstream in v1.20.0).
           # Remove flag + this comment once the runner AMI ships toolkit >= 1.20.
-          CONTAINER_ID=$(docker run -d --rm --gpus all -e NVIDIA_DISABLE_REQUIRE=true -p 8080:8080 \
+          CONTAINER_ID=$(docker run -d --gpus all -e NVIDIA_DISABLE_REQUIRE=true -p 8080:8080 \
             -v ${{ steps.model.outputs.model-dir }}:/opt/ml/model:ro \
             -e DECIDER_CHECKPOINT=/opt/ml/model/${{ matrix.model }} \
             -e DECIDER_DEVICE_MAP=${{ matrix.device-map }} \
@@ -138,7 +138,9 @@ jobs:
       - name: Stop server and release model lock
         if: always()
         run: |
-          docker kill "$CONTAINER_ID" 2>/dev/null || true
+          docker rm -f "$CONTAINER_ID" 2>/dev/null || true
+          # Self-hosted runners keep their disk between jobs.
+          docker rmi ${{ needs.preflight.outputs.image-uri }} 2>/dev/null || true
           if [[ -n "${{ steps.model.outputs.lock-pid }}" ]]; then
             kill "${{ steps.model.outputs.lock-pid }}" 2>/dev/null || true
           fi

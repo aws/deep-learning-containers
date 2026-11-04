@@ -76,7 +76,7 @@ def endpoint(aws_session, image_uri):
             primary_container=ContainerDefinition(
                 image=image_uri,
                 model_data_url=MODEL_DATA_URL,
-                environment={"DECIDER_CHECKPOINT": f"/opt/ml/model/{MODEL}"},
+                # No DECIDER_CHECKPOINT: the image finds the checkpoint next to base/ in /opt/ml/model.
             ),
             execution_role_arn=aws_session.resolve_role_arn(SAGEMAKER_ROLE),
         )

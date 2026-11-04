@@ -54,8 +54,9 @@ def _noul(state: str) -> float:
 
 
 # First, while no other test has run: the warm-up at start must leave nothing for the first caller to compile.
-# Without it, the first request on the Qwen3.5 models takes about 37 s, and each new number of questions about
-# 0.8 s more; warm, they take well under a second.
+# Without it, the first request on the Qwen3.5 models takes about 37 s (14 s for 3 questions). Warm, every
+# request here takes 0.1 to 0.5 s on every model and GPU this runs on, so 3 s is a wide margin, not a latency
+# target.
 @pytest.mark.parametrize("n_questions", [1, 3, 17, 32])
 def test_the_first_requests_after_ping_are_warm(n_questions):
     questions = {
@@ -119,9 +120,12 @@ def test_the_payout_failure_routes_to_billing_or_technical():
 
 def test_invocations_and_v1_systemone_give_the_same_answers():
     body = {"state": URGENT, "questions": {"department": DEPARTMENT, "frustration": FRUSTRATION}}
-    _, sagemaker = _post("/invocations", body)
-    _, api = _post("/v1/systemone", body)
-    assert sagemaker["answers"] == api["answers"]
+    sagemaker_status, sagemaker = _post("/invocations", body)
+    api_status, api = _post("/v1/systemone", body)
+    assert (sagemaker_status, api_status) == (200, 200), (sagemaker, api)
+    for name, answer in sagemaker["answers"].items():
+        for option, p in answer["probabilities"].items():
+            assert api["answers"][name]["probabilities"][option] == pytest.approx(p, abs=1e-3)
 
 
 def test_one_question_answers_alone_as_among_others():

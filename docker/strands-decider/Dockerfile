@@ -53,14 +53,30 @@ RUN --mount=type=cache,target=/root/.cache/uv --mount=type=bind,from=builder,sou
   && uv pip install --python /usr/local/bin/python3 --no-deps /tmp/wheels/*.whl \
   && rm -rf /tmp/deps /tmp/uv-*.lock
 
+# DLC telemetry (the entrypoint sends it at start; shells source it), CUDA forward compatibility, OSS compliance.
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
-RUN bash /tmp/setup_oss_compliance.sh python3 \
+ARG FRAMEWORK=strands_decider
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE=inference
+RUN chmod +x /usr/local/bin/deep_learning_container.py /usr/local/bin/start_cuda_compat.sh \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash /tmp/setup_oss_compliance.sh python3 \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* /tmp/tmp* /root/.cache
 
-# The serving options, as environment variables: see sagemaker_entrypoint.sh.
-ENV DECIDER_CHECKPOINT=/opt/ml/model \
-  DECIDER_DEVICE=cuda \
+# The serving options, as environment variables: see sagemaker_entrypoint.sh (DECIDER_CHECKPOINT defaults to the
+# checkpoint SageMaker put under /opt/ml/model).
+ENV DECIDER_DEVICE=cuda \
   DECIDER_ARGS="" \
   DECIDER_WARMUP=1 \
   HF_HOME=/opt/hf \

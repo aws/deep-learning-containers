@@ -65,11 +65,17 @@ def test_triton_can_compile_its_launcher():
 
 
 def test_sagemaker_defaults():
-    assert os.environ["DECIDER_CHECKPOINT"] == "/opt/ml/model"
     assert os.environ["DECIDER_DEVICE"] == "cuda"
     assert os.environ["DECIDER_WARMUP"] == "1"
     assert os.environ["HF_HUB_OFFLINE"] == "1"
+    assert "DECIDER_CHECKPOINT" not in os.environ  # found under /opt/ml/model at start
     assert "DECIDER_DEVICE_MAP" not in os.environ
+
+
+def test_telemetry_reports_this_framework():
+    script = Path("/usr/local/bin/bash_telemetry.sh").read_text()
+    assert '--framework "strands_decider"' in script
+    assert f'--framework-version "{os.environ["EXPECTED_FRAMEWORK_VERSION"]}"' in script
 
 
 def test_entrypoint_is_executable():
@@ -84,31 +90,78 @@ def test_serve_has_the_options_the_entrypoint_uses():
         assert option in out
 
 
-def _entrypoint_command(tmp_path, **env):
-    """The `strands-decider` command line the entrypoint runs, with a stand-in that prints it."""
-    fake = tmp_path / "strands-decider"
+def _entrypoint(tmp_path, *command, **env):
+    """Run the entrypoint with a stand-in `strands-decider` that prints its arguments."""
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir(exist_ok=True)
+    fake = bin_dir / "strands-decider"
     fake.write_text('#!/bin/bash\necho "$@"\n')
     fake.chmod(0o755)
-    run_env = {**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}", **env}
-    out = subprocess.run(
-        [ENTRYPOINT, "serve"], capture_output=True, text=True, check=True, env=run_env
-    ).stdout
-    return out.split()
+    model_dir = tmp_path / "model"
+    run_env = {
+        **os.environ,
+        "PATH": f"{bin_dir}:{os.environ['PATH']}",
+        "SM_MODEL_DIR": str(model_dir),
+        **env,
+    }
+    return subprocess.run([ENTRYPOINT, *command], capture_output=True, text=True, env=run_env)
+
+
+def _checkpoint(path):
+    path.mkdir(parents=True)
+    (path / "strands_decider_config.json").write_text("{}")
+    return path
+
+
+def _entrypoint_command(tmp_path, **env):
+    """The `strands-decider` command line the entrypoint runs for `serve`."""
+    result = _entrypoint(tmp_path, "serve", **env)
+    assert result.returncode == 0, result.stderr
+    return result.stdout.split()
 
 
 def test_entrypoint_serves_the_sagemaker_contract_by_default(tmp_path):
+    _checkpoint(tmp_path / "model")
     args = _entrypoint_command(tmp_path)
-    assert args[:2] == ["serve", "/opt/ml/model"]
+    assert args[:2] == ["serve", str(tmp_path / "model")]
     assert args[args.index("--port") + 1] == "8080"
     assert args[args.index("--host") + 1] == "0.0.0.0"
     assert args[args.index("--device") + 1] == "cuda"
     assert "--no-warmup" not in args and "--device-map" not in args
 
 
+def test_entrypoint_finds_the_checkpoint_next_to_its_base_model(tmp_path):
+    # The layout of a model tarball: the checkpoint folder and base/, the base model it reads.
+    checkpoint = _checkpoint(tmp_path / "model" / "strands-decider-2B-qwen3.5-v1-2610")
+    (tmp_path / "model" / "base").mkdir()
+    (tmp_path / "model" / "base" / "config.json").write_text("{}")
+    assert _entrypoint_command(tmp_path)[1] == str(checkpoint)
+
+
+def test_entrypoint_refuses_an_unclear_model_folder(tmp_path):
+    _checkpoint(tmp_path / "model" / "a")
+    _checkpoint(tmp_path / "model" / "b")
+    result = _entrypoint(tmp_path, "serve")
+    assert result.returncode != 0
+    assert "DECIDER_CHECKPOINT" in result.stderr
+
+
 def test_entrypoint_maps_the_environment_to_serve_options(tmp_path):
     args = _entrypoint_command(
-        tmp_path, DECIDER_WARMUP="0", DECIDER_DEVICE_MAP="auto", DECIDER_ARGS="--max-batch 8"
+        tmp_path,
+        DECIDER_CHECKPOINT="/models/mine",
+        DECIDER_WARMUP="0",
+        DECIDER_DEVICE_MAP="auto",
+        DECIDER_ARGS="--max-batch 8 --model-name *",
     )
+    assert args[1] == "/models/mine"
     assert "--no-warmup" in args
     assert args[args.index("--device-map") + 1] == "auto"
     assert args[args.index("--max-batch") + 1] == "8"
+    assert args[args.index("--model-name") + 1] == "*"  # not expanded to file names
+
+
+def test_entrypoint_runs_any_other_command(tmp_path):
+    result = _entrypoint(tmp_path, "echo", "hello")
+    assert result.returncode == 0
+    assert result.stdout.strip() == "hello"

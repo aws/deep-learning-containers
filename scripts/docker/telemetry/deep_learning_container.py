@@ -252,6 +252,7 @@ def parse_args():
             "llama_cpp",
             "whisperx",
             "dynamo",
+            "strands_decider",
         ],
         help="framework of container image.",
         required=True,
