@@ -18,6 +18,19 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends curl unzip \
   && rm -rf /var/lib/apt/lists/*
 
+# CVE-2026-111497 (USN-8956-1): the ubuntu24.04 vllm base ships libbrotli1
+# 1.1.0-2build2, pulled in by libcurl4t64, libcurl3t64-gnutls and libfreetype6.
+# 1.1.0-2ubuntu0.1 from noble-security fixes it. --only-upgrade so this never
+# adds brotli to an image that doesn't already have it; the dpkg check fails
+# the build if the mirror hasn't served the fixed version yet.
+ARG LIBBROTLI_MIN_VERSION=1.1.0-2ubuntu0.1
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends --only-upgrade libbrotli1 \
+  && installed="$(dpkg-query -W -f='${Version}' libbrotli1)" \
+  && dpkg --compare-versions "${installed}" ge "${LIBBROTLI_MIN_VERSION}" \
+  || { echo "libbrotli1 ${installed:-missing} < ${LIBBROTLI_MIN_VERSION} (CVE-2026-111497)" >&2; exit 1; } \
+  && rm -rf /var/lib/apt/lists/*
+
 # --break-system-packages: the 0.29 base runs `apt-get upgrade` after its own uv
 # installs, which pulls in the distro python3.12 and its PEP 668
 # /usr/lib/python3.12/EXTERNALLY-MANAGED marker. Without the flag uv refuses with
