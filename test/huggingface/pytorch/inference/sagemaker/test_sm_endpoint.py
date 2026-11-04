@@ -12,14 +12,18 @@ from sagemaker.core.shapes import ContainerDefinition, ProductionVariant
 from test_utils import clean_string, random_suffix_name
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 from test_utils.huggingface_helper import get_hf_token
-from test_utils.instance_capacity import build_instance_pools
+from test_utils.instance_capacity import (
+    build_instance_pools,
+    log_capacity_placement,
+    ml_reservation_config,
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 STARTUP_HEALTH_CHECK_TIMEOUT = 3600
 ENDPOINT_WAIT_TIMEOUT = 4200
-INSTANCE_TYPES = ["ml.g5.xlarge", "ml.g6.xlarge"]
+INSTANCE_TYPES = ["ml.g6.xlarge", "ml.g5.xlarge"]
 INSTANCE_PROVISION_TIMEOUT = 600
 
 
@@ -51,6 +55,7 @@ def _build_production_variant(model_name):
         model_name=model_name,
         initial_instance_count=1,
         instance_pools=build_instance_pools(INSTANCE_TYPES),
+        capacity_reservation_config=ml_reservation_config(INSTANCE_TYPES),
         variant_instance_provision_timeout_in_seconds=INSTANCE_PROVISION_TIMEOUT,
         inference_ami_version=INFERENCE_AMI_VERSION,
         container_startup_health_check_timeout_in_seconds=STARTUP_HEALTH_CHECK_TIMEOUT,
@@ -108,6 +113,7 @@ def model_endpoint(aws_session, image_uri, model_config):
             endpoint_config_name=endpoint_name,
         )
         _wait_for_endpoint(endpoint)
+        log_capacity_placement(endpoint)
         LOGGER.info("Endpoint deployment completed successfully")
 
         yield {"name": endpoint_name, "config": model_config}
