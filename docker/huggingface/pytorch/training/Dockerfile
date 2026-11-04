@@ -39,7 +39,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # --- HuggingFace training stack ------------------------------------------
 # Security floors for ECR findings: soupsieve fixes GHSA-2wc2-fm75-p42x and
 # GHSA-836r-79rf-4m37; Pillow 13.0.0 clears the CVE-2026-112xxx/96xxx batch;
-# GitPython 3.2.1 clears CVE-2026-114145; pyasn1 0.6.4 clears CVE-2026-59885
+# GitPython 3.2.1 clears CVE-2026-114145; pyasn1 0.6.5 clears CVE-2026-119194/119195/119196/119197 and CVE-2026-59885
 # and CVE-2026-59886; cryptography 50.0.0 clears CVE-2026-69247 and
 # CVE-2026-69249; aiohttp 3.14.4 clears CVE-2026-111064/111066 and
 # GHSA-2g87-pp6c-29x5; certifi 2026.10.19 drops the compromised emSign root
@@ -72,7 +72,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "soupsieve>=2.8.4" \
   "GitPython>=3.2.1" \
   "anyio>=4.14.2" \
-  "pyasn1>=0.6.4" \
+  "pyasn1>=0.6.5" \
   "cryptography>=50.0.0" \
   "aiohttp>=3.14.4" \
   "certifi>=2026.10.19" \
