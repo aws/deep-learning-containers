@@ -75,6 +75,7 @@ def test_sagemaker_defaults():
 def test_telemetry_reports_this_framework():
     script = Path("/usr/local/bin/bash_telemetry.sh").read_text()
     assert '--framework "strands_decider"' in script
+    assert os.environ["DLC_CONTAINER_TYPE"] == "inference"
     assert f'--framework-version "{os.environ["EXPECTED_FRAMEWORK_VERSION"]}"' in script
 
 

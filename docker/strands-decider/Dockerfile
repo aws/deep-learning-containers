@@ -76,7 +76,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py /usr/local/bin/start_cuda
 
 # The serving options, as environment variables: see sagemaker_entrypoint.sh (DECIDER_CHECKPOINT defaults to the
 # checkpoint SageMaker put under /opt/ml/model).
-ENV DECIDER_DEVICE=cuda \
+ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE} \
+  DECIDER_DEVICE=cuda \
   DECIDER_ARGS="" \
   DECIDER_WARMUP=1 \
   HF_HOME=/opt/hf \
