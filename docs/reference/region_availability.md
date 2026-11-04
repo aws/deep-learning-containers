@@ -40,6 +40,7 @@ Private ECR account IDs by region. See [Image Access](../get_started/index.md) f
 | Middle East (Bahrain) | me-south-1 | 217643126080 |
 | Middle East (Saudi Arabia) | me-west-1 | 124382933778 |
 | Middle East (UAE) | me-central-1 | 914824155844 |
+| South America (Chile) | sa-west-1 | 434457397001 |
 | South America (Sao Paulo) | sa-east-1 | 763104351884 |
 | China (Beijing) | cn-north-1 | 727897471807 |
 | China (Ningxia) | cn-northwest-1 | 727897471807 |
