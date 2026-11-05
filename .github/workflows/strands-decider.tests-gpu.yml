@@ -114,9 +114,8 @@ jobs:
           # TEMPORARY: bypasses buggy `cuda>=13.3` label check in
           # nvidia-container-toolkit 1.19.1 (fixed upstream in v1.20.0).
           # Remove flag + this comment once the runner AMI ships toolkit >= 1.20.
-          CONTAINER_ID=$(docker run -d --gpus all -e NVIDIA_DISABLE_REQUIRE=true -p 8080:8080 \
+          CONTAINER_ID=$(docker run -d --gpus all -e NVIDIA_DISABLE_REQUIRE=true -p 127.0.0.1:8080:8080 \
             -v ${{ steps.model.outputs.model-dir }}:/opt/ml/model:ro \
-            -e DECIDER_CHECKPOINT=/opt/ml/model/${{ matrix.model }} \
             -e DECIDER_DEVICE_MAP=${{ matrix.device-map }} \
             ${{ needs.preflight.outputs.image-uri }} serve)
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV

@@ -17,6 +17,7 @@ on:
       - "scripts/docker/strands_decider/**"
       - "test/sanity/**"
       - "test/strands-decider/**"
+      - "test/security/data/ecr_scan_allowlist/strands_decider/**"
       - "!docs/**"
 
 permissions:
@@ -59,6 +60,7 @@ jobs:
               - "docker/strands-decider/**"
               - "scripts/docker/common/**"
               - "scripts/docker/strands_decider/**"
+              - "test/security/data/ecr_scan_allowlist/strands_decider/**"
             sanity-test-change:
               - "test/sanity/**"
             unit-test-change:

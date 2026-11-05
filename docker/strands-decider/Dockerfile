@@ -23,10 +23,17 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
   && uv sync --frozen --no-dev --no-install-project
 
 # causal-conv1d is the fused kernel for the Gated DeltaNet conv layer (without it transformers runs a slower PyTorch
-# path). Its upstream wheels are for Python 3.11 and torch builds this image doesn't have, so compile it.
-RUN --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/pip uv pip install --python /usr/local/bin/python3 ninja \
+# path). Its upstream wheels are for Python 3.11 and torch builds this image doesn't have, so compile it, without
+# pip's cache: it keys a built wheel on the sdist, not on the torch it was built against.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --python /usr/local/bin/python3 ninja \
   && CAUSAL_CONV1D_FORCE_BUILD=TRUE TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS="$(nproc)" \
-    pip wheel --no-build-isolation --no-deps "causal-conv1d==${CAUSAL_CONV1D_VERSION}" -w /wheels
+    pip wheel --no-cache-dir --no-build-isolation --no-deps "causal-conv1d==${CAUSAL_CONV1D_VERSION}" -w /wheels
+
+# strands-decider comes from a git commit (pyproject.toml's [tool.uv.sources]). Build its wheel here, where git is,
+# so the runtime stage installs it without git.
+RUN (command -v git >/dev/null || dnf install -y -q git) \
+  && REV=$(python3 -c 'import tomllib; print(tomllib.load(open("/tmp/deps/pyproject.toml", "rb"))["tool"]["uv"]["sources"]["strands-decider"]["rev"])') \
+  && pip wheel --no-cache-dir --no-deps "strands-decider @ git+https://github.com/strands-labs/strands-decider@${REV}" -w /wheels
 
 # =============================================================================
 # sagemaker
@@ -49,7 +56,7 @@ RUN echo "cache refresh: ${CACHE_REFRESH}" \
 
 COPY ./docker/strands-decider/pyproject.toml ./docker/strands-decider/uv.lock /tmp/deps/
 RUN --mount=type=cache,target=/root/.cache/uv --mount=type=bind,from=builder,source=/wheels,target=/tmp/wheels cd /tmp/deps \
-  && uv sync --frozen --no-dev --no-install-project \
+  && uv sync --frozen --no-dev --no-install-project --no-install-package strands-decider \
   && uv pip install --python /usr/local/bin/python3 --no-deps /tmp/wheels/*.whl \
   && rm -rf /tmp/deps /tmp/uv-*.lock
 

@@ -1,16 +1,21 @@
 #!/bin/bash
-# SageMaker runs `docker run IMAGE serve`; any other command runs as given (e.g. `bash`).
+# SageMaker runs `docker run IMAGE serve`. Options after `serve`, or arguments that start with `-`, go to
+# `strands-decider serve`; any other command runs as given (e.g. `bash`).
 # strands-decider serves GET /ping and POST /invocations (and /health, /v1/systemone) on port 8080; /ping fails
 # until the model is loaded and warmed up. The environment maps to `strands-decider serve` options:
 #   DECIDER_CHECKPOINT  checkpoint folder. Default: SM_MODEL_DIR (/opt/ml/model, where SageMaker puts the model)
-#                       if it holds the checkpoint, else its one subfolder that does (e.g. <model>/ next to base/)
+#                       if it holds the checkpoint, else its one subfolder that does (e.g. <model>/ next to base/).
+#                       With a base/ folder (the base model, as the image runs offline), the checkpoint's config
+#                       must name it: "base_model": "/opt/ml/model/base"
 #   DECIDER_DEVICE      cuda (default) or cpu
 #   DECIDER_WARMUP      0 skips the warm-up (--no-warmup)
 #   DECIDER_DEVICE_MAP  e.g. auto: split a model larger than one GPU across the visible GPUs (--device-map)
-#   DECIDER_ARGS        any other options, e.g. "--max-batch 8"
+#   DECIDER_ARGS        any other options, split like a shell command line, e.g. '--model-name "fraud triage"'
 set -e
 
-if [ $# -gt 0 ] && [ "$1" != "serve" ]; then
+if [ "${1:-serve}" = "serve" ]; then
+  shift || true
+elif [ "${1#-}" = "$1" ]; then
   exec "$@"
 fi
 
@@ -41,6 +46,24 @@ if [ -z "${DECIDER_CHECKPOINT:-}" ]; then
   fi
 fi
 
+# A base/ folder next to the checkpoint is the base model for an offline load; a published checkpoint names its Hub
+# id instead, which can't load offline. Say so now rather than fail inside the model load.
+base_dir=$(dirname "${DECIDER_CHECKPOINT}")/base
+if [ -d "${base_dir}" ]; then
+  python3 - "${DECIDER_CHECKPOINT}" "${base_dir}" <<'EOF'
+import json, os, sys
+checkpoint, base_dir = sys.argv[1:]
+for name in ("strands_decider_config.json", "hobson_config.json"):
+    path = os.path.join(checkpoint, name)
+    if os.path.exists(path):
+        base_model = json.load(open(path)).get("base_model", "")
+        if os.path.realpath(base_model) != os.path.realpath(base_dir):
+            sys.exit(f"{path}: base_model is {base_model!r}; set it to {base_dir!r} to load the base model "
+                     f"from {base_dir} (the image runs offline, HF_HUB_OFFLINE=1)")
+        break
+EOF
+fi
+
 args=()
 if [ "${DECIDER_WARMUP:-1}" = "0" ]; then
   args+=(--no-warmup)
@@ -48,9 +71,11 @@ fi
 if [ -n "${DECIDER_DEVICE_MAP:-}" ]; then
   args+=(--device-map "${DECIDER_DEVICE_MAP}")
 fi
+if [ -n "${DECIDER_ARGS:-}" ]; then
+  # Split like a shell command line (quotes group, nothing expands).
+  mapfile -d '' -t extra < <(python3 -c 'import shlex, sys; sys.stdout.write("\0".join(shlex.split(sys.argv[1])))' "${DECIDER_ARGS}")
+  args+=("${extra[@]}")
+fi
 
-# DECIDER_ARGS holds several options: split it on spaces, without expanding glob characters.
-set -f
-# shellcheck disable=SC2086
 exec strands-decider serve "${DECIDER_CHECKPOINT}" --host 0.0.0.0 --port 8080 --device "${DECIDER_DEVICE:-cuda}" \
-  "${args[@]}" ${DECIDER_ARGS}
+  "${args[@]}" "$@"

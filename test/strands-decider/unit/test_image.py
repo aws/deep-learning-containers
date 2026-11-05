@@ -5,6 +5,7 @@ docker/strands-decider/pyproject.toml, the image's dependency pins.
 """
 
 import importlib.metadata
+import json
 import os
 import re
 import subprocess
@@ -13,14 +14,16 @@ import tomllib
 from pathlib import Path
 
 import pytest
+from packaging.requirements import Requirement
 
 REPO = Path(__file__).resolve().parents[3]
 PYPROJECT = tomllib.loads((REPO / "docker/strands-decider/pyproject.toml").read_text())
-PINS = dict(
-    re.match(r"([A-Za-z0-9_.-]+)==(\S+)", dep).groups()
-    for dep in PYPROJECT["project"]["dependencies"]
-    if "==" in dep
-)
+PINS = {
+    req.name: spec.version
+    for req in map(Requirement, PYPROJECT["project"]["dependencies"])
+    for spec in req.specifier
+    if spec.operator == "=="
+}
 ENTRYPOINT = "/usr/local/bin/sagemaker_entrypoint.sh"
 
 
@@ -88,7 +91,8 @@ def test_serve_has_the_options_the_entrypoint_uses():
         ["strands-decider", "serve", "--help"], capture_output=True, text=True, check=True
     ).stdout
     for option in ("--host", "--port", "--device", "--max-batch", "--no-warmup", "--device-map"):
-        assert option in out
+        # Whole options: --device must not pass because of --device-map.
+        assert re.search(rf"(?<![\w-]){re.escape(option)}(?![\w-])", out), option
 
 
 def _entrypoint(tmp_path, *command, **env):
@@ -96,7 +100,7 @@ def _entrypoint(tmp_path, *command, **env):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(exist_ok=True)
     fake = bin_dir / "strands-decider"
-    fake.write_text('#!/bin/bash\necho "$@"\n')
+    fake.write_text('#!/bin/bash\nprintf "%s\\n" "$@"\n')  # one argument per line
     fake.chmod(0o755)
     model_dir = tmp_path / "model"
     run_env = {
@@ -108,17 +112,17 @@ def _entrypoint(tmp_path, *command, **env):
     return subprocess.run([ENTRYPOINT, *command], capture_output=True, text=True, env=run_env)
 
 
-def _checkpoint(path):
+def _checkpoint(path, base_model="org/base-model"):
     path.mkdir(parents=True)
-    (path / "strands_decider_config.json").write_text("{}")
+    (path / "strands_decider_config.json").write_text(json.dumps({"base_model": str(base_model)}))
     return path
 
 
-def _entrypoint_command(tmp_path, **env):
-    """The `strands-decider` command line the entrypoint runs for `serve`."""
-    result = _entrypoint(tmp_path, "serve", **env)
+def _entrypoint_command(tmp_path, *command, **env):
+    """The `strands-decider` arguments the entrypoint runs, one per item."""
+    result = _entrypoint(tmp_path, *(command or ("serve",)), **env)
     assert result.returncode == 0, result.stderr
-    return result.stdout.split()
+    return result.stdout.splitlines()
 
 
 def test_entrypoint_serves_the_sagemaker_contract_by_default(tmp_path):
@@ -133,10 +137,20 @@ def test_entrypoint_serves_the_sagemaker_contract_by_default(tmp_path):
 
 def test_entrypoint_finds_the_checkpoint_next_to_its_base_model(tmp_path):
     # The layout of a model tarball: the checkpoint folder and base/, the base model it reads.
-    checkpoint = _checkpoint(tmp_path / "model" / "strands-decider-2B-qwen3.5-v1-2610")
-    (tmp_path / "model" / "base").mkdir()
-    (tmp_path / "model" / "base" / "config.json").write_text("{}")
+    base = tmp_path / "model" / "base"
+    checkpoint = _checkpoint(tmp_path / "model" / "strands-decider-2B-qwen3.5-v1-2610", base)
+    base.mkdir()
+    (base / "config.json").write_text("{}")
     assert _entrypoint_command(tmp_path)[1] == str(checkpoint)
+
+
+def test_entrypoint_refuses_a_checkpoint_that_does_not_name_its_base_folder(tmp_path):
+    # A published checkpoint names its base model's Hub id, which can't load offline.
+    _checkpoint(tmp_path / "model" / "strands-decider-2B-qwen3.5-v1-2610", "Qwen/Qwen3.5-2B-Base")
+    (tmp_path / "model" / "base").mkdir()
+    result = _entrypoint(tmp_path, "serve")
+    assert result.returncode != 0
+    assert "base_model" in result.stderr and str(tmp_path / "model" / "base") in result.stderr
 
 
 def test_entrypoint_refuses_an_unclear_model_folder(tmp_path):
@@ -153,13 +167,27 @@ def test_entrypoint_maps_the_environment_to_serve_options(tmp_path):
         DECIDER_CHECKPOINT="/models/mine",
         DECIDER_WARMUP="0",
         DECIDER_DEVICE_MAP="auto",
-        DECIDER_ARGS="--max-batch 8 --model-name *",
+        DECIDER_ARGS='--max-batch 8 --model-name "fraud triage" --tag *',
     )
     assert args[1] == "/models/mine"
     assert "--no-warmup" in args
     assert args[args.index("--device-map") + 1] == "auto"
     assert args[args.index("--max-batch") + 1] == "8"
-    assert args[args.index("--model-name") + 1] == "*"  # not expanded to file names
+    assert args[args.index("--model-name") + 1] == "fraud triage"  # quotes group, and aren't kept
+    assert args[args.index("--tag") + 1] == "*"  # not expanded to file names
+
+
+def test_entrypoint_forwards_options_after_serve(tmp_path):
+    args = _entrypoint_command(
+        tmp_path, "serve", "--device-map", "auto", DECIDER_CHECKPOINT="/models/mine"
+    )
+    assert args[-2:] == ["--device-map", "auto"]
+
+
+def test_entrypoint_takes_leading_options_as_serve_options(tmp_path):
+    args = _entrypoint_command(tmp_path, "--max-batch", "8", DECIDER_CHECKPOINT="/models/mine")
+    assert args[:2] == ["serve", "/models/mine"]
+    assert args[-2:] == ["--max-batch", "8"]
 
 
 def test_entrypoint_runs_any_other_command(tmp_path):
