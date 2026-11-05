@@ -153,32 +153,49 @@ def test_a_malformed_question_is_rejected():
 
 def test_ping_answers_within_two_seconds_under_load():
     """SageMaker gives a health check 2 s and real-time endpoints don't cap concurrent requests: with more
-    requests in flight than the server has worker threads (40), /ping must still answer in time."""
+    requests in flight than the server has worker threads (40), /ping must still answer in time.
+
+    The requests are small (one question), so they fill the thread pool without exhausting GPU memory;
+    each caller sends them back to back so the pool stays full however fast they are."""
     import threading
 
-    questions = {
-        f"q{i}": {"type": "noul", "instructions": f"Is point {i} about money?"} for i in range(16)
+    body = {
+        "state": URGENT,
+        "questions": {"q": {"type": "noul", "instructions": "Does this convey urgency?"}},
     }
-    body = {"state": URGENT * 80, "questions": questions}
+    done = threading.Event()
+    lock = threading.Lock()
+    in_flight = 0
     statuses = []
 
-    def invoke():
-        statuses.append(_post("/invocations", body)[0])
+    def invoke_until_done():
+        nonlocal in_flight
+        while not done.is_set():
+            with lock:
+                in_flight += 1
+            status = _post("/invocations", body)[0]
+            with lock:
+                in_flight -= 1
+                statuses.append(status)
 
-    callers = [threading.Thread(target=invoke) for _ in range(64)]
+    callers = [threading.Thread(target=invoke_until_done) for _ in range(48)]
     for t in callers:
         t.start()
-    time.sleep(0.5)  # let the requests take every worker thread
-    in_flight = sum(t.is_alive() for t in callers)
-    started = time.perf_counter()
-    with urllib.request.urlopen(f"{ENDPOINT_URL}/ping", timeout=2) as response:
-        assert response.status == 200
-    elapsed = time.perf_counter() - started
-    for t in callers:
-        t.join(timeout=600)
+    try:
+        deadline = time.monotonic() + 10
+        while in_flight <= 40:
+            assert time.monotonic() < deadline, (
+                f"only {in_flight} requests in flight: the pool never filled"
+            )
+            time.sleep(0.05)
+        started = time.perf_counter()
+        with urllib.request.urlopen(f"{ENDPOINT_URL}/ping", timeout=2) as response:
+            assert response.status == 200
+        elapsed = time.perf_counter() - started
+    finally:
+        done.set()
+        for t in callers:
+            t.join(timeout=120)
 
-    assert in_flight > 40, (
-        f"only {in_flight} requests in flight when /ping was sent: too light to fill the pool"
-    )
     assert elapsed < 2
-    assert statuses == [200] * 64
+    assert statuses and set(statuses) == {200}
