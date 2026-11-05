@@ -12,9 +12,12 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
 ARG UV_VERSION=0.13.6
+# Downloads are pinned by sha256 (x86_64 assets): bump the checksum with the version.
+ARG UV_SHA256=f29c3e94ffabd7e6f3ba521dba169a9b7ec12100bf3257087f0f24f6123f3645
 ARG BACKEND=vllm
 ARG EFA_FLAVOR=efa
 ARG NCCL_TESTS_VERSION=v2.20.0
+ARG NCCL_TESTS_SHA256=6087c4cbf91018866d2a5ba75bc0dcee83f473ce4a6899db020cb402a877ed9f
 
 # =============================================================================
 # dynamo-source / dynamo-build: Dynamo wheels from source
@@ -39,8 +42,12 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS dynamo-build
 
 ARG PYTHON_VERSION
 ARG UV_VERSION
+ARG UV_SHA256
 ARG DYNAMO_RUST_VERSION=1.96.1
+ARG RUSTUP_VERSION=1.29.3
+ARG RUSTUP_INIT_SHA256=b1c8cb14e30889e7e2999e6b69e62d9e9b9ffc0f4df8180564d306d9680e6c55
 ARG DYNAMO_PROTOC_VERSION=25.3
+ARG DYNAMO_PROTOC_SHA256=f853e691868d0557425ea290bf7ba6384eef2fa9b04c323afab49a770ba9da80
 ARG DYNAMO_RUNTIME_FEATURES="kv-indexer,slot-tracker,select-service,mm-routing,ais-forward-pass,request-trace-s3,nvtx"
 
 RUN dnf install -y --setopt=install_weak_deps=False \
@@ -50,13 +57,20 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 
 RUN curl -fsSL -o /tmp/protoc.zip \
   "https://github.com/protocolbuffers/protobuf/releases/download/v${DYNAMO_PROTOC_VERSION}/protoc-${DYNAMO_PROTOC_VERSION}-linux-x86_64.zip" \
+  && echo "${DYNAMO_PROTOC_SHA256}  /tmp/protoc.zip" | sha256sum -c - \
   && unzip -q -o /tmp/protoc.zip -d /usr/local bin/protoc 'include/*' \
   && rm /tmp/protoc.zip && protoc --version
 
-RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain ${DYNAMO_RUST_VERSION}
+RUN curl -fsSL -o /tmp/rustup-init "https://static.rust-lang.org/rustup/archive/${RUSTUP_VERSION}/x86_64-unknown-linux-gnu/rustup-init" \
+  && echo "${RUSTUP_INIT_SHA256}  /tmp/rustup-init" | sha256sum -c - \
+  && chmod +x /tmp/rustup-init && /tmp/rustup-init -y --profile minimal --default-toolchain ${DYNAMO_RUST_VERSION} \
+  && rm /tmp/rustup-init
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
+RUN curl -fsSL -o /tmp/uv.tar.gz "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-x86_64-unknown-linux-gnu.tar.gz" \
+  && echo "${UV_SHA256}  /tmp/uv.tar.gz" | sha256sum -c - \
+  && mkdir -p /root/.local/bin && tar xzf /tmp/uv.tar.gz -C /root/.local/bin --strip-components=1 \
+  && rm /tmp/uv.tar.gz
 ENV PATH="/root/.local/bin:${PATH}"
 RUN uv venv /opt/build-venv --python ${PYTHON_VERSION} \
   && VIRTUAL_ENV=/opt/build-venv uv pip install "maturin[patchelf]>=1.0,<2.0"
@@ -84,6 +98,7 @@ FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime-noefa
 ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG UV_VERSION
+ARG UV_SHA256
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=0
 
@@ -123,8 +138,11 @@ RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
     libcurand-devel-${CUDA_DASH} \
     libcublas-devel-${CUDA_DASH} \
   && dnf clean all && rm -rf /var/cache/dnf \
-  && curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh \
-  && uv --version
+  && curl -fsSL -o /tmp/uv.tar.gz "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-x86_64-unknown-linux-gnu.tar.gz" \
+  && echo "${UV_SHA256}  /tmp/uv.tar.gz" | sha256sum -c - \
+  && mkdir -p /root/.local/bin && tar xzf /tmp/uv.tar.gz -C /root/.local/bin --strip-components=1 \
+  && rm /tmp/uv.tar.gz \
+  && /root/.local/bin/uv --version
 
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
@@ -148,6 +166,7 @@ FROM runtime-noefa AS runtime-efa
 
 ARG EFA_VERSION="latest"
 ARG NCCL_TESTS_VERSION
+ARG NCCL_TESTS_SHA256
 COPY ./scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa_amzn2023.sh
 # libnccl-devel (cuda-rhel9 repo) is only needed to build the ofi-nccl check and nccl-tests;
 # at runtime all_reduce_perf uses the NCCL from the Python environment (see the final stage).
@@ -158,7 +177,9 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && bash /tmp/install_efa_amzn2023.sh ${EFA_VERSION} \
   && cd /tmp \
   && NCCL_TESTS_DIR="/tmp/nccl-tests-${NCCL_TESTS_VERSION#v}" \
-  && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
+  && curl -fsSL -o /tmp/nccl-tests.tar.gz "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" \
+  && echo "${NCCL_TESTS_SHA256}  /tmp/nccl-tests.tar.gz" | sha256sum -c - \
+  && tar xzf /tmp/nccl-tests.tar.gz && rm /tmp/nccl-tests.tar.gz \
   && make -C "${NCCL_TESTS_DIR}/src" BUILDDIR="${NCCL_TESTS_DIR}/build" \
     MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=/usr CUDA_HOME=/usr/local/cuda \
     NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_90,code=sm_90 -gencode=arch=compute_100,code=sm_100 -gencode=arch=compute_100,code=compute_100" \

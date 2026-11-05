@@ -62,13 +62,17 @@ build)
         gcc gcc-c++ git hwloc-devel numactl-devel python${PYVER}-devel \
         cuda-cudart-devel-${CUDA_DASH} cuda-driver-devel-${CUDA_DASH}
     python${PYVER} -m venv /tmp/nixl-tools
-    /tmp/nixl-tools/bin/pip install --no-cache-dir meson ninja patchelf "pybind11[global]"
+    /tmp/nixl-tools/bin/pip install --no-cache-dir meson==1.12.1 ninja==1.13.2 patchelf==0.19.3.0 "pybind11[global]==3.1.0"
     export PATH=/tmp/nixl-tools/bin:${PATH}
     # Link against the driver stub; the node's driver provides libcuda.so.1 at runtime.
     export LIBRARY_PATH=/usr/local/cuda/lib64/stubs${LIBRARY_PATH:+:${LIBRARY_PATH}}
 
-    git clone -q --depth 1 --branch "v${NIXL_VERSION}" "$NIXL_REPO" /tmp/nixl
-    cd /tmp/nixl
+    # Pinned by commit (tags can move): <patch-dir>/../COMMITS maps each NIXL version to its v<version> commit.
+    COMMIT=$(awk -v v="${NIXL_VERSION}" '$1 == v {print $2}' "$2/../COMMITS")
+    [ -n "$COMMIT" ] || { echo "no pinned commit for NIXL ${NIXL_VERSION} in $2/../COMMITS" >&2; exit 1; }
+    git init -q /tmp/nixl && cd /tmp/nixl
+    git fetch -q --depth 1 "$NIXL_REPO" "$COMMIT" && git checkout -q FETCH_HEAD
+    [ "$(git rev-parse HEAD)" = "$COMMIT" ] || { echo "NIXL checkout is not ${COMMIT}" >&2; exit 1; }
     for p in $PATCHES; do echo "applying $(basename "$p")"; git apply "$p"; done
     # Python bindings are configured but not built; only the plugin target is.
     meson setup build -Dbuildtype=release -Denable_plugins=LIBFABRIC -Dlibfabric_path=/opt/amazon/efa \
