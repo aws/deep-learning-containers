@@ -14,6 +14,7 @@ ARG PYTHON_VERSION=3.12
 ARG UV_VERSION=0.13.6
 ARG BACKEND=vllm
 ARG EFA_FLAVOR=efa
+ARG NCCL_TESTS_VERSION=v2.20.0
 
 # =============================================================================
 # dynamo-source / dynamo-build: Dynamo wheels from source
@@ -146,7 +147,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 FROM runtime-noefa AS runtime-efa
 
 ARG EFA_VERSION="latest"
-ARG NCCL_TESTS_VERSION=v2.20.0
+ARG NCCL_TESTS_VERSION
 COPY ./scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa_amzn2023.sh
 # libnccl-devel (cuda-rhel9 repo) is only needed to build the ofi-nccl check and nccl-tests;
 # at runtime all_reduce_perf uses the NCCL from the Python environment (see the final stage).
@@ -234,9 +235,15 @@ ARG BUNDLED_NIXL_VERSION=""
 RUN --mount=type=bind,from=nixl-libfabric-build,source=/opt/nixl-libfabric,target=/tmp/nixl-libfabric --mount=type=bind,source=scripts/docker/dynamo/nixl,target=/tmp/nixl-src BUNDLED_NIXL_VERSION=${BUNDLED_NIXL_VERSION} bash /tmp/nixl-src/build_libfabric_plugin.sh install /tmp/nixl-libfabric
 
 # NCCL comes from the Python environment (nvidia-nccl-cu13); register it with the loader so
-# non-Python tools (nccl-tests in the EFA flavor) find it too.
+# non-Python tools (nccl-tests in the EFA flavor) find it too. nccl-tests is built from source in
+# runtime-efa, before the license files above are copied in, so record it here.
+ARG NCCL_TESTS_VERSION
 RUN NCCL_LIB=$(python3 -c "import nvidia.nccl, os; print(os.path.join(nvidia.nccl.__path__[0], 'lib'))") \
   && echo "${NCCL_LIB}" >/etc/ld.so.conf.d/nccl.conf && ldconfig \
+  && if [ -x /usr/local/bin/all_reduce_perf ]; then \
+    printf '\n** nccl-tests; version %s -- https://github.com/NVIDIA/nccl-tests\n' "${NCCL_TESTS_VERSION#v}" >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    && printf '\nnccl-tests %s https://github.com/NVIDIA/nccl-tests/archive/refs/tags/%s.tar.gz\n' "${NCCL_TESTS_VERSION#v}" "${NCCL_TESTS_VERSION}" >>/root/THIRD_PARTY_SOURCE_CODE_URLS; \
+  fi \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python
 
 # Files that nothing in the image uses and that carry outdated pinned dependencies (image scan):

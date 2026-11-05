@@ -131,6 +131,8 @@ def test_efa_flavor_has_efa_stack():
     assert LIBFABRIC.exists(), "EFA libfabric missing"
     assert Path("/opt/amazon/ofi-nccl").is_dir(), "aws-ofi-nccl plugin missing"
     assert shutil.which("all_reduce_perf"), "nccl-tests all_reduce_perf missing"
+    # Built from source, so it must be listed for OSS compliance.
+    assert "nccl-tests" in Path("/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES").read_text()
 
 
 @pytest.mark.skipif(EFA_FLAVOR != "noefa", reason="non-EFA flavor only")
@@ -184,3 +186,9 @@ def test_nixl_libfabric_plugin_ready_for_efa():
         assert "nixl-2308" in patches.read_text()
     else:
         assert not patches.exists(), f"plugin rebuilt for unexpected NIXL {nixl.version}"
+    # A rebuilt plugin is built from source, so it must be listed for OSS compliance.
+    rebuilt = Path("/opt/nixl/LIBFABRIC_PLUGIN_SOURCE").exists()
+    listed = (
+        "NIXL LIBFABRIC plugin" in Path("/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES").read_text()
+    )
+    assert listed == rebuilt, f"plugin rebuilt: {rebuilt}, listed in BUILD_FROM_SOURCE: {listed}"

@@ -112,6 +112,9 @@ assert 'LIBFABRIC' in plugins, plugins"
     mkdir -p /opt/nixl
     cp "$OUT/VERSION" /opt/nixl/LIBFABRIC_PLUGIN_SOURCE
     if [ -s "$OUT/PATCHES" ]; then cp "$OUT/PATCHES" /opt/nixl/LIBFABRIC_PLUGIN_PATCHES; fi
+    # Built from source: record it for OSS compliance (the license files are already in place).
+    printf '\n** NIXL LIBFABRIC plugin; version %s -- %s\n' "${NIXL_VERSION}" "${NIXL_REPO}" >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+    printf '\nnixl %s %s/archive/refs/tags/v%s.tar.gz\n' "${NIXL_VERSION}" "${NIXL_REPO%.git}" "${NIXL_VERSION}" >>/root/THIRD_PARTY_SOURCE_CODE_URLS
     echo "${NIXL_DIST} ${NIXL_VERSION}: LIBFABRIC plugin built, patches: $(tr '\n' ' ' < "$OUT/PATCHES")"
     ;;
 *)
