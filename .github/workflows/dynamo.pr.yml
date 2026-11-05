@@ -128,6 +128,8 @@ jobs:
       run-telemetry-test: ${{ needs.check-changes.outputs.build-change == 'true' }}
       run-image-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.image-test-change == 'true' }}
       run-serving-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.serving-test-change == 'true' }}
-      run-hyperpod-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.hyperpod-test-change == 'true' }}
+      # Off in PRs until the HyperPod test cluster has reserved GPU capacity (on-demand g5 is often unavailable).
+      # To turn it back on, run it when build-change or hyperpod-test-change is true, like the other suites.
+      run-hyperpod-test: false
       run-efa-test: ${{ needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.efa-test-change == 'true' }}
     secrets: inherit
