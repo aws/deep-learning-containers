@@ -23,7 +23,7 @@ dependencies = [
 environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
 
 [tool.uv.sources]
-strands-decider = { git = "https://github.com/strands-labs/strands-decider", rev = "63abfbc0e8df12c90688f6617ec94cf9ae1fb070" }
+strands-decider = { git = "https://github.com/strands-labs/strands-decider", rev = "87d0fd5774587ae786ccfea7470e58f6a5b4ddef" }
 torch = { index = "pytorch-cu128" }
 
 # torch 2.7.1 has no CUDA 12.9 build; cu128 wheels bring their own CUDA libraries and run on the cu129 base.

@@ -6,7 +6,7 @@ metadata:
   framework: "strands_decider"
   # The commit pinned in docker/strands-decider/pyproject.toml (after v0.2.0, which lacks the SageMaker paths and
   # Gemma 4). Move both to the first release that has them.
-  framework_version: "0.2.1.dev15"
+  framework_version: "0.2.1.dev18"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
