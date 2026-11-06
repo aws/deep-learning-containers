@@ -71,6 +71,7 @@ def test_triton_can_compile_its_launcher():
 def test_sagemaker_defaults():
     assert os.environ["DECIDER_DEVICE"] == "cuda"
     assert os.environ["DECIDER_WARMUP"] == "1"
+    assert os.environ["DECIDER_MAX_CONCURRENCY"] == "1"
     assert os.environ["HF_HUB_OFFLINE"] == "1"
     assert "DECIDER_CHECKPOINT" not in os.environ  # found under /opt/ml/model at start
     assert "DECIDER_DEVICE_MAP" not in os.environ
@@ -104,7 +105,15 @@ def test_serve_has_the_options_the_entrypoint_uses():
     out = subprocess.run(
         ["strands-decider", "serve", "--help"], capture_output=True, text=True, check=True
     ).stdout
-    for option in ("--host", "--port", "--device", "--max-batch", "--no-warmup", "--device-map"):
+    for option in (
+        "--host",
+        "--port",
+        "--device",
+        "--max-batch",
+        "--no-warmup",
+        "--device-map",
+        "--max-concurrency",
+    ):
         # Whole options: --device must not pass because of --device-map.
         assert re.search(rf"(?<![\w-]){re.escape(option)}(?![\w-])", out), option
 
@@ -147,6 +156,7 @@ def test_entrypoint_serves_the_sagemaker_contract_by_default(tmp_path):
     assert args[args.index("--host") + 1] == "0.0.0.0"
     assert args[args.index("--device") + 1] == "cuda"
     assert "--no-warmup" not in args and "--device-map" not in args
+    assert args[args.index("--max-concurrency") + 1] == "1"
 
 
 def test_entrypoint_finds_the_checkpoint_next_to_its_base_model(tmp_path):
@@ -180,15 +190,24 @@ def test_entrypoint_maps_the_environment_to_serve_options(tmp_path):
         tmp_path,
         DECIDER_CHECKPOINT="/models/mine",
         DECIDER_WARMUP="0",
+        DECIDER_MAX_CONCURRENCY="4",
         DECIDER_DEVICE_MAP="auto",
         DECIDER_ARGS='--max-batch 8 --model-name "fraud triage" --tag *',
     )
     assert args[1] == "/models/mine"
     assert "--no-warmup" in args
+    assert args[args.index("--max-concurrency") + 1] == "4"
     assert args[args.index("--device-map") + 1] == "auto"
     assert args[args.index("--max-batch") + 1] == "8"
     assert args[args.index("--model-name") + 1] == "fraud triage"  # quotes group, and aren't kept
     assert args[args.index("--tag") + 1] == "*"  # not expanded to file names
+
+
+def test_entrypoint_runs_without_a_cap_when_max_concurrency_is_0(tmp_path):
+    args = _entrypoint_command(
+        tmp_path, DECIDER_CHECKPOINT="/models/mine", DECIDER_MAX_CONCURRENCY="0"
+    )
+    assert "--max-concurrency" not in args
 
 
 def test_entrypoint_forwards_options_after_serve(tmp_path):

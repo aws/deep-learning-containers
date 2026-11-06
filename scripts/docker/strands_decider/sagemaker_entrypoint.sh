@@ -9,6 +9,9 @@
 #                       must name it: "base_model": "/opt/ml/model/base"
 #   DECIDER_DEVICE      cuda (default) or cpu
 #   DECIDER_WARMUP      0 skips the warm-up (--no-warmup)
+#   DECIDER_MAX_CONCURRENCY  requests run on the model at once, the others wait (--max-concurrency). Default 1:
+#                       a request's questions are already batched on the GPU, and without a cap a burst of large
+#                       requests runs the GPU out of memory. 0 removes the cap (up to 40 at once)
 #   DECIDER_DEVICE_MAP  e.g. auto: split a model larger than one GPU across the visible GPUs (--device-map)
 #   DECIDER_ARGS        any other options, split like a shell command line, e.g. '--model-name "fraud triage"'
 set -e
@@ -67,6 +70,9 @@ fi
 args=()
 if [ "${DECIDER_WARMUP:-1}" = "0" ]; then
   args+=(--no-warmup)
+fi
+if [ -n "${DECIDER_MAX_CONCURRENCY:-}" ] && [ "${DECIDER_MAX_CONCURRENCY}" != "0" ]; then
+  args+=(--max-concurrency "${DECIDER_MAX_CONCURRENCY}")
 fi
 if [ -n "${DECIDER_DEVICE_MAP:-}" ]; then
   args+=(--device-map "${DECIDER_DEVICE_MAP}")

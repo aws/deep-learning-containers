@@ -199,3 +199,38 @@ def test_ping_answers_within_two_seconds_under_load():
 
     assert elapsed < 2
     assert statuses and set(statuses) == {200}
+
+
+def test_a_burst_of_large_requests_all_succeed():
+    """Real-time endpoints don't cap concurrent requests. Without --max-concurrency, 64 of these at once ran
+    every request on the GPU together and all of them failed (out of GPU memory, HTTP 500); with the image's
+    default (DECIDER_MAX_CONCURRENCY=1) they queue and every one is answered."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    body = {
+        "state": URGENT * 80,
+        "questions": {
+            f"q{i}": {"type": "noul", "instructions": f"Is point {i} about money?"}
+            for i in range(16)
+        },
+    }
+
+    def invoke(_):
+        request = urllib.request.Request(
+            f"{ENDPOINT_URL}/invocations",
+            json.dumps(body).encode(),
+            {"content-type": "application/json"},
+        )
+        try:
+            # Queued behind the whole burst, so allow far longer than one request takes.
+            with urllib.request.urlopen(request, timeout=600) as response:
+                return response.status, len(json.load(response)["answers"])
+        except urllib.error.HTTPError as e:
+            return e.code, 0
+
+    with ThreadPoolExecutor(64) as pool:
+        results = list(pool.map(invoke, range(64)))
+
+    assert results == [(200, 16)] * 64, {r: results.count(r) for r in set(results)}
+    with urllib.request.urlopen(f"{ENDPOINT_URL}/ping", timeout=2) as response:
+        assert response.status == 200
