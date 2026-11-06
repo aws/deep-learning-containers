@@ -30,10 +30,11 @@ build:
   dlc_minor_version: "0"
 
 release:
-  # Off until the prod repositories exist and the version is a strands-decider release.
-  release: false
+  # Released from the strands-decider commit pinned in docker/strands-decider/pyproject.toml: the image is
+  # product-versioned (tags serve-sagemaker-cuda-vX.Y.Z), so it doesn't wait for a strands-decider tag.
+  release: true
   force_release: false
-  public_registry: false
+  public_registry: true
   private_registry: true
   enable_soci: true
   environment: "production"
