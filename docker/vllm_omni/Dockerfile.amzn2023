@@ -477,6 +477,16 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_O
 # its common requirements; keep it explicit as part of the DLC image contract.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install "s3tokenizer==0.3.0"
 
+# Server VAD (`turn_detection: {"type": "server_vad"}`) on turn-based /v1/realtime, new in
+# vllm-omni 0.32.0 (vllm-omni#8600). vllm-omni never downloads a VAD model: it uses a Silero
+# ONNX file at duplex_session.server_vad_model_path or in the local HF cache, and otherwise
+# falls back to the silero-vad package (its `server-vad` extra), which bundles the weights.
+# Install the package so server VAD works offline, and check that the model loads and scores
+# one 16 kHz frame the way vllm-omni's fallback calls it. Its bundled silero_vad.onnx matches
+# vllm-omni's pinned checksum, so server_vad_model_path can also point at it.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "silero-vad==6.2.3" \
+  && python3 -c "import torch; from silero_vad import load_silero_vad; p = load_silero_vad(onnx=False)(torch.zeros(512), 16000).item(); assert 0.0 <= p < 0.5, p; print(f'silero-vad silence probability {p:.3f}')"
+
 # vllm-omni 0.32.0 resolves its tested transformers range transitively:
 # transformers>=5.16.1,<5.20.0, the same range as vLLM 0.32.0. fa3-fwd is no
 # longer installed: upstream moved it to the `dev` extra (vllm-omni#7735) and
