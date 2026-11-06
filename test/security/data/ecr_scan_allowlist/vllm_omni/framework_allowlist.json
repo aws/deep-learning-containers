@@ -65,16 +65,6 @@
         "review_by": "2026-12-28"
     },
     {
-        "vulnerability_id": "CVE-2026-93436",
-        "reason": "vllm pinned by the vllm-omni image (VLLM_VERSION); fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
-        "review_by": "2027-01-27"
-    },
-    {
-        "vulnerability_id": "CVE-2026-94623",
-        "reason": "vllm 0.29.0rc1 pinned by the image; fix requires vllm>=0.30.0, a framework version bump handled in a separate follow-up PR",
-        "review_by": "2027-01-27"
-    },
-    {
         "vulnerability_id": "CVE-2026-56857",
         "reason": "go/stdlib 1.25.10 (os.Root Mkdir/MkdirAll through a junction; Windows only, not reachable on Linux) statically linked inside the AL2023 mooncake libetcd_wrapper.so; fixed in Go 1.27.2, cannot be patched independently of a mooncake-transfer-engine rebuild",
         "review_by": "2026-12-10"
@@ -130,11 +120,6 @@
         "review_by": "2026-12-10"
     },
     {
-        "vulnerability_id": "CVE-2026-100647",
-        "reason": "False positive. The scanner reads vllm 0.29.0rc1+amzn2023 from dist-info METADATA, but this image builds from vllm commit 98dff2a81d747d1dba01a47f939f48c3526d4206, which is the v0.29.0 release tag itself and therefore carries the cache_salt length-validation fix. The version string in the wheel metadata is stale; correcting it is the real remedy.",
-        "review_by": "2026-12-10"
-    },
-    {
         "vulnerability_id": "CVE-2026-81726",
         "reason": "nltk 3.10.3 with no fixed version published. The path traversal is in the TransitionParser model-artifact APIs, which require a caller to pass attacker-controlled paths; this image serves a fixed model and never loads untrusted artifacts through those APIs. Not exploitable in the runtime.",
         "review_by": "2026-11-11"
@@ -143,11 +128,6 @@
         "vulnerability_id": "CVE-2026-69112",
         "reason": "accelerate 1.12.0 with no fixed version published (the advisory covers through 1.14.0). load_checkpoint_in_model and load_checkpoint_and_dispatch traverse paths taken from a sharded checkpoint index, so exploitation needs an attacker-supplied checkpoint; this image serves a fixed, known model. HF-owned package, so a bump would go to the HF team once a fix exists.",
         "review_by": "2026-11-11"
-    },
-    {
-        "vulnerability_id": "CVE-2026-105759",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.30.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
     },
     {
         "vulnerability_id": "CVE-2026-112390",
@@ -275,41 +255,6 @@
         "review_by": "2026-11-26"
     },
     {
-        "vulnerability_id": "CVE-2026-114050",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.31.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
-    },
-    {
-        "vulnerability_id": "CVE-2026-114052",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.31.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
-    },
-    {
-        "vulnerability_id": "CVE-2026-114053",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.31.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
-    },
-    {
-        "vulnerability_id": "CVE-2026-114055",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.31.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
-    },
-    {
-        "vulnerability_id": "CVE-2026-115912",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.32.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
-    },
-    {
-        "vulnerability_id": "CVE-2026-115915",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.32.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
-    },
-    {
-        "vulnerability_id": "CVE-2026-94624",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.32.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
-    },
-    {
         "vulnerability_id": "CVE-2026-96639",
         "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
         "review_by": "2026-11-12"
@@ -343,10 +288,5 @@
         "vulnerability_id": "GHSA-xvh5-g6gv-559v",
         "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
         "review_by": "2026-11-26"
-    },
-    {
-        "vulnerability_id": "CVE-2026-116178",
-        "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.30.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
-        "review_by": "2027-01-27"
     }
 ]
