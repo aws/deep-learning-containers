@@ -16,17 +16,17 @@
     },
     {
         "vulnerability_id": "CVE-2026-115915",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.32.0. ImageMediaIO decodes image bytes from requests through Pillow without restricting formats, so it is reachable when serving a multimodal model with image inputs. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
+        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.33.0. ImageMediaIO decodes image bytes from requests through Pillow without restricting formats, so it is reachable when serving a multimodal model with image inputs. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
         "review_by": "2026-11-14"
     },
     {
         "vulnerability_id": "CVE-2026-115912",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.32.0. Needs an authenticated caller submitting forged shared-memory multimodal features, so only multimodal deployments are exposed. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
+        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.33.0. Needs an authenticated caller submitting forged shared-memory multimodal features, so only multimodal deployments are exposed. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
         "review_by": "2026-11-14"
     },
     {
         "vulnerability_id": "CVE-2026-94624",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.32.0. The vulnerable path needs OffloadingConnector with TieringOffloadingSpec and a peer-to-peer secondary tier, which the images don't configure by default. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
+        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.33.0. The vulnerable path needs OffloadingConnector with TieringOffloadingSpec and a peer-to-peer secondary tier, which the images don't configure by default. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
         "review_by": "2026-11-14"
     },
     {

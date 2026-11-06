@@ -284,7 +284,7 @@ ENV UV_LINK_MODE=copy
 ARG NCCL_VERSION
 RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
   && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt \
-  && echo "transformers==5.19.0" >>/etc/uv-overrides.txt
+  && echo "transformers==5.20.2" >>/etc/uv-overrides.txt
 ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch
@@ -312,9 +312,10 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
   --extra-index-url https://flashinfer.ai/whl/ \
   --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-# Install serving extras
+# Install serving extras (gguf: NVFP4 GGUF checkpoints, added to upstream's image in 0.33.0)
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate modelscope \
-  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7"
+  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs,azure]>=0.15.7" \
+  "gguf>=0.19.0"
 
 # Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
