@@ -3,8 +3,8 @@ name = "dlc-strands-decider"
 version = "1.0.0"
 requires-python = "==3.13.*"
 dependencies = [
-    # From the commit in [tool.uv.sources]: v0.2.0 lacks the SageMaker serving contract (GET /ping, POST
-    # /invocations), Gemma 4, --warmup and --device-map, which came after it. Move to the first release with them.
+    # From the commit in [tool.uv.sources], the v0.3.0 tag: the first release with the SageMaker serving contract
+    # (GET /ping, POST /invocations), Gemma 4, --warmup and --device-map.
     "strands-decider[cuda]",
     # 2.7.1 is the torch strands-decider's kernels and transformers pin are tested with.
     "torch==2.7.1",

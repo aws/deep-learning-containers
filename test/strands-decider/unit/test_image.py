@@ -33,7 +33,8 @@ def test_python_version():
 
 
 def test_strands_decider_is_the_configured_version():
-    # A build from a commit reports a local version (0.2.1.dev8+g13faf52); the config holds the public part.
+    # A build from a tagged commit reports its release (0.3.0); one between tags, a local version
+    # (0.3.1.dev2+g1234abc), whose public part the config holds.
     installed = importlib.metadata.version("strands-decider")
     assert installed.split("+")[0] == os.environ["EXPECTED_FRAMEWORK_VERSION"]
 
@@ -80,6 +81,19 @@ def test_telemetry_reports_this_framework():
     assert '--framework "strands_decider"' in script
     assert os.environ["DLC_CONTAINER_TYPE"] == "inference"
     assert f'--framework-version "{os.environ["EXPECTED_FRAMEWORK_VERSION"]}"' in script
+
+
+def test_oss_attribution_lists_every_python_package_and_tqdm_source():
+    licenses = Path("/root/PYTHON_PACKAGES_LICENSES").read_text()
+    for package in ("torch", "causal_conv1d", "strands-decider"):
+        assert f"Package Name: {package}\n" in licenses
+    # tqdm is MPL-2.0 AND MIT: its source URL must be listed for upload.
+    sources = Path("/root/THIRD_PARTY_SOURCE_CODE_URLS").read_text().split("\n")
+    version = importlib.metadata.version("tqdm")
+    assert (
+        f"tqdm {version} https://github.com/tqdm/tqdm/archive/refs/tags/v{version}.tar.gz"
+        in sources
+    )
 
 
 def test_entrypoint_is_executable():

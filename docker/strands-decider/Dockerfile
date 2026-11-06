@@ -78,6 +78,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py /usr/local/bin/start_cuda
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
+  # tqdm is MPL-2.0 AND MIT, so its source goes with the image; the scan above only lists certifi.
+  && TQDM_VERSION=$(python3 -c 'import importlib.metadata as m; print(m.version("tqdm"))') \
+  && printf '\ntqdm %s https://github.com/tqdm/tqdm/archive/refs/tags/v%s.tar.gz\n' "${TQDM_VERSION}" "${TQDM_VERSION}" \
+    >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* /tmp/tmp* /root/.cache
 

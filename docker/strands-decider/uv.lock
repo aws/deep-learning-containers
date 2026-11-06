@@ -702,7 +702,7 @@ wheels = [
 
 [[package]]
 name = "strands-decider"
-version = "0.2.1.dev18+g87d0fd5"
+version = "0.3.0"
 source = { git = "https://github.com/strands-labs/strands-decider?rev=87d0fd5774587ae786ccfea7470e58f6a5b4ddef#87d0fd5774587ae786ccfea7470e58f6a5b4ddef" }
 dependencies = [
     { name = "accelerate" },
