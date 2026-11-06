@@ -66,12 +66,12 @@
     },
     {
         "vulnerability_id": "CVE-2026-115915",
-        "reason": "vllm 0.29.0 ImageMediaIO passes attacker-controlled image bytes to Pillow through Image.open() without restricting them. Fixed in vllm 0.32.0, but ray[llm] 2.60.0 hard-pins vllm[audio]==0.29.0, and the newest Ray (2.59.0) still pins vllm 0.27.0, so this cannot be patched without Ray moving its pin.",
+        "reason": "vllm 0.29.0 ImageMediaIO passes attacker-controlled image bytes to Pillow through Image.open() without restricting them. Fixed in vllm 0.32.0, but ray[llm] 2.60.0 hard-pins vllm[audio]==0.29.0, so this cannot be patched without Ray moving its pin.",
         "review_by": "2027-02-03"
     },
     {
         "vulnerability_id": "CVE-2026-116178",
-        "reason": "vllm 0.29.0 denial of service: inconsistent multimodal metadata sent to the disaggregated inference endpoint crashes the engine. Fixed in vllm 0.30.0, but ray[llm] 2.60.0 hard-pins vllm[audio]==0.29.0, and the newest Ray (2.59.0) still pins vllm 0.27.0, so this cannot be patched without Ray moving its pin.",
+        "reason": "vllm 0.29.0 denial of service: inconsistent multimodal metadata sent to the disaggregated inference endpoint crashes the engine. Fixed in vllm 0.30.0, but ray[llm] 2.60.0 hard-pins vllm[audio]==0.29.0, so this cannot be patched without Ray moving its pin.",
         "review_by": "2027-02-03"
     }
 ]
