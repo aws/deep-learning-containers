@@ -1,0 +1,5 @@
+# Shared requirements for all MCP servers
+fastmcp==2.12.5
+boto3==1.35.36
+uvicorn==0.32.1
+pydantic>=2.11.7
