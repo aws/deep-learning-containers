@@ -1,0 +1,40 @@
+image:
+  name: "dynamo-vllm-efa-amzn2023"
+  description: "NVIDIA Dynamo with the vLLM backend, with EFA (AL2023)"
+
+metadata:
+  framework: "dynamo"
+  # Dynamo release; must match the ai-dynamo version in docker/dynamo/vllm/uv.lock and build.dynamo_ref.
+  framework_version: "1.6.1"
+  # Backend and the version Dynamo pins for it (from the lock).
+  backend: "vllm"
+  backend_version: "0.31.0"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  platform: "hyperpod"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "general"
+  prod_image: "dynamo:1.6.1-efa-vllm-runtime-v1"
+
+build:
+  dockerfile: "docker/dynamo/Dockerfile.amzn2023"
+  target: "vllm"
+  backend: "vllm"
+  # "efa": EFA, aws-ofi-nccl and nccl-tests; "noefa": none of them.
+  efa_flavor: "efa"
+  efa_version: "latest"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  # Dynamo 1.6.1 (release/1.6.1; not tagged yet).
+  dynamo_ref: "0d9c24a8bf6db13c1a1223cf15fcbee9140d1ac3"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: true
+  environment: "production"

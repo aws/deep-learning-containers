@@ -235,3 +235,21 @@ suites:
     skip_eligible: true
     code_paths:
       - test/whisperx/sagemaker/**
+
+  dynamo/image:
+    skip_eligible: true
+    code_paths:
+      - test/dynamo/test_image.py
+      - .github/workflows/dynamo.tests-image.yml
+
+  dynamo/serving:
+    skip_eligible: true
+    code_paths:
+      - test/dynamo/test_serving.py
+      - .github/workflows/dynamo.tests-serving.yml
+
+  dynamo/hyperpod:
+    skip_eligible: true
+    code_paths:
+      - test/dynamo/hyperpod/**
+      - .github/workflows/dynamo.tests-hyperpod.yml
