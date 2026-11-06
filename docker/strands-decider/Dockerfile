@@ -1,0 +1,102 @@
+# strands-decider (https://github.com/strands-labs/strands-decider) on the AL2023 base DLC, for SageMaker inference.
+# torch stays at 2.7.1, the version strands-decider's kernels and transformers pin are tested with.
+#
+#   builder    base devel: compiles causal-conv1d against the image's torch
+#   sagemaker  base runtime: the locked environment, the compiled kernel, `strands-decider serve` on port 8080
+#
+# The model is not in the image: SageMaker copies it to /opt/ml/model before the container starts.
+
+ARG BASE_DEVEL_IMAGE=public.ecr.aws/deep-learning-containers/base:devel-cu129-amzn2023
+ARG BASE_RUNTIME_IMAGE=public.ecr.aws/deep-learning-containers/base:runtime-cu129-amzn2023
+
+# =============================================================================
+# builder
+# =============================================================================
+FROM ${BASE_DEVEL_IMAGE} AS builder
+
+ARG CAUSAL_CONV1D_VERSION=1.7.0
+# A100 (8.0), A10G (8.6), L4 and L40S (8.9), H100 (9.0)
+ARG TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0"
+
+COPY ./docker/strands-decider/pyproject.toml ./docker/strands-decider/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project
+
+# causal-conv1d is the fused kernel for the Gated DeltaNet conv layer (without it transformers runs a slower PyTorch
+# path). Its upstream wheels are for Python 3.11 and torch builds this image doesn't have, so compile it, without
+# pip's cache: it keys a built wheel on the sdist, not on the torch it was built against.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --python /usr/local/bin/python3 ninja \
+  && CAUSAL_CONV1D_FORCE_BUILD=TRUE TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS="$(nproc)" \
+    pip wheel --no-cache-dir --no-build-isolation --no-deps "causal-conv1d==${CAUSAL_CONV1D_VERSION}" -w /wheels
+
+# strands-decider comes from a git commit (pyproject.toml's [tool.uv.sources]). Build its wheel here, where git is,
+# so the runtime stage installs it without git.
+RUN (command -v git >/dev/null || dnf install -y -q git) \
+  && REV=$(python3 -c 'import tomllib; print(tomllib.load(open("/tmp/deps/pyproject.toml", "rb"))["tool"]["uv"]["sources"]["strands-decider"]["rev"])') \
+  && pip wheel --no-cache-dir --no-deps "strands-decider @ git+https://github.com/strands-labs/strands-decider@${REV}" -w /wheels
+
+# =============================================================================
+# sagemaker
+# =============================================================================
+FROM ${BASE_RUNTIME_IMAGE} AS sagemaker
+
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
+
+# Triton compiles a small C launcher at run time.
+ARG CACHE_REFRESH=0
+RUN echo "cache refresh: ${CACHE_REFRESH}" \
+  && dnf install -y --setopt=install_weak_deps=False gcc \
+  && dnf upgrade -y --security --releasever latest \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+COPY ./docker/strands-decider/pyproject.toml ./docker/strands-decider/uv.lock /tmp/deps/
+RUN --mount=type=cache,target=/root/.cache/uv --mount=type=bind,from=builder,source=/wheels,target=/tmp/wheels cd /tmp/deps \
+  && uv sync --frozen --no-dev --no-install-project --no-install-package strands-decider \
+  && uv pip install --python /usr/local/bin/python3 --no-deps /tmp/wheels/*.whl \
+  && rm -rf /tmp/deps /tmp/uv-*.lock
+
+# DLC telemetry (the entrypoint sends it at start; shells source it), CUDA forward compatibility, OSS compliance.
+COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+ARG FRAMEWORK=strands_decider
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE=inference
+RUN chmod +x /usr/local/bin/deep_learning_container.py /usr/local/bin/start_cuda_compat.sh \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash /tmp/setup_oss_compliance.sh python3 \
+  # tqdm is MPL-2.0 AND MIT, so its source goes with the image; the scan above only lists certifi.
+  && TQDM_VERSION=$(python3 -c 'import importlib.metadata as m; print(m.version("tqdm"))') \
+  && printf '\ntqdm %s https://github.com/tqdm/tqdm/archive/refs/tags/v%s.tar.gz\n' "${TQDM_VERSION}" "${TQDM_VERSION}" \
+    >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && rm /tmp/setup_oss_compliance.sh \
+  && rm -rf /root/oss_compliance* /tmp/tmp* /root/.cache
+
+# The serving options, as environment variables: see sagemaker_entrypoint.sh (DECIDER_CHECKPOINT defaults to the
+# checkpoint SageMaker put under /opt/ml/model).
+ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE} \
+  DECIDER_DEVICE=cuda \
+  DECIDER_ARGS="" \
+  DECIDER_WARMUP=1 \
+  DECIDER_MAX_CONCURRENCY=1 \
+  HF_HOME=/opt/hf \
+  HF_HUB_OFFLINE=1
+
+COPY ./scripts/docker/strands_decider/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

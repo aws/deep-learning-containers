@@ -1,0 +1,22 @@
+[
+  {
+    "vulnerability_id": "CVE-2025-55551",
+    "reason": "torch 2.7.1 is pinned: strands-decider's kernel stack (flash-linear-attention's Triton kernels, causal-conv1d, its transformers 5.19 pin) is verified on torch 2.7. The fix needs torch>=2.9.0, a framework bump to re-validate the models with the strands-decider maintainers. Tracked for that bump.",
+    "review_by": "2027-02-02"
+  },
+  {
+    "vulnerability_id": "CVE-2026-24747",
+    "reason": "torch 2.7.1 is pinned: strands-decider's kernel stack (flash-linear-attention's Triton kernels, causal-conv1d, its transformers 5.19 pin) is verified on torch 2.7. The fix needs torch>=2.10.0, a framework bump to re-validate the models with the strands-decider maintainers. Tracked for that bump.",
+    "review_by": "2027-02-02"
+  },
+  {
+    "vulnerability_id": "CVE-2025-23308",
+    "reason": "From the cu129 base image: cuda-nvdisasm-12-9 (scanner attributes it to cuda-toolkit-config-common 12.9.79). AL2023 status for the 12.9 package is NoFixPlanned; fixed only in the CUDA 13 packages. Same entry as the base 12.9.1 allowlist.",
+    "review_by": "2027-02-02"
+  },
+  {
+    "vulnerability_id": "CVE-2025-23339",
+    "reason": "From the cu129 base image: cuda-cuobjdump-12-9 (scanner attributes it to cuda-toolkit-config-common 12.9.79). AL2023 status for the 12.9 package is NoFixPlanned; fixed only in the CUDA 13 packages. Same entry as the base 12.9.1 allowlist.",
+    "review_by": "2027-02-02"
+  }
+]

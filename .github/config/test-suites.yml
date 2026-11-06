@@ -202,6 +202,26 @@ suites:
     code_paths:
       - test/openfold3/sagemaker/**
 
+  strands-decider/unit:
+    skip_eligible: true
+    code_paths:
+      - test/strands-decider/unit/**
+      - docker/strands-decider/pyproject.toml
+      - .github/workflows/strands-decider.tests-unit.yml
+
+  strands-decider/gpu:
+    skip_eligible: true
+    code_paths:
+      - test/strands-decider/gpu/**
+      - .github/workflows/strands-decider.tests-gpu.yml
+
+  strands-decider/sagemaker:
+    skip_eligible: true
+    code_paths:
+      - test/strands-decider/sagemaker/**
+      - test/test_utils/**
+      - .github/workflows/strands-decider.tests-sagemaker.yml
+
   xgboost/longevity:
     skip_eligible: true
     code_paths:

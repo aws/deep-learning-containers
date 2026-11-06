@@ -1,0 +1,39 @@
+image:
+  name: "strands-decider-sagemaker"
+  description: "strands-decider decision models (Qwen3.5 and Gemma 4 adapters) for SageMaker real-time inference"
+
+metadata:
+  framework: "strands_decider"
+  # The strands-decider version at the commit pinned in docker/strands-decider/pyproject.toml (one after v0.3.0). A
+  # pin between tags builds a local version (0.3.1.dev1+g9a7470e); this holds its public part.
+  framework_version: "0.3.1.dev1"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  platform: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "inference"
+  # Image "serve" (the serving command): tags serve-sagemaker-cuda, -v1, -v1.0, -v1.0.0; the version comes from
+  # build.dlc_major_version / dlc_minor_version.
+  prod_image: "strands-decider:serve-sagemaker-cuda-v1"
+
+build:
+  dockerfile: "docker/strands-decider/Dockerfile"
+  target: "sagemaker"
+  base_devel_image: "public.ecr.aws/deep-learning-containers/base:devel-cu129-amzn2023"
+  base_runtime_image: "public.ecr.aws/deep-learning-containers/base:runtime-cu129-amzn2023"
+  python_version: "3.13"
+  # The CUDA runtime the torch 2.7.1+cu128 wheels bring (torch has no CUDA 12.9 build); the base is cu129.
+  cuda_version: "12.8"
+  causal_conv1d_version: "1.7.0"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  # Off until the prod repositories exist and the version is a strands-decider release.
+  release: false
+  force_release: false
+  public_registry: false
+  private_registry: true
+  enable_soci: true
+  environment: "production"

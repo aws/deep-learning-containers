@@ -167,3 +167,7 @@ schedules:
   - cron: "00 20 * * 5"
     workflow: lambda-sglang.autorelease-gpu.yml
     gpu: heavy
+
+  - cron: "30 20 * * 5"
+    workflow: strands-decider.autorelease-sagemaker-amzn2023.yml
+    gpu: medium
