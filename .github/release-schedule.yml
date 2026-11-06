@@ -171,3 +171,8 @@ schedules:
   - cron: "30 20 * * 5"
     workflow: strands-decider.autorelease-sagemaker-amzn2023.yml
     gpu: medium
+
+  # Friday — Dynamo (all six images in one run)
+  - cron: "00 21 * * 5"
+    workflow: dynamo.autorelease-amzn2023.yml
+    gpu: heavy

@@ -2,7 +2,8 @@ name: "Pipeline - Dynamo"
 
 # Builds and tests one NVIDIA Dynamo DLC config (.github/config/image/dynamo/*.yml),
 # built from docker/dynamo/Dockerfile.amzn2023 (target = metadata.backend).
-# No release jobs yet: releasing needs the `dynamo` ECR repo and release-logic support.
+# Releases (autorelease / dispatch-release callers on main) publish to the `dynamo` repo with tags
+# {framework_version}[-efa]-{backend}-runtime[-vX[.Y[.Z]]] (the release logic's `dynamo` framework).
 
 on:
   workflow_call:
@@ -52,6 +53,11 @@ on:
         default: true
       run-efa-test:
         description: "Run EFA integration tests (EFA flavor only)"
+        required: false
+        type: boolean
+        default: false
+      release:
+        description: "Run release job after tests pass"
         required: false
         type: boolean
         default: false
@@ -219,3 +225,66 @@ jobs:
       run-nixl-disagg: ${{ needs.ci-config.outputs.backend == 'vllm' }}
       container-entrypoint: "/bin/bash"
       container-cmd: "-c 'sleep infinity'"
+
+  release-gate:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release &&
+      !failure() && !cancelled() &&
+      needs.build.result == 'success'
+    needs: [build, sanity-test, security-test, telemetry-test, image-tests, serving-tests, hyperpod-tests, efa-test]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      should-release: ${{ steps.check.outputs.should-release }}
+      release-spec: ${{ steps.spec.outputs.release-spec }}
+      environment: ${{ steps.check.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: check
+        run: |
+          SHOULD_RELEASE=$(yq '.release.release' "${{ inputs.config-file }}")
+          ENVIRONMENT=$(yq '.release.environment' "${{ inputs.config-file }}")
+          echo "should-release=${SHOULD_RELEASE}" >> $GITHUB_OUTPUT
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+      - id: spec
+        if: steps.check.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-file: ${{ inputs.config-file }}
+
+  release:
+    if: ${{ !failure() && !cancelled() && needs.release-gate.outputs.should-release == 'true' }}
+    needs: [build, release-gate]
+    uses: ./.github/workflows/_reusable.release-image.yml
+    with:
+      source-image-uri: ${{ needs.build.outputs.image-uri }}
+      release-spec: ${{ needs.release-gate.outputs.release-spec }}
+      environment: ${{ needs.release-gate.outputs.environment }}
+      aws-region: ${{ vars.AWS_REGION }}
+    secrets: inherit
+
+  notify-failure:
+    if: >-
+      failure() &&
+      github.ref == 'refs/heads/main' &&
+      (contains(github.workflow_ref, '.autorelease') || contains(github.workflow_ref, '.dispatch-release')) &&
+      !contains(github.workflow_ref, '.pr') &&
+      inputs.release
+    needs: [ci-config, build, sanity-test, security-test, telemetry-test, image-tests, serving-tests, hyperpod-tests, efa-test, release-gate, release]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/notify-slack-failure
+        with:
+          webhook-url: ${{ secrets.SLACK_RELEASE_FAILURE_WEBHOOK_URL }}
+          workflow-name: ${{ github.workflow }}
+          config-file: ${{ inputs.config-file }}
+          run-url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

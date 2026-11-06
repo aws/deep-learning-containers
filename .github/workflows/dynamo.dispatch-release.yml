@@ -1,0 +1,30 @@
+name: "Dispatch - Dynamo Release"
+
+# Manual release of one Dynamo image (builds, runs the release tests, then releases if the
+# config has release.release: true). The weekly release is dynamo.autorelease-amzn2023.yml.
+on:
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: "Path to image config YAML (e.g., .github/config/image/dynamo/vllm-efa-amzn2023.yml)"
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.config-file }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    uses: ./.github/workflows/dynamo.pipeline.yml
+    with:
+      config-file: ${{ inputs.config-file }}
+      tag-suffix: ${{ github.run_id }}
+      run-efa-test: true
+      # Off until the HyperPod test cluster has reserved GPU capacity (as in dynamo.pr.yml).
+      run-hyperpod-test: false
+      release: true
+    secrets: inherit
