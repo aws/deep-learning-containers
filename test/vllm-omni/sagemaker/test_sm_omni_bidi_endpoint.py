@@ -18,6 +18,7 @@ import asyncio
 import json
 import logging
 import os
+from contextlib import contextmanager
 
 import pytest
 from sagemaker.core.resources import Endpoint, EndpointConfig, Model
@@ -42,6 +43,16 @@ BIDI_ENDPOINT_URI = f"https://runtime.sagemaker.{REGION}.amazonaws.com:8443"
 # SageMaker's Sidecar prepends the slash so the container sees the real route.
 SPEECH_STREAM_PATH = "v1/audio/speech/stream"
 
+# Qwen3-TTS is the model family that supports the commitment text input mode.
+TTS_MODEL_ID = "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"
+TTS_INSTANCE_TYPES = [
+    "ml.g6.xlarge",
+    "ml.g6.2xlarge",
+    "ml.g6.4xlarge",
+    "ml.g5.2xlarge",
+    "ml.g5.12xlarge",
+]
+
 
 @pytest.fixture(scope="function")
 def model_id(request):
@@ -64,8 +75,8 @@ def _cleanup(resources):
             LOGGER.warning(f"Cleanup {type(resource).__name__} failed: {e}")
 
 
-@pytest.fixture(scope="function")
-def bidi_endpoint(aws_session, image_uri, model_id, instance_type):
+@contextmanager
+def _deployed_bidi_endpoint(aws_session, image_uri, model_id, instance_type):
     """Deploy a real-time endpoint for bidirectional WebSocket streaming.
 
     Same deploy/teardown lifecycle as the HTTP endpoint tests. The DLC image
@@ -119,6 +130,23 @@ def bidi_endpoint(aws_session, image_uri, model_id, instance_type):
         yield endpoint
     finally:
         _cleanup([endpoint, endpoint_config, model])
+
+
+@pytest.fixture(scope="function")
+def bidi_endpoint(aws_session, image_uri, model_id, instance_type):
+    with _deployed_bidi_endpoint(aws_session, image_uri, model_id, instance_type) as endpoint:
+        yield endpoint
+
+
+def _export_sdk_credentials(aws_session):
+    """The experimental HTTP/2 SDK reads creds via EnvironmentCredentialsResolver,
+    so surface the test session's credentials into the environment."""
+    creds = aws_session.session.get_credentials().get_frozen_credentials()
+    os.environ["AWS_ACCESS_KEY_ID"] = creds.access_key
+    os.environ["AWS_SECRET_ACCESS_KEY"] = creds.secret_key
+    if creds.token:
+        os.environ["AWS_SESSION_TOKEN"] = creds.token
+    os.environ.setdefault("AWS_REGION", aws_session.region)
 
 
 async def _make_bidi_client(aws_session):
@@ -252,44 +280,182 @@ async def _stream_tts(aws_session, endpoint_name, deadline_s=180):
     }
 
 
-@pytest.mark.parametrize(
-    "instance_type",
-    [["ml.g6.xlarge", "ml.g6.2xlarge", "ml.g6.4xlarge", "ml.g5.2xlarge", "ml.g5.12xlarge"]],
-    indirect=True,
-)
-@pytest.mark.parametrize("model_id", ["Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice"], indirect=True)
-def test_vllm_omni_bidi_speech_stream(bidi_endpoint, aws_session):
-    """Stream TTS audio over the SageMaker Bidirectional Streaming WebSocket API.
+# Commitment mode turns each segment the readiness policy confirms into its own TTS
+# request while text is still arriving. The space after the period confirms the first
+# boundary; the second part has no terminator, so only input.done (EOF) releases it.
+COMMITMENT_FIRST_TEXT = "This first sentence is ready to speak. "
+COMMITMENT_LAST_TEXT = "And the last part arrives at the end"
 
-    Proves the full bridge chain: SageMaker bidi transport -> the WS branch of
+
+async def _stream_tts_commitment(
+    aws_session, endpoint_name, first_audio_deadline_s=300, deadline_s=180
+):
+    """Stream text in commitment mode over the bidi WS and record what arrives.
+
+    Sends the first sentence, then reads until PCM audio arrives BEFORE sending the
+    rest of the text and input.done. Returns dict: {audio_before_done, audio_bytes,
+    starts, dones, session_done, error}. Each read phase has one overall deadline
+    (see _stream_tts); a timed-out read leaves the stream unusable, so a phase that
+    times out ends the session.
+    """
+    from aws_sdk_sagemaker_runtime_http2.models import (
+        InvokeEndpointWithBidirectionalStreamInput,
+        ResponseStreamEventPayloadPart,
+    )
+
+    client = await _make_bidi_client(aws_session)
+    inp = InvokeEndpointWithBidirectionalStreamInput(
+        endpoint_name=endpoint_name,
+        model_invocation_path=SPEECH_STREAM_PATH,  # slashless
+    )
+    result = {
+        "audio_before_done": 0,
+        "audio_bytes": 0,
+        "starts": [],
+        "dones": [],
+        "session_done": None,
+        "error": None,
+    }
+    loop = asyncio.get_event_loop()
+
+    async def read_until(receiver, phase_deadline_s, done):
+        start = loop.time()
+        while not done():
+            remaining = phase_deadline_s - (loop.time() - start)
+            if remaining <= 0:
+                return False
+            try:
+                event = await asyncio.wait_for(receiver.receive(), timeout=remaining)
+            except asyncio.TimeoutError:
+                return False
+            if event is None:
+                return False
+            if not isinstance(event, ResponseStreamEventPayloadPart):
+                result["error"] = f"non-payload event: {type(event).__name__}: {event!r}"
+                return False
+
+            raw = event.value.bytes_ or b""
+            if (event.value.data_type or "").upper() != "UTF8":
+                result["audio_bytes"] += len(raw)  # binary PCM chunk (stream_audio=true)
+                continue
+            try:
+                message = json.loads(raw.decode("utf-8"))
+            except ValueError as exc:
+                result["error"] = f"unparsable UTF8 frame ({exc}): {raw[:200]!r}"
+                return False
+            mtype = message.get("type")
+            if mtype == "audio.start":
+                result["starts"].append(message)
+            elif mtype == "audio.done":
+                result["dones"].append(message)
+            elif mtype == "session.done":
+                result["session_done"] = message
+            elif mtype == "error":
+                result["error"] = message.get("message")
+                return False
+        return True
+
+    async with await client.invoke_endpoint_with_bidirectional_stream(input=inp) as stream:
+        _, receiver = await stream.await_output()
+        await _send_json(
+            stream,
+            {
+                "type": "session.config",
+                "voice": "vivian",
+                # Commitment mode only accepts an explicit English or Chinese.
+                "language": "English",
+                "response_format": "pcm",
+                "stream_audio": True,
+                "text_input_mode": "commitment",
+            },
+        )
+        await _send_json(stream, {"type": "input.text", "text": COMMITMENT_FIRST_TEXT})
+        # The first deadline also covers the first request's warmup.
+        if await read_until(receiver, first_audio_deadline_s, lambda: result["audio_bytes"] > 0):
+            result["audio_before_done"] = result["audio_bytes"]
+            await _send_json(stream, {"type": "input.text", "text": COMMITMENT_LAST_TEXT})
+            await _send_json(stream, {"type": "input.done"})
+            await read_until(receiver, deadline_s, lambda: result["session_done"] is not None)
+
+    return result
+
+
+class TestBidiSpeechStream:
+    """/v1/audio/speech/stream over the SageMaker Bidirectional Streaming API.
+
+    Both tests share one Qwen3-TTS endpoint, so the class costs one deployment.
+    Each proves the full bridge chain: SageMaker bidi transport -> the WS branch of
     SageMakerRouteMiddleware -> vLLM-Omni's /v1/audio/speech/stream handler ->
     streamed audio back to the client.
     """
 
-    # The experimental HTTP/2 SDK reads creds via EnvironmentCredentialsResolver,
-    # so surface the test session's credentials into the environment.
-    creds = aws_session.session.get_credentials().get_frozen_credentials()
-    os.environ["AWS_ACCESS_KEY_ID"] = creds.access_key
-    os.environ["AWS_SECRET_ACCESS_KEY"] = creds.secret_key
-    if creds.token:
-        os.environ["AWS_SESSION_TOKEN"] = creds.token
-    os.environ.setdefault("AWS_REGION", aws_session.region)
+    @pytest.fixture(scope="class")
+    def tts_endpoint(self, aws_session, image_uri):
+        with _deployed_bidi_endpoint(
+            aws_session, image_uri, TTS_MODEL_ID, TTS_INSTANCE_TYPES
+        ) as endpoint:
+            yield endpoint
 
-    # First request also pays torch.compile + CUDA graph warmup, which can be
-    # slow; the 180s stream deadline absorbs it. One retry covers a transient
-    # first-call warmup that overruns. The client is (re)built inside each run
-    # since its config is async-resolved and must live on the run's event loop.
-    result = None
-    for attempt in range(2):
-        result = asyncio.run(_stream_tts(aws_session, bidi_endpoint.endpoint_name))
-        LOGGER.info(f"Bidi TTS attempt {attempt + 1}: {result}")
-        if result["saw_start"] and result["audio_bytes"] > 2000 and not result["error"]:
-            break
+    def test_buffered_input_streams_audio(self, tts_endpoint, aws_session):
+        """Default buffered mode synthesizes the text received before input.done."""
+        _export_sdk_credentials(aws_session)
 
-    assert result["error"] is None, f"bidi stream returned an error frame: {result['error']}"
-    assert result["saw_start"], "never received audio.start — bridge did not reach the TTS handler"
-    assert result["audio_bytes"] > 2000, f"streamed audio too small: {result['audio_bytes']} bytes"
-    LOGGER.info(f"Bidi speech-stream test PASSED — {result['audio_bytes']} audio bytes streamed")
+        # First request also pays torch.compile + CUDA graph warmup, which can be
+        # slow; the 180s stream deadline absorbs it. One retry covers a transient
+        # first-call warmup that overruns. The client is (re)built inside each run
+        # since its config is async-resolved and must live on the run's event loop.
+        result = None
+        for attempt in range(2):
+            result = asyncio.run(_stream_tts(aws_session, tts_endpoint.endpoint_name))
+            LOGGER.info(f"Bidi TTS attempt {attempt + 1}: {result}")
+            if result["saw_start"] and result["audio_bytes"] > 2000 and not result["error"]:
+                break
+
+        assert result["error"] is None, f"bidi stream returned an error frame: {result['error']}"
+        assert result["saw_start"], (
+            "never received audio.start — bridge did not reach the TTS handler"
+        )
+        assert result["audio_bytes"] > 2000, (
+            f"streamed audio too small: {result['audio_bytes']} bytes"
+        )
+        LOGGER.info(
+            f"Bidi speech-stream test PASSED — {result['audio_bytes']} audio bytes streamed"
+        )
+
+    def test_commitment_input_speaks_before_input_done(self, tts_endpoint, aws_session):
+        """Commitment mode (text_input_mode="commitment", vllm-omni 0.32.0) speaks each
+        confirmed segment while text is still streaming in, as an LLM-to-TTS pipeline
+        needs, and input.done releases the unterminated rest."""
+        _export_sdk_credentials(aws_session)
+
+        result = asyncio.run(_stream_tts_commitment(aws_session, tts_endpoint.endpoint_name))
+        LOGGER.info(f"Bidi commitment TTS: {result}")
+
+        assert result["error"] is None, f"bidi stream returned an error: {result['error']}"
+        assert result["audio_before_done"] > 0, (
+            "no audio before input.done — the first segment was not released early"
+        )
+        assert result["session_done"] is not None, "never received session.done after input.done"
+        assert result["session_done"].get("total_sentences") == 2, (
+            f"expected 2 segments: {result['session_done']}"
+        )
+        assert [start.get("sentence_text", "").strip() for start in result["starts"]] == [
+            COMMITMENT_FIRST_TEXT.strip(),
+            COMMITMENT_LAST_TEXT.strip(),
+        ], f"segments do not match the streamed text: {result['starts']}"
+        assert len(result["dones"]) == 2, f"expected 2 audio.done events: {result['dones']}"
+        assert not any(done.get("error") for done in result["dones"]), (
+            f"a segment failed: {result['dones']}"
+        )
+        # Every PCM byte the handler reports must have crossed the bridge.
+        assert (
+            result["audio_bytes"]
+            == sum(done.get("total_bytes", 0) for done in result["dones"])
+            > 2000
+        ), f"received {result['audio_bytes']} audio bytes, audio.done reports {result['dones']}"
+        LOGGER.info(
+            f"Bidi commitment test PASSED — {result['audio_bytes']} audio bytes in 2 segments"
+        )
 
 
 @pytest.mark.parametrize(
@@ -307,12 +473,7 @@ def test_vllm_omni_bidi_default_path_rejected(bidi_endpoint, aws_session):
         ResponseStreamEventPayloadPart,
     )
 
-    creds = aws_session.session.get_credentials().get_frozen_credentials()
-    os.environ["AWS_ACCESS_KEY_ID"] = creds.access_key
-    os.environ["AWS_SECRET_ACCESS_KEY"] = creds.secret_key
-    if creds.token:
-        os.environ["AWS_SESSION_TOKEN"] = creds.token
-    os.environ.setdefault("AWS_REGION", aws_session.region)
+    _export_sdk_credentials(aws_session)
 
     async def _probe():
         client = await _make_bidi_client(aws_session)
