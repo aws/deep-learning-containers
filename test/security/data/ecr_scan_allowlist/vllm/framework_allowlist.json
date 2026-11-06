@@ -133,5 +133,10 @@
         "vulnerability_id": "CVE-2026-84304",
         "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake libetcd_wrapper.so, fragmented HTTP/2 DATA frame memory amplification DoS; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild with grpc-go >=1.83.1",
         "review_by": "2026-12-28"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78661",
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, html addText/fosterParent text-node coalescing quadratic memory copy; the fix needs x/net v0.62.0 but the newest released wheel mooncake-transfer-engine-cuda13 0.3.14 still embeds x/net v0.60.0 and upstream Mooncake main is also pinned to v0.60.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2027-02-04"
     }
 ]
