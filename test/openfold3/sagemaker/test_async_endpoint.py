@@ -91,6 +91,9 @@ LARGE_QUERY = "large.json"  # synthetic, 622 residues
 MSA_QUERY = "large_msa.json"
 # Small protein with use_msa_server=true; the handler must reject it under isolation.
 MSA_SERVER_QUERY = "small_msa_server.json"
+# Small protein with options.use_msa_server=false plus a runner YAML that sets
+# use_msa_server: true; the handler must reject the runner YAML rather than honor it.
+RUNNER_YAML_QUERY = "small_runner_yaml.json"
 
 # Bounded so a stuck request fails fast instead of hanging.
 POLL_TIMEOUT = 900
@@ -107,7 +110,7 @@ _smr = boto3.client("sagemaker-runtime", region_name=REGION)
 
 def _preflight_s3():
     """Fail before the ~10-min deploy if queries are missing or the bucket is unwritable."""
-    for q in (SMALL_QUERY, LARGE_QUERY, MSA_QUERY, MSA_SERVER_QUERY):
+    for q in (SMALL_QUERY, LARGE_QUERY, MSA_QUERY, MSA_SERVER_QUERY, RUNNER_YAML_QUERY):
         try:
             _s3.head_object(Bucket=BUCKET, Key=f"{QUERY_PREFIX}/{q}")
         except _s3.exceptions.ClientError as e:
@@ -333,6 +336,14 @@ def test_msa_server_rejected_under_isolation(endpoint_name):
     assert result.get("status") == "error", f"expected rejection, got {result}"
     assert "use_msa_server" in result.get("error", ""), f"unexpected error: {result.get('error')}"
     LOGGER.info(f"use_msa_server rejected in {elapsed:.0f}s")
+
+
+def test_runner_yaml_rejected(endpoint_name):
+    """A runner YAML is rejected, so it cannot re-enable the MSA server past the guard."""
+    ((elapsed, result),) = _invoke(endpoint_name, [RUNNER_YAML_QUERY])
+    assert result.get("status") == "error", f"expected rejection, got {result}"
+    assert "runner_yaml" in result.get("error", ""), f"unexpected error: {result.get('error')}"
+    LOGGER.info(f"runner_yaml rejected in {elapsed:.0f}s")
 
 
 def test_large_concurrent_uses_gpu_pool(endpoint_name):
