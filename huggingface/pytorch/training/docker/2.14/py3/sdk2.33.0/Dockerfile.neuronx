@@ -41,6 +41,7 @@ RUN python3 -m pip install --no-cache-dir \
   sagemaker-training \
   sagemaker-pytorch-training \
   "sagemaker>=3,<4" \
+  grpcio-tools \
   bokeh imageio plotly seaborn shap pandas opencv-python-headless \
   && python3 -m pip check
 
