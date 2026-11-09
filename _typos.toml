@@ -1,3 +1,7 @@
+[default]
+# Short vLLM commit hashes in version strings and docs data file names, e.g. 0.33.0+amzn2023.4ba787ec
+extend-ignore-re = ["amzn2023\\.[0-9a-f]{8}"]
+
 [default.extend-words]
 WHT = "WHT"
 certifi = "certifi"

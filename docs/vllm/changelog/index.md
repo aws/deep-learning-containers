@@ -5,6 +5,28 @@ Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `s
 
 * * *
 
+## v2.8.0 — 2026-11-08
+
+**Tags:** `server-cuda-v2.8` · `server-sagemaker-cuda-v2.8`
+
+**vLLM source:** [v0.33.0](https://github.com/vllm-project/vllm/releases/tag/v0.33.0) (`0.33.0+amzn2023.4ba787ec`)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · PyTorch 2.14.0 · FlashInfer 0.7.2.post1 · Transformers 5.20.2 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2
+
+### Changes
+
+- vLLM 0.31.1 → 0.33.0, built from the upstream `v0.33.0` release tag ([#6977](https://github.com/aws/deep-learning-containers/pull/6977),
+  [upstream changes](https://github.com/vllm-project/vllm/compare/1a3a7a8f01a8c1a3184151b8185072efda11daab...v0.33.0)). Reflection Beam support is now
+  part of upstream vLLM, so the image no longer carries the v2.7 backport.
+- PyTorch 2.13.0 → 2.14.0, FlashInfer 0.7.0.post1 → 0.7.2.post1, Transformers 5.19.0 → 5.20.2.
+- `flashinfer-cubin` is now installed explicitly, since upstream vLLM no longer lists it in its CUDA requirements; `gguf` 0.19.0 added for GGUF
+  checkpoints.
+- Removed the `requirements.txt` files that PyNvVideoCodec installs with its samples and benchmarks; they pinned `torch==2.9.1` and showed up in image
+  scans.
+
+* * *
+
 ## v2.7.0 — 2026-10-14
 
 **Tags:** `server-cuda-v2.7` · `server-sagemaker-cuda-v2.7`
