@@ -51,6 +51,14 @@ RUN rm -f /tmp/uv-*.lock /usr/local/bin/bazel /usr/local/bin/bazelisk /usr/bin/p
 
 ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE}
 
+# Refresh inherited OS packages to pick up available security fixes, including
+# linux-libc-dev, whose kernel development headers were flagged by the image scan.
+# Updating these headers does not update the running host kernel.
+RUN apt-get update \
+  && apt-get upgrade -y \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
 # Regenerate OSS compliance docs to include the added HuggingFace packages.
 COPY setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN bash /tmp/setup_oss_compliance.sh python3 && rm /tmp/setup_oss_compliance.sh
