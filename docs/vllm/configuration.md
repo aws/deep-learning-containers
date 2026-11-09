@@ -43,6 +43,7 @@ flag (`SM_VLLM_ENFORCE_EAGER=true` → `--enforce-eager`), and `false` omits the
 | `SM_VLLM_DTYPE` | Data type (auto, float16, bfloat16) | `auto` |
 | `HF_MODEL_ID` | Hugging Face model ID (fallback when `SM_VLLM_MODEL` is unset and `/opt/ml/model` is empty) | — |
 | `HF_TOKEN` | Hugging Face token for gated models | — |
+| `SM_VLLM_API_KEY` | API key vLLM requires from clients (`--api-key`). Passed to vLLM as `VLLM_API_KEY`, so it stays off the command line and out of the logs | — |
 
 ### Standard-Supervisor Settings
 

@@ -40,6 +40,7 @@ flag (`SM_VLLM_ENFORCE_EAGER=true` → `--enforce-eager`), and `false` omits the
 | `SM_VLLM_TRUST_REMOTE_CODE` | Allow custom model code | `false` |
 | `HF_MODEL_ID` | Hugging Face model ID (fallback when `SM_VLLM_MODEL` is unset and `/opt/ml/model` is empty) | — |
 | `HF_TOKEN` | Hugging Face token for gated models | — |
+| `SM_VLLM_API_KEY` | API key vLLM requires from clients (`--api-key`). Passed to vLLM as `VLLM_API_KEY`, so it stays off the command line and out of the logs | — |
 | `VLLM_ENABLE_CUDA_COMPATIBILITY` | Enable CUDA 13 forward compatibility for hosts with older NVIDIA drivers | `0` |
 
 ## Known Limitations
