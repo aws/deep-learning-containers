@@ -297,7 +297,7 @@ def skip_by_device_type(request, use_gpu, instance_type):
     # Skip a neuronx test that's not on an neuron instance or a test which
     # uses a neuron instance and is not a neuronx test
     is_neuronx_test = request.node.get_closest_marker("neuronx_test") is not None
-    is_neuronx_instance = "trn1" in instance_type
+    is_neuronx_instance = any(family in instance_type for family in ("trn1", "trn2", "trn3"))
     if is_neuronx_test != is_neuronx_instance:
         pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
     if (request.node.get_closest_marker("skip_gpu") and is_gpu) or (

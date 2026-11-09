@@ -112,6 +112,13 @@ def main(parallel_mode):
             for name, parameter in model.named_parameters()
             if name in before
         ), "Training did not update any local parameter shard"
+        # All ranks participate in gathering the distributed model for saving.
+        model_dir = Path(os.environ.get("SM_MODEL_DIR", str(root / "model")))
+        trainer.save_model(str(model_dir))
+        _distributed_barrier()
+        if torch.distributed.get_rank() == 0:
+            assert (model_dir / "config.json").is_file(), "Model config was not saved"
+            assert (model_dir / "model.safetensors").is_file(), "Model weights were not saved"
         print(
             f"PASS mode={parallel_mode} rank={torch.distributed.get_rank()} "
             f"tp={tp_size} fsdp={fsdp_size} loss={losses[0]:.4f}->{losses[-1]:.4f}",

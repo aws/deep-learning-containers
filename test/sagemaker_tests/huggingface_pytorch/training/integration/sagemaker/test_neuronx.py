@@ -14,6 +14,9 @@ from __future__ import absolute_import
 
 import os
 import re
+import tarfile
+from pathlib import Path
+from urllib.parse import urlparse
 import pytest
 import sagemaker
 from sagemaker import utils
@@ -23,6 +26,8 @@ from ...integration.sagemaker.timeout import timeout
 from retrying import retry
 from sagemaker import get_execution_role
 from packaging.specifiers import SpecifierSet
+
+from ..... import invoke_sm_helper_function
 
 # configuration for running training on torch distributed Data Parallel
 distribution = {"torch_distributed": {"enabled": True}}
@@ -106,6 +111,8 @@ def invoke_neuron_helper_function(
 @pytest.mark.skip_py2_containers
 @pytest.mark.team("sagemaker-1p-algorithms")
 def test_neuronx_text_classification(ecr_image, sagemaker_regions, py_version, instance_type):
+    if get_pytorch_version(ecr_image) in SpecifierSet("==2.14.*"):
+        pytest.skip("Native Torch NeuronX is covered by test_neuronx_native_training")
     function_args = {
         "py_version": py_version,
         "instance_type": instance_type,
@@ -159,3 +166,66 @@ def _test_neuronx_text_classification_function(
             hyperparameters=hyperparameters,
         )
         estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qwen3-neuronx"))
+
+
+@pytest.mark.processor("neuronx")
+@pytest.mark.model("qwen3")
+@pytest.mark.neuronx_test
+@pytest.mark.team("neuron")
+@pytest.mark.parametrize("parallel_mode", ["tp", "fsdp"])
+def test_neuronx_native_training(
+    ecr_image, sagemaker_regions, py_version, instance_type, parallel_mode, tmp_path
+):
+    if get_pytorch_version(ecr_image) not in SpecifierSet("==2.14.*"):
+        pytest.skip("Requires native Torch NeuronX 2.14")
+    invoke_sm_helper_function(
+        ecr_image,
+        sagemaker_regions,
+        _test_neuronx_native_training,
+        py_version,
+        instance_type,
+        parallel_mode,
+        tmp_path,
+    )
+
+
+def _test_neuronx_native_training(
+    ecr_image, sagemaker_session, py_version, instance_type, parallel_mode, tmp_path
+):
+    # Reuse the EC2 worker to exercise the same TP/FSDP assertions on SageMaker.
+    source_dir = Path(__file__).resolve().parents[5] / "dlc_tests/container_tests/bin/huggingface"
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        estimator = HuggingFace(
+            entry_point="transformers_neuron_training.py",
+            source_dir=str(source_dir),
+            role="SageMakerRole",
+            image_uri=ecr_image,
+            instance_count=1,
+            instance_type=instance_type,
+            sagemaker_session=sagemaker_session,
+            py_version=py_version,
+            distribution={"torch_distributed": {"enabled": True}},
+            hyperparameters={
+                "parallel-mode": parallel_mode,
+                "sagemaker_mpi_num_of_processes_per_host": 2,
+            },
+            environment={
+                "ON_NEURON_EAGER": "1",
+                "HF_DEACTIVATE_ASYNC_LOAD": "1",
+                "OMP_NUM_THREADS": "4",
+                "TORCH_NEURONX_ENABLE_HOST_CC": "1",
+                "TORCH_NEURONX_ENABLE_ASYNC_NRT": "1",
+            },
+        )
+        estimator.fit(
+            job_name=sagemaker.utils.unique_name_from_base(f"test-hf-neuronx-{parallel_mode}")
+        )
+        # Verify SageMaker exported the trained model from /opt/ml/model to S3.
+        artifact = urlparse(estimator.model_data)
+        local_model = tmp_path / "model.tar.gz"
+        sagemaker_session.boto_session.client("s3").download_file(
+            artifact.netloc, artifact.path.lstrip("/"), str(local_model)
+        )
+        with tarfile.open(local_model) as archive:
+            names = {name.removeprefix("./") for name in archive.getnames()}
+        assert {"config.json", "model.safetensors"} <= names, names
