@@ -72,8 +72,10 @@ jobs:
   regression-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
-    # Temporary: the x86-g6xl-runner CodeBuild fleet has no capacity, so run on the self-hosted L40S runners.
-    runs-on: [self-hosted, gpu-l40s-1x]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v6
@@ -128,8 +130,10 @@ jobs:
   cuda-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
-    # Temporary: the x86-g6xl-runner CodeBuild fleet has no capacity, so run on the self-hosted L40S runners.
-    runs-on: [self-hosted, gpu-l40s-1x]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v6
@@ -184,8 +188,10 @@ jobs:
   example-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
     needs: [preflight]
-    # Temporary: the x86-g6xl-runner CodeBuild fleet has no capacity, so run on the self-hosted L40S runners.
-    runs-on: [self-hosted, gpu-l40s-1x]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v6
