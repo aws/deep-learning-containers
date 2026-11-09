@@ -63,3 +63,7 @@ RUN apt-get update \
 # Regenerate OSS compliance docs to include the added HuggingFace packages.
 COPY setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN bash /tmp/setup_oss_compliance.sh python3 && rm /tmp/setup_oss_compliance.sh
+
+# Compliance generation uninstalls prettytable, which SageMaker's skops dependency needs.
+RUN python3 -m pip install --no-cache-dir prettytable \
+  && python3 -m pip check
