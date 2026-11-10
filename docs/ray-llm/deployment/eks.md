@@ -49,7 +49,7 @@ spec:
                   - { CPU: 4, GPU: 1 }
                 strategy: STRICT_SPREAD
   rayClusterConfig:
-    rayVersion: "2.58.0"
+    rayVersion: "2.60.0"
     headGroupSpec:
       rayStartParams:
         dashboard-host: "0.0.0.0"
