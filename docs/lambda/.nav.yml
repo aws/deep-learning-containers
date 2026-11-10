@@ -1,0 +1,6 @@
+nav:
+  - Overview: index.md
+  - Deployment:
+    - Lambda Managed Instances: deployment/lambda.md
+  - Configuration: configuration.md
+  - Changelog: changelog/index.md
