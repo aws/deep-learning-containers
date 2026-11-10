@@ -11,7 +11,7 @@ inference backend, with or without EFA. Image configs: `.github/config/image/dyn
 
 ## How dependencies are controlled
 
-Each Dynamo release pins the exact backend version it supports (for example `ai-dynamo[vllm]==1.6.1`
+Each Dynamo release pins the exact backend version it supports (for example `ai-dynamo[vllm]==1.6.2`
 requires `vllm==0.31.0` and `nixl[cu13]==1.4.1`). uv resolves that into `uv.lock`, so the image gets
 one consistent, reproducible environment:
 

@@ -10,7 +10,7 @@ dependencies = [
   # Dynamo pins the exact vLLM (and NIXL) release it supports through this extra. The image
   # builds ai-dynamo / ai-dynamo-runtime / gpu-memory-service from source at the same
   # release and installs them over the locked versions (same dependency metadata).
-  "ai-dynamo[vllm]==1.6.1",
+  "ai-dynamo[vllm]==1.6.2",
   # Listed so tool.uv.sources applies (sources only apply to direct dependencies); the
   # versions come from vLLM's own pins.
   "torch",

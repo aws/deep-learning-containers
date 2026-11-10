@@ -44,7 +44,7 @@ wheels = [
 
 [[package]]
 name = "ai-dynamo"
-version = "1.6.1"
+version = "1.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ai-dynamo-runtime" },
@@ -61,7 +61,7 @@ dependencies = [
     { name = "zstandard" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/ef/d68ed8b3a6949a6617fb9205df797e15c95088ecc89d186aa7cbef8ed6e4/ai_dynamo-1.6.1-py3-none-any.whl", hash = "sha256:83f768730104cbbc84029bf436025706632735173933adbb650b99c746517b70", size = 3972559, upload-time = "2026-10-27T06:46:14.23Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/cd/fa9c496f6e2a937b8234ee462daf5e75027cadf8e9cfec2de73aae6f480a/ai_dynamo-1.6.2-py3-none-any.whl", hash = "sha256:91c6c35ef02bee0fcbbbf6c3b42e97010aa6cc5d9180557852057b25df5cd84c", size = 3974591, upload-time = "2026-11-05T19:53:43.946Z" },
 ]
 
 [package.optional-dependencies]
@@ -73,14 +73,14 @@ trtllm = [
 
 [[package]]
 name = "ai-dynamo-runtime"
-version = "1.6.1"
+version = "1.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "uvloop" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/68/bbc88f1eb1afcd83850b1e454ea6fa3e90574a0d40a8a20cf63a8ee401b0/ai_dynamo_runtime-1.6.1-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:3683cafe88ededdff29c9ae6f651367eac33153487ff84e205082483cd6b3095", size = 74705200, upload-time = "2026-10-27T06:47:44.165Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/70/d2f1678fbe703196dc99b5c20e7d708ba3ae8207f19a9dd13f1bf17bf7f5/ai_dynamo_runtime-1.6.2-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:e79479094b1d2fb0468aacae0d48c50977a0cf0f610c35dc769611a1e6e2a53a", size = 74705952, upload-time = "2026-11-05T19:55:33.001Z" },
 ]
 
 [[package]]
@@ -699,7 +699,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ai-dynamo", extras = ["trtllm"], specifier = "==1.6.1" },
+    { name = "ai-dynamo", extras = ["trtllm"], specifier = "==1.6.2" },
     { name = "botocore" },
     { name = "tensorrt-llm", index = "https://pypi.nvidia.com/" },
     { name = "torch", index = "https://download.pytorch.org/whl/cu130" },

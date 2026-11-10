@@ -5,7 +5,7 @@ image:
 metadata:
   framework: "dynamo"
   # Dynamo release; must match the ai-dynamo version in docker/dynamo/vllm/uv.lock and build.dynamo_ref.
-  framework_version: "1.6.1"
+  framework_version: "1.6.2"
   # Backend and the version Dynamo pins for it (from the lock).
   backend: "vllm"
   backend_version: "0.31.0"
@@ -15,7 +15,7 @@ metadata:
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
-  prod_image: "dynamo:1.6.1-efa-vllm-runtime-v1"
+  prod_image: "dynamo:1.6.2-efa-vllm-runtime-v1"
 
 build:
   dockerfile: "docker/dynamo/Dockerfile.amzn2023"
@@ -26,8 +26,8 @@ build:
   efa_version: "latest"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  # Dynamo 1.6.1 (release/1.6.1; not tagged yet).
-  dynamo_ref: "0d9c24a8bf6db13c1a1223cf15fcbee9140d1ac3"
+  # Dynamo 1.6.2 (tag v1.6.2).
+  dynamo_ref: "28f9765d98ded77149a94d0defee6d54e97f6741"
   dlc_major_version: "1"
   dlc_minor_version: "0"
 

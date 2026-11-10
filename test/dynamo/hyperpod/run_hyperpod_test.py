@@ -18,7 +18,7 @@ holder's namespace, and a dead test's namespace never keeps the GPU groups up.
 With --fallback-groups, a pair of groups whose nodes don't come up within PAIR_NODE_TIMEOUT_S (no on-demand capacity in
 that AZ) is scaled back and the fallback pair is tried; later tests in the same queue start with the pair that worked.
 
-Usage: run_hyperpod_test.py --image-uri URI --runtime-version 1.6.1 --backend vllm --efa-flavor efa
+Usage: run_hyperpod_test.py --image-uri URI --runtime-version 1.6.2 --backend vllm --efa-flavor efa
     --eks-cluster NAME --hyperpod-cluster NAME --prefill-group GROUP --decode-group GROUP
     [--fallback-groups PREFILL,DECODE] [--region us-west-2] [--log-dir DIR] [--model Qwen/Qwen3-0.6B]
 (--help for details)
