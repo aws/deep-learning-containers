@@ -4,7 +4,7 @@ image:
 
 metadata:
   framework: "vllm_server"
-  framework_version: "0.30.0"
+  framework_version: "0.33.0"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   platform: "sagemaker"
@@ -17,11 +17,11 @@ build:
   dockerfile: "docker/vllm/Dockerfile.cpu.arm64.amzn2023"
   target: "vllm-cpu-sagemaker-amzn2023"
   python_version: "3.12"
-  vllm_ref: "ec4a3a537068db40afbc9374a67da719c8c9b964"  # v0.30.0 (vllm#56108)
+  vllm_ref: "4ba787ec9959e566d3b587a796dff07673324da5"  # v0.33.0
   # FEAT_BF16 is present on Graviton 3/4/5; build the aarch64 bf16 kernels from source.
   vllm_cpu_arm_bf16: "1"
   dlc_major_version: "1"
-  dlc_minor_version: "0"
+  dlc_minor_version: "1"
 
 release:
   release: true
