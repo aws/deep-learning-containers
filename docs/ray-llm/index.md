@@ -23,13 +23,13 @@ Ray LLM shares the `ray` repository with the [Ray Serve DLC](../ray/index.md) (`
 
 The image bundles the full serving stack so you can stand up an LLM endpoint without building a custom image:
 
-- **[Ray](https://docs.ray.io/) 2.58.0** with the `default`, `serve`, and `llm` extras — `build_openai_app` serves OpenAI-compatible endpoints backed
+- **[Ray](https://docs.ray.io/) 2.60.0** with the `default`, `serve`, and `llm` extras — `build_openai_app` serves OpenAI-compatible endpoints backed
   by vLLM
-- **[vLLM](https://docs.vllm.ai/) 0.26.0** — inference engine with continuous batching, paged KV-cache, and tensor parallelism
-- **[PyTorch](https://pytorch.org/) 2.11.0** with `torchvision` 0.26.0 and `torchaudio` 2.11.0 — CUDA 13.0 wheels
+- **[vLLM](https://docs.vllm.ai/) 0.29.0** — inference engine with continuous batching, paged KV-cache, and tensor parallelism
+- **[PyTorch](https://pytorch.org/) 2.13.0** with `torchvision` 0.28.0 and `torchaudio` 2.11.0 — CUDA 13.0 wheels
 - **CUDA 13.0.2** with cuDNN, plus NCCL for multi-GPU collectives
-- **[Transformers](https://huggingface.co/docs/transformers) 5.14.1** — tokenizers, processors, and model configs vLLM loads from
-- **[FastAPI](https://fastapi.tiangolo.com/) 0.133.1** with Uvicorn (via Ray Serve) — the async HTTP stack
+- **[Transformers](https://huggingface.co/docs/transformers) 5.17.0** — tokenizers, processors, and model configs vLLM loads from
+- **[FastAPI](https://fastapi.tiangolo.com/) 0.136.3** with Uvicorn (via Ray Serve) — the async HTTP stack
 - **[FlashInfer](https://github.com/flashinfer-ai/flashinfer)** — GPU sampling kernels, with CUDA headers pre-installed for JIT
 - **[EFA](https://aws.amazon.com/hpc/efa/) with OpenMPI and the AWS NCCL OFI plugin** — for multi-node tensor-parallel serving
 - **boto3, awscli** — AWS SDK, for pulling models from S3
