@@ -283,11 +283,11 @@ def test_entrypoint_invokes_the_helper(entrypoint):
 FAKE_SECRET = "--fake-key-" + "x" * 16
 
 
-def run_entrypoint(entrypoint, env, tmp_path):
+def launch_entrypoint(entrypoint, env, tmp_path):
     """Run a shipped entrypoint with its final `exec` replaced by a probe.
 
-    Returns the argv and exported environment the server would have started with,
-    plus everything the script printed.
+    The probe writes the argv and exported environment the server would have started
+    with to tmp_path/argv and tmp_path/environ. Returns the completed process.
     """
     script = entrypoint.read_text().replace("/usr/local/bin/sagemaker_args.py", str(SM_ARGS))
     # The CPU entrypoint sources a file that only exists in the image.
@@ -303,6 +303,16 @@ def run_entrypoint(entrypoint, env, tmp_path):
         text=True,
         timeout=60,
     )
+    return result
+
+
+def run_entrypoint(entrypoint, env, tmp_path):
+    """Run a shipped entrypoint up to its probe and require it to succeed.
+
+    Returns the argv and exported environment the server would have started with,
+    plus everything the script printed.
+    """
+    result = launch_entrypoint(entrypoint, env, tmp_path)
     assert result.returncode == 0, result.stderr
     argv = (tmp_path / "argv").read_text().split("\0")[:-1]
     entries = (tmp_path / "environ").read_text().split("\0")
@@ -346,3 +356,55 @@ def test_logged_arguments_mask_credentials(env_key, monkeypatch, capsys):
     captured = capsys.readouterr()
     assert FAKE_SECRET in captured.out.split("\0")
     assert FAKE_SECRET not in captured.err
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+@pytest.mark.parametrize("prefix", ["", " "], ids=["list", "indented-list"])
+def test_json_list_of_api_keys_is_rejected(entrypoint, prefix, tmp_path):
+    """VLLM_API_KEY holds a single key, so a JSON list can't become several keys any
+    more. Starting with the whole list as one key would leave every client locked out
+    with no explanation; the entrypoint must refuse to start, without printing the keys."""
+    keys = ["--old-key-" + "x" * 8, "--new-key-" + "y" * 8]
+    env = {"SM_VLLM_MODEL": "m", "SM_VLLM_API_KEY": prefix + json.dumps(keys)}
+    result = launch_entrypoint(entrypoint, env, tmp_path)
+    assert result.returncode != 0
+    assert not (tmp_path / "argv").exists(), "the server must not start"
+    assert "SM_VLLM_API_KEY" in result.stderr
+    for key in keys:
+        assert key not in result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+def test_hf_token_reaches_vllm_as_env_var_not_argv(entrypoint, tmp_path):
+    """Hugging Face downloads read HF_TOKEN when no --hf-token is given; keep the
+    token off the command line for the same reason as the API key."""
+    argv, environ, output = run_entrypoint(
+        entrypoint, {"SM_VLLM_MODEL": "m", "SM_VLLM_HF_TOKEN": FAKE_SECRET}, tmp_path
+    )
+    assert environ.get("HF_TOKEN") == FAKE_SECRET
+    assert "--hf-token" not in argv
+    assert FAKE_SECRET not in argv
+    assert FAKE_SECRET not in output
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+def test_sm_vllm_hf_token_still_wins_over_hf_token(entrypoint, tmp_path):
+    """SM_VLLM_HF_TOKEN used to arrive as --hf-token, which beats HF_TOKEN."""
+    _, environ, _ = run_entrypoint(
+        entrypoint,
+        {"SM_VLLM_MODEL": "m", "SM_VLLM_HF_TOKEN": FAKE_SECRET, "HF_TOKEN": "other"},
+        tmp_path,
+    )
+    assert environ.get("HF_TOKEN") == FAKE_SECRET
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+@pytest.mark.parametrize("value,flag_expected", [("true", True), ("True", True), ("false", False)])
+def test_boolean_hf_token_keeps_its_flag_meaning(entrypoint, value, flag_expected, tmp_path):
+    """A bare --hf-token tells vLLM to use the token from `hf auth login`; true/false
+    must keep meaning that, not become a literal token."""
+    argv, environ, _ = run_entrypoint(
+        entrypoint, {"SM_VLLM_MODEL": "m", "SM_VLLM_HF_TOKEN": value}, tmp_path
+    )
+    assert ("--hf-token" in argv) is flag_expected
+    assert "HF_TOKEN" not in environ

@@ -46,7 +46,8 @@ SINGLE_TOKEN_FLAGS = frozenset(
 # Flags that carry credentials. Their values are masked when the arguments are logged,
 # as vLLM does for the same fields (_SENSITIVE_ARG_FIELDS in
 # vllm/entrypoints/common/startup.py). The entrypoints pass SM_VLLM_API_KEY as
-# VLLM_API_KEY, so it normally never reaches this helper.
+# VLLM_API_KEY and a SM_VLLM_HF_TOKEN token as HF_TOKEN, so normally neither reaches
+# this helper.
 SENSITIVE_FLAGS = frozenset({"--api-key", "--hf-token", "--watermark-config"})
 REDACTED = "***"
 
