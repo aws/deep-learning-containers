@@ -40,7 +40,5 @@ jobs:
       config-file: ${{ matrix.config_file }}
       tag-suffix: ${{ github.run_id }}
       run-efa-test: true
-      # Off until the HyperPod test cluster has reserved GPU capacity (as in dynamo.pr.yml).
-      run-hyperpod-test: false
       release: true
     secrets: inherit
