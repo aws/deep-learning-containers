@@ -1,0 +1,104 @@
+
+apiVersion: kubeflow.org/v1
+kind: MPIJob
+metadata:
+  name: nccl-tests
+spec:
+  runPolicy:
+    cleanPodPolicy: Running
+    backoffLimit: 20
+  slotsPerWorker: 8
+  mpiReplicaSpecs:
+    Launcher:
+      replicas: 1
+      template:
+         spec:
+          restartPolicy: OnFailure
+          containers:
+          - image: public.ecr.aws/hpc-cloud/nccl-tests:latest
+            imagePullPolicy: IfNotPresent
+            name: test-nccl-launcher
+            env:
+             - name: PATH
+               value: $PATH:/opt/amazon/efa/bin:/usr/bin
+             - name: LD_LIBRARY_PATH
+               value: /opt/amazon/openmpi/lib:/opt/nccl/build/lib:/opt/amazon/efa/lib:/opt/aws-ofi-nccl/install/lib:/usr/local/nvidia/lib:$LD_LIBRARY_PATH
+            command:
+            - /opt/amazon/openmpi/bin/mpirun
+            - --allow-run-as-root
+            - --tag-output
+            - -np
+            - "16"
+            - -N
+            - "8"
+            - --bind-to
+            - none
+            - -x
+            - PATH
+            - -x
+            - LD_LIBRARY_PATH
+            - -x
+            - FI_PROVIDER=efa
+            - -x
+            - FI_EFA_USE_DEVICE_RDMA=1
+            - -x
+            - FI_EFA_FORK_SAFE=1
+            - -x
+            - NCCL_DEBUG=INFO
+            - -x
+            - NCCL_BUFFSIZE=8388608
+            - -x
+            - NCCL_P2P_NET_CHUNKSIZE=524288
+            - -x
+            - NCCL_TUNER_PLUGIN=/opt/aws-ofi-nccl/install/lib/libnccl-ofi-tuner.so
+            - --mca
+            - pml
+            - ^ucx
+            - --mca
+            - btl
+            - tcp,self
+            - --mca
+            - btl_tcp_if_exclude
+            - lo,docker0,veth_def_agent
+            - /opt/nccl-tests/build/all_reduce_perf
+            - -b
+            - "8"
+            - -e
+            - "1G"
+            - -f
+            - "2"
+            - -g
+            - "1"
+            - -c
+            - "1"
+            - -n
+            - "20"
+    Worker:
+      replicas: 2
+      template:
+        spec:
+          nodeSelector:
+            node.kubernetes.io/instance-type: "p4d.24xlarge"
+          containers:
+          - image: public.ecr.aws/hpc-cloud/nccl-tests:latest
+            imagePullPolicy: IfNotPresent
+            name: nccl-tests-worker
+            volumeMounts:
+            - name: shmem
+              mountPath: /dev/shm
+            resources:
+              limits:
+                nvidia.com/gpu: 8
+                hugepages-2Mi: 128Mi
+                vpc.amazonaws.com/efa: 4
+                memory: 16000Mi
+              requests:
+                nvidia.com/gpu: 8
+                hugepages-2Mi: 128Mi
+                vpc.amazonaws.com/efa: 4
+                memory: 16000Mi
+          volumes:
+          - name: shmem
+            hostPath:
+              path: /dev/shm
+
