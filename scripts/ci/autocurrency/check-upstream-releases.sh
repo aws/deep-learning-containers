@@ -172,7 +172,7 @@ for framework in ${FRAMEWORKS}; do
     echo "${framework}: Resolved version: ${latest_version}"
 
     if [[ "${latest_version}" != "$(strip_tag_prefix "${tag_name}" "${tag_prefix}")" ]]; then
-      echo "::warning::${framework}: release ${release_name} is attached to RC tag ${tag_name}; treating it as ${latest_version}."
+      echo "::warning::${framework}: release name ${release_name} disagrees with tag ${tag_name}; using ${latest_version} from the name."
     fi
 
     if is_rc_version "${latest_version}"; then
