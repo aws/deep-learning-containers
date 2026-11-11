@@ -135,14 +135,9 @@
         "review_by": "2026-12-10"
     },
     {
-        "vulnerability_id": "CVE-2026-81726",
-        "reason": "nltk 3.10.3 with no fixed version published. The path traversal is in the TransitionParser model-artifact APIs, which require a caller to pass attacker-controlled paths; this image serves a fixed model and never loads untrusted artifacts through those APIs. Not exploitable in the runtime.",
-        "review_by": "2026-11-11"
-    },
-    {
         "vulnerability_id": "CVE-2026-69112",
         "reason": "accelerate 1.12.0 with no fixed version published (the advisory covers through 1.14.0). load_checkpoint_in_model and load_checkpoint_and_dispatch traverse paths taken from a sharded checkpoint index, so exploitation needs an attacker-supplied checkpoint; this image serves a fixed, known model. HF-owned package, so a bump would go to the HF team once a fix exists.",
-        "review_by": "2026-11-11"
+        "review_by": "2026-12-08"
     },
     {
         "vulnerability_id": "CVE-2026-105759",
@@ -167,7 +162,7 @@
     {
         "vulnerability_id": "CVE-2026-112393",
         "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
-        "review_by": "2026-11-12"
+        "review_by": "2026-11-24"
     },
     {
         "vulnerability_id": "CVE-2026-112394",
@@ -192,7 +187,7 @@
     {
         "vulnerability_id": "CVE-2026-112398",
         "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
-        "review_by": "2026-11-12"
+        "review_by": "2026-11-24"
     },
     {
         "vulnerability_id": "CVE-2026-112399",
@@ -217,7 +212,7 @@
     {
         "vulnerability_id": "CVE-2026-112403",
         "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
-        "review_by": "2026-11-12"
+        "review_by": "2026-11-24"
     },
     {
         "vulnerability_id": "CVE-2026-112404",
@@ -267,7 +262,7 @@
     {
         "vulnerability_id": "CVE-2026-112900",
         "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
-        "review_by": "2026-11-12"
+        "review_by": "2026-11-24"
     },
     {
         "vulnerability_id": "CVE-2026-112901",
@@ -312,7 +307,7 @@
     {
         "vulnerability_id": "CVE-2026-96639",
         "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
-        "review_by": "2026-11-12"
+        "review_by": "2026-11-24"
     },
     {
         "vulnerability_id": "CVE-2026-96640",
@@ -348,5 +343,15 @@
         "vulnerability_id": "CVE-2026-116178",
         "reason": "vllm 0.29.0rc1 built from source at the vllm_ref commit pinned in the image config; fix requires vllm >= 0.30.0, which needs a framework-owned vllm_ref (and matching vllm-omni) release bump",
         "review_by": "2027-01-27"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112902",
+        "reason": "pillow 12.3.0; the only fix is pillow 13.0.0, blocked by gradio 6.30.0 which requires pillow<13.0 (cap still present in the latest gradio 6.31.0), so 12.3.0 is the highest installable version; needs gradio to support pillow 13 before this can be patched",
+        "review_by": "2026-12-08"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78661",
+        "reason": "golang.org/x/net v0.60.0 statically linked inside mooncake/libetcd_wrapper.so, html addText/fosterParent text-node coalescing quadratic memory copy; the fix needs x/net v0.62.0, but the newest mooncake-transfer-engine-cuda13 wheel (0.3.14) still embeds v0.60.0 and upstream Mooncake main pins v0.60.0, so it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2027-01-09"
     }
 ]

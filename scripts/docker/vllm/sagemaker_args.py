@@ -43,6 +43,14 @@ SINGLE_TOKEN_FLAGS = frozenset(
     }
 )
 
+# Flags that carry credentials. Their values are masked when the arguments are logged,
+# as vLLM does for the same fields (_SENSITIVE_ARG_FIELDS in
+# vllm/entrypoints/common/startup.py). The entrypoints pass SM_VLLM_API_KEY as
+# VLLM_API_KEY and a SM_VLLM_HF_TOKEN token as HF_TOKEN, so normally neither reaches
+# this helper.
+SENSITIVE_FLAGS = frozenset({"--api-key", "--hf-token", "--watermark-config"})
+REDACTED = "***"
+
 
 def flag_for(env_key: str) -> str:
     """``SM_VLLM_TENSOR_PARALLEL_SIZE`` -> ``--tensor-parallel-size``."""
@@ -178,6 +186,19 @@ def build_args(env: Mapping[str, str], model_dir: str = MODEL_DIR) -> List[str]:
     return args
 
 
+def redact(args: List[str], env: Mapping[str, str]) -> List[str]:
+    """Return a copy of `args` that is safe to log: SENSITIVE_FLAGS values are masked.
+
+    Tokens are matched against the values `env` supplies for those flags rather than by
+    position, so a key that starts with "--" is masked too.
+    """
+    secrets = set()
+    for key, value in env.items():
+        if key.startswith(PREFIX) and flag_for(key) in SENSITIVE_FLAGS:
+            secrets.update(tokens_for(flag_for(key), value) or [])
+    return [REDACTED if token in secrets else token for token in args]
+
+
 def emit(tokens: Iterable[str]) -> None:
     """Write tokens NUL-delimited for `mapfile -t -d ''` on the shell side."""
     sys.stdout.write("".join(f"{token}\0" for token in tokens))
@@ -185,7 +206,7 @@ def emit(tokens: Iterable[str]) -> None:
 
 def main() -> None:
     args = build_args(os.environ)
-    log(f"INFO: vLLM server arguments: {args}")
+    log(f"INFO: vLLM server arguments: {redact(args, os.environ)}")
     emit(args)
 
 
