@@ -48,6 +48,11 @@ ENV PATH=/opt/conda/envs/openfold3/bin:$PATH \
 # Third party dependencies (CUTLASS for the DeepSpeed Evoformer attention kernel)
 RUN /opt/openfold-3/scripts/install_third_party_dependencies.sh
 
+COPY ./scripts/docker/openfold3/harden_tar_extraction.py /tmp/harden_tar_extraction.py
+RUN python /tmp/harden_tar_extraction.py \
+  /opt/openfold-3/openfold3/core/data/tools/colabfold_msa_server.py \
+  && rm /tmp/harden_tar_extraction.py
+
 # Install openfold3
 RUN pip install --no-deps --editable .
 
