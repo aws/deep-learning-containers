@@ -254,8 +254,10 @@ def wanted_counts():
 
 
 def set_counts(counts):
+    # UpdateCluster takes each group's full spec: resend every setting the CI cluster's groups use (including the
+    # weekly AMI update schedule), or the call clears it. Add a key here when the cluster's groups get a new setting.
     keys = ("InstanceGroupName", "InstanceType", "LifeCycleConfig", "ExecutionRole", "ThreadsPerCore",
-            "InstanceStorageConfigs", "OverrideVpcConfig")  # fmt: skip
+            "InstanceStorageConfigs", "OverrideVpcConfig", "ScheduledUpdateConfig")  # fmt: skip
     groups = instance_groups()
     # UpdateCluster rejects a call that changes nothing (a group kept running at its count, e.g. on reserved
     # capacity), and a group recorded earlier may no longer exist: send only real changes.
