@@ -53,6 +53,50 @@ is_rc_version() {
   return 1
 }
 
+###############################################################################
+# resolve_release_version(tag_name, release_name, [prefix])
+#   Resolves the version a GitHub release ships. The tag is authoritative,
+#   except when it is RC-shaped and the release name is a plain version: an
+#   upstream can attach a GA release to an RC tag, as vllm did for 0.33.0
+#   (tag v0.33.0rc3, name v0.33.0). Returns the tag-derived version otherwise.
+#
+#   Examples:
+#     resolve_release_version "v0.32.0"    "v0.32.0"  "v" → 0.32.0
+#     resolve_release_version "v0.33.0rc3" "v0.33.0"  "v" → 0.33.0
+#     resolve_release_version "v0.33.0rc3" "v0.33.0rc3" "v" → 0.33.0rc3
+#     resolve_release_version "v0.33.0rc3" "Release 1 🎉" "v" → 0.33.0rc3
+#
+#   Usage: version=$(resolve_release_version "${tag}" "${name}" "${prefix}")
+###############################################################################
+resolve_release_version() {
+  local tag_name="${1:?Usage: resolve_release_version TAG_NAME RELEASE_NAME [PREFIX]}"
+  local release_name="${2-}"
+  local prefix="${3:-v}"
+
+  local from_tag
+  from_tag="$(strip_tag_prefix "${tag_name}" "${prefix}")"
+
+  # A non-RC tag is always authoritative.
+  if ! is_rc_version "${from_tag}"; then
+    echo "${from_tag}"
+    return 0
+  fi
+
+  if [[ -z "${release_name}" || "${release_name}" == "null" ]]; then
+    echo "${from_tag}"
+    return 0
+  fi
+
+  local from_name
+  from_name="$(strip_tag_prefix "${release_name}" "${prefix}")"
+
+  # Only trust the name when it is a bare release version.
+  if [[ "${from_name}" =~ ^[0-9]+(\.[0-9]+)*(\.post[0-9]+)?$ ]]; then
+    echo "${from_name}"
+  else
+    echo "${from_tag}"
+  fi
+}
 
 ###############################################################################
 # is_newer_version(upstream, current)
