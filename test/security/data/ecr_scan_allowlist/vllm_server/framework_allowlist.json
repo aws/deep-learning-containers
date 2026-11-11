@@ -12,7 +12,7 @@
     {
         "vulnerability_id": "CVE-2026-53923",
         "reason": "Affects vllm < 0.24.0 (fixed in 0.24.0). The 0.30.0 ec2/sagemaker images are not affected; only the hyperpod image, still on vllm 0.20.0.dev361, carries it. Remove once hyperpod moves to vllm >= 0.24.0.",
-        "review_by": "2026-11-10"
+        "review_by": "2027-02-09"
     },
     {
         "vulnerability_id": "CVE-2026-115915",
