@@ -76,6 +76,14 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     [llama.cpp Guide](llama-cpp/index.md)
 
+-   **Answer Decision Questions**
+
+    ---
+
+    Serve strands-decider models, which answer yes/no, choice, and score questions with calibrated probabilities, on Amazon SageMaker AI.
+
+    [Strands Decider Guide](strands-decider/index.md)
+
 -   **Serve ML Models**
 
     ---

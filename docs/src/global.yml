@@ -82,6 +82,7 @@ display_names:
     whisperx: "WhisperX"
     llama-cpp: "llama.cpp"
     llama-cpp-arm64: "llama.cpp ARM64"
+    strands-decider: "Strands Decider"
     pytorch-training: "PyTorch Training"
     pytorch-training-arm64: "PyTorch Training ARM64"
     pytorch-inference: "PyTorch Inference"
@@ -206,6 +207,7 @@ image_categories:
       - vllm-omni
       - llama-cpp
       - llama-cpp-arm64
+      - strands-decider
       - sagemaker-tritonserver
   - title: "Framework Containers"
     repositories:
@@ -271,6 +273,7 @@ table_order:
   - vllm-omni
   - llama-cpp
   - llama-cpp-arm64
+  - strands-decider
   - pytorch
   - pytorch-training
   - pytorch-inference

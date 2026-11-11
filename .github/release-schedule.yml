@@ -179,3 +179,7 @@ schedules:
   - cron: "30 19 * * 5"
     workflow: vllm.autorelease-sagemaker-arm64-amzn2023.yml
     gpu: minimal
+  # Friday — Dynamo (all six images in one run)
+  - cron: "00 21 * * 5"
+    workflow: dynamo.autorelease-amzn2023.yml
+    gpu: heavy

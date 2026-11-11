@@ -5,7 +5,7 @@ image:
 metadata:
   framework: "dynamo"
   # Dynamo release; must match the ai-dynamo version in docker/dynamo/trtllm/uv.lock and build.dynamo_ref.
-  framework_version: "1.6.1"
+  framework_version: "1.6.2"
   # Backend and the version Dynamo pins for it (from the lock).
   backend: "trtllm"
   backend_version: "1.3.0rc29"
@@ -15,7 +15,7 @@ metadata:
   arch_type: "x86"
   device_type: "gpu"
   job_type: "general"
-  prod_image: "dynamo:1.6.1-efa-trtllm-runtime-v1"
+  prod_image: "dynamo:1.6.2-efa-trtllm-runtime-v1"
 
 build:
   dockerfile: "docker/dynamo/Dockerfile.amzn2023"
@@ -26,8 +26,8 @@ build:
   efa_version: "latest"
   python_version: "3.12"
   cuda_version: "13.0.2"
-  # Dynamo 1.6.1 (release/1.6.1; not tagged yet).
-  dynamo_ref: "0d9c24a8bf6db13c1a1223cf15fcbee9140d1ac3"
+  # Dynamo 1.6.2 (tag v1.6.2).
+  dynamo_ref: "28f9765d98ded77149a94d0defee6d54e97f6741"
   # NIXL bundled in tensorrt-llm (its docker/common/install_nixl.sh at the pinned release); the EFA
   # flavor adds a LIBFABRIC plugin built for exactly this version.
   bundled_nixl_version: "1.4.0"
@@ -35,9 +35,9 @@ build:
   dlc_minor_version: "0"
 
 release:
-  release: false
+  release: true
   force_release: false
-  public_registry: false
+  public_registry: true
   private_registry: true
   enable_soci: true
   environment: "production"

@@ -18,7 +18,7 @@ holder's namespace, and a dead test's namespace never keeps the GPU groups up.
 With --fallback-groups, a pair of groups whose nodes don't come up within PAIR_NODE_TIMEOUT_S (no on-demand capacity in
 that AZ) is scaled back and the fallback pair is tried; later tests in the same queue start with the pair that worked.
 
-Usage: run_hyperpod_test.py --image-uri URI --runtime-version 1.6.1 --backend vllm --efa-flavor efa
+Usage: run_hyperpod_test.py --image-uri URI --runtime-version 1.6.2 --backend vllm --efa-flavor efa
     --eks-cluster NAME --hyperpod-cluster NAME --prefill-group GROUP --decode-group GROUP
     [--fallback-groups PREFILL,DECODE] [--region us-west-2] [--log-dir DIR] [--model Qwen/Qwen3-0.6B]
 (--help for details)
@@ -254,9 +254,24 @@ def wanted_counts():
 
 
 def set_counts(counts):
+    # UpdateCluster takes each group's full spec: resend every setting the CI cluster's groups use (including the
+    # weekly AMI update schedule), or the call clears it. Add a key here when the cluster's groups get a new setting.
     keys = ("InstanceGroupName", "InstanceType", "LifeCycleConfig", "ExecutionRole", "ThreadsPerCore",
-            "InstanceStorageConfigs", "OverrideVpcConfig")  # fmt: skip
+            "InstanceStorageConfigs", "OverrideVpcConfig", "ScheduledUpdateConfig")  # fmt: skip
     groups = instance_groups()
+    # UpdateCluster rejects a call that changes nothing (a group kept running at its count, e.g. on reserved
+    # capacity), and a group recorded earlier may no longer exist: send only real changes.
+    missing = sorted(name for name in counts if name not in groups)
+    if missing:
+        log(f"instance groups not in the cluster, skipped: {', '.join(missing)}")
+    counts = {
+        name: n
+        for name, n in counts.items()
+        if name in groups and groups[name].get("TargetCount") != n
+    }
+    if not counts:
+        log("instance groups already at the requested counts")
+        return
     update = [
         {**{k: groups[name][k] for k in keys if k in groups[name]}, "InstanceCount": n}
         for name, n in counts.items()

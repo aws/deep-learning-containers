@@ -2,7 +2,7 @@
 
 The workflow passes what the image config declares:
   DYNAMO_BACKEND           metadata.backend (vllm | sglang | trtllm)
-  EXPECTED_DYNAMO_VERSION  metadata.framework_version (e.g. 1.6.1)
+  EXPECTED_DYNAMO_VERSION  metadata.framework_version (e.g. 1.6.2)
   EXPECTED_BACKEND_VERSION metadata.backend_version (e.g. 0.31.0)
   EFA_FLAVOR               build.efa_flavor (efa | noefa)
 """

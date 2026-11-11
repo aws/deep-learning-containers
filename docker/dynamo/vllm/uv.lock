@@ -9,6 +9,7 @@ supported-markers = [
 ]
 
 [manifest]
+constraints = [{ name = "oauthlib", specifier = ">=4.0.1" }]
 excludes = [
     "aisimulate",
     "nixl-cu12",
@@ -26,7 +27,7 @@ wheels = [
 
 [[package]]
 name = "ai-dynamo"
-version = "1.6.1"
+version = "1.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ai-dynamo-runtime" },
@@ -43,7 +44,7 @@ dependencies = [
     { name = "zstandard" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/ef/d68ed8b3a6949a6617fb9205df797e15c95088ecc89d186aa7cbef8ed6e4/ai_dynamo-1.6.1-py3-none-any.whl", hash = "sha256:83f768730104cbbc84029bf436025706632735173933adbb650b99c746517b70", size = 3972559, upload-time = "2026-10-27T06:46:14.23Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/cd/fa9c496f6e2a937b8234ee462daf5e75027cadf8e9cfec2de73aae6f480a/ai_dynamo-1.6.2-py3-none-any.whl", hash = "sha256:91c6c35ef02bee0fcbbbf6c3b42e97010aa6cc5d9180557852057b25df5cd84c", size = 3974591, upload-time = "2026-11-05T19:53:43.946Z" },
 ]
 
 [package.optional-dependencies]
@@ -59,14 +60,14 @@ vllm = [
 
 [[package]]
 name = "ai-dynamo-runtime"
-version = "1.6.1"
+version = "1.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "uvloop" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/68/bbc88f1eb1afcd83850b1e454ea6fa3e90574a0d40a8a20cf63a8ee401b0/ai_dynamo_runtime-1.6.1-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:3683cafe88ededdff29c9ae6f651367eac33153487ff84e205082483cd6b3095", size = 74705200, upload-time = "2026-10-27T06:47:44.165Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/70/d2f1678fbe703196dc99b5c20e7d708ba3ae8207f19a9dd13f1bf17bf7f5/ai_dynamo_runtime-1.6.2-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:e79479094b1d2fb0468aacae0d48c50977a0cf0f610c35dc769611a1e6e2a53a", size = 74705952, upload-time = "2026-11-05T19:55:33.001Z" },
 ]
 
 [[package]]
@@ -570,7 +571,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ai-dynamo", extras = ["vllm"], specifier = "==1.6.1" },
+    { name = "ai-dynamo", extras = ["vllm"], specifier = "==1.6.2" },
     { name = "botocore" },
     { name = "torch", index = "https://download.pytorch.org/whl/cu130" },
     { name = "torchaudio", index = "https://download.pytorch.org/whl/cu130" },
@@ -1796,11 +1797,11 @@ wheels = [
 
 [[package]]
 name = "oauthlib"
-version = "4.0.0"
+version = "4.0.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7a/d8/a1bcc8ba112a627f8ffbdc212a78ce18d3ac07e91a5ca65d27918eee25a1/oauthlib-4.0.0.tar.gz", hash = "sha256:efb274799819440f95b4ab3b818869f1ce9ae26c5beacba0201d1a1b76b54f86", size = 187232, upload-time = "2026-09-28T06:01:18.77Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/17/2bb072de0b990303c985f26869fd47bb179024a051f47e7f9d208eb92f8e/oauthlib-4.0.1.tar.gz", hash = "sha256:3d73febdb6faa00f277c81fb04be7b7586fb96fc3b7f0b9c772dada69a25ede7", size = 191219, upload-time = "2026-10-31T09:52:58.008Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d9/f4/78229a1066068ca14fc60fb26cf7381cabe4382261392b90e5f9552722d4/oauthlib-4.0.0-py3-none-any.whl", hash = "sha256:624c28c13a0a59cabf9747dfa52af63be3e512a7f2714df16e91b5b3a145e6cd", size = 159715, upload-time = "2026-09-28T06:01:17.008Z" },
+    { url = "https://files.pythonhosted.org/packages/df/ef/3b8adde1b32a6f540758bff734d3442c621734c83708e5f02b0ba2f43b84/oauthlib-4.0.1-py3-none-any.whl", hash = "sha256:498a298876e996301950a5b053d12c31628bb7b895db03666430c69ce182eb61", size = 161934, upload-time = "2026-10-31T09:52:56.206Z" },
 ]
 
 [[package]]
