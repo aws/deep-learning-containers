@@ -53,6 +53,39 @@ is_rc_version() {
   return 1
 }
 
+###############################################################################
+# resolve_release_version(tag_name, release_name, [prefix])
+#   Resolves the version a GitHub release ships. The release name wins whenever
+#   it is a plain version, whatever tag the release points at: upstreams attach
+#   a GA release to an RC tag (vllm 0.33.0 is tagged v0.33.0rc3). Falls back to
+#   the tag when the name is empty or not a version.
+#
+#   Examples:
+#     resolve_release_version "v0.32.0"    "v0.32.0"     "v" → 0.32.0
+#     resolve_release_version "v0.33.0rc3" "v0.33.0"     "v" → 0.33.0
+#     resolve_release_version "v0.33.0rc3" "v0.33.0rc3"  "v" → 0.33.0rc3
+#     resolve_release_version "v0.33.0rc3" "Release 1"   "v" → 0.33.0rc3
+#
+#   Usage: version=$(resolve_release_version "${tag}" "${name}" "${prefix}")
+###############################################################################
+resolve_release_version() {
+  local tag_name="${1:?Usage: resolve_release_version TAG_NAME RELEASE_NAME [PREFIX]}"
+  local release_name="${2-}"
+  local prefix="${3:-v}"
+
+  if [[ -n "${release_name}" && "${release_name}" != "null" ]]; then
+    local from_name
+    from_name="$(strip_tag_prefix "${release_name}" "${prefix}")"
+
+    # Trust the name whenever it is a bare release version.
+    if [[ "${from_name}" =~ ^[0-9]+(\.[0-9]+)*(\.post[0-9]+)?$ ]]; then
+      echo "${from_name}"
+      return 0
+    fi
+  fi
+
+  strip_tag_prefix "${tag_name}" "${prefix}"
+}
 
 ###############################################################################
 # is_newer_version(upstream, current)

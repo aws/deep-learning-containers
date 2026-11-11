@@ -160,15 +160,20 @@ for framework in ${FRAMEWORKS}; do
     # Extract release info
     # -----------------------------------------------------------------
     tag_name=$(echo "${api_body}" | jq -r '.tag_name')
+    release_name=$(echo "${api_body}" | jq -r '.name')
     html_url=$(echo "${api_body}" | jq -r '.html_url')
 
-    echo "${framework}: Latest release tag: ${tag_name}"
+    echo "${framework}: Latest release tag: ${tag_name} (name: ${release_name})"
 
     # -----------------------------------------------------------------
-    # Strip tag prefix and check for RC
+    # Resolve the released version and check for RC
     # -----------------------------------------------------------------
-    latest_version=$(strip_tag_prefix "${tag_name}" "${tag_prefix}")
-    echo "${framework}: Stripped version: ${latest_version}"
+    latest_version=$(resolve_release_version "${tag_name}" "${release_name}" "${tag_prefix}")
+    echo "${framework}: Resolved version: ${latest_version}"
+
+    if [[ "${latest_version}" != "$(strip_tag_prefix "${tag_name}" "${tag_prefix}")" ]]; then
+      echo "::warning::${framework}: release name ${release_name} disagrees with tag ${tag_name}; using ${latest_version} from the name."
+    fi
 
     if is_rc_version "${latest_version}"; then
       echo "${framework}: Version ${latest_version} is an RC release. Skipping."
