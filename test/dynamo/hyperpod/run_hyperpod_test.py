@@ -257,6 +257,19 @@ def set_counts(counts):
     keys = ("InstanceGroupName", "InstanceType", "LifeCycleConfig", "ExecutionRole", "ThreadsPerCore",
             "InstanceStorageConfigs", "OverrideVpcConfig")  # fmt: skip
     groups = instance_groups()
+    # UpdateCluster rejects a call that changes nothing (a group kept running at its count, e.g. on reserved
+    # capacity), and a group recorded earlier may no longer exist: send only real changes.
+    missing = sorted(name for name in counts if name not in groups)
+    if missing:
+        log(f"instance groups not in the cluster, skipped: {', '.join(missing)}")
+    counts = {
+        name: n
+        for name, n in counts.items()
+        if name in groups and groups[name].get("TargetCount") != n
+    }
+    if not counts:
+        log("instance groups already at the requested counts")
+        return
     update = [
         {**{k: groups[name][k] for k in keys if k in groups[name]}, "InstanceCount": n}
         for name, n in counts.items()
