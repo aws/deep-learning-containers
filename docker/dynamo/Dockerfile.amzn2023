@@ -221,8 +221,11 @@ RUN --mount=type=bind,from=dynamo-build,source=/opt/dynamo/dist,target=/tmp/dyna
 FROM python-env AS oss
 ARG PYTHON_VERSION
 COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY scripts/docker/dynamo/add_python_licenses.sh /tmp/add_python_licenses.sh
+COPY LICENSE /tmp/DLC_LICENSE
 RUN uv pip install pip \
   && bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && bash /tmp/add_python_licenses.sh python${PYTHON_VERSION} /tmp/DLC_LICENSE \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 # Builds NIXL's LIBFABRIC (EFA) plugin for the backend's NIXL when the base has EFA and either
