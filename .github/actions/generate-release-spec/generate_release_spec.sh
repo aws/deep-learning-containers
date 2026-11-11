@@ -63,6 +63,18 @@ fi
 
 TRANSFORMERS_VERSION=$(yq '.build.transformers_version // ""' "$CONFIG_FILE")
 
+# Backend and EFA flavor (images that ship one backend in EFA and non-EFA builds, e.g. dynamo).
+# efa_suffix is "-efa" or "" for tag templates like "{version}{efa_suffix}-{backend}-runtime";
+# it is written even when empty, since a template that uses it needs the key.
+BACKEND=$(yq '.metadata.backend // ""' "$CONFIG_FILE")
+EFA_FLAVOR=$(yq '.build.efa_flavor // ""' "$CONFIG_FILE")
+case "$EFA_FLAVOR" in
+  "")    ;;
+  efa)   EFA_SUFFIX="-efa" ;;
+  noefa) EFA_SUFFIX="" ;;
+  *) echo "ERROR: build.efa_flavor must be efa or noefa, got: ${EFA_FLAVOR}" >&2; exit 1 ;;
+esac
+
 # Release flags
 # No `// ""` fallback on these booleans: yq's `//` treats boolean `false` as
 # falsy, so `false // ""` collapses to "" and the flag would be dropped from the
@@ -92,6 +104,8 @@ SPEC+="version: \"${VERSION}\""$'\n'
 [[ -n "$TRANSFORMERS_VERSION" ]] && SPEC+="transformers_version: \"${TRANSFORMERS_VERSION}\""$'\n'
 [[ -n "$PLATFORM" ]]        && SPEC+="platform: \"${PLATFORM}\""$'\n'
 [[ -n "$CONTAINER_TYPE" ]]  && SPEC+="container_type: \"${CONTAINER_TYPE}\""$'\n'
+[[ -n "$BACKEND" ]]         && SPEC+="backend: \"${BACKEND}\""$'\n'
+[[ -n "$EFA_FLAVOR" ]]      && SPEC+="efa_suffix: \"${EFA_SUFFIX}\""$'\n'
 [[ "$FORCE_RELEASE"    != "null" && -n "$FORCE_RELEASE" ]]    && SPEC+="force_release: ${FORCE_RELEASE}"$'\n'
 [[ "$PUBLIC_REGISTRY"  != "null" && -n "$PUBLIC_REGISTRY" ]]  && SPEC+="public_registry: ${PUBLIC_REGISTRY}"$'\n'
 [[ "$PRIVATE_REGISTRY" != "null" && -n "$PRIVATE_REGISTRY" ]] && SPEC+="private_registry: ${PRIVATE_REGISTRY}"$'\n'

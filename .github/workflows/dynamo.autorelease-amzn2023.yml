@@ -1,0 +1,44 @@
+name: "Auto Release - Dynamo AL2023"
+
+# Weekly release of all six Dynamo images (vLLM, SGLang, TensorRT-LLM; EFA and non-EFA): picks up
+# security patches as vX.Y.<N+1> of the same Dynamo version. A new Dynamo version is a config change.
+on:
+  schedule:
+    - cron: '00 21 * * 5'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/dynamo/*.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/dynamo.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: ${{ github.run_id }}
+      run-efa-test: true
+      release: true
+    secrets: inherit
