@@ -140,8 +140,11 @@ jobs:
       - name: Run model smoke test
         run: |
           TEST_SCRIPT="${{ matrix.test_script || 'vllm_model_smoke_test.sh' }}"
+          ENV_ARGS=()
+          for kv in ${{ matrix.env_vars || '' }}; do ENV_ARGS+=(-e "${kv}"); done
           docker exec \
             -e TEST_CASES_JSON='${{ matrix.test_cases_json || '' }}' \
+            "${ENV_ARGS[@]}" \
             ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
@@ -223,8 +226,11 @@ jobs:
       - name: Run model smoke test
         run: |
           TEST_SCRIPT="${{ matrix.test_script || 'vllm_model_smoke_test.sh' }}"
+          ENV_ARGS=()
+          for kv in ${{ matrix.env_vars || '' }}; do ENV_ARGS+=(-e "${kv}"); done
           docker exec \
             -e TEST_CASES_JSON='${{ matrix.test_cases_json || '' }}' \
+            "${ENV_ARGS[@]}" \
             ${CONTAINER_ID} bash "/models/${TEST_SCRIPT}" \
             "/models/${{ matrix.name }}" \
             "${{ matrix.name }}" \
