@@ -192,3 +192,42 @@ def test_nixl_libfabric_plugin_ready_for_efa():
         "NIXL LIBFABRIC plugin" in Path("/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES").read_text()
     )
     assert listed == rebuilt, f"plugin rebuilt: {rebuilt}, listed in BUILD_FROM_SOURCE: {listed}"
+
+
+@pytest.mark.skipif(EFA_FLAVOR != "efa", reason="EFA flavor only")
+def test_patched_nixl_plugin_has_modification_notice():
+    """A LIBFABRIC plugin built with upstream fixes carries a modification notice linking each fix
+    (Apache-2.0 4(b)) in both OSS attribution files."""
+    patches = Path("/opt/nixl/LIBFABRIC_PLUGIN_PATCHES")
+    if not patches.is_file():
+        pytest.skip("plugin not patched")
+    prs = [
+        line.rsplit("nixl-", 1)[1].removesuffix(".patch") for line in patches.read_text().split()
+    ]
+    for name in ("BUILD_FROM_SOURCE_PACKAGES_LICENCES", "THIRD_PARTY_SOURCE_CODE_URLS"):
+        entry = next(
+            (
+                line
+                for line in Path("/root", name).read_text().splitlines()
+                if line.startswith(("** NIXL LIBFABRIC plugin;", "nixl "))
+            ),
+            "",
+        )
+        assert "modified" in entry, f"{name}: no modification notice in {entry!r}"
+        for pr in prs:
+            assert f"/nixl/pull/{pr}" in entry, f"{name}: fix {pr} not linked in {entry!r}"
+
+
+def test_python_packages_without_license_file_are_attributed():
+    """Wheels that ship no license file (left out by the OSS compliance tool) get their license
+    text from scripts/docker/dynamo/add_python_licenses.sh."""
+    licenses = Path("/root/PYTHON_PACKAGES_LICENSES").read_text()
+    for dist, marker in {"nvshmem4py-cu13": "Apache License"}.items():
+        try:
+            md.distribution(dist)
+        except md.PackageNotFoundError:
+            continue
+        start = licenses.find(f"Package Name: {dist}\n")
+        assert start >= 0, f"{dist} missing from PYTHON_PACKAGES_LICENSES"
+        end = licenses.find("\nPackage Name: ", start + 1)
+        assert marker in licenses[start : end if end > 0 else None], f"{dist}: no license text"

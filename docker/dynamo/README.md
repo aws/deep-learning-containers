@@ -59,7 +59,11 @@ The target and `BACKEND` must match. CI passes every `build:` key of the config 
    the image-scan allowlist `test/security/data/ecr_scan_allowlist/dynamo/dynamo-<version>.json`
    (CVEs that a backend's exact pins block; start a new file for the new version).
 1. If the release moves NIXL to a version that needs a LIBFABRIC fix, add
-   `scripts/docker/dynamo/nixl/patches/<nixl-version>/`; drop it once a NIXL release includes the fix.
+   `scripts/docker/dynamo/nixl/patches/<nixl-version>/`; drop it once a NIXL release includes the fix. Name each
+   patch `<n>-<topic>-nixl-<PR>.patch` after the upstream PR: the build links it in the image's modification notice
+   (OSS attribution files).
+1. A new Python package whose wheel ships no license file is left out of `/root/PYTHON_PACKAGES_LICENSES`:
+   add it to `scripts/docker/dynamo/add_python_licenses.sh`.
 
 ## Add a backend
 

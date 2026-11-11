@@ -52,6 +52,13 @@ build)
         exit 0
     fi
     PATCHES=$(ls "$PATCH_DIR"/*.patch 2>/dev/null || true)
+    # The image's modification notice links each upstream fix from its patch name (install, below).
+    for p in $PATCHES; do
+        case "$(basename "$p")" in
+        *-nixl-[0-9]*.patch) ;;
+        *) echo "ERROR: $p: name patches <n>-<topic>-nixl-<upstream PR>.patch" >&2; exit 1 ;;
+        esac
+    done
     if [ -z "$PATCHES" ] && [ -f "$PLUGIN" ]; then
         echo "${NIXL_DIST} ${NIXL_VERSION}: no patches in ${PATCH_DIR}; keeping the shipped plugin"
         exit 0
@@ -115,10 +122,20 @@ assert 'LIBFABRIC' in plugins, plugins"
     fi
     mkdir -p /opt/nixl
     cp "$OUT/VERSION" /opt/nixl/LIBFABRIC_PLUGIN_SOURCE
-    if [ -s "$OUT/PATCHES" ]; then cp "$OUT/PATCHES" /opt/nixl/LIBFABRIC_PLUGIN_PATCHES; fi
-    # Built from source: record it for OSS compliance (the license files are already in place).
-    printf '\n** NIXL LIBFABRIC plugin; version %s -- %s\n' "${NIXL_VERSION}" "${NIXL_REPO}" >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
-    printf '\nnixl %s %s/archive/refs/tags/v%s.tar.gz\n' "${NIXL_VERSION}" "${NIXL_REPO%.git}" "${NIXL_VERSION}" >>/root/THIRD_PARTY_SOURCE_CODE_URLS
+    # Built from source: record it for OSS compliance (the license files are already in place). A patched build
+    # carries a modification notice (Apache-2.0 4(b)) linking each upstream fix, from the patch names (checked in build).
+    MODIFIED=""
+    if [ -s "$OUT/PATCHES" ]; then
+        cp "$OUT/PATCHES" /opt/nixl/LIBFABRIC_PLUGIN_PATCHES
+        FIXES=""
+        while read -r p; do
+            PR=${p##*-nixl-}
+            FIXES="${FIXES:+$FIXES }${NIXL_REPO%.git}/pull/${PR%.patch}"
+        done <"$OUT/PATCHES"
+        MODIFIED=" (modified: built with the upstream fixes ${FIXES} applied to the v${NIXL_VERSION} source)"
+    fi
+    printf '\n** NIXL LIBFABRIC plugin; version %s -- %s%s\n' "${NIXL_VERSION}" "${NIXL_REPO}" "${MODIFIED}" >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES
+    printf '\nnixl %s %s/archive/refs/tags/v%s.tar.gz%s\n' "${NIXL_VERSION}" "${NIXL_REPO%.git}" "${NIXL_VERSION}" "${MODIFIED}" >>/root/THIRD_PARTY_SOURCE_CODE_URLS
     echo "${NIXL_DIST} ${NIXL_VERSION}: LIBFABRIC plugin built, patches: $(tr '\n' ' ' < "$OUT/PATCHES")"
     ;;
 *)
