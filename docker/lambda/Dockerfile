@@ -365,11 +365,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   && VLLM_WHL="$(ls -t /tmp/vllm-dist/vllm-*.whl | head -1)" \
   # Filtered cuda.txt: drop the FA4 cute-DSL cluster (nvidia-cutlass-dsl/quack/humming
   # → cuda-python 12.9, broken on cu130; we use flashinfer for attention). Written
-  # INSIDE requirements/ so its `-r common.txt` relative include resolves. torch/
-  # vision/audio are already installed (cu130) from the base; the --constraint pins
-  # them so this resolve can't downgrade torch (it dropped to 2.10.0+cu128 without it)
-  # — so we do NOT reinstall torch.
-  && grep -vE 'nvidia-cutlass-dsl|quack-kernels|humming-kernels' \
+  # INSIDE requirements/ so its `-r common.txt` relative include resolves. The torch
+  # trio is dropped too: the base's 2.14.1 wins and `==` ignores --constraint.
+  && grep -vE 'nvidia-cutlass-dsl|quack-kernels|humming-kernels|^torch==|^torchvision==|^torchaudio==' \
        /tmp/vllm/requirements/cuda.txt > /tmp/vllm/requirements/lambda-runtime.txt \
   && UV_INDEX_STRATEGY=unsafe-best-match uv pip install --python "${UV_PYTHON}" \
      --constraint /tmp/torch-constraints.txt \
