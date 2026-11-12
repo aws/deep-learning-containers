@@ -1,13 +1,18 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG FRAMEWORK_VERSION=0.29.0rc1
-ARG FLASHINFER_VERSION=0.6.18
+ARG FRAMEWORK_VERSION=0.32.0
+ARG FLASHINFER_VERSION=0.7.0.post1
 # DeepEP v2 from the AWS EFA fork (amazon-contributing/DeepEP).
 ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
 ARG DEEPEP_COMMIT_HASH=874779c9ccd2294b56304bd6cc5f138f1f71d097
 ARG NCCL_VERSION=2.31.2
 ARG NVSHMEM_PIP_VERSION=3.3.24
 ARG GDRCOPY_VERSION=2.5.2
+# Mooncake KV connector (same pin as docker/vllm/Dockerfile.amzn2023); its Go etcd
+# client is rebuilt in the mooncake-etcd stage.
+ARG MOONCAKE_VERSION=0.3.13.post1
+ARG GO_VERSION=1.27.3
+ARG GO_SHA256=65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -49,20 +54,19 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
-# `unzip` and `perl` are build deps from vllm v0.26.0: `perl` for the openssl-sys
-# crate compiled by the Rust frontend (`vllm-rs`, new in v0.26.0). `patch` is new in v0.28.0: vLLM's
-# CMakeLists.txt applies cmake/patches/pytorch_stable_string.patch to torch's
-# stable headers at configure time (CMakeLists.txt:417). The upstream manylinux
-# build base ships `patch`, but the amzn2023 base does not.
+# gcc14 provides C++20 <format> for DeepSelect; elfutils-devel provides
+# libdwfl headers for DeepGEMM's deep_jit backtraces. `unzip` and `perl` are
+# build deps for the Rust frontend (`vllm-rs`). The upstream manylinux build
+# base ships `patch`, but the amzn2023 base does not.
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip xz git gcc gcc-c++ make cmake ninja-build unzip perl gawk patch \
+  tar gzip xz git gcc gcc-c++ gcc14 gcc14-c++ make cmake ninja-build unzip perl gawk patch \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-  libibverbs-devel \
+  libibverbs-devel elfutils-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Rustup — needed to install the Rust toolchain pinned in the vllm source tree's
 # `rust-toolchain.toml`. We install rustup with no default toolchain and let
-# upstream's `build_rust.sh` (invoked below, after the source is copied) do the
+# upstream's `tools/build_rust.sh` (invoked below, after the source is copied) do the
 # explicit `rustup toolchain install "$TOOLCHAIN"` call, mirroring upstream.
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
   | sh -s -- -y --default-toolchain none --profile minimal --no-modify-path
@@ -105,7 +109,7 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/bui
 # - setuptools-rust + wheel (requirements/build/rust.txt) drives the in-tree
 #   Rust build during `setup.py bdist_wheel`.
 # protoc is no longer needed as of vllm v0.29.0: tools/install_protoc.sh was
-# removed upstream and build_rust.sh builds vllm-rs without it.
+# removed upstream and tools/build_rust.sh builds vllm-rs without it.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install -r requirements/build/rust.txt
 
 # Upstream vllm v0.26.0 dropped the +PTX suffix here — vLLM filters torch's
@@ -143,18 +147,20 @@ ARG USE_SCCACHE=false
 COPY docker/vllm/sccache-cache/ /root/.cache/sccache/
 
 # Build the Rust frontend (`vllm-rs`) — new in vllm v0.26.0. Upstream's
-# build_rust.sh installs the toolchain pinned in rust-toolchain.toml explicitly
-# (relying on rustup auto-install for proxy commands is unreliable) and drops
-# `vllm/vllm-rs/` + `vllm/_rust_*.so` into the source tree. setup.py's
-# get_precompiled_rust_extension_paths() then picks them up and ships them as-is
-# rather than re-running the Rust build inside setuptools-rust. Skipped when
-# using a pre-built wheel (the wheel already carries the Rust artifacts).
+# tools/build_rust.sh (moved from the repo root in v0.31.0) installs the toolchain
+# pinned in rust-toolchain.toml explicitly (relying on rustup auto-install for
+# proxy commands is unreliable) and drops `vllm/vllm-rs/` + `vllm/_rust_*.so` into
+# the source tree. setup.py's get_precompiled_rust_extension_paths() then picks
+# them up and ships them as-is rather than re-running the Rust build inside
+# setuptools-rust. Skipped when using a pre-built wheel (the wheel already
+# carries the Rust artifacts).
 RUN if ! ([ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1); then \
-      bash build_rust.sh; \
+      bash tools/build_rust.sh; \
     fi
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv \
-    if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
+    export CC=/usr/bin/gcc14-gcc CXX=/usr/bin/gcc14-c++ CUDAHOSTCXX=/usr/bin/gcc14-c++ \
+    && if [ "$USE_PREBUILT_WHEEL" = "1" ] && ls /tmp/prebuilt_wheels/*.whl >/dev/null 2>&1; then \
       echo "✅ Using pre-built vLLM wheel — skipping compilation" \
       && rm -rf dist && mkdir -p dist \
       && cp /tmp/prebuilt_wheels/*.whl dist/; \
@@ -228,6 +234,47 @@ FROM scratch AS sccache-export
 COPY --from=build /root/.cache/sccache/ /
 
 # =============================================================================
+# STAGE: mooncake-etcd — rebuild Mooncake's Go etcd client with a patched toolchain
+# =============================================================================
+# The mooncake-transfer-engine wheels on PyPI (through 0.3.13.post1) ship libetcd_wrapper.so
+# built with go1.25.10, x/net v0.55.0, x/text v0.37.0, grpc v1.82.1 and etcd v3.5.21, which
+# carry 32 Go CVEs (3 CRITICAL). Upstream fixed only go.mod/go.sum after that release
+# (kvcache-ai/Mooncake#4707), so build the same wrapper source at MOONCAKE_VERSION with a
+# current Go and the newest patch releases of that fix's modules (x/net 0.62.0 also fixes
+# CVE-2026-78661 and CVE-2026-97045, published after it). Built on AL2023 (glibc 2.34) like
+# the runtime image; x86_64 only, like the rest of this Dockerfile. Drop this stage once a
+# PyPI release ships a patched wrapper.
+FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS mooncake-etcd
+
+ARG MOONCAKE_VERSION
+ARG GO_VERSION
+ARG GO_SHA256
+
+RUN dnf install -y --setopt=install_weak_deps=False git gcc tar gzip \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+RUN curl --retry 3 -fsSL -o /tmp/go.tar.gz "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+  && echo "${GO_SHA256}  /tmp/go.tar.gz" | sha256sum -c - \
+  && tar -C /usr/local -xzf /tmp/go.tar.gz \
+  && rm /tmp/go.tar.gz
+ENV PATH="/usr/local/go/bin:${PATH}" \
+  GOTOOLCHAIN=local \
+  CGO_ENABLED=1
+
+RUN git clone --depth 1 --branch "v${MOONCAKE_VERSION}" https://github.com/kvcache-ai/Mooncake.git /src/mooncake
+WORKDIR /src/mooncake/mooncake-common/etcd
+# Same go build as upstream's mooncake-common/etcd/CMakeLists.txt, plus -trimpath.
+RUN go get \
+  go.etcd.io/etcd/api/v3@v3.5.35 \
+  go.etcd.io/etcd/client/v3@v3.5.35 \
+  golang.org/x/net@v0.62.0 \
+  golang.org/x/text@v0.43.0 \
+  google.golang.org/grpc@v1.83.2 \
+  && go mod tidy \
+  && go build -buildmode=c-shared -trimpath -o /out/libetcd_wrapper.so etcd_wrapper.go \
+  && go version -m /out/libetcd_wrapper.so
+
+# =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS deps
@@ -272,17 +319,16 @@ RUN --mount=type=cache,target=/root/.cache/uv ls /tmp/vllm-dist/*.whl \
   && uv pip install "${VLLM_WHL}" \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-# Install FlashInfer JIT cache (requires CUDA-version-specific index URL).
-# flashinfer-python and flashinfer-cubin are already pulled in via requirements/cuda.txt.
-# Cubins are downloaded later, AFTER all wheel installs that may overwrite
-# flashinfer files (vllm wheel, EP kernels, KV connectors). See upstream vllm
-# v0.26.0 Dockerfile — downloading earlier wastes ~2.5 GB on layer duplication.
-# Upstream v0.26.0 switched from --extra-index-url to --index-url here:
-# flashinfer-cubin is no longer on PyPI (0.6.14+), so the flashinfer wheel index
-# must be authoritative for both flashinfer-python and flashinfer-cubin.
+# Install FlashInfer after vllm wheel (pin flashinfer-python, flashinfer-cubin and
+# flashinfer-jit-cache to the same version so the precompiled kernels match).
+# flashinfer-cubin is only on flashinfer.ai/whl/ (PyPI stops at 0.6.13), and upstream
+# vLLM no longer lists it in requirements/cuda.txt (dropped in v0.32.0).
 ARG FLASHINFER_VERSION
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-jit-cache==${FLASHINFER_VERSION} \
-  --index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install \
+  flashinfer-python==${FLASHINFER_VERSION} flashinfer-cubin==${FLASHINFER_VERSION} \
+  flashinfer-jit-cache==${FLASHINFER_VERSION} \
+  --extra-index-url https://flashinfer.ai/whl/ \
+  --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install serving extras (matches upstream vllm v0.26.0 serving extras set).
 # Upstream additions vs v0.21.0: `modelscope<1.38` cap (1.38 dropped py3.9 compat
@@ -303,42 +349,61 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     echo "No DeepEP wheels to install; skipping."; \
   fi && rm -rf /tmp/ep_kernels
 
-# Install KV connectors (lmcache, nixl) if requested
+# Install KV connectors (lmcache, nixl, mooncake) if requested. Mirrors upstream's
+# .buildkite/scripts/install-kv-connectors.sh: keep the installed torch stack, then
+# keep only the nixl and mooncake wheels that match this CUDA major (the default
+# mooncake wheel links libcudart.so.12). Mooncake is pinned to the version whose etcd
+# wrapper the mooncake-etcd stage rebuilds.
 ARG INSTALL_KV_CONNECTORS=true
+ARG MOONCAKE_VERSION
 COPY --from=source /src/requirements/kv_connectors.txt /tmp/kv_connectors.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
+    set -e; \
     CUDA_MAJOR="${CUDA_VERSION%%.*}"; \
     CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-'); \
     if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
-        uv pip install -r /tmp/kv_connectors.txt --no-build || ( \
+        uv pip freeze | grep -E '^(torch|torchaudio|torchvision|triton|cuda-bindings|cuda-python|cuda-toolkit)==' >/tmp/kv-constraints.txt; \
+        echo "mooncake-transfer-engine==${MOONCAKE_VERSION}" >>/tmp/kv-constraints.txt; \
+        uv pip install -c /tmp/kv-constraints.txt -r /tmp/kv_connectors.txt --no-build || ( \
             dnf install -y --setopt=install_weak_deps=False \
                 libcusparse-devel-${CUDA_DASH} \
                 libcublas-devel-${CUDA_DASH} \
                 libcusolver-devel-${CUDA_DASH} \
-            && uv pip install -r /tmp/kv_connectors.txt --no-build-isolation \
+            && uv pip install -c /tmp/kv-constraints.txt -r /tmp/kv_connectors.txt --no-build-isolation \
             && dnf remove -y libcusparse-devel-${CUDA_DASH} libcublas-devel-${CUDA_DASH} libcusolver-devel-${CUDA_DASH} \
             && dnf clean all && rm -rf /var/cache/dnf \
         ); \
-        # Force-reinstall the matching CUDA wheel so the correct nixl_ep_cpp.so
-        # is installed (upstream vllm v0.21.0 fix).
-        uv pip install --force-reinstall --no-deps nixl-cu${CUDA_MAJOR}; \
-        # mooncake-transfer-engine's default PyPI wheel is a CUDA 12 build (its
-        # engine.so links libcudart.so.12, absent from the CUDA 13 runtime). On
-        # CUDA 13, swap it for the same-version cuda13 variant. New in upstream
-        # vllm v0.28.0 (.buildkite/scripts/install-kv-connectors.sh).
-        if [ "${CUDA_MAJOR}" = "13" ]; then \
-            MOONCAKE_VERSION=$(uv pip show mooncake-transfer-engine 2>/dev/null | awk '/^Version:/{print $2}'); \
-            if [ -n "${MOONCAKE_VERSION}" ]; then \
-                uv pip uninstall mooncake-transfer-engine || true; \
-                uv pip install "mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION}"; \
-            fi; \
+        NIXL_VERSION=$(python3 -c "import importlib.metadata as m; print(m.version('nixl'))"); \
+        uv pip uninstall nixl-cu12 nixl-cu13 || true; \
+        uv pip install --no-deps "nixl-cu${CUDA_MAJOR}==${NIXL_VERSION}"; \
+        MOONCAKE_INSTALLED=$(python3 -c "import importlib.metadata as m; print(m.version('mooncake-transfer-engine'))" 2>/dev/null || true); \
+        if [ "$CUDA_MAJOR" -ge 13 ] && [ -n "$MOONCAKE_INSTALLED" ]; then \
+            uv pip uninstall mooncake-transfer-engine; \
+            uv pip install -c /tmp/kv-constraints.txt "mooncake-transfer-engine-cuda13==${MOONCAKE_INSTALLED}"; \
         fi; \
+        rm -f /tmp/kv-constraints.txt; \
     fi
 
-# Pre-download FlashInfer cubins AFTER all wheel installs (vllm wheel, EP
-# kernels, KV connectors) finish — earlier installs may overwrite flashinfer
-# package files. Downloading here avoids ~2.5 GB layer duplication.
-RUN flashinfer show-config && flashinfer download-cubin
+# Swap in the etcd wrapper rebuilt by the mooncake-etcd stage. Fail if the rebuild lacks a
+# function the original exports, since engine.so, store.so and the other Mooncake libraries
+# link against them.
+COPY --from=mooncake-etcd /out/libetcd_wrapper.so /tmp/libetcd_wrapper.so
+RUN set -e; \
+    WRAPPER="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/mooncake/libetcd_wrapper.so"; \
+    if [ -f "$WRAPPER" ]; then \
+        nm -D --defined-only "$WRAPPER" | awk '$2 == "T" && $3 !~ /^(_cgo|x_cgo|_?crosscall)/ {print $3}' | sort >/tmp/old.exports; \
+        nm -D --defined-only /tmp/libetcd_wrapper.so | awk '$2 == "T" {print $3}' | sort >/tmp/new.exports; \
+        MISSING=$(comm -23 /tmp/old.exports /tmp/new.exports); \
+        if [ -n "$MISSING" ]; then echo "ERROR: rebuilt libetcd_wrapper.so lacks: $MISSING" >&2; exit 1; fi; \
+        cp /tmp/libetcd_wrapper.so "$WRAPPER"; \
+        echo "Replaced $WRAPPER ($(wc -l </tmp/old.exports) exported functions kept)"; \
+    fi; \
+    rm -f /tmp/libetcd_wrapper.so /tmp/old.exports /tmp/new.exports
+
+# The flashinfer-cubin wheel (installed above) already ships every cubin, so
+# there is no `flashinfer download-cubin` step: it only re-fetched the same ~43k files one
+# at a time (~25 min) and added none.
+RUN flashinfer show-config
 
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
@@ -394,7 +459,7 @@ ENV HF_XET_HIGH_PERFORMANCE=1
 # =============================================================================
 FROM runtime AS omni-deps
 
-ARG VLLM_OMNI_VERSION=0.29.0rc1
+ARG VLLM_OMNI_VERSION=0.32.0
 
 # System deps for omni-modality (TTS, audio, image/video)
 # Enable SPAL (Supplementary Packages for Amazon Linux) for espeak-ng, ffmpeg.
@@ -408,19 +473,24 @@ RUN dnf upgrade -y --releasever=latest --setopt=install_weak_deps=False system-r
 # so no --prerelease=allow flag needed.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install vllm-omni==${VLLM_OMNI_VERSION}
 
-# s3tokenizer: CosyVoice3's model code (cosyvoice3.py) hard-imports it at load
-# time in vllm-omni 0.26.0 (new vs 0.21.0rc1). Upstream ships it only in the
-# `dev` optional-dependency group ("s3tokenizer==0.3.0", "# for tts test"), so
-# the base `vllm-omni` install above does NOT pull it and CosyVoice3 fails with
-# `ModuleNotFoundError: No module named 's3tokenizer'`. Pin to the version
-# upstream tests against.
+# CosyVoice3 requires s3tokenizer. vllm-omni (0.30.0+) includes this pin in
+# its common requirements; keep it explicit as part of the DLC image contract.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install "s3tokenizer==0.3.0"
 
-# transformers <5.9.0 cap DROPPED in vllm-omni v0.26.0: upstream removed the
-# cap from requirements/common.txt and handles the breakage in code via
-# `transformers_keys_to_ignore_compat` (vllm_omni/model_executor/models/utils.py).
-# Requirement is now just `transformers >= 5.5.3` — resolved transitively by the
-# vllm-omni wheel install above, no explicit pin needed here.
+# Server VAD (`turn_detection: {"type": "server_vad"}`) on turn-based /v1/realtime, new in
+# vllm-omni 0.32.0 (vllm-omni#8600). vllm-omni never downloads a VAD model: it uses a Silero
+# ONNX file at duplex_session.server_vad_model_path or in the local HF cache, and otherwise
+# falls back to the silero-vad package (its `server-vad` extra), which bundles the weights.
+# Install the package so server VAD works offline, and check that the model loads and scores
+# one 16 kHz frame the way vllm-omni's fallback calls it. Its bundled silero_vad.onnx matches
+# vllm-omni's pinned checksum, so server_vad_model_path can also point at it.
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install "silero-vad==6.2.3" \
+  && python3 -c "import torch; from silero_vad import load_silero_vad; p = load_silero_vad(onnx=False)(torch.zeros(512), 16000).item(); assert 0.0 <= p < 0.5, p; print(f'silero-vad silence probability {p:.3f}')"
+
+# vllm-omni 0.32.0 resolves its tested transformers range transitively:
+# transformers>=5.16.1,<5.20.0, the same range as vLLM 0.32.0. fa3-fwd is no
+# longer installed: upstream moved it to the `dev` extra (vllm-omni#7735) and
+# imports it only as an optional Hopper fast path.
 
 # Remove stray top-level benchmarks/ and samples/ dirs shipped by the
 # PyNvVideoCodec 2.0.4 wheel (new in upstream vllm v0.26.0's requirements/cuda.txt).
@@ -460,7 +530,7 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG CUDA_VERSION
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=8
+ARG DLC_MINOR_VERSION=9
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -480,15 +550,16 @@ WORKDIR /
 # Install DLC Python dependencies
 RUN uv pip install --no-cache-dir botocore instanttensor modelexpress
 
-# Patch CVEs
+# Patch CVEs. pillow 12.3.0's CVEs are fixed only in 13.0.0. Don't add gradio: vllm-omni
+# lists it only under its `demo` extra, and every gradio release through 6.31.0 caps
+# pillow<13.0.
 RUN uv pip install --no-cache-dir \
-  "pillow>=12.1.1" \
+  "pillow>=13.0.0" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
   "cbor2>=5.9.0" \
   "starlette>=1.3.1" \
   "cryptography>=48.0.1" \
-  "gradio>=6.7.0" \
   "model-hosting-container-standards>=0.1.14,<1.0.0"
 
 # Pin runtime NCCL to the DeepEP wheel's version (torch's transitive otherwise wins).
