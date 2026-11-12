@@ -3,7 +3,8 @@
 Covers what the emulator check cannot: the real control plane, managed-instance compute,
 and concurrency configured through the API rather than an env var.
 
-Exit codes: 0 pass, 1 assertion failure, 2 no GPU capacity (not an image defect).
+Exit codes: 0 pass, 1 assertion failure (including Init timeouts), 2 no GPU capacity
+(not an image defect).
 
 The managed-instance fields are absent from the bundled botocore, so requests are signed
 with SigV4 directly. POST-GA: replace _call with boto3.client("lambda").
@@ -80,6 +81,50 @@ def _quote(name):
     return urllib.parse.quote(name, safe="")
 
 
+def function_env(args):
+    """Engine images stream the model from S3, the path recommended to customers."""
+    if args.engine == "none" or not args.model_uri:
+        return {}
+    return {
+        "MODEL_ID": args.model_uri,
+        "SERVED_MODEL_NAME": args.served_model_name,
+        f"{args.engine.upper()}_LOAD_FORMAT": "runai_streamer",
+    }
+
+
+def init_reports(args, name, since):
+    """What the function's logs say about Init since `since` (epoch seconds).
+
+    Returns (started, reports): whether any environment logged anything (so an
+    instance was placed and Init ran), and (status, seconds) for each finished Init
+    phase, from its platform.initReport line (JSON even in the default log format).
+    Returns None when the logs cannot be read.
+    """
+    # 60 s of slack for clock skew between this host and CloudWatch.
+    query = {"logGroupName": f"/aws/lambda/{name}", "startTime": int((since - 60) * 1000)}
+    try:
+        logs = boto3.client("logs", region_name=args.region)
+        started = bool(logs.filter_log_events(**query, limit=1)["events"])
+        reports = []
+        pages = logs.get_paginator("filter_log_events").paginate(
+            **query, filterPattern='{ $.type = "platform.initReport" }'
+        )
+        for page in pages:
+            for event in page["events"]:
+                try:
+                    record = json.loads(event["message"]).get("record") or {}
+                except (ValueError, AttributeError):
+                    continue
+                duration = ((record.get("metrics") or {}).get("durationMs") or 0) / 1000
+                reports.append((str(record.get("status")), duration))
+    except Exception as e:
+        if getattr(e, "response", {}).get("Error", {}).get("Code") == "ResourceNotFoundException":
+            return False, []  # no log group: no environment ever started
+        print(f"  could not read the function's logs: {e!r}")
+        return None
+    return started or bool(reports), reports
+
+
 def create_function(args, name):
     # aws lambda create-function
     payload = {
@@ -91,6 +136,7 @@ def create_function(args, name):
         "MemorySize": args.memory_size,
         "EphemeralStorage": {"Size": args.ephemeral_storage},
         "Architectures": ["x86_64"],
+        "Environment": {"Variables": function_env(args)},
         "AcceleratorConfig": {"AcceleratorMemorySize": args.accelerator_memory_size},
         "CapacityProviderConfig": {
             "LambdaManagedInstancesCapacityProviderConfig": {
@@ -124,7 +170,7 @@ def wait_created(args, name):
     raise AssertionError(f"{name} did not settle within {args.ready_timeout}s")
 
 
-def wait_active(args, name, version):
+def wait_active(args, name, version, since):
     deadline = time.time() + args.ready_timeout
     last = {}
     while time.time() < deadline:
@@ -144,8 +190,23 @@ def wait_active(args, name, version):
                 raise CapacityUnavailable(reason)
             raise AssertionError(f"function {name} entered Failed: {reason}")
         time.sleep(10)
+    found = init_reports(args, name, since)
+    if found and found[0]:
+        # An environment ran Init, so capacity was there: the image did not start.
+        reports = found[1]
+        attempts = ", ".join(f"{status} after {sec:.0f}s" for status, sec in reports)
+        cause = (
+            "The engine does not start within Lambda's Init limit (the function timeout)."
+            if any(status == "timeout" for status, _ in reports)
+            else "Init failed; see the function's logs."
+        )
+        raise AssertionError(
+            f"{name}:{version} not Active within {args.ready_timeout}s although Init ran "
+            f"(Init attempts: {attempts or 'none finished'}). {cause}"
+        )
     raise CapacityUnavailable(
         f"{name}:{version} not Active within {args.ready_timeout}s "
+        f"({'no environment logged anything' if found else 'function logs unreadable'}) "
         f"(last state {last.get('State')} {last.get('StateReasonCode') or ''}). "
         f"Check the capacity provider's scaling activities for launch failures."
     )
@@ -306,8 +367,9 @@ def run(args):
     print(f"=== {name} ===")
     delete_function(args, name)
     try:
+        since = time.time()
         version = create_function(args, name)
-        wait_active(args, name, version)
+        wait_active(args, name, version, since)
         test_invoke_and_image(args, name, version)
         test_concurrency(args, name, version)
         if args.engine != "none":
@@ -362,6 +424,12 @@ def main():
         default=8,
         help="consecutive clean rounds of concurrent invokes that count as recovered",
     )
+    p.add_argument(
+        "--model-uri",
+        default="",
+        help="s3:// prefix of a safetensors model that engine images stream (runai_streamer)",
+    )
+    p.add_argument("--served-model-name", default="model", help="model name clients send")
     args = p.parse_args()
     engine = args.engine != "none"
     if args.invoke_timeout is None:
