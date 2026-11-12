@@ -1,6 +1,8 @@
-name: "Dispatch Release - vLLM EC2 ARM64 CPU AL2023"
+name: "Auto Release - vLLM SageMaker ARM64 CPU AL2023"
 
 on:
+  schedule:
+    - cron: '30 19 * * 5'
   workflow_dispatch:
 
 concurrency:
@@ -23,7 +25,7 @@ jobs:
       - id: discover
         uses: ./.github/actions/discover-configs
         with:
-          pattern: ".github/config/image/vllm/ec2-arm64-amzn2023.yml"
+          pattern: ".github/config/image/vllm/sagemaker-arm64-amzn2023.yml"
 
   pipeline:
     needs: [discover]

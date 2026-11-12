@@ -12,41 +12,6 @@
     {
         "vulnerability_id": "CVE-2026-53923",
         "reason": "Affects vllm < 0.24.0 (fixed in 0.24.0). The 0.30.0 ec2/sagemaker images are not affected; only the hyperpod image, still on vllm 0.20.0.dev361, carries it. Remove once hyperpod moves to vllm >= 0.24.0.",
-        "review_by": "2026-11-10"
-    },
-    {
-        "vulnerability_id": "CVE-2026-115915",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.33.0. ImageMediaIO decodes image bytes from requests through Pillow without restricting formats, so it is reachable when serving a multimodal model with image inputs. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
-        "review_by": "2026-11-14"
-    },
-    {
-        "vulnerability_id": "CVE-2026-115912",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.33.0. Needs an authenticated caller submitting forged shared-memory multimodal features, so only multimodal deployments are exposed. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
-        "review_by": "2026-11-14"
-    },
-    {
-        "vulnerability_id": "CVE-2026-94624",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.32.0. The GPU images are on vllm 0.33.0. The vulnerable path needs OffloadingConnector with TieringOffloadingSpec and a peer-to-peer secondary tier, which the images don't configure by default. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
-        "review_by": "2026-11-14"
-    },
-    {
-        "vulnerability_id": "CVE-2026-114055",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.31.0. Uncontrolled resource consumption through client-supplied per-request mm_processor_kwargs; reachable only when serving a multimodal model. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
-        "review_by": "2026-11-14"
-    },
-    {
-        "vulnerability_id": "CVE-2026-114053",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.31.0. Request-supplied mm_processor_kwargs.code_revision is forwarded to Transformers AutoProcessor.from_pretrained, letting clients pick a model revision; reachable only when serving a multimodal model with remote code. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
-        "review_by": "2026-11-14"
-    },
-    {
-        "vulnerability_id": "CVE-2026-114052",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.31.0. Memory exhaustion in MOSS-Audio serving from caching a processor per distinct mm_processor_kwargs; reachable only when serving that model. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
-        "review_by": "2026-11-14"
-    },
-    {
-        "vulnerability_id": "CVE-2026-114050",
-        "reason": "vllm 0.30.0 in the AL2023 arm64 CPU images (ec2-arm64, sagemaker-arm64); fixed in vllm 0.31.0. A client-supplied multimodal uuid is used verbatim as cache identity, which can crash the engine; reachable only when serving a multimodal model. Short-term allowlist while the arm64 CPU images move to a fixed vllm (tracked separately).",
-        "review_by": "2026-11-14"
+        "review_by": "2027-02-09"
     }
 ]
