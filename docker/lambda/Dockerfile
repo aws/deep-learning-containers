@@ -667,7 +667,13 @@ COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lamb
 COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/sglang_entrypoint.sh /sglang_entrypoint.sh
 COPY ./scripts/docker/lambda/sglang/handler.py /var/task/handler.py
+# Not used by the default handler; kept for custom handlers that start their own engine
+# (with ENGINE_EXTENSION=off).
 COPY ./scripts/docker/lambda/execute_once.py /var/task/execute_once.py
+# Engine extension: starts the sglang server during Init and recycles the execution
+# environment when it dies (scripts/docker/lambda/engine_extension.py).
+COPY ./scripts/docker/lambda/engine_extension.py /opt/engine-extension/engine_extension.py
+COPY ./scripts/docker/lambda/extensions/sglang-engine /opt/extensions/sglang-engine
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:$PATH" \
@@ -755,7 +761,13 @@ COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lamb
 COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/vllm_entrypoint.sh /vllm_entrypoint.sh
 COPY ./scripts/docker/lambda/vllm/handler.py /var/task/handler.py
+# Not used by the default handler; kept for custom handlers that start their own engine
+# (with ENGINE_EXTENSION=off).
 COPY ./scripts/docker/lambda/execute_once.py /var/task/execute_once.py
+# Engine extension: starts the vllm server during Init and recycles the execution
+# environment when it dies (scripts/docker/lambda/engine_extension.py).
+COPY ./scripts/docker/lambda/engine_extension.py /opt/engine-extension/engine_extension.py
+COPY ./scripts/docker/lambda/extensions/vllm-engine /opt/extensions/vllm-engine
 RUN chmod +x /vllm_entrypoint.sh \
   && ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python

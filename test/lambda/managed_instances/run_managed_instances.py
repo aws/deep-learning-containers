@@ -224,6 +224,61 @@ def test_gpu_shared_engine(args, name, version):
     print("  PASS exactly one process holds the GPU")
 
 
+def _try_invoke(args, name, payload, version):
+    """Invoke, returning the error instead of raising: failures are expected mid-recycle."""
+    try:
+        return invoke(args, name, payload, version)
+    except (AssertionError, ApiError, RuntimeError) as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+def test_engine_failure_recycles_the_environment(args, name, version):
+    """Proves: when the engine dies, Lambda stops routing to that environment and recovers.
+
+    The engine extension reports exit/error and exits when the engine process dies. Passes
+    once a sustained window of rounds (args.recovery_rounds x concurrency invokes) all
+    succeed and none comes from the killed environment. If Lambda kept routing to it,
+    some invoke in the window would land there: with E environments the chance of missing
+    it every time is ((E - 1) / E) ** (rounds x concurrency), under 1e-6 for E = 3.
+    """
+    killed = _try_invoke(args, name, {"action": "kill_engine"}, version)
+    dead_env = killed.get("env")
+    assert dead_env and killed.get("killed"), f"could not kill the engine: {killed}"
+    print(f"  killed engine pid {killed['killed']} in environment {dead_env[:8]}")
+
+    payload = {"prompt": "Describe a container image in one sentence.", "max_tokens": 16}
+    probe = {"action": "engine_probe", "payload": payload}
+    clean_rounds, failed, started = 0, 0, time.time()
+    deadline = started + args.recovery_timeout
+    results = []
+    while time.time() < deadline:
+        results = invoke_concurrently_tolerant(args, name, probe, args.concurrency, version)
+        if all(r.get("ok") and r.get("env") != dead_env for r in results):
+            clean_rounds += 1
+        else:
+            clean_rounds = 0
+            failed += sum(1 for r in results if not r.get("ok") or r.get("env") == dead_env)
+        if clean_rounds >= args.recovery_rounds:
+            served_by = len({r["env"] for r in results})
+            print(
+                f"  PASS recovered after {time.time() - started:.0f}s: {clean_rounds} clean rounds of "
+                f"{args.concurrency} invokes, none from the killed environment ({failed} failed while "
+                f"recycling; last round served by {served_by} environment(s))"
+            )
+            return
+        time.sleep(2)
+    raise AssertionError(
+        f"no recovery {args.recovery_timeout}s after the engine was killed; the dead environment "
+        f"may still be getting traffic. Last round: {results}"
+    )
+
+
+def invoke_concurrently_tolerant(args, name, payload, count, version):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=count) as pool:
+        futures = [pool.submit(_try_invoke, args, name, payload, version) for _ in range(count)]
+        return [f.result() for f in futures]
+
+
 def delete_function(args, name):
     try:
         # aws lambda delete-function
@@ -257,6 +312,7 @@ def run(args):
         test_concurrency(args, name, version)
         if args.engine != "none":
             test_gpu_shared_engine(args, name, version)
+            test_engine_failure_recycles_the_environment(args, name, version)
     finally:
         delete_function(args, name)
 
@@ -284,6 +340,18 @@ def main():
     p.add_argument("--invoke-timeout", type=int, default=300)
     p.add_argument("--ready-timeout", type=int, default=900)
     p.add_argument("--overlap-seconds", type=int, default=5)
+    p.add_argument(
+        "--recovery-timeout",
+        type=int,
+        default=900,
+        help="seconds for Lambda to replace an environment whose engine died (includes a model load)",
+    )
+    p.add_argument(
+        "--recovery-rounds",
+        type=int,
+        default=8,
+        help="consecutive clean rounds of concurrent invokes that count as recovered",
+    )
     args = p.parse_args()
 
     try:

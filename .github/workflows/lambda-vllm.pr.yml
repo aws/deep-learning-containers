@@ -13,6 +13,8 @@ on:
       - "scripts/docker/lambda/vllm/**"
       - "scripts/docker/lambda/vllm_entrypoint.sh"
       - "scripts/docker/lambda/execute_once.py"
+      - "scripts/docker/lambda/engine_extension.py"
+      - "scripts/docker/lambda/extensions/**"
       - "scripts/docker/common/**"
       - "test/lambda/**"
       - "test/sanity/**"
@@ -60,6 +62,8 @@ jobs:
               - "scripts/docker/lambda/vllm/**"
               - "scripts/docker/lambda/vllm_entrypoint.sh"
               - "scripts/docker/lambda/execute_once.py"
+              - "scripts/docker/lambda/engine_extension.py"
+              - "scripts/docker/lambda/extensions/**"
               - "scripts/docker/common/**"
               - "test/security/data/ecr_scan_allowlist/lambda/**"
             validation-test-change:
