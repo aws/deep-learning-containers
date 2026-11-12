@@ -132,6 +132,7 @@ dlc-pr-autogluon-training = ""
 dlc-pr-pytorch-arm64-training = ""
 
 # HuggingFace Training
+dlc-pr-huggingface-pytorch-neuronx-training = ""
 dlc-pr-huggingface-tensorflow-training = ""
 dlc-pr-huggingface-pytorch-training = ""
 

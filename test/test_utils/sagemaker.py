@@ -59,6 +59,9 @@ def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image or "arm64" in image:
         return "ml.c6g.2xlarge"
     elif "training-neuronx" in image:
+        _, version = get_framework_and_version_from_tag(image)
+        if "huggingface-pytorch" in image and version == "2.14.0":
+            return "ml.trn2.48xlarge"
         return "ml.trn1.32xlarge"
     elif "neuronx" in image:
         return "ml.trn1.2xlarge"
