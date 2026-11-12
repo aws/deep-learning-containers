@@ -439,11 +439,12 @@ def lora_endpoint(aws_session, image_uri, instance_type):
     endpoint_name = random_suffix_name("vllm-omni-lora-sd35", 50)
     model_name = endpoint_name
 
+    # No SM_VLLM_ENABLE_LORA / SM_VLLM_MAX_LORA_RANK: diffusion stages always run the
+    # PEFT LoRA manager and size its rank per adapter, and vllm-omni 0.32.0 rejects
+    # those LLM engine args at startup ("Unknown diffusion config field(s)").
     env = {
         "SM_VLLM_MODEL": LORA_MODEL_PATH,
-        "SM_VLLM_ENABLE_LORA": "true",
         "SM_VLLM_LORA_MODULES": json.dumps({"name": "sd35-lora", "path": LORA_ADAPTER_PATH}),
-        "SM_VLLM_MAX_LORA_RANK": "64",
         "SM_VLLM_TRUST_REMOTE_CODE": "true",
     }
     role_arn = aws_session.resolve_role_arn(SAGEMAKER_ROLE)
