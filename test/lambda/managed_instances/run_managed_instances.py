@@ -85,11 +85,17 @@ def function_env(args):
     """Engine images stream the model from S3, the path recommended to customers."""
     if args.engine == "none" or not args.model_uri:
         return {}
-    return {
+    env = {
         "MODEL_ID": args.model_uri,
         "SERVED_MODEL_NAME": args.served_model_name,
         f"{args.engine.upper()}_LOAD_FORMAT": "runai_streamer",
     }
+    # A small context keeps the KV cache well inside the test's 12 GB GPU slice.
+    if args.engine == "vllm":
+        env["VLLM_MAX_MODEL_LEN"] = "4096"
+    else:
+        env["SGLANG_SERVER_ARGS"] = "--context-length 4096"
+    return env
 
 
 def init_reports(args, name, since):
@@ -196,7 +202,8 @@ def wait_active(args, name, version, since):
         reports = found[1]
         attempts = ", ".join(f"{status} after {sec:.0f}s" for status, sec in reports)
         cause = (
-            "The engine does not start within Lambda's Init limit (the function timeout)."
+            "The engine does not start within Lambda's Init limit (the function timeout); "
+            "check its logs for where Init stalls, e.g. loading the model from S3."
             if any(status == "timeout" for status, _ in reports)
             else "Init failed; see the function's logs."
         )
