@@ -93,15 +93,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template
 
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
-COPY ./scripts/docker/huggingface/pytorch/inference/licenses/LGPL-2.1.txt /tmp/LGPL-2.1.txt
 RUN bash /tmp/setup_oss_compliance.sh python3 \
   && PHONEMIZER_VERSION=$(${VENV_PYTHON} -c "import importlib.metadata as m; print(m.version('phonemizer'))") \
   && KENLM_VERSION=$(${VENV_PYTHON} -c "import importlib.metadata as m; print(m.version('kenlm'))") \
   && printf '\nphonemizer %s https://github.com/bootphon/phonemizer/archive/refs/tags/v%s.tar.gz\n' "$PHONEMIZER_VERSION" "$PHONEMIZER_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && printf '\nkenlm %s https://files.pythonhosted.org/packages/source/k/kenlm/kenlm-%s.tar.gz\n' "$KENLM_VERSION" "$KENLM_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** kenlm; version %s -- https://github.com/kpu/kenlm\n' "$KENLM_VERSION" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && cat /tmp/LGPL-2.1.txt >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && rm /tmp/setup_oss_compliance.sh /tmp/LGPL-2.1.txt \
+  && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* /tmp/tmp* /root/.cache
 
 ARG CACHE_REFRESH=0
