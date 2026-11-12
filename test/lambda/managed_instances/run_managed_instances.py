@@ -337,14 +337,24 @@ def main():
     p.add_argument("--memory-size", type=int, default=4096)
     p.add_argument("--memory-gib-per-vcpu", type=int, default=4)
     p.add_argument("--ephemeral-storage", type=int, default=10240)
-    p.add_argument("--invoke-timeout", type=int, default=300)
-    p.add_argument("--ready-timeout", type=int, default=900)
+    p.add_argument(
+        "--invoke-timeout",
+        type=int,
+        help="function timeout; on Managed Instances also the Init limit, max(130 s, timeout). "
+        "Default: 900 (the maximum) for engine images, which load a model at Init, else 300",
+    )
+    p.add_argument(
+        "--ready-timeout",
+        type=int,
+        help="seconds to wait for the version to go Active: instance launch, image pull and Init. "
+        "Default: 1500 for engine images, else 900",
+    )
     p.add_argument("--overlap-seconds", type=int, default=5)
     p.add_argument(
         "--recovery-timeout",
         type=int,
-        default=900,
-        help="seconds for Lambda to replace an environment whose engine died (includes a model load)",
+        help="seconds for Lambda to replace an environment whose engine died (includes an Init). "
+        "Default: 1500",
     )
     p.add_argument(
         "--recovery-rounds",
@@ -353,6 +363,13 @@ def main():
         help="consecutive clean rounds of concurrent invokes that count as recovered",
     )
     args = p.parse_args()
+    engine = args.engine != "none"
+    if args.invoke_timeout is None:
+        args.invoke_timeout = 900 if engine else 300
+    if args.ready_timeout is None:
+        args.ready_timeout = 1500 if engine else 900
+    if args.recovery_timeout is None:
+        args.recovery_timeout = 1500
 
     try:
         run(args)
