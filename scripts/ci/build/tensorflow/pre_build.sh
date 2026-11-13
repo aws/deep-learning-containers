@@ -23,8 +23,11 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -f "$CONFIG_FILE" ]] || { echo "ERROR: config file not found: $CONFIG_FILE" >&2; exit 1; }
 
-if [[ "$(yq -r '.metadata.device_type' "$CONFIG_FILE")" != "gpu" ]]; then
-  echo "Non-GPU build ($CONFIG_FILE): upstream binaries, skipping TF artifact cache"
+# Only GPU configs that build TF from source set cuda_compute_capabilities;
+# CPU and older GPU images use upstream binaries.
+if [[ "$(yq -r '.metadata.device_type' "$CONFIG_FILE")" != "gpu" ]] \
+  || [[ "$(yq -r '.build.cuda_compute_capabilities // ""' "$CONFIG_FILE")" == "" ]]; then
+  echo "No source build for $CONFIG_FILE: upstream binaries, skipping TF artifact cache"
   exit 0
 fi
 
