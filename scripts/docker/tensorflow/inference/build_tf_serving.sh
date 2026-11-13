@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 # Build the TensorFlow Serving model server from source with hermetic CUDA,
-# nvcc and an extended GPU target list (adds Blackwell sm_120 for G7/G7e).
+# nvcc and an extended GPU target list (adds Blackwell sm_100 for B200/GB200
+# and sm_120 for G7/G7e).
 #
 # Runs inside the tfs-build stage of docker/tensorflow/inference/<ver>/Dockerfile.cuda.
 # TF Serving's .bazelrc only defines a clang CUDA config, so TensorFlow's nvcc
 # config is appended (same lines as TensorFlow's .bazelrc).
 #
-# The output binary is verified to contain sm_120 code before it is written.
+# The output binary is verified to contain sm_100 and sm_120 code before it
+# is written.
 set -euo pipefail
 
 TFS_REF=""
@@ -78,7 +80,9 @@ rm -f "${STUB_DIR}/libcuda.so.1"
 mkdir -p "${OUT_DIR}"
 cp bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server "${OUT_DIR}/"
 
-# Fail the build if sm_120 code is missing.
+# Fail the build if Blackwell code is missing.
 ELF_ARCHS=$(cuobjdump --list-elf "${OUT_DIR}/tensorflow_model_server")
-[[ "${ELF_ARCHS}" == *sm_120* ]] || { echo "ERROR: tensorflow_model_server has no sm_120 cubins" >&2; exit 1; }
-echo "Built ${OUT_DIR}/tensorflow_model_server (sm_120 verified)"
+for arch in sm_100 sm_120; do
+  [[ "${ELF_ARCHS}" == *"${arch}"* ]] || { echo "ERROR: tensorflow_model_server has no ${arch} cubins" >&2; exit 1; }
+done
+echo "Built ${OUT_DIR}/tensorflow_model_server (sm_100 + sm_120 verified)"

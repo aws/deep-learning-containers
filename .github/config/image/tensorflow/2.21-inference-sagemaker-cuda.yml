@@ -26,7 +26,7 @@ build:
   hermetic_cudnn_version: "9.16.0"
   hermetic_nccl_version: "2.29.7"
   hermetic_nvshmem_version: "3.2.5"
-  cuda_compute_capabilities: "sm_60,sm_70,sm_80,sm_89,sm_90,compute_120"
+  cuda_compute_capabilities: "sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
   dlc_major_version: "1"
 
 release:
