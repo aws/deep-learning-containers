@@ -290,8 +290,7 @@ that exceeds it never goes `Active`.
 - **Consider SOCI.** A SOCI index lets an execution environment start before the whole image has downloaded. See
   [AWS Lambda Seekable OCI (SOCI)](https://aws.amazon.com/about-aws/whats-new/2026/10/aws-lambda-seekable-oci-soci/).
 - **Give engine functions the whole budget, in two places.** Set `Timeout` to 900 **and** raise `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` to
-  match. `Timeout` sets the Init budget, but the extension gives up on the model after `*_SERVER_TIMEOUT` seconds — 600 by default — whatever
-  `Timeout` allows.
+  just under it. The default 600 is lower than 900, so the extension gives up on the model before the Init budget runs out.
 
 ## Run locally
 
