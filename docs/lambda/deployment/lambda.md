@@ -31,13 +31,16 @@ works for a first test but repeats the download on every new execution environme
 Build and push to your own ECR repository:
 
 ```bash
-aws ecr create-repository --repository-name my-gpu-function --region us-west-2
-aws ecr get-login-password --region us-west-2 \
-  | docker login --username AWS --password-stdin 111122223333.dkr.ecr.us-west-2.amazonaws.com
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+REGION=us-west-2
+
+aws ecr create-repository --repository-name my-gpu-function --region ${REGION}
+aws ecr get-login-password --region ${REGION} \
+  | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com
 
 docker build -t my-gpu-function .
-docker tag my-gpu-function:latest 111122223333.dkr.ecr.us-west-2.amazonaws.com/my-gpu-function:v1
-docker push 111122223333.dkr.ecr.us-west-2.amazonaws.com/my-gpu-function:v1
+docker tag my-gpu-function:latest ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-gpu-function:v1
+docker push ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-gpu-function:v1
 ```
 
 Create the function, publish a version, and invoke it. Publishing is what loads the model: the version reaches `Active` only once the server is ready.
@@ -46,12 +49,12 @@ Create the function, publish a version, and invoke it. Publishing is what loads 
 aws lambda create-function \
   --function-name my-gpu-function \
   --package-type Image \
-  --code ImageUri=111122223333.dkr.ecr.us-west-2.amazonaws.com/my-gpu-function:v1 \
-  --role arn:aws:iam::111122223333:role/my-gpu-function-role \
+  --code ImageUri=${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-gpu-function:v1 \
+  --role arn:aws:iam::${ACCOUNT_ID}:role/my-gpu-function-role \
   --memory-size 16384 \
   --timeout 900 \
   --accelerator-config '{"AcceleratorMemorySize":12}' \
-  --capacity-provider-config '{"LambdaManagedInstancesCapacityProviderConfig":{"CapacityProviderArn":"arn:aws:lambda:us-west-2:111122223333:capacity-provider:my-gpu-capacity-provider","ExecutionEnvironmentMemoryGiBPerVCpu":4}}'
+  --capacity-provider-config '{"LambdaManagedInstancesCapacityProviderConfig":{"CapacityProviderArn":"arn:aws:lambda:${REGION}:${ACCOUNT_ID}:capacity-provider:my-gpu-capacity-provider","ExecutionEnvironmentMemoryGiBPerVCpu":4}}'
 
 aws lambda publish-version --function-name my-gpu-function
 aws lambda get-function-configuration --function-name my-gpu-function:1 --query State
@@ -299,7 +302,7 @@ With no {{ lambda_short }} Runtime API in the environment, the entrypoint starts
 ```bash
 docker run --rm --gpus all -p 9000:8080 \
   -e MODEL_ID=Qwen/Qwen2.5-0.5B-Instruct \
-  111122223333.dkr.ecr.us-west-2.amazonaws.com/my-gpu-function:v1
+  ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-gpu-function:v1
 
 curl -s http://localhost:9000/2015-03-31/functions/function/invocations \
   -d '{"messages":[{"role":"user","content":"Hello"}],"max_tokens":32}'
