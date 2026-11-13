@@ -13,6 +13,7 @@ on:
       - ".github/workflows/tensorflow-training.tests-unit.yml"
       - "docker/tensorflow/training/2.21/Dockerfile.cuda"
       - "docker/tensorflow/training/2.21/cuda/**"
+      - "scripts/ci/build/tensorflow/**"
       - "scripts/docker/common/**"
       # Broad on purpose: the whole tensorflow subtree triggers this workflow so a
       # newly-added script can never merge with no TF CI. The per-family narrowing
@@ -69,6 +70,7 @@ jobs:
               - "docker/tensorflow/training/2.21/Dockerfile.cuda"
               - "docker/tensorflow/training/2.21/cuda/**"
               - "scripts/docker/common/**"
+              - "scripts/ci/build/tensorflow/**"
               - "scripts/docker/tensorflow/training/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
             efa-test-change:
