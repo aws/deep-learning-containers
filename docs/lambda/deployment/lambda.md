@@ -30,12 +30,7 @@ subnets, and the download repeats on every new execution environment.
 
 **Production — Amazon S3:**
 
-First stage the model in your bucket (once):
-
-```bash
-huggingface-cli download Qwen/Qwen2.5-1.5B-Instruct --local-dir ./model
-aws s3 sync ./model s3://amzn-s3-demo-bucket/models/Qwen2.5-1.5B-Instruct/
-```
+First copy the model to your S3 bucket (once), then:
 
 ```dockerfile
 FROM public.ecr.aws/lambda/deep-learning-containers/vllm:cuda-v1
