@@ -44,13 +44,31 @@ git fetch -q --depth 1 origin "refs/tags/${TF_REF}"
 git checkout -q --detach FETCH_HEAD
 echo "TensorFlow ${TF_REF} at $(git rev-parse HEAD)"
 
-# GitHub now serves the pinned LLVM archive with a different checksum and the
-# TF mirror returns 404. TF Serving's own WORKSPACE accepts this alternate
-# checksum for the same LLVM commit; apply the same allowance.
-LLVM_WS=third_party/xla/third_party/llvm/workspace.bzl
-if grep -q 'LLVM_COMMIT = "909041e4802c4b9a2223ca04099f35bf1dbbd460"' "${LLVM_WS}"; then
-  sed -i 's/3f986184ee126677dbd77edb16d6b82c057ec869fefd7a9871979941e52e837a/00b1077e029fa57e6f2d9ac24936a49acf23ebc051b04f487131116258be6248/' "${LLVM_WS}"
-fi
+# The TF mirror returns 404 for the pinned LLVM archive and GitHub serves it
+# with either of two checksums. Accept both, as TF Serving 2.21's WORKSPACE
+# does: download without a fixed checksum, then fail unless it is a known one.
+python3 - <<'PY'
+p = "third_party/xla/third_party/repo.bzl"
+pinned = "3f986184ee126677dbd77edb16d6b82c057ec869fefd7a9871979941e52e837a"
+alternate = "00b1077e029fa57e6f2d9ac24936a49acf23ebc051b04f487131116258be6248"
+old = """ctx.download_and_extract(
+            url = ctx.attr.urls,
+            sha256 = ctx.attr.sha256,
+            type = ctx.attr.type,
+            stripPrefix = ctx.attr.strip_prefix,
+        )"""
+new = f"""if ctx.attr.sha256 == "{pinned}":
+            res = ctx.download(url = ctx.attr.urls, output = "llvm.tar.gz")
+            if res.sha256 not in ["{pinned}", "{alternate}"]:
+                fail("Unexpected LLVM archive sha256: " + res.sha256)
+            ctx.extract(archive = "llvm.tar.gz", stripPrefix = ctx.attr.strip_prefix)
+            ctx.delete("llvm.tar.gz")
+        else:
+            """ + old
+s = open(p).read()
+assert s.count(old) == 1, f"{p}: download_and_extract block not found"
+open(p, "w").write(s.replace(old, new))
+PY
 
 bazel build \
   --color=no --curses=no --nokeep_going \
