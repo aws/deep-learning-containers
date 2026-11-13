@@ -21,6 +21,7 @@ if [[ ${#FILES[@]} -eq 0 ]]; then
 fi
 
 for f in "${FILES[@]}"; do
+  [[ -f "$f" ]] || continue  # the literal model-server path survives nullglob
   key="${PREFIX}$(basename "$f")"
   if aws s3 ls "s3://${BUCKET}/${key}" >/dev/null 2>&1; then
     echo "Already cached: ${key}"
