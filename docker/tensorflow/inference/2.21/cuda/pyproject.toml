@@ -1,0 +1,68 @@
+[project]
+name = "tensorflow-serving-inference-dlc"
+version = "2.21.0"
+requires-python = ">=3.12,<3.13"
+# ──────────────────────────────────────────────────────────────────────────────
+# TF Serving 2.21 CUDA AL2023 inference DLC — runtime-base dependencies.
+# The TFS binary is built from source with sm_120 (tfs-build stage); the
+# tensorflow-serving-api-gpu wheel is the matched gRPC stub.
+#
+# tensorflow-serving-api-gpu is intentionally OMITTED here — the PyPI wheel
+# pulls the ~600 MB tensorflow framework wheel. Installed inline in the
+# Dockerfile with --no-deps; transitive runtime deps pinned explicitly below.
+# ──────────────────────────────────────────────────────────────────────────────
+dependencies = [
+    # cuDNN 9.24.0.43 — TFS GPU links libcudnn*.so dynamically; the CUDA
+    # runtime base ships CUDA but NOT cuDNN. Dockerfile.cuda stages the .so
+    # files into /usr/local/cuda/lib64 and runs ldconfig. Version matches TF
+    # 2.21 training. NCCL is NOT installed (no multi-node inference).
+    "nvidia-cudnn-cu12==9.24.0.43",
+    # tfs-api transitive runtime deps.
+    "numpy==1.26.4",
+    "protobuf>=3.20,<7",
+    "grpcio>=1.0",
+
+    # AWS / network / common utilities.
+    "awscli<2",
+    "boto3",
+    "botocore",
+    "requests",
+    "packaging",
+    "gevent",
+
+    # Falcon SM handler stack. falcon 3.1.0 is the last version compatible
+    # with the shipped handler API surface.
+    "falcon==3.1.0",
+    "gunicorn>=22.0.0",
+
+    # Compat / security pins.
+    "cython<3",  # TF/numpy ABI compat.
+    # aiohttp>=3.14.5 — CVE-2026-69244 (HIGH) OOB heap read in the C parser;
+    # CVE-2026-111064 + CVE-2026-111066 + GHSA-2g87-pp6c-29x5 (HIGH) DoS.
+    "aiohttp>=3.14.5",
+    # certifi>=2026.10.23 — GHSA-6q48-6c7w-9gw2 (CRITICAL) drops the
+    # compromised emSign ECC Root CA - G3 from the bundled CA store.
+    "certifi>=2026.10.23",
+    # pyasn1>=0.6.4 — CVE-2026-59885 + CVE-2026-59886 DoS pins.
+    "pyasn1>=0.6.4",
+    # multidict>=6.9.1 — CVE-2026-104874 (MEDIUM).
+    "multidict>=6.9.1",
+    # pip>=26.2 — CVE-2025-8869, CVE-2026-3219, CVE-2026-6357, CVE-2026-8643 and
+    # CVE-2026-13346 (MEDIUM) in the venv seed pip (23.2.1), which serve.py uses
+    # to install customer requirements at start-up.
+    "pip>=26.2",
+    "urllib3",
+]
+
+[project.optional-dependencies]
+sagemaker = [
+    # SM-stage lightweight data tooling. `sagemaker` SDK is intentionally
+    # omitted (would pull torch + nvidia-* into an inference image); handler
+    # scripts use boto3 directly.
+    "pandas",
+    "scikit-learn",
+    "cloudpickle",
+]
+
+[tool.uv]
+environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]

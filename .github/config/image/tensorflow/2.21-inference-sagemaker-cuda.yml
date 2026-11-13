@@ -1,0 +1,38 @@
+image:
+  name: "tensorflow-2.21-inference-sagemaker-cuda"
+  description: "TensorFlow Serving 2.21 CUDA inference for SageMaker"
+
+metadata:
+  framework: "tensorflow"
+  framework_version: "2.21.0"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  arch_type: "x86"
+  device_type: "gpu"
+  job_type: "inference"
+  prod_image: "tensorflow-inference:2.21-gpu-py312-cu129-amzn2023-sagemaker-v1"
+
+build:
+  dockerfile: "docker/tensorflow/inference/2.21/Dockerfile.cuda"
+  target: "sagemaker"
+  python_version: "3.12"
+  cuda_version: "12.9.1"
+  tf_serving_version: "2.21.0"
+  tfs_short_version: "2.21"
+  nginx_version: "1.30.5"
+  njs_version: "1.0.1"
+  # Source-built tensorflow_model_server (native Blackwell sm_120 for G7/G7e):
+  # see scripts/docker/tensorflow/inference/build_tf_serving.sh
+  hermetic_cudnn_version: "9.16.0"
+  hermetic_nccl_version: "2.29.7"
+  hermetic_nvshmem_version: "3.2.5"
+  cuda_compute_capabilities: "sm_60,sm_70,sm_80,sm_89,sm_90,compute_120"
+  dlc_major_version: "1"
+
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "gamma"
