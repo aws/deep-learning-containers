@@ -177,6 +177,8 @@ CMD ["my_handler.handler"]
 `event` is the invocation payload. The RIC may hand it to you as a `dict` or as raw `bytes`, so normalize before use:
 
 ```python
+import json
+
 if isinstance(event, (bytes, bytearray, str)):
     event = json.loads(event or "{}")
 ```
@@ -269,6 +271,8 @@ the same physical GPU.
 Concurrent invocations in one execution environment share `/tmp`, so give each invocation its own working directory:
 
 ```python
+import tempfile
+
 with tempfile.TemporaryDirectory(dir="/tmp") as workdir:
     ...
 ```
