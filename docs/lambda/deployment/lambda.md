@@ -17,6 +17,26 @@ This page covers the image side. For capacity providers, scaling, networking, qu
 The vLLM and SGLang images need no handler code. Set `MODEL_ID`; an extension starts the engine and loads the model during Init, and the shipped
 handler proxies invocations to it.
 
+**Quick start — Hugging Face Hub:**
+
+```dockerfile
+FROM public.ecr.aws/lambda/deep-learning-containers/vllm:cuda-v1
+
+ENV MODEL_ID=Qwen/Qwen2.5-0.5B-Instruct
+```
+
+The image downloads the model from the Hub to `/tmp` during Init. Easy to get started, but requires internet access from the capacity provider's
+subnets, and the download repeats on every new execution environment.
+
+**Production — Amazon S3:**
+
+First stage the model in your bucket (once):
+
+```bash
+huggingface-cli download Qwen/Qwen2.5-1.5B-Instruct --local-dir ./model
+aws s3 sync ./model s3://amzn-s3-demo-bucket/models/Qwen2.5-1.5B-Instruct/
+```
+
 ```dockerfile
 FROM public.ecr.aws/lambda/deep-learning-containers/vllm:cuda-v1
 
@@ -24,9 +44,7 @@ ENV MODEL_ID=s3://amzn-s3-demo-bucket/models/Qwen2.5-1.5B-Instruct/
 ENV VLLM_LOAD_FORMAT=runai_streamer
 ```
 
-`VLLM_LOAD_FORMAT=runai_streamer` streams safetensors shards from S3 straight into GPU memory, so the model needs no `/tmp` space and no download
-step. Without it the image downloads the model to `/tmp` first — size `EphemeralStorage` accordingly. Pointing `MODEL_ID` at a Hugging Face model ID
-works for a first test but repeats the download on every new execution environment.
+`runai_streamer` streams safetensors shards from S3 straight into GPU memory — no `/tmp` staging, no `EphemeralStorage` to size.
 
 Build and push to your own ECR repository:
 
