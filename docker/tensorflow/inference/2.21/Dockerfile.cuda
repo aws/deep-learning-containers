@@ -16,7 +16,7 @@ ARG NJS_VERSION=1.0.1
 ARG HERMETIC_CUDNN_VERSION=9.16.0
 ARG HERMETIC_NCCL_VERSION=2.29.7
 ARG HERMETIC_NVSHMEM_VERSION=3.2.5
-ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,compute_120"
+ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
 
 
 # ── Stage: tfs-build (model server built from source with sm_120) ───────────
