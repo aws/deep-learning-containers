@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # Build the TensorFlow GPU wheel from source with hermetic CUDA, nvcc and an
-# extended GPU target list (adds Blackwell sm_120 for G7/G7e).
+# extended GPU target list (adds Blackwell sm_100 for B200/GB200 and sm_120
+# for G7/G7e).
 #
 # Runs inside the tf-wheel-build stage of docker/tensorflow/training/<ver>/Dockerfile.cuda.
 # Uses TensorFlow's own release config (ci/official/wheel.sh) with two changes:
 #   - --config=cuda_nvcc: the default clang path does not target sm_120
-#   - HERMETIC_CUDA_COMPUTE_CAPABILITIES: upstream list + compute_120
+#   - HERMETIC_CUDA_COMPUTE_CAPABILITIES: upstream list + sm_100 + compute_120
 # Config order matters: cuda_nvcc must come before cuda_wheel, otherwise the
 # wheel rule rejects the build for bundling CUDA libraries.
 #
-# The output wheel is verified to contain sm_120 code before it is written.
+# The output wheel is verified to contain sm_100 and sm_120 code before it is
+# written.
 set -euo pipefail
 
 TF_REF=""
@@ -88,10 +90,12 @@ mkdir -p "${OUT_DIR}"
 find bazel-bin/tensorflow/tools/pip_package -name 'tensorflow-*.whl' -exec cp {} "${OUT_DIR}/" \;
 WHEEL=$(ls "${OUT_DIR}"/tensorflow-*.whl)
 
-# Fail the build if sm_120 code is missing.
+# Fail the build if Blackwell code is missing.
 CHECK_DIR=$(mktemp -d)
 (cd "${CHECK_DIR}" && unzip -q "${WHEEL}" 'tensorflow/libtensorflow_cc.so.2')
 ELF_ARCHS=$(cuobjdump --list-elf "${CHECK_DIR}/tensorflow/libtensorflow_cc.so.2")
-[[ "${ELF_ARCHS}" == *sm_120* ]] || { echo "ERROR: ${WHEEL} has no sm_120 cubins" >&2; exit 1; }
+for arch in sm_100 sm_120; do
+  [[ "${ELF_ARCHS}" == *"${arch}"* ]] || { echo "ERROR: ${WHEEL} has no ${arch} cubins" >&2; exit 1; }
+done
 rm -rf "${CHECK_DIR}"
-echo "Built ${WHEEL} (sm_120 verified)"
+echo "Built ${WHEEL} (sm_100 + sm_120 verified)"
