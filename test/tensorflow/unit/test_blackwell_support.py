@@ -18,3 +18,10 @@ def test_build_targets_include_sm120():
 
     caps = tf.sysconfig.get_build_info()["cuda_compute_capabilities"]
     assert "compute_120" in caps, f"TensorFlow built for {caps}, missing compute_120"
+
+
+def test_build_targets_include_sm100():
+    import tensorflow as tf
+
+    caps = tf.sysconfig.get_build_info()["cuda_compute_capabilities"]
+    assert "sm_100" in caps, f"TensorFlow built for {caps}, missing sm_100 (B200/GB200)"

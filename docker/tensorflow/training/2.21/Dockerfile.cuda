@@ -12,7 +12,7 @@ ARG TF_VERSION=2.21.0
 ARG OPEN_MPI_VERSION=4.1.8
 ARG EFA_VERSION="latest"
 ARG HERMETIC_CUDNN_VERSION=9.16.0
-ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,compute_120"
+ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
 
 
 # ── Stage: tf-wheel-build (TF wheel built from source with sm_120) ──────────
@@ -238,7 +238,7 @@ RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen 
 COPY --from=tf-wheel-build /opt/tf-dist/ /tmp/tf-dist/
 RUN uv pip install --python /opt/venv/bin/python --no-deps --reinstall --no-cache /tmp/tf-dist/tensorflow-*.whl \
   && rm -rf /tmp/tf-dist \
-  && python -c "import tensorflow as tf; caps = tf.sysconfig.get_build_info()['cuda_compute_capabilities']; print(tf.__version__, caps); assert 'compute_120' in caps"
+  && python -c "import tensorflow as tf; caps = tf.sysconfig.get_build_info()['cuda_compute_capabilities']; print(tf.__version__, caps); assert 'sm_100' in caps and 'compute_120' in caps"
 
 # Boost 1.82 for SM Studio extensions (compiled with _GLIBCXX_USE_CXX11_ABI=1
 # to match TF's ABI). Some SM Studio extensions link against boost.
