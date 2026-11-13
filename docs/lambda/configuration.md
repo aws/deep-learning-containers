@@ -17,7 +17,7 @@ Read by the [engine extension](deployment/lambda.md#the-engine-extension) and pa
 | `VLLM_TP_SIZE` | Visible GPU count | `--tensor-parallel-size` |
 | `VLLM_SERVER_ARGS` | Unset | Any further `vllm serve` flags, shell-quoted |
 | `VLLM_SERVER_PORT` | `8000` | `--port` (loopback only); also read by the handler |
-| `VLLM_SERVER_TIMEOUT` | `600` | Seconds to wait for `/health` during Init |
+| `VLLM_SERVER_TIMEOUT` | `600` | Seconds to wait for `/health` during Init. The default 600 is lower than the recommended function `Timeout` of 900; raise to 860 for large models |
 
 ## SGLang (`sglang:cuda`)
 
@@ -34,7 +34,7 @@ Read by the [engine extension](deployment/lambda.md#the-engine-extension) and pa
 | `SGLANG_TP_SIZE` | Visible GPU count | `--tp-size` |
 | `SGLANG_SERVER_ARGS` | Unset | Any further `sglang.launch_server` flags, shell-quoted |
 | `SGLANG_SERVER_PORT` | `8000` | `--port` (loopback only); also read by the handler |
-| `SGLANG_SERVER_TIMEOUT` | `600` | Seconds to wait for `/health` during Init |
+| `SGLANG_SERVER_TIMEOUT` | `600` | Seconds to wait for `/health` during Init. The default 600 is lower than the recommended function `Timeout` of 900; raise to 860 for large models |
 
 `MODEL_ID` has a default so the image serves out of the box, but it is a 0.5B smoke-test model. Always set it.
 
@@ -80,7 +80,7 @@ Set on the function, not the image. For the full list, see the
 | `PerExecutionEnvironmentMaxConcurrency` | Default 4, maximum 48. Leave at the default for vLLM and SGLang; the server batches requests itself |
 | `ExecutionEnvironmentMemoryGiBPerVCpu` | Default 2. Raise it when `MemorySize` would otherwise claim every vCPU on the instance |
 | `EphemeralStorage` | 512 MB to 32 GB. Only needs to hold the model if you are not streaming it |
-| `Timeout` | Bounds both a request and initialization, the latter at the greater of 130 s and this value, capped at 900 s. Set 900 for vLLM and SGLang: the engine loads during Init, and the version never goes `Active` if that runs out of budget |
+| `Timeout` | Bounds both a request and initialization, the latter at the greater of 130 s and this value, capped at 900 s. For vLLM and SGLang, set this to 900 **and** raise `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` to match — the extension gives up on the model after that variable's value, whatever `Timeout` allows |
 
 ## Full reference
 

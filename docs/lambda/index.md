@@ -33,8 +33,9 @@ All five are x86-64, GPU-only, CUDA 13.0.3, Python 3.13, `awslambdaric` 4.2.2.
 - **CuPy** — GPU array math without an ML framework: signal processing, Monte Carlo simulation, numerical workloads.
 - **PyTorch** — your own model code: classification, detection, diffusion, speech. Also the image for media work, since its FFmpeg is built with NVENC
   and NVDEC.
-- **vLLM** or **SGLang** — LLM serving with no handler code. Set `MODEL_ID` and deploy; the image runs an OpenAI-compatible server. Pick SGLang for
-  structured output and prefix-cache-heavy traffic, vLLM otherwise.
+- **vLLM** or **SGLang** — LLM serving with no handler code. Set `MODEL_ID` and deploy; the image runs an OpenAI-compatible server. SGLang's
+  RadixAttention is designed for heavy prefix reuse — multi-turn chat, agent loops — but both engines support structured output and prefix caching;
+  benchmark for your workload.
 
 ## How the images run on {{ lambda_short }}
 
@@ -49,9 +50,9 @@ unvalidated and cannot stream — a reference to build on rather than the end st
 [Write your own handler](deployment/lambda.md#write-your-own-handler) for what it does and does not do.
 
 {{ lambda_short }} gives each execution environment exactly one GPU and runs several concurrent invocations in it, governed by
-`PerExecutionEnvironmentMaxConcurrency` (default 4, maximum 48). The RIC runs your initialization code once in a parent process and then forks one
-worker per concurrent invocation. **A CUDA context does not survive the fork**, so in your own handler, move the model to the GPU inside the handler
-on each worker's first invocation. See [Concurrency and GPU state](deployment/lambda.md#concurrency-and-gpu-state).
+`PerExecutionEnvironmentMaxConcurrency` (default 4, maximum 48). The RIC forks one worker per concurrent invocation and **each worker imports your
+handler itself**, so module-level code runs once per worker. A model loaded there exists once per worker, and at the default concurrency four copies
+have to fit on the GPU. See [Concurrency and GPU state](deployment/lambda.md#concurrency-and-gpu-state).
 
 On the vLLM and SGLang images a **{{ lambda_short }} extension owns the engine**, not the handler. It starts the server during Init and holds the
 execution environment out of service until `/health` answers, then keeps probing: if the server dies or stops answering, the extension exits and
@@ -68,5 +69,6 @@ execution environment out of service until `/health` answers, then keeps probing
 - **Pinned and locked** — Python dependencies are resolved with `uv` and committed as lock files per image. vLLM and SGLang are built from a pinned
   upstream commit, with the torch trio constrained to the PyTorch image's exact cu130 versions.
 - **Tested before release** — in-container unit tests, single-GPU tests, and an invoke test on real {{ lambda_short }} GPU functions that asserts
-  worker topology and that the model occupies the GPU exactly once.
+  worker topology, that the model occupies the GPU exactly once, and that {{ lambda_short }} replaces the execution environment when the engine is
+  killed.
 - **Security-patched** — continuous {{ aws }} security patching on Amazon Linux 2023.

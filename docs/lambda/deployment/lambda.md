@@ -102,6 +102,8 @@ With the extension off, every forked worker imports your handler, so elect one t
 decorator at `/var/task/execute_once.py` for exactly this — unused on the default path, still importable:
 
 ```python
+import subprocess, time
+import requests
 from execute_once import execute_once
 
 @execute_once(
@@ -114,13 +116,28 @@ from execute_once import execute_once
 def _launch():
     return subprocess.Popen(["my-server", "--port", "8000"])
 
+def _start():
+    _launch()                 # one worker launches; the rest return immediately
+    deadline = time.monotonic() + 600
+    while time.monotonic() < deadline:
+        try:
+            if requests.get("http://127.0.0.1:8000/health", timeout=5).ok:
+                return
+        except requests.RequestException:
+            pass
+        time.sleep(1)
+    raise RuntimeError("server did not become ready")
+
+_start()                      # at import, so the server is up before the first invocation
+
 def handler(event, context):
-    _launch()  # one worker starts the server; the rest return once it exists
     return requests.post("http://127.0.0.1:8000/predict", json=event).json()
 ```
 
-The first worker to create `lock_path` with `O_EXCL` runs the function and writes `result_path`; the others poll for it until `timeout`. Poll your
-server's health endpoint before serving traffic — the lock is released when the launch call returns, not when the server is ready.
+The first worker to create `lock_path` with `O_EXCL` runs the function and writes `result_path`; the others poll for it until `timeout`. Call this at
+module scope, not from the handler: the import happens during Init, so the server is ready before any invocation arrives, and a failure is reported as
+an initialization error. Every worker must still wait on the health endpoint itself — the lock is released when the launch call returns, not when the
+server is ready.
 
 ## Write your own handler
 
@@ -193,33 +210,27 @@ as initialization failures rather than a container that exits.
 
 ### Concurrency and GPU state
 
-The RIC imports your module once per execution environment, then forks one worker process per concurrent invocation. Workers inherit Python objects
-but **not GPU state** — a CUDA context, an EGL context, or a model moved to the GPU before the fork is unusable in a worker. Two patterns work:
+The RIC forks one worker process per concurrent invocation, and **each worker imports your handler itself**. Module-level code therefore runs once per
+worker, not once per execution environment: whatever you load there exists as many times as the concurrency you configured. Nothing is shared between
+workers, so there is no inherited CUDA context to work around — but there is also no single copy of your model. Two patterns work:
 
-**Move to the GPU per worker.** Load weights into CPU memory at import time, then move them on each worker's first invocation.
+**A model per worker.** Load the weights at module scope and move them to the GPU there. Each worker gets its own process, its own CUDA context, and
+its own copy.
 
 ```python
-import os, torch
+import torch
 
-model = load_model_to_cpu()   # once per execution environment
+model = load_model()          # runs in every worker
 model.eval()
-
-_gpu_pid = None
-
-def _ensure_on_gpu():
-    global _gpu_pid
-    if _gpu_pid != os.getpid():
-        model.cuda()
-        _gpu_pid = os.getpid()
+model.cuda()
 
 def handler(event, context):
-    _ensure_on_gpu()
     with torch.inference_mode():
         return run_inference(model, event)
 ```
 
-Each worker then holds its own CUDA context and its own copy on the GPU, so GPU memory scales with concurrency. Fine for small models; for a large
-one, set `PerExecutionEnvironmentMaxConcurrency` to 1, or serve it from a single process the way the engine extension does.
+GPU memory scales with `PerExecutionEnvironmentMaxConcurrency` because each worker loads the handler itself: at the default of 4, four copies have to
+fit. Fine for a small model. For a large one, set the concurrency to 1, or use the next pattern.
 
 **One shared server.** Run the model in one process outside the handler and proxy to it over loopback, so a single copy of the weights serves every
 worker. On vLLM and SGLang this is already done for you — see [The engine extension](#the-engine-extension). On Base, CuPy, or PyTorch, start the
@@ -273,8 +284,11 @@ that exceeds it never goes `Active`.
   more slowly than the same content split across several. Give each model shard its own `COPY`. Do not flatten the image.
 - **Keep single files under 10 GB.** A larger file fails activation. Images themselves can reach 32 GB, and `/tmp` 32 GB.
 - **Consider SOCI.** A SOCI index lets an execution environment start before the whole image has downloaded. See
-  [lazy loading](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html) in the {{ lambda_short }} Developer Guide.
-- **Give engine functions the whole budget.** Set `Timeout` to 900 on vLLM and SGLang. The model loads during Init, so a short timeout caps it.
+  [lazy loading with SOCI](https://docs.aws.amazon.com/lambda/latest/dg/images-create.html#images-create-soci) in the {{ lambda_short }} Developer
+  Guide.
+- **Give engine functions the whole budget, in two places.** Set `Timeout` to 900 **and** raise `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` to
+  match. `Timeout` sets the Init budget, but the extension gives up on the model after `*_SERVER_TIMEOUT` seconds — 600 by default — whatever
+  `Timeout` allows.
 
 ## Run locally
 
