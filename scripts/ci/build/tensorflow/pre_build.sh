@@ -39,7 +39,8 @@ mkdir -p "$DEST"
 echo "Looking for TF artifact in s3://${BUCKET}/${PREFIX} ..."
 aws s3 cp --recursive --only-show-errors "s3://${BUCKET}/${PREFIX}" "$DEST/" 2>/dev/null || true
 
-if ls "$DEST"/tensorflow-*.whl "$DEST"/tensorflow_model_server >/dev/null 2>&1; then
+# Training caches a wheel, inference a model server binary: either one is a hit.
+if compgen -G "$DEST/tensorflow-*.whl" >/dev/null || [[ -f "$DEST/tensorflow_model_server" ]]; then
   echo "Cache hit: $(ls "$DEST" | grep -v '^\.gitkeep$' | tr '\n' ' ')"
   {
     echo "TF_CACHE_HIT=true"
