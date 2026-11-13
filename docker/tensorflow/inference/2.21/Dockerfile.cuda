@@ -43,7 +43,7 @@ RUN --mount=type=cache,target=/root/.cache/bazel \
   mkdir -p /opt/tfs-dist \
   && if [ "${USE_PREBUILT_WHEEL}" = "1" ] && [ -f /tmp/prebuilt/tensorflow_model_server ]; then \
     echo "Using cached tensorflow_model_server: skipping Bazel build" \
-    && cp /tmp/prebuilt/tensorflow_model_server /opt/tfs-dist/; \
+    && install -m 0755 /tmp/prebuilt/tensorflow_model_server /opt/tfs-dist/; \
   else \
     apt-get update && apt-get install -y --no-install-recommends \
       automake build-essential ca-certificates curl file git libcurl4-openssl-dev \
