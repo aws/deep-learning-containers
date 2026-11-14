@@ -31,3 +31,5 @@ HANDOVER.md
 
 # local Claude Code settings (personal, not shared)
 .claude/settings.local.json
+docker/tensorflow/*/*/prebuilt/*
+!docker/tensorflow/*/*/prebuilt/.gitkeep

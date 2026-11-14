@@ -1,6 +1,6 @@
 # ============================================================================
 # TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CUDA 12.9.1)
-# Multi-stage: builder-base → builder-oss → runtime-base → sagemaker
+# Multi-stage: tf-wheel-build → builder-base → builder-oss → runtime-base → sagemaker
 # Build args are passed by the build-image action from the image config's
 # build: block (.github/config/image/tensorflow/2.21-training-sagemaker-cuda.yml).
 # ============================================================================
@@ -11,6 +11,55 @@ ARG PYTHON_VERSION=3.12
 ARG TF_VERSION=2.21.0
 ARG OPEN_MPI_VERSION=4.1.8
 ARG EFA_VERSION="latest"
+ARG HERMETIC_CUDNN_VERSION=9.16.0
+ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
+
+
+# ── Stage: tf-wheel-build (TF wheel built from source with sm_120) ──────────
+# The upstream PyPI wheel stops at sm_89 + compute_90 PTX, which fails or
+# JIT-compiles on Blackwell (G7/G7e, sm_120). This stage compiles the same
+# release with Blackwell kernels added. The CI pre-build hook
+# (scripts/ci/build/tensorflow/pre_build.sh) fetches a cached wheel into
+# prebuilt/; with USE_PREBUILT_WHEEL=1 the Bazel build is skipped. The
+# directory holds only a .gitkeep by default so the COPY always succeeds.
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS tf-wheel-build
+ARG TF_VERSION
+ARG PYTHON_VERSION
+ARG CUDA_VERSION
+ARG HERMETIC_CUDNN_VERSION
+ARG CUDA_COMPUTE_CAPABILITIES
+ARG USE_PREBUILT_WHEEL=0
+ARG BAZELISK_VERSION=v1.25.0
+ARG DEBIAN_FRONTEND=noninteractive
+
+COPY docker/tensorflow/training/2.21/prebuilt/ /tmp/prebuilt/
+COPY scripts/docker/tensorflow/training/build_tf_wheel.sh /tmp/build_tf_wheel.sh
+RUN --mount=type=cache,target=/root/.cache/bazel \
+  mkdir -p /opt/tf-dist \
+  && if [ "${USE_PREBUILT_WHEEL}" = "1" ] && ls /tmp/prebuilt/tensorflow-*.whl >/dev/null 2>&1; then \
+    echo "Using cached TensorFlow wheel: skipping Bazel build" \
+    && cp /tmp/prebuilt/tensorflow-*.whl /opt/tf-dist/; \
+  else \
+    apt-get update && apt-get install -y --no-install-recommends \
+      build-essential ca-certificates curl file git patch python3 rsync unzip xxd zip \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSLo /usr/local/bin/bazel \
+      "https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64" \
+    && chmod +x /usr/local/bin/bazel \
+    && bash /tmp/build_tf_wheel.sh \
+      --tf-ref "v${TF_VERSION}" \
+      --cuda-version "${CUDA_VERSION}" \
+      --cudnn-version "${HERMETIC_CUDNN_VERSION}" \
+      --compute-capabilities "${CUDA_COMPUTE_CAPABILITIES}" \
+      --python-version "${PYTHON_VERSION}" \
+      --out-dir /opt/tf-dist; \
+  fi
+
+
+# ── Stage: tf-artifact-export (cache upload on a pre-build cache miss) ──────
+# Usage: docker buildx build --target tf-artifact-export --output type=local,dest=/tmp/tf-artifacts ...
+FROM scratch AS tf-artifact-export
+COPY --from=tf-wheel-build /opt/tf-dist/ /artifacts/
 
 
 # ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────
@@ -182,6 +231,14 @@ ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 COPY docker/tensorflow/training/2.21/cuda/pyproject.toml docker/tensorflow/training/2.21/cuda/uv.lock /tmp/build/
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
   && rm -rf /tmp/build /tmp/uv-*
+
+# Replace the PyPI tensorflow wheel with the sm_120 source build (same version,
+# same dependencies). Done after the last `uv sync` so the lockfile's registry
+# wheel is not reinstalled over it.
+COPY --from=tf-wheel-build /opt/tf-dist/ /tmp/tf-dist/
+RUN uv pip install --python /opt/venv/bin/python --no-deps --reinstall --no-cache /tmp/tf-dist/tensorflow-*.whl \
+  && rm -rf /tmp/tf-dist \
+  && python -c "import tensorflow as tf; caps = tf.sysconfig.get_build_info()['cuda_compute_capabilities']; print(tf.__version__, caps); assert 'sm_100' in caps and 'compute_120' in caps"
 
 # Boost 1.82 for SM Studio extensions (compiled with _GLIBCXX_USE_CXX11_ABI=1
 # to match TF's ABI). Some SM Studio extensions link against boost.
