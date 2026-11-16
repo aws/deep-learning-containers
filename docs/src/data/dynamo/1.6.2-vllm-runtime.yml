@@ -1,0 +1,18 @@
+framework: Dynamo
+version: "1.6.2"
+backend: "vLLM 0.31.0"
+efa: "No"
+ecr_repository: dynamo
+accelerator: gpu
+python: py312
+cuda: cu130
+os: amzn2023
+platform: hyperpod
+public_registry: true
+
+# Support policy
+ga: "2026-11-12"
+eop: "2027-11-12"
+
+tags:
+  - "1.6.2-vllm-runtime-v1"

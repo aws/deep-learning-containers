@@ -14,6 +14,8 @@ Choose a framework to get started:
   llama-server API
 - **[Strands Decider](../strands-decider/index.md)** — serve strands-decider decision models, which answer yes/no, choice, and score questions with
   calibrated probabilities, on {{ sagemaker }}
+- **[NVIDIA Dynamo](../dynamo/index.md)** — disaggregated LLM serving with vLLM, SGLang, or TensorRT-LLM, KV cache transfer over EFA, on
+  {{ hyperpod }}
 - **[PyTorch](../pytorch/index.md)** — distributed training with EFA, NCCL, flash-attn, and DeepSpeed pre-installed
 - **[TensorFlow Training](../tensorflow/training/index.md)** — training on {{ sagemaker }} with EFA-capable multi-node support on Amazon Linux 2023
 - **[TensorFlow Inference](../tensorflow/inference/index.md)** — serve TensorFlow SavedModels with TensorFlow Serving on {{ sagemaker }}
