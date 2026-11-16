@@ -7,21 +7,20 @@ FROM nvidia/cuda:${CUDA_REF}-devel-amzn2023 AS builder
 
 ARG CUDA_REF
 ARG PYTHON_VERSION=3.12
-ARG SGLANG_REF=bc8b3ab1f55c60951b586d84d4aec773a6f654df
-ARG SGLANG_KERNEL_VERSION=0.4.6.post1
-ARG FLASHINFER_VERSION=0.6.18
+ARG SGLANG_REF=297e54fd105e974cdf401e5b4d20253a22c16f90
+ARG SGLANG_KERNEL_VERSION=0.4.10
+ARG FLASHINFER_VERSION=0.7.2
 ARG DEEPEP_COMMIT=874779c9ccd2294b56304bd6cc5f138f1f71d097
 # DeepEP AWS EFA fork (adds EFA/GIN support); overrides the deepseek-ai upstream.
 ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
-ARG FLASHMLA_COMMIT=15f13e5030374295491c5ce31b02d7e63a7772c6
-ARG MOONCAKE_VERSION=0.3.13
+ARG MOONCAKE_VERSION=0.3.13.post1
 ARG GDRCOPY_VERSION=2.5.2
 ARG RUST_VERSION=1.96.1
-ARG TORCH_VERSION=2.13.0
+ARG TORCH_VERSION=2.14.1
 
 # CUDA / GPU
 ARG NCCL_VERSION=2.31.2
-ARG CUDNN_VERSION=9.16.0.29
+ARG CUDNN_VERSION=9.24.0.43
 ARG TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3'
 
 # Build
@@ -106,7 +105,6 @@ RUN cd sglang \
        --index-url https://download.pytorch.org/whl/cu${CUDA_SHORT} \
     && uv pip install --system --no-cache --no-deps \
        sglang-kernel==${SGLANG_KERNEL_VERSION} \
-       --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
     && NVIDIA_LIBS=$(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python${PYTHON_VERSION}/site-packages/nvidia/*/lib')))") \
     && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
@@ -118,19 +116,6 @@ RUN echo $(python3 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/py
 # CUDA 13 moved CCCL headers from include/cuda/std/ to include/cccl/cuda/std/.
 # Symlink for backward compat with libraries that expect the old layout (FlashMLA, CUTLASS).
 RUN ln -sf /usr/local/cuda/include/cccl/cuda /usr/local/cuda/include/cuda || true
-
-# flash-mla: Flash Multi-Latent Attention kernels for DeepSeek's MLA architecture.
-# Must be cloned from GitHub (PyPI sdist is missing headers) and built from source.
-# Pinned: HEAD (07a1089, "DeepSeek v4.1") added SM100-only kernels whose
-# static_asserts (FOLD_FACTOR==4, H_Q_PER_CTA==32) fail when compiled for the
-# sm_90a target still in TORCH_CUDA_ARCH_LIST, breaking the wheel build.
-RUN cd /sgl-workspace \
-  && git clone https://github.com/deepseek-ai/FlashMLA.git flash-mla \
-  && cd flash-mla && git checkout ${FLASHMLA_COMMIT} \
-  && git submodule update --init --recursive \
-  && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
-  && TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" MAX_JOBS=${BUILD_PARALLEL} \
-    pip install --no-cache-dir --no-build-isolation -v .
 
 # DeepEP v2 (AWS EFA fork). Switch from the deepseek-ai upstream zip download to a
 # git clone of the fork so vendored submodules resolve; the fork adds EFA/GIN support.
@@ -165,7 +150,8 @@ RUN cd /sgl-workspace/DeepEP \
 # --platform is matched literally, so re-check the wheel's platform tag on PyPI after
 # any MOONCAKE_VERSION bump; a retag surfaces as a misleading "no matching distribution".
 # Uses pip (not uv) because uv lacks --platform/--target flags.
-RUN python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_28_x86_64 --only-binary :all: --target /tmp/mooncake \
+# The -cuda13 build: the plain package links libcudart.so.12, absent on CUDA 13.
+RUN python3 -m pip install mooncake-transfer-engine-cuda13==${MOONCAKE_VERSION} --platform manylinux_2_28_x86_64 --only-binary :all: --target /tmp/mooncake \
     && cp -r /tmp/mooncake/* $(python3 -c "import site; print(site.getsitepackages()[0])") \
     && rm -rf /tmp/mooncake
 
@@ -194,11 +180,13 @@ FROM nvidia/cuda:${CUDA_REF}-runtime-amzn2023 AS runtime
 ARG CUDA_REF
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12
-ARG TORCH_VERSION=2.13.0
-ARG SGLANG_KERNEL_VERSION=0.4.6.post1
+ARG TORCH_VERSION=2.14.1
+ARG SGLANG_KERNEL_VERSION=0.4.10
 ARG EFA_VERSION="latest"
 ARG NCCL_VERSION=2.31.2
-ARG CUDNN_VERSION=9.16.0.29
+ARG CUDNN_VERSION=9.24.0.43
+# Matches the cuSparseLt torch was built against.
+ARG CUSPARSELT_VERSION=0.8.1
 
 ARG DLC_MAJOR_VERSION=1
 ARG DLC_MINOR_VERSION=2
@@ -321,20 +309,17 @@ RUN uv pip install --system --no-cache --prerelease=allow \
   "diffusers>=0.38.0" \
   "pillow>=12.3.0" \
   "python_multipart>=0.0.22" \
-  "xgrammar>=0.1.32" \
   "setuptools>=78.1.1" \
   "aiohttp>=3.14.0" \
-  "starlette>=1.3.1" \
-  # kernels<0.15: 0.15.x breaks transformers hub_kernels LayerRepository() init
-  "kernels<0.15"
+  "starlette>=1.3.1"
 
 # Model-specific deps (required by custom HuggingFace processors at runtime)
 RUN uv pip install --system --no-cache decord lmdb peft
 
 # Re-pin torch (cu129), sgl_kernel, NCCL/cuDNN/cuSparseLt after CVE patches.
-# The CVE patches step above resolves xgrammar's transitive torch dep from PyPI,
+# The CVE patches step above can resolve a transitive torch dep from PyPI,
 # which downgrades torch from cu129 to cu128. Force-reinstall from the cu129 index.
-# Also reinstall sgl_kernel from the sglang wheel index (compiled against torch 2.11.0).
+# Also reinstall sgl_kernel from PyPI (its cu130 wheel pins the same torch).
 RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
      "torch==${TORCH_VERSION}" "torchvision" "torchaudio" \
@@ -342,12 +327,11 @@ RUN CUDA_SHORT=$(echo ${CUDA_REF} | cut -d. -f1,2 | tr -d '.') \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall "pillow>=12.3.0" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall --no-deps \
      sglang-kernel==${SGLANG_KERNEL_VERSION} \
-     --index-url https://docs.sglang.ai/whl/cu${CUDA_SHORT}/ \
   && uv pip install --system --no-cache --reinstall nvidia-nccl-cu13==${NCCL_VERSION} \
   && uv pip install --system --no-cache --reinstall nvidia-cudnn-cu13==${CUDNN_VERSION} \
-  && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu13 \
+  && uv pip install --system --no-cache --reinstall nvidia-cusparselt-cu13==${CUSPARSELT_VERSION} \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir --force-reinstall \
-     "nvidia-cutlass-dsl[cu13]==4.6.2" \
+     "nvidia-cutlass-dsl[cu13]==4.8.0" \
   && python${PYTHON_VERSION} -m pip install --no-cache-dir "setuptools>=78.1.1,<82" "numpy<2.5" "datasets>=2.19" \
      "pyarrow>=26.0.1" \
   && rm -f /usr/local/nvidia/pip-lib/* \
@@ -425,24 +409,6 @@ RUN CUDA_TGT=/usr/local/cuda-$(echo ${CUDA_REF} | cut -d. -f1,2)/targets/x86_64-
   && echo 'int main(){nvrtcVersion(0,0);return 0;}' >> /tmp/nvrtc_probe.c \
   && gcc /tmp/nvrtc_probe.c -I${CUDA_TGT}/include -L${CUDA_TGT}/lib -lnvrtc -o /tmp/nvrtc_probe \
   && rm -f /tmp/nvrtc_probe /tmp/nvrtc_probe.c
-
-# Kimi-K3 selects its MoE kernels from a prebuilt trtllm-gen cubin pool, and JIT
-# compiles the accompanying overlay/ sources against it at first use. Absent the
-# pool, MXFP4 MoE has no kernels to dispatch to.
-ARG TRTLLM_GEN_MOE_CUBIN_POOL_VERSION=trtllm_gen_moe_cubin_pool_20260617_v0613rc1
-ARG TRTLLM_GEN_MOE_CUBIN_POOL_TAG=trtllm_gen_moe_cubin_20260617
-ARG TRTLLM_GEN_MOE_CUBIN_POOL_SHA256=4900501cbe782a76b08a5858f9f07152287b97cb68114466dac286366b66c192
-ENV SGLANG_TRTLLM_GEN_MOE_CUBIN_POOL=/opt/trtllm_gen_moe_cubin_pool
-RUN cd /tmp \
-  && curl --retry 3 -sSLo pool.zip \
-    https://github.com/sgl-project/whl/releases/download/${TRTLLM_GEN_MOE_CUBIN_POOL_TAG}/${TRTLLM_GEN_MOE_CUBIN_POOL_VERSION}.zip \
-  && echo "${TRTLLM_GEN_MOE_CUBIN_POOL_SHA256}  pool.zip" | sha256sum -c - \
-  && unzip -q pool.zip \
-  && mv ${TRTLLM_GEN_MOE_CUBIN_POOL_VERSION} ${SGLANG_TRTLLM_GEN_MOE_CUBIN_POOL} \
-  && rm -f pool.zip \
-  && CUBINS=$(find ${SGLANG_TRTLLM_GEN_MOE_CUBIN_POOL} -name '*.cubin' | wc -l) \
-  && echo "trtllm-gen cubins: ${CUBINS}" \
-  && test "${CUBINS}" -eq 1696
 
 # Kimi-K3's CuTeDSL MLA decode uses flashinfer decode-context-parallel (enable_dcp),
 # which is upstreamed in sglang 0.5.19 — the flashinfer DCP monkeypatch that older
