@@ -4,11 +4,12 @@ Changelog for the Amazon Linux 2023-based strands-decider images.
 
 * * *
 
-## Strands Decider 1.0.0 (strands-decider 0.3.1.dev1) — 2026-11-10
+## v1.0.0 — 2026-11-10
 
 **Tags:** `serve-sagemaker-cuda` · `serve-sagemaker-cuda-v1` · `serve-sagemaker-cuda-v1.0` · `serve-sagemaker-cuda-v1.0.0`
 
 **strands-decider source:** [`9a7470e`](https://github.com/strands-labs/strands-decider/commit/9a7470eb90e5afe5ae9f0e1dfc52d65bd3ab71b7)
+(`0.3.1.dev1`)
 
 ### Highlights
 

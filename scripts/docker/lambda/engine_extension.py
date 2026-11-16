@@ -120,6 +120,37 @@ def sglang_command(env):
     return cmd + shlex.split(env.get("SGLANG_SERVER_ARGS", ""))
 
 
+# The image's own settings: read here and turned into server flags, never by the engine.
+# They are kept out of the engine's environment because vLLM warns about every VLLM_*
+# variable it doesn't know ("Unknown vLLM environment variable detected"), and its
+# --fail-on-environ-validation flag turns that warning into a startup error. The SGLANG_*
+# names are the image's too (SGLang has no such settings), so they are kept out the same way.
+IMAGE_SETTINGS = frozenset(
+    {
+        "VLLM_SERVER_PORT",
+        "VLLM_SERVER_TIMEOUT",
+        "VLLM_SERVER_ARGS",
+        "VLLM_GPU_MEM_UTIL",
+        "VLLM_TP_SIZE",
+        "VLLM_MAX_MODEL_LEN",
+        "VLLM_LOAD_FORMAT",
+        "SGLANG_SERVER_PORT",
+        "SGLANG_SERVER_TIMEOUT",
+        "SGLANG_SERVER_ARGS",
+        "SGLANG_MEM_FRACTION",
+        "SGLANG_ATTENTION_BACKEND",
+        "SGLANG_TP_SIZE",
+        "SGLANG_MAX_TOTAL_TOKENS",
+        "SGLANG_LOAD_FORMAT",
+    }
+)
+
+
+def engine_environment(env):
+    """The environment for the engine process: everything except the image's settings."""
+    return {k: v for k, v in env.items() if k not in IMAGE_SETTINGS}
+
+
 ENGINES = {
     # engine: (command builder, env prefix for port and startup timeout, default probe timeout)
     "vllm": (vllm_command, "VLLM", 10),
@@ -199,9 +230,10 @@ def _group_alive(pgid):
 class Engine:
     """The engine's server process and its health endpoint."""
 
-    def __init__(self, cmd, health_url):
+    def __init__(self, cmd, health_url, env):
         self.cmd = cmd
         self.health_url = health_url
+        self.env = env
         self.proc = None
         # Set before a deliberate stop, so the watchdog does not report it as a failure.
         self.stopping = threading.Event()
@@ -210,7 +242,7 @@ class Engine:
         log(f"starting: {shlex.join(self.cmd)}")
         # Own process group: the engines fork workers (vLLM's engine core, SGLang's
         # scheduler and detokenizer) that must stop with the server and free the GPU.
-        self.proc = subprocess.Popen(self.cmd, start_new_session=True)
+        self.proc = subprocess.Popen(self.cmd, env=self.env, start_new_session=True)
 
     def exit_code(self):
         return self.proc.poll()
@@ -314,7 +346,9 @@ def run(engine_name, extension_name, env=os.environ):
             interval = _env_int(env, "ENGINE_HEALTH_INTERVAL", 10)
             max_failures = _env_int(env, "ENGINE_HEALTH_FAILURES", 3)
             startup_timeout = _env_int(env, f"{prefix}_SERVER_TIMEOUT", 600)
-            engine = Engine(build_command(env), f"http://127.0.0.1:{port}/health")
+            engine = Engine(
+                build_command(env), f"http://127.0.0.1:{port}/health", engine_environment(env)
+            )
             engine.start()
             engine.wait_ready(startup_timeout, probe_timeout)
         except Exception as e:

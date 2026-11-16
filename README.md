@@ -31,6 +31,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/11/13]** [vLLM Server ARM64 CPU v1.1 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm-arm64) — EC2: `server-cpu-v1.1` · SageMaker: `server-sagemaker-cpu-v1.1` · vLLM `0.33.0` (up from 0.30.0) on AWS Graviton, built from the `v0.33.0` release tag.
 - **[2026/11/12]** [NVIDIA Dynamo v1.0 (1.6.2, AL2023)](https://gallery.ecr.aws/deep-learning-containers/dynamo) — SageMaker HyperPod (EKS): `1.6.2-efa-vllm-runtime-v1` · `1.6.2-efa-sglang-runtime-v1` · `1.6.2-efa-trtllm-runtime-v1` (and non-EFA `1.6.2-<backend>-runtime-v1`) · Initial release: NVIDIA Dynamo 1.6.2 built from source with vLLM 0.31.0, SGLang 0.5.21, or TensorRT-LLM 1.3.0rc29, NIXL KV cache transfer over EFA, CUDA 13.0, Python 3.12.
 - **[2026/11/10]** [Strands Decider v1.0 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/strands-decider) — SageMaker: `serve-sagemaker-cuda-v1` · Initial release: serve strands-decider decision models (Qwen3.5 2B and Gemma 4 E2B, E4B, 12B and 26B-A4B adapters) that answer yes/no, choice, and score questions with calibrated probabilities; strands-decider 0.3.1.dev1, PyTorch 2.7.1 (CUDA 12.8), Python 3.13.
 - **[2026/11/08]** [vLLM Server v2.8 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.8` · SageMaker: `server-sagemaker-cuda-v2.8` · vLLM `0.33.0` (up from 0.31.1), built from the `v0.33.0` release tag; PyTorch 2.14.0, FlashInfer 0.7.2.post1, Transformers 5.20.2.
