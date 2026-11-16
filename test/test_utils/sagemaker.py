@@ -14,6 +14,7 @@ from botocore.exceptions import ClientError
 from invoke.context import Context
 from invoke import exceptions
 from junit_xml import TestSuite, TestCase
+from packaging.version import Version
 
 from test_utils import ec2 as ec2_utils
 from test_utils import metrics as metrics_utils
@@ -64,6 +65,10 @@ def assign_sagemaker_remote_job_instance_type(image):
             return "ml.trn2.48xlarge"
         return "ml.trn1.32xlarge"
     elif "neuronx" in image:
+        _, version = get_framework_and_version_from_tag(image)
+        if "huggingface-pytorch" in image and Version(version) >= Version("2.13"):
+            # Native Torch NeuronX supports Trn2 and Trn3 only.
+            return "ml.trn2.48xlarge"
         return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"

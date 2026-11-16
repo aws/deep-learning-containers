@@ -173,12 +173,13 @@ def is_test_job_implemented_for_framework(images_str, test_type):
         is_trcomp_image = True
 
     is_autogluon_image = "autogluon" in images_str
-    is_huggingface_neuronx_training = is_huggingface_image and all(
-        all(part in image for part in ("huggingface-pytorch-training", "neuronx"))
+    # HF PyTorch NeuronX training and inference images (native Torch NeuronX) run EC2 tests.
+    is_huggingface_neuronx = is_huggingface_image and all(
+        all(part in image for part in ("huggingface-pytorch-", "neuronx"))
         for image in images_str.split()
     )
 
-    if is_huggingface_neuronx_training and test_type == constants.EC2_TESTS:
+    if is_huggingface_neuronx and test_type == constants.EC2_TESTS:
         return True
 
     if (is_huggingface_image or is_autogluon_image) and test_type in [
