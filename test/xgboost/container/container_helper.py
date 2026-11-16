@@ -313,6 +313,10 @@ class ServingContainer:
     def execution_parameters(self):
         return requests.get(self._url("/execution-parameters"), timeout=5)
 
+    def exec_run(self, cmd):
+        """Run *cmd* inside the container; return (exit_code, output_bytes)."""
+        return self._container.exec_run(cmd)
+
     # -- resource sampling ---------------------------------------------------
 
     def stats(self):

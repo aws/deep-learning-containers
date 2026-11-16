@@ -214,6 +214,23 @@ class TestValidScoring:
             resp = ctx.invocations(data=full_payload, content_type="text/csv")
         _validate_response(resp, num_requests)
 
+    def test_delayed_first_request_not_dropped(self, docker_client, image_uri, inference_resources):
+        # A new gunicorn connection whose request arrives late (e.g. after an
+        # instance stall) must still be served rather than dropped as an nginx 502.
+        script = (
+            "import socket, time\n"
+            "s = socket.socket(socket.AF_UNIX)\n"
+            "s.connect('/tmp/gunicorn.sock')\n"
+            "time.sleep(5)\n"
+            "s.sendall(b'GET /ping HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n')\n"
+            "print(s.recv(64).split(b'\\r\\n')[0].decode())\n"
+        )
+        model_dir = _model_path(inference_resources, "mnist-xgb-model")
+        with ServingContainer(docker_client, image_uri, model_dir) as ctx:
+            exit_code, output = ctx.exec_run(["python3", "-c", script])
+        assert exit_code == 0, output
+        assert b"200 OK" in output, output
+
 
 # ===========================================================================
 # Invalid scoring tests
