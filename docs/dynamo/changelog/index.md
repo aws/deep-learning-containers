@@ -4,7 +4,9 @@ Changelog for the Amazon Linux 2023-based NVIDIA Dynamo images.
 
 * * *
 
-## Dynamo 1.6.2, image 1.0.1 — 2026-11-13
+## v1.0.1 — 2026-11-13
+
+**Dynamo:** 1.6.2
 
 **Tags:** `1.6.2-<flavor>-runtime-v1.0.1` for each of the six images
 
@@ -12,7 +14,9 @@ Changelog for the Amazon Linux 2023-based NVIDIA Dynamo images.
 
 * * *
 
-## Dynamo 1.6.2, image 1.0.0 — 2026-11-12
+## v1.0.0 — 2026-11-12
+
+**Dynamo:** 1.6.2
 
 **Tags:** `1.6.2-<flavor>-runtime` · `-v1` · `-v1.0` · `-v1.0.0`, where `<flavor>` is `vllm`, `efa-vllm`, `sglang`, `efa-sglang`, `trtllm`, or
 `efa-trtllm`
