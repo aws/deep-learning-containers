@@ -16,7 +16,8 @@ nav:
     - PyTorch: pytorch
     - TensorFlow: tensorflow
     - Base: base
-  - Blog Posts: tutorials
+  - Blog Posts: blogs/index.md
+  - Tutorials: tutorials
   - Resources:
     - resources/index.md
     - Reference:

@@ -118,7 +118,7 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
 </div>
 
-For step-by-step walkthroughs on EKS, SageMaker, and more, see our [blog posts](tutorials/index.md). You can also
+For step-by-step walkthroughs on EKS, SageMaker, and more, see our [blog posts](blogs/index.md) and [tutorials](tutorials/index.md). You can also
 [subscribe to release notifications](get_started/release_notifications.md) to stay up to date with new images.
 
 Looking for something else? [Let us know on GitHub](https://github.com/aws/deep-learning-containers/issues).
