@@ -1058,5 +1058,175 @@
         "vulnerability_id": "CVE-2025-39730",
         "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-244.264 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the NFS filehandle bounds-check bug is not a runtime attack surface for this image. No exploit available.",
         "review_by": "2026-12-01"
+    },
+    {
+        "vulnerability_id": "CVE-2026-74394",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-245.265 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'RDMA/srpt: fix integer overflow in immediate data length check' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31685",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'netfilter: ip6t_eui64: reject invalid MAC header for all packets' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39810",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-245.265 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'bnxt_en: Fix memory corruption when FW resources change during ifdown' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39743",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-245.265 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'jfs: truncate good inode pages when hard link is 0' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43383",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'net/tcp-md5: Fix MAC comparison to be constant-time' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39824",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-245.265 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'HID: asus: fix UAF via HID_CLAIMED_INPUT validation' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46266",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'inet: RAW sockets using IPPROTO_RAW MUST drop incoming ICMP' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53246",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-238.258 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'sctp: validate cached peer INIT chunk length in COOKIE_ECHO processing' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31668",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'seg6: separate dst_cache for input and output paths in seg6 lwtunnel' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52982",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'net: usb: rtl8150: fix use-after-free in rtl8150_start_xmit()' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31682",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'bridge: br_nd_send: linearize skb before parsing ND options' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31649",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'net: stmmac: fix integer underflow in chain mode' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53221",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-241.261 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'ip6_vti: fix incorrect tunnel matching in vti6_tnl_lookup()' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53228",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'ipv6: sit: reload inner IPv6 header after GSO offloads' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53131",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-241.261 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'netfilter: require Ethernet MAC header before using eth_hdr()' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-128066",
+        "reason": "Pillow: From 1.0 through 12.3.0, ImageFileDirectory_v2.load() in src/PIL/TiffImagePlugin.py retains a separate bytes object for each out-of-line IFD tag value without limit. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-91415",
+        "reason": "openjdk-8 on the Ubuntu 20.04 (Focal) base. Fixed version 8u512-b09~us1-0ubuntu1~20.04.1 is not available in the standard Focal archive (verified apt candidate is 8u452; Focal is past standard-support EOL). Java is only used by the MMS model server, not in the training/serving data path.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-91403",
+        "reason": "openjdk-8 on the Ubuntu 20.04 (Focal) base. Fixed version 8u512-b09~us1-0ubuntu1~20.04.1 is not available in the standard Focal archive (verified apt candidate is 8u452; Focal is past standard-support EOL). Java is only used by the MMS model server, not in the training/serving data path.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53309",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-238.258 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'ocfs2/dlm: fix off-by-one in dlm_match_regions() region comparison' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52999",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'netfilter: nfnetlink_osf: fix out-of-bounds read on option matching' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52931",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'batman-adv: tp_meter: avoid use of uninit sender vars' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-43117",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'btrfs: tracepoints: get correct superblock from dentry in event btrfs_sync_file()' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-114820",
+        "reason": "openjdk-8 on the Ubuntu 20.04 (Focal) base. Fixed version 8u512-b09~us1-0ubuntu1~20.04.1 is not available in the standard Focal archive (verified apt candidate is 8u452; Focal is past standard-support EOL). Java is only used by the MMS model server, not in the training/serving data path.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53088",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'net: bcmgenet: fix off-by-one in bcmgenet_put_txcb' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-39783",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-245.265 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'PCI: endpoint: Fix configfs group list head handling' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-52986",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'netfilter: nf_conntrack_sip: don't use simple_strtoul' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-46243",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'smb: client: reject userspace cifs.spnego descriptions' fix is not a runtime attack surface for this image. A public exploit exists, but it targets the running kernel, which this image doesn't ship.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-109518",
+        "reason": "apt/libapt-pkg6.0 on the Ubuntu 20.04 (Focal) base. Fixed version 2.0.12+esm1 is Ubuntu Pro/ESM-only (verified apt candidate is 2.0.11; Focal is past standard-support EOL). Requires an on-path attacker during apt operations at image build time; apt is not invoked at runtime on SageMaker.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-74350",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-245.265 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'ocfs2: validate fast symlink target during inode read' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53225",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-238.258 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'sctp: fix uninit-value in __sctp_rcv_asconf_lookup()' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-53045",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'memory: tegra124-emc: Fix dll_change check' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2025-27558",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-234.254 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'IEEE P802.11-REVme D1.1 through D7.0 allows FragAttacks against mesh networks. In mesh networks using Wi-Fi Protected Access (WPA, WPA2, or WPA3) or Wired Equivalent Privacy (WEP), an adversary can ex' fix is not a runtime attack surface for this image. No exploit available.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-112902",
+        "reason": "Pillow: In versions through 12.3.0, the libtiff TIFF encoder can pass arguments to TIFFSetField() that don't match libtiff's tag definition. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2027-03-02"
+    },
+    {
+        "vulnerability_id": "CVE-2026-128067",
+        "reason": "Pillow: From 2.3.0 through 12.3.0, saving compressed TIFF images through libtiff can pass attacker-controlled image geometry tags to the encoder. Fix requires Pillow 13.0.0, which requires Python >=3.11; this image runs Python 3.10, so 12.3.0 is the newest installable release. Pillow is pulled in transitively by matplotlib and the XGBoost container processes tabular data only \u2014 it never decodes untrusted image input.",
+        "review_by": "2027-03-02"
     }
 ]
