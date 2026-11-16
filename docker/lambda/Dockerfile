@@ -381,9 +381,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   # cold start (the sampling module alone took ~80 s of a Lambda Init).
   # flashinfer-jit-cache is a shim that depends on one package per arch
   # (sm80/89/90a/100a/103a/120f, 110-285 MB each); install it without deps plus only the
-  # arches in TORCH_CUDA_ARCH_LIST; keep in sync with torch_cuda_arch_list in
-  # .github/config/image/lambda/vllm/vllm.yml and test_flashinfer_jit_cache.py. Same
-  # version as flashinfer-python so the kernels match.
+  # arches in TORCH_CUDA_ARCH_LIST (8.6 has no package; the sm80 kernels cover it); keep
+  # in sync with torch_cuda_arch_list in .github/config/image/lambda/vllm/vllm.yml and
+  # test_flashinfer_jit_cache.py. Same version as flashinfer-python so the kernels match.
   && uv pip install --python "${UV_PYTHON}" --no-deps \
      "flashinfer-jit-cache==${FLASHINFER_VERSION}" \
      "flashinfer-jit-cache-sm80==${FLASHINFER_VERSION}" \

@@ -7,6 +7,7 @@ tiny HTTP server whose /health status the test controls. CPU-only: no engine, no
 
 import json
 import os
+import re
 import signal
 import socket
 import subprocess
@@ -29,13 +30,19 @@ EXTENSION = next((p for p in CANDIDATES if p.is_file()), None)
 pytestmark = pytest.mark.skipif(EXTENSION is None, reason="image ships no engine extension")
 
 # Stands in for `vllm serve`: answers /health with the status in STATUS_FILE, after an
-# optional startup delay, and records its pid so tests can check it was stopped. Like the
-# real engines it starts a worker process (pid in PID_FILE.worker) that outlives it.
+# optional startup delay, and records its pid so tests can check it was stopped, and the
+# environment it was started with (PID_FILE.env). Like the real engines it starts a worker
+# process (pid in PID_FILE.worker) that outlives it.
 FAKE_ENGINE = textwrap.dedent(
     """
-    import os, subprocess, sys, time
+    import json, os, subprocess, sys, time
     from http.server import BaseHTTPRequestHandler, HTTPServer
     port, status_file, pid_file, delay = sys.argv[1], sys.argv[2], sys.argv[3], float(sys.argv[4])
+    # Only the keys the tests check: CI's environment may hold real credentials.
+    keys = [k for k in os.environ if k.startswith(("VLLM_", "SGLANG_")) or k in ("MODEL_ID", "HF_TOKEN")]
+    seen = {k: os.environ[k] for k in keys}
+    seen["PATH_SET"] = "PATH" in os.environ
+    open(pid_file + ".env", "w").write(json.dumps(seen))
     open(pid_file, "w").write(str(os.getpid()))
     worker = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(600)"])
     open(pid_file + ".worker", "w").write(str(worker.pid))
@@ -332,6 +339,28 @@ def test_disabled_extension_registers_without_starting_an_engine(setup):
     assert setup.wait() == 0
 
 
+def test_engine_does_not_see_the_image_settings(setup):
+    # vLLM warns about every VLLM_* variable it doesn't know, and fails to start on them
+    # with --fail-on-environ-validation; the image's own settings are for the extension.
+    setup.start(
+        VLLM_MAX_MODEL_LEN="4096",
+        VLLM_SERVER_ARGS="--enforce-eager",
+        SGLANG_MEM_FRACTION="0.5",
+        VLLM_LOGGING_LEVEL="DEBUG",
+        HF_TOKEN="hf_test",
+        MODEL_ID="s3://bucket/model/",
+    )
+    assert setup.api.next_called.wait(30)
+    engine_env = json.loads(Path(f"{setup.pid_file}.env").read_text())
+    for name in ("VLLM_MAX_MODEL_LEN", "VLLM_SERVER_ARGS", "SGLANG_MEM_FRACTION"):
+        assert name not in engine_env, name
+    # Everything else still reaches the engine, including genuine vLLM settings.
+    assert engine_env["VLLM_LOGGING_LEVEL"] == "DEBUG"
+    assert engine_env["HF_TOKEN"] == "hf_test"
+    assert engine_env["MODEL_ID"] == "s3://bucket/model/"
+    assert engine_env["PATH_SET"]
+
+
 @pytest.fixture
 def ext(monkeypatch):
     monkeypatch.syspath_prepend(str(EXTENSION.parent))
@@ -381,3 +410,15 @@ def test_sglang_command_binds_localhost_and_takes_extra_args(ext):
     assert cmd[cmd.index("--tp-size") + 1] == "2"
     assert cmd[cmd.index("--model-path") + 1] == ext.DEFAULT_MODEL
     assert cmd[-1] == "--enable-metrics"
+
+
+def test_every_engine_setting_the_extension_reads_is_kept_from_the_engine(ext):
+    # Guards against a new VLLM_* / SGLANG_* setting being read without being listed: every
+    # such name in the extension's source (any way it is read, including f"{prefix}_..."
+    # names in run()) must be in IMAGE_SETTINGS.
+    source = Path(ext.__file__).read_text()
+    names = set(re.findall(r"\b(?:VLLM|SGLANG)_[A-Z0-9_]*[A-Z0-9]\b", source))
+    for suffix in re.findall(r"\{prefix\}(_[A-Z0-9_]*[A-Z0-9])", source):
+        names |= {f"{prefix}{suffix}" for _, prefix, _ in ext.ENGINES.values()}
+    assert names, "found no settings in the extension's source"
+    assert names <= ext.IMAGE_SETTINGS, names - ext.IMAGE_SETTINGS
