@@ -1111,7 +1111,7 @@
     },
     {
         "vulnerability_id": "CVE-2026-31682",
-        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the 'bridge: br_nd_send: linearize skb before parsing ND options' fix is not a runtime attack surface for this image. No exploit available.",
+        "reason": "linux-libc-dev (kernel headers) on the Ubuntu 20.04 (Focal, kernel 5.4.0) base. Fixed version 5.4.0-233.253 is Ubuntu Pro/ESM-only (Focal is past standard-support EOL) and is not installable without a paid Ubuntu Pro subscription. linux-libc-dev is a build-time kernel-headers package; the container runs on the host kernel, so the bridge neighbor-discovery skb linearization fix is not a runtime attack surface for this image. No exploit available.",
         "review_by": "2027-03-02"
     },
     {
