@@ -37,10 +37,14 @@ ENV VLLM_LOAD_FORMAT=runai_streamer
 `runai_streamer` streams safetensors shards from S3 straight into GPU memory — no `/tmp` staging, no `EphemeralStorage` to size. The function's
 execution role needs `s3:GetObject` and `s3:ListBucket` on the prefix.
 
-Build the image, push it to your own {{ ecr_short }} repository, and create the function on your GPU capacity provider. Set `Timeout` to 900 and size
+Build the image and push it to your own {{ ecr_short }} repository, then create the function on your GPU capacity provider with
+[`create-function`](https://docs.aws.amazon.com/cli/latest/reference/lambda/create-function.html) and publish a version with
+[`publish-version`](https://docs.aws.amazon.com/cli/latest/reference/lambda/publish-version.html). Set `Timeout` to 900 and size
 `AcceleratorMemorySize` for the model — see [Configuration](../configuration.md).
 
-The event is the OpenAI request body. A payload with `messages` is routed to `/v1/chat/completions`, one with `prompt` to `/v1/completions`.
+Publishing is what loads the model: the version reaches `Active` only once the engine answers its health check. Check it with
+[`get-function-configuration`](https://docs.aws.amazon.com/cli/latest/reference/lambda/get-function-configuration.html), then invoke. The event is the
+OpenAI request body — a payload with `messages` is routed to `/v1/chat/completions`, one with `prompt` to `/v1/completions`.
 
 ```bash
 aws lambda invoke \
