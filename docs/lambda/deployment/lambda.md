@@ -67,8 +67,8 @@ not launch it.
 | Serving | A watchdog probes the health endpoint every `ENGINE_HEALTH_INTERVAL` seconds. After `ENGINE_HEALTH_FAILURES` consecutive failures, or as soon as the server process exits, the extension reports an error and exits so that {{ lambda_short }} replaces the environment. |
 | Shutdown | Stops the server and its worker processes so that none of them is left holding GPU memory. |
 
-A crashed or unresponsive engine therefore costs one execution environment rather than a stream of failed invocations. Keep this behavior, because it
-is the reason your handler does not have to detect a dead engine.
+An engine that crashes or stops responding therefore costs one execution environment rather than a stream of failed invocations, and your handler does
+not have to detect it.
 
 You can tune the server with `MODEL_ID`, the `VLLM_*` and `SGLANG_*` variables, and `VLLM_SERVER_ARGS` or `SGLANG_SERVER_ARGS` for any flag the other
 variables do not cover. The extension reads all of them, so none of this requires replacing the handler. For more information, see
@@ -199,8 +199,8 @@ there are reported as initialization failures rather than as a container that ex
 ### Concurrency and GPU state
 
 The RIC forks one worker process per concurrent invocation, and each worker imports your handler itself. Module-level code therefore runs once per
-worker rather than once per execution environment, so whatever you load there exists as many times as the concurrency you configured. Two patterns
-work.
+worker rather than once per execution environment, so whatever you load there exists as many times as the concurrency you configured. You can use
+either of the following patterns.
 
 **A model per worker.** Load the weights at module scope and move them to the GPU there. Each worker gets its own process, its own CUDA context, and
 its own copy of the model.
