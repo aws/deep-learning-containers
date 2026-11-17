@@ -42,6 +42,7 @@ RUN uv pip install --system \
   "pyasn1>=0.6.3" \
   "certifi>=2026.10.18" \
   "uv>=0.13.4" \
+  "dnspython>=2.9.2" \
   && uv cache clean
 
 # Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
