@@ -173,6 +173,7 @@ RUN CUDART=$(ls /usr/local/cuda/lib64/libcudart.so.* | head -1) \
   && ldconfig
 
 # EFA + OpenMPI + OFI NCCL + SSH + NCCL config (monolithic AL2023 script)
+ARG CACHE_REFRESH=0
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
