@@ -278,6 +278,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cd /tmp/ffmpeg \
     && git checkout "${FFMPEG_TAG}" \
     && ./configure \
+    --pkg-config=/usr/bin/pkg-config \
     --prefix=/usr/local \
     --disable-debug \
     --disable-doc \
