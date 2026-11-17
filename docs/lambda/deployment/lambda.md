@@ -1,18 +1,18 @@
 # Lambda Managed Instances Deployment
 
 GPU functions run on [{{ lambda }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html) with a GPU capacity
-provider, as container images only — no `.zip` packages, no managed runtimes.
+provider. They are deployed as container images.
 
-This page covers the image. For the capacity provider, the function, scaling, networking, quotas, and GPU metrics, see
+This page covers the image. To create the capacity provider and the function, and for scaling, networking, quotas, and GPU metrics, see
 [Getting started with {{ lambda_short }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-getting-started.html).
 For the function settings that matter to these images, see [Configuration](../configuration.md).
 
 ## Serve an LLM with no handler code
 
-The vLLM and SGLang images need no handler code. Set `MODEL_ID`; an extension starts the engine and loads the model during Init, and the shipped
-handler proxies invocations to it.
+The vLLM and SGLang images include a handler, so you only set `MODEL_ID`. An extension starts the engine and loads the model during initialization,
+and the handler forwards each invocation to it.
 
-**Quick start — Hugging Face Hub:**
+To get started, point `MODEL_ID` at a Hugging Face model.
 
 ```dockerfile
 FROM public.ecr.aws/lambda/deep-learning-containers/vllm:cuda-v1
@@ -20,12 +20,10 @@ FROM public.ecr.aws/lambda/deep-learning-containers/vllm:cuda-v1
 ENV MODEL_ID=Qwen/Qwen2.5-0.5B-Instruct
 ```
 
-The image downloads the model from the Hub to `/tmp` during Init. Easy to get started, but requires internet access from the capacity provider's
-subnets, and the download repeats on every new execution environment.
+The image downloads the model from the Hugging Face Hub to `/tmp` during initialization. This requires internet access from the capacity provider's
+subnets, and the download repeats for every new execution environment.
 
-**Production — Amazon S3:**
-
-First copy the model to your S3 bucket (once), then:
+For production, copy the model to an S3 bucket in the same Region as your function and load it from there.
 
 ```dockerfile
 FROM public.ecr.aws/lambda/deep-learning-containers/vllm:cuda-v1
@@ -34,55 +32,58 @@ ENV MODEL_ID=s3://amzn-s3-demo-bucket/models/Qwen2.5-1.5B-Instruct/
 ENV VLLM_LOAD_FORMAT=runai_streamer
 ```
 
-`runai_streamer` streams safetensors shards from S3 straight into GPU memory — no `/tmp` staging, no `EphemeralStorage` to size. The function's
-execution role needs `s3:GetObject` and `s3:ListBucket` on the prefix.
+With `runai_streamer`, the image streams the model from S3 directly into GPU memory, so it does not stage the weights in `/tmp`. Grant the function's
+execution role `s3:GetObject` and `s3:ListBucket` on the prefix.
 
 Build the image and push it to your own {{ ecr_short }} repository, then create the function on your GPU capacity provider with
 [`create-function`](https://docs.aws.amazon.com/cli/latest/reference/lambda/create-function.html) and publish a version with
 [`publish-version`](https://docs.aws.amazon.com/cli/latest/reference/lambda/publish-version.html). Set `Timeout` to 900 and size
-`AcceleratorMemorySize` for the model — see [Configuration](../configuration.md).
+`AcceleratorMemorySize` for your model. For more information, see [Configuration](../configuration.md).
 
-Publishing is what loads the model: the version reaches `Active` only once the engine answers its health check. Check it with
-[`get-function-configuration`](https://docs.aws.amazon.com/cli/latest/reference/lambda/get-function-configuration.html), then invoke. The event is the
-OpenAI request body — a payload with `messages` is routed to `/v1/chat/completions`, one with `prompt` to `/v1/completions`.
+Publishing loads the model, so the version becomes active only after the engine answers its health check. Check the state with
+[`get-function-configuration`](https://docs.aws.amazon.com/cli/latest/reference/lambda/get-function-configuration.html), then invoke the function.
+
+The payload is an OpenAI request body. The handler sends it to the engine's chat completions or completions endpoint, and returns the engine's
+response.
 
 ```bash
 aws lambda invoke \
-  --function-name my-gpu-function:1 \
+  --function-name my-gpu-function \
   --payload '{"messages":[{"role":"user","content":"What is a GPU?"}],"max_tokens":64}' \
   response.json
 ```
 
-For the models validated against each engine, see the [vLLM](../../vllm/models/index.md) and [SGLang](../../sglang/models/index.md) lists. Other
-models supported upstream, including embedding and vision-language models, generally work too.
+For the models tested with each engine, see the [vLLM](../../vllm/models/index.md) and [SGLang](../../sglang/models/index.md) lists. Other models
+supported upstream, including embedding and vision-language models, generally work as well.
 
 ## The engine extension
 
-On the vLLM and SGLang images the engine is started and supervised by a {{ lambda_short }} extension at `/opt/extensions/<engine>-engine`, with its
-source at `/opt/engine-extension/engine_extension.py`. The handler never launches it.
+On the vLLM and SGLang images, a {{ lambda_short }} extension at `/opt/extensions/<engine>-engine` starts and supervises the engine. The handler does
+not launch it.
 
 | Phase | What the extension does |
 | --- | --- |
-| Init | Starts the OpenAI-compatible server on `127.0.0.1` and waits for `/health`. Init does not complete until it finishes, so no invocation reaches a server that is not ready. On failure it reports an init error and exits, and {{ lambda_short }} discards the environment rather than routing to it. |
-| Serving | A watchdog probes `/health` every `ENGINE_HEALTH_INTERVAL` seconds. After `ENGINE_HEALTH_FAILURES` consecutive failures, or as soon as the server process exits, it reports an exit error and exits so {{ lambda_short }} replaces the environment. |
-| Shutdown | Stops the server's whole process group — `SIGTERM`, then `SIGKILL` inside {{ lambda_short }}'s 2-second budget — so no worker is left holding GPU memory. |
+| Initialization | Starts the OpenAI-compatible server on `127.0.0.1` and waits for its health check. Initialization does not complete until the server is ready, so no invocation reaches a server that cannot serve it. If the server fails to start, the extension reports an initialization error and exits, and {{ lambda_short }} discards the environment. |
+| Serving | A watchdog probes the health endpoint every `ENGINE_HEALTH_INTERVAL` seconds. After `ENGINE_HEALTH_FAILURES` consecutive failures, or as soon as the server process exits, the extension reports an error and exits so that {{ lambda_short }} replaces the environment. |
+| Shutdown | Stops the server and its worker processes so that none of them is left holding GPU memory. |
 
-A crashed or wedged engine therefore costs one execution environment, not a stream of failed invocations. Keep this behaviour: it is the reason you do
-not have to detect a dead engine in your handler.
+A crashed or unresponsive engine therefore costs one execution environment rather than a stream of failed invocations. Keep this behavior, because it
+is the reason your handler does not have to detect a dead engine.
 
-Tune the server through `MODEL_ID`, the `VLLM_*` / `SGLANG_*` variables, and `VLLM_SERVER_ARGS` / `SGLANG_SERVER_ARGS` for any flag those do not cover
-— the extension reads all of them, so none of it requires replacing the handler. See [Configuration](../configuration.md).
+You can tune the server with `MODEL_ID`, the `VLLM_*` and `SGLANG_*` variables, and `VLLM_SERVER_ARGS` or `SGLANG_SERVER_ARGS` for any flag the other
+variables do not cover. The extension reads all of them, so none of this requires replacing the handler. For more information, see
+[Configuration](../configuration.md).
 
 ### Running your own server instead
 
-Set `ENGINE_EXTENSION=off` to make the extension register and idle without starting anything. The execution environment still waits for it during
-Init, and nothing supervises your server, so you own startup, readiness, and failure handling.
+Set `ENGINE_EXTENSION=off` and the extension registers without starting an engine. The execution environment still waits for the extension during
+initialization, but nothing supervises your server, so you own its startup, readiness, and failure handling.
 
-Only do this if you need a process the extension cannot produce — a non-OpenAI server, or a custom engine. For different flags or a different model,
-use `*_SERVER_ARGS` and `MODEL_ID` instead and leave the extension on.
+Do this only if you need a server the extension cannot start, such as a server that is not OpenAI-compatible or a custom engine. To change flags or
+models, use `*_SERVER_ARGS` and `MODEL_ID` and leave the extension on.
 
-With the extension off, every forked worker imports your handler, so elect one to launch the server. The engine images ship an `execute_once`
-decorator at `/var/task/execute_once.py` for exactly this — unused on the default path, still importable:
+With the extension off, every forked worker imports your handler, so elect one worker to launch the server. The engine images include an
+`execute_once` decorator at `/var/task/execute_once.py` for this purpose.
 
 ```python
 import subprocess, time
@@ -117,29 +118,31 @@ def handler(event, context):
     return requests.post("http://127.0.0.1:8000/predict", json=event).json()
 ```
 
-The first worker to create `lock_path` with `O_EXCL` runs the function and writes `result_path`; the others poll for it until `timeout`. Call this at
-module scope, not from the handler: the import happens during Init, so the server is ready before any invocation arrives, and a failure is reported as
-an initialization error. Every worker must still wait on the health endpoint itself — the lock is released when the launch call returns, not when the
-server is ready.
+The first worker to create `lock_path` runs the function and writes `result_path`, and the others wait for that file until `timeout`. Call `_start()`
+at module scope rather than from the handler. The import runs during initialization, so the server is ready before the first invocation arrives, and a
+failure is reported as an initialization error. Each worker still waits on the health endpoint itself, because the lock is released when the launch
+call returns rather than when the server is ready.
 
 ## Write your own handler
 
-Most functions do. Base, CuPy, and PyTorch ship no handler at all. On vLLM and SGLang the extension owns the engine, so the default handler is only a
-proxy: it forwards the event to the engine as an OpenAI request and returns the body. Replacing it leaves the engine, its health checks, and the
-recycling behaviour untouched. Take it as the starting point rather than the finished article:
+Most functions replace the default handler. Base, CuPy, and PyTorch do not include one. On vLLM and SGLang, the extension owns the engine, so the
+default handler only forwards the invocation to it and returns the response. Replacing the handler does not affect the engine, its health checks, or
+the recycling behavior.
 
-- **No streaming.** The handler does one blocking request and returns the parsed body, so `"stream": true` fails. Lambda invocations are
-  request/response; token-by-token streaming is not available through this path.
-- **No validation or caps.** The event is forwarded as-is, so a caller sets `max_tokens`, `model`, and every other engine parameter.
-- **Engine errors become function errors.** A rejected request raises, so it counts against the function's `Errors` metric and is retried on
-  asynchronous invokes instead of being returned to the caller as a 4xx.
-- **The response is the raw engine body.** Reshape it here if your clients do not speak OpenAI.
-- **`MODEL_ID` defaults to a 0.5B smoke-test model.** Always set it.
+The default handler on the engine images has the following limits.
+
+* **No streaming** – The handler sends one request and returns the parsed response, so `"stream": true` fails. {{ lambda_short }} invocations are
+  request and response, so token-by-token streaming is not available through this path.
+* **No validation** – The payload is forwarded as it arrives, so a caller can set `max_tokens`, `model`, and every other engine parameter.
+* **Engine errors become function errors** – A rejected request raises an error, so it counts toward the function's `Errors` metric and is retried on
+  asynchronous invocations instead of being returned to the caller.
+* **The response is the engine's own** – Reshape it in your handler if your clients expect a different format.
+* **`MODEL_ID` has a default** – It points at a small test model, so set it for any real workload.
 
 ### The contract
 
-All five images set `WORKDIR /var/task` and `CMD ["handler.handler"]`, which the RIC reads as *module* `handler`, *function* `handler`. So a file at
-`/var/task/handler.py` defining `handler(event, context)` is picked up with no further configuration:
+All five images set `WORKDIR /var/task` and `CMD ["handler.handler"]`, which the RIC reads as the `handler` function in the `handler` module. A file
+at `/var/task/handler.py` that defines `handler(event, context)` is therefore picked up with no further configuration.
 
 ```dockerfile
 FROM public.ecr.aws/lambda/deep-learning-containers/pytorch:cuda-v1
@@ -147,8 +150,7 @@ FROM public.ecr.aws/lambda/deep-learning-containers/pytorch:cuda-v1
 COPY handler.py /var/task/
 ```
 
-On vLLM and SGLang this overwrites the shipped `/var/task/handler.py`. To keep the default alongside yours, use a different module name and point
-`CMD` at it:
+On vLLM and SGLang, this replaces the handler the image ships. To keep both, use a different module name and point `CMD` at it.
 
 ```dockerfile
 FROM public.ecr.aws/lambda/deep-learning-containers/vllm:cuda-v1
@@ -157,7 +159,7 @@ COPY my_handler.py /var/task/
 CMD ["my_handler.handler"]
 ```
 
-`event` is the invocation payload. The RIC may hand it to you as a `dict` or as raw `bytes`, so normalize before use:
+`event` is the invocation payload. The RIC can pass it as a `dict` or as raw `bytes`, so normalize it before use.
 
 ```python
 import json
@@ -168,8 +170,8 @@ if isinstance(event, (bytes, bytearray, str)):
 
 ### Customize the entrypoint
 
-Each image's `ENTRYPOINT` is a small shim — `/lambda_entrypoint.sh` on Base, CuPy, and PyTorch, `/vllm_entrypoint.sh` and `/sglang_entrypoint.sh` on
-the engines. It execs the RIC under {{ lambda_short }} and the Runtime Interface Emulator locally:
+Each image's `ENTRYPOINT` is a small shim: `/lambda_entrypoint.sh` on Base, CuPy, and PyTorch, and `/vllm_entrypoint.sh` or `/sglang_entrypoint.sh` on
+the engine images. It runs the RIC on {{ lambda_short }} and the Runtime Interface Emulator locally.
 
 ```sh
 if [ -z "${AWS_LAMBDA_RUNTIME_API}" ]; then
@@ -179,8 +181,9 @@ else
 fi
 ```
 
-Replace it when you need work done before the runtime starts — staging an asset, setting a variable from instance metadata, warming a cache. Keep the
-branch and both `exec` calls, or you lose local `docker run` support and leave an extra process between {{ lambda_short }} and the RIC:
+Replace it when you need work done before the runtime starts, such as staging an asset, setting a variable from instance metadata, or warming a cache.
+Keep the branch and both `exec` calls. Without them you lose local `docker run` support and leave an extra process between {{ lambda_short }} and the
+RIC.
 
 ```dockerfile
 FROM public.ecr.aws/lambda/deep-learning-containers/pytorch:cuda-v1
@@ -190,17 +193,17 @@ RUN chmod +x /my_entrypoint.sh
 ENTRYPOINT ["/my_entrypoint.sh", "python", "-m", "awslambdaric"]
 ```
 
-Prefer the handler's module scope for anything that only needs to run once per execution environment — it already does, and errors there are reported
-as initialization failures rather than a container that exits.
+For anything that only needs to run once per execution environment, prefer your handler's module scope. It already runs once per worker, and errors
+there are reported as initialization failures rather than as a container that exits.
 
 ### Concurrency and GPU state
 
-The RIC forks one worker process per concurrent invocation, and **each worker imports your handler itself**. Module-level code therefore runs once per
-worker, not once per execution environment: whatever you load there exists as many times as the concurrency you configured. Nothing is shared between
-workers, so there is no inherited CUDA context to work around — but there is also no single copy of your model. Two patterns work:
+The RIC forks one worker process per concurrent invocation, and each worker imports your handler itself. Module-level code therefore runs once per
+worker rather than once per execution environment, so whatever you load there exists as many times as the concurrency you configured. Two patterns
+work.
 
 **A model per worker.** Load the weights at module scope and move them to the GPU there. Each worker gets its own process, its own CUDA context, and
-its own copy.
+its own copy of the model.
 
 ```python
 import torch
@@ -214,18 +217,20 @@ def handler(event, context):
         return run_inference(model, event)
 ```
 
-GPU memory scales with `PerExecutionEnvironmentMaxConcurrency` because each worker loads the handler itself: at the default of 4, four copies have to
-fit. Fine for a small model. For a large one, set the concurrency to 1, or use the next pattern.
+GPU memory scales with `PerExecutionEnvironmentMaxConcurrency` because each worker loads the handler itself, so at the default of 4 you need room for
+four copies. This works for a small model. For a large one, set the concurrency to 1 or use the next pattern.
 
-**One shared server.** Run the model in one process outside the handler and proxy to it over loopback, so a single copy of the weights serves every
-worker. On vLLM and SGLang this is already done for you — see [The engine extension](#the-engine-extension). On Base, CuPy, or PyTorch, start the
-server from a {{ lambda_short }} extension of your own: anything executable in `/opt/extensions` runs before the runtime, and Init does not finish
-until it asks for its first event, so no invocation arrives before the model is loaded.
+**One shared server.** Run the model in one process outside the handler and have each worker send requests to it over loopback, so a single copy of
+the weights serves every invocation. The vLLM and SGLang images already do this. For more information, see
+[The engine extension](#the-engine-extension). On Base, CuPy, or PyTorch, start the server from your own {{ lambda_short }} extension. Anything
+executable in `/opt/extensions` runs before the runtime, and initialization does not finish until the extension asks for its first event, so no
+invocation arrives before the model is loaded.
 
 ## Loading weights from S3
 
-The PyTorch, vLLM, and SGLang images include `s3torchconnector`; vLLM and SGLang also include the Run:ai Model Streamer. Streaming avoids writing the
-weights to `/tmp` and reading them back, which matters above roughly 1 GB and is the only option when the weights exceed `/tmp`.
+The PyTorch, vLLM, and SGLang images include `s3torchconnector`, and the vLLM and SGLang images also include the Run:ai Model Streamer. Streaming the
+weights avoids writing them to `/tmp` and reading them back, which matters above roughly 1 GB and is the only option when the weights are larger than
+`/tmp`.
 
 ```python
 from s3torchconnector import S3Checkpoint
@@ -239,19 +244,19 @@ Keep the bucket in the same Region as the function.
 
 ## Media and graphics
 
-The GPUs' NVENC and NVDEC engines are separate from the CUDA cores, so transcoding needs no CUDA code. The PyTorch image's FFmpeg is built with NVIDIA
-hardware acceleration:
+The NVENC and NVDEC engines on these GPUs are separate from the CUDA cores, so transcoding does not require CUDA code. The PyTorch image's FFmpeg is
+built with NVIDIA hardware acceleration.
 
 ```bash
 ffmpeg -y -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 \
   -c:v h264_nvenc -preset p4 -b:v 5M -c:a copy output.mp4
 ```
 
-`-hwaccel_output_format cuda` keeps decoded frames in GPU memory so they reach the encoder without a round trip through CPU memory. Request 16 GB or
-more of accelerator memory to land on a whole GPU: G6f and Gr6f fractions expose the encode and decode engines but share them with other instances on
+`-hwaccel_output_format cuda` keeps decoded frames in GPU memory, so they reach the encoder without a round trip through CPU memory. Request 16 GB or
+more of accelerator memory to run on a whole GPU. G6f and Gr6f instances expose the encode and decode engines but share them with other instances on
 the same physical GPU.
 
-Concurrent invocations in one execution environment share `/tmp`, so give each invocation its own working directory:
+Concurrent invocations in one execution environment share `/tmp`, so give each invocation its own working directory.
 
 ```python
 import tempfile
@@ -262,22 +267,21 @@ with tempfile.TemporaryDirectory(dir="/tmp") as workdir:
 
 ## Startup time
 
-Publishing a version pulls the image, starts the container, and runs Init — on the engine images that includes loading the model. The image pull
-usually dominates, and the whole of Init shares one budget: the greater of 130 seconds and the function `Timeout`, capped at 900 seconds. A version
-that exceeds it never goes `Active`.
+Publishing a version pulls the image, starts the container, and runs initialization, which on the engine images includes loading the model. The image
+pull usually takes the longest. Initialization is limited to 900 seconds, and a version that exceeds it does not become active.
 
-- **Keep weights out of the image.** Load them from S3 at initialization instead. Changing models then needs no rebuild.
-- **Spread content across layers.** {{ lambda_short }} downloads layers concurrently and unpacks each as it arrives, so one very large layer unpacks
-  more slowly than the same content split across several. Give each model shard its own `COPY`. Do not flatten the image.
-- **Keep single files under 10 GB.** A larger file fails activation. Images themselves can reach 32 GB, and `/tmp` 32 GB.
-- **Consider SOCI.** A SOCI index lets an execution environment start before the whole image has downloaded. See
+* **Keep weights out of the image** – Load them from S3 during initialization instead. Changing models then requires no rebuild.
+* **Spread content across layers** – {{ lambda_short }} downloads layers concurrently and unpacks each one as it arrives, so a single very large layer
+  unpacks more slowly than the same content split across several. Give each model shard its own `COPY` instruction, and do not flatten the image.
+* **Keep single files under 10 GB** – A larger file fails activation. Images can reach 32 GB, as can `/tmp`.
+* **Consider SOCI** – A SOCI index lets an execution environment start before the whole image has downloaded. For more information, see
   [AWS Lambda Seekable OCI (SOCI)](https://aws.amazon.com/about-aws/whats-new/2026/10/aws-lambda-seekable-oci-soci/).
-- **Raise both timeouts.** Set `Timeout` to 900, and `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` to just under it. Their default of 600 would
+* **Raise both timeouts** – Set `Timeout` to 900, and `VLLM_SERVER_TIMEOUT` or `SGLANG_SERVER_TIMEOUT` to just under it. Their default of 600 would
   otherwise stop the model loading first.
 
 ## Run locally
 
-With no {{ lambda_short }} Runtime API in the environment, the entrypoint starts the Runtime Interface Emulator on port 8080:
+When the {{ lambda_short }} Runtime API is not present, the entrypoint starts the Runtime Interface Emulator on port 8080.
 
 ```bash
 docker run --rm --gpus all -p 9000:8080 \

@@ -13,7 +13,7 @@ Changelog for the {{ lambda }} GPU base images (`base`, `cupy`, `pytorch`, `vllm
 - Initial release of the {{ lambda_short }} GPU base image line, for GPU functions on {{ lambda_short }} Managed Instances
 - CUDA 13.0.3 on Amazon Linux 2023, Python 3.13, `awslambdaric` 4.2.2
 - Five images from one multi-stage Dockerfile: CUDA-only `base`, `cupy`, `pytorch`, and the `vllm` and `sglang` inference servers
-- vLLM and SGLang ship a default handler that serves an OpenAI-compatible API with no handler code — set `MODEL_ID` and deploy
+- The vLLM and SGLang images include a default handler that serves an OpenAI-compatible API, so you set `MODEL_ID` and deploy
 - A {{ lambda_short }} extension owns the engine on the vLLM and SGLang images: it loads the model during Init, holds the environment out of service
   until `/health` answers, and recycles it if the engine dies or stops answering
 - FlashInfer kernels ship prebuilt for sm80, sm89 and sm120f in the vLLM image, removing the per-environment JIT build from cold start
