@@ -9,15 +9,15 @@ Read by the [engine extension](deployment/lambda.md#the-engine-extension) and pa
 
 | Variable | Default | Maps to |
 | --- | --- | --- |
-| `MODEL_ID` | `Qwen/Qwen2.5-0.5B-Instruct` | Hugging Face ID, local path, or `s3://` prefix |
-| `SERVED_MODEL_NAME` | Unset | `--served-model-name`, and the request's default `model` |
-| `VLLM_LOAD_FORMAT` | Unset | `--load-format`. Set `runai_streamer` with an `s3://` `MODEL_ID` |
+| `MODEL_ID` | `Qwen/Qwen2.5-0.5B-Instruct` | Positional model: Hugging Face ID, local path, or `s3://` prefix |
+| `SERVED_MODEL_NAME` | Unset | `--served-model-name`, and the default `model` field in requests |
+| `VLLM_LOAD_FORMAT` | Unset | `--load-format`. Set `runai_streamer` with an `s3://` `MODEL_ID` to stream weights into GPU memory |
 | `VLLM_GPU_MEM_UTIL` | `0.8` | `--gpu-memory-utilization` |
 | `VLLM_MAX_MODEL_LEN` | Unset (model default) | `--max-model-len` |
 | `VLLM_TP_SIZE` | Visible GPU count | `--tensor-parallel-size` |
 | `VLLM_SERVER_ARGS` | Unset | Any further `vllm serve` flags, shell-quoted |
-| `VLLM_SERVER_PORT` | `8000` | `--port`, loopback only |
-| `VLLM_SERVER_TIMEOUT` | `600` | Seconds to wait for the engine to be ready |
+| `VLLM_SERVER_PORT` | `8000` | `--port` (loopback only); also read by the handler |
+| `VLLM_SERVER_TIMEOUT` | `600` | Seconds to wait for the engine to be ready. Raise to just under the function `Timeout` for large models |
 
 ## SGLang (`sglang:cuda`)
 
@@ -25,16 +25,16 @@ Read by the [engine extension](deployment/lambda.md#the-engine-extension) and pa
 
 | Variable | Default | Maps to |
 | --- | --- | --- |
-| `MODEL_ID` | `Qwen/Qwen2.5-0.5B-Instruct` | `--model-path`. Hugging Face ID, local path, or `s3://` prefix |
-| `SERVED_MODEL_NAME` | Unset | `--served-model-name`, and the request's default `model` |
+| `MODEL_ID` | `Qwen/Qwen2.5-0.5B-Instruct` | `--model-path`: Hugging Face ID, local path, or `s3://` prefix |
+| `SERVED_MODEL_NAME` | Unset | `--served-model-name`, and the default `model` field in requests |
 | `SGLANG_LOAD_FORMAT` | Unset | `--load-format`. Set `runai_streamer` with an `s3://` `MODEL_ID` |
 | `SGLANG_MEM_FRACTION` | `0.8` | `--mem-fraction-static` |
 | `SGLANG_ATTENTION_BACKEND` | `flashinfer` | `--attention-backend` |
 | `SGLANG_MAX_TOTAL_TOKENS` | Unset | `--max-total-tokens` |
 | `SGLANG_TP_SIZE` | Visible GPU count | `--tp-size` |
 | `SGLANG_SERVER_ARGS` | Unset | Any further `sglang.launch_server` flags, shell-quoted |
-| `SGLANG_SERVER_PORT` | `8000` | `--port`, loopback only |
-| `SGLANG_SERVER_TIMEOUT` | `600` | Seconds to wait for the engine to be ready |
+| `SGLANG_SERVER_PORT` | `8000` | `--port` (loopback only); also read by the handler |
+| `SGLANG_SERVER_TIMEOUT` | `600` | Seconds to wait for the engine to be ready. Raise to just under the function `Timeout` for large models |
 
 `MODEL_ID` has a default so that the image serves without configuration, but it points at a small test model. Set it for any real workload.
 
@@ -48,13 +48,10 @@ The handler takes its per-request timeout from the invocation deadline, so set t
 
 | Variable | Default | Effect |
 | --- | --- | --- |
-| `ENGINE_EXTENSION` | `on` | Set to `off` to run your own server |
-| `ENGINE_HEALTH_INTERVAL` | `10` | Seconds between probes once serving |
-| `ENGINE_HEALTH_TIMEOUT` | `10` vLLM, `30` SGLang | Seconds allowed for each probe |
-| `ENGINE_HEALTH_FAILURES` | `3` | Failed probes before the environment is replaced |
-
-SGLang's health check can run a one-token generation, so it uses the longer probe timeout. For the `off` path, see
-[Running your own server instead](deployment/lambda.md#running-your-own-server-instead).
+| `ENGINE_EXTENSION` | `on` | Set to `off` for functions that [run their own server](deployment/lambda.md#running-your-own-server-instead). The extension registers without starting an engine |
+| `ENGINE_HEALTH_INTERVAL` | `10` | Seconds between `/health` probes once serving |
+| `ENGINE_HEALTH_TIMEOUT` | `10` vLLM, `30` SGLang | Seconds allowed for each probe. SGLang's health check can run a one-token generation, so it uses the longer default |
+| `ENGINE_HEALTH_FAILURES` | `3` | Consecutive failed probes before the environment is recycled |
 
 ## Baked-in paths
 
@@ -80,16 +77,11 @@ Set these on the function rather than in the image. For the full list, see the
 
 | Setting | Notes |
 | --- | --- |
-| `AcceleratorMemorySize` | GPU memory in GB: `3`, `6`, `12`, `16`, `24`, `48`. A minimum, not an exact size |
-| `PerExecutionEnvironmentMaxConcurrency` | Default 4, maximum 48. Leave at the default for vLLM and SGLang |
-| `ExecutionEnvironmentMemoryGiBPerVCpu` | Default 2. Raise it to claim fewer vCPUs per environment |
-| `EphemeralStorage` | 512 MB to 32 GB. Only holds the model if you are not streaming it |
-| `Timeout` | Maximum duration of one invocation. At least 900 for vLLM and SGLang |
-
-`AcceleratorMemorySize` is a minimum, so {{ lambda_short }} selects the smallest GPU that meets it. Leave `PerExecutionEnvironmentMaxConcurrency` at
-its default on the engine images, because the server batches requests itself. Raise `ExecutionEnvironmentMemoryGiBPerVCpu` when `MemorySize` would
-otherwise claim every vCPU on the instance. Keep `VLLM_SERVER_TIMEOUT` or `SGLANG_SERVER_TIMEOUT` at or below `Timeout`, and just under 900 for large
-models.
+| `AcceleratorMemorySize` | GPU memory, in GB: `3`, `6`, `12`, `16`, `24`, `48`. This is a minimum, and {{ lambda_short }} selects the smallest GPU that meets it |
+| `PerExecutionEnvironmentMaxConcurrency` | Default 4, maximum 48. Leave this at the default for vLLM and SGLang, because the server batches requests itself |
+| `ExecutionEnvironmentMemoryGiBPerVCpu` | Default 2. Raise it when `MemorySize` would otherwise claim every vCPU on the instance |
+| `EphemeralStorage` | 512 MB to 32 GB. This only needs to hold the model if you are not streaming it from S3 |
+| `Timeout` | Maximum duration of one invocation. Raise it for longer invokes, and to 900 for vLLM and SGLang to give the model time to load at startup. Keep `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` at or below it |
 
 ## Full reference
 
