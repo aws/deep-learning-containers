@@ -305,9 +305,8 @@ that exceeds it never goes `Active`.
 - **Keep single files under 10 GB.** A larger file fails activation. Images themselves can reach 32 GB, and `/tmp` 32 GB.
 - **Consider SOCI.** A SOCI index lets an execution environment start before the whole image has downloaded. See
   [AWS Lambda Seekable OCI (SOCI)](https://aws.amazon.com/about-aws/whats-new/2026/10/aws-lambda-seekable-oci-soci/).
-- **Give engine functions the whole budget, in two places.** Set `Timeout` to at least 900 — Init is capped at 900 s however high you go, so a larger
-  value only buys longer invocations — **and** raise `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` to just under 900. Their default of 600 is lower,
-  so the extension would otherwise give up on the model before the Init budget runs out.
+- **Raise both timeouts.** Set `Timeout` to 900, and `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` to just under it. Their default of 600 would
+  otherwise stop the model loading first.
 
 ## Run locally
 
