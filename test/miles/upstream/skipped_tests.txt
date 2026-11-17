@@ -1,0 +1,87 @@
+# Upstream Miles CPU tests that cannot pass in this image, one per line,
+# relative to the Miles checkout (/opt/miles). A file path removes the file (use
+# this when it fails to import); a pytest node ID deselects that test. Every
+# entry needs a reason: it also fails on the upstream radixark/miles image, it
+# comes from a deliberate difference from that image (a file left out of the
+# checkout, a newer tool), or it depends on timing the shared CI runners do not
+# meet. Remove entries once the reason no longer holds.
+
+# tinker and typed-argument-parser (tap) are CI-only test dependencies
+# (tests/ci/requirements-ci-cpu.txt) that the upstream image does not ship.
+tests/fast/launch_scripts/test_workplace_backend.py
+tests/fast/tinker/server/test_app.py
+tests/fast/tinker/server/test_encoding.py
+tests/fast/tinker/test_loss_tables.py
+tests/fast/tinker/test_runtime.py
+
+# The image's sgl-router-for-miles build adds --router-allow-requests-without-routing-key,
+# which this test's list of known argument names does not include. Fails upstream too.
+tests/fast/utils/test_arguments.py::TestSecretArgumentsAreClassified::test_every_secret_looking_miles_flag_is_either_redacted_or_declared_harmless
+
+# Imports .github/workflows/scripts/ci_failure_analysis.py, a CI script the image
+# leaves out because its test strings fail the DLC credential scan (see the
+# sparse-checkout note in docker/miles/Dockerfile.amzn2023).
+tests/ci/test/test_lark_notify.py
+
+# Checks that SGLang's own Anthropic tests exist under the SGLang checkout's
+# test/, which the image leaves out (see the same sparse-checkout note).
+tests/fast/router/test_sglang_anthropic_conversion.py::test_sglang_anthropic_conversion_contract
+
+# The second server must exit within 30 seconds, but first imports Megatron-Bridge
+# and modelopt: about 18 s on a c7a.8xlarge for this image and upstream's alike,
+# about 37 s on the CI default-runner fleet.
+tests/fast/utils/workers/e2e/test_serve_entrypoint.py::TestStartupFailures::test_port_conflict_fails_fast
+
+# Starts the serve subprocess twice and gives each start 60 seconds to answer. The same
+# imports made each start take 38-55 s on the default-runner fleet, and on 2026-10-20
+# the first start missed the deadline. test_serve_call_argv_and_env, which starts it
+# once, still runs.
+tests/fast/utils/workers/serving/test_serve.py::TestServeEndToEnd::test_restart_detected_by_stable_boot_uuid_client
+
+# Helm v4.3 prints a blank line before each --- document separator. The image ships
+# Helm v4.3.1 for its Go CVE fixes; against this snapshot, recorded with upstream's
+# v4.2.3, the 19-line diff is only those blank lines.
+tests/fast/charts/miles_run/test_snapshot.py::TestGeneratedValuesSnapshot::test_those_values_render_exactly_the_recorded_manifests
+
+# These download mistralai/Mistral-7B-Instruct-v0.3's Xet-backed tokenizer.model
+# from Hugging Face. Since 2026-10-15 the hub's file metadata reports 130 bytes for
+# the 587404-byte file, so huggingface_hub 1.33.0 (upstream's version) fails its
+# consistency check. The repo itself has not changed since 2025-12-03.
+tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolResponses::test_tokenize_tool_responses[mistralai/Mistral-7B-Instruct-v0.3-1]
+tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolResponses::test_tokenize_tool_responses[mistralai/Mistral-7B-Instruct-v0.3-2]
+
+# Races a 0.3-second RPC deadline against a worker exit; on the shared CI runners the
+# in-flight call is sometimes cancelled first. It failed once in about a dozen CI
+# runs, so it cannot gate a release.
+tests/fast/utils/workers/e2e/test_worker_errors.py::TestNonExceptionExits::test_calls_in_flight_when_worker_exits_finish_by_deadline
+
+# New in v0.1.3. These run Qwen3.5 models on CPU tensors. With flash-linear-attention
+# and causal-conv1d installed, as in this image and upstream's, transformers sends the
+# GatedDeltaNet layers to their GPU kernels, which fail on a CPU host. They fail the same
+# way on radixark/miles:v0.1.3. Upstream's CPU CI passes them because it runs a bare pip
+# install that has neither package.
+tests/fast/backends/test_fsdp_hf_compat.py::test_gated_deltanet_kernels_receive_packed_boundaries
+tests/fast/backends/test_fsdp_hf_compat.py::test_qwen3_5_vision_tower_never_sees_language_model_packing_kwargs
+tests/fast/backends/test_fsdp_hub_kernels.py::test_hub_kernels_serve_qwen3_5_gated_deltanet_with_the_packed_document_boundaries
+
+# New in v0.1.3. Times out waiting for the soak runner's third event. It failed all 8
+# runs on radixark/miles:v0.1.3 on an idle c7a.8xlarge and under load. Upstream's CPU CI,
+# which passes it, runs a bare pip install with torch 2.11.
+tests/fast/utils/soak/core/test_runner.py::TestSoakRunnerTail::test_a_tail_exceeding_its_budget_drains_training_then_fails_the_soak
+
+# New in v0.1.3. A CPU performance benchmark of the session server, budgeted at 250 s per
+# version on upstream's hosted 4-vCPU runners. On the default-runner fleet each of its
+# three runs took about 107 s, so it overran. On a c7a.8xlarge, upstream's v0.1.3 image
+# passes the v1 case in 154 s.
+tests/fast/rollout/session/test_session_server_benchmark.py::test_session_server_benchmark[v1]
+tests/fast/rollout/session/test_session_server_benchmark.py::test_session_server_benchmark[v2]
+
+# New in v0.1.3. A CPU performance benchmark of agentic rollouts, its only test, budgeted
+# at 190 s. It overran on the default-runner fleet in 4 of 4 runs. On a c7a.8xlarge,
+# upstream's v0.1.3 image passes it in 134 s.
+tests/fast/rollout/test_agentic_rollout_benchmark.py
+
+# New in v0.1.3. It monkeypatches the time module itself and fails after 100 sleeps, so
+# any thread that calls time.sleep while it runs counts against its scripted poll
+# budget. It failed once in four CI runs.
+tests/fast/utils/external_utils/command_utils/helm_backend/orchestrator/test_observer_scheduling_grace.py::TestMissingUnstartedPodBudget::test_a_new_generation_gets_its_own_scheduling_grace

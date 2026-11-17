@@ -1,0 +1,14 @@
+{
+  "fake_int4_quant_cuda-0.0.0-cp312-cp312-linux_x86_64.whl": {
+    "kind": "source-build",
+    "source_commit": "ace18d49e9c942bfa45451b12ac3bbbc7486969a",
+    "source_name": "miles",
+    "reason": "Build the SM80/86/89/90/100/103 extension from the pinned Miles v0.1.3 source instead of relying on a mutable release asset."
+  },
+  "sglang_router-0.3.2-cp38-abi3-manylinux_2_39_x86_64.whl": {
+    "kind": "source-build",
+    "source_commit": "b6839b5ad4494d60e05753c8852c17c62ba47f11",
+    "source_name": "sgl_router",
+    "reason": "Rebuild the release-pinned source for AL2023; the official artifact requires glibc 2.39."
+  }
+}
