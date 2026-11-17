@@ -85,7 +85,8 @@ Anything downloaded into these paths counts toward `EphemeralStorage`. Size it f
 ## Function settings that matter
 
 Set these on the function rather than in the image. For the full list, see the
-[{{ lambda_short }} Developer Guide](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html).
+[GPU-accelerated Event Functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html) in the {{ lambda_short }} Developer
+Guide.
 
 <div class="wrap-table" markdown>
 

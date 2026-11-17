@@ -1,8 +1,14 @@
 # GPU Functions using Lambda DLC
 
-GPU container base images for [{{ lambda }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html). Each image
-includes CUDA, a GPU stack, and the {{ lambda_short }} Runtime Interface Client (RIC), so you add your handler and deploy without installing a driver
-or configuring the runtime. The images are built on Amazon Linux 2023 and patched continuously by {{ aws }}.
+GPU container base images for [GPU-accelerated Event Functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html) on
+{{ lambda }} Managed Instances. Each image includes CUDA, a GPU stack, and the {{ lambda_short }} Runtime Interface Client (RIC), so you add your
+handler and deploy without installing a driver or configuring the runtime. The images are built on Amazon Linux 2023 and patched continuously by
+{{ aws }}.
+
+To create your first GPU function, see
+[Getting started with GPU-accelerated Event Functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-getting-started.html).
+For what each image contains on the
+{{ lambda_short }} side, see [GPU base images](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-base-images.html).
 
 These images are for {{ lambda_short }} only. They ship a {{ lambda_short }} entrypoint and expect the {{ lambda_short }} Runtime API, so they do not
 serve over a port the way the {{ ec2_short }} and {{ sagemaker }} DLCs do. For those platforms, use the [vLLM](../vllm/index.md),

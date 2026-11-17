@@ -1,11 +1,16 @@
 # Lambda Managed Instances Deployment
 
-GPU functions run on [{{ lambda }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html) with a GPU capacity
-provider. They are deployed as container images.
+GPU functions run on [{{ lambda }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu.html) with a GPU
+capacity provider. They are deployed as container images.
 
-This page covers the image. To create the capacity provider and the function, and for scaling, networking, quotas, and GPU metrics, see
-[Getting started with {{ lambda_short }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-getting-started.html).
-For the function settings that matter to these images, see [Configuration](../configuration.md).
+This page covers the image. To create the capacity provider and the function, see
+[Getting started with GPU-accelerated Event Functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-getting-started.html).
+For scaling, monitoring, and troubleshooting, see
+[Scaling and concurrency](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-scaling.html),
+[Monitoring](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-monitoring.html),
+[Troubleshooting](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-troubleshooting.html), and
+[Best practices](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-best-practices.html). For the function settings that matter
+to these images, see [Configuration](../configuration.md).
 
 ## Serve an LLM with no handler code
 
@@ -54,7 +59,8 @@ aws lambda invoke \
 ```
 
 For the models tested with each engine, see the [vLLM](../../vllm/models/index.md) and [SGLang](../../sglang/models/index.md) lists. Other models
-supported upstream, including embedding and vision-language models, generally work as well.
+supported upstream, including embedding and vision-language models, generally work as well. For more inference examples, see
+[Run inference workloads](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-inference.html).
 
 ## The engine extension
 
@@ -250,7 +256,8 @@ Keep the bucket in the same Region as the function.
 ## Media and graphics
 
 The NVENC and NVDEC engines on these GPUs are separate from the CUDA cores, so transcoding does not require CUDA code. The PyTorch image's FFmpeg is
-built with NVIDIA hardware acceleration.
+built with NVIDIA hardware acceleration. For more examples, see
+[Run media and graphics workloads](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-media.html).
 
 ```bash
 ffmpeg -y -hwaccel cuda -hwaccel_output_format cuda -i input.mp4 \
@@ -280,7 +287,7 @@ pull usually takes the longest. Initialization is limited to 900 seconds, and a 
   unpacks more slowly than the same content split across several. Give each model shard its own `COPY` instruction, and do not flatten the image.
 * **Keep single files under 10 GB** – A larger file fails activation. Images can reach 32 GB, as can `/tmp`.
 * **Consider SOCI** – A SOCI index lets an execution environment start before the whole image has downloaded. For more information, see
-  [AWS Lambda Seekable OCI (SOCI)](https://aws.amazon.com/about-aws/whats-new/2026/10/aws-lambda-seekable-oci-soci/).
+  [Optimizing startup time](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-startup.html).
 * **Raise both timeouts** – Set `Timeout` to at least 900, and `VLLM_SERVER_TIMEOUT` or `SGLANG_SERVER_TIMEOUT` to just under 900. Their default of
   600 would otherwise stop the model loading first.
 
