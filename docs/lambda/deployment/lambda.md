@@ -1,16 +1,11 @@
 # Lambda Managed Instances Deployment
 
 GPU functions run on [{{ lambda }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html) with a GPU capacity
-provider. They are container-image functions only — no `.zip` packages, no managed runtimes.
+provider, as container images only — no `.zip` packages, no managed runtimes.
 
-This page covers the image side. For capacity providers, scaling, networking, quotas, and GPU metrics, see the
-[{{ lambda_short }} Developer Guide](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html).
-
-## Prerequisites
-
-- A capacity provider whose `AllowedInstanceTypes` lists only GPU instance types. GPU and non-GPU types cannot be mixed.
-- A function execution role. Add `s3:GetObject` and `s3:ListBucket` on your model prefix if you load weights from {{ amazon }} S3.
-- A route from the capacity provider's subnets to S3 (gateway VPC endpoint or NAT gateway), or to the internet if you pull from the Hugging Face Hub.
+This page covers the image. For the capacity provider, the function, scaling, networking, quotas, and GPU metrics, see
+[Getting started with {{ lambda_short }} Managed Instances](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-getting-started.html).
+For the function settings that matter to these images, see [Configuration](../configuration.md).
 
 ## Serve an LLM with no handler code
 
@@ -39,39 +34,11 @@ ENV MODEL_ID=s3://amzn-s3-demo-bucket/models/Qwen2.5-1.5B-Instruct/
 ENV VLLM_LOAD_FORMAT=runai_streamer
 ```
 
-`runai_streamer` streams safetensors shards from S3 straight into GPU memory — no `/tmp` staging, no `EphemeralStorage` to size.
+`runai_streamer` streams safetensors shards from S3 straight into GPU memory — no `/tmp` staging, no `EphemeralStorage` to size. The function's
+execution role needs `s3:GetObject` and `s3:ListBucket` on the prefix.
 
-Build and push to your own ECR repository:
-
-```bash
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-REGION=us-west-2
-
-aws ecr create-repository --repository-name my-gpu-function --region ${REGION}
-aws ecr get-login-password --region ${REGION} \
-  | docker login --username AWS --password-stdin ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com
-
-docker build -t my-gpu-function .
-docker tag my-gpu-function:latest ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-gpu-function:v1
-docker push ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-gpu-function:v1
-```
-
-Create the function, publish a version, and invoke it. Publishing is what loads the model: the version reaches `Active` only once the server is ready.
-
-```bash
-aws lambda create-function \
-  --function-name my-gpu-function \
-  --package-type Image \
-  --code ImageUri=${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-gpu-function:v1 \
-  --role arn:aws:iam::${ACCOUNT_ID}:role/my-gpu-function-role \
-  --memory-size 16384 \
-  --timeout 900 \
-  --accelerator-config '{"AcceleratorMemorySize":12}' \
-  --capacity-provider-config '{"LambdaManagedInstancesCapacityProviderConfig":{"CapacityProviderArn":"arn:aws:lambda:${REGION}:${ACCOUNT_ID}:capacity-provider:my-gpu-capacity-provider","ExecutionEnvironmentMemoryGiBPerVCpu":4}}'
-
-aws lambda publish-version --function-name my-gpu-function
-aws lambda get-function-configuration --function-name my-gpu-function:1 --query State
-```
+Build the image, push it to your own {{ ecr_short }} repository, and create the function on your GPU capacity provider. Set `Timeout` to 900 and size
+`AcceleratorMemorySize` for the model — see [Configuration](../configuration.md).
 
 The event is the OpenAI request body. A payload with `messages` is routed to `/v1/chat/completions`, one with `prompt` to `/v1/completions`.
 
@@ -81,10 +48,6 @@ aws lambda invoke \
   --payload '{"messages":[{"role":"user","content":"What is a GPU?"}],"max_tokens":64}' \
   response.json
 ```
-
-**Note:** Size vCPUs, not just memory. An execution environment's vCPUs are carved out of the instance at `ExecutionEnvironmentMemoryGiBPerVCpu` GiB
-each. At the default ratio of 2, `--memory-size 16384` asks for 8 vCPUs — every vCPU on a `g6.2xlarge` — and the version fails to activate with
-`IncompatibleAcceleratorInstanceTypes`. Raising the ratio to 4 asks for 4 vCPUs and fits.
 
 For the models validated against each engine, see the [vLLM](../../vllm/models/index.md) and [SGLang](../../sglang/models/index.md) lists. Other
 models supported upstream, including embedding and vision-language models, generally work too.
@@ -315,7 +278,7 @@ With no {{ lambda_short }} Runtime API in the environment, the entrypoint starts
 ```bash
 docker run --rm --gpus all -p 9000:8080 \
   -e MODEL_ID=Qwen/Qwen2.5-0.5B-Instruct \
-  ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/my-gpu-function:v1
+  my-gpu-function:latest
 
 curl -s http://localhost:9000/2015-03-31/functions/function/invocations \
   -d '{"messages":[{"role":"user","content":"Hello"}],"max_tokens":32}'
