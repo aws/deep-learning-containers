@@ -105,8 +105,6 @@ COPY --from=builder-venv /opt/venv /opt/venv
 RUN rm -f /opt/venv/lib/python*/site-packages/ray/jars/ray_dist.jar
 
 # install EFA
-# CACHE_REFRESH (set daily by CI) rebuilds the EFA layer so efa_version "latest"
-# picks up new EFA releases instead of reusing a cached install.
 ARG CACHE_REFRESH=0
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 # cuda-rhel9 repo retained for test-time libnccl-devel reinstall (setup_nccl_tests.sh).

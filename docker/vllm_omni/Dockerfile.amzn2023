@@ -604,8 +604,6 @@ COPY --from=build /usr/local/lib/libgdrapi.so* /usr/local/lib/
 RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/local-lib.conf && ldconfig
 
 # install EFA
-# CACHE_REFRESH (set daily by CI) rebuilds the EFA layer so efa_version "latest"
-# picks up new EFA releases instead of reusing a cached install.
 ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 ARG EFA_VERSION="latest"
