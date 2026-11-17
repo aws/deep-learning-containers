@@ -125,19 +125,21 @@ call returns rather than when the server is ready.
 
 ## Write your own handler
 
-Most functions replace the default handler. Base, CuPy, and PyTorch do not include one. On vLLM and SGLang, the extension owns the engine, so the
-default handler only forwards the invocation to it and returns the response. Replacing the handler does not affect the engine, its health checks, or
-the recycling behavior.
+The Base, CuPy, and PyTorch images do not include a handler. You cannot invoke a function without one, so write your own and add it to the image.
 
-The default handler on the engine images has the following limits.
+The vLLM and SGLang images include a default handler. It passes each invocation to the engine and returns the engine's response, which is enough to
+serve a model without writing any code. Most functions replace it, because it has the following limits.
 
-* **No streaming** – The handler sends one request and returns the parsed response, so `"stream": true` fails. {{ lambda_short }} invocations are
-  request and response, so token-by-token streaming is not available through this path.
-* **No validation** – The payload is forwarded as it arrives, so a caller can set `max_tokens`, `model`, and every other engine parameter.
-* **Engine errors become function errors** – A rejected request raises an error, so it counts toward the function's `Errors` metric and is retried on
-  asynchronous invocations instead of being returned to the caller.
+* **No streaming** – The handler sends one request and returns the response, so `"stream": true` fails. {{ lambda_short }} invocations are request and
+  response, so you cannot stream tokens back to the caller through this path.
+* **No validation** – The payload is passed to the engine as it arrives, so a caller can set `max_tokens`, `model`, and every other engine parameter.
+* **Engine errors become function errors** – A request the engine rejects raises an error, so it counts toward the function's `Errors` metric and is
+  retried on asynchronous invocations instead of being returned to the caller.
 * **The response is the engine's own** – Reshape it in your handler if your clients expect a different format.
 * **`MODEL_ID` has a default** – It points at a small test model, so set it for any real workload.
+
+Replacing the handler does not affect the engine, its health checks, or its recovery behavior, because the extension owns all three. The following
+sections show how to add your handler to the image.
 
 ### The contract
 
