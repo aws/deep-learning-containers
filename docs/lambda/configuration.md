@@ -3,6 +3,9 @@
 {{ lambda }} controls `ENTRYPOINT` and `CMD`, so you configure these images with environment variables rather than command-line arguments. Set them in
 the Dockerfile with `ENV`, or on the function. Variables set on the function take precedence, so one image can serve several models.
 
+To switch models, update `MODEL_ID` on the function and publish a new version. No rebuild is needed. `UpdateFunctionConfiguration` replaces the whole
+variable map, so include the ones you already set, such as `VLLM_LOAD_FORMAT`.
+
 ## vLLM (`vllm:cuda`)
 
 Read by the [engine extension](deployment/lambda.md#the-engine-extension) and passed to `vllm serve`.
@@ -20,6 +23,7 @@ Read by the [engine extension](deployment/lambda.md#the-engine-extension) and pa
 | `VLLM_SERVER_ARGS` | Unset | Any further `vllm serve` flags, shell-quoted |
 | `VLLM_SERVER_PORT` | `8000` | `--port` (loopback only); also read by the handler |
 | `VLLM_SERVER_TIMEOUT` | `600` | Seconds to wait for the engine to be ready. Raise to just under the function `Timeout` for large models |
+| `HF_TOKEN` | Unset | Hugging Face token. Raises download rate limits and reaches private or gated models |
 
 </div>
 
@@ -41,6 +45,7 @@ Read by the [engine extension](deployment/lambda.md#the-engine-extension) and pa
 | `SGLANG_SERVER_ARGS` | Unset | Any further `sglang.launch_server` flags, shell-quoted |
 | `SGLANG_SERVER_PORT` | `8000` | `--port` (loopback only); also read by the handler |
 | `SGLANG_SERVER_TIMEOUT` | `600` | Seconds to wait for the engine to be ready. Raise to just under the function `Timeout` for large models |
+| `HF_TOKEN` | Unset | Hugging Face token. Raises download rate limits and reaches private or gated models |
 
 </div>
 

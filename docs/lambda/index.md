@@ -22,7 +22,7 @@ serve over a port the way the {{ ec2_short }} and {{ sagemaker }} DLCs do. For t
 | --- | --- | --- |
 | Base | `base:cuda` | CUDA runtime, Python, and the RIC |
 | CuPy | `cupy:cuda` | CuPy (NumPy-compatible GPU arrays), NumPy |
-| PyTorch | `pytorch:cuda` | PyTorch, torchvision, torchaudio, Transformers, Diffusers, s3torchconnector, NVENC-enabled FFmpeg |
+| PyTorch | `pytorch:cuda` | PyTorch, cuDNN, torchvision, torchaudio, Transformers, Diffusers, s3torchconnector, NVENC-enabled FFmpeg |
 | vLLM | `vllm:cuda` | vLLM server, engine extension, default handler, FlashInfer with prebuilt kernels, Run:ai Model Streamer, on the PyTorch stack |
 | SGLang | `sglang:cuda` | SGLang server, engine extension, default handler, sgl-kernel, FlashInfer, Run:ai Model Streamer, on the PyTorch stack |
 
