@@ -12,7 +12,8 @@ import pytest
 
 # The GPU generations the image is built for: torch_cuda_arch_list in
 # .github/config/image/lambda/vllm/vllm.yml (8.0 8.6 8.9 12.0). sm86 has no package of
-# its own; whether it uses the sm80 kernels is not verified yet.
+# its own; the sm80 kernels run on it (binary-compatible), and on an A10G with FlashInfer
+# 0.7.2.post1 and these packages installed, vLLM built nothing at startup.
 EXPECTED_ARCHITECTURES = {"sm80", "sm89", "sm120f"}
 
 

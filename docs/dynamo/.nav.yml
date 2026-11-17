@@ -1,0 +1,5 @@
+nav:
+  - Overview: index.md
+  - Deployment:
+    - Amazon SageMaker HyperPod: deployment/hyperpod.md
+  - Changelog: changelog/index.md

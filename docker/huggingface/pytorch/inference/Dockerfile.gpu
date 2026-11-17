@@ -69,6 +69,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "brotli>=1.2.1" \
   "filelock>=4.2.1" \
   "mlflow>=3.17.2" \
+  "oauthlib>=4.0.1" \
   "fsspec[http]>=2026.6.0" \
   "s3fs>=2026.6.0" \
   "pillow>=13.0.0" \
@@ -94,6 +95,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN bash /tmp/setup_oss_compliance.sh python3 \
+  && PHONEMIZER_VERSION=$(${VENV_PYTHON} -c "import importlib.metadata as m; print(m.version('phonemizer'))") \
+  && KENLM_VERSION=$(${VENV_PYTHON} -c "import importlib.metadata as m; print(m.version('kenlm'))") \
+  && printf '\nphonemizer %s https://github.com/bootphon/phonemizer/archive/refs/tags/v%s.tar.gz\n' "$PHONEMIZER_VERSION" "$PHONEMIZER_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\nkenlm %s https://files.pythonhosted.org/packages/source/k/kenlm/kenlm-%s.tar.gz\n' "$KENLM_VERSION" "$KENLM_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* /tmp/tmp* /root/.cache
 

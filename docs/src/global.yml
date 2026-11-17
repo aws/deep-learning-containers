@@ -20,6 +20,8 @@ ecs_short: "ECS"
 ecs: "${amazon} ${ecs_short}"
 eks_short: "EKS"
 eks: "${amazon} ${eks_short}"
+hyperpod_short: "HyperPod"
+hyperpod: "${amazon} ${sm_short} ${hyperpod_short}"
 ecr_short: "ECR"
 ecr: "${amazon} ${ecr_short}"
 ecr_public: "${amazon} ${ecr_short} Public Gallery"
@@ -38,6 +40,7 @@ platforms:
   default: "${ec2_short}"
   ec2: "${ec2_short}, ${ecs_short}, ${eks_short}"
   sagemaker: "${sm_short}"
+  hyperpod: "${sm_short} ${hyperpod_short} (${eks_short})"
 
 # Accelerator display mappings (config value -> table display)
 accelerators:
@@ -83,6 +86,7 @@ display_names:
     llama-cpp: "llama.cpp"
     llama-cpp-arm64: "llama.cpp ARM64"
     strands-decider: "Strands Decider"
+    dynamo: "NVIDIA Dynamo"
     pytorch-training: "PyTorch Training"
     pytorch-training-arm64: "PyTorch Training ARM64"
     pytorch-inference: "PyTorch Inference"
@@ -208,6 +212,7 @@ image_categories:
       - llama-cpp
       - llama-cpp-arm64
       - strands-decider
+      - dynamo
       - sagemaker-tritonserver
   - title: "Framework Containers"
     repositories:
@@ -274,6 +279,7 @@ table_order:
   - llama-cpp
   - llama-cpp-arm64
   - strands-decider
+  - dynamo
   - pytorch
   - pytorch-training
   - pytorch-inference

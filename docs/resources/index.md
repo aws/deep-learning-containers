@@ -7,6 +7,7 @@
 - [Region Availability](../reference/region_availability.md) — private ECR account IDs by region
 - [Support Policy](../reference/support_policy.md) — framework support timelines (GA and EOP dates)
 - [Release Notifications](../get_started/release_notifications.md) — subscribe to new image updates via SNS
+- [Blog Posts](../blogs/index.md) — hands-on walkthroughs published on the AWS blogs
 
 ## Security
 
