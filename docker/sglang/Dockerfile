@@ -55,6 +55,7 @@ RUN pip install \
 # ===============
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa.sh install_efa.sh
 COPY ./scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 
