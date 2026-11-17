@@ -80,7 +80,7 @@ Set on the function, not the image. For the full list, see the
 | `PerExecutionEnvironmentMaxConcurrency` | Default 4, maximum 48. Leave at the default for vLLM and SGLang; the server batches requests itself |
 | `ExecutionEnvironmentMemoryGiBPerVCpu` | Default 2. Raise it when `MemorySize` would otherwise claim every vCPU on the instance |
 | `EphemeralStorage` | 512 MB to 32 GB. Only needs to hold the model if you are not streaming it |
-| `Timeout` | Bounds both a request and initialization, the latter at the greater of 130 s and this value, capped at 900 s. For vLLM and SGLang, set this to 900 **and** raise `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` to match — the extension gives up on the model after that variable's value, whatever `Timeout` allows |
+| `Timeout` | Bounds both a request and initialization, the latter at the greater of 130 s and this value, capped at 900 s. For vLLM and SGLang, set this to **at least** 900 so the engine gets the full Init budget — raise it further if your invocations need longer — **and** raise `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` to just under 900 |
 
 ## Full reference
 
