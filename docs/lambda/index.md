@@ -14,9 +14,9 @@ serve over a port the way the {{ ec2_short }} and {{ sagemaker }} DLCs do. For t
 | --- | --- | --- |
 | Base | `base:cuda` | CUDA runtime, Python, and the RIC |
 | CuPy | `cupy:cuda` | CuPy (NumPy-compatible GPU arrays), NumPy |
-| PyTorch | `pytorch:cuda` | PyTorch, torchvision, torchaudio, Transformers, Diffusers, s3torchconnector, NVENC-enabled FFmpeg |
-| vLLM | `vllm:cuda` | vLLM server, engine extension, default handler, FlashInfer with prebuilt kernels, Run:ai Model Streamer, on the PyTorch stack |
-| SGLang | `sglang:cuda` | SGLang server, engine extension, default handler, sgl-kernel, FlashInfer, Run:ai Model Streamer, on the PyTorch stack |
+| PyTorch | `pytorch:cuda` | PyTorch, torchvision, torchaudio, Transformers, Diffusers, s3torchconnector, FFmpeg |
+| vLLM | `vllm:cuda` | PyTorch stack, plus the vLLM server, engine extension, default handler, FlashInfer, Run:ai Model Streamer |
+| SGLang | `sglang:cuda` | PyTorch stack, plus the SGLang server, engine extension, default handler, sgl-kernel, FlashInfer |
 
 All five images are x86-64 and GPU-only, with CUDA 13.0.3, Python 3.13, and `awslambdaric` 4.2.2.
 

@@ -36,12 +36,12 @@ With `runai_streamer`, the image streams the model from S3 directly into GPU mem
 execution role `s3:GetObject` and `s3:ListBucket` on the prefix.
 
 Build the image and push it to your own {{ ecr_short }} repository, then create the function on your GPU capacity provider with
-[`CreateFunction`](https://docs.aws.amazon.com/lambda/latest/api/API_CreateFunction.html) and publish a version with
-[`PublishVersion`](https://docs.aws.amazon.com/lambda/latest/api/API_PublishVersion.html). Set `Timeout` to 900 and size `AcceleratorMemorySize` for
+[CreateFunction](https://docs.aws.amazon.com/lambda/latest/api/API_CreateFunction.html) and publish a version with
+[PublishVersion](https://docs.aws.amazon.com/lambda/latest/api/API_PublishVersion.html). Set `Timeout` to 900 and size `AcceleratorMemorySize` for
 your model. For more information, see [Configuration](../configuration.md).
 
 Publishing loads the model, so the version becomes active only after the engine answers its health check. Check the state with
-[`GetFunctionConfiguration`](https://docs.aws.amazon.com/lambda/latest/api/API_GetFunctionConfiguration.html), then invoke the function.
+[GetFunctionConfiguration](https://docs.aws.amazon.com/lambda/latest/api/API_GetFunctionConfiguration.html), then invoke the function.
 
 The payload is an OpenAI request body. The handler sends it to the engine's chat completions or completions endpoint, and returns the engine's
 response.
@@ -61,11 +61,12 @@ supported upstream, including embedding and vision-language models, generally wo
 On the vLLM and SGLang images, a {{ lambda_short }} extension at `/opt/extensions/<engine>-engine` starts and supervises the engine. The handler does
 not launch it.
 
-| Phase | What the extension does |
-| --- | --- |
-| Initialization | Starts the OpenAI-compatible server on `127.0.0.1` and waits for its health check. Initialization does not complete until the server is ready, so no invocation reaches a server that cannot serve it. If the server fails to start, the extension reports an initialization error and exits, and {{ lambda_short }} discards the environment. |
-| Serving | A watchdog probes the health endpoint every `ENGINE_HEALTH_INTERVAL` seconds. After `ENGINE_HEALTH_FAILURES` consecutive failures, or as soon as the server process exits, the extension reports an error and exits so that {{ lambda_short }} replaces the environment. |
-| Shutdown | Stops the server and its worker processes so that none of them is left holding GPU memory. |
+* **Initialization** – Starts the OpenAI-compatible server on `127.0.0.1` and waits for its health check. Initialization does not complete until the
+  server is ready, so no invocation reaches a server that cannot serve it. If the server fails to start, the extension reports an initialization error
+  and {{ lambda_short }} discards the environment.
+* **Serving** – A watchdog probes the health endpoint every `ENGINE_HEALTH_INTERVAL` seconds. After `ENGINE_HEALTH_FAILURES` consecutive failures, or
+  as soon as the server process exits, the extension exits so that {{ lambda_short }} replaces the environment.
+* **Shutdown** – Stops the server and its worker processes so that none of them is left holding GPU memory.
 
 An engine that crashes or stops responding therefore costs one execution environment rather than a stream of failed invocations, and your handler does
 not have to detect it.
