@@ -25,9 +25,11 @@ serve over a port the way the {{ ec2_short }} and {{ sagemaker }} DLCs do. For t
 All five images are x86-64 and GPU-only, with CUDA 13.0.3, Python 3.13, and `awslambdaric` 4.2.2.
 
 Pull from `public.ecr.aws/lambda/deep-learning-containers/<image>:<tag>`. Each image has its own repository in the
-[{{ lambda_short }} ECR Public Gallery](https://gallery.ecr.aws/lambda). Pin a major version with `cuda-v1`, or a patch with `cuda-v1.0.0`. For
-private
-{{ ecr_short }} URIs, see [Image Access](../get_started/index.md).
+[{{ lambda_short }} ECR Public Gallery](https://gallery.ecr.aws/lambda). Pin a major version with `cuda-v1`, or a patch with `cuda-v1.0.0`.
+
+The private {{ ecr_short }} layout differs from the public one. All five images share a single `lambda` repository, and the image name moves from the
+repository into the tag, so the vLLM image is `lambda:vllm-cuda-v1` in private {{ ecr_short }} and `vllm:cuda-v1` in the public gallery. For the
+account IDs and authentication, see [Image Access](../get_started/index.md).
 
 ## Choosing an image
 
