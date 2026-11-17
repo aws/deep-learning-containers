@@ -102,14 +102,15 @@ jobs:
       - name: Verify source resolution
         run: docker exec "${CONTAINER_ID}" python tests/ci/verify_source_resolution.py
 
-      # Skipped files are removed from this throwaway container only; `rm` without
-      # -f fails on a stale entry, so the list is revisited when Miles is bumped.
+      # Skipped files and directories are removed from this throwaway container only;
+      # `rm` without -f fails on a stale entry, so the list is revisited when Miles is
+      # bumped.
       # Skipped node IDs are deselected through PYTEST_ADDOPTS.
       - name: Apply skip list
         run: |
           skips="${RUNNER_TEMP}/skipped_tests.txt"
           { grep -vE '^\s*(#|$)' test/miles/upstream/skipped_tests.txt || true; } > "${skips}"
-          { grep -v '::' "${skips}" || true; } | docker exec -i "${CONTAINER_ID}" xargs -r rm --
+          { grep -v '::' "${skips}" || true; } | docker exec -i "${CONTAINER_ID}" xargs -r rm -r --
           echo "PYTEST_ADDOPTS=$({ grep '::' "${skips}" || true; } | sed 's/^/--deselect=/' | paste -sd ' ' -)" \
             >> "${GITHUB_ENV}"
 

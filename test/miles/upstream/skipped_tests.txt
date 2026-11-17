@@ -1,22 +1,42 @@
 # Upstream Miles CPU tests that cannot pass in this image, one per line,
-# relative to the Miles checkout (/opt/miles). A file path removes the file (use
-# this when it fails to import); a pytest node ID deselects that test. Every
+# relative to the Miles checkout (/opt/miles). A file or directory path removes it
+# (use this when it fails to import); a pytest node ID deselects that test. Every
 # entry needs a reason: it also fails on the upstream radixark/miles image, it
 # comes from a deliberate difference from that image (a file left out of the
 # checkout, a newer tool), or it depends on timing the shared CI runners do not
 # meet. Remove entries once the reason no longer holds.
 
 # tinker and typed-argument-parser (tap) are CI-only test dependencies
-# (tests/ci/requirements-ci-cpu.txt) that the upstream image does not ship.
+# (tests/ci/requirements-ci-cpu.txt) that the upstream image does not ship. Since
+# v0.2.0 the conftest under tests/fast/tinker imports the tinker SDK, so the whole
+# tree fails to collect, and with it the pytest session it is part of.
 tests/fast/launch_scripts/test_workplace_backend.py
-tests/fast/tinker/server/test_app.py
-tests/fast/tinker/server/test_encoding.py
-tests/fast/tinker/test_loss_tables.py
-tests/fast/tinker/test_runtime.py
+tests/fast/test_serve_tinker.py
+tests/fast/tinker
 
 # The image's sgl-router-for-miles build adds --router-allow-requests-without-routing-key,
 # which this test's list of known argument names does not include. Fails upstream too.
 tests/fast/utils/test_arguments.py::TestSecretArgumentsAreClassified::test_every_secret_looking_miles_flag_is_either_redacted_or_declared_harmless
+
+# New in v0.2.0. The same router build adds three router arguments
+# (allow_requests_without_routing_key, test_external_dp_routing and json_log) that these
+# snapshots, recorded with the PyPI sglang-router, do not have. Both fail the same way on
+# radixark/miles:v0.2.0.
+tests/fast/charts/miles_run/test_snapshot.py::TestGeneratedValuesSnapshot::test_the_launcher_turns_the_specs_into_exactly_the_recorded_values
+tests/fast/utils/external_utils/command_utils/helm_backend/launcher/test_launch_snapshot.py::TestKubernetesLaunchSnapshot::test_the_helm_argv_and_the_generated_values_match_the_recording
+
+# New in v0.2.0. These import miles_ext_kernels from the 3rdparty/miles-ext-kernels git
+# submodule, which upstream's CI checks out and puts on PYTHONPATH. The image, like
+# radixark/miles:v0.2.0, ships Miles without its submodules, so both fail on it.
+tests/fast/utils/test_arguments.py::TestMilesExtKernels::test_the_flag_registers_and_validates_the_ext_arguments
+tests/fast/utils/test_arguments.py::TestMilesExtKernels::test_without_the_flag_the_ext_arguments_are_not_registered
+
+# New in v0.2.0. These expect torch.distributed.checkpoint's error for a missing
+# .metadata file to read exactly "metadata is None", as with the torch 2.11 that
+# upstream's CPU CI installs. The torch 2.14.1 in this image and in radixark/miles:v0.2.0
+# appends the paths it tried, so both cases where no optimizer was saved fail on both.
+tests/fast/backends/fsdp_utils/test_checkpoint_backend_ownership.py::TestBackendCheckpointOwnership::test_checkpoint_roundtrip_obeys_backend_optimizer_options_and_restores_progress[False-False]
+tests/fast/backends/fsdp_utils/test_checkpoint_backend_ownership.py::TestBackendCheckpointOwnership::test_checkpoint_roundtrip_obeys_backend_optimizer_options_and_restores_progress[True-False]
 
 # Imports .github/workflows/scripts/ci_failure_analysis.py, a CI script the image
 # leaves out because its test strings fail the DLC credential scan (see the
