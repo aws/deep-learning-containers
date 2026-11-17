@@ -36,12 +36,12 @@ With `runai_streamer`, the image streams the model from S3 directly into GPU mem
 execution role `s3:GetObject` and `s3:ListBucket` on the prefix.
 
 Build the image and push it to your own {{ ecr_short }} repository, then create the function on your GPU capacity provider with
-[`create-function`](https://docs.aws.amazon.com/cli/latest/reference/lambda/create-function.html) and publish a version with
-[`publish-version`](https://docs.aws.amazon.com/cli/latest/reference/lambda/publish-version.html). Set `Timeout` to 900 and size
-`AcceleratorMemorySize` for your model. For more information, see [Configuration](../configuration.md).
+[`CreateFunction`](https://docs.aws.amazon.com/lambda/latest/api/API_CreateFunction.html) and publish a version with
+[`PublishVersion`](https://docs.aws.amazon.com/lambda/latest/api/API_PublishVersion.html). Set `Timeout` to 900 and size `AcceleratorMemorySize` for
+your model. For more information, see [Configuration](../configuration.md).
 
 Publishing loads the model, so the version becomes active only after the engine answers its health check. Check the state with
-[`get-function-configuration`](https://docs.aws.amazon.com/cli/latest/reference/lambda/get-function-configuration.html), then invoke the function.
+[`GetFunctionConfiguration`](https://docs.aws.amazon.com/lambda/latest/api/API_GetFunctionConfiguration.html), then invoke the function.
 
 The payload is an OpenAI request body. The handler sends it to the engine's chat completions or completions endpoint, and returns the engine's
 response.
