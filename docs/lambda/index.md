@@ -7,8 +7,8 @@ handler and deploy without installing a driver or configuring the runtime. The i
 
 To create your first GPU function, see
 [Getting started with GPU-accelerated Event Functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-getting-started.html).
-For what each image contains on the
-{{ lambda_short }} side, see [GPU base images](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-base-images.html).
+For per-image examples and the requirements for building your own GPU image, see
+[GPU base images](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances-gpu-base-images.html).
 
 These images are for {{ lambda_short }} only. They ship a {{ lambda_short }} entrypoint and expect the {{ lambda_short }} Runtime API, so they do not
 serve over a port the way the {{ ec2_short }} and {{ sagemaker }} DLCs do. For those platforms, use the [vLLM](../vllm/index.md),
