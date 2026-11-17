@@ -118,6 +118,9 @@ ENV PATH="/opt/venv/bin:${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:/usr/local/cuda/bin
 # (NCCL dlopens libnccl-net-ofi.so from this path).
 ENV LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/opt/amazon/ofi-nccl/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
+# CACHE_REFRESH (set daily by CI) rebuilds the EFA layer so efa_version "latest"
+# picks up new EFA releases instead of reusing a cached install.
+ARG CACHE_REFRESH=0
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh "${EFA_VERSION}" && rm /tmp/install_efa.sh
 

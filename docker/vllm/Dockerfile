@@ -73,6 +73,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /root/.cache | true
 
+# CACHE_REFRESH (set daily by CI) rebuilds the EFA layer so efa_version "latest"
+# picks up new EFA releases instead of reusing a cached install.
+ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \

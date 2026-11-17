@@ -167,6 +167,9 @@ FROM runtime-noefa AS runtime-efa
 ARG EFA_VERSION="latest"
 ARG NCCL_TESTS_VERSION
 ARG NCCL_TESTS_SHA256
+# CACHE_REFRESH (set daily by CI) rebuilds the EFA layer so efa_version "latest"
+# picks up new EFA releases instead of reusing a cached install.
+ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa_amzn2023.sh
 # libnccl-devel (cuda-rhel9 repo) is only needed to build the ofi-nccl check and nccl-tests;
 # at runtime all_reduce_perf uses the NCCL from the Python environment (see the final stage).
