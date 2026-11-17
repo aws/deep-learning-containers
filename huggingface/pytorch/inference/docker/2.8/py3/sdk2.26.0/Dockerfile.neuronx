@@ -175,7 +175,7 @@ RUN pip install --no-cache-dir -U \
     hf_transfer \
     datasets==${DATASETS_VERSION} \
     optimum-neuron==${OPTIMUM_NEURON_VERSION} \
-	"sagemaker-huggingface-inference-toolkit>=2.4.1,<3" \
+	"sagemaker-huggingface-inference-toolkit @ git+https://github.com/aws/sagemaker-huggingface-inference-toolkit.git@v2.6.1" \
  	sentence_transformers==${SENTENCE_TRANSFORMERS} \
 	peft==${PEFT_VERSION} \
  && rm -rf ~/.cache/pip/*
