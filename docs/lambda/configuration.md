@@ -7,6 +7,8 @@ the Dockerfile with `ENV`, or on the function. Variables set on the function tak
 
 Read by the [engine extension](deployment/lambda.md#the-engine-extension) and passed to `vllm serve`.
 
+<div class="wrap-table" markdown>
+
 | Variable | Default | Maps to |
 | --- | --- | --- |
 | `MODEL_ID` | `Qwen/Qwen2.5-0.5B-Instruct` | Positional model: Hugging Face ID, local path, or `s3://` prefix |
@@ -19,9 +21,13 @@ Read by the [engine extension](deployment/lambda.md#the-engine-extension) and pa
 | `VLLM_SERVER_PORT` | `8000` | `--port` (loopback only); also read by the handler |
 | `VLLM_SERVER_TIMEOUT` | `600` | Seconds to wait for the engine to be ready. Raise to just under the function `Timeout` for large models |
 
+</div>
+
 ## SGLang (`sglang:cuda`)
 
 Read by the [engine extension](deployment/lambda.md#the-engine-extension) and passed to `python -m sglang.launch_server`.
+
+<div class="wrap-table" markdown>
 
 | Variable | Default | Maps to |
 | --- | --- | --- |
@@ -36,6 +42,8 @@ Read by the [engine extension](deployment/lambda.md#the-engine-extension) and pa
 | `SGLANG_SERVER_PORT` | `8000` | `--port` (loopback only); also read by the handler |
 | `SGLANG_SERVER_TIMEOUT` | `600` | Seconds to wait for the engine to be ready. Raise to just under the function `Timeout` for large models |
 
+</div>
+
 `MODEL_ID` has a default so that the image serves without configuration, but it points at a small test model. Set it for any real workload.
 
 Tensor parallelism defaults to the number of visible GPUs, which is 1, because {{ lambda_short }} assigns one GPU to each execution environment.
@@ -46,12 +54,16 @@ The handler takes its per-request timeout from the invocation deadline, so set t
 
 ## Engine extension (`vllm:cuda`, `sglang:cuda`)
 
+<div class="wrap-table" markdown>
+
 | Variable | Default | Effect |
 | --- | --- | --- |
 | `ENGINE_EXTENSION` | `on` | Set to `off` for functions that [run their own server](deployment/lambda.md#running-your-own-server-instead). The extension registers without starting an engine |
 | `ENGINE_HEALTH_INTERVAL` | `10` | Seconds between `/health` probes once serving |
 | `ENGINE_HEALTH_TIMEOUT` | `10` vLLM, `30` SGLang | Seconds allowed for each probe. SGLang's health check can run a one-token generation, so it uses the longer default |
 | `ENGINE_HEALTH_FAILURES` | `3` | Consecutive failed probes before the environment is recycled |
+
+</div>
 
 ## Baked-in paths
 
@@ -75,6 +87,8 @@ Anything downloaded into these paths counts toward `EphemeralStorage`. Size it f
 Set these on the function rather than in the image. For the full list, see the
 [{{ lambda_short }} Developer Guide](https://docs.aws.amazon.com/lambda/latest/dg/lambda-managed-instances.html).
 
+<div class="wrap-table" markdown>
+
 | Setting | Notes |
 | --- | --- |
 | `AcceleratorMemorySize` | GPU memory, in GB: `3`, `6`, `12`, `16`, `24`, `48`. This is a minimum, and {{ lambda_short }} selects the smallest GPU that meets it |
@@ -82,6 +96,8 @@ Set these on the function rather than in the image. For the full list, see the
 | `ExecutionEnvironmentMemoryGiBPerVCpu` | Default 2. Raise it when `MemorySize` would otherwise claim every vCPU on the instance |
 | `EphemeralStorage` | 512 MB to 32 GB. This only needs to hold the model if you are not streaming it from S3 |
 | `Timeout` | Maximum duration of one invocation. Raise it for longer invokes, and to 900 for vLLM and SGLang to give the model time to load at startup. Keep `VLLM_SERVER_TIMEOUT` / `SGLANG_SERVER_TIMEOUT` at or below it |
+
+</div>
 
 ## Full reference
 

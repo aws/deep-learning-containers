@@ -61,11 +61,15 @@ supported upstream, including embedding and vision-language models, generally wo
 On the vLLM and SGLang images, a {{ lambda_short }} extension at `/opt/extensions/<engine>-engine` starts and supervises the engine. The handler does
 not launch it.
 
+<div class="wrap-table" markdown>
+
 | Phase | What the extension does |
 | --- | --- |
 | Initialization | Starts the OpenAI-compatible server on `127.0.0.1` and waits for its health check. Initialization does not complete until the server is ready, so no invocation reaches a server that cannot serve it. If the server fails to start, the extension reports an initialization error and exits, and {{ lambda_short }} discards the environment. |
 | Serving | A watchdog probes the health endpoint every `ENGINE_HEALTH_INTERVAL` seconds. After `ENGINE_HEALTH_FAILURES` consecutive failures, or as soon as the server process exits, the extension reports an error and exits so that {{ lambda_short }} replaces the environment. |
 | Shutdown | Stops the server and its worker processes so that none of them is left holding GPU memory. |
+
+</div>
 
 An engine that crashes or stops responding therefore costs one execution environment rather than a stream of failed invocations, and your handler does
 not have to detect it.

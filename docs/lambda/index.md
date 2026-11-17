@@ -10,6 +10,8 @@ serve over a port the way the {{ ec2_short }} and {{ sagemaker }} DLCs do. For t
 
 ## Images
 
+<div class="wrap-table" markdown>
+
 | Image | Tag | What's added on top of Base |
 | --- | --- | --- |
 | Base | `base:cuda` | CUDA runtime, Python, and the RIC |
@@ -17,6 +19,8 @@ serve over a port the way the {{ ec2_short }} and {{ sagemaker }} DLCs do. For t
 | PyTorch | `pytorch:cuda` | PyTorch, torchvision, torchaudio, Transformers, Diffusers, s3torchconnector, NVENC-enabled FFmpeg |
 | vLLM | `vllm:cuda` | vLLM server, engine extension, default handler, FlashInfer with prebuilt kernels, Run:ai Model Streamer, on the PyTorch stack |
 | SGLang | `sglang:cuda` | SGLang server, engine extension, default handler, sgl-kernel, FlashInfer, Run:ai Model Streamer, on the PyTorch stack |
+
+</div>
 
 All five images are x86-64 and GPU-only, with CUDA 13.0.3, Python 3.13, and `awslambdaric` 4.2.2.
 
