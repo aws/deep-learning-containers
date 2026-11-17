@@ -125,21 +125,20 @@ call returns rather than when the server is ready.
 
 ## Write your own handler
 
-The Base, CuPy, and PyTorch images do not include a handler, so a function built on one of them supplies its own. A function cannot be invoked until a
-handler is in place.
+A handler is the function code {{ lambda_short }} runs on each invocation.
 
-The vLLM and SGLang images include a default handler that passes each invocation to the engine and returns the engine's response, which is enough to
-serve a model without writing any code. Functions that need more control over the request or the response can supply their own handler instead. The
-default handler has the following limits:
+Among the five images, Base, CuPy, and PyTorch do not include one, so you add your own. vLLM and SGLang include a default handler, which forwards each
+request to the engine and returns its response. That is enough to serve a model with no code.
 
-* **Streaming** – The handler sends one request and returns the response, so `"stream": true` is not supported. {{ lambda_short }} invocations are
-  request and response.
-* **Request validation** – The payload reaches the engine as it arrives, so callers can set `max_tokens`, `model`, and the other engine parameters.
+Your own handler can add:
 
-On the vLLM and SGLang images, a custom handler leaves the engine, its health checks, and its recovery behavior unchanged, because the extension owns
-all three.
+* **Request validation** – Cap `max_tokens`, restrict which models callers may request, or reject malformed input.
+* **Prompt templating** – Add a system prompt, or build the prompt from your own request format.
+* **Response shaping** – Return the fields your clients expect instead of the engine's output.
+* **Pre- and post-processing** – Tokenize, filter, enrich, or log around the inference call.
 
-The following sections cover where the handler goes and how to customize the entrypoint.
+On vLLM and SGLang, your handler replaces only the request path. The extension still owns the engine, its health checks, and its recovery. To start
+the server yourself instead, see [Running your own server instead](#running-your-own-server-instead).
 
 ### The contract
 
@@ -278,8 +277,8 @@ pull usually takes the longest. Initialization is limited to 900 seconds, and a 
 * **Keep single files under 10 GB** – A larger file fails activation. Images can reach 32 GB, as can `/tmp`.
 * **Consider SOCI** – A SOCI index lets an execution environment start before the whole image has downloaded. For more information, see
   [AWS Lambda Seekable OCI (SOCI)](https://aws.amazon.com/about-aws/whats-new/2026/10/aws-lambda-seekable-oci-soci/).
-* **Raise both timeouts** – Set `Timeout` to 900, and `VLLM_SERVER_TIMEOUT` or `SGLANG_SERVER_TIMEOUT` to just under it. Their default of 600 would
-  otherwise stop the model loading first.
+* **Raise both timeouts** – Set `Timeout` to at least 900, and `VLLM_SERVER_TIMEOUT` or `SGLANG_SERVER_TIMEOUT` to just under 900. Their default of
+  600 would otherwise stop the model loading first.
 
 ## Run locally
 
