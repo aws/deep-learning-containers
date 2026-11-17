@@ -76,6 +76,13 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 COPY ./scripts/docker/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
+  # vllm-openai >= 0.34.0 preinstalls aws-ofi-nccl, so the EFA installer skips it and
+  # libnccl-net.so (the name NCCL loads by default) is missing. Without it NCCL silently
+  # falls back to sockets. Restore the alias to the OFI plugin.
+  && if [ ! -e /opt/amazon/ofi-nccl/lib/libnccl-net.so ]; then \
+    ln -s libnccl-net-ofi.so /opt/amazon/ofi-nccl/lib/libnccl-net.so; \
+  fi \
+  && test -e /opt/amazon/ofi-nccl/lib/libnccl-net.so \
   && mkdir -p /tmp/nvjpeg \
   && cd /tmp/nvjpeg \
   && curl -O https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
