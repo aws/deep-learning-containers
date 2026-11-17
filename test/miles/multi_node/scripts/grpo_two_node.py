@@ -8,7 +8,7 @@ then an NCCL broadcast from the trainer to the engines over the network. Miles'
 picks up the new weights.
 
 The arguments are those of upstream's tests/e2e/short/test_qwen2.5_0.5B_gsm8k_async_short.py
-(v0.1.3), with four changes: 8 training and 8 rollout GPUs instead of 1 and 1, Ray's
+(v0.2.0), with four changes: 8 training and 8 rollout GPUs instead of 1 and 1, Ray's
 object store instead of a Mooncake store bound to 127.0.0.1, no sample-ownership audit
 (see ci_args), and no Ray start or stop.
 

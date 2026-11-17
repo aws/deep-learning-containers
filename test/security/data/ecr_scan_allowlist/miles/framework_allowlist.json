@@ -31,42 +31,42 @@
     },
     {
         "vulnerability_id": "CVE-2026-33818",
-        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.1 and kubectl v1.36.5 are fixed",
+        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.2 and kubectl v1.36.6 are fixed",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-39821",
-        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.1 and kubectl v1.36.5 are fixed",
+        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.2 and kubectl v1.36.6 are fixed",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-46600",
-        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.1 and kubectl v1.36.5 are fixed",
+        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.2 and kubectl v1.36.6 are fixed",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-56853",
-        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.1 and kubectl v1.36.5 are fixed",
+        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.2 and kubectl v1.36.6 are fixed",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-56859",
-        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.1 and kubectl v1.36.5 are fixed",
+        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.2 and kubectl v1.36.6 are fixed",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-56862",
-        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.1 and kubectl v1.36.5 are fixed",
+        "reason": "go/stdlib and golang.org/x/net in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. Helm v4.3.2 and kubectl v1.36.6 are fixed",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-56852",
-        "reason": "golang.org/x/text v0.30.0 in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. kubectl v1.36.5 is fixed",
+        "reason": "golang.org/x/text v0.30.0 in Mooncake's libetcd_wrapper.so (mooncake-transfer-engine-cuda13 wheel upstream pins); needs an upstream Mooncake rebuild. kubectl v1.36.6 is fixed",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-56851",
-        "reason": "golang.org/x/text below 0.41.0 in Mooncake's libetcd_wrapper.so and kubectl v1.36.5 (x/text 0.39.0, latest 1.36 patch); needs an upstream Mooncake rebuild and a kubectl patch release",
+        "reason": "golang.org/x/text below 0.41.0 in Mooncake's libetcd_wrapper.so and kubectl v1.36.6 (x/text 0.39.0, latest 1.36 patch); needs an upstream Mooncake rebuild and a kubectl patch release",
         "review_by": "2026-12-15"
     },
     {
@@ -101,27 +101,27 @@
     },
     {
         "vulnerability_id": "CVE-2026-78659",
-        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.5 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
+        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.6 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-78660",
-        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.5 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
+        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.6 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-78663",
-        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.5 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
+        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.6 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-78669",
-        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.5 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
+        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.6 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
         "review_by": "2026-12-15"
     },
     {
         "vulnerability_id": "CVE-2026-97032",
-        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.5 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
+        "reason": "go/stdlib below 1.27.2 or golang.org/x/net below 0.60.0 in Mooncake's libetcd_wrapper.so, wandb-core from wandb 0.30.0 (latest release) and kubectl v1.36.6 (latest 1.36 patch, x/net 0.56.0); needs upstream rebuilds",
         "review_by": "2026-12-15"
     },
     {
