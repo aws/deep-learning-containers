@@ -125,21 +125,21 @@ call returns rather than when the server is ready.
 
 ## Write your own handler
 
-The Base, CuPy, and PyTorch images do not include a handler. You cannot invoke a function without one, so write your own and add it to the image.
+The Base, CuPy, and PyTorch images do not include a handler, so a function built on one of them supplies its own. A function cannot be invoked until a
+handler is in place.
 
-The vLLM and SGLang images include a default handler. It passes each invocation to the engine and returns the engine's response, which is enough to
-serve a model without writing any code. Most functions replace it, because it has the following limits.
+The vLLM and SGLang images include a default handler that passes each invocation to the engine and returns the engine's response, which is enough to
+serve a model without writing any code. Functions that need more control over the request or the response can supply their own handler instead. The
+default handler has the following limits:
 
-* **No streaming** – The handler sends one request and returns the response, so `"stream": true` fails. {{ lambda_short }} invocations are request and
-  response, so you cannot stream tokens back to the caller through this path.
-* **No validation** – The payload is passed to the engine as it arrives, so a caller can set `max_tokens`, `model`, and every other engine parameter.
-* **Engine errors become function errors** – A request the engine rejects raises an error, so it counts toward the function's `Errors` metric and is
-  retried on asynchronous invocations instead of being returned to the caller.
-* **The response is the engine's own** – Reshape it in your handler if your clients expect a different format.
-* **`MODEL_ID` has a default** – It points at a small test model, so set it for any real workload.
+* **Streaming** – The handler sends one request and returns the response, so `"stream": true` is not supported. {{ lambda_short }} invocations are
+  request and response.
+* **Request validation** – The payload reaches the engine as it arrives, so callers can set `max_tokens`, `model`, and the other engine parameters.
 
-Replacing the handler does not affect the engine, its health checks, or its recovery behavior, because the extension owns all three. The following
-sections show how to add your handler to the image.
+On the vLLM and SGLang images, a custom handler leaves the engine, its health checks, and its recovery behavior unchanged, because the extension owns
+all three.
+
+The following sections cover where the handler goes and how to customize the entrypoint.
 
 ### The contract
 
