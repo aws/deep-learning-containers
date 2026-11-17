@@ -44,15 +44,10 @@
   font-weight: 700;
 }
 
-/* Tables wrap their text; scroll only when a cell cannot be broken. */
+/* Table Horizontal Scroll */
 .md-typeset table:not([class]) {
   display: block;
   overflow-x: auto;
-  white-space: normal;
-}
-
-/* Image URIs and other long tokens stay on one line rather than breaking mid-string. */
-.md-typeset table:not([class]) code {
   white-space: nowrap;
 }
 
