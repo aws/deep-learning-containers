@@ -267,8 +267,9 @@ RUN mkdir -p /usr/local/nvidia/pip-lib \
 
 # Copy sglang workspace (needed for editable pip install)
 COPY --from=builder /sgl-workspace /sgl-workspace
-# Drop build-only source (rust/ Cargo.lock trips the CVE scan; binary already copied)
+# Drop build-only source (rust/, sgl-router/ Cargo.lock trip the CVE scan; binary already copied)
 RUN rm -rf /sgl-workspace/sglang/sgl-model-gateway \
+  /sgl-workspace/sglang/sgl-router \
   /sgl-workspace/DeepEP \
   /sgl-workspace/sglang/.git \
   /sgl-workspace/sglang/rust
