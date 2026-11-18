@@ -1,10 +1,11 @@
 """Verify the Miles framework stack is importable without a GPU."""
 
+import csv
 import importlib
 import importlib.util
 import re
 from importlib import metadata
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import pytest
 
@@ -72,11 +73,17 @@ def package_files(module):
 
 
 def recorded_files(distribution):
+    # Read RECORD itself: metadata.files() drops entries whose path no longer exists, and
     # sgl-flash-mla's record still names the flash_mla/ directory its wheel installs to.
+    paths = [
+        PurePosixPath(row[0])
+        for row in csv.reader(metadata.distribution(distribution).read_text("RECORD").splitlines())
+        if row
+    ]
     return {
-        Path(*file.parts[1:]).as_posix()
-        for file in metadata.files(distribution)
-        if file.parts[0] == "flash_mla" and "__pycache__" not in file.parts
+        PurePosixPath(*path.parts[1:]).as_posix()
+        for path in paths
+        if path.parts[0] == "flash_mla" and "__pycache__" not in path.parts
     }
 
 
