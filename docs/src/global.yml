@@ -70,6 +70,7 @@ display_names:
 
     # Repositories
     base: "Base"
+    lambda: "Lambda GPU"
     base-ubuntu: "Base (Ubuntu)"
     ray: "Ray Serve"
     ray-llm: "Ray LLM"
@@ -214,6 +215,9 @@ image_categories:
       - strands-decider
       - dynamo
       - sagemaker-tritonserver
+  - title: "AWS Lambda"
+    repositories:
+      - lambda
   - title: "Framework Containers"
     repositories:
       - ray
@@ -288,6 +292,7 @@ table_order:
   - tensorflow-training
   - tensorflow-inference
   - tensorflow-inference-arm64
+  - lambda
   - whisperx
   - torch-neuronx
   - pytorch-training-neuronx
