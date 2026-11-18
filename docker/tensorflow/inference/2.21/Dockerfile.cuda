@@ -17,6 +17,9 @@ ARG HERMETIC_CUDNN_VERSION=9.16.0
 ARG HERMETIC_NCCL_VERSION=2.29.7
 ARG HERMETIC_NVSHMEM_VERSION=3.2.5
 ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
+ARG TF_SERVING_COMMIT=75c8de0a8042f02ecbe6f95909bad8cd684a67f6
+ARG BAZEL_VERSION=7.4.1
+ARG BAZEL_SHA256=c97f02133adce63f0c28678ac1f21d65fa8255c80429b588aeeba8a1fac6202b
 
 
 # ── Stage: tfs-build (model server built from source with sm_120) ───────────
@@ -28,18 +31,20 @@ ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
 # directory holds only a .gitkeep by default so the COPY always succeeds.
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS tfs-build
 ARG TF_SERVING_VERSION
+ARG TF_SERVING_COMMIT
 ARG CUDA_VERSION
 ARG HERMETIC_CUDNN_VERSION
 ARG HERMETIC_NCCL_VERSION
 ARG HERMETIC_NVSHMEM_VERSION
 ARG CUDA_COMPUTE_CAPABILITIES
+ARG BAZEL_VERSION
+ARG BAZEL_SHA256
 ARG USE_PREBUILT_WHEEL=0
-ARG BAZEL_VERSION=7.4.1
 ARG DEBIAN_FRONTEND=noninteractive
 
 COPY docker/tensorflow/inference/2.21/prebuilt/ /tmp/prebuilt/
 COPY scripts/docker/tensorflow/inference/build_tf_serving.sh /tmp/build_tf_serving.sh
-RUN --mount=type=cache,target=/root/.cache/bazel \
+RUN --mount=type=cache,id=tf-bazel-serving,sharing=locked,target=/root/.cache/bazel \
   mkdir -p /opt/tfs-dist \
   && if [ "${USE_PREBUILT_WHEEL}" = "1" ] && [ -f /tmp/prebuilt/tensorflow_model_server ]; then \
     echo "Using cached tensorflow_model_server: skipping Bazel build" \
@@ -53,27 +58,36 @@ RUN --mount=type=cache,target=/root/.cache/bazel \
     && python3 -m pip install --no-cache-dir 'future>=0.17.1' grpcio h5py mock numpy portpicker requests 'six>=1.12.0' \
     && curl -fsSLo /usr/local/bin/bazel \
       "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-x86_64" \
+    && echo "${BAZEL_SHA256}  /usr/local/bin/bazel" | sha256sum -c - \
     && chmod +x /usr/local/bin/bazel \
     && bash /tmp/build_tf_serving.sh \
       --tfs-ref "${TF_SERVING_VERSION}" \
+      --tfs-commit "${TF_SERVING_COMMIT}" \
       --cuda-version "${CUDA_VERSION}" \
       --cudnn-version "${HERMETIC_CUDNN_VERSION}" \
       --nccl-version "${HERMETIC_NCCL_VERSION}" \
       --nvshmem-version "${HERMETIC_NVSHMEM_VERSION}" \
       --compute-capabilities "${CUDA_COMPUTE_CAPABILITIES}" \
       --out-dir /opt/tfs-dist; \
-  fi \
-  # Check the binary that ships on both paths (cache hit or fresh build): the
-  # build fails unless it has sm_100 and sm_120 cubins.
-  && ELF_ARCHS=$(/usr/local/cuda/bin/cuobjdump --list-elf /opt/tfs-dist/tensorflow_model_server) \
-  && for arch in sm_100 sm_120; do \
-    case "${ELF_ARCHS}" in *"${arch}"*) ;; *) echo "ERROR: tensorflow_model_server has no ${arch} cubins" >&2; exit 1 ;; esac; \
+  fi
+
+# Check the binary that ships on both paths (cache hit or fresh build) against
+# every entry of CUDA_COMPUTE_CAPABILITIES: sm_XY needs an sm_XY cubin,
+# compute_XY needs an sm_XY cubin and compute_XY PTX. The build fails otherwise.
+RUN BIN=/opt/tfs-dist/tensorflow_model_server \
+  && ELF=$(/usr/local/cuda/bin/cuobjdump --list-elf "${BIN}" | grep -oE 'sm_[0-9]+[af]?' | sort -u || true) \
+  && PTX=$(/usr/local/cuda/bin/cuobjdump --list-ptx "${BIN}" | grep -oE '(sm|compute)_[0-9]+[af]?' | sed 's/^compute_/sm_/' | sort -u || true) \
+  && for cap in $(echo "${CUDA_COMPUTE_CAPABILITIES}" | tr ',' ' '); do \
+    sm="sm_${cap#*_}"; \
+    echo "${ELF}" | grep -qx "${sm}" || { echo "ERROR: ${BIN} has no ${sm} cubin" >&2; exit 1; }; \
+    case "${cap}" in compute_*) echo "${PTX}" | grep -qx "${sm}" || { echo "ERROR: ${BIN} has no ${cap} PTX" >&2; exit 1; } ;; esac; \
   done \
-  && echo "tensorflow_model_server: sm_100 + sm_120 cubins present"
+  && echo "tensorflow_model_server: GPU targets verified (${CUDA_COMPUTE_CAPABILITIES})"
 
 
 # ── Stage: tf-artifact-export (cache upload on a pre-build cache miss) ──────
-# Usage: docker buildx build --target tf-artifact-export --output type=local,dest=/tmp/tf-artifacts ...
+# Usage: docker buildx build --target tf-artifact-export --output type=local,dest=<export dir> ...
+# (pre_build.sh creates a fresh export dir per cache miss.)
 FROM scratch AS tf-artifact-export
 COPY --from=tfs-build /opt/tfs-dist/ /artifacts/
 

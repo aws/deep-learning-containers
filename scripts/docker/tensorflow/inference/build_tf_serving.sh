@@ -7,11 +7,13 @@
 # TF Serving's .bazelrc only defines a clang CUDA config, so TensorFlow's nvcc
 # config is appended (same lines as TensorFlow's .bazelrc).
 #
-# The output binary is verified to contain sm_100 and sm_120 code before it
-# is written.
+# The checkout must match the pinned commit (--tfs-commit). The GPU targets of
+# the output binary are verified by the Dockerfile after this script, on both
+# the cache-hit and fresh-build paths.
 set -euo pipefail
 
 TFS_REF=""
+TFS_COMMIT=""
 CUDA_VERSION=""
 CUDNN_VERSION=""
 NCCL_VERSION=""
@@ -23,6 +25,7 @@ JOBS="$(nproc)"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --tfs-ref) TFS_REF="$2"; shift 2 ;;
+    --tfs-commit) TFS_COMMIT="$2"; shift 2 ;;
     --cuda-version) CUDA_VERSION="$2"; shift 2 ;;
     --cudnn-version) CUDNN_VERSION="$2"; shift 2 ;;
     --nccl-version) NCCL_VERSION="$2"; shift 2 ;;
@@ -33,7 +36,7 @@ while [[ $# -gt 0 ]]; do
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
-for v in TFS_REF CUDA_VERSION CUDNN_VERSION NCCL_VERSION NVSHMEM_VERSION COMPUTE_CAPABILITIES OUT_DIR; do
+for v in TFS_REF TFS_COMMIT CUDA_VERSION CUDNN_VERSION NCCL_VERSION NVSHMEM_VERSION COMPUTE_CAPABILITIES OUT_DIR; do
   [[ -n "${!v}" ]] || { echo "ERROR: --${v,,} is required" >&2; exit 1; }
 done
 
@@ -43,7 +46,10 @@ git init -q .
 git remote add origin https://github.com/tensorflow/serving.git
 git fetch -q --depth 1 origin "refs/tags/${TFS_REF}"
 git checkout -q --detach FETCH_HEAD
-echo "TensorFlow Serving ${TFS_REF} at $(git rev-parse HEAD)"
+HEAD_COMMIT=$(git rev-parse HEAD)
+[[ "${HEAD_COMMIT}" == "${TFS_COMMIT}" ]] \
+  || { echo "ERROR: tag ${TFS_REF} is at ${HEAD_COMMIT}, expected ${TFS_COMMIT}" >&2; exit 1; }
+echo "TensorFlow Serving ${TFS_REF} at ${HEAD_COMMIT}"
 
 printf '%s\n' \
   'common:cuda_nvcc --config=cuda' \
@@ -66,7 +72,6 @@ bazel build \
   --repo_env=HERMETIC_NCCL_VERSION="${NCCL_VERSION}" \
   --repo_env=HERMETIC_NVSHMEM_VERSION="${NVSHMEM_VERSION}" \
   --repo_env=HERMETIC_CUDA_COMPUTE_CAPABILITIES="${COMPUTE_CAPABILITIES}" \
-  --repo_env=TF_CUDA_COMPUTE_CAPABILITIES="${COMPUTE_CAPABILITIES}" \
   --jobs="${JOBS}" \
   --local_resources=memory=HOST_RAM*0.7 \
   --copt=-fPIC \
@@ -79,10 +84,4 @@ rm -f "${STUB_DIR}/libcuda.so.1"
 
 mkdir -p "${OUT_DIR}"
 cp bazel-bin/tensorflow_serving/model_servers/tensorflow_model_server "${OUT_DIR}/"
-
-# Fail the build if Blackwell code is missing.
-ELF_ARCHS=$(cuobjdump --list-elf "${OUT_DIR}/tensorflow_model_server")
-for arch in sm_100 sm_120; do
-  [[ "${ELF_ARCHS}" == *"${arch}"* ]] || { echo "ERROR: tensorflow_model_server has no ${arch} cubins" >&2; exit 1; }
-done
-echo "Built ${OUT_DIR}/tensorflow_model_server (sm_100 + sm_120 verified)"
+echo "Built ${OUT_DIR}/tensorflow_model_server"
