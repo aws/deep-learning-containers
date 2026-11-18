@@ -80,7 +80,23 @@ ENV PATH="/opt/venv/bin:${PATH}"
 
 COPY docker/tensorflow/training/2.21/cuda/pyproject.toml docker/tensorflow/training/2.21/cuda/uv.lock /tmp/build/
 WORKDIR /tmp/build
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact
+# tensorflow itself is skipped here and installed from the sm_120 source build
+# below, so the venv that later stages COPY holds a single TensorFlow (a PyPI
+# copy overwritten in a later layer would still ship in this layer).
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact --no-install-package tensorflow
+
+# Source-built TensorFlow wheel (same version and dependencies as the lockfile's
+# PyPI wheel). Its CUDA code is checked on every build, cache hit or miss: the
+# build fails unless the library that ships has sm_100 and sm_120 cubins.
+COPY --from=tf-wheel-build /opt/tf-dist/ /tmp/tf-dist/
+RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache /tmp/tf-dist/tensorflow-*.whl \
+  && rm -rf /tmp/tf-dist \
+  && ELF_ARCHS=$(/usr/local/cuda/bin/cuobjdump --list-elf \
+    /opt/venv/lib/python${PYTHON_VERSION}/site-packages/tensorflow/libtensorflow_cc.so.2) \
+  && for arch in sm_100 sm_120; do \
+    case "${ELF_ARCHS}" in *"${arch}"*) ;; *) echo "ERROR: TensorFlow has no ${arch} cubins" >&2; exit 1 ;; esac; \
+  done \
+  && echo "TensorFlow: sm_100 + sm_120 cubins present"
 
 
 # ── Stage: builder-oss (generates license files in isolation) ───────────────
@@ -230,15 +246,11 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 COPY docker/tensorflow/training/2.21/cuda/pyproject.toml docker/tensorflow/training/2.21/cuda/uv.lock /tmp/build/
-RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
-  && rm -rf /tmp/build /tmp/uv-*
-
-# Replace the PyPI tensorflow wheel with the sm_120 source build (same version,
-# same dependencies). Done after the last `uv sync` so the lockfile's registry
-# wheel is not reinstalled over it.
-COPY --from=tf-wheel-build /opt/tf-dist/ /tmp/tf-dist/
-RUN uv pip install --python /opt/venv/bin/python --no-deps --reinstall --no-cache /tmp/tf-dist/tensorflow-*.whl \
-  && rm -rf /tmp/tf-dist \
+# --no-install-package tensorflow: without it uv replaces the source-built
+# TensorFlow from builder-base with the lockfile's PyPI wheel. The check after
+# the sync fails the build if that ever happens.
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact --no-install-package tensorflow \
+  && rm -rf /tmp/build /tmp/uv-* \
   && python -c "import tensorflow as tf; caps = tf.sysconfig.get_build_info()['cuda_compute_capabilities']; print(tf.__version__, caps); assert 'sm_100' in caps and 'compute_120' in caps"
 
 # Boost 1.82 for SM Studio extensions (compiled with _GLIBCXX_USE_CXX11_ABI=1
