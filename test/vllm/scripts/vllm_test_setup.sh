@@ -75,7 +75,10 @@ IMAGE_NAMES="$(mktemp)"
 sed -E 's/==.*//' "${IMAGE_FREEZE}" | canon | sort -u > "${IMAGE_NAMES}"
 
 if [ -f "${TEST_TXT}" ]; then
-  grep -E '^[A-Za-z0-9._-]+==' "${TEST_TXT}" \
+  # Strip trailing backslash continuations and surrounding whitespace so that
+  # uv does not choke on "Trailing `\" when parsing the preferences file.
+  sed -E 's/[[:space:]]*\\[[:space:]]*$//' "${TEST_TXT}" \
+    | grep -E '^[A-Za-z0-9._-]+==' \
     | sed -E '/(terratorch|lightning|fastrlock)/Id' \
     | while IFS= read -r line; do
         name="$(printf '%s' "${line}" | sed -E 's/==.*//' | canon)"
