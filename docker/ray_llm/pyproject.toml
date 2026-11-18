@@ -16,6 +16,7 @@ dependencies = [
     "awscli>=1.46.3",
     "pip>=26.3",
     "pyasn1>=0.6.5",
+    "dnspython>=2.9.2",
 ]
 
 [tool.uv]
