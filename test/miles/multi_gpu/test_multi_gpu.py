@@ -28,7 +28,7 @@ CONTAINER_NAME = "miles_multi_gpu_test"
 SCRIPTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts")
 SUCCESS_MARKER = "MILES_MULTI_GPU_OK"
 # Where the GRPO runs import upstream's test harness from, as in upstream CI.
-UPSTREAM_PYTHONPATH = "/opt/miles:/opt/sglang/python:/opt/Megatron-LM"
+UPSTREAM_PYTHONPATH = "/root/miles:/sgl-workspace/sglang/python:/root/Megatron-LM"
 LOG_TAIL_LINES = 400
 
 
@@ -166,7 +166,7 @@ def run_upstream_test(gpu_host, script):
     result = run_in_container(
         conn,
         f"python {script}",
-        exec_args=f"-w /opt/miles -e PYTHONPATH={UPSTREAM_PYTHONPATH}",
+        exec_args=f"-w /root/miles -e PYTHONPATH={UPSTREAM_PYTHONPATH}",
         timeout=3600,
     )
     assert result.ok, f"{script} failed on {instance_type} (exit {result.return_code})"

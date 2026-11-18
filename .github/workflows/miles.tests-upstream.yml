@@ -92,11 +92,11 @@ jobs:
           CONTAINER_ID=$(docker run -d --rm --init --entrypoint /bin/bash --shm-size=2g \
             --sysctl net.ipv6.conf.all.disable_ipv6=0 \
             -e HF_TOKEN \
-            -e GITHUB_WORKSPACE=/opt/miles \
-            -e SGLANG_SOURCE_ROOT=/opt/sglang/python \
-            -e MEGATRON_SOURCE_ROOT=/opt/Megatron-LM \
-            -e PYTHONPATH=/opt/miles:/opt/sglang/python:/opt/Megatron-LM \
-            --workdir /opt/miles "${IMAGE_URI}" -c 'sleep infinity')
+            -e GITHUB_WORKSPACE=/root/miles \
+            -e SGLANG_SOURCE_ROOT=/sgl-workspace/sglang/python \
+            -e MEGATRON_SOURCE_ROOT=/root/Megatron-LM \
+            -e PYTHONPATH=/root/miles:/sgl-workspace/sglang/python:/root/Megatron-LM \
+            --workdir /root/miles "${IMAGE_URI}" -c 'sleep infinity')
           echo "CONTAINER_ID=${CONTAINER_ID}" >> "${GITHUB_ENV}"
 
       - name: Verify source resolution

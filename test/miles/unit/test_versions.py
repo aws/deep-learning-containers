@@ -59,10 +59,10 @@ def git(checkout, *args):
 @pytest.mark.parametrize(
     "checkout, key",
     [
-        ("/opt/miles", "miles"),
-        ("/opt/sglang", "sglang"),
-        ("/opt/Megatron-LM", "megatron_core"),
-        ("/opt/torchtitan", "torchtitan"),
+        ("/root/miles", "miles"),
+        ("/sgl-workspace/sglang", "sglang"),
+        ("/root/Megatron-LM", "megatron_core"),
+        ("/root/torchtitan", "torchtitan"),
     ],
 )
 def test_source_checkout_is_clean_at_pinned_commit(manifest, checkout, key):

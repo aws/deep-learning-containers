@@ -1,5 +1,6 @@
-"""Verify provenance and license records, and the SageMaker layout."""
+"""Verify provenance and license records, the source layout, and the SageMaker layout."""
 
+import importlib.util
 import os
 from pathlib import Path
 
@@ -31,6 +32,25 @@ def test_provenance_record_present(name):
 )
 def test_license_record_present(name):
     assert (Path("/root") / name).is_file()
+
+
+# The framework sources sit where the upstream radixark/miles image keeps them: Miles' Helm
+# charts set workingDir /root/miles and put these checkouts on PYTHONPATH, and its recipes
+# default megatron_path to /root/Megatron-LM.
+@pytest.mark.parametrize(
+    "module, root",
+    [
+        ("miles", "/root/miles"),
+        ("sglang", "/sgl-workspace/sglang/python"),
+        ("radix_transfer_plugins", "/sgl-workspace/sglang/radix_transfer_plugins"),
+        ("megatron.core", "/root/Megatron-LM"),
+        ("torchtitan", "/root/torchtitan"),
+    ],
+)
+def test_framework_imports_from_upstream_source_layout(module, root):
+    spec = importlib.util.find_spec(module)
+    assert spec is not None and spec.origin is not None, f"{module} is not installed"
+    assert Path(spec.origin).resolve().is_relative_to(root), spec.origin
 
 
 # The test workflow sets MILES_IMAGE_TARGET from the config's build target.

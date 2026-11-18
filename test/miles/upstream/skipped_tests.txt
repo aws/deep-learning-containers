@@ -1,5 +1,5 @@
 # Upstream Miles CPU tests that cannot pass in this image, one per line,
-# relative to the Miles checkout (/opt/miles). A file or directory path removes it
+# relative to the Miles checkout (/root/miles). A file or directory path removes it
 # (use this when it fails to import); a pytest node ID deselects that test. Every
 # entry needs a reason: it also fails on the upstream radixark/miles image, it
 # comes from a deliberate difference from that image (a file left out of the

@@ -26,7 +26,7 @@ INSTANCE_TYPE = os.environ.get("MULTI_NODE_INSTANCE_TYPE", "p4d.24xlarge")
 GPUS_PER_NODE = 8
 SCRIPT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scripts", "grpo_two_node.py")
 # Where the GRPO run imports upstream's test harness from, as in upstream CI.
-UPSTREAM_PYTHONPATH = "/opt/miles:/opt/sglang/python:/opt/Megatron-LM"
+UPSTREAM_PYTHONPATH = "/root/miles:/sgl-workspace/sglang/python:/root/Megatron-LM"
 # efa_instances mounts each host's ~/test at /test in its container.
 STAGE_DIR = "test/miles_multi_node"
 # The token goes in a file so that it never appears on a logged command line.
@@ -56,7 +56,7 @@ def run_in_container(conn, container, command, env=None, timeout=600, tail_lines
     """Run a shell command in the container through the image entrypoint."""
     env_args = " ".join(f"-e {name}={shlex.quote(value)}" for name, value in (env or {}).items())
     result = conn.run(
-        f"docker exec -w /opt/miles -e PYTHONPATH={UPSTREAM_PYTHONPATH} {env_args} {container} "
+        f"docker exec -w /root/miles -e PYTHONPATH={UPSTREAM_PYTHONPATH} {env_args} {container} "
         f"miles-entrypoint bash -c {shlex.quote(command)}",
         timeout=timeout,
         warn=True,
