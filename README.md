@@ -31,6 +31,7 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/11/18]** [SGLang Server v1.5 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `server-cuda-v1.5` · SageMaker: `server-sagemaker-cuda-v1.5` · SGLang `0.5.23` (up from 0.5.19), built from `297e54f`; PyTorch 2.14.1, sgl-kernel 0.4.10, FlashInfer 0.7.2.
 - **[2026/11/14]** [vLLM-Omni v1.9 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `omni-cuda-v1.9` · SageMaker: `omni-sagemaker-cuda-v1.9` · vLLM-Omni `0.32.0` (up from 0.29.0rc1) on vLLM 0.32.0; FlashInfer 0.7.0.post1, Transformers 5.19.0, Pillow 13.0.0. Breaking: diffusion models no longer accept `SM_VLLM_ENABLE_LORA` / `SM_VLLM_MAX_LORA_RANK`, and `SM_VLLM_API_KEY` takes a single key.
 - **[2026/11/13]** [vLLM Server ARM64 CPU v1.1 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm-arm64) — EC2: `server-cpu-v1.1` · SageMaker: `server-sagemaker-cpu-v1.1` · vLLM `0.33.0` (up from 0.30.0) on AWS Graviton, built from the `v0.33.0` release tag.
 - **[2026/11/12]** [NVIDIA Dynamo v1.0 (1.6.2, AL2023)](https://gallery.ecr.aws/deep-learning-containers/dynamo) — SageMaker HyperPod (EKS): `1.6.2-efa-vllm-runtime-v1` · `1.6.2-efa-sglang-runtime-v1` · `1.6.2-efa-trtllm-runtime-v1` (and non-EFA `1.6.2-<backend>-runtime-v1`) · Initial release: NVIDIA Dynamo 1.6.2 built from source with vLLM 0.31.0, SGLang 0.5.21, or TensorRT-LLM 1.3.0rc29, NIXL KV cache transfer over EFA, CUDA 13.0, Python 3.12.
@@ -38,7 +39,6 @@ ______________________________________________________________________
 - **[2026/11/08]** [vLLM Server v2.8 (AL2023)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `server-cuda-v2.8` · SageMaker: `server-sagemaker-cuda-v2.8` · vLLM `0.33.0` (up from 0.31.1), built from the `v0.33.0` release tag; PyTorch 2.14.0, FlashInfer 0.7.2.post1, Transformers 5.20.2.
 - **[2026/11/07]** [vLLM v0.33.0 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/vllm) — EC2: `0.33.0-gpu-py312-ec2` · SageMaker: `0.33.0-gpu-py312` · New models: Reflection Beam-1.0 with its DFlash2 drafter, AliceAI-Foundation-80B-A3B, Recursive Flint, Muse Spark Open, Step-5 Preview, NVIDIA Alpamayo 2 Super; PyTorch 2.14.0; XPress refiner and opt-in FLy verification for speculative decoding; `/v1/decisions` on by default. Breaking: Medusa and the MLP speculator removed, NIXL connector needs NIXL 1.5+.
 - **[2026/11/07]** [Ray LLM v1.1 (2.60.0, AL2023)](https://gallery.ecr.aws/deep-learning-containers/ray) — EC2/EKS: `serve-llm-cuda-v1.1` · Ray `2.60.0` (up from 2.58.0) and vLLM `0.29.0` (up from 0.26.0); PyTorch 2.13.0, Transformers 5.17.0.
-- **[2026/11/05]** [SGLang v0.5.23 (Ubuntu)](https://gallery.ecr.aws/deep-learning-containers/sglang) — EC2: `0.5.23-gpu-py312-ec2` · SageMaker: `0.5.23-gpu-py312` · New models: Muse Spark Open, Beam-1.0, MiniMax-M3.1-Flash, MiniCPM-V 4.7, FLUX.3 Image Klein; up to 1.5x DeepSeek-V4.1 prefill throughput on GB300; opt-in low-latency megakernel decode; Paged Experts for MoE models larger than GPU memory; LoRA on FP8/NVFP4 quantized MoE.
 
 ### 📢 Support Updates
 

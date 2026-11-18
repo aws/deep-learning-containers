@@ -1,0 +1,12 @@
+framework: SGLang
+version: "0.5.23+amzn2023.297e54f"
+ecr_repository: sglang
+accelerator: gpu
+python: py312
+cuda: cu130
+os: amzn2023
+platform: ec2
+public_registry: true
+
+tags:
+  - "server-cuda-v1.5"
