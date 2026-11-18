@@ -108,6 +108,14 @@ LLM serving is just one example. DLCs cover a range of AI/ML workloads — explo
 
     [PyTorch Guide](pytorch/index.md) · [TensorFlow Training Guide](tensorflow/training/index.md) · [Ray Train Guide](ray-train/index.md)
 
+-   **Run GPU Functions on Lambda**
+
+    ---
+
+    Build GPU-accelerated Lambda functions with CUDA, CuPy, PyTorch, vLLM, or SGLang on Lambda Managed Instances.
+
+    [Lambda GPU Guide](lambda/index.md)
+
 -   **Build Your Own Image**
 
     ---
