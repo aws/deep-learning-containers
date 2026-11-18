@@ -42,6 +42,7 @@ RUN uv pip install --system \
   "pyasn1>=0.6.3" \
   "certifi>=2026.10.18" \
   "uv>=0.13.4" \
+  "dnspython>=2.9.2" \
   && uv cache clean
 
 # Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
@@ -73,6 +74,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /root/.cache | true
 
+ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
