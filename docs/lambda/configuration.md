@@ -3,8 +3,9 @@
 {{ lambda }} controls `ENTRYPOINT` and `CMD`, so you configure these images with environment variables rather than command-line arguments. Set them in
 the Dockerfile with `ENV`, or on the function. Variables set on the function take precedence, so one image can serve several models.
 
-To switch models, update `MODEL_ID` on the function and publish a new version. No rebuild is needed. `UpdateFunctionConfiguration` replaces the whole
-variable map, so include the ones you already set, such as `VLLM_LOAD_FORMAT`.
+To switch models, update `MODEL_ID` on the function and publish a new version. No rebuild is needed.
+[UpdateFunctionConfiguration](https://docs.aws.amazon.com/lambda/latest/api/API_UpdateFunctionConfiguration.html) replaces the whole variable map
+rather than merging into it, so pass the variables you already set, such as `VLLM_LOAD_FORMAT`, along with the new `MODEL_ID`.
 
 ## vLLM (`vllm:cuda`)
 
