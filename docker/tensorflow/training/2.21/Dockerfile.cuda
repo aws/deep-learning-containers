@@ -46,7 +46,7 @@ RUN --mount=type=cache,id=tf-bazel-training,sharing=locked,target=/root/.cache/b
     && cp /tmp/prebuilt/tensorflow-*.whl /opt/tf-dist/; \
   else \
     apt-get update && apt-get install -y --no-install-recommends \
-      build-essential ca-certificates curl file git patch patchelf python3 python3-pip rsync unzip xxd zip \
+      build-essential ca-certificates curl file git patch python3 python3-pip rsync unzip xxd zip \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSLo /usr/local/bin/bazel \
       "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-x86_64" \

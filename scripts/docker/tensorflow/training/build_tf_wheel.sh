@@ -107,12 +107,14 @@ RAW_WHEELS=("${RAW_DIR}"/tensorflow-*.whl)
 
 # Same check and platform tag as upstream's release wheels (auditwheel repair
 # --plat manylinux_2_27_x86_64). Fails if the wheel needs a newer glibc or an
-# external library outside the manylinux policy.
+# external library outside the manylinux policy. auditwheel needs
+# patchelf >= 0.14.5; Ubuntu 22.04 ships 0.14.3, so patchelf comes from PyPI.
 REQS=$(mktemp)
 cat > "${REQS}" <<'EOF'
 auditwheel==6.8.2 --hash=sha256:05fd2dd4b743217cd5f66066adc95b03a079424b1f0a878ad1e40fe2cdea4704
 packaging==26.3 --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
 pyelftools==0.33 --hash=sha256:f215ad5f47d3f1373a21496a6c9e0707c622840d0622f23ff7ce08678b020036
+patchelf==0.19.3.0 --hash=sha256:1668a30fcc414debbb1604cd0a361b2f28a33a0ff6e74a74bc71766ee746e21f
 EOF
 python3 -m pip install --no-cache-dir --require-hashes -r "${REQS}"
 mkdir -p "${OUT_DIR}"
