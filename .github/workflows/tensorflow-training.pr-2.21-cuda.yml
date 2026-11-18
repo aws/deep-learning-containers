@@ -15,6 +15,7 @@ on:
       - "docker/tensorflow/training/2.21/cuda/**"
       - "scripts/ci/build/tensorflow/**"
       - "scripts/docker/common/**"
+      - "test/ci/tensorflow/**"
       # Broad on purpose: the whole tensorflow subtree triggers this workflow so a
       # newly-added script can never merge with no TF CI. The per-family narrowing
       # lives in build-change below, which is what gates the expensive build.
@@ -45,6 +46,28 @@ jobs:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
       - uses: ./.github/actions/pr-permission-gate
+
+  # The artifact-cache hooks decide whether a two-hour source build runs and what
+  # gets uploaded, so their hit/miss/upload paths are tested on every hook change.
+  hook-test:
+    needs: [gatekeeper]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup python
+        run: |
+          uv venv --python 3.12
+          echo "${PWD}/.venv/bin" >> "${GITHUB_PATH}"
+
+      - name: Install test dependencies
+        run: uv pip install pytest pyyaml
+
+      - name: Run TensorFlow build-hook tests
+        run: python -m pytest test/ci/tensorflow --confcutdir test/ci/tensorflow -v
 
   check-changes:
     needs: [gatekeeper]
