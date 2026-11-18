@@ -278,7 +278,9 @@ RUN pip install --no-cache-dir \
     # until version 2.7.0 is released in PyPI.
     # sagemaker-huggingface-inference-toolkit==${SAGEMAKER_HF_INFERENCE_VERSION} \
     ${SAGEMAKER_HF_INFERENCE_VERSION} \
-    "opencv-python==4.11.0.86"
+    "opencv-python==4.11.0.86" \
+    "pandas<3" \
+    "contourpy<1.4"
 
 # Safety 84961 / CVE-2026-24049 (wheel unpack); Safety 85151 (protobuf json_format recursion)
 RUN pip install --no-cache-dir -U "wheel>=0.46.2" "protobuf>=5.29.6"
