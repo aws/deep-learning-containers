@@ -10,7 +10,8 @@
 #   USE_PREBUILT_WHEEL  - "1" on cache hit, "0" on miss
 #   TF_ARTIFACT_PREFIX  - S3 prefix used by post_build.sh
 #   TF_CACHE_HIT        - "true" / "false"
-#   EXPORT_TARGETS      - on miss: tf-artifact-export:/tmp/tf-artifacts
+#   EXPORT_TARGETS      - on miss: tf-artifact-export:<TF_EXPORT_DIR>
+#   TF_EXPORT_DIR       - on miss: fresh, empty export directory for this job
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -36,22 +37,48 @@ PREFIX=$(bash "$SCRIPT_DIR/lib/cache_prefix.sh" --config-file "$CONFIG_FILE")
 DEST="$(dirname "$(yq -r '.build.dockerfile' "$CONFIG_FILE")")/prebuilt"
 mkdir -p "$DEST"
 
-echo "Looking for TF artifact in s3://${BUCKET}/${PREFIX} ..."
-aws s3 cp --recursive --only-show-errors "s3://${BUCKET}/${PREFIX}" "$DEST/" 2>/dev/null || true
+# The artifact this job type needs: training caches the TF wheel, inference the
+# model server binary. Only that artifact counts as a hit, so a stray file of
+# the other type in the prefix can never pass for a cached build.
+case "$(yq -r '.metadata.job_type' "$CONFIG_FILE")" in
+  training) PATTERN="tensorflow-*.whl" ;;
+  inference) PATTERN="tensorflow_model_server" ;;
+  *) echo "ERROR: unsupported job_type in $CONFIG_FILE" >&2; exit 1 ;;
+esac
 
-# Training caches a wheel, inference a model server binary: either one is a hit.
-if compgen -G "$DEST/tensorflow-*.whl" >/dev/null || [[ -f "$DEST/tensorflow_model_server" ]]; then
-  echo "Cache hit: $(ls "$DEST" | grep -v '^\.gitkeep$' | tr '\n' ' ')"
+echo "Looking for TF artifact s3://${BUCKET}/${PREFIX}${PATTERN} ..."
+if ! aws s3 cp --recursive --only-show-errors --exclude "*" --include "${PATTERN}" \
+    "s3://${BUCKET}/${PREFIX}" "$DEST/"; then
+  echo "WARNING: S3 download failed; treating as a cache miss" >&2
+fi
+
+shopt -s nullglob
+FOUND=("$DEST"/${PATTERN})
+shopt -u nullglob
+if [[ ${#FOUND[@]} -gt 1 ]]; then
+  echo "ERROR: ${#FOUND[@]} artifacts match ${PATTERN} in s3://${BUCKET}/${PREFIX}: expected one" >&2
+  exit 1
+fi
+
+if [[ ${#FOUND[@]} -eq 1 ]]; then
+  echo "Cache hit: $(basename "${FOUND[0]}")"
   {
     echo "TF_CACHE_HIT=true"
     echo "USE_PREBUILT_WHEEL=1"
   } >> "${GITHUB_ENV:-/dev/null}"
 else
-  echo "Cache miss: building from source"
+  # Runner hosts are reused across jobs and the BuildKit local exporter does not
+  # clear its destination, so export into a new empty directory: post_build.sh
+  # then only ever sees what this job's build wrote. Remove the fixed path older
+  # revisions of this hook exported into.
+  rm -rf /tmp/tf-artifacts
+  EXPORT_DIR=$(mktemp -d /tmp/tf-artifacts.XXXXXX)
+  echo "Cache miss: building from source (export dir ${EXPORT_DIR})"
   {
     echo "TF_CACHE_HIT=false"
     echo "USE_PREBUILT_WHEEL=0"
-    echo "EXPORT_TARGETS=tf-artifact-export:/tmp/tf-artifacts"
+    echo "TF_EXPORT_DIR=${EXPORT_DIR}"
+    echo "EXPORT_TARGETS=tf-artifact-export:${EXPORT_DIR}"
   } >> "${GITHUB_ENV:-/dev/null}"
 fi
 echo "TF_ARTIFACT_PREFIX=${PREFIX}" >> "${GITHUB_ENV:-/dev/null}"

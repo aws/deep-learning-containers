@@ -62,7 +62,14 @@ RUN --mount=type=cache,target=/root/.cache/bazel \
       --nvshmem-version "${HERMETIC_NVSHMEM_VERSION}" \
       --compute-capabilities "${CUDA_COMPUTE_CAPABILITIES}" \
       --out-dir /opt/tfs-dist; \
-  fi
+  fi \
+  # Check the binary that ships on both paths (cache hit or fresh build): the
+  # build fails unless it has sm_100 and sm_120 cubins.
+  && ELF_ARCHS=$(/usr/local/cuda/bin/cuobjdump --list-elf /opt/tfs-dist/tensorflow_model_server) \
+  && for arch in sm_100 sm_120; do \
+    case "${ELF_ARCHS}" in *"${arch}"*) ;; *) echo "ERROR: tensorflow_model_server has no ${arch} cubins" >&2; exit 1 ;; esac; \
+  done \
+  && echo "tensorflow_model_server: sm_100 + sm_120 cubins present"
 
 
 # ── Stage: tf-artifact-export (cache upload on a pre-build cache miss) ──────

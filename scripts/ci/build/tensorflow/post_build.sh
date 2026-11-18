@@ -2,6 +2,10 @@
 # Post-build hook for TensorFlow GPU images: on a cache miss, upload the
 # source-built artifact exported by build-image (EXPORT_TARGETS) to the
 # dlc-cicd-wheels cache so later builds skip the Bazel compile.
+#
+# pre_build.sh points the export at a fresh, empty directory (TF_EXPORT_DIR),
+# so anything found there was written by this job's build. Nothing is uploaded
+# unless exactly one artifact of this job type was exported.
 set -euo pipefail
 
 if [[ "${TF_CACHE_HIT:-}" != "false" ]]; then
@@ -10,8 +14,10 @@ if [[ "${TF_CACHE_HIT:-}" != "false" ]]; then
 fi
 
 BUCKET="${WHEELS_BUCKET:-dlc-cicd-wheels}"
-SRC_DIR="/tmp/tf-artifacts/artifacts"
 PREFIX="${TF_ARTIFACT_PREFIX:?TF_ARTIFACT_PREFIX not set by pre_build.sh}"
+EXPORT_DIR="${TF_EXPORT_DIR:?TF_EXPORT_DIR not set by pre_build.sh}"
+SRC_DIR="${EXPORT_DIR}/artifacts"
+trap 'rm -rf "${EXPORT_DIR}"' EXIT
 
 CONFIG_FILE=""
 while [[ $# -gt 0 ]]; do
@@ -22,26 +28,25 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -f "$CONFIG_FILE" ]] || { echo "ERROR: config file not found: $CONFIG_FILE" >&2; exit 1; }
 
-# Upload only what this job type builds. The export directory lives on the
-# runner host, which the fleet reuses across jobs, so a previous job's
-# artifact can still be sitting there.
-shopt -s nullglob
 case "$(yq -r '.metadata.job_type' "$CONFIG_FILE")" in
-  training) FILES=("$SRC_DIR"/tensorflow-*.whl) ;;
-  inference) FILES=("$SRC_DIR"/tensorflow_model_server) ;;
+  training) PATTERN="tensorflow-*.whl" ;;
+  inference) PATTERN="tensorflow_model_server" ;;
   *) echo "ERROR: unsupported job_type in $CONFIG_FILE" >&2; exit 1 ;;
 esac
-if [[ ${#FILES[@]} -eq 0 || ! -f "${FILES[0]}" ]]; then
-  echo "No TF artifact exported to ${SRC_DIR}; skipping upload"
+
+shopt -s nullglob
+FILES=("$SRC_DIR"/${PATTERN})
+shopt -u nullglob
+if [[ ${#FILES[@]} -ne 1 || ! -f "${FILES[0]}" ]]; then
+  echo "Expected one ${PATTERN} in ${SRC_DIR}, found ${#FILES[@]} (export failed?): skipping upload"
   exit 0
 fi
 
-for f in "${FILES[@]}"; do
-  key="${PREFIX}$(basename "$f")"
-  if aws s3 ls "s3://${BUCKET}/${key}" >/dev/null 2>&1; then
-    echo "Already cached: ${key}"
-    continue
-  fi
-  echo "Uploading $(basename "$f") -> s3://${BUCKET}/${key}"
-  aws s3 cp --only-show-errors "$f" "s3://${BUCKET}/${key}" || echo "Upload failed (non-fatal)"
-done
+f="${FILES[0]}"
+key="${PREFIX}$(basename "$f")"
+if aws s3 ls "s3://${BUCKET}/${key}" >/dev/null 2>&1; then
+  echo "Already cached: ${key}"
+  exit 0
+fi
+echo "Uploading $(basename "$f") -> s3://${BUCKET}/${key}"
+aws s3 cp --only-show-errors "$f" "s3://${BUCKET}/${key}" || echo "Upload failed (non-fatal)"
