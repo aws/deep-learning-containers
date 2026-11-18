@@ -70,6 +70,14 @@ tests/fast/charts/miles_run/test_snapshot.py::TestGeneratedValuesSnapshot::test_
 tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolResponses::test_tokenize_tool_responses[mistralai/Mistral-7B-Instruct-v0.3-1]
 tests/fast/rollout/generate_hub/test_tool_call_utils.py::TestTokenizeToolResponses::test_tokenize_tool_responses[mistralai/Mistral-7B-Instruct-v0.3-2]
 
+# New in v0.2.0. Each gives a start-up a fixed budget that the CI default-runner fleet
+# misses. The slot-members test joins its spawned ranks after 60 s, and their imports alone
+# took about 30 s there. The group test waits 10 s for a fake trainer controller to start.
+# In this image on a fast host they take 35 s and under 9 s. In the first CI run the group
+# test timed out for both targets, and the slot-members test for one of them.
+tests/fast/backends/megatron_utils/lora/test_slot_members.py::test_a_rank_that_cannot_list_its_ownership_fails_every_rank_before_the_spec_gather
+tests/fast/ray/train/test_group_create.py::test_initial_membership_uses_sparse_observed_cell_indices
+
 # Races a 0.3-second RPC deadline against a worker exit; on the shared CI runners the
 # in-flight call is sometimes cancelled first. It failed once in about a dozen CI
 # runs, so it cannot gate a release.
