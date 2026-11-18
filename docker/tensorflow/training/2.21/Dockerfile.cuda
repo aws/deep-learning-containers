@@ -13,6 +13,9 @@ ARG OPEN_MPI_VERSION=4.1.8
 ARG EFA_VERSION="latest"
 ARG HERMETIC_CUDNN_VERSION=9.16.0
 ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
+ARG TF_COMMIT=a481b10260dfdf833a1b16007eead49c1d7febf3
+ARG BAZEL_VERSION=7.7.0
+ARG BAZEL_SHA256=fe7e799cbc9140f986b063e06800a3d4c790525075c877d00a7112669824acbf
 
 
 # ── Stage: tf-wheel-build (TF wheel built from source with sm_120) ──────────
@@ -24,30 +27,34 @@ ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
 # directory holds only a .gitkeep by default so the COPY always succeeds.
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS tf-wheel-build
 ARG TF_VERSION
+ARG TF_COMMIT
 ARG PYTHON_VERSION
 ARG CUDA_VERSION
 ARG HERMETIC_CUDNN_VERSION
 ARG CUDA_COMPUTE_CAPABILITIES
+ARG BAZEL_VERSION
+ARG BAZEL_SHA256
 ARG USE_PREBUILT_WHEEL=0
-ARG BAZELISK_VERSION=v1.25.0
 ARG DEBIAN_FRONTEND=noninteractive
 
 COPY docker/tensorflow/training/2.21/prebuilt/ /tmp/prebuilt/
 COPY scripts/docker/tensorflow/training/build_tf_wheel.sh /tmp/build_tf_wheel.sh
-RUN --mount=type=cache,target=/root/.cache/bazel \
+RUN --mount=type=cache,id=tf-bazel-training,sharing=locked,target=/root/.cache/bazel \
   mkdir -p /opt/tf-dist \
   && if [ "${USE_PREBUILT_WHEEL}" = "1" ] && ls /tmp/prebuilt/tensorflow-*.whl >/dev/null 2>&1; then \
     echo "Using cached TensorFlow wheel: skipping Bazel build" \
     && cp /tmp/prebuilt/tensorflow-*.whl /opt/tf-dist/; \
   else \
     apt-get update && apt-get install -y --no-install-recommends \
-      build-essential ca-certificates curl file git patch python3 rsync unzip xxd zip \
+      build-essential ca-certificates curl file git patch patchelf python3 python3-pip rsync unzip xxd zip \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSLo /usr/local/bin/bazel \
-      "https://github.com/bazelbuild/bazelisk/releases/download/${BAZELISK_VERSION}/bazelisk-linux-amd64" \
+      "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-x86_64" \
+    && echo "${BAZEL_SHA256}  /usr/local/bin/bazel" | sha256sum -c - \
     && chmod +x /usr/local/bin/bazel \
     && bash /tmp/build_tf_wheel.sh \
       --tf-ref "v${TF_VERSION}" \
+      --tf-commit "${TF_COMMIT}" \
       --cuda-version "${CUDA_VERSION}" \
       --cudnn-version "${HERMETIC_CUDNN_VERSION}" \
       --compute-capabilities "${CUDA_COMPUTE_CAPABILITIES}" \
@@ -57,7 +64,8 @@ RUN --mount=type=cache,target=/root/.cache/bazel \
 
 
 # ── Stage: tf-artifact-export (cache upload on a pre-build cache miss) ──────
-# Usage: docker buildx build --target tf-artifact-export --output type=local,dest=/tmp/tf-artifacts ...
+# Usage: docker buildx build --target tf-artifact-export --output type=local,dest=<export dir> ...
+# (pre_build.sh creates a fresh export dir per cache miss.)
 FROM scratch AS tf-artifact-export
 COPY --from=tf-wheel-build /opt/tf-dist/ /artifacts/
 
@@ -65,6 +73,7 @@ COPY --from=tf-wheel-build /opt/tf-dist/ /artifacts/
 # ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
 ARG PYTHON_VERSION
+ARG CUDA_COMPUTE_CAPABILITIES
 
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
@@ -86,17 +95,21 @@ WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact --no-install-package tensorflow
 
 # Source-built TensorFlow wheel (same version and dependencies as the lockfile's
-# PyPI wheel). Its CUDA code is checked on every build, cache hit or miss: the
-# build fails unless the library that ships has sm_100 and sm_120 cubins.
+# PyPI wheel). Its CUDA code is checked on every build, cache hit or miss,
+# against every entry of CUDA_COMPUTE_CAPABILITIES: sm_XY needs an sm_XY cubin,
+# compute_XY needs an sm_XY cubin and compute_XY PTX. The build fails otherwise.
 COPY --from=tf-wheel-build /opt/tf-dist/ /tmp/tf-dist/
 RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache /tmp/tf-dist/tensorflow-*.whl \
   && rm -rf /tmp/tf-dist \
-  && ELF_ARCHS=$(/usr/local/cuda/bin/cuobjdump --list-elf \
-    /opt/venv/lib/python${PYTHON_VERSION}/site-packages/tensorflow/libtensorflow_cc.so.2) \
-  && for arch in sm_100 sm_120; do \
-    case "${ELF_ARCHS}" in *"${arch}"*) ;; *) echo "ERROR: TensorFlow has no ${arch} cubins" >&2; exit 1 ;; esac; \
+  && BIN=/opt/venv/lib/python${PYTHON_VERSION}/site-packages/tensorflow/libtensorflow_cc.so.2 \
+  && ELF=$(/usr/local/cuda/bin/cuobjdump --list-elf "${BIN}" | grep -oE 'sm_[0-9]+[af]?' | sort -u || true) \
+  && PTX=$(/usr/local/cuda/bin/cuobjdump --list-ptx "${BIN}" | grep -oE '(sm|compute)_[0-9]+[af]?' | sed 's/^compute_/sm_/' | sort -u || true) \
+  && for cap in $(echo "${CUDA_COMPUTE_CAPABILITIES}" | tr ',' ' '); do \
+    sm="sm_${cap#*_}"; \
+    echo "${ELF}" | grep -qx "${sm}" || { echo "ERROR: TensorFlow has no ${sm} cubin" >&2; exit 1; }; \
+    case "${cap}" in compute_*) echo "${PTX}" | grep -qx "${sm}" || { echo "ERROR: TensorFlow has no ${cap} PTX" >&2; exit 1; } ;; esac; \
   done \
-  && echo "TensorFlow: sm_100 + sm_120 cubins present"
+  && echo "TensorFlow: GPU targets verified (${CUDA_COMPUTE_CAPABILITIES})"
 
 
 # ── Stage: builder-oss (generates license files in isolation) ───────────────
