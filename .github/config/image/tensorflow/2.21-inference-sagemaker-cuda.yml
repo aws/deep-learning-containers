@@ -23,6 +23,9 @@ build:
   njs_version: "1.0.1"
   # Source-built tensorflow_model_server (native Blackwell sm_120 for G7/G7e):
   # see scripts/docker/tensorflow/inference/build_tf_serving.sh
+  tf_serving_commit: "75c8de0a8042f02ecbe6f95909bad8cd684a67f6"  # tag 2.21.0
+  bazel_version: "7.4.1"  # matches upstream Dockerfile.devel-gpu
+  bazel_sha256: "c97f02133adce63f0c28678ac1f21d65fa8255c80429b588aeeba8a1fac6202b"
   hermetic_cudnn_version: "9.16.0"
   hermetic_nccl_version: "2.29.7"
   hermetic_nvshmem_version: "3.2.5"
