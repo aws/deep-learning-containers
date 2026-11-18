@@ -128,5 +128,10 @@
         "vulnerability_id": "CVE-2026-84445",
         "reason": "google.golang.org/grpc v1.82.1 embedded in mooncake libetcd_wrapper.so, only fix is an unreleased grpc-go dev revision, cannot patch without upstream mooncake rebuild",
         "review_by": "2026-12-18"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78661",
+        "reason": "golang.org/x/net statically linked inside mooncake libetcd_wrapper.so (from the lmsysorg/sglang base image); mooncake-transfer-engine 0.3.14 (latest on PyPI) still ships x/net v0.60.0, below the fixed 0.62.0, so it cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2027-01-17"
     }
 ]
