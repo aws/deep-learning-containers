@@ -51,6 +51,15 @@
   white-space: nowrap;
 }
 
+/* Opt-in wrapping for tables whose cells hold prose rather than short values.
+   Inline code still stays on one line so identifiers are not broken mid-name. */
+.md-typeset .wrap-table table:not([class]) {
+  white-space: normal;
+}
+.md-typeset .wrap-table table:not([class]) code {
+  white-space: nowrap;
+}
+
 
 /* ==========================================================================
    Light Mode
