@@ -1,5 +1,5 @@
 # Table Configuration - Lambda
-note: "These images are published in the {{ lambda }} ECR Public Gallery at `public.ecr.aws/lambda/deep-learning-containers/<framework>:<tag>`, which names each framework as its own repository. The private {{ ecr_short }} repository below uses a single `lambda` repository with the framework in the tag instead."
+note: "These images are published in the [{{ lambda }} ECR Public Gallery](https://gallery.ecr.aws/lambda) at `public.ecr.aws/lambda/deep-learning-containers/<framework>:<tag>`, which names each framework as its own repository. The private {{ ecr_short }} repository below uses a single `lambda` repository with the framework in the tag instead."
 columns:
   - field: framework
     header: "Framework"
