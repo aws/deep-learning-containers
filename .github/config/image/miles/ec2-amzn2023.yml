@@ -28,6 +28,11 @@ build:
   ffmpeg_version: "n8.1"
   gdrcopy_version: "2.5.1"
   nvtop_version: "3.3.2"
+  # Mooncake's Go etcd client (libetcd_wrapper.so) is rebuilt at the locked Mooncake
+  # version with this Go; see the mooncake-etcd stage.
+  mooncake_version: "0.3.13.post1"
+  go_version: "1.27.4"
+  go_sha256: "7226736c2339719cda28fbf3a54d71aa63bcefe376e98cef00034268dab24840"
   nccl_tests_commit: "ae98985f5599617be94042f4aa3637d10014ce89"
   miles_commit: "8e419cc739fb09b5f21085aeacc7f6fd951084e1"
   sglang_commit: "fd017154ad278e753c47ee376de611561e2455ea"

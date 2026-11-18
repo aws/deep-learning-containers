@@ -20,6 +20,9 @@ CPU_IMPORTS = [
     "runai_model_streamer",
     "s3transfer",
     "sglang",
+    # SGLang's prebuilt Rust TreeCore, loaded as SGLang loads it. The image drops the rust/
+    # sources it was built from, so the loader must take the bundled extension.
+    "sglang.srt.mem_cache.rust_tree_core.extension",
     "sglang_router",
     "torch",
     "torchcodec",
