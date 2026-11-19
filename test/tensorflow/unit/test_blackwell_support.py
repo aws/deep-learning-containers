@@ -39,6 +39,9 @@ def test_build_targets_include_blackwell():
 
     caps = tf.sysconfig.get_build_info()["cuda_compute_capabilities"]
     assert "sm_100" in caps, f"TensorFlow built for {caps}, missing sm_100 (B200/GB200/B300)"
+    # sm_120 gives TensorFlow's MLIR-generated kernels native G7/G7e code (it
+    # emits only PTX for compute_XY); compute_120 adds PTX for newer GPUs.
+    assert "sm_120" in caps, f"TensorFlow built for {caps}, missing sm_120 (G7/G7e)"
     assert "compute_120" in caps, f"TensorFlow built for {caps}, missing compute_120 (G7/G7e)"
 
 

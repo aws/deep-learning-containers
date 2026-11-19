@@ -96,6 +96,10 @@ jobs:
               - "scripts/ci/build/tensorflow/**"
               - "scripts/docker/tensorflow/training/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
+              # The unit tests check the source-built TensorFlow (Blackwell code,
+              # exact version), so they must run on this PR's image, not the
+              # published one.
+              - "test/tensorflow/unit/**"
             efa-test-change:
               - "test/efa/**"
             sagemaker-test-change:

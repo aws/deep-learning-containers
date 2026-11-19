@@ -41,6 +41,23 @@ def test_tensorflow_version_prefix():
     assert tf.__version__.startswith("2.21"), f"expected tf 2.21*, got {tf.__version__}"
 
 
+def test_tensorflow_version_matches_the_image_config():
+    """The shipped TensorFlow is exactly the config's framework_version.
+
+    The CUDA image installs a source-built wheel instead of the lockfile's PyPI
+    one, so a version bump in only one place would otherwise ship a mismatch.
+    """
+    import tensorflow as tf
+
+    expected = os.environ.get("DLC_TENSORFLOW_FULL_VERSION", "")
+    if not expected:
+        pytest.skip(
+            "DLC_TENSORFLOW_FULL_VERSION not set (set by tensorflow-training.tests-unit.yml)"
+        )
+    assert tf.__version__ == expected, f"expected tf {expected}, got {tf.__version__}"
+    assert importlib.metadata.version("tensorflow") == expected
+
+
 def test_sagemaker_sdk_v3():
     # SDK v3 dropped the `sagemaker.__version__` module attribute that v2 exposed.
     # Use importlib.metadata, which reads from the installed package metadata.
