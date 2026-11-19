@@ -1,0 +1,685 @@
+{
+    "brotli": [
+        {
+            "description": "A buffer overflow vulnerability in the Brotli decoder (c/dec/decode.c) in Google Brotli versions 1.0.3 through 1.2.0 on all platforms allows a remote unauthenticated attacker to corrupt adjacent decoder state memory, disclose sensitive memory contents, cause a denial of service, or potentially execute arbitrary code using a crafted Brotli-compressed stream.\n\nUsers need to update any Brotli libraries or binaries between 1.0.3 through 1.2.0 to the latest available version: 1.0.10 or 1.1.1 or 1.2.1.",
+            "vulnerability_id": "CVE-2026-111497",
+            "name": "CVE-2026-111497",
+            "package_name": "brotli",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/Brotli-1.0.9.dist-info/METADATA",
+                "name": "brotli",
+                "package_manager": "PYTHON",
+                "version": "1.0.9",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-111497",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-111497 - brotli, brotli",
+            "reason_to_ignore": "No conda-forge brotli-python build with the fix exists for Python 3.10."
+        }
+    ],
+    "brotli-python": [
+        {
+            "description": "Installing the package or importing the module exfiltrates basic information about the host, and the package has no other purpose.\n\n---\n\nCategory: PROBABLY_PENTEST - Packages looking like typical pentest packages, but also anything that looks like testing, exploring pre-prepared kits, research & co, with clearly low-harm possibilities.\n\nCampaign: GENERIC-standard-pypi-install-pentest\n\nReasons (based on the campaign):\n\n - The package contains code to exfiltrate basic data from the system, like IP or username. It has a limited risk.\n\n - The package overrides the install command in setup.py to execute malicious code during installation.",
+            "vulnerability_id": "MAL-2025-47749",
+            "name": "MAL-2025-47749",
+            "package_name": "brotli-python",
+            "package_details": {
+                "file_path": "/opt/conda/conda-meta/brotli-python-1.0.9-py310hd8f1fbe_9.json",
+                "name": "brotli-python",
+                "package_manager": "PYTHON",
+                "version": "1.0.9",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://osv.dev/vulnerability/MAL-2025-47749",
+            "source": "OSSF",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "MAL-2025-47749 - brotli-python",
+            "reason_to_ignore": "Advisory targets a malicious PyPI package of the same name; this is the conda-forge build of Google Brotli."
+        }
+    ],
+    "curl/libcurl": [
+        {
+            "description": "A flaw in libcurl's handling of HTTP/2 Server Push streams, when the parent handle is set to share connections with other handles, can lead to use-after-free in the cleanup process.",
+            "vulnerability_id": "CVE-2026-18924",
+            "name": "CVE-2026-18924",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-18924",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-18924 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        },
+        {
+            "description": "When an FTP wildcard `LIST` operation fails, libcurl omits the restoration path meant for successful listings, leaving the write callback set to the internal listing parser and the write callback data pointing directly to the easy handle. Subsequent reuse of this handle triggers an immediate crash, and cloning it via `curl_easy_duphandle()` copies this corrupted state into the duplicate. If the original handle is subsequently freed, executing a transfer on the cloned handle causes a heap use-after-free read against the dangling handle reference; alternatively, reusing the original or cloned handle while changing only `CURLOPT_WRITEDATA` (and omitting `CURLOPT_WRITEFUNCTION`) results in type confusion, forcing the internal parser to interpret incoming server response bytes into memory at the application-supplied write data pointer.",
+            "vulnerability_id": "CVE-2026-92388",
+            "name": "CVE-2026-92388",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-92388",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-92388 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        },
+        {
+            "description": "A use-after-free vulnerability exists in libcurl when an application configures an HTTP/2 stream-dependency tree via `CURLOPT_STREAM_DEPENDS` or `CURLOPT_STREAM_DEPENDS_E`, subsequently invokes `curl_easy_reset()`, and finally terminates the handle with `curl_easy_cleanup()`. During this final cleanup phase, libcurl attempts to access and modify an internal structure that was already freed during the reset operation.",
+            "vulnerability_id": "CVE-2026-10536",
+            "name": "CVE-2026-10536",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-10536",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-10536 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        },
+        {
+            "description": "A flaw in libcurl makes it wrongly reuse an HTTP connection setup for a given hostname using Negotiate authentication, when the initial request is done using empty credentials. This can make user B's request get sent over user A's previously authenticated connection.",
+            "vulnerability_id": "CVE-2026-19931",
+            "name": "CVE-2026-19931",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-19931",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-19931 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        },
+        {
+            "description": "When built with wolfSSL, curl can successfully validate a pinned public key hash against a key the TLS peer does not possess. During the TLS handshake, wolfSSL validates the connection, but curl's subsequent re-parsing of the same certificate - tricked by a manipulated validity length field - extracts and matches a different embedded key, incorrectly authorizing the pinned public key.",
+            "vulnerability_id": "CVE-2026-87866",
+            "name": "CVE-2026-87866",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-87866",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-87866 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        },
+        {
+            "description": "An HTTP proxy can trick libcurl into sending the origin's credentials (Basic password, or a Negotiate/Kerberos ticket) to the proxy itself, by answering the `CONNECT` tunnel request with 401 `WWW-Authenticate:` instead of the expected 407 `Proxy-Authenticate:`.",
+            "vulnerability_id": "CVE-2026-86414",
+            "name": "CVE-2026-86414",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-86414",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-86414 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        },
+        {
+            "description": "A flaw in curl\u2019s cookie parsing logic allows a malicious HTTP server to set \"super cookies\" that bypass the Public Suffix List check. This enables an attacker-controlled origin to inject cookies that curl subsequently scopes and transmits to unrelated third-party domains.",
+            "vulnerability_id": "CVE-2026-8924",
+            "name": "CVE-2026-8924",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-8924",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-8924 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        },
+        {
+            "description": "Successfully using libcurl to do a transfer to a specific HTTP origin (`hostA`) with **Digest** authentication and then changing the origin to a different one (`hostB`) for a second transfer, reusing the same handle, makes libcurl wrongly pass on the `Authorization:` header field meant for `hostA`, to `hostB`.",
+            "vulnerability_id": "CVE-2026-11856",
+            "name": "CVE-2026-11856",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-11856",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-11856 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        },
+        {
+            "description": "When reusing a libcurl handle for sequential transfers driven by environment-variable proxy configuration, libcurl fails to clear the proxy authentication state between requests. Specifically, if the initial transfer authenticates against `proxyA` using Digest auth, a subsequent transfer routed through `proxyB` erroneously leaks the `Proxy-Authorization:` header intended solely for `proxyA`.",
+            "vulnerability_id": "CVE-2026-8927",
+            "name": "CVE-2026-8927",
+            "package_name": "curl/libcurl",
+            "package_details": {
+                "file_path": "/opt/conda/include/curl/curlver.h",
+                "name": "curl/libcurl",
+                "package_manager": "GENERIC",
+                "version": "8.4.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-8927",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-8927 - curl/libcurl, curl/libcurl and 1 more",
+            "reason_to_ignore": "Conda libcurl is a dependency of conda itself; conda-forge builds with the fix need a newer glibc than Ubuntu 22.04 provides."
+        }
+    ],
+    "handlebars": [
+        {
+            "description": "Handlebars provides the power necessary to let users build semantic templates. From 3.0.0 until 4.7.10, Handlebars lookupProperty returns Function.prototype.constructor before applying the prototype-access deny list because constructor is an own property of Function.prototype. When an attacker can render a controlled template with allowProtoMethodsByDefault enabled and an accessible function in the template context, the template can traverse from that function through its prototype to Function.prototype and then obtain the Function constructor through the own-property bypass. This permits attacker-controlled JavaScript to execute with the server application's privileges. This issue is fixed in version 4.7.10.",
+            "vulnerability_id": "CVE-2026-106445",
+            "name": "CVE-2026-106445",
+            "package_name": "handlebars",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+                "name": "handlebars",
+                "package_manager": "NODE",
+                "version": "4.7.8",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-106445",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-106445 - handlebars",
+            "reason_to_ignore": "Only present in the JupyterLab staging yarn.lock; not executed at inference."
+        },
+        {
+            "description": "Handlebars provides the power necessary to let users build semantic templates. In versions 4.0.0 through 4.7.8, `Handlebars.compile()` accepts a pre-parsed AST object in addition to a template string. The `value` field of a `NumberLiteral` AST node is emitted directly into the generated JavaScript without quoting or sanitization. An attacker who can supply a crafted AST to `compile()` can therefore inject and execute arbitrary JavaScript, leading to Remote Code Execution on the server. Version 4.7.9 fixes the issue. Some workarounds are available. Validate input type before calling `Handlebars.compile()`; ensure the argument is always a `string`, never a plain object or JSON-deserialized value. Use the Handlebars runtime-only build (`handlebars/runtime`) on the server if templates are pre-compiled at build time; `compile()` will be unavailable.",
+            "vulnerability_id": "CVE-2026-33937",
+            "name": "CVE-2026-33937",
+            "package_name": "handlebars",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+                "name": "handlebars",
+                "package_manager": "NODE",
+                "version": "4.7.8",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-33937",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-33937 - handlebars",
+            "reason_to_ignore": "Only present in the JupyterLab staging yarn.lock; not executed at inference."
+        },
+        {
+            "description": "Handlebars provides the power necessary to let users build semantic templates. From 4.0.0 until 4.7.10, Handlebars.compile() and Handlebars.precompile() accept pre-parsed AST objects while validating only selected PathExpression, NumberLiteral, and BooleanLiteral values. This issue bypasses the AST validation introduced in version 4.7.9 for CVE-2026-33937. An attacker who can supply an object instead of a template string can place JavaScript expressions in unchecked values such as Program.blockParams.length, a non-PathExpression parameter depth, a non-string StringLiteral.value, or a non-string PathExpression.original. The compiler emits those values into generated JavaScript, causing code execution in the server process when compile output renders or wherever precompile output is loaded. Applications that pass only template strings are not affected. This issue is fixed in version 4.7.10.",
+            "vulnerability_id": "CVE-2026-106446",
+            "name": "CVE-2026-106446",
+            "package_name": "handlebars",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+                "name": "handlebars",
+                "package_manager": "NODE",
+                "version": "4.7.8",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-106446",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-106446 - handlebars",
+            "reason_to_ignore": "Only present in the JupyterLab staging yarn.lock; not executed at inference."
+        }
+    ],
+    "pillow": [
+        {
+            "description": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's JPEG decoder can write a full-width scanline into a buffer sized for a requested draft scale. ImagingJpegDecode does not verify libjpeg's actual output width and component count after scaling is requested, and an 8-bit lossless SOF3 JPEG decoded by a build linked to libjpeg-turbo 3.x can ignore the requested downscaling geometry. An attacker can supply such a JPEG to an application that uses draft() or thumbnail() to request downscaling. This can corrupt heap memory, crash the process, or potentially allow code execution. Older libjpeg-turbo 2.x and IJG builds reject the SOF3 input. This issue is fixed in version 13.0.0.",
+            "vulnerability_id": "CVE-2026-112403",
+            "name": "CVE-2026-112403",
+            "package_name": "pillow",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/pillow-12.3.0.dist-info/METADATA",
+                "name": "pillow",
+                "package_manager": "PYTHON",
+                "version": "12.3.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-112403",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-112403 - pillow",
+            "reason_to_ignore": "Fix is in Pillow 13.0.0, which requires Python 3.11+; this image is on Python 3.10."
+        },
+        {
+            "description": "Pillow is a Python imaging library. From 2.6.0 until 13.0.0, Pillow is vulnerable to argument injection when invoking Ghostscript for EPS input. EpsImagePlugin.Ghostscript passes a caller-controlled input filename after -f without converting it to a safe absolute path, so a name beginning with a hyphen can be interpreted as a Ghostscript option. An attacker who controls the filename can inject Ghostscript arguments. Arbitrary command execution specifically requires a leading @ argument-file filename and control of the referenced text file containing additional Ghostscript arguments; the reported chain reproduces with the default -dSAFER invocation. This issue is fixed in version 13.0.0.",
+            "vulnerability_id": "CVE-2026-112900",
+            "name": "CVE-2026-112900",
+            "package_name": "pillow",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/pillow-12.3.0.dist-info/METADATA",
+                "name": "pillow",
+                "package_manager": "PYTHON",
+                "version": "12.3.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-112900",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-112900 - pillow",
+            "reason_to_ignore": "Fix is in Pillow 13.0.0, which requires Python 3.11+; this image is on Python 3.10."
+        },
+        {
+            "description": "Pillow is a Python imaging library. In versions through 12.3.0, the libtiff TIFF encoder can pass arguments to \u00a0TIFFSetField()\u00a0 that do not match libtiff\u2019s definition of the corresponding tag. When an application saves attacker-controlled image metadata through this encoder, crafted tag values can cause invalid memory reads, copying process memory into the encoded output or crashing the process. Applications that return the encoded output to an attacker can disclose that memory. The issue is reachable when re-saving compressed TIFF images and through certain conversions that preserve EXIF metadata into compressed TIFF output. This vulnerability is fixed in version 13.0.0.",
+            "vulnerability_id": "CVE-2026-112902",
+            "name": "CVE-2026-112902",
+            "package_name": "pillow",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/pillow-12.3.0.dist-info/METADATA",
+                "name": "pillow",
+                "package_manager": "PYTHON",
+                "version": "12.3.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-112902",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-112902 - pillow",
+            "reason_to_ignore": "Fix is in Pillow 13.0.0, which requires Python 3.11+; this image is on Python 3.10."
+        },
+        {
+            "description": "Pillow is a Python imaging library. From 11.0.0 until 13.0.0, multi-frame loaders can retain an ImagingCore allocation created for a narrow frame mode while a later frame of the same dimensions changes the logical mode and decoder tiles to wider RGB or CMYK data. ImageFile.load_prepare() reuses the stale native storage because _im is non-null without verifying that its mode and size still match. Crafted PSD, MPO, DCX, or MIC frame transitions can then write wider pixels into the narrow allocation, causing native out-of-bounds writes and crashes. The MPO path can also cause a native over-read and, in demonstrated runtime-specific profiles, command execution. This issue is fixed in version 13.0.0.",
+            "vulnerability_id": "CVE-2026-96639",
+            "name": "CVE-2026-96639",
+            "package_name": "pillow",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/pillow-12.3.0.dist-info/METADATA",
+                "name": "pillow",
+                "package_manager": "PYTHON",
+                "version": "12.3.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-96639",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-96639 - pillow",
+            "reason_to_ignore": "Fix is in Pillow 13.0.0, which requires Python 3.11+; this image is on Python 3.10."
+        },
+        {
+            "description": "Pillow is a Python imaging library. From 2.0.0 until 13.0.0, Pillow has a heap buffer overflow and stale-heap disclosure in _tiffWriteProc when saving compressed TIFF data through libtiff to a target without a usable fileno(), such as BytesIO. The callback sizes its allocation from the prior buffer size instead of the current write position, allowing an attacker-controlled out-of-line TIFF tag or retained ICC profile to be copied beyond the allocation after libtiff seeks forward. This overflow can crash the process and may allow code execution. Independently, unwritten alignment gaps in compressed TIFF output larger than 64 KiB can disclose stale heap bytes without a crafted tag. File paths and targets with real file descriptors are unaffected. This issue is fixed in version 13.0.0.",
+            "vulnerability_id": "CVE-2026-112393",
+            "name": "CVE-2026-112393",
+            "package_name": "pillow",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/pillow-12.3.0.dist-info/METADATA",
+                "name": "pillow",
+                "package_manager": "PYTHON",
+                "version": "12.3.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-112393",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-112393 - pillow",
+            "reason_to_ignore": "Fix is in Pillow 13.0.0, which requires Python 3.11+; this image is on Python 3.10."
+        },
+        {
+            "description": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's FlashPix JPEG-tile decoder can write decoded scanlines beyond the allocated tile buffer. FlashPix (FPX) JPEG decoding selects raw mode LA with two bytes per pixel, while an unrecognized JPEG mode can be decoded as JCS_UNKNOWN with four components, causing ImagingJpegDecode to write four-component scanlines into the two-byte tile buffer. An attacker can supply a crafted OLE2 FlashPix file to an application with the optional olefile dependency installed that opens or thumbnails untrusted input. This can corrupt heap memory and may allow arbitrary code execution. This issue is fixed in version 13.0.0.",
+            "vulnerability_id": "CVE-2026-112398",
+            "name": "CVE-2026-112398",
+            "package_name": "pillow",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/pillow-12.3.0.dist-info/METADATA",
+                "name": "pillow",
+                "package_manager": "PYTHON",
+                "version": "12.3.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-112398",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-112398 - pillow",
+            "reason_to_ignore": "Fix is in Pillow 13.0.0, which requires Python 3.11+; this image is on Python 3.10."
+        }
+    ],
+    "proxy-addr": [
+        {
+            "description": "proxy-addr is a Node.js module that determines a request's client address behind trusted reverse proxies, and it backs Express req.ip and req.ips. In versions 1.1.0 through 2.0.7, a trust subnet written in IPv4-mapped IPv6 notation with an IPv4-sized prefix, such as ::ffff:10.0.0.0/8 instead of the correct ::ffff:10.0.0.0/104, is accepted without error but trusts every IPv4 address on the internet rather than the block it names. Because the socket peer then becomes trusted at hop 0, any unauthenticated client can supply an arbitrary X-Forwarded-For header and control the address the application reads, which defeats IP-based access control, rate limiting, geolocation, and audit logging. This is a fail-open regression introduced in version 1.1.0. The issue is fixed in proxy-addr 2.0.8, and users should upgrade to 2.0.8 or later. As a workaround, ensure any IPv4-mapped IPv6 trust subnet uses a prefix length of at least 97, or express the range in plain IPv4 notation.",
+            "vulnerability_id": "CVE-2026-90711",
+            "name": "CVE-2026-90711",
+            "package_name": "proxy-addr",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+                "name": "proxy-addr",
+                "package_manager": "NODE",
+                "version": "2.0.7",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-90711",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-90711 - proxy-addr",
+            "reason_to_ignore": "Only present in the JupyterLab staging yarn.lock; not executed at inference."
+        }
+    ],
+    "sentence-transformers": [
+        {
+            "description": "sentence-transformers contains a security control bypass vulnerability that allows attackers to achieve arbitrary code execution by exploiting a logic flaw in the import_module_class helper within sentence_transformers/util/misc.py, where the guard condition includes an 'or os.path.exists(model_name_or_path)' clause that satisfies the trust gate whenever the supplied path exists on the local filesystem, regardless of the trust_remote_code=False argument. Attackers who can control or influence the contents of a model directory on disk can place malicious Python files such as modeling_*.py referenced via modules.json, causing the code to execute at import time when an application loads the model with SentenceTransformer(path, trust_remote_code=False), bypassing the documented security contract and achieving code execution within the loading process.",
+            "vulnerability_id": "CVE-2026-68770",
+            "name": "CVE-2026-68770",
+            "package_name": "sentence-transformers",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/sentence_transformers-5.1.2.dist-info/METADATA",
+                "name": "sentence-transformers",
+                "package_manager": "PYTHON",
+                "version": "5.1.2",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-68770",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-68770 - sentence-transformers",
+            "reason_to_ignore": "Version pinned by the Hugging Face release; upgrades are owned by the Hugging Face team."
+        }
+    ],
+    "transformers": [
+        {
+            "description": "A vulnerability in the LightGlue model loading path of huggingface/transformers version 5.2.0 allows an attacker-controlled model repository to execute arbitrary code during model initialization. The issue arises because the `trust_remote_code` parameter, intended to prevent remote code execution, is overridden by untrusted serialized configuration data in a nested code path. Specifically, when loading a LightGlue model using `AutoModel.from_pretrained()` with `trust_remote_code=False`, the `LightGlueConfig` reads the `trust_remote_code` value from the untrusted `config.json` file and propagates it into nested `AutoConfig.from_pretrained()` calls. This results in the execution of attacker-provided Python modules, even when the victim explicitly disables remote code execution. The vulnerability poses a high risk for environments such as API inference servers, research notebooks, CI/CD pipelines, and model evaluation workers, potentially leading to credential theft, lateral movement, or persistence/backdoor dep",
+            "vulnerability_id": "CVE-2026-5241",
+            "name": "CVE-2026-5241",
+            "package_name": "transformers",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.10/site-packages/transformers-4.55.4.dist-info/METADATA",
+                "name": "transformers",
+                "package_manager": "PYTHON",
+                "version": "4.55.4",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.6,
+            "cvss_v30_score": 8.0,
+            "cvss_v31_score": 9.6,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-5241",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2026-5241 - transformers",
+            "reason_to_ignore": "Version pinned by the Hugging Face release; upgrades are owned by the Hugging Face team."
+        }
+    ]
+}
