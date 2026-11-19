@@ -88,11 +88,12 @@ The handler takes its per-request timeout from the invocation deadline, so set t
 
 Anything downloaded into these paths counts toward `EphemeralStorage`. Size it for the model when you are not streaming from S3.
 
-At runtime `/tmp` starts empty and is the only writable path. The rest of the image, including `/opt` and `/var/task`, is writable at build time but
-read-only at runtime. Anything your Dockerfile writes under `/tmp` at build time is therefore gone when the function starts, while files elsewhere in
-the image stay and can be read. Library downloads land under `/tmp` by default because of the variables above: a `RUN` step that loads `torchvision`
-weights with `weights=DEFAULT` saves them under `TORCH_HOME`, and every new execution environment downloads them again at initialization, which fails
-without internet access. To bake weights into the image, save them outside `/tmp` and load them by path:
+At runtime, Lambda mounts a fresh, empty `/tmp`, which is the only writable path. The rest of the image, including `/opt` and `/var/task`, is writable
+at build time but read-only at runtime. Because `/tmp` is a new mount, anything your Dockerfile writes under `/tmp` at build time is gone when the
+function starts, while files elsewhere in the image stay and can be read. Library downloads land under `/tmp` by default because of the variables
+above: a `RUN` step that loads `torchvision` weights with `weights=DEFAULT` saves them under `TORCH_HOME`, and every new execution environment
+downloads them again at initialization, which fails without internet access. To bake weights into the image, save them outside `/tmp` and load them by
+path:
 
 ```dockerfile
 RUN mkdir -p /opt/model && python3 -c "import torch; from torchvision import models; \
