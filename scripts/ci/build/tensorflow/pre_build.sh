@@ -15,6 +15,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/checksum.sh
+source "$SCRIPT_DIR/lib/checksum.sh"
 CONFIG_FILE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -50,7 +52,8 @@ case "$(yq -r '.metadata.job_type' "$CONFIG_FILE")" in
 esac
 
 echo "Looking for TF artifact s3://${BUCKET}/${PREFIX}${PATTERN} ..."
-if ! aws s3 cp --recursive --only-show-errors --exclude "*" --include "${PATTERN}" \
+if ! aws s3 cp --recursive --only-show-errors --exclude "*" \
+    --include "${PATTERN}" --include "${PATTERN}.sha256" \
     "s3://${BUCKET}/${PREFIX}" "$DEST/"; then
   echo "WARNING: S3 download failed; treating as a cache miss" >&2
 fi
@@ -68,8 +71,16 @@ if [[ ${#FOUND[@]} -gt 1 ]]; then
   exit 1
 fi
 
+# A cached artifact counts only if it matches its checksum sidecar: a truncated
+# upload or download is a miss (and a fresh build replaces it), never a hit.
+if [[ ${#FOUND[@]} -eq 1 ]] && ! artifact_verified "${FOUND[0]}"; then
+  echo "::warning::Cached $(basename "${FOUND[0]}") in s3://${BUCKET}/${PREFIX} is missing its checksum or does not match it; treating as a cache miss"
+  rm -f "${FOUND[0]}" "${FOUND[0]}.sha256"
+  FOUND=()
+fi
+
 if [[ ${#FOUND[@]} -eq 1 ]]; then
-  echo "Cache hit: $(basename "${FOUND[0]}")"
+  echo "Cache hit: $(basename "${FOUND[0]}") (checksum verified)"
   {
     echo "TF_CACHE_HIT=true"
     echo "USE_PREBUILT_WHEEL=1"
@@ -77,8 +88,11 @@ if [[ ${#FOUND[@]} -eq 1 ]]; then
 else
   # Runner hosts are reused across jobs and the BuildKit local exporter does not
   # clear its destination, so export into a new empty directory: post_build.sh
-  # then only ever sees what this job's build wrote.
-  EXPORT_DIR=$(mktemp -d /tmp/tf-artifacts.XXXXXX)
+  # then only ever sees what this job's build wrote. It lives under RUNNER_TEMP,
+  # which the runner empties at the start and end of every job, so the ~1.4 GB
+  # export does not leak on the host even when post_build.sh never runs (a failed
+  # or cancelled main build).
+  EXPORT_DIR=$(mktemp -d "${RUNNER_TEMP:-/tmp}/tf-artifacts.XXXXXX")
   echo "Cache miss: building from source (export dir ${EXPORT_DIR})"
   {
     echo "TF_CACHE_HIT=false"

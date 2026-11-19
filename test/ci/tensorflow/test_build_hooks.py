@@ -9,6 +9,7 @@ or a two-hour build.
 Requires bash, sha256sum and mikefarah yq (v4) on PATH, as on the CI runners.
 """
 
+import hashlib
 import os
 import shutil
 import subprocess
@@ -30,12 +31,13 @@ FAKE_AWS = textwrap.dedent(
     [[ "${FAKE_S3_FAIL:-}" == "1" ]] && { echo "fake aws: S3 unavailable" >&2; exit 1; }
     [[ "$1" == s3 ]] || exit 2
     op=$2; shift 2
-    include=""; args=()
+    includes=(); args=(); recursive=0
     while [[ $# -gt 0 ]]; do
       case "$1" in
-        --recursive|--only-show-errors|--quiet) shift ;;
+        --recursive) recursive=1; shift ;;
+        --only-show-errors|--quiet) shift ;;
         --exclude) shift 2 ;;
-        --include) include="$2"; shift 2 ;;
+        --include) includes+=("$2"); shift 2 ;;
         *) args+=("$1"); shift ;;
       esac
     done
@@ -44,9 +46,17 @@ FAKE_AWS = textwrap.dedent(
       ls) [[ -e "$(path "${args[0]}")" ]] ;;
       cp)
         if [[ "${args[0]}" == s3://* ]]; then
-          src=$(path "${args[0]}"); [[ -d "$src" ]] || exit 0
-          shopt -s nullglob
-          for f in "$src"/$include; do cp "$f" "${args[1]}"; done
+          src=$(path "${args[0]}")
+          if [[ $recursive == 1 ]]; then
+            [[ -d "$src" ]] || exit 0
+            shopt -s nullglob
+            for inc in "${includes[@]}"; do
+              for f in "$src"/$inc; do cp "$f" "${args[1]}"; done
+            done
+          else
+            [[ -f "$src" ]] || { echo "fake aws: 404 ${args[0]}" >&2; exit 1; }
+            cp "$src" "${args[1]}"
+          fi
         else
           dst=$(path "${args[1]}"); mkdir -p "$(dirname "$dst")"; cp "${args[0]}" "$dst"
         fi ;;
@@ -95,10 +105,13 @@ def env(tmp_path):
     s3 = tmp_path / "s3"
     s3.mkdir()
     environ = dict(os.environ)
+    runner_temp = tmp_path / "runner_temp"
+    runner_temp.mkdir()
     environ.update(
         PATH=f"{bin_dir}{os.pathsep}{environ['PATH']}",
         FAKE_S3=str(s3),
         GITHUB_ENV=str(tmp_path / "github_env"),
+        RUNNER_TEMP=str(runner_temp),
     )
     for var in ("TF_CACHE_HIT", "TF_EXPORT_DIR", "TF_ARTIFACT_PREFIX", "WHEELS_BUCKET"):
         environ.pop(var, None)
@@ -140,10 +153,29 @@ def _prefix(cfg_path, environ):
     return out.stdout.strip()
 
 
-def _put(environ, key):
+def _sha256(text):
+    return hashlib.sha256(text.encode()).hexdigest()
+
+
+def _put(environ, key, content="artifact", checksum=None):
+    """Put an S3 object; with checksum, also its .sha256 sidecar (True = correct digest)."""
     path = Path(environ["FAKE_S3"]) / BUCKET / key
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("artifact")
+    path.write_text(content)
+    if checksum is not None:
+        digest = _sha256(content) if checksum is True else checksum
+        Path(f"{path}.sha256").write_text(digest + "\n")
+    return path
+
+
+def _export(environ, cfg, content="built", checksum=True):
+    """Write what the tf-artifact-export stage exports: the artifact and its sidecar."""
+    artifacts = Path(environ["TF_EXPORT_DIR"]) / "artifacts"
+    artifacts.mkdir(exist_ok=True)
+    (artifacts / _artifact_name(cfg)).write_text(content)
+    if checksum is not None:
+        digest = _sha256(content) if checksum is True else checksum
+        (artifacts / f"{_artifact_name(cfg)}.sha256").write_text(digest + "\n")
 
 
 @pytest.mark.parametrize("cfg_path", UPSTREAM_CONFIGS, ids=_ids(UPSTREAM_CONFIGS))
@@ -163,12 +195,29 @@ def test_empty_cache_is_a_miss_with_a_fresh_export_dir(cfg_path, env):
     assert out["USE_PREBUILT_WHEEL"] == "0"
     assert out["EXPORT_TARGETS"] == f"tf-artifact-export:{out['TF_EXPORT_DIR']}"
     assert os.listdir(out["TF_EXPORT_DIR"]) == []
+    # Under RUNNER_TEMP, which the runner empties at every job boundary.
+    assert Path(out["TF_EXPORT_DIR"]).parent == Path(env["RUNNER_TEMP"])
+
+
+@pytest.mark.parametrize("cfg_path", SOURCE_BUILD_CONFIGS, ids=_ids(SOURCE_BUILD_CONFIGS))
+@pytest.mark.parametrize("checksum", [None, "0" * 64], ids=["no-checksum", "wrong-checksum"])
+def test_unverified_cached_artifact_is_a_miss(cfg_path, checksum, env):
+    cfg = _load(cfg_path)
+    _put(env, _prefix(cfg_path, env) + _artifact_name(cfg), content="trunc", checksum=checksum)
+    result = _run("pre_build.sh", cfg_path, env)
+    assert result.returncode == 0, result.stderr
+    out = _github_env(env)
+    env["TF_EXPORT_DIR"] = out.get("TF_EXPORT_DIR", "")
+    assert out["TF_CACHE_HIT"] == "false"
+    assert out["USE_PREBUILT_WHEEL"] == "0"
+    assert "checksum" in result.stdout
+    assert [f.name for f in _prebuilt_dir(cfg).iterdir()] == [".gitkeep"]
 
 
 @pytest.mark.parametrize("cfg_path", SOURCE_BUILD_CONFIGS, ids=_ids(SOURCE_BUILD_CONFIGS))
 def test_cached_artifact_is_a_hit(cfg_path, env):
     cfg = _load(cfg_path)
-    _put(env, _prefix(cfg_path, env) + _artifact_name(cfg))
+    _put(env, _prefix(cfg_path, env) + _artifact_name(cfg), checksum=True)
     result = _run("pre_build.sh", cfg_path, env)
     assert result.returncode == 0, result.stderr
     out = _github_env(env)
@@ -236,23 +285,71 @@ def test_miss_uploads_the_exported_artifact(cfg_path, env):
     assert _run("pre_build.sh", cfg_path, env).returncode == 0
     out = _github_env(env)
     env.update(out)
-    artifacts = Path(out["TF_EXPORT_DIR"]) / "artifacts"
-    artifacts.mkdir()
-    (artifacts / _artifact_name(cfg)).write_text("built")
+    _export(env, cfg)
     result = _run("post_build.sh", cfg_path, env)
     assert result.returncode == 0, result.stderr
     key = Path(env["FAKE_S3"]) / BUCKET / (out["TF_ARTIFACT_PREFIX"] + _artifact_name(cfg))
     assert key.read_text() == "built"
+    assert Path(f"{key}.sha256").read_text().strip() == _sha256("built")
     assert not Path(out["TF_EXPORT_DIR"]).exists()
+    # The upload is a verified hit for the next build of this key.
+    env.pop("TF_CACHE_HIT")
+    Path(env["GITHUB_ENV"]).unlink()
+    assert _run("pre_build.sh", cfg_path, env).returncode == 0
+    assert _github_env(env)["TF_CACHE_HIT"] == "true"
 
 
 @pytest.mark.parametrize("cfg_path", SOURCE_BUILD_CONFIGS, ids=_ids(SOURCE_BUILD_CONFIGS))
-def test_miss_without_an_exported_artifact_uploads_nothing(cfg_path, env):
+def test_miss_without_an_exported_artifact_fails_and_uploads_nothing(cfg_path, env):
     assert _run("pre_build.sh", cfg_path, env).returncode == 0
     env.update(_github_env(env))
     result = _run("post_build.sh", cfg_path, env)
-    assert result.returncode == 0, result.stderr
+    assert result.returncode != 0
+    assert "::error::" in result.stdout
     assert not any(p.is_file() for p in Path(env["FAKE_S3"]).rglob("*"))
+
+
+@pytest.mark.parametrize("cfg_path", SOURCE_BUILD_CONFIGS, ids=_ids(SOURCE_BUILD_CONFIGS))
+@pytest.mark.parametrize("checksum", [None, "0" * 64], ids=["no-checksum", "truncated"])
+def test_unverified_export_fails_and_uploads_nothing(cfg_path, checksum, env):
+    cfg = _load(cfg_path)
+    assert _run("pre_build.sh", cfg_path, env).returncode == 0
+    env.update(_github_env(env))
+    _export(env, cfg, checksum=checksum)
+    result = _run("post_build.sh", cfg_path, env)
+    assert result.returncode != 0
+    assert "::error::" in result.stdout
+    assert not any(p.is_file() for p in Path(env["FAKE_S3"]).rglob("*"))
+
+
+@pytest.mark.parametrize("cfg_path", SOURCE_BUILD_CONFIGS, ids=_ids(SOURCE_BUILD_CONFIGS))
+def test_unverified_cached_object_is_overwritten(cfg_path, env):
+    cfg = _load(cfg_path)
+    key = _prefix(cfg_path, env) + _artifact_name(cfg)
+    obj = _put(env, key, content="trunc")  # no sidecar: what a truncated upload leaves
+    assert _run("pre_build.sh", cfg_path, env).returncode == 0
+    env.update(_github_env(env))
+    assert env["TF_CACHE_HIT"] == "false"
+    _export(env, cfg)
+    result = _run("post_build.sh", cfg_path, env)
+    assert result.returncode == 0, result.stderr
+    assert obj.read_text() == "built"
+    assert Path(f"{obj}.sha256").read_text().strip() == _sha256("built")
+
+
+@pytest.mark.parametrize("cfg_path", SOURCE_BUILD_CONFIGS, ids=_ids(SOURCE_BUILD_CONFIGS))
+def test_verified_cached_object_is_not_reuploaded(cfg_path, env):
+    cfg = _load(cfg_path)
+    assert _run("pre_build.sh", cfg_path, env).returncode == 0
+    env.update(_github_env(env))
+    # Another job uploaded the identical artifact after this job's pre-build.
+    obj = _put(env, env["TF_ARTIFACT_PREFIX"] + _artifact_name(cfg), content="built", checksum=True)
+    mtime = obj.stat().st_mtime_ns
+    _export(env, cfg)
+    result = _run("post_build.sh", cfg_path, env)
+    assert result.returncode == 0, result.stderr
+    assert "Already cached" in result.stdout
+    assert obj.stat().st_mtime_ns == mtime
 
 
 @pytest.mark.parametrize("cfg_path", SOURCE_BUILD_CONFIGS, ids=_ids(SOURCE_BUILD_CONFIGS))
