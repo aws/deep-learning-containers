@@ -70,7 +70,8 @@ every concurrent invocation, and the handler only proxies requests to it. For mo
 [The engine extension](deployment/lambda.md#the-engine-extension).
 
 `/tmp` is the only writable path, so the images point their caches there with `HOME=/tmp`, `TORCH_HOME=/tmp/torch`, `HF_HOME=/tmp/huggingface`, and
-`CUPY_CACHE_DIR=/tmp/cupy_cache`.
+`CUPY_CACHE_DIR=/tmp/cupy_cache`. `/tmp` starts empty at runtime, so weights downloaded in your Dockerfile (where these variables send them) must be
+moved outside it; see [Baked-in paths](configuration.md#baked-in-paths).
 
 ## How We Build
 

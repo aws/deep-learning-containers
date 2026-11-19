@@ -88,6 +88,28 @@ The handler takes its per-request timeout from the invocation deadline, so set t
 
 Anything downloaded into these paths counts toward `EphemeralStorage`. Size it for the model when you are not streaming from S3.
 
+At runtime `/tmp` starts empty, and the rest of the image, including `/opt` and `/var/task`, is read-only. Anything your Dockerfile writes under
+`/tmp` at build time is therefore gone when the function starts, while files elsewhere in the image stay and can be read. Library downloads land under
+`/tmp` by default because of the variables above: a `RUN` step that loads `torchvision` weights with `weights=DEFAULT` saves them under `TORCH_HOME`,
+and every new execution environment downloads them again at initialization, which fails without internet access. To bake weights into the image, save
+them outside `/tmp` and load them by path:
+
+```dockerfile
+RUN python3 -c "import torch; from torchvision import models; \
+torch.save(models.resnet18(weights=models.ResNet18_Weights.DEFAULT).state_dict(), '/var/task/resnet18.pth')" \
+  && rm -rf /tmp/torch
+```
+
+```python
+model = models.resnet18()
+model.load_state_dict(torch.load("/var/task/resnet18.pth", map_location="cpu", weights_only=True))
+```
+
+For Hugging Face models, download them at build time into a directory outside `/tmp`, for example with
+`huggingface-cli download <model> --local-dir /opt/model` or `snapshot_download(<model>, local_dir="/opt/model")`, and pass `/opt/model` as the model
+instead of the model ID. Keep `TORCH_HOME` and `HF_HOME` themselves on `/tmp`: libraries write their caches there at runtime, and only `/tmp` is
+writable.
+
 ## Function settings that matter
 
 Set these on the function rather than in the image. For the full list, see the
