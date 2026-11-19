@@ -60,8 +60,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE}
 
 # HF auto-optimization layer. Sourced by the entrypoint to set performance
-# defaults at run time: expandable_segments allocator and LMCache CPU
-# KV-offload. The bundled accelerators it enables (LMCache / NIXL /
+# defaults at run time: expandable_segments allocator, and LMCache CPU
+# KV-offload as opt-in (HF_ENABLE_LMCACHE=1). The bundled accelerators it enables (LMCache / NIXL /
 # runai-streamer) already ship in the AWS base. See inference/vllm/README.md
 # for the toggles.
 COPY --chmod=755 ./scripts/docker/huggingface/vllm/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh
