@@ -76,14 +76,16 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa.sh install_efa.sh
-RUN bash install_efa.sh ${EFA_VERSION} \
+# vllm-openai >= 0.34.0 runs a pinned EFA installer with --build-ngc, which installs the
+# reduced libnccl-ofi-ngc-* plugin package (no libnccl-net.so, so NCCL silently falls back
+# to sockets). Our installer prefix-matches it as libnccl-ofi and skips the full package,
+# and a newer libnccl-ofi would collide with its files. Purge it so our EFA_VERSION always
+# installs the full plugin. libfabric shares package names and upgrades normally.
+RUN ngc_pkgs=$(dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' 'libnccl-ofi-ngc*' 2>/dev/null | awk '$1 == "ii" {print $2}') \
+  && if [ -n "${ngc_pkgs}" ]; then echo "Purging upstream NGC plugin: ${ngc_pkgs}" && dpkg --purge ${ngc_pkgs}; fi \
+  && bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
-  # vllm-openai >= 0.34.0 preinstalls aws-ofi-nccl, so the EFA installer skips it and
-  # libnccl-net.so (the name NCCL loads by default) is missing. Without it NCCL silently
-  # falls back to sockets. Restore the alias to the OFI plugin.
-  && if [ ! -e /opt/amazon/ofi-nccl/lib/libnccl-net.so ]; then \
-    ln -s libnccl-net-ofi.so /opt/amazon/ofi-nccl/lib/libnccl-net.so; \
-  fi \
+  && dpkg-query -W libnccl-ofi libfabric1-aws \
   && test -e /opt/amazon/ofi-nccl/lib/libnccl-net.so \
   && mkdir -p /tmp/nvjpeg \
   && cd /tmp/nvjpeg \

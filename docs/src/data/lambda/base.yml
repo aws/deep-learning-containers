@@ -1,0 +1,14 @@
+framework: Base
+# Shared DLC image version: keeps the primary version sort a tie so rows stay
+# in a stable order. The framework's own version is framework_release.
+version: "1.0"
+framework_release: "13.0.3"
+accelerator: gpu
+python: py313
+cuda: cu130
+os: amzn2023
+ecr_repository: lambda
+public_registry: false
+
+tags:
+  - "base-cuda"
