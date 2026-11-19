@@ -26,15 +26,13 @@ build:
   bazel_version: "7.7.0"  # must match the TF tag's .bazelversion (checked by the build)
   bazel_sha256: "fe7e799cbc9140f986b063e06800a3d4c790525075c877d00a7112669824acbf"
   hermetic_cudnn_version: "9.16.0"
-  cuda_compute_capabilities: "sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
+  cuda_compute_capabilities: "sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,sm_120,compute_120"
   dlc_major_version: "1"
 
 release:
-  # Gamma first: this release replaces the PyPI TensorFlow wheel with the
-  # source-built one. Flip back to "production" after the gamma release validates.
   release: true
   force_release: false
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: "gamma"
+  environment: "production"

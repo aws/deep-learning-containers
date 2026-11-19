@@ -12,7 +12,7 @@ ARG TF_VERSION=2.21.0
 ARG OPEN_MPI_VERSION=4.1.8
 ARG EFA_VERSION="latest"
 ARG HERMETIC_CUDNN_VERSION=9.16.0
-ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
+ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,sm_120,compute_120"
 ARG TF_COMMIT=a481b10260dfdf833a1b16007eead49c1d7febf3
 ARG BAZEL_VERSION=7.7.0
 ARG BAZEL_SHA256=fe7e799cbc9140f986b063e06800a3d4c790525075c877d00a7112669824acbf
@@ -25,6 +25,8 @@ ARG BAZEL_SHA256=fe7e799cbc9140f986b063e06800a3d4c790525075c877d00a7112669824acb
 # (scripts/ci/build/tensorflow/pre_build.sh) fetches a cached wheel into
 # prebuilt/; with USE_PREBUILT_WHEEL=1 the Bazel build is skipped. The
 # directory holds only a .gitkeep by default so the COPY always succeeds.
+# The wheel's sha256 is written next to it for the CI cache hooks, which
+# upload or use the wheel only if it matches (scripts/ci/build/tensorflow/lib/checksum.sh).
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS tf-wheel-build
 ARG TF_VERSION
 ARG TF_COMMIT
@@ -60,7 +62,8 @@ RUN --mount=type=cache,id=tf-bazel-training,sharing=locked,target=/root/.cache/b
       --compute-capabilities "${CUDA_COMPUTE_CAPABILITIES}" \
       --python-version "${PYTHON_VERSION}" \
       --out-dir /opt/tf-dist; \
-  fi
+  fi \
+  && for whl in /opt/tf-dist/tensorflow-*.whl; do sha256sum "${whl}" | cut -d' ' -f1 > "${whl}.sha256"; done
 
 
 # ── Stage: tf-artifact-export (cache upload on a pre-build cache miss) ──────
@@ -73,6 +76,7 @@ COPY --from=tf-wheel-build /opt/tf-dist/ /artifacts/
 # ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
 ARG PYTHON_VERSION
+ARG TF_VERSION
 ARG CUDA_COMPUTE_CAPABILITIES
 
 RUN dnf install -y --allowerasing \
@@ -95,12 +99,24 @@ WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact --no-install-package tensorflow
 
 # Source-built TensorFlow wheel (same version and dependencies as the lockfile's
-# PyPI wheel). Its CUDA code is checked on every build, cache hit or miss,
+# PyPI wheel). Installed by name from a local index, not by file path, so pip
+# and uv see a regular tensorflow==TF_VERSION install (no direct_url.json
+# pointing at the deleted /tmp/tf-dist). The installed version must equal both
+# TF_VERSION and the tensorflow== pin in pyproject.toml, which the lockfile
+# resolved the other dependencies for, so bumping only one of them fails here.
+# Its CUDA code is checked on every build, cache hit or miss,
 # against every entry of CUDA_COMPUTE_CAPABILITIES: sm_XY needs an sm_XY cubin,
 # compute_XY needs an sm_XY cubin and compute_XY PTX. The build fails otherwise.
 COPY --from=tf-wheel-build /opt/tf-dist/ /tmp/tf-dist/
-RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache /tmp/tf-dist/tensorflow-*.whl \
+RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache \
+    --no-index --find-links /tmp/tf-dist "tensorflow==${TF_VERSION}" \
   && rm -rf /tmp/tf-dist \
+  && PIN=$(grep -oE '"tensorflow==[^"]+"' /tmp/build/pyproject.toml | tr -d '"' | cut -d= -f3) \
+  && INSTALLED=$(/opt/venv/bin/python -c "import tensorflow as tf; print(tf.__version__)") \
+  && echo "TensorFlow ${INSTALLED} (TF_VERSION ${TF_VERSION}, pyproject pin ${PIN})" \
+  && { [ "${INSTALLED}" = "${TF_VERSION}" ] && [ "${INSTALLED}" = "${PIN}" ] \
+    || { echo "ERROR: installed TensorFlow ${INSTALLED} != TF_VERSION ${TF_VERSION} / pyproject pin ${PIN}" >&2; exit 1; }; } \
+  && /opt/venv/bin/python -c "import importlib.metadata as m; assert m.distribution('tensorflow').read_text('direct_url.json') is None, 'tensorflow installed from a file path'" \
   && BIN=/opt/venv/lib/python${PYTHON_VERSION}/site-packages/tensorflow/libtensorflow_cc.so.2 \
   && ELF=$(/usr/local/cuda/bin/cuobjdump --list-elf "${BIN}" | grep -oE 'sm_[0-9]+[af]?' | sort -u || true) \
   && PTX=$(/usr/local/cuda/bin/cuobjdump --list-ptx "${BIN}" | grep -oE '(sm|compute)_[0-9]+[af]?' | sed 's/^compute_/sm_/' | sort -u || true) \
@@ -264,7 +280,7 @@ COPY docker/tensorflow/training/2.21/cuda/pyproject.toml docker/tensorflow/train
 # the sync fails the build if that ever happens.
 RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact --no-install-package tensorflow \
   && rm -rf /tmp/build /tmp/uv-* \
-  && python -c "import tensorflow as tf; caps = tf.sysconfig.get_build_info()['cuda_compute_capabilities']; print(tf.__version__, caps); assert 'sm_100' in caps and 'compute_120' in caps"
+  && python -c "import tensorflow as tf; caps = tf.sysconfig.get_build_info()['cuda_compute_capabilities']; print(tf.__version__, caps); assert 'sm_100' in caps and 'sm_120' in caps and 'compute_120' in caps"
 
 # Boost 1.82 for SM Studio extensions (compiled with _GLIBCXX_USE_CXX11_ABI=1
 # to match TF's ABI). Some SM Studio extensions link against boost.

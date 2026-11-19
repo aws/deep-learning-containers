@@ -6,7 +6,7 @@
 # Runs inside the tf-wheel-build stage of docker/tensorflow/training/<ver>/Dockerfile.cuda.
 # Uses TensorFlow's own release config (ci/official/wheel.sh) with two changes:
 #   - --config=cuda_nvcc: the default clang path does not target sm_120
-#   - HERMETIC_CUDA_COMPUTE_CAPABILITIES: upstream list + sm_100 + compute_120
+#   - HERMETIC_CUDA_COMPUTE_CAPABILITIES: upstream list + sm_100 + sm_120 + compute_120
 # Config order matters: cuda_nvcc must come before cuda_wheel, otherwise the
 # wheel rule rejects the build for bundling CUDA libraries.
 #
@@ -85,25 +85,45 @@ assert s.count(old) == 1, f"{p}: download_and_extract block not found"
 open(p, "w").write(s.replace(old, new))
 PY
 
+BAZEL_FLAGS=(
+  --config=release_gpu_linux --config=cuda_nvcc --config=cuda_wheel
+  --repo_env=HERMETIC_PYTHON_VERSION="${PYTHON_VERSION}"
+  --repo_env=USE_PYWRAP_RULES=True
+  --repo_env=HERMETIC_CUDA_VERSION="${CUDA_VERSION}"
+  --repo_env=HERMETIC_CUDNN_VERSION="${CUDNN_VERSION}"
+  --repo_env=HERMETIC_CUDA_COMPUTE_CAPABILITIES="${COMPUTE_CAPABILITIES}"
+)
+
+# The wheel this build must produce, e.g. tensorflow-2.21.0-cp312-cp312-linux_x86_64.whl.
+TF_VERSION="${TF_REF#v}"
+PY_TAG="cp${PYTHON_VERSION//./}"
+RAW_NAME="tensorflow-${TF_VERSION}-${PY_TAG}-${PY_TAG}-linux_x86_64.whl"
+FINAL_NAME="tensorflow-${TF_VERSION}-${PY_TAG}-${PY_TAG}-manylinux_2_27_x86_64.whl"
+
+# The Bazel output base lives in the persistent tf-bazel-training cache mount,
+# and Bazel never deletes a wheel an earlier build wrote (e.g. for another TF or
+# Python version). Delete every wheel in this configuration's pip_package output
+# before building, then take only the expected file name.
+PKG_OUT="$(bazel info "${BAZEL_FLAGS[@]}" bazel-bin)/tensorflow/tools/pip_package"
+if [[ -d "${PKG_OUT}" ]]; then
+  find "${PKG_OUT}" -name 'tensorflow-*.whl' -print -delete
+fi
+
 bazel build \
   --color=no --curses=no --nokeep_going \
   --show_progress_rate_limit=60 \
-  --config=release_gpu_linux --config=cuda_nvcc --config=cuda_wheel \
-  --repo_env=HERMETIC_PYTHON_VERSION="${PYTHON_VERSION}" \
-  --repo_env=USE_PYWRAP_RULES=True \
-  --repo_env=HERMETIC_CUDA_VERSION="${CUDA_VERSION}" \
-  --repo_env=HERMETIC_CUDNN_VERSION="${CUDNN_VERSION}" \
-  --repo_env=HERMETIC_CUDA_COMPUTE_CAPABILITIES="${COMPUTE_CAPABILITIES}" \
+  "${BAZEL_FLAGS[@]}" \
   --jobs="${JOBS}" \
   --local_resources=memory=HOST_RAM*0.7 \
   --verbose_failures \
   //tensorflow/tools/pip_package:wheel
 
-RAW_DIR=$(mktemp -d)
-find bazel-bin/tensorflow/tools/pip_package -name 'tensorflow-*.whl' -exec cp {} "${RAW_DIR}/" \;
-RAW_WHEELS=("${RAW_DIR}"/tensorflow-*.whl)
+mapfile -t RAW_WHEELS < <(find "${PKG_OUT}" -name "${RAW_NAME}")
 [[ ${#RAW_WHEELS[@]} -eq 1 && -f "${RAW_WHEELS[0]}" ]] \
-  || { echo "ERROR: expected one wheel in bazel-bin, found ${#RAW_WHEELS[@]}" >&2; exit 1; }
+  || { echo "ERROR: expected one ${RAW_NAME} in ${PKG_OUT}, found ${#RAW_WHEELS[@]}" >&2; exit 1; }
+RAW_DIR=$(mktemp -d)
+cp "${RAW_WHEELS[0]}" "${RAW_DIR}/"
+RAW_WHEELS=("${RAW_DIR}/${RAW_NAME}")
 
 # Same check and platform tag as upstream's release wheels (auditwheel repair
 # --plat manylinux_2_27_x86_64). Fails if the wheel needs a newer glibc or an
@@ -122,6 +142,6 @@ python3 -m auditwheel repair --plat manylinux_2_27_x86_64 --wheel-dir "${OUT_DIR
 rm -rf "${RAW_DIR}" "${REQS}"
 
 WHEELS=("${OUT_DIR}"/tensorflow-*.whl)
-[[ ${#WHEELS[@]} -eq 1 && -f "${WHEELS[0]}" ]] \
-  || { echo "ERROR: expected one wheel in ${OUT_DIR}, found ${#WHEELS[@]}" >&2; exit 1; }
+[[ ${#WHEELS[@]} -eq 1 && "${WHEELS[0]}" == "${OUT_DIR}/${FINAL_NAME}" && -f "${WHEELS[0]}" ]] \
+  || { echo "ERROR: expected only ${FINAL_NAME} in ${OUT_DIR}, found: ${WHEELS[*]}" >&2; exit 1; }
 echo "Built ${WHEELS[0]}"
