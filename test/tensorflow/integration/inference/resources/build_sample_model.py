@@ -69,13 +69,24 @@ def build_sample_model(
     return str(tar_path)
 
 
-def _build_conv_sequential():
-    """Return a tiny Conv2D Sequential model (117 params, deterministic init).
+# Closed-form output of _build_conv_sequential for an all-ones (1,8,8,3) input:
+# each Conv2D channel sums 3*3*3 ones = 27 (ReLU keeps it), GAP keeps 27,
+# inference-mode BatchNormalization (mean 0, variance 1, epsilon 1e-3) scales by
+# rsqrt(1.001), and Dense(1) sums the 4 channels.
+CONV_SAMPLE_EXPECTED = 4 * 27.0 / (1.0 + 1e-3) ** 0.5  # ~107.946
 
-    Layers: Input(8,8,3) -> Conv2D(4, kernel=3, ReLU) -> GAP -> Dense(1),
-    all trainable weights pinned to 1.0 and biases to 0.0. For an all-ones
-    (1,8,8,3) input, closed-form output is 108.0 (see test_conv_gpu). A
-    stubbed cuDNN kernel yields 0.0 — distinguishable, so the test fires.
+
+def _build_conv_sequential():
+    """Return a tiny Conv2D + BatchNorm Sequential model (deterministic init).
+
+    Layers: Input(8,8,3) -> Conv2D(4, kernel=3, ReLU) -> GAP -> BatchNormalization
+    -> Dense(1), all trainable weights pinned to 1.0 and biases to 0.0. For an
+    all-ones (1,8,8,3) input the output is CONV_SAMPLE_EXPECTED (see
+    test_conv_gpu). A stubbed cuDNN kernel yields 0.0, distinguishable, so the
+    test fires. BatchNormalization adds an Rsqrt, which TensorFlow runs through
+    its generated (kernel_gen) GPU kernels rather than cuDNN, so a GPU build
+    missing native code for the device, or the runtime JIT toolchain (libdevice,
+    ptxas), fails here instead of only in customer models.
     """
     import tensorflow as tf
 
@@ -93,6 +104,7 @@ def _build_conv_sequential():
                 bias_initializer=bias_zeros,
             ),
             tf.keras.layers.GlobalAveragePooling2D(),
+            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Dense(
                 1,
                 kernel_initializer=kernel_ones,

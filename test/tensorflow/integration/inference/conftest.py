@@ -17,6 +17,8 @@ from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
 from test_utils.instance_capacity import (
     build_instance_pools,
     deploy_with_capacity_fallback,
+    log_capacity_placement,
+    ml_reservation_config,
     normalize_instance_types,
 )
 
@@ -41,7 +43,15 @@ def sm_device_type() -> str:
 
 @pytest.fixture(scope="session")
 def sm_instance_type(sm_device_type) -> str | list[str]:
-    """SM endpoint instance type (or fallback ladder) derived from device type."""
+    """SM endpoint instance type (or fallback ladder) derived from device type.
+
+    SM_GPU_INSTANCE_TYPE pins GPU endpoints to exactly one instance type with no
+    fallback, e.g. ml.g7.2xlarge for the Blackwell job: a fallback to another GPU
+    family would pass without running the code under test on that GPU.
+    """
+    pinned = os.environ.get("SM_GPU_INSTANCE_TYPE", "").strip()
+    if sm_device_type == "gpu" and pinned:
+        return pinned
     return _SM_INSTANCE_TYPE_BY_DEVICE[sm_device_type]
 
 
@@ -101,7 +111,7 @@ def _provision_endpoint(
     if container_env:
         container_kwargs["environment"] = dict(container_env)
 
-    def _create(capacity_kwargs):
+    def _create(capacity_kwargs, reserved_for):
         endpoint_name = random_suffix_name(name_prefix, 63)
         model_name = random_suffix_name(f"{name_prefix}-model", 63)
         attempt: list = []
@@ -120,6 +130,11 @@ def _provision_endpoint(
                 initial_instance_count=1,
                 **capacity_kwargs,
             )
+            # Use the CI ML Reservation for the leading instance type when one is
+            # configured (ML_RESERVATION_ARN_* env); None leaves the open pool.
+            reservation = ml_reservation_config(reserved_for)
+            if reservation is not None:
+                variant_kwargs["capacity_reservation_config"] = reservation
             if sm_device_type == "gpu":
                 variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
 
@@ -138,6 +153,7 @@ def _provision_endpoint(
             attempt.append(endpoint)
 
             endpoint.wait_for_status("InService")
+            log_capacity_placement(endpoint, endpoint_name)
         except BaseException:
             # Tear down this rung now so a capacity retry does not leak a Failed endpoint.
             _cleanup(reversed(attempt))
@@ -147,12 +163,12 @@ def _provision_endpoint(
 
     types = normalize_instance_types(sm_instance_type)
     if len(types) == 1:
-        return _create({"instance_type": types[0]})
+        return _create({"instance_type": types[0]}, types[0])
     if mode == "MultiModel":
         return deploy_with_capacity_fallback(
-            types, lambda t: _create({"instance_type": t}), label=name_prefix
+            types, lambda t: _create({"instance_type": t}, t), label=name_prefix
         )
-    return _create({"instance_pools": build_instance_pools(types)})
+    return _create({"instance_pools": build_instance_pools(types)}, types)
 
 
 @pytest.fixture
