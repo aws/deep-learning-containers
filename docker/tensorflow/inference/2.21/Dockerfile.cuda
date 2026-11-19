@@ -16,7 +16,7 @@ ARG NJS_VERSION=1.0.1
 ARG HERMETIC_CUDNN_VERSION=9.16.0
 ARG HERMETIC_NCCL_VERSION=2.29.7
 ARG HERMETIC_NVSHMEM_VERSION=3.2.5
-ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,compute_120"
+ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,sm_120,compute_120"
 ARG TF_SERVING_COMMIT=75c8de0a8042f02ecbe6f95909bad8cd684a67f6
 ARG BAZEL_VERSION=7.4.1
 ARG BAZEL_SHA256=c97f02133adce63f0c28678ac1f21d65fa8255c80429b588aeeba8a1fac6202b
@@ -74,6 +74,9 @@ RUN --mount=type=cache,id=tf-bazel-serving,sharing=locked,target=/root/.cache/ba
 # Check the binary that ships on both paths (cache hit or fresh build) against
 # every entry of CUDA_COMPUTE_CAPABILITIES: sm_XY needs an sm_XY cubin,
 # compute_XY needs an sm_XY cubin and compute_XY PTX. The build fails otherwise.
+# Then record the verified binary's sha256 next to it: the export stage ships
+# it with the binary, and the CI cache hooks upload or use the binary only if
+# it matches (scripts/ci/build/tensorflow/lib/checksum.sh).
 RUN BIN=/opt/tfs-dist/tensorflow_model_server \
   && ELF=$(/usr/local/cuda/bin/cuobjdump --list-elf "${BIN}" | grep -oE 'sm_[0-9]+[af]?' | sort -u || true) \
   && PTX=$(/usr/local/cuda/bin/cuobjdump --list-ptx "${BIN}" | grep -oE '(sm|compute)_[0-9]+[af]?' | sed 's/^compute_/sm_/' | sort -u || true) \
@@ -82,7 +85,8 @@ RUN BIN=/opt/tfs-dist/tensorflow_model_server \
     echo "${ELF}" | grep -qx "${sm}" || { echo "ERROR: ${BIN} has no ${sm} cubin" >&2; exit 1; }; \
     case "${cap}" in compute_*) echo "${PTX}" | grep -qx "${sm}" || { echo "ERROR: ${BIN} has no ${cap} PTX" >&2; exit 1; } ;; esac; \
   done \
-  && echo "tensorflow_model_server: GPU targets verified (${CUDA_COMPUTE_CAPABILITIES})"
+  && echo "tensorflow_model_server: GPU targets verified (${CUDA_COMPUTE_CAPABILITIES})" \
+  && sha256sum "${BIN}" | cut -d' ' -f1 > "${BIN}.sha256"
 
 
 # ── Stage: tf-artifact-export (cache upload on a pre-build cache miss) ──────
@@ -347,7 +351,7 @@ RUN set -eux \
   &&  ldd "$(command -v tensorflow_model_server)" | { ! grep -F 'not found'; } \
   &&  tensorflow_model_server --version \
   # 6. Blackwell (G7/G7e): libdevice + ptxas for TensorFlow's runtime kernel
-  #    JIT (sm_120 code in the binary is verified by build_tf_serving.sh).
+  #    JIT (sm_120 code in the binary is verified in the tfs-build stage).
   &&  test -f /usr/local/cuda/nvvm/libdevice/libdevice.10.bc \
   &&  command -v ptxas >/dev/null
 
