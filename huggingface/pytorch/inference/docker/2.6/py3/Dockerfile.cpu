@@ -27,7 +27,7 @@ ARG ACCELERATE_VERSION=1.12.0
 # Install the latest version of the sagemaker-huggingface-inference-toolkit from the git repository
 # until version 2.7.0 is released in PyPI.
 # ARG SAGEMAKER_HF_INFERENCE_VERSION=2.7.0
-ARG SAGEMAKER_HF_INFERENCE_VERSION="git+https://github.com/aws/sagemaker-huggingface-inference-toolkit.git@f0c3eb2"
+ARG SAGEMAKER_HF_INFERENCE_VERSION="git+https://github.com/aws/sagemaker-huggingface-inference-toolkit.git@21a9df8"
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
@@ -133,6 +133,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "zstandard>=0.22.0" \
+    "libcurl>=8.23.0" \
     && /opt/conda/bin/conda clean -afy \
     && rm -rf /etc/apt/sources.list.d/*
 
@@ -278,6 +279,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && cd /tmp/ffmpeg \
     && git checkout "${FFMPEG_TAG}" \
     && ./configure \
+    --pkg-config=/usr/bin/pkg-config \
     --prefix=/usr/local \
     --disable-debug \
     --disable-doc \
