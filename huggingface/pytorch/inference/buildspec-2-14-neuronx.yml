@@ -19,9 +19,6 @@ context:
     hf-serve-neuron-entrypoint:
       source: ../../build_artifacts/inference/hf-serve-neuron-entrypoint.sh
       target: hf-serve-neuron-entrypoint.sh
-    hf-serve-neuron:
-      source: ../../build_artifacts/inference/hf_serve_neuron.py
-      target: hf_serve_neuron.py
     neuron-monitor:
       source: ../../build_artifacts/inference/neuron-monitor.sh
       target: neuron-monitor.sh

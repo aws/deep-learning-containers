@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Entrypoint for the Hugging Face PyTorch NeuronX inference DLC (Torch NeuronX 2.13+).
 # Maps the former Hugging Face inference toolkit / SageMaker environment variables
-# to hf-serve and starts it on the `neuron` device.
+# to hf-serve, which serves on the `neuron` device by default.
 set -eo pipefail
 
 # Optional CloudWatch Neuron monitor (enabled through NEURON_MONITOR_CW_REGION).
@@ -93,4 +93,5 @@ if [[ -n "${MODEL_DIR:-}" ]]; then
   done
 fi
 
-exec python3 /usr/local/bin/hf_serve_neuron.py "${ARGS[@]}" "$@"
+# hf-serve selects the `neuron` device with the default `--device auto`.
+exec hf-serve "${ARGS[@]}" "$@"

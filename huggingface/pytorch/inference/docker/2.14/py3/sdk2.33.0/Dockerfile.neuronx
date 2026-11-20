@@ -22,7 +22,7 @@ ARG SENTENCE_TRANSFORMERS_VERSION=6.3.0
 ARG HUGGINGFACE_HUB_VERSION=1.33.0
 ARG HF_XET_VERSION=1.7.0
 ARG PEFT_VERSION=0.21.2
-ARG HF_SERVE_VERSION=0.2.0
+ARG HF_SERVE_VERSION=0.2.1
 
 ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE} \
   CLOUD=sagemaker \
@@ -37,6 +37,7 @@ RUN apt-get update \
 
 # Use the base's Python environment and pip so its inherited PIP_CONSTRAINT
 # keeps torch pinned to the version used to build torch-neuronx.
+# hf-serve 0.2.1+ supports Python 3.14, torch 2.14 and the `neuron` device.
 RUN python3 -m pip install --no-cache-dir \
   "transformers[sentencepiece,vision]==${TRANSFORMERS_VERSION}" \
   "diffusers==${DIFFUSERS_VERSION}" \
@@ -44,38 +45,9 @@ RUN python3 -m pip install --no-cache-dir \
   "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
   "hf-xet==${HF_XET_VERSION}" \
   "peft==${PEFT_VERSION}" \
-  torchvision \
-  protobuf \
+  "hf-serve==${HF_SERVE_VERSION}" \
   && python3 -m pip check
 
-# hf-serve 0.2.0 declares python<3.13 and torch<2.14, so it is installed without
-# its dependencies, which are listed here instead. Not installed:
-# - torchaudio, torchcodec: no build for torch 2.14, so audio tasks are unsupported.
-# - pyctcdecode: pins numpy<2, while torch-neuronx needs numpy>=2.
-RUN python3 -m pip install --no-cache-dir \
-  "uvicorn>=0.34.0" \
-  "fastapi>=0.115.6" \
-  "starlette>=1.0.1" \
-  "prometheus-client>=0.21.1" \
-  "pydantic>=2.10.5" \
-  "python-multipart>=0.0.20" \
-  "python-magic>=0.4.27" \
-  "pydub>=0.25.0" \
-  "pandas>=2.3.3" \
-  librosa \
-  phonemizer \
-  && python3 -m pip install --no-cache-dir --no-deps --ignore-requires-python \
-  "hf-serve==${HF_SERVE_VERSION}" \
-  && { python3 -m pip check \
-    | grep -v -e "No broken requirements found" \
-      -e "^hf-serve ${HF_SERVE_VERSION} requires \(torchaudio\|torchcodec\|pyctcdecode\)" \
-      -e "^hf-serve ${HF_SERVE_VERSION} has requirement torch<2.14" \
-    > /tmp/pip-check.txt || true; } \
-  && cat /tmp/pip-check.txt \
-  && test ! -s /tmp/pip-check.txt \
-  && rm /tmp/pip-check.txt
-
-COPY hf_serve_neuron.py /usr/local/bin/hf_serve_neuron.py
 COPY hf-serve-neuron-entrypoint.sh /usr/local/bin/hf-serve-neuron-entrypoint.sh
 COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
 RUN chmod +x /usr/local/bin/hf-serve-neuron-entrypoint.sh /usr/local/bin/neuron-monitor.sh
