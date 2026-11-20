@@ -13,7 +13,11 @@ import os
 
 import pytest
 from test_utils import random_suffix_name
-from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
+from test_utils.constants import (
+    INFERENCE_AMI_VERSION_CU12,
+    INFERENCE_AMI_VERSION_CU13,
+    SAGEMAKER_ROLE,
+)
 from test_utils.instance_capacity import (
     build_instance_pools,
     deploy_with_capacity_fallback,
@@ -23,6 +27,18 @@ from test_utils.instance_capacity import (
 )
 
 LOGGER = logging.getLogger(__name__)
+
+# Blackwell instance families need a newer NVIDIA driver than the CUDA 12 inference
+# AMI ships (driver 550), so their endpoints use the AL2023 AMI (driver 580; CUDA 12.x
+# images run on it unchanged). Other GPU types keep the CUDA 12 AMI.
+_BLACKWELL_PREFIXES = ("ml.g7.", "ml.g7e.", "ml.p6")
+
+
+def _inference_ami_version(instance_types: list[str]) -> str:
+    if any(t.startswith(_BLACKWELL_PREFIXES) for t in instance_types):
+        return INFERENCE_AMI_VERSION_CU13
+    return INFERENCE_AMI_VERSION_CU12
+
 
 # SM instance-type map keyed on the image's device_type. The test models are tiny, so
 # any single-GPU rung works; GPU is a priority-ordered ladder across the L4 and A10G
@@ -136,7 +152,9 @@ def _provision_endpoint(
             if reservation is not None:
                 variant_kwargs["capacity_reservation_config"] = reservation
             if sm_device_type == "gpu":
-                variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
+                variant_kwargs["inference_ami_version"] = _inference_ami_version(
+                    normalize_instance_types(reserved_for)
+                )
 
             endpoint_config = EndpointConfig.create(
                 endpoint_config_name=endpoint_name,
