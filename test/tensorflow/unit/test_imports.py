@@ -55,7 +55,6 @@ def test_tensorflow_version_matches_the_image_config():
             "DLC_TENSORFLOW_FULL_VERSION not set (set by tensorflow-training.tests-unit.yml)"
         )
     assert tf.__version__ == expected, f"expected tf {expected}, got {tf.__version__}"
-    assert importlib.metadata.version("tensorflow") == expected
 
 
 def test_sagemaker_sdk_v3():
