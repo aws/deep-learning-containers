@@ -1,0 +1,97 @@
+apiVersion: "kubeflow.org/v1"
+kind: PyTorchJob
+metadata:
+  name: $JOB_NAME
+spec:
+  elasticPolicy:
+    rdzvBackend: etcd
+    rdzvHost: $RDZV_HOST
+    rdzvPort: $RDZV_PORT
+    minReplicas: 1
+    maxReplicas: 64
+    maxRestarts: 100
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 90
+  pytorchReplicaSpecs:
+    Worker:
+      replicas: $NUM_WORKERS
+      restartPolicy: OnFailure
+      template:
+        metadata:
+          labels:
+            app: $JOB_NAME
+        spec:
+          volumes:
+            - name: shmem
+              #emptyDir:
+              #  medium: Memory
+              hostPath: 
+                path: /dev/shm
+            - name: local
+              hostPath:
+                path: /mnt/k8s-disks/0
+          #nodeSelector:
+          #  node.kubernetes.io/instance-type: "${INSTANCE_TYPE}"
+          containers:
+            - name: pytorch
+              image: ${REGISTRY}${IMAGE}${TAG}
+              imagePullPolicy: Always
+              resources:
+                requests:
+                  nvidia.com/gpu: $GPU_PER_WORKER
+                  vpc.amazonaws.com/efa: $EFA_PER_WORKER
+                limits:
+                  nvidia.com/gpu: $GPU_PER_WORKER
+                  vpc.amazonaws.com/efa: $EFA_PER_WORKER
+              env:
+              # for P5 FI_* should be commented out
+              - name: LOGLEVEL
+                value: "DEBUG"
+              #- name: FI_PROVIDER
+              #  value: $FI_PROVIDER
+              #- name: FI_EFA_USE_DEVICE_RDMA
+              #  value: "1"
+              #- name: FI_EFA_FORK_SAFE
+              #  value: "1"
+              #- name: FI_LOG_LEVEL
+              #  value: "1"
+              #- name: FI_EFA_ENABLE_SHM_TRANSFER
+              #  value: "1"
+              - name: TORCH_DISTRIBUTED_DEBUG
+                value: "DETAIL"
+              - name: TORCH_NCCL_ENABLE_MONITORING
+                value: "1"
+              - name: TORCH_NCCL_TRACE_BUFFER_SIZE
+                value: "20000"
+              - name: TORCH_NCCL_DUMP_ON_TIMEOUT
+                value: "1"
+              - name: TORCH_NCCL_DEBUG_INFO_TEMP_FILE
+                value: "/local/nccl_trace_rank_"
+              - name: PYTORCH_CUDA_ALLOC_CONF
+                value: "expandable_segments:True"
+              - name: NCCL_DEBUG
+                value: "INFO"
+              - name: NCCL_SOCKET_IFNAME
+                value: "^lo"
+              - name: TORCH_NCCL_ASYNC_ERROR_HANDLING
+                value: "1"
+              #- name: TORCH_DIST_INIT_BARRIER
+              #  value: "1"
+              #- name: NCCL_IGNORE_DISABLED_P2P
+              #  value: "1"
+              #- name: NCCL_NVLS_ENABLE
+              #  value: "0"
+              command:
+                - bash
+                - -c
+                - "${CMD}"
+              volumeMounts:
+                - name: shmem
+                  mountPath: /dev/shm
+                - name: local
+                  mountPath: /local

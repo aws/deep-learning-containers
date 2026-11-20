@@ -1,0 +1,93 @@
+# Variables substituted by deploy_ray_train_job.sh:
+#   ${DLC_IMAGE} ${RAY_VERSION} ${NAMESPACE} ${RAY_CLUSTER_NAME} ${GPUS_PER_NODE}
+---
+apiVersion: ray.io/v1
+kind: RayCluster
+metadata:
+  name: ${RAY_CLUSTER_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  rayVersion: "${RAY_VERSION}"
+  # --- Head pod: CPU-only, runs on the system node group, hosts the job server ---
+  headGroupSpec:
+    rayStartParams:
+      dashboard-host: "0.0.0.0"
+      num-gpus: "0"
+    template:
+      spec:
+        nodeSelector:
+          role: system
+        containers:
+          - name: ray-head
+            image: "${DLC_IMAGE}"
+            imagePullPolicy: Always
+            env:
+              # The cluster's default containerd runtime runs the NVML hook on
+              # every pod; on a GPU-less node it hard-fails with "failed to
+              # initialize NVML: Driver Not Loaded". This skips the hook here.
+              - { name: NVIDIA_VISIBLE_DEVICES, value: "void" }
+            ports:
+              - { containerPort: 6379, name: gcs-server }
+              - { containerPort: 8265, name: dashboard }
+              - { containerPort: 10001, name: client }
+            resources:
+              # Sized to fit the m7i.xlarge system node alongside the KubeRay
+              # operator and kube-system pods (~3.9 CPU allocatable).
+              limits:   { cpu: "3", memory: 12Gi }
+              requests: { cpu: "2", memory: 8Gi }
+            volumeMounts:
+              # Ray writes session logs and object-store spill here.
+              - { name: ray-logs, mountPath: /tmp/ray }
+              - { name: dshm, mountPath: /dev/shm }
+            lifecycle:
+              preStop: { exec: { command: ["/bin/sh", "-c", "ray stop"] } }
+        volumes:
+          - name: ray-logs
+            emptyDir: {}
+          - name: dshm
+            emptyDir: { medium: Memory, sizeLimit: 4Gi }
+  # --- Worker pods: 4 GPUs + 1 EFA interface each (g6.12xlarge), single AZ ---
+  workerGroupSpecs:
+    - groupName: gpu-workers
+      replicas: 2
+      minReplicas: 2
+      maxReplicas: 2
+      # Must match the pod's nvidia.com/gpu limit below so Ray's view of
+      # capacity matches the kubelet's.
+      rayStartParams:
+        num-gpus: "${GPUS_PER_NODE}"
+      template:
+        spec:
+          nodeSelector:
+            role: gpu-worker
+          containers:
+            - name: ray-worker
+              image: "${DLC_IMAGE}"
+              imagePullPolicy: Always
+              env:
+                # Already INFO in the image; set here so the EFA check does
+                # not depend on an image default.
+                - { name: NCCL_DEBUG, value: "INFO" }
+                # eth0 is the pod's interface on EKS.
+                - { name: NCCL_SOCKET_IFNAME, value: "eth0" }
+                # Explicit, not left to libfabric's provider auto-selection:
+                # without this, NCCL can silently fall back to sockets and
+                # still print SUCCESS -- exactly the failure mode this
+                # sample's EFA check exists to catch.
+                - { name: FI_PROVIDER, value: "efa" }
+                # Matches the plugin filename the DLC's aws-ofi-nccl ships:
+                # libnccl-net-ofi.so.
+                - { name: NCCL_NET_PLUGIN, value: "ofi" }
+              resources:
+                limits:   { nvidia.com/gpu: "${GPUS_PER_NODE}", vpc.amazonaws.com/efa: "1", cpu: "40", memory: 160Gi }
+                requests: { nvidia.com/gpu: "${GPUS_PER_NODE}", vpc.amazonaws.com/efa: "1", cpu: "40", memory: 160Gi }
+              volumeMounts:
+                - { name: ray-logs, mountPath: /tmp/ray }
+                - { name: dshm, mountPath: /dev/shm }
+              lifecycle:
+                preStop: { exec: { command: ["/bin/sh", "-c", "ray stop"] } }
+          volumes:
+            - name: ray-logs
+              emptyDir: {}
+            - name: dshm
+              emptyDir: { medium: Memory, sizeLimit: 32Gi }
