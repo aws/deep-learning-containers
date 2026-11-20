@@ -19,6 +19,8 @@ on:
       # scripts/docker/tensorflow/ root.
       - "scripts/docker/tensorflow/**"
       - "test/tensorflow/integration/inference/**"
+      - "test/test_utils/instance_capacity.py"
+      - "test/test_utils/constants.py"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/tensorflow/**"
       - "!docs/**"
@@ -73,6 +75,9 @@ jobs:
               - "test/sanity/**"
             sagemaker-test-change:
               - "test/tensorflow/integration/inference/**"
+              - ".github/workflows/tensorflow-inference.tests-sagemaker.yml"
+              - "test/test_utils/instance_capacity.py"
+              - "test/test_utils/constants.py"
             sanity-test-change:
               - "test/sanity/**"
 

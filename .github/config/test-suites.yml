@@ -60,6 +60,9 @@ suites:
     skip_eligible: true
     code_paths:
       - test/tensorflow/integration/inference/**
+      - .github/workflows/tensorflow-inference.tests-sagemaker.yml
+      - test/test_utils/instance_capacity.py
+      - test/test_utils/constants.py
 
   tensorflow-training/unit:
     skip_eligible: true
