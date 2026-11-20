@@ -596,6 +596,14 @@ def check_workers():
         if expected not in logs_of(role):
             raise AssertionError(f"{role}: no '{expected}' in its log")
     log(f"both workers: {expected}")
+    if EFA:
+        # The image's LIBFABRIC plugin disables EFA's unsolicited write receive (otherwise remote
+        # writes can be lost); NIXL logs it at INFO (NIXL_LOG_LEVEL above).
+        disabled = "Successfully disabled unsolicited write recv"
+        for role in ("prefill", "decode"):
+            if disabled not in logs_of(role):
+                raise AssertionError(f"{role}: no '{disabled}' in its log")
+        log(f"both workers: {disabled}")
     if BACKEND == "vllm":
         # vLLM logs its KV transfer metrics periodically.
         def transferred():

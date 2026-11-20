@@ -229,12 +229,11 @@ RUN uv pip install pip \
   && bash /tmp/add_python_licenses.sh python${PYTHON_VERSION} /tmp/DLC_LICENSE \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
-# Builds NIXL's LIBFABRIC (EFA) plugin for the backend's NIXL when the base has EFA and either
-# scripts/docker/dynamo/nixl/patches/<nixl-version>/ has patches or the backend's NIXL ships without
-# LIBFABRIC; otherwise a no-op.
-#   nixl-cu13 1.5.0 (SGLang): ai-dynamo/nixl#2308 (not in a release yet). The progress thread posts
-#   transfers and reads the CQ without the endpoint lock, racing control messages; on EFA this
-#   aborts the worker ("Packet already processed") during disaggregated KV transfer.
+# Builds NIXL's LIBFABRIC (EFA) plugin from source, at the backend's NIXL version, when the base has
+# EFA (a no-op otherwise): against the EFA installer's libfabric, so EFA options gated on newer libfabric
+# headers are compiled in (the wheels' plugins are built against libfabric 1.21; see
+# scripts/docker/dynamo/nixl/build_libfabric_plugin.sh). Patches in
+# scripts/docker/dynamo/nixl/patches/<nixl-version>/ apply on top; none are needed today.
 #   TensorRT-LLM bundles its own NIXL (BUNDLED_NIXL_VERSION) without LIBFABRIC.
 FROM runtime-${EFA_FLAVOR} AS nixl-libfabric-build
 ARG BUNDLED_NIXL_VERSION=""

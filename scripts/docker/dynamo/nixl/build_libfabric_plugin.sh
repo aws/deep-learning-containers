@@ -1,10 +1,13 @@
 #!/bin/bash
-# Build NIXL's LIBFABRIC (EFA) plugin for the NIXL the backend ships, when it needs one:
-#   - a nixl-cuXX wheel (vLLM, SGLang) whose version has patches in <patch-dir>/<nixl-version>/
-#     (upstream fixes not in a NIXL release yet), or
+# Build NIXL's LIBFABRIC (EFA) plugin from source for the NIXL the backend ships, in every base with EFA:
+#   - a nixl-cuXX wheel (vLLM, SGLang): the wheel's own plugin is built against older libfabric headers
+#     (1.21), so features gated on newer headers are compiled out, notably disabling EFA's unsolicited
+#     write receive (FI_OPT_EFA_USE_UNSOLICITED_WRITE_RECV; left on, remote writes can be lost; fixed for
+#     wheels only from NIXL 1.5.2, ai-dynamo/nixl#2529). Building against the EFA installer's libfabric
+#     compiles it in. Patches in <patch-dir>/<nixl-version>/ (upstream fixes not in a release) apply too.
 #   - the NIXL bundled in TensorRT-LLM (tensorrt_llm/libs/nixl), which ships without LIBFABRIC; its
 #     version isn't recorded in the package, so pass it as BUNDLED_NIXL_VERSION.
-# Otherwise, and in a base without EFA, the shipped plugins are left as they are.
+# In a base without EFA, the shipped plugins are left as they are.
 #
 #   build_libfabric_plugin.sh build <patch-dir> <out-dir>   # build stage, same base and environment
 #   build_libfabric_plugin.sh install <out-dir>             # final stage
@@ -59,10 +62,6 @@ build)
         *) echo "ERROR: $p: name patches <n>-<topic>-nixl-<upstream PR>.patch" >&2; exit 1 ;;
         esac
     done
-    if [ -z "$PATCHES" ] && [ -f "$PLUGIN" ]; then
-        echo "${NIXL_DIST} ${NIXL_VERSION}: no patches in ${PATCH_DIR}; keeping the shipped plugin"
-        exit 0
-    fi
     CUDA_DASH=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr . -)
     PYVER=$("$PY" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')
     dnf install -y --setopt=install_weak_deps=False \
@@ -74,9 +73,11 @@ build)
     # Link against the driver stub; the node's driver provides libcuda.so.1 at runtime.
     export LIBRARY_PATH=/usr/local/cuda/lib64/stubs${LIBRARY_PATH:+:${LIBRARY_PATH}}
 
-    # Pinned by commit (tags can move): <patch-dir>/../COMMITS maps each NIXL version to its v<version> commit.
-    COMMIT=$(awk -v v="${NIXL_VERSION}" '$1 == v {print $2}' "$2/../COMMITS")
-    [ -n "$COMMIT" ] || { echo "no pinned commit for NIXL ${NIXL_VERSION} in $2/../COMMITS" >&2; exit 1; }
+    # Pinned by commit (tags can move): COMMITS, next to <patch-dir>, maps each NIXL version to its v<version>
+    # commit. (<patch-dir> itself may be absent from the build context when it has no patches.)
+    COMMITS_FILE="$(dirname "$2")/COMMITS"
+    COMMIT=$(awk -v v="${NIXL_VERSION}" '$1 == v {print $2}' "$COMMITS_FILE")
+    [ -n "$COMMIT" ] || { echo "no pinned commit for NIXL ${NIXL_VERSION} in ${COMMITS_FILE}" >&2; exit 1; }
     git init -q /tmp/nixl && cd /tmp/nixl
     git fetch -q --depth 1 "$NIXL_REPO" "$COMMIT" && git checkout -q FETCH_HEAD
     [ "$(git rev-parse HEAD)" = "$COMMIT" ] || { echo "NIXL checkout is not ${COMMIT}" >&2; exit 1; }
@@ -85,6 +86,10 @@ build)
     meson setup build -Dbuildtype=release -Denable_plugins=LIBFABRIC -Dlibfabric_path=/opt/amazon/efa \
         -Dbuild_tests=false -Dbuild_examples=false -Dinstall_headers=false \
         -Ddisable_gds_backend=true -Ddisable_mooncake_backend=true -Ddisable_infinia_backend=true
+    # The point of the rebuild: the EFA installer's headers must declare the option, or the plugin is
+    # built without disabling unsolicited write receive, as the wheels' plugins are.
+    grep -q 'libfabric supports FI_OPT_EFA_USE_UNSOLICITED_WRITE_RECV' build/meson-logs/meson-log.txt \
+        || { echo "ERROR: libfabric in /opt/amazon/efa lacks FI_OPT_EFA_USE_UNSOLICITED_WRITE_RECV" >&2; exit 1; }
     ninja -C build src/plugins/libfabric/libplugin_LIBFABRIC.so
     NEW=build/src/plugins/libfabric/libplugin_LIBFABRIC.so
 
