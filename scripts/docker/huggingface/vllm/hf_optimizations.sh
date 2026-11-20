@@ -20,7 +20,7 @@ fi
 
 # ---- feature toggles -------------------------------------------------------
 : "${HF_ENABLE_EXPANDABLE_SEGMENTS:=1}"
-: "${HF_ENABLE_LMCACHE:=1}"
+: "${HF_ENABLE_LMCACHE:=0}"
 : "${HF_LMCACHE_CPU_FRACTION:=0.5}" # share of total RAM for the LMCache CPU pool
 : "${HF_ENABLE_XET_HIGH_PERFORMANCE:=1}"
 : "${HF_ENABLE_TOKENIZERS_GUARD:=1}"
