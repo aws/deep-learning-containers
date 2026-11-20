@@ -259,26 +259,6 @@ RUN go get \
   && go version -m /out/libetcd_wrapper.so
 
 # =============================================================================
-# STAGE: mooncake-build — Mooncake wheel with EFA + intra-node/multi-node NVLink transports
-# =============================================================================
-# PyPI has no aarch64 EFA wheel, and its aarch64 cuda13 wheel lacks the EFA and nvlink_intra
-# transports. Built by default on arm64 only (MOONCAKE_FROM_SOURCE=auto); other arches leave
-# /out empty and keep the PyPI wheel. Rocky 9 has the same glibc (2.34) as AL2023.
-FROM rockylinux/rockylinux:9 AS mooncake-build
-
-ARG MOONCAKE_VERSION
-ARG TARGETARCH
-ARG MOONCAKE_FROM_SOURCE=auto
-
-COPY scripts/docker/vllm/amzn2023/build_mooncake_efa.sh /tmp/build_mooncake_efa.sh
-COPY scripts/docker/vllm/amzn2023/mooncake-patches/ /tmp/mooncake-patches/
-RUN mkdir -p /out \
-  && if [ "$MOONCAKE_FROM_SOURCE" = "1" ] \
-       || { [ "$MOONCAKE_FROM_SOURCE" = "auto" ] && [ "$TARGETARCH" = "arm64" ]; }; then \
-       MC_VERSION="${MOONCAKE_VERSION}" OUTPUT_DIR=/out MC_PATCH_DIR=/tmp/mooncake-patches bash /tmp/build_mooncake_efa.sh; \
-     fi
-
-# =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
 # =============================================================================
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS deps
@@ -393,16 +373,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         rm -f /tmp/kv-constraints.txt; \
     fi
 
-# Replace the PyPI Mooncake wheel with the source build when mooncake-build produced one.
-COPY --from=mooncake-build /out/ /tmp/mooncake-wheels/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    set -e; \
-    if ls /tmp/mooncake-wheels/*.whl >/dev/null 2>&1; then \
-        uv pip uninstall mooncake-transfer-engine mooncake-transfer-engine-cuda13 || true; \
-        uv pip install --no-deps /tmp/mooncake-wheels/*.whl; \
-    fi; \
-    rm -rf /tmp/mooncake-wheels
-
 # Swap in the etcd wrapper rebuilt by the mooncake-etcd stage. Fail if the rebuild lacks a
 # function the original exports, since engine.so, store.so and the other Mooncake libraries
 # link against them.
@@ -472,8 +442,8 @@ RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
     libcublas-${CUDA_DASH} \
     numactl-libs \
   && dnf clean all && rm -rf /var/cache/dnf
-# JIT builds link -lcuda. The host driver's libcuda.so is mounted outside the linker's
-# default search path on arm64 hosts, so link against the stub; the driver is loaded at runtime.
+# JIT builds (FlashInfer) link -lcuda, which needs an unversioned libcuda.so. The host driver
+# only provides libcuda.so.1, so link against the stub; the real driver is loaded at runtime.
 ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs
 
 COPY --from=deps /opt/venv /opt/venv

@@ -7,7 +7,7 @@ set -uo pipefail
 #   - every shared library loads on 64 KB page kernels (ELF LOAD alignment >= 64 KB)
 #   - vLLM and the NCCL test binary carry GB200 (sm_100) kernels
 #   - JIT builds can link -lcuda (CUDA driver stub on LIBRARY_PATH)
-#   - Mooncake has the EFA and intra-node NVLink transports, and libfabric resolves
+#   - Mooncake has the EFA and multi-node NVLink (MNNVL) transports, and libfabric resolves
 # Functional coverage (serving, NCCL, EFA, PD disaggregation) needs GB200 hardware.
 
 PYTHON=/opt/venv/bin/python3
@@ -89,13 +89,13 @@ else
   if nm -D "$MC_DIR/engine.so" 2>/dev/null | grep "EfaTransport" >/dev/null; then
     pass "mooncake engine.so has the EFA transport"
   else
-    fail "mooncake engine.so has no EFA transport (falls back to ibverbs)"
+    fail "mooncake engine.so has no EFA transport (needs mooncake-transfer-engine >= 0.3.14)"
   fi
-  # The "nvlink_intra" string is also in Mooncake's "unsupported transport" error, so check the class.
-  if nm -DC "$MC_DIR/engine.so" 2>/dev/null | grep "IntraNodeNvlinkTransport" >/dev/null; then
-    pass "mooncake engine.so has the nvlink_intra transport"
+  # Transport names also appear in Mooncake's "unsupported transport" errors, so check the class.
+  if nm -DC "$MC_DIR/engine.so" 2>/dev/null | grep "mooncake::NvlinkTransport" >/dev/null; then
+    pass "mooncake engine.so has the MNNVL transport"
   else
-    fail "mooncake engine.so has no nvlink_intra transport (built without USE_INTRA_NVLINK)"
+    fail "mooncake engine.so has no MNNVL transport"
   fi
 fi
 # engine.so dlopens libfabric rather than linking it.
