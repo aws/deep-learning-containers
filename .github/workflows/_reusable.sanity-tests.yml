@@ -187,6 +187,15 @@ jobs:
             -e EXPECTED_CUDA_VERSION=${{ needs.preflight.outputs.cuda-version }} \
             ${CONTAINER_ID} python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
 
+      # GPU test fleets are x86 only, so these static checks gate arm64 GPU vLLM images.
+      - name: Run arm64 GPU image checks
+        if: |
+          needs.preflight.outputs.framework == 'vllm_server' &&
+          needs.preflight.outputs.arch-type == 'arm64' &&
+          needs.preflight.outputs.device-type == 'gpu'
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_arm64_gpu.sh
+
       - name: Check model containers framework version currency
         if: |
           needs.preflight.outputs.framework == 'vllm_server' ||

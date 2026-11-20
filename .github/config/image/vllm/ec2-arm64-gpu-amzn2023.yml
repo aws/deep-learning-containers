@@ -1,0 +1,35 @@
+image:
+  name: "vllm-arm64-gpu-ec2-amzn2023"
+  description: "vLLM for EC2 arm64 GPU instances (GB200/GH200, AL2023, built from source)"
+
+metadata:
+  framework: "vllm_server"
+  framework_version: "0.34.0"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "arm64"
+  device_type: "gpu"
+  job_type: "general"
+  prod_image: "vllm-arm64:server-cuda-v1"
+
+build:
+  dockerfile: "docker/vllm/Dockerfile.amzn2023"
+  target: "vllm-ec2-amzn2023"
+  efa_version: "latest"
+  python_version: "3.12"
+  cuda_version: "13.0.2"
+  vllm_ref: "62d4bc3c7e33b1b6c906e233e6af2d3506c482ca"  # v0.34.0
+  # arm64 GPUs only: 9.0 GH200, 10.0 GB200, 10.3 GB300. Part of the wheel cache key.
+  torch_cuda_arch_list: "9.0 10.0 10.3"
+  flashinfer_version: "0.7.3"
+  deepep_commit_hash: "874779c9ccd2294b56304bd6cc5f138f1f71d097"
+  dlc_major_version: "1"
+  dlc_minor_version: "0"
+
+release:
+  release: false
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: "production"
