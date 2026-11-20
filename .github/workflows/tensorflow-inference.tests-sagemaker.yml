@@ -120,7 +120,10 @@ jobs:
             vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6_XLARGE) || '' }}
         run: |
           source .venv/bin/activate
-          python3 -m pytest -v --tb=short -rA -n 4 --dist loadfile \
+          # GPU runs deploy 2 endpoints at a time: the G6 ML Reservation is small and
+          # shared with other suites (and with the 2.20 GPU suite on the same PR),
+          # so 4 at a time left most endpoints waiting on open-pool capacity.
+          python3 -m pytest -v --tb=short -rA -n ${{ inputs.device-type == 'gpu' && 2 || 4 }} --dist loadfile \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
             --region ${{ vars.AWS_REGION }} \
             test/tensorflow/integration/inference/
