@@ -65,6 +65,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/tensorflow/unit/**
+      - .github/workflows/tensorflow-training.tests-unit.yml
 
   tensorflow-training/single_gpu:
     skip_eligible: true
@@ -75,6 +76,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/tensorflow/integration/training/**
+      - .github/workflows/tensorflow-training.tests-sagemaker.yml
 
   ray/unit:
     skip_eligible: true

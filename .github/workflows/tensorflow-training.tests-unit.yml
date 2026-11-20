@@ -65,6 +65,7 @@ jobs:
         run: |
           FRAMEWORK_VERSION=$(yq '.metadata.framework_version' '${{ inputs.config-file }}')
           SHORT_VERSION=$(echo "${FRAMEWORK_VERSION}" | cut -d. -f1,2)
+          echo "version=${FRAMEWORK_VERSION}" >> $GITHUB_OUTPUT
           echo "short-version=${SHORT_VERSION}" >> $GITHUB_OUTPUT
 
       - name: Run unit tests
@@ -79,6 +80,7 @@ jobs:
             -e PYTHONPATH=/workdir/test \
             -e DLC_WORKDIR=/workdir \
             -e DLC_TENSORFLOW_VERSION=${{ steps.fw.outputs.short-version }} \
+            -e DLC_TENSORFLOW_FULL_VERSION=${{ steps.fw.outputs.version }} \
             ${CONTAINER_ID} \
             pytest /workdir/test/tensorflow/unit/ -v
           docker kill ${CONTAINER_ID}
