@@ -34,6 +34,20 @@ LOGGER = logging.getLogger(__name__)
 _BLACKWELL_PREFIXES = ("ml.g7.", "ml.g7e.", "ml.p6")
 
 
+# CI tags every Model, EndpointConfig and Endpoint it creates with its job ID
+# (DLC_CI_JOB_ID, set by tensorflow-inference.tests-sagemaker.yml), so the
+# workflow's always-run cleanup step can delete what a killed run left behind.
+CI_JOB_TAG_KEY = "dlc-ci-job"
+
+
+def ci_tags() -> dict:
+    """``tags=`` kwargs for SDK v3 ``*.create`` calls; empty outside CI."""
+    from sagemaker.core.shapes import Tag
+
+    job_id = os.environ.get("DLC_CI_JOB_ID", "").strip()
+    return {"tags": [Tag(key=CI_JOB_TAG_KEY, value=job_id)]} if job_id else {}
+
+
 def _inference_ami_version(instance_types: list[str]) -> str:
     if any(t.startswith(_BLACKWELL_PREFIXES) for t in instance_types):
         return INFERENCE_AMI_VERSION_CU13
@@ -140,6 +154,7 @@ def _provision_endpoint(
                 primary_container=ContainerDefinition(**container_kwargs),
                 execution_role_arn=role_arn,
                 session=session,
+                **ci_tags(),
             )
             attempt.append(model)
 
@@ -163,6 +178,7 @@ def _provision_endpoint(
                 endpoint_config_name=endpoint_name,
                 production_variants=[ProductionVariant(**variant_kwargs)],
                 session=session,
+                **ci_tags(),
             )
             attempt.append(endpoint_config)
 
@@ -170,6 +186,7 @@ def _provision_endpoint(
                 endpoint_name=endpoint_name,
                 endpoint_config_name=endpoint_name,
                 session=session,
+                **ci_tags(),
             )
             attempt.append(endpoint)
 
