@@ -384,20 +384,22 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         rm -f /tmp/kv-constraints.txt; \
     fi
 
-# Swap in the etcd wrapper rebuilt by the mooncake-etcd stage. Fail if the rebuild lacks a
-# function the original exports, since engine.so, store.so and the other Mooncake libraries
-# link against them.
+# Swap in the etcd wrapper rebuilt by the mooncake-etcd stage. The wheel ships two copies:
+# mooncake/libetcd_wrapper.so (engine.so, store.so) and auditwheel's
+# mooncake*.libs/libetcd_wrapper-<hash>.so (_ep.so); replace both. Fail if the rebuild lacks a
+# function either copy exports.
 COPY --from=mooncake-etcd /out/libetcd_wrapper.so /tmp/libetcd_wrapper.so
 RUN set -e; \
-    WRAPPER="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/mooncake/libetcd_wrapper.so"; \
-    if [ -f "$WRAPPER" ]; then \
+    SITE="/opt/venv/lib/python${PYTHON_VERSION}/site-packages"; \
+    nm -D --defined-only /tmp/libetcd_wrapper.so | awk '$2 == "T" {print $3}' | sort >/tmp/new.exports; \
+    for WRAPPER in "$SITE"/mooncake/libetcd_wrapper.so "$SITE"/mooncake*.libs/libetcd_wrapper-*.so; do \
+        [ -f "$WRAPPER" ] || continue; \
         nm -D --defined-only "$WRAPPER" | awk '$2 == "T" && $3 !~ /^(_cgo|x_cgo|_?crosscall)/ {print $3}' | sort >/tmp/old.exports; \
-        nm -D --defined-only /tmp/libetcd_wrapper.so | awk '$2 == "T" {print $3}' | sort >/tmp/new.exports; \
         MISSING=$(comm -23 /tmp/old.exports /tmp/new.exports); \
-        if [ -n "$MISSING" ]; then echo "ERROR: rebuilt libetcd_wrapper.so lacks: $MISSING" >&2; exit 1; fi; \
+        if [ -n "$MISSING" ]; then echo "ERROR: rebuilt libetcd_wrapper.so lacks ($WRAPPER): $MISSING" >&2; exit 1; fi; \
         cp /tmp/libetcd_wrapper.so "$WRAPPER"; \
         echo "Replaced $WRAPPER ($(wc -l </tmp/old.exports) exported functions kept)"; \
-    fi; \
+    done; \
     rm -f /tmp/libetcd_wrapper.so /tmp/old.exports /tmp/new.exports
 
 # The flashinfer-cubin wheel (installed above) already ships every cubin, so
