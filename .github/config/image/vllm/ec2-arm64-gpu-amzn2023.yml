@@ -22,8 +22,6 @@ build:
   # arm64 GPUs only: 9.0 GH200, 10.0 GB200, 10.3 GB300. Part of the wheel cache key.
   torch_cuda_arch_list: "9.0 10.0 10.3"
   flashinfer_version: "0.7.3"
-  # vLLM 0.34 needs >= 0.3.14, the first PyPI aarch64 wheel with the EFA transport.
-  mooncake_version: "0.3.14"
   deepep_commit_hash: "874779c9ccd2294b56304bd6cc5f138f1f71d097"
   dlc_major_version: "1"
   dlc_minor_version: "0"
