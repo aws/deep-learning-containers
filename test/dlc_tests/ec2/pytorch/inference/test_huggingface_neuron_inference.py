@@ -2,9 +2,11 @@
 
 Each case runs in eager mode and with `torch.compile(backend="neuron")`:
 - transformers_neuron_inference.py checks Transformers (encoder, decoder and
-  generation), Sentence Transformers and Diffusers models against CPU.
-- hf_serve_neuron_inference.py serves a model through the image entrypoint
-  (hf-serve) with zero-code tasks and a custom handler.
+  generation), Sentence Transformers, a Diffusers UNet and a tiny Stable
+  Diffusion pipeline (end to end) against CPU.
+- hf_serve_neuron_inference.py serves models through the image entrypoint
+  (hf-serve) with zero-code tasks (text-classification, text-to-image) and a
+  custom handler.
 """
 
 import pytest
@@ -49,7 +51,7 @@ def _run_in_container(ec2_connection, image, region, script, mode):
 @pytest.mark.processor("neuronx")
 @pytest.mark.neuronx_test
 @pytest.mark.team("neuron")
-@pytest.mark.model("tiny-bert-qwen3-unet")
+@pytest.mark.model("tiny-bert-qwen3-stable-diffusion")
 @pytest.mark.integration("huggingface_neuron_inference")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", NEURON_INSTANCE_TYPES, indirect=True)
@@ -68,7 +70,7 @@ def test_huggingface_neuron_inference(pytorch_inference_neuronx, ec2_connection,
 @pytest.mark.processor("neuronx")
 @pytest.mark.neuronx_test
 @pytest.mark.team("neuron")
-@pytest.mark.model("tiny-bert")
+@pytest.mark.model("tiny-bert-stable-diffusion")
 @pytest.mark.integration("huggingface_neuron_hf_serve")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", NEURON_INSTANCE_TYPES, indirect=True)

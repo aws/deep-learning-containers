@@ -1,15 +1,17 @@
-"""Serve a tiny text classifier on Neuron with the image entrypoint (hf-serve).
+"""Serve tiny models on Neuron with the image entrypoint (hf-serve).
 
 The model is laid out in /opt/ml/model as SageMaker extracts `model.tar.gz`, and
 requests go through the SageMaker routes (`/ping`, `/invocations`).
 
     python hf_serve_neuron_inference.py --mode eager
-        zero-code `text-classification` task, then the custom handler in eager mode
+        zero-code `text-classification` and `text-to-image` (tiny Stable Diffusion)
+        tasks, then the custom handler in eager mode
     python hf_serve_neuron_inference.py --mode compiled
         the custom handler with `torch.compile(backend="neuron")`
 """
 
 import argparse
+import io
 import json
 import os
 import shutil
@@ -21,7 +23,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from transformers_neuron_inference import save_tiny_bert  # noqa: E402
+from transformers_neuron_inference import save_tiny_bert, save_tiny_stable_diffusion  # noqa: E402
 
 ENTRYPOINT = "/usr/local/bin/hf-serve-neuron-entrypoint.sh"
 MODEL_DIR = Path("/opt/ml/model")
@@ -29,11 +31,20 @@ HANDLER = Path(__file__).resolve().parent / "neuron_inference_handler.py"
 PORT = 8080
 STARTUP_TIMEOUT = 1200
 LABELS = {0: "NEGATIVE", 1: "POSITIVE"}
+TEXT_CLASSIFICATION_PAYLOAD = {"inputs": "hamilton is the best musical"}
+TEXT_TO_IMAGE_PAYLOAD = {
+    "inputs": "a photo of an astronaut riding a horse on mars",
+    "parameters": {"width": 32, "height": 32, "num_inference_steps": 2, "seed": 42},
+}
+
+
+def reset_model_dir():
+    shutil.rmtree(MODEL_DIR, ignore_errors=True)
+    MODEL_DIR.mkdir(parents=True)
 
 
 def prepare_model_dir(custom_handler):
-    shutil.rmtree(MODEL_DIR, ignore_errors=True)
-    MODEL_DIR.mkdir(parents=True)
+    reset_model_dir()
     save_tiny_bert(
         str(MODEL_DIR),
         "BertForSequenceClassification",
@@ -47,18 +58,22 @@ def prepare_model_dir(custom_handler):
         shutil.copy(HANDLER, MODEL_DIR / "code" / "handler.py")
 
 
-def request(path, payload=None):
+def request(path, payload=None, accept="application/json"):
     data = None if payload is None else json.dumps(payload).encode()
     req = urllib.request.Request(
         f"http://127.0.0.1:{PORT}{path}",
         data=data,
-        headers={"Content-Type": "application/json", "Accept": "application/json"},
+        headers={"Content-Type": "application/json", "Accept": accept},
     )
     with urllib.request.urlopen(req, timeout=600) as response:
-        return response.status, json.loads(response.read() or b"null")
+        body = response.read()
+        if accept != "application/json":
+            assert response.headers["Content-Type"] == accept, response.headers["Content-Type"]
+            return response.status, body
+        return response.status, json.loads(body or b"null")
 
 
-def serve(name, env, check):
+def serve(name, env, check, payload=TEXT_CLASSIFICATION_PAYLOAD, accept="application/json"):
     log_path = Path(f"/tmp/hf-serve-{name.replace('/', '-')}.log")
     server_env = {
         key: value
@@ -83,10 +98,10 @@ def serve(name, env, check):
             if time.time() > deadline:
                 raise TimeoutError(f"{name}: server did not start in {STARTUP_TIMEOUT}s")
             time.sleep(5)
-        status, output = request("/invocations", {"inputs": "hamilton is the best musical"})
+        status, output = request("/invocations", payload, accept)
         assert status == 200, f"{name}: status {status}, {output}"
-        check(output, log_path.read_text())
-        print(f"PASS {name} output={output}", flush=True)
+        summary = check(output, log_path.read_text())
+        print(f"PASS {name} output={summary or output}", flush=True)
     except BaseException:
         print(log_path.read_text()[-5000:], flush=True)
         raise
@@ -102,6 +117,18 @@ def check_zero_code(output, log):
     assert 0.0 <= prediction["score"] <= 1.0, output
 
 
+def check_text_to_image(output, log):
+    from PIL import Image
+
+    assert "on `device=neuron`" in log, "hf-serve did not load the pipeline on the neuron device"
+    image = Image.open(io.BytesIO(output))
+    assert image.format == "PNG", image.format
+    assert image.size == (32, 32), image.size
+    # An all-black image would mean NaNs in the denoising loop or the VAE.
+    assert image.convert("L").getextrema() != (0, 0), "text-to-image returned a black image"
+    return f"PNG {image.size[0]}x{image.size[1]}"
+
+
 def check_custom(mode):
     def check(output, log):
         assert output["device"] == "neuron", output
@@ -115,6 +142,15 @@ def main(mode):
     if mode == "eager":
         prepare_model_dir(custom_handler=False)
         serve("eager/zero-code", {"HF_TASK": "text-classification"}, check_zero_code)
+        reset_model_dir()
+        save_tiny_stable_diffusion(str(MODEL_DIR))
+        serve(
+            "eager/zero-code-text-to-image",
+            {"HF_TASK": "text-to-image"},
+            check_text_to_image,
+            payload=TEXT_TO_IMAGE_PAYLOAD,
+            accept="image/png",
+        )
     prepare_model_dir(custom_handler=True)
     serve(
         f"{mode}/custom-handler",

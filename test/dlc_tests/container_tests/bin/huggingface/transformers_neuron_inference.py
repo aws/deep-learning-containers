@@ -1,4 +1,4 @@
-"""Run tiny Transformers, Sentence Transformers and Diffusers models on Neuron.
+"""Run tiny Transformers, Sentence Transformers and Diffusers models and pipelines on Neuron.
 
 Every model is built from a config (no Hub access), runs on the `neuron` device,
 and is checked against the same model on CPU.
@@ -169,11 +169,10 @@ def test_sentence_transformers(mode):
     assert_close(actual, expected, f"{mode}/sentence-transformers/encode")
 
 
-def test_diffusers_unet(mode):
+def tiny_unet():
     from diffusers import UNet2DConditionModel
 
-    torch.manual_seed(SEED)
-    unet = UNet2DConditionModel(
+    return UNet2DConditionModel(
         sample_size=16,
         in_channels=4,
         out_channels=4,
@@ -184,7 +183,75 @@ def test_diffusers_unet(mode):
         cross_attention_dim=32,
         attention_head_dim=8,
         norm_num_groups=8,
-    ).eval()
+    )
+
+
+def save_tiny_stable_diffusion(path):
+    """Save a tiny Stable Diffusion pipeline (32x32 images) built from configs."""
+    from diffusers import AutoencoderKL, DDIMScheduler, StableDiffusionPipeline
+    from tokenizers import Tokenizer, models, pre_tokenizers
+    from transformers import CLIPTextConfig, CLIPTextModel, PreTrainedTokenizerFast
+
+    words = "a photo of an astronaut riding horse on mars".split()
+    vocab = {token: i for i, token in enumerate(["<pad>", "<unk>", "<bos>", "<eos>"])}
+    vocab.update({word: i + len(vocab) for i, word in enumerate(words)})
+    backend = Tokenizer(models.WordLevel(vocab=vocab, unk_token="<unk>"))
+    backend.pre_tokenizer = pre_tokenizers.Whitespace()
+    tokenizer = PreTrainedTokenizerFast(
+        tokenizer_object=backend,
+        unk_token="<unk>",
+        pad_token="<pad>",
+        bos_token="<bos>",
+        eos_token="<eos>",
+        model_max_length=16,
+    )
+    torch.manual_seed(SEED)
+    text_encoder = CLIPTextModel(
+        CLIPTextConfig(
+            vocab_size=32,
+            hidden_size=32,
+            intermediate_size=64,
+            num_hidden_layers=2,
+            num_attention_heads=4,
+            max_position_embeddings=16,
+            pad_token_id=0,
+            bos_token_id=2,
+            eos_token_id=3,
+        )
+    )
+    vae = AutoencoderKL(
+        in_channels=3,
+        out_channels=3,
+        latent_channels=4,
+        block_out_channels=(32, 64),
+        down_block_types=("DownEncoderBlock2D",) * 2,
+        up_block_types=("UpDecoderBlock2D",) * 2,
+        layers_per_block=1,
+        norm_num_groups=8,
+        sample_size=32,
+    )
+    scheduler = DDIMScheduler(
+        beta_start=0.00085,
+        beta_end=0.012,
+        beta_schedule="scaled_linear",
+        clip_sample=False,
+        set_alpha_to_one=False,
+    )
+    StableDiffusionPipeline(
+        vae=vae,
+        text_encoder=text_encoder,
+        tokenizer=tokenizer,
+        unet=tiny_unet(),
+        scheduler=scheduler,
+        safety_checker=None,
+        feature_extractor=None,
+        requires_safety_checker=False,
+    ).save_pretrained(path)
+
+
+def test_diffusers_unet(mode):
+    torch.manual_seed(SEED)
+    unet = tiny_unet().eval()
     sample = torch.randn(1, 4, 16, 16)
     timestep = torch.tensor([10])
     encoder_hidden_states = torch.randn(1, 8, 32)
@@ -195,6 +262,34 @@ def test_diffusers_unet(mode):
             sample.to(DEVICE), timestep.to(DEVICE), encoder_hidden_states.to(DEVICE)
         ).sample
     assert_close(actual, expected, f"{mode}/diffusers/unet")
+
+
+def test_diffusers_pipeline(mode):
+    """Text encoder, denoising loop with classifier-free guidance and VAE decoding on Neuron.
+
+    In compiled mode the UNet, which runs at every denoising step, is compiled.
+    """
+    from diffusers import StableDiffusionPipeline
+
+    generate_kwargs = dict(
+        prompt="a photo of an astronaut riding a horse on mars",
+        height=32,
+        width=32,
+        num_inference_steps=2,
+        guidance_scale=7.5,
+        output_type="pt",
+    )
+    with tempfile.TemporaryDirectory() as path:
+        save_tiny_stable_diffusion(path)
+        pipeline = StableDiffusionPipeline.from_pretrained(path)
+        expected = pipeline(generator=torch.Generator().manual_seed(SEED), **generate_kwargs)
+        pipeline = pipeline.to(DEVICE)
+        if mode == "compiled":
+            pipeline.unet = torch.compile(
+                pipeline.unet, backend="neuron", dynamic=False, fullgraph=True
+            )
+        actual = pipeline(generator=torch.Generator().manual_seed(SEED), **generate_kwargs)
+    assert_close(actual.images, expected.images, f"{mode}/diffusers/stable-diffusion-pipeline")
 
 
 def main(mode):
@@ -209,6 +304,7 @@ def main(mode):
         test_causal_lm,
         test_sentence_transformers,
         test_diffusers_unet,
+        test_diffusers_pipeline,
     ):
         test(mode)
     print(f"PASS all mode={mode}", flush=True)
