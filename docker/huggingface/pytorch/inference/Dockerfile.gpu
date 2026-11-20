@@ -68,7 +68,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "cryptography>=50.0.0" \
   "brotli>=1.2.1" \
   "filelock>=4.2.1" \
-  "mlflow>=3.17.2" \
+  "mlflow>=3.18.0" \
   "oauthlib>=4.0.1" \
   "fsspec[http]>=2026.6.0" \
   "s3fs>=2026.6.0" \
@@ -77,6 +77,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "graphql-core>=3.2.12,<3.3" \
   "pyasn1>=0.6.5" \
   "sqlparse>=0.6.0" \
+  "soupsieve>=4.0.0" \
   "tornado>=6.5.8" \
   "urllib3>=2.8.0" \
   && uv cache clean \
