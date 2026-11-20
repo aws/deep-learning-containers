@@ -11,7 +11,8 @@ ARG GDRCOPY_VERSION=2.5.2
 # Mooncake KV connector; its Go etcd client is rebuilt in the mooncake-etcd stage.
 ARG MOONCAKE_VERSION=0.3.13.post1
 ARG GO_VERSION=1.27.3
-ARG GO_SHA256=65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40
+ARG GO_SHA256_AMD64=65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40
+ARG GO_SHA256_ARM64=a06e99309dbcbdca1a8ccd2282c3ee146e55930886e26b4f1193269587165f49
 
 # =============================================================================
 # STAGE 0: source — clone vLLM and apply patches
@@ -147,9 +148,9 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
     elif [ "$USE_SCCACHE" = "true" ]; then \
       echo "🔧 Building vLLM with sccache..." \
       && curl -L -o /tmp/sccache.tar.gz \
-        "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-x86_64-unknown-linux-musl.tar.gz" \
+        "https://github.com/mozilla/sccache/releases/download/v0.8.1/sccache-v0.8.1-$(uname -m)-unknown-linux-musl.tar.gz" \
       && tar -xzf /tmp/sccache.tar.gz -C /tmp \
-      && mv /tmp/sccache-v0.8.1-x86_64-unknown-linux-musl/sccache /usr/bin/sccache \
+      && mv /tmp/sccache-v0.8.1-$(uname -m)-unknown-linux-musl/sccache /usr/bin/sccache \
       && rm -rf /tmp/sccache* \
       && export SCCACHE_DIR=/root/.cache/sccache \
       && export SCCACHE_IDLE_TIMEOUT=0 \
@@ -183,7 +184,7 @@ RUN --mount=type=cache,target=/root/.cache/uv CUDA_MAJOR=$(echo $CUDA_VERSION | 
   && mkdir -p /tmp/ep_kernels_workspace/dist \
   && cd /tmp/deepep \
   && EP_NCCL_ROOT_DIR="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl" \
-    LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:/usr/local/cuda/lib64/stubs:/usr/local/cuda/targets/x86_64-linux/lib/stubs:${LIBRARY_PATH}" \
+    LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:/usr/local/cuda/lib64/stubs:/usr/local/cuda/targets/$(uname -m | sed s/aarch64/sbsa/)-linux/lib/stubs:${LIBRARY_PATH}" \
     LD_LIBRARY_PATH="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LD_LIBRARY_PATH}" \
     DISABLE_AGGRESSIVE_PTX_INSTRS=1 \
     TORCH_CUDA_ARCH_LIST='9.0a 10.0a 10.3a' \
@@ -222,18 +223,21 @@ COPY --from=build /root/.cache/sccache/ /
 # (kvcache-ai/Mooncake#4707), so build the same wrapper source at MOONCAKE_VERSION with a
 # current Go and the newest patch releases of that fix's modules (x/net 0.62.0 also fixes
 # CVE-2026-78661 and CVE-2026-97045, published after it). Built on AL2023 (glibc 2.34) like
-# the runtime image; x86_64 only, like the rest of this Dockerfile. Drop this stage once a
-# PyPI release ships a patched wrapper.
+# the runtime image. Drop this stage once a PyPI release ships a patched wrapper.
 FROM public.ecr.aws/amazonlinux/amazonlinux:2023 AS mooncake-etcd
 
 ARG MOONCAKE_VERSION
 ARG GO_VERSION
-ARG GO_SHA256
+ARG GO_SHA256_AMD64
+ARG GO_SHA256_ARM64
+ARG TARGETARCH
 
 RUN dnf install -y --setopt=install_weak_deps=False git gcc tar gzip \
   && dnf clean all && rm -rf /var/cache/dnf
 
-RUN curl --retry 3 -fsSL -o /tmp/go.tar.gz "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+RUN GO_ARCH="${TARGETARCH:-amd64}" \
+  && if [ "$GO_ARCH" = "arm64" ]; then GO_SHA256="${GO_SHA256_ARM64}"; else GO_SHA256="${GO_SHA256_AMD64}"; fi \
+  && curl --retry 3 -fsSL -o /tmp/go.tar.gz "https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz" \
   && echo "${GO_SHA256}  /tmp/go.tar.gz" | sha256sum -c - \
   && tar -C /usr/local -xzf /tmp/go.tar.gz \
   && rm /tmp/go.tar.gz
@@ -253,6 +257,26 @@ RUN go get \
   && go mod tidy \
   && go build -buildmode=c-shared -trimpath -o /out/libetcd_wrapper.so etcd_wrapper.go \
   && go version -m /out/libetcd_wrapper.so
+
+# =============================================================================
+# STAGE: mooncake-build — Mooncake wheel with EFA + intra-node/multi-node NVLink transports
+# =============================================================================
+# PyPI has no aarch64 EFA wheel, and its aarch64 cuda13 wheel lacks the EFA and nvlink_intra
+# transports. Built by default on arm64 only (MOONCAKE_FROM_SOURCE=auto); other arches leave
+# /out empty and keep the PyPI wheel. Rocky 9 has the same glibc (2.34) as AL2023.
+FROM rockylinux/rockylinux:9 AS mooncake-build
+
+ARG MOONCAKE_VERSION
+ARG TARGETARCH
+ARG MOONCAKE_FROM_SOURCE=auto
+
+COPY scripts/docker/vllm/amzn2023/build_mooncake_efa.sh /tmp/build_mooncake_efa.sh
+COPY scripts/docker/vllm/amzn2023/mooncake-patches/ /tmp/mooncake-patches/
+RUN mkdir -p /out \
+  && if [ "$MOONCAKE_FROM_SOURCE" = "1" ] \
+       || { [ "$MOONCAKE_FROM_SOURCE" = "auto" ] && [ "$TARGETARCH" = "arm64" ]; }; then \
+       MC_VERSION="${MOONCAKE_VERSION}" OUTPUT_DIR=/out MC_PATCH_DIR=/tmp/mooncake-patches bash /tmp/build_mooncake_efa.sh; \
+     fi
 
 # =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
@@ -369,6 +393,16 @@ RUN --mount=type=cache,target=/root/.cache/uv \
         rm -f /tmp/kv-constraints.txt; \
     fi
 
+# Replace the PyPI Mooncake wheel with the source build when mooncake-build produced one.
+COPY --from=mooncake-build /out/ /tmp/mooncake-wheels/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    set -e; \
+    if ls /tmp/mooncake-wheels/*.whl >/dev/null 2>&1; then \
+        uv pip uninstall mooncake-transfer-engine mooncake-transfer-engine-cuda13 || true; \
+        uv pip install --no-deps /tmp/mooncake-wheels/*.whl; \
+    fi; \
+    rm -rf /tmp/mooncake-wheels
+
 # Swap in the etcd wrapper rebuilt by the mooncake-etcd stage. Fail if the rebuild lacks a
 # function the original exports, since engine.so, store.so and the other Mooncake libraries
 # link against them.
@@ -433,10 +467,14 @@ RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
     cuda-cudart-devel-${CUDA_DASH} \
     cuda-nvrtc-${CUDA_DASH} \
     cuda-cuobjdump-${CUDA_DASH} \
+    cuda-driver-devel-${CUDA_DASH} \
     libcurand-devel-${CUDA_DASH} \
     libcublas-${CUDA_DASH} \
     numactl-libs \
   && dnf clean all && rm -rf /var/cache/dnf
+# JIT builds link -lcuda. The host driver's libcuda.so is mounted outside the linker's
+# default search path on arm64 hosts, so link against the stub; the driver is loaded at runtime.
+ENV LIBRARY_PATH=/usr/local/cuda/lib64/stubs
 
 COPY --from=deps /opt/venv /opt/venv
 COPY --from=source /src/SOURCE_MANIFEST /vllm-workspace/
@@ -535,7 +573,8 @@ RUN echo "/usr/local/lib" >/etc/ld.so.conf.d/local-lib.conf && ldconfig
 ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 ARG EFA_VERSION="latest"
-RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=1' >/etc/yum.repos.d/cuda-rhel9.repo \
+RUN CUDA_REPO_ARCH=$(uname -m | sed s/aarch64/sbsa/) \
+  && echo -e "[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/${CUDA_REPO_ARCH}\nenabled=1\ngpgcheck=1" >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
   && bash install_efa_amzn2023.sh ${EFA_VERSION} \
@@ -557,7 +596,7 @@ RUN dnf install -y --setopt=install_weak_deps=False make which \
   && curl -fsSL "https://github.com/NVIDIA/nccl-tests/archive/refs/tags/${NCCL_TESTS_VERSION}.tar.gz" | tar xz \
   && make -C "${NCCL_TESTS_DIR}/src" BUILDDIR="${NCCL_TESTS_DIR}/build" \
        MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME="${NCCL_HOME}" CUDA_HOME=/usr/local/cuda \
-       NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_90,code=sm_90" \
+       NVCC_GENCODE="-gencode=arch=compute_80,code=sm_80 -gencode=arch=compute_90,code=sm_90 -gencode=arch=compute_100,code=sm_100 -gencode=arch=compute_100,code=compute_100" \
        CXXSTD="-std=c++17" \
        "${NCCL_TESTS_DIR}/build/all_reduce_perf" \
   && cp "${NCCL_TESTS_DIR}/build/all_reduce_perf" /usr/local/bin/all_reduce_perf \

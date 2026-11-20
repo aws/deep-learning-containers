@@ -41,6 +41,13 @@ done
 {
   echo "ref:${REF}"
   echo "version:${VERSION}"
+  # Builds are native to the runner, so its machine arch is the wheel's. Emitted only off
+  # x86_64 so existing x86 cache keys are unchanged; without it an arm64 build with the same
+  # ref and arch list would reuse the x86 wheel.
+  MACHINE=$(uname -m)
+  if [[ "${MACHINE}" != "x86_64" ]]; then
+    echo "machine:${MACHINE}"
+  fi
   # Normalized (whitespace-collapsed, sorted) so that reordering or reformatting the
   # same set of arches does not needlessly invalidate the cache. Emitted only when
   # non-empty, so configs that do not pin an arch list keep their existing hash
