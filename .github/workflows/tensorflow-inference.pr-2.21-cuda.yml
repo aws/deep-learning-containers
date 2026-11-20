@@ -61,7 +61,7 @@ jobs:
           echo "${PWD}/.venv/bin" >> "${GITHUB_PATH}"
 
       - name: Install test dependencies
-        run: uv pip install pytest pyyaml
+        run: uv pip install pytest pyyaml boto3
 
       - name: Run TensorFlow build-hook tests
         run: python -m pytest test/ci/tensorflow --confcutdir test/ci/tensorflow -v

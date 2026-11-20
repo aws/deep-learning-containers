@@ -15,13 +15,21 @@ import os
 import sys
 
 import boto3
+from botocore.exceptions import ClientError
 
 TAG_KEY = "dlc-ci-job"
 NAME_PREFIX = "tf220-"
 
 
 def _tagged(sm, arn, job_id):
-    tags = sm.list_tags(ResourceArn=arn).get("Tags", [])
+    try:
+        tags = sm.list_tags(ResourceArn=arn).get("Tags", [])
+    except ClientError as e:
+        # The listing covers every job's tf220- resources: another job may delete
+        # one between the list and this call (ValidationException), or the calls
+        # may be throttled. Neither is this job's resource to act on, so skip it.
+        print(f"skipping {arn}: {e.response['Error']['Code']}")
+        return False
     return any(t["Key"] == TAG_KEY and t["Value"] == job_id for t in tags)
 
 
