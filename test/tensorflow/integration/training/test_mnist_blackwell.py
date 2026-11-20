@@ -1,9 +1,12 @@
 """SageMaker training on Blackwell (G7, sm_120) for CUDA images built with sm_120.
 
 Run only by the non-blocking sagemaker-test-blackwell job
-(tensorflow-training.tests-sagemaker.yml), which sets SM_BLACKWELL=1. G7
-training capacity comes from the on-demand pool (SageMaker Training has no
-reservation for it here), so a capacity shortage must not block a PR.
+(tensorflow-training.tests-sagemaker.yml), which sets SM_BLACKWELL=1. SageMaker
+Training places ml.g7.2xlarge jobs on the CI account's G7 capacity reservation
+once that ODCR is onboarded for SageMaker Training (shared with the training
+compute accounts and allowlisted by the Training team), and on the on-demand
+pool otherwise; ml.g7.12xlarge always comes from the on-demand pool. A capacity
+shortage must not block a PR.
 
   - single-gpu: ml.g7.2xlarge, 1 x RTX PRO 4500 Blackwell
   - mirrored:   ml.g7.12xlarge, 2 x RTX PRO 4500 Blackwell, MirroredStrategy

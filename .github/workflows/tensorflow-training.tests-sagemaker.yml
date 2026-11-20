@@ -106,7 +106,8 @@ jobs:
 
   # SageMaker training on Blackwell (G7) for images built with sm_120: one
   # ml.g7.2xlarge job (1 GPU) and one ml.g7.12xlarge job (2 GPUs, Mirrored).
-  # G7 training capacity is on-demand only, so this job never fails the
+  # ml.g7.2xlarge uses the CI G7 capacity reservation once it is onboarded for
+  # SageMaker Training, else on-demand capacity, so this job never fails the
   # workflow (continue-on-error); read its test summary for the result.
   sagemaker-test-blackwell:
     if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.blackwell == 'true' }}
