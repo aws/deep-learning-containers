@@ -1,7 +1,7 @@
 # HuggingFace PyTorch inference DLC layered on the AWS Torch NeuronX DLC.
 # Torch NeuronX 2.14 is the PyTorch-native backend: models run on the `neuron`
 # device in eager mode, or through `torch.compile(backend="neuron")`.
-# Models are served with hf-serve (no optimum-neuron, no MMS).
+# Models are served with hf-serve.
 ARG BASE_IMAGE=public.ecr.aws/neuron/torch-neuronx:2.14.0-neuronx-py314-sdk2.33.0-ubuntu26.04
 
 FROM ${BASE_IMAGE}
