@@ -175,6 +175,10 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/test
           SM_DEVICE_TYPE: ${{ inputs.device-type }}
           SM_GPU_INSTANCE_TYPE: ml.g7.2xlarge
+          # Native sm_120 code only: the endpoint containers get
+          # CUDA_DISABLE_PTX_JIT=1, so a kernel without sm_120 machine code fails
+          # instead of being JIT-compiled from PTX.
+          SM_CUDA_DISABLE_PTX_JIT: "1"
           ML_RESERVATION_ARN_G7_2XLARGE: >-
             ${{ format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
             vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G7_2XLARGE) }}

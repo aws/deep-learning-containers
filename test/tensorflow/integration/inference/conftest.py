@@ -124,6 +124,9 @@ def _provision_endpoint(
     }
     if mode == "MultiModel":
         container_kwargs["mode"] = "MultiModel"
+    if os.environ.get("SM_CUDA_DISABLE_PTX_JIT") == "1":
+        # Blackwell job: run on native sm_120 code only (no PTX JIT fallback).
+        container_env = {**(container_env or {}), "CUDA_DISABLE_PTX_JIT": "1"}
     if container_env:
         container_kwargs["environment"] = dict(container_env)
 
