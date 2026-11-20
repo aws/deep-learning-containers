@@ -4,6 +4,27 @@ Changelog for the Amazon Linux 2023-based SGLang images (`server-cuda`, `server-
 
 * * *
 
+## v1.5.0 — 2026-11-18
+
+**Tags:** `server-cuda-v1.5` · `server-sagemaker-cuda-v1.5`
+
+**SGLang source:** [297e54f](https://github.com/sgl-project/sglang/commit/297e54fd105e974cdf401e5b4d20253a22c16f90) (`0.5.23+amzn2023.297e54f`)
+
+**Bundled versions:** CUDA 13.0.3 · Python 3.12 · PyTorch 2.14.1 · sgl-kernel 0.4.10 · FlashInfer 0.7.2 · Mooncake 0.3.13.post1 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2 · cuDNN 9.24.0.43
+
+### Changes
+
+- Bumped SGLang to `0.5.23` (upstream commit `297e54f`), up from 0.5.19 ([#7045](https://github.com/aws/deep-learning-containers/pull/7045),
+  [upstream changes](https://github.com/sgl-project/sglang/compare/0bcd822377da7b5718e674eaf9c870d349424dd1...297e54fd105e974cdf401e5b4d20253a22c16f90))
+- PyTorch 2.13.0 → 2.14.1, sgl-kernel 0.4.6.post1 → 0.4.10, FlashInfer 0.6.18 → 0.7.2, cutlass-dsl 4.6.2 → 4.8.0, cuDNN 9.16.0.29 → 9.24.0.43,
+  cuSparseLt 0.8.1
+- FlashMLA now comes from the `sgl-flash-mla` wheel that SGLang depends on, replacing the from-source build
+- Mooncake 0.3.13 → 0.3.13.post1, now installed as `mooncake-transfer-engine-cuda13`
+- EFA is rebuilt daily from the latest installer ([#7056](https://github.com/aws/deep-learning-containers/pull/7056))
+
+* * *
+
 ## v1.4.0 — 2026-09-24
 
 **Tags:** `server-cuda-v1.4` · `server-sagemaker-cuda-v1.4`
