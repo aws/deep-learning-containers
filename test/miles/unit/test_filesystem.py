@@ -1,7 +1,9 @@
 """Verify provenance and license records, the source layout, and the SageMaker layout."""
 
+import importlib.metadata
 import importlib.util
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -32,6 +34,53 @@ def test_provenance_record_present(name):
 )
 def test_license_record_present(name):
     assert (Path("/root") / name).is_file()
+
+
+# The LGPL-3.0 Python packages the image ships. Each needs its source listed at the
+# installed version.
+@pytest.mark.parametrize("name", ["easydict", "psycopg", "psycopg-binary"])
+def test_lgpl_package_source_listed(name):
+    version = importlib.metadata.version(name)
+    lines = Path("/root/THIRD_PARTY_SOURCE_CODE_URLS").read_text().splitlines()
+    assert any(line.split()[:2] == [name, version] for line in lines), f"{name} {version}"
+
+
+# Every binary the Dockerfile builds or downloads is tracked, with a source URL.
+@pytest.mark.parametrize(
+    "name", ["FFmpeg", "GDRCopy", "nvtop", "nccl-tests", "kubectl", "Helm", "sgl-model-gateway"]
+)
+def test_binary_tracked(name):
+    assert f"\n** {name};" in Path("/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES").read_text()
+    lines = Path("/root/THIRD_PARTY_SOURCE_CODE_URLS").read_text().splitlines()
+    assert any(line.startswith(f"{name} ") for line in lines), name
+
+
+# No source file carries a notice for a license that isn't open source. The Dockerfile
+# leaves out the upstream files that do: torchtitan's FLUX model and SGLang's
+# Hunyuan3D mesh extensions.
+RESTRICTED_LICENSE = re.compile(
+    rb"Llama ?[0-9.]* Community License|Gemma Terms of Use|Non-?Commercial License",
+    re.IGNORECASE,
+)
+
+
+@pytest.mark.parametrize(
+    "root", ["/root/miles", "/root/Megatron-LM", "/root/torchtitan", "/sgl-workspace/sglang"]
+)
+def test_source_has_no_restricted_license_notice(root):
+    hits = []
+    for directory, subdirectories, files in os.walk(root):
+        subdirectories[:] = [d for d in subdirectories if d not in (".git", "__pycache__")]
+        for name in files:
+            path = os.path.join(directory, name)
+            if os.path.islink(path):
+                continue
+            with open(path, "rb") as f:
+                data = f.read()
+            # Skip binary files, as grep -I does.
+            if b"\0" not in data[:8192] and RESTRICTED_LICENSE.search(data):
+                hits.append(path)
+    assert not hits, hits
 
 
 # The framework sources sit where the upstream radixark/miles image keeps them: Miles' Helm
