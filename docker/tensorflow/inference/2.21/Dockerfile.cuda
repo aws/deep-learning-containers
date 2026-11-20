@@ -139,11 +139,17 @@ RUN CUDNN_HOME=$(/opt/venv/bin/python -c "import nvidia.cudnn; print(nvidia.cudn
 # ── Stage: builder-oss (generates license files in isolation) ───────────────
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
 ARG PYTHON_VERSION
+ARG TF_SERVING_VERSION
 RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
 COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+# tensorflow_model_server is built from source (tfs-build stage) and copied in as
+# a plain file, so the package scans above can't see it: record it, as other
+# source-built components do.
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
-  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\n** tensorflow-serving; version %s -- https://github.com/tensorflow/serving\n' "${TF_SERVING_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\ntensorflow-serving %s https://github.com/tensorflow/serving/archive/refs/tags/%s.tar.gz\n' "${TF_SERVING_VERSION}" "${TF_SERVING_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 
 # ── Stage: runtime-base (shared base for output stages) ─────────────────────
@@ -181,8 +187,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # math libs. Missing -> `cuInit` crash on GPU hosts, CPU falls back cleanly.
 #
 # cuda-nvcc provides nvvm/libdevice.10.bc and ptxas. TensorFlow JIT-compiles
-# some kernels (e.g. Rsqrt in batch norm) for the exact GPU at runtime; on
-# Blackwell that fails with "libdevice not found" without these files.
+# some kernels (e.g. Rsqrt in batch norm) for the exact GPU at runtime; without
+# these files they fail with "JIT compilation failed" on any GPU.
 RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
     cuda-nvcc-${CUDA_MAJOR_MINOR} \

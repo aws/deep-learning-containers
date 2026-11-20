@@ -4,7 +4,8 @@ Sanity tests check libcudnn.so presence but no request exercises a cuDNN
 kernel. This deploys a tiny Conv2D + BatchNormalization SavedModel to a GPU
 endpoint so a real Conv routes through cuDNN's cudnnConvolutionForward (HTTP
 200 proves the libcudnn on the image is ABI-compatible with the TFS binary) and
-BatchNormalization's Rsqrt runs a TensorFlow-generated GPU kernel. The endpoint
+BatchNormalization's Rsqrt runs a kernel TensorFlow compiles at runtime, which
+needs ptxas and libdevice (cuda-nvcc) in the image. The endpoint
 log must show TensorFlow Serving created the GPU device, because TensorFlow
 silently falls back to CPU when it cannot load the GPU libraries or driver,
 and the closed-form output alone would still pass.

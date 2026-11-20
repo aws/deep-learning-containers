@@ -83,10 +83,10 @@ def _build_conv_sequential():
     -> Dense(1), all trainable weights pinned to 1.0 and biases to 0.0. For an
     all-ones (1,8,8,3) input the output is CONV_SAMPLE_EXPECTED (see
     test_conv_gpu). A stubbed cuDNN kernel yields 0.0, distinguishable, so the
-    test fires. BatchNormalization adds an Rsqrt, which TensorFlow runs through
-    its generated (kernel_gen) GPU kernels rather than cuDNN, so a GPU build
-    missing native code for the device, or the runtime JIT toolchain (libdevice,
-    ptxas), fails here instead of only in customer models.
+    test fires. BatchNormalization adds an Rsqrt, which TensorFlow 2.21 runs as
+    an MLIR-generated kernel compiled at runtime for the device with ptxas and
+    libdevice (from cuda-nvcc), so an image without that runtime JIT toolchain
+    fails here ("JIT compilation failed") instead of only in customer models.
     """
     import tensorflow as tf
 
