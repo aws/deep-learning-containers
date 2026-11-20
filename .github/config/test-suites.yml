@@ -70,6 +70,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/tensorflow/single_gpu/**
+      - test/tensorflow/blackwell_ec2/**
 
   tensorflow-training/sagemaker:
     skip_eligible: true
