@@ -14,8 +14,11 @@ shortage must not block a PR.
 Each job's CloudWatch log must show TensorFlow created every expected GPU at
 compute capability 12.0: TensorFlow falls back to CPU silently when it cannot
 use the GPU, and the job would still succeed. Jobs run with
-CUDA_DISABLE_PTX_JIT=1, so a kernel without native sm_120 code fails instead
-of being JIT-compiled from PTX.
+CUDA_DISABLE_PTX_JIT=1, so a precompiled kernel (nvcc-built TensorFlow kernels,
+cuDNN, cuBLAS) without native sm_120 code fails instead of being JIT-compiled
+from PTX by the driver; TensorFlow's runtime-generated kernels are compiled with
+ptxas for the device either way. Each job stops after MAX_RUNTIME_SECONDS, so a
+job stuck on capacity cannot outlive the CI job.
 """
 
 import os
@@ -23,6 +26,7 @@ import time
 
 import boto3
 import pytest
+from sagemaker.core.shapes import StoppingCondition
 from sagemaker.core.training.configs import InputData
 
 pytestmark = pytest.mark.skipif(
@@ -31,6 +35,7 @@ pytestmark = pytest.mark.skipif(
 )
 
 BLACKWELL_CAPABILITY = "compute capability: 12.0"
+MAX_RUNTIME_SECONDS = 3600
 
 
 def _job_log_lines(region, job_name, pattern, timeout=300):
@@ -71,6 +76,7 @@ def test_mnist_blackwell(
         instance_count=1,
         hyperparameters={"strategy": strategy},
         environment={"CUDA_DISABLE_PTX_JIT": "1"},
+        stopping_condition=StoppingCondition(max_runtime_in_seconds=MAX_RUNTIME_SECONDS),
         input_data=[InputData(channel_name="training", data_source=mnist_s3_uri)],
         job_name_prefix=f"tf-mnist-g7-{strategy}",
     )

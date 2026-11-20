@@ -104,6 +104,7 @@ jobs:
               - "test/efa/**"
             sagemaker-test-change:
               - "test/tensorflow/integration/training/**"
+              - ".github/workflows/tensorflow-training.tests-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"
             single-gpu-test-change:

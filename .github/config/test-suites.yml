@@ -75,6 +75,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/tensorflow/integration/training/**
+      - .github/workflows/tensorflow-training.tests-sagemaker.yml
 
   ray/unit:
     skip_eligible: true
