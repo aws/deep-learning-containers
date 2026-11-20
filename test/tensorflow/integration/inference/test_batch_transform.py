@@ -14,7 +14,7 @@ import pytest
 from test_utils import random_suffix_name, wait_for_status
 from test_utils.constants import SAGEMAKER_ROLE
 
-from .conftest import _cleanup
+from .conftest import _cleanup, ci_tags
 from .resources.build_sample_model import build_sample_model
 from .resources.helpers import upload_tarball
 
@@ -83,6 +83,7 @@ def test_batch_transform_json(
                 ),
                 execution_role_arn=aws_session.resolve_role_arn(SAGEMAKER_ROLE),
                 session=aws_session.session,
+                **ci_tags(),
             )
 
             # 4. TransformJob has no wait_for_status in SDK v3 — poll refresh().

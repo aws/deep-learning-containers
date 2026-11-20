@@ -13,14 +13,46 @@ import os
 
 import pytest
 from test_utils import random_suffix_name
-from test_utils.constants import INFERENCE_AMI_VERSION_CU12, SAGEMAKER_ROLE
+from test_utils.constants import (
+    INFERENCE_AMI_VERSION_CU12,
+    INFERENCE_AMI_VERSION_CU13,
+    SAGEMAKER_ROLE,
+)
 from test_utils.instance_capacity import (
     build_instance_pools,
     deploy_with_capacity_fallback,
+    log_capacity_placement,
+    ml_reservation_config,
     normalize_instance_types,
 )
 
 LOGGER = logging.getLogger(__name__)
+
+# Blackwell instance families need a newer NVIDIA driver than the CUDA 12 inference
+# AMI ships (driver 550), so their endpoints use the AL2023 AMI (driver 580; CUDA 12.x
+# images run on it unchanged). Other GPU types keep the CUDA 12 AMI.
+_BLACKWELL_PREFIXES = ("ml.g7.", "ml.g7e.", "ml.p6")
+
+
+# CI tags every Model, EndpointConfig and Endpoint it creates with its job ID
+# (DLC_CI_JOB_ID, set by tensorflow-inference.tests-sagemaker.yml), so the
+# workflow's always-run cleanup step can delete what a killed run left behind.
+CI_JOB_TAG_KEY = "dlc-ci-job"
+
+
+def ci_tags() -> dict:
+    """``tags=`` kwargs for SDK v3 ``*.create`` calls; empty outside CI."""
+    from sagemaker.core.shapes import Tag
+
+    job_id = os.environ.get("DLC_CI_JOB_ID", "").strip()
+    return {"tags": [Tag(key=CI_JOB_TAG_KEY, value=job_id)]} if job_id else {}
+
+
+def _inference_ami_version(instance_types: list[str]) -> str:
+    if any(t.startswith(_BLACKWELL_PREFIXES) for t in instance_types):
+        return INFERENCE_AMI_VERSION_CU13
+    return INFERENCE_AMI_VERSION_CU12
+
 
 # SM instance-type map keyed on the image's device_type. The test models are tiny, so
 # any single-GPU rung works; GPU is a priority-ordered ladder across the L4 and A10G
@@ -41,7 +73,15 @@ def sm_device_type() -> str:
 
 @pytest.fixture(scope="session")
 def sm_instance_type(sm_device_type) -> str | list[str]:
-    """SM endpoint instance type (or fallback ladder) derived from device type."""
+    """SM endpoint instance type (or fallback ladder) derived from device type.
+
+    SM_GPU_INSTANCE_TYPE pins GPU endpoints to exactly one instance type with no
+    fallback, e.g. ml.g7.2xlarge for the Blackwell job: a fallback to another GPU
+    family would pass without running the code under test on that GPU.
+    """
+    pinned = os.environ.get("SM_GPU_INSTANCE_TYPE", "").strip()
+    if sm_device_type == "gpu" and pinned:
+        return pinned
     return _SM_INSTANCE_TYPE_BY_DEVICE[sm_device_type]
 
 
@@ -98,10 +138,13 @@ def _provision_endpoint(
     }
     if mode == "MultiModel":
         container_kwargs["mode"] = "MultiModel"
+    if os.environ.get("SM_CUDA_DISABLE_PTX_JIT") == "1":
+        # Blackwell job: run on native sm_120 code only (no PTX JIT fallback).
+        container_env = {**(container_env or {}), "CUDA_DISABLE_PTX_JIT": "1"}
     if container_env:
         container_kwargs["environment"] = dict(container_env)
 
-    def _create(capacity_kwargs):
+    def _create(capacity_kwargs, reserved_for):
         endpoint_name = random_suffix_name(name_prefix, 63)
         model_name = random_suffix_name(f"{name_prefix}-model", 63)
         attempt: list = []
@@ -111,6 +154,7 @@ def _provision_endpoint(
                 primary_container=ContainerDefinition(**container_kwargs),
                 execution_role_arn=role_arn,
                 session=session,
+                **ci_tags(),
             )
             attempt.append(model)
 
@@ -120,13 +164,21 @@ def _provision_endpoint(
                 initial_instance_count=1,
                 **capacity_kwargs,
             )
+            # Use the CI ML Reservation for the leading instance type when one is
+            # configured (ML_RESERVATION_ARN_* env); None leaves the open pool.
+            reservation = ml_reservation_config(reserved_for)
+            if reservation is not None:
+                variant_kwargs["capacity_reservation_config"] = reservation
             if sm_device_type == "gpu":
-                variant_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION_CU12
+                variant_kwargs["inference_ami_version"] = _inference_ami_version(
+                    normalize_instance_types(reserved_for)
+                )
 
             endpoint_config = EndpointConfig.create(
                 endpoint_config_name=endpoint_name,
                 production_variants=[ProductionVariant(**variant_kwargs)],
                 session=session,
+                **ci_tags(),
             )
             attempt.append(endpoint_config)
 
@@ -134,10 +186,12 @@ def _provision_endpoint(
                 endpoint_name=endpoint_name,
                 endpoint_config_name=endpoint_name,
                 session=session,
+                **ci_tags(),
             )
             attempt.append(endpoint)
 
             endpoint.wait_for_status("InService")
+            log_capacity_placement(endpoint, endpoint_name)
         except BaseException:
             # Tear down this rung now so a capacity retry does not leak a Failed endpoint.
             _cleanup(reversed(attempt))
@@ -147,12 +201,12 @@ def _provision_endpoint(
 
     types = normalize_instance_types(sm_instance_type)
     if len(types) == 1:
-        return _create({"instance_type": types[0]})
+        return _create({"instance_type": types[0]}, types[0])
     if mode == "MultiModel":
         return deploy_with_capacity_fallback(
-            types, lambda t: _create({"instance_type": t}), label=name_prefix
+            types, lambda t: _create({"instance_type": t}, t), label=name_prefix
         )
-    return _create({"instance_pools": build_instance_pools(types)})
+    return _create({"instance_pools": build_instance_pools(types)}, types)
 
 
 @pytest.fixture
