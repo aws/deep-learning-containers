@@ -13,7 +13,9 @@ shortage must not block a PR.
 
 Each job's CloudWatch log must show TensorFlow created every expected GPU at
 compute capability 12.0: TensorFlow falls back to CPU silently when it cannot
-use the GPU, and the job would still succeed.
+use the GPU, and the job would still succeed. Jobs run with
+CUDA_DISABLE_PTX_JIT=1, so a kernel without native sm_120 code fails instead
+of being JIT-compiled from PTX.
 """
 
 import os
@@ -68,6 +70,7 @@ def test_mnist_blackwell(
         instance_type=instance_type,
         instance_count=1,
         hyperparameters={"strategy": strategy},
+        environment={"CUDA_DISABLE_PTX_JIT": "1"},
         input_data=[InputData(channel_name="training", data_source=mnist_s3_uri)],
         job_name_prefix=f"tf-mnist-g7-{strategy}",
     )
