@@ -1,0 +1,12 @@
+framework: PyTorch
+version: "2.14"
+accelerator: neuronx
+python: py314
+sdk: "2.33.0"
+transformers: "5.22.2"
+os: ubuntu26.04
+platform: sagemaker
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.14.0-transformers5.22.2-neuronx-py314-sdk2.33.0-ubuntu26.04"
