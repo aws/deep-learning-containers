@@ -345,8 +345,12 @@ RUN set -o pipefail \
 # benchmarks, docs, examples and CI or dev tooling stay out. They hold the
 # fixtures with fake tokens and test private keys that the DLC credential scan
 # rejects, and dependency manifests for builds the image never runs, which the
-# ECR scan reads as installed software. sglang's rust/ is checked out only for
-# the Rust extension build below, which then drops it. Kept on purpose:
+# ECR scan reads as installed software. Also left out, because their headers
+# name a license that isn't open source and Miles uses neither: torchtitan's
+# FLUX model, whose tokenizer cites the Llama 3 Community License, and SGLang's
+# Hunyuan3D mesh extensions, adapted from Tencent's non-commercial license.
+# sglang's rust/ is checked out only for the Rust extension build below, which
+# then drops it. Kept on purpose:
 # torchtitan's tests/assets (its debug configs read them) and the .ci/docker
 # requirement files its package metadata reads, and all of Miles (upstream's
 # CPU suites run from its tests/). Excluded paths stay out of `git diff`.
@@ -360,6 +364,8 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-
     '!/.agents/' '!/.claude/' '!/.devcontainer/' '!/.github/' '!/3rdparty/' \
     '!/benchmark/' '!/docker/' '!/docs/' '!/examples/' \
     '!/sgl-model-gateway/' '!/sgl-router/' '!/test/' '!/tools/' \
+    '!/python/sglang/kernels/ops/diffusion/ext/hunyuan3d_rasterizer/' \
+    '!/python/sglang/kernels/ops/diffusion/ext/mesh_processor/' \
   && git clone --filter=blob:none https://github.com/radixark/Megatron-LM.git \
     /root/Megatron-LM \
   && git -C /root/Megatron-LM fetch origin "${MEGATRON_COMMIT}" \
@@ -382,7 +388,9 @@ RUN git clone --filter=blob:none https://github.com/sgl-project/sglang.git /sgl-
     '/.ci/docker/requirements.txt' '/.ci/docker/requirements-flux.txt' \
     '/.ci/docker/requirements-rl.txt' '/.ci/docker/requirements-vlm.txt' \
     '!/.claude/' '!/.github/' '!/docs/' \
-    '!/tests/integration_tests/' '!/tests/rl/' '!/tests/unit_tests/'
+    '!/tests/integration_tests/' '!/tests/rl/' '!/tests/unit_tests/' \
+    '!/torchtitan/models/flux/' '!/torchtitan_recipes/models/flux.py' \
+    '!/torchtitan_recipes/tests/models/flux.py'
 
 # Build the multi-architecture fake-int4 extension from the same immutable
 # Miles source revision used by the image. Build from a temporary copy so the
@@ -747,6 +755,7 @@ ARG NVTOP_VERSION
 ARG NCCL_TESTS_COMMIT
 ARG KUBECTL_VERSION
 ARG HELM_VERSION
+ARG SGL_ROUTER_COMMIT
 
 # Miles telemetry registration is deferred to a follow-up change so this
 # initial build integration does not modify shared telemetry files.
@@ -765,7 +774,10 @@ COPY --from=nvtop-builder /artifacts/COPYING /usr/local/share/licenses/nvtop/COP
 
 # THIRD_PARTY_SOURCE_CODE_URLS entries are source tarballs: the sanity OSS step
 # (test/sanity/scripts/upload_oss_source.py) downloads tarball URLs and git-clones
-# anything else, and a /tree/ page URL is neither.
+# anything else, and a /tree/ page URL is neither. The shared generator lists the
+# copyleft Python packages it knows of. psycopg and psycopg-binary (LGPL-3.0),
+# which upstream Miles requires, are added here at their installed version; both
+# build from the psycopg repository.
 RUN printf '\n** FFmpeg; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\n' \
       "${FFMPEG_VERSION}" "${FFMPEG_VERSION}" \
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
@@ -801,7 +813,20 @@ RUN printf '\n** FFmpeg; version %s -- https://github.com/FFmpeg/FFmpeg/tree/%s\
       >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
     && printf '\nHelm %s https://github.com/helm/helm/archive/refs/tags/%s.tar.gz\n' \
       "${HELM_VERSION}" "${HELM_VERSION}" \
-      >>/root/THIRD_PARTY_SOURCE_CODE_URLS
+      >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+    && printf '\n** sgl-model-gateway; commit %s -- https://github.com/radixark/sgl-router-for-miles/tree/%s\n' \
+      "${SGL_ROUTER_COMMIT}" "${SGL_ROUTER_COMMIT}" \
+      >>/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+    && printf '\nsgl-model-gateway %s https://github.com/radixark/sgl-router-for-miles/archive/%s.tar.gz\n' \
+      "${SGL_ROUTER_COMMIT}" "${SGL_ROUTER_COMMIT}" \
+      >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+    && for package in psycopg psycopg-binary; do \
+         version="$(python -c 'import sys; from importlib.metadata import version; print(version(sys.argv[1]))' "${package}")" \
+           && printf '\n%s %s https://github.com/psycopg/psycopg/archive/refs/tags/%s.tar.gz\n' \
+             "${package}" "${version}" "${version}" \
+             >>/root/THIRD_PARTY_SOURCE_CODE_URLS \
+           || exit 1; \
+       done
 
 COPY scripts/docker/miles/entrypoint.sh /usr/local/bin/miles-entrypoint
 COPY docker/miles/v${MILES_VERSION}/pip-check-allowlist.txt /opt/aws/dlc/PIP_CHECK_ALLOWLIST

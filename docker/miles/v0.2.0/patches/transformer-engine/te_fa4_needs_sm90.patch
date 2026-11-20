@@ -9,10 +9,11 @@ uses FlashAttention 2 or cuDNN. Hopper and Blackwell are unchanged.
 
 --- a/pytorch/attention/dot_product_attention/utils.py
 +++ b/pytorch/attention/dot_product_attention/utils.py
-@@ -501,6 +501,12 @@
+@@ -501,6 +501,13 @@
          if use_flash_attention_4 and FlashAttentionUtils.v4_is_installed:
              logger.debug("Disabling FlashAttention 4 for compute capability < sm80")
          use_flash_attention_4 = False
++    # Modified by Amazon Web Services for the AWS Deep Learning Containers.
 +    # flash-attn-4 targets SM90+. Below that its backward pass asserts, and its forward
 +    # pass fails to compile for grouped-query attention over packed sequences.
 +    if device_compute_capability < (9, 0):
