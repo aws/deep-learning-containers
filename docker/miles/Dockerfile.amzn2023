@@ -712,9 +712,13 @@ RUN NCCL_LIB="/opt/venv/lib/python${PYTHON_SHORT_VERSION}/site-packages/nvidia/n
   && ldconfig
 
 # The staged image leaves AL2023's system Python untouched, so it can use the
-# DLC common EFA installer directly.
+# DLC common EFA installer directly. EFA_VERSION is "latest", so CACHE_REFRESH,
+# the build date, rebuilds this layer daily to pick up new EFA releases, as the
+# vLLM AL2023 image does. The venv and source copies above stay cached.
+ARG CACHE_REFRESH=0
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa_amzn2023.sh
-RUN bash /tmp/install_efa_amzn2023.sh "${EFA_VERSION}" \
+RUN echo "efa-cache-refresh=${CACHE_REFRESH}" >/dev/null \
+  && bash /tmp/install_efa_amzn2023.sh "${EFA_VERSION}" \
   && ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so \
   && rm -f /tmp/install_efa_amzn2023.sh
 

@@ -17,9 +17,21 @@ on:
       - "scripts/ci/build/miles/**"
       - "scripts/docker/common/**"
       - "scripts/docker/miles/**"
+      # Shared test code the pipeline runs: the EFA suite, and the harness and
+      # test_utils modules that the multi-GPU and multi-node tests import.
+      - "test/__init__.py"
+      - "test/conftest.py"
+      - "test/efa/**"
       - "test/miles/**"
+      - "test/requirements.txt"
       - "test/sanity/**"
       - "test/security/data/ecr_scan_allowlist/miles/**"
+      - "test/test_utils/__init__.py"
+      - "test/test_utils/aws.py"
+      - "test/test_utils/constants.py"
+      - "test/test_utils/efa_helpers.py"
+      - "test/test_utils/gpu_instance.py"
+      - "test/test_utils/logger.py"
       - "!docs/**"
 
 permissions:
