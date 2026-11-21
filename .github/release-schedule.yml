@@ -187,3 +187,12 @@ schedules:
   - cron: "00 21 * * 5"
     workflow: dynamo.autorelease-amzn2023.yml
     gpu: heavy
+
+  # Friday — PyTorch 2.15 (Mon-Thu windows are full)
+  - cron: "30 21 * * 5"
+    workflow: pytorch.autorelease-2.15-ec2.yml
+    gpu: light
+
+  - cron: "30 23 * * 5"
+    workflow: pytorch.autorelease-2.15-sagemaker.yml
+    gpu: light
