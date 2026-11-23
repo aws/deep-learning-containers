@@ -1,0 +1,81 @@
+name: "PR - Miles AL2023"
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - ".github/config/image/miles/*-amzn2023.yml"
+      - ".github/workflows/miles.pipeline.yml"
+      - ".github/workflows/miles.pr-amzn2023.yml"
+      - ".github/workflows/miles.tests-multi-gpu.yml"
+      - ".github/workflows/miles.tests-multi-node.yml"
+      - ".github/workflows/miles.tests-single-gpu.yml"
+      - ".github/workflows/miles.tests-unit.yml"
+      - ".github/workflows/miles.tests-upstream.yml"
+      - "docker/miles/**"
+      - "scripts/ci/build/miles/**"
+      - "scripts/docker/common/**"
+      - "scripts/docker/miles/**"
+      # Shared test code the pipeline runs: the EFA suite, and the harness and
+      # test_utils modules that the multi-GPU and multi-node tests import.
+      - "test/__init__.py"
+      - "test/conftest.py"
+      - "test/efa/**"
+      - "test/miles/**"
+      - "test/requirements.txt"
+      - "test/sanity/**"
+      - "test/security/data/ecr_scan_allowlist/miles/**"
+      - "test/test_utils/__init__.py"
+      - "test/test_utils/aws.py"
+      - "test/test_utils/constants.py"
+      - "test/test_utils/efa_helpers.py"
+      - "test/test_utils/gpu_instance.py"
+      - "test/test_utils/logger.py"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gatekeeper:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+      - uses: ./.github/actions/pr-permission-gate
+
+  discover:
+    needs: [gatekeeper]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: discover
+        uses: ./.github/actions/discover-configs
+        with:
+          pattern: ".github/config/image/miles/*-amzn2023.yml"
+
+  pipeline:
+    needs: [discover]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.configs) }}
+    uses: ./.github/workflows/miles.pipeline.yml
+    with:
+      config-file: ${{ matrix.config_file }}
+      tag-suffix: pr-${{ github.event.pull_request.number }}
+      build: true
+      run-security-test: true
+    secrets: inherit
