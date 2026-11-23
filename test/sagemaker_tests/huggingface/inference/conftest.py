@@ -266,7 +266,7 @@ def skip_by_device_type(request, use_gpu, instance_type, accelerator_type):
     is_gpu = use_gpu or instance_type[3] in ["g", "p"]
     is_eia = accelerator_type is not None
     is_neuron = instance_type.startswith("ml.inf1")
-    is_neuronx = instance_type.startswith("ml.inf2") or instance_type.startswith("ml.trn1")
+    is_neuronx = instance_type.startswith(("ml.inf2", "ml.trn1", "ml.trn2", "ml.trn3"))
 
     # Separate out cases for clearer logic.
     # When running Neuron test, skip CPU  and GPU test.

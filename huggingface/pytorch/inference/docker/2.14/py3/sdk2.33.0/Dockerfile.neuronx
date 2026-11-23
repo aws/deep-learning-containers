@@ -1,0 +1,66 @@
+# HuggingFace PyTorch inference DLC layered on the AWS Torch NeuronX DLC.
+# Torch NeuronX 2.14 is the PyTorch-native backend: models run on the `neuron`
+# device in eager mode, or through `torch.compile(backend="neuron")`.
+# Models are served with hf-serve.
+ARG BASE_IMAGE=public.ecr.aws/neuron/torch-neuronx:2.14.0-neuronx-py314-sdk2.33.0-ubuntu26.04
+
+FROM ${BASE_IMAGE}
+
+ARG CONTAINER_TYPE=inference
+# Python is inherited from the pinned base; recorded for DLC validation.
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.14.7
+
+LABEL maintainer="Hugging Face"
+LABEL dlc_major_version="1"
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
+
+ARG TRANSFORMERS_VERSION=5.22.2
+ARG DIFFUSERS_VERSION=0.43.0
+ARG SENTENCE_TRANSFORMERS_VERSION=6.3.0
+ARG HUGGINGFACE_HUB_VERSION=1.33.0
+ARG HF_XET_VERSION=1.7.0
+ARG PEFT_VERSION=0.21.2
+ARG HF_SERVE_VERSION=0.2.1
+
+ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE} \
+  CLOUD=sagemaker \
+  HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:neuron:inference:hf-pytorch"
+
+# libmagic1: hf-serve file validation (python-magic).
+RUN apt-get update \
+  && apt-get upgrade -y \
+  && apt-get install -y --no-install-recommends libmagic1 \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Use the base's Python environment and pip so its inherited PIP_CONSTRAINT
+# keeps torch pinned to the version used to build torch-neuronx.
+# hf-serve 0.2.1+ supports Python 3.14, torch 2.14 and the `neuron` device.
+RUN python3 -m pip install --no-cache-dir \
+  "transformers[sentencepiece,vision]==${TRANSFORMERS_VERSION}" \
+  "diffusers==${DIFFUSERS_VERSION}" \
+  "sentence-transformers==${SENTENCE_TRANSFORMERS_VERSION}" \
+  "huggingface-hub==${HUGGINGFACE_HUB_VERSION}" \
+  "hf-xet==${HF_XET_VERSION}" \
+  "peft==${PEFT_VERSION}" \
+  "hf-serve==${HF_SERVE_VERSION}" \
+  && python3 -m pip check
+
+COPY hf-serve-neuron-entrypoint.sh /usr/local/bin/hf-serve-neuron-entrypoint.sh
+COPY neuron-monitor.sh /usr/local/bin/neuron-monitor.sh
+RUN chmod +x /usr/local/bin/hf-serve-neuron-entrypoint.sh /usr/local/bin/neuron-monitor.sh
+
+# Remove base-image build leftovers flagged by DLC sanity and security tests.
+RUN rm -f /tmp/uv-*.lock /usr/local/bin/bazel /usr/local/bin/bazelisk /usr/bin/pebble \
+  && rm -rf /workspace/torchtitan_neuron/.ci \
+  && find /usr/local/lib/python3.14/site-packages/neuron_agentic_development -name 'requirements*.txt' -delete
+
+# Regenerate OSS compliance docs to include the added HuggingFace packages.
+COPY setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+RUN bash /tmp/setup_oss_compliance.sh ${PYTHON} && rm /tmp/setup_oss_compliance.sh
+
+EXPOSE 8080
+ENTRYPOINT ["/usr/local/bin/hf-serve-neuron-entrypoint.sh"]
+CMD ["serve"]

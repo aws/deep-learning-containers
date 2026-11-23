@@ -759,7 +759,7 @@ def is_neuron_image(fixtures):
         "tensorflow_inference_neuronx",
         "mxnet_inference_neuron",
         "pytorch_inference_neuron",
-        "pytorch_inference_neuronx"
+        "pytorch_inference_neuronx",
         # training
         "tensorflow_training_neuron",
         "mxnet_training_neuron",
