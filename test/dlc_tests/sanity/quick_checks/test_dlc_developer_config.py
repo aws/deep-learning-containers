@@ -232,7 +232,7 @@ def test_build_version_override_configuration():
     )
     assert (
         config.parse_dlc_developer_configs(
-            "buildspec_override", "dlc-pr-huggingface-pytorch-neuron-inference"
+            "buildspec_override", "dlc-pr-huggingface-pytorch-neuronx-inference"
         )
         == ""
     )
