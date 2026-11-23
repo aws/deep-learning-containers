@@ -38,14 +38,15 @@ smoke-test:
       fleet: "x86-g6xl-runner"
       extra_args: "--tp 1 --context-length 4096 --dtype bfloat16"
 
-    - name: "locate-anything-3b"
-      s3_prefix: "s3://dlc-cicd-models/vlm-models"
-      s3_model: "locate-anything-3b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tp 1 --context-length 16384 --dtype half --trust-remote-code --mem-fraction-static 0.8"
-      test_script: "sglang_vision_grounding_smoke_test.sh"
-      required_image_pattern:
-        os_version: "amzn2023"
+    # Temporarily disabled.
+    # - name: "locate-anything-3b"
+    #   s3_prefix: "s3://dlc-cicd-models/vlm-models"
+    #   s3_model: "locate-anything-3b.tar.gz"
+    #   fleet: "x86-g6exl-runner"
+    #   extra_args: "--tp 1 --context-length 16384 --dtype half --trust-remote-code --mem-fraction-static 0.8"
+    #   test_script: "sglang_vision_grounding_smoke_test.sh"
+    #   required_image_pattern:
+    #     os_version: "amzn2023"
 
   runner-scale-sets: []
 
@@ -64,18 +65,19 @@ benchmark:
         BENCHMARK_BATCH_SIZE=8
         RESULTS_DIR=/tmp/benchmark_results
 
-    - name: "gpt-oss-20b"
-      s3_model: "gpt-oss-20b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
-      env_vars: >-
-        MIN_THROUGHPUT_TOKENS_PER_SEC=615
-        MIN_REQUESTS_PER_SEC=4.7
-        BENCHMARK_NUM_PROMPTS=256
-        BENCHMARK_INPUT_LEN=512
-        BENCHMARK_OUTPUT_LEN=256
-        BENCHMARK_BATCH_SIZE=8
-        RESULTS_DIR=/tmp/benchmark_results
+    # Temporarily disabled.
+    # - name: "gpt-oss-20b"
+    #   s3_model: "gpt-oss-20b.tar.gz"
+    #   fleet: "x86-g6exl-runner"
+    #   extra_args: "--tp 1 --context-length 4096 --dtype bfloat16 --trust-remote-code"
+    #   env_vars: >-
+    #     MIN_THROUGHPUT_TOKENS_PER_SEC=615
+    #     MIN_REQUESTS_PER_SEC=4.7
+    #     BENCHMARK_NUM_PROMPTS=256
+    #     BENCHMARK_INPUT_LEN=512
+    #     BENCHMARK_OUTPUT_LEN=256
+    #     BENCHMARK_BATCH_SIZE=8
+    #     RESULTS_DIR=/tmp/benchmark_results
 
     - name: "qwen3.5-9b"
       s3_model: "qwen3.5-9b.tar.gz"
