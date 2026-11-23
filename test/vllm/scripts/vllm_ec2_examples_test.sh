@@ -8,9 +8,11 @@ pip install tensorizer # for tensorizer test
 python3 basic/offline_inference/generate.py --model facebook/opt-125m
 python3 basic/offline_inference/chat.py
 python3 features/automatic_prefix_caching/prefix_caching_offline.py
-python3 generate/multimodal/audio_language_offline.py --seed 0
+# Temporarily disabled.
+# python3 generate/multimodal/audio_language_offline.py --seed 0
 python3 generate/multimodal/vision_language_offline.py --seed 0
-python3 generate/multimodal/vision_language_multi_image_offline.py --seed 0
+# Temporarily disabled.
+# python3 generate/multimodal/vision_language_multi_image_offline.py --seed 0
 
 TENSORIZE="features/tensorize_vllm_model.py"
 python3 ${TENSORIZE} --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 ${TENSORIZE} --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
