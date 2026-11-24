@@ -5,6 +5,18 @@ Changelog for the Amazon Linux 2023-based TensorFlow SageMaker training images (
 
 * * *
 
+## TensorFlow 2.21 — Blackwell support — 2026-11-21
+
+**Tags:** `2.21-gpu-py312-cu129-amzn2023-sagemaker` · `2.21.0-gpu-py312-cu129-amzn2023-sagemaker`
+
+### Highlights
+
+- Native NVIDIA Blackwell support on the GPU variant: the TensorFlow 2.21.0 wheel is now built from source for GPU targets `sm_60`, `sm_70`, `sm_80`,
+  `sm_89`, `sm_90`, `sm_100` and `sm_120`, plus `compute_120` PTX, so training runs on G7 and G7e instances without PTX JIT compilation
+- Validated with SageMaker AI training jobs on `ml.g7.2xlarge` and `ml.g7.12xlarge` (`MirroredStrategy` across 2 GPUs)
+
+* * *
+
 ## TensorFlow 2.21 — 2026-07-10
 
 **Tags:** `2.21-gpu-py312-cu129-amzn2023-sagemaker` · `2.21-cpu-py312-amzn2023-sagemaker` · `2.21.0-gpu-py312-cu129-amzn2023-sagemaker` ·
