@@ -104,8 +104,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # libcublas/libcufft/libcurand/libcusolver/libcusparse/libnvjpeg are required
 # at TFS init on a real GPU — the CUDA runtime image ships CUDA but not these
 # math libs. Missing -> `cuInit` crash on GPU hosts, CPU falls back cleanly.
+#
+# cuda-nvcc provides nvvm/libdevice.10.bc and ptxas. TensorFlow JIT-compiles
+# some kernels (e.g. Rsqrt in batch norm) for the GPU at runtime; without these
+# files a model with BatchNormalization fails with "JIT compilation failed".
 RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing \
+    cuda-nvcc-${CUDA_MAJOR_MINOR} \
     python${PYTHON_VERSION} python${PYTHON_VERSION}-pip python${PYTHON_VERSION}-devel \
     procps-ng \
     # gcc/make/devel: serve.py pip-installs customer requirements.txt at start.
@@ -269,7 +274,10 @@ RUN set -eux \
   #    (Do NOT import tensorflow_serving.apis.* — --no-deps means the
   #    `tensorflow` framework wheel is absent.)
   &&  ldd "$(command -v tensorflow_model_server)" | { ! grep -F 'not found'; } \
-  &&  tensorflow_model_server --version
+  &&  tensorflow_model_server --version \
+  # 6. libdevice + ptxas for TensorFlow's runtime kernel JIT (e.g. Rsqrt).
+  &&  test -f /usr/local/cuda/nvvm/libdevice/libdevice.10.bc \
+  &&  command -v ptxas >/dev/null
 
 # Final size cleanup — `dnf clean all` leaves history/log/cachedir metadata
 # (~150-300 MB). Scrub last so prior layers still see a valid dnf DB.
