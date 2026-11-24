@@ -3,7 +3,7 @@
 Use the TensorFlow Serving DLC to host SavedModel artifacts on {{ sagemaker }} real-time endpoints and batch transform jobs. The images bundle
 `tensorflow_model_server`, nginx, and the SageMaker TensorFlow Serving handler stack, so no custom container code is required for the common case.
 
-The TensorFlow Serving 2.20 DLC is a **SageMaker-only** release — there is no EC2 or EKS variant of this image.
+The TensorFlow Serving 2.21 DLC is a **SageMaker-only** release — there is no EC2 or EKS variant of this image.
 
 ## Packaging Model Artifacts
 
@@ -43,7 +43,7 @@ Pass the DLC image URI via `image_uri=` rather than `framework_version=`:
 from sagemaker.tensorflow import TensorFlowModel
 
 model = TensorFlowModel(
-    image_uri="public.ecr.aws/deep-learning-containers/tensorflow-inference:2.20-gpu-py312-cu129-amzn2023-sagemaker",
+    image_uri="public.ecr.aws/deep-learning-containers/tensorflow-inference:2.21-gpu-py312-cu129-amzn2023-sagemaker",
     model_data="s3://<bucket>/models/model.tar.gz",
     role="arn:aws:iam::<account_id>:role/<role_name>",
 )
@@ -62,7 +62,7 @@ predictor.delete_model()
 predictor.delete_endpoint(delete_endpoint_config=True)
 ```
 
-For CPU instances (e.g. `ml.c6i`, `ml.m6i`), use the `2.20-cpu-py312-amzn2023-sagemaker` tag instead.
+For CPU instances (e.g. `ml.c6i`, `ml.m6i`), use the `2.21-cpu-py312-amzn2023-sagemaker` tag instead.
 
 ## SageMaker Python SDK v3
 
@@ -79,7 +79,7 @@ region = boto3.session.Session().region_name
 model = Model.create(
     model_name="tfs-model",
     primary_container=ContainerDefinition(
-        image="public.ecr.aws/deep-learning-containers/tensorflow-inference:2.20-gpu-py312-cu129-amzn2023-sagemaker",
+        image="public.ecr.aws/deep-learning-containers/tensorflow-inference:2.21-gpu-py312-cu129-amzn2023-sagemaker",
         model_data_url="s3://<bucket>/models/model.tar.gz",
     ),
     execution_role_arn="arn:aws:iam::<account_id>:role/<role_name>",
@@ -188,7 +188,7 @@ models that do not.
 model = Model.create(
     model_name="tfs-mme",
     primary_container=ContainerDefinition(
-        image="public.ecr.aws/deep-learning-containers/tensorflow-inference:2.20-cpu-py312-amzn2023-sagemaker",
+        image="public.ecr.aws/deep-learning-containers/tensorflow-inference:2.21-cpu-py312-amzn2023-sagemaker",
         mode="MultiModel",
         model_data_url="s3://<bucket>/models/",
         environment={"SAGEMAKER_MULTI_MODEL": "true"},

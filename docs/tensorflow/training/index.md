@@ -22,7 +22,8 @@ The `2.21.0-*` fully-qualified tags (e.g. `2.21.0-gpu-py312-cu129-amzn2023-sagem
 
 The GPU image includes:
 
-- **TensorFlow 2.21.0** (`tensorflow==2.21.0`)
+- **TensorFlow 2.21.0** (`tensorflow==2.21.0`) — the GPU image's wheel is built from source with native NVIDIA Blackwell (`sm_120`) support for G7 and
+  G7e
 - **CUDA 12.9.1** with **cuDNN 9.24.0.43** (`nvidia-cudnn-cu12`) and **NCCL 2.30.7** (`nvidia-nccl-cu12`) for multi-GPU collectives
 - **[EFA](https://aws.amazon.com/hpc/efa/)** with **OpenMPI 4.1.8** for low-latency multi-node communication on EFA-capable instances — built with the
   latest EFA installer at image build time
