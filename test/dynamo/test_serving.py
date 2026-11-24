@@ -39,7 +39,6 @@ def trtllm_engine_args(mode):
         "tensor_parallel_size": 1,
         "max_num_tokens": 8192,
         "max_batch_size": 16,
-        "trust_remote_code": True,
         "backend": "pytorch",
         "enable_chunked_prefill": True,
         "kv_cache_config": {"free_gpu_memory_fraction": 0.85},
@@ -97,7 +96,6 @@ def worker_cmd(*extra, mode="agg"):
         "16",
         "--tp",
         "1",
-        "--trust-remote-code",
         "--disable-piecewise-cuda-graph",
         *extra,
     ]
