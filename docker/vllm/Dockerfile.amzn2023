@@ -1,7 +1,7 @@
 ARG CUDA_VERSION=13.0.2
 ARG PYTHON_VERSION=3.12
-ARG FRAMEWORK_VERSION=0.24.0
-ARG FLASHINFER_VERSION=0.6.12
+ARG FRAMEWORK_VERSION=0.34.0
+ARG FLASHINFER_VERSION=0.7.3
 # DeepEP v2 from the AWS EFA fork (amazon-contributing/DeepEP).
 ARG DEEPEP_REPO=https://github.com/amazon-contributing/DeepEP.git
 ARG DEEPEP_COMMIT_HASH=874779c9ccd2294b56304bd6cc5f138f1f71d097
@@ -9,7 +9,7 @@ ARG NCCL_VERSION=2.31.2
 ARG NVSHMEM_PIP_VERSION=3.3.24
 ARG GDRCOPY_VERSION=2.5.2
 # Mooncake KV connector; its Go etcd client is rebuilt in the mooncake-etcd stage.
-ARG MOONCAKE_VERSION=0.3.13.post1
+ARG MOONCAKE_VERSION=0.3.14
 ARG GO_VERSION=1.27.3
 ARG GO_SHA256=65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40
 
@@ -284,7 +284,7 @@ ENV UV_LINK_MODE=copy
 ARG NCCL_VERSION
 RUN CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1) \
   && echo "nvidia-nccl-cu${CUDA_MAJOR}==${NCCL_VERSION}" >/etc/uv-overrides.txt \
-  && echo "transformers==5.20.2" >>/etc/uv-overrides.txt
+  && echo "transformers==5.22.0" >>/etc/uv-overrides.txt
 ENV UV_OVERRIDE=/etc/uv-overrides.txt
 
 # Install PyTorch
