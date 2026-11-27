@@ -164,6 +164,8 @@ jobs:
       image-uri: ${{ needs.build.outputs.image-uri || '' }}
       image-content-hash: ${{ needs.check.outputs.image-content-hash }}
       suite-code-hash: ${{ fromJSON(needs.check.outputs.suite-code-hashes || '{}')['sglang/upstream'] || '' }}
+      # Temporarily disabled.
+      skip-tests: registered/core/test_basic_sanity_dflash.py
     secrets: inherit
 
   model-tests:

@@ -19,6 +19,9 @@ JSON token):
 
 import importlib.util
 import json
+import os
+import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -26,7 +29,11 @@ import pytest
 SM_ARGS = Path(__file__).resolve().parents[2] / "scripts" / "docker" / "vllm" / "sagemaker_args.py"
 ENTRYPOINTS = [
     Path(__file__).resolve().parents[2] / "scripts" / "docker" / "vllm" / name
-    for name in ("sagemaker_entrypoint.sh", "omni_sagemaker_entrypoint.sh")
+    for name in (
+        "sagemaker_entrypoint.sh",
+        "omni_sagemaker_entrypoint.sh",
+        "cpu_sagemaker_entrypoint.sh",
+    )
 ]
 
 
@@ -267,3 +274,137 @@ def test_entrypoint_invokes_the_helper(entrypoint):
     text = entrypoint.read_text()
     assert "sagemaker_args.py" in text, f"{entrypoint.name} no longer calls the helper"
     assert "while IFS= read -r -d '' token" in text
+
+
+# --- credentials stay off the command line and out of the logs ------------------
+
+# Low entropy so secret scanners leave it alone; the leading dashes check that a key
+# which looks like a flag is still treated as a value.
+FAKE_SECRET = "--fake-key-" + "x" * 16
+
+
+def launch_entrypoint(entrypoint, env, tmp_path):
+    """Run a shipped entrypoint with its final `exec` replaced by a probe.
+
+    The probe writes the argv and exported environment the server would have started
+    with to tmp_path/argv and tmp_path/environ. Returns the completed process.
+    """
+    script = entrypoint.read_text().replace("/usr/local/bin/sagemaker_args.py", str(SM_ARGS))
+    # The CPU entrypoint sources a file that only exists in the image.
+    script = re.sub(r"^source /usr/local/bin/\S+$", ":", script, flags=re.MULTILINE)
+    probe = f'printf "%s\\0" "${{ARGS[@]}}" >"{tmp_path}/argv"; env -0 >"{tmp_path}/environ"'
+    # A function replacement, so re.subn leaves the probe's backslash alone.
+    script, count = re.subn(r"^exec .*$", lambda _: probe, script, flags=re.MULTILINE)
+    assert count == 1, f"{entrypoint.name} should end in exactly one exec"
+    result = subprocess.run(
+        ["bash", "-c", script],
+        env={"PATH": os.environ["PATH"], **env},
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    return result
+
+
+def run_entrypoint(entrypoint, env, tmp_path):
+    """Run a shipped entrypoint up to its probe and require it to succeed.
+
+    Returns the argv and exported environment the server would have started with,
+    plus everything the script printed.
+    """
+    result = launch_entrypoint(entrypoint, env, tmp_path)
+    assert result.returncode == 0, result.stderr
+    argv = (tmp_path / "argv").read_text().split("\0")[:-1]
+    entries = (tmp_path / "environ").read_text().split("\0")
+    environ = dict(entry.split("=", 1) for entry in entries if entry)
+    return argv, environ, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+def test_api_key_reaches_vllm_as_env_var_not_argv(entrypoint, tmp_path):
+    """vLLM reads VLLM_API_KEY when no --api-key is given. The command line shows up in
+    `ps` and in standard-supervisor's startup log, so the key must not be on it."""
+    argv, environ, output = run_entrypoint(
+        entrypoint, {"SM_VLLM_MODEL": "m", "SM_VLLM_API_KEY": FAKE_SECRET}, tmp_path
+    )
+    assert environ.get("VLLM_API_KEY") == FAKE_SECRET
+    assert "--api-key" not in argv
+    assert FAKE_SECRET not in argv
+    assert FAKE_SECRET not in output
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+def test_sm_vllm_api_key_still_wins_over_vllm_api_key(entrypoint, tmp_path):
+    """SM_VLLM_API_KEY used to arrive as --api-key, which beats VLLM_API_KEY."""
+    _, environ, _ = run_entrypoint(
+        entrypoint,
+        {"SM_VLLM_MODEL": "m", "SM_VLLM_API_KEY": FAKE_SECRET, "VLLM_API_KEY": "other"},
+        tmp_path,
+    )
+    assert environ.get("VLLM_API_KEY") == FAKE_SECRET
+
+
+@pytest.mark.parametrize("env_key", ["SM_VLLM_API_KEY", "SM_VLLM_HF_TOKEN"])
+def test_logged_arguments_mask_credentials(env_key, monkeypatch, capsys):
+    """The helper logs the argv it builds; a credential it is handed must still reach
+    vLLM but never the log."""
+    for key in [k for k in os.environ if k.startswith("SM_VLLM_")]:
+        monkeypatch.delenv(key)
+    monkeypatch.setenv("SM_VLLM_MODEL", "m")
+    monkeypatch.setenv(env_key, FAKE_SECRET)
+    sagemaker_args.main()
+    captured = capsys.readouterr()
+    assert FAKE_SECRET in captured.out.split("\0")
+    assert FAKE_SECRET not in captured.err
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+@pytest.mark.parametrize("prefix", ["", " "], ids=["list", "indented-list"])
+def test_json_list_of_api_keys_is_rejected(entrypoint, prefix, tmp_path):
+    """VLLM_API_KEY holds a single key, so a JSON list can't become several keys any
+    more. Starting with the whole list as one key would leave every client locked out
+    with no explanation; the entrypoint must refuse to start, without printing the keys."""
+    keys = ["--old-key-" + "x" * 8, "--new-key-" + "y" * 8]
+    env = {"SM_VLLM_MODEL": "m", "SM_VLLM_API_KEY": prefix + json.dumps(keys)}
+    result = launch_entrypoint(entrypoint, env, tmp_path)
+    assert result.returncode != 0
+    assert not (tmp_path / "argv").exists(), "the server must not start"
+    assert "SM_VLLM_API_KEY" in result.stderr
+    for key in keys:
+        assert key not in result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+def test_hf_token_reaches_vllm_as_env_var_not_argv(entrypoint, tmp_path):
+    """Hugging Face downloads read HF_TOKEN when no --hf-token is given; keep the
+    token off the command line for the same reason as the API key."""
+    argv, environ, output = run_entrypoint(
+        entrypoint, {"SM_VLLM_MODEL": "m", "SM_VLLM_HF_TOKEN": FAKE_SECRET}, tmp_path
+    )
+    assert environ.get("HF_TOKEN") == FAKE_SECRET
+    assert "--hf-token" not in argv
+    assert FAKE_SECRET not in argv
+    assert FAKE_SECRET not in output
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+def test_sm_vllm_hf_token_still_wins_over_hf_token(entrypoint, tmp_path):
+    """SM_VLLM_HF_TOKEN used to arrive as --hf-token, which beats HF_TOKEN."""
+    _, environ, _ = run_entrypoint(
+        entrypoint,
+        {"SM_VLLM_MODEL": "m", "SM_VLLM_HF_TOKEN": FAKE_SECRET, "HF_TOKEN": "other"},
+        tmp_path,
+    )
+    assert environ.get("HF_TOKEN") == FAKE_SECRET
+
+
+@pytest.mark.parametrize("entrypoint", ENTRYPOINTS, ids=lambda p: p.name)
+@pytest.mark.parametrize("value,flag_expected", [("true", True), ("True", True), ("false", False)])
+def test_boolean_hf_token_keeps_its_flag_meaning(entrypoint, value, flag_expected, tmp_path):
+    """A bare --hf-token tells vLLM to use the token from `hf auth login`; true/false
+    must keep meaning that, not become a literal token."""
+    argv, environ, _ = run_entrypoint(
+        entrypoint, {"SM_VLLM_MODEL": "m", "SM_VLLM_HF_TOKEN": value}, tmp_path
+    )
+    assert ("--hf-token" in argv) is flag_expected
+    assert "HF_TOKEN" not in environ

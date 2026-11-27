@@ -158,5 +158,10 @@
         "vulnerability_id": "CVE-2026-56851",
         "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still embeds x/text v0.37.0, below the fixed v0.41.0; upstream Mooncake main has bumped x/text to v0.42.0 but no release carries it, so it cannot be patched without an upstream mooncake rebuild",
         "review_by": "2026-12-20"
+    },
+    {
+        "vulnerability_id": "CVE-2026-78661",
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, html parser quadratic text-node coalescing; mooncake-transfer-engine-cuda13 0.3.14 (latest on PyPI) still embeds x/net v0.60.0, below the fixed v0.62.0, so no released wheel carries the fix and it cannot be patched without an upstream mooncake rebuild",
+        "review_by": "2026-12-20"
     }
 ]

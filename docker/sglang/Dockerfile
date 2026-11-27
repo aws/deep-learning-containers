@@ -43,6 +43,7 @@ RUN pip install \
   "filelock>=4.2.1" \
   "lxml>=6.1.0" \
   "nltk>=3.10.3" \
+  "oauthlib>=4.0.1" \
   "pillow>=13.0.0" \
   "pyarrow>=26.0.1" \
   "pyasn1>=0.6.3" \
@@ -55,6 +56,7 @@ RUN pip install \
 # ===============
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/docker/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa.sh install_efa.sh
 COPY ./scripts/docker/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 

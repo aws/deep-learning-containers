@@ -10,6 +10,6 @@ msgpack>=1.2.3
 # torch, which removes the need to reinstall torch afterward.
 #
 # Keep in sync with docker/lambda/pytorch/pyproject.toml.
-torch==2.13.0
+torch==2.14.1
 torchaudio==2.11.0
-torchvision==0.28.0
+torchvision==0.29.1

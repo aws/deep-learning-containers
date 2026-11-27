@@ -45,6 +45,7 @@ jobs:
       image-uri: ${{ steps.image.outputs.image-uri }}
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
+      blackwell: ${{ steps.blackwell.outputs.blackwell }}
     steps:
       - uses: actions/checkout@v6
 
@@ -63,6 +64,23 @@ jobs:
         uses: ./.github/actions/check-image-exists
         with:
           image-uri: ${{ steps.image.outputs.image-uri }}
+
+      # Images built with native Blackwell code (sm_120 in the config's GPU
+      # target list) also run the Blackwell endpoint job below.
+      - name: Check for Blackwell build
+        id: blackwell
+        env:
+          CONFIG_FILE: ${{ inputs.config-file }}
+          G7_RESERVATION: ${{ vars.ML_RESERVATION_NAME_G7_2XLARGE }}
+        run: |
+          if grep -Eq '^[[:space:]]*cuda_compute_capabilities:.*sm_120' "$CONFIG_FILE"; then
+            echo "blackwell=true" >> "$GITHUB_OUTPUT"
+            if [ -z "${G7_RESERVATION}" ]; then
+              echo "::warning::ML_RESERVATION_NAME_G7_2XLARGE is not set: the Blackwell (G7) endpoint job is skipped."
+            fi
+          else
+            echo "blackwell=false" >> "$GITHUB_OUTPUT"
+          fi
 
   sagemaker-test:
     timeout-minutes: 180
@@ -99,9 +117,18 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}/test
           SM_DEVICE_TYPE: ${{ inputs.device-type }}
+          DLC_CI_JOB_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.device-type }}
+          # GPU endpoints lead with ml.g6.xlarge, so they use the CI ML
+          # Reservation for it when configured (test/test_utils/instance_capacity.py).
+          ML_RESERVATION_ARN_G6_XLARGE: >-
+            ${{ vars.ML_RESERVATION_NAME_G6_XLARGE && format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
+            vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G6_XLARGE) || '' }}
         run: |
           source .venv/bin/activate
-          python3 -m pytest -v --tb=short -rA -n 4 --dist loadfile \
+          # GPU runs deploy 2 endpoints at a time: the G6 ML Reservation is small and
+          # shared with other suites (and with the 2.20 GPU suite on the same PR),
+          # so 4 at a time left most endpoints waiting on open-pool capacity.
+          python3 -m pytest -v --tb=short -rA -n ${{ inputs.device-type == 'gpu' && 2 || 4 }} --dist loadfile \
             --image-uri ${{ needs.preflight.outputs.image-uri }} \
             --region ${{ vars.AWS_REGION }} \
             test/tensorflow/integration/inference/
@@ -110,14 +137,108 @@ jobs:
         if: ${{ steps.tests.outcome == 'failure' }}
         run: echo "::warning::SageMaker inference tests failed (non-blocking for this variant)."
 
-  # Record a PASS row in the ci-images-table if the test passed.
+      # A step timeout or cancel kills pytest before its fixtures delete their
+      # endpoints. Delete whatever this job created (tagged dlc-ci-job=<job ID>).
+      - name: Clean up SageMaker resources of this job
+        if: always()
+        continue-on-error: true
+        env:
+          DLC_CI_JOB_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.device-type }}
+        run: |
+          source .venv/bin/activate
+          python3 test/tensorflow/integration/inference/resources/cleanup_ci_resources.py --region ${{ vars.AWS_REGION }}
+
+  # Blackwell (sm_120) compatibility tests. GPU endpoints are pinned to
+  # ml.g7.2xlarge with no fallback to another GPU family (that would pass without
+  # running on Blackwell). They ask for the CI G7 ML Reservation
+  # (ML_RESERVATION_NAME_G7_2XLARGE), which SageMaker uses when it has a free
+  # instance and otherwise falls back to on-demand ml.g7.2xlarge; one at a time
+  # because the reservation holds one instance. Runs for images built with sm_120.
+  sagemaker-test-blackwell:
+    timeout-minutes: 180
+    if: >-
+      ${{ needs.preflight.outputs.image-exists == 'true' &&
+          needs.preflight.outputs.blackwell == 'true' &&
+          inputs.device-type == 'gpu' &&
+          vars.ML_RESERVATION_NAME_G7_2XLARGE != '' }}
+    needs: [preflight]
+    outputs:
+      tests-outcome: ${{ steps.tests.outcome }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt -r test/tensorflow/integration/inference/requirements.txt
+
+      - name: Run SageMaker inference tests on Blackwell (ml.g7.2xlarge)
+        id: tests
+        timeout-minutes: 170
+        continue-on-error: ${{ inputs.non-blocking }}
+        env:
+          PYTHONPATH: ${{ github.workspace }}/test
+          SM_DEVICE_TYPE: ${{ inputs.device-type }}
+          SM_GPU_INSTANCE_TYPE: ml.g7.2xlarge
+          DLC_CI_JOB_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.device-type }}
+          # The endpoint containers get CUDA_DISABLE_PTX_JIT=1, so a precompiled
+          # kernel (nvcc-built TensorFlow kernels, cuDNN, cuBLAS) without native
+          # sm_120 code fails instead of being JIT-compiled from PTX by the driver.
+          # TensorFlow's runtime-generated kernels (e.g. Rsqrt) are compiled with
+          # ptxas for the device and are not affected.
+          SM_CUDA_DISABLE_PTX_JIT: "1"
+          ML_RESERVATION_ARN_G7_2XLARGE: >-
+            ${{ format('arn:aws:sagemaker:{0}:{1}:ml-reservation/{2}',
+            vars.AWS_REGION, vars.CI_AWS_ACCOUNT_ID, vars.ML_RESERVATION_NAME_G7_2XLARGE) }}
+        run: |
+          source .venv/bin/activate
+          python3 -m pytest -v --tb=short -rA \
+            --image-uri ${{ needs.preflight.outputs.image-uri }} \
+            --region ${{ vars.AWS_REGION }} \
+            test/tensorflow/integration/inference/test_conv_gpu.py \
+            test/tensorflow/integration/inference/test_single_model_endpoint.py \
+            test/tensorflow/integration/inference/test_multi_model_endpoint.py
+
+      - name: Report non-blocking failure
+        if: ${{ steps.tests.outcome == 'failure' }}
+        run: echo "::warning::Blackwell SageMaker inference tests failed (non-blocking for this variant)."
+
+      # A step timeout or cancel kills pytest before its fixtures delete their
+      # endpoints. Delete whatever this job created (tagged dlc-ci-job=<job ID>).
+      - name: Clean up SageMaker resources of this job
+        if: always()
+        continue-on-error: true
+        env:
+          DLC_CI_JOB_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}-${{ inputs.device-type }}
+        run: |
+          source .venv/bin/activate
+          python3 test/tensorflow/integration/inference/resources/cleanup_ci_resources.py --region ${{ vars.AWS_REGION }}
+
+  # Record a PASS row in the ci-images-table if the test passed. A Blackwell
+  # build passes only once the Blackwell job has passed too, so a skipped or
+  # failed G7 run never lets the result cache skip it on the next run.
   record-test-pass:
     if: >-
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
           needs.sagemaker-test.result == 'success' &&
-          needs.sagemaker-test.outputs.tests-outcome == 'success' }}
-    needs: [sagemaker-test]
+          needs.sagemaker-test.outputs.tests-outcome == 'success' &&
+          (needs.preflight.outputs.blackwell != 'true' || inputs.device-type != 'gpu' ||
+           (needs.sagemaker-test-blackwell.result == 'success' &&
+            needs.sagemaker-test-blackwell.outputs.tests-outcome == 'success')) }}
+    needs: [preflight, sagemaker-test, sagemaker-test-blackwell]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

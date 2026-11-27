@@ -2,7 +2,7 @@
 
 The workflow passes what the image config declares:
   DYNAMO_BACKEND           metadata.backend (vllm | sglang | trtllm)
-  EXPECTED_DYNAMO_VERSION  metadata.framework_version (e.g. 1.6.1)
+  EXPECTED_DYNAMO_VERSION  metadata.framework_version (e.g. 1.6.2)
   EXPECTED_BACKEND_VERSION metadata.backend_version (e.g. 0.31.0)
   EFA_FLAVOR               build.efa_flavor (efa | noefa)
 """
@@ -24,9 +24,6 @@ BACKEND_DIST = {"trtllm": "tensorrt-llm"}.get(BACKEND, BACKEND)
 EFA_FLAVOR = os.environ["EFA_FLAVOR"]
 LIBFABRIC = Path("/opt/amazon/efa/lib64/libfabric.so.1")
 LOCK = Path("/opt/dynamo-env/uv.lock")
-# NIXL versions whose wheel LIBFABRIC plugin needs a rebuild with an upstream fix
-# (scripts/docker/dynamo/nixl/patches/<version>/): ai-dynamo/nixl#2308.
-NIXL_PATCHED_VERSIONS = {"1.5.0"}
 
 
 def base_version(version):
@@ -98,6 +95,8 @@ def test_backend_version_matches_config():
         "dynamo.frontend",
         f"dynamo.{BACKEND}",
         "gpu_memory_service.cli.server",
+        # ModelExpress client, as in NVIDIA's NGC Dynamo vLLM and SGLang images.
+        *(["modelexpress"] if BACKEND != "trtllm" else []),
         # TensorRT-LLM bundles NIXL as native libraries, without the nixl Python package; its KV
         # transfer goes through the C++ transfer agent binding (no pure-Python fallback installed).
         *(
@@ -163,32 +162,71 @@ ctypes.CDLL(os.path.join(d, "libs/nixl/plugins/libplugin_UCX.so"), mode=os.RTLD_
 
 @pytest.mark.skipif(EFA_FLAVOR != "efa", reason="EFA flavor only")
 def test_nixl_libfabric_plugin_ready_for_efa():
-    """The backend's NIXL can use EFA:
-    - nixl-cu13 1.5.0 races on the EFA endpoint (aborts SGLang's KV transfer over EFA), so its
-      LIBFABRIC plugin must be rebuilt with ai-dynamo/nixl#2308;
-    - TensorRT-LLM's bundled NIXL ships without LIBFABRIC, so the image must add it."""
+    """The backend's NIXL LIBFABRIC plugin is rebuilt from source against the EFA installer's
+    libfabric, at the backend's NIXL version: the nixl-cuXX wheels' plugins are built against older
+    libfabric headers, which compiles out disabling EFA's unsolicited write receive (remote writes can
+    be lost; ai-dynamo/nixl#2529), and TensorRT-LLM's bundled NIXL ships without LIBFABRIC."""
     nixl = nixl_distribution()
-    patches = Path("/opt/nixl/LIBFABRIC_PLUGIN_PATCHES")
     if nixl is None:
         spec = importlib.util.find_spec("tensorrt_llm")
         assert spec is not None, "no nixl-cuXX wheel and no tensorrt_llm"
         plugin = (
             Path(spec.submodule_search_locations[0]) / "libs/nixl/plugins/libplugin_LIBFABRIC.so"
         )
-        assert plugin.is_file(), f"{plugin} missing"
-        assert (
-            Path("/opt/nixl/LIBFABRIC_PLUGIN_SOURCE")
-            .read_text()
-            .startswith("tensorrt_llm-bundled-nixl ")
-        )
-    elif nixl.version in NIXL_PATCHED_VERSIONS:
-        assert patches.is_file(), f"{nixl.metadata['Name']} {nixl.version} plugin not rebuilt"
-        assert "nixl-2308" in patches.read_text()
+        expected_source = "tensorrt_llm-bundled-nixl"
     else:
-        assert not patches.exists(), f"plugin rebuilt for unexpected NIXL {nixl.version}"
-    # A rebuilt plugin is built from source, so it must be listed for OSS compliance.
-    rebuilt = Path("/opt/nixl/LIBFABRIC_PLUGIN_SOURCE").exists()
-    listed = (
-        "NIXL LIBFABRIC plugin" in Path("/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES").read_text()
-    )
-    assert listed == rebuilt, f"plugin rebuilt: {rebuilt}, listed in BUILD_FROM_SOURCE: {listed}"
+        name = canonical(nixl.metadata["Name"])
+        libs = nixl.locate_file(f".{name.replace('-', '_')}.mesonpy.libs")
+        plugin = Path(str(libs)) / "plugins" / "libplugin_LIBFABRIC.so"
+        expected_source = f"{name} {nixl.version}"
+    assert plugin.is_file(), f"{plugin} missing"
+    source = Path("/opt/nixl/LIBFABRIC_PLUGIN_SOURCE")
+    assert source.is_file(), "LIBFABRIC plugin not rebuilt from source"
+    recorded = source.read_text().strip()
+    if (
+        nixl is None
+    ):  # the bundled NIXL's version comes from the config (build.bundled_nixl_version)
+        assert recorded.split()[0] == expected_source, recorded
+    else:
+        assert recorded == expected_source, recorded
+    # Built from source, so it must be listed for OSS compliance.
+    assert "NIXL LIBFABRIC plugin" in Path("/root/BUILD_FROM_SOURCE_PACKAGES_LICENCES").read_text()
+
+
+@pytest.mark.skipif(EFA_FLAVOR != "efa", reason="EFA flavor only")
+def test_patched_nixl_plugin_has_modification_notice():
+    """A LIBFABRIC plugin built with upstream fixes carries a modification notice linking each fix
+    (Apache-2.0 4(b)) in both OSS attribution files."""
+    patches = Path("/opt/nixl/LIBFABRIC_PLUGIN_PATCHES")
+    if not patches.is_file():
+        pytest.skip("plugin not patched")
+    prs = [
+        line.rsplit("nixl-", 1)[1].removesuffix(".patch") for line in patches.read_text().split()
+    ]
+    for name in ("BUILD_FROM_SOURCE_PACKAGES_LICENCES", "THIRD_PARTY_SOURCE_CODE_URLS"):
+        entry = next(
+            (
+                line
+                for line in Path("/root", name).read_text().splitlines()
+                if line.startswith(("** NIXL LIBFABRIC plugin;", "nixl "))
+            ),
+            "",
+        )
+        assert "modified" in entry, f"{name}: no modification notice in {entry!r}"
+        for pr in prs:
+            assert f"/nixl/pull/{pr}" in entry, f"{name}: fix {pr} not linked in {entry!r}"
+
+
+def test_python_packages_without_license_file_are_attributed():
+    """Wheels that ship no license file (left out by the OSS compliance tool) get their license
+    text from scripts/docker/dynamo/add_python_licenses.sh."""
+    licenses = Path("/root/PYTHON_PACKAGES_LICENSES").read_text()
+    for dist, marker in {"nvshmem4py-cu13": "Apache License"}.items():
+        try:
+            md.distribution(dist)
+        except md.PackageNotFoundError:
+            continue
+        start = licenses.find(f"Package Name: {dist}\n")
+        assert start >= 0, f"{dist} missing from PYTHON_PACKAGES_LICENSES"
+        end = licenses.find("\nPackage Name: ", start + 1)
+        assert marker in licenses[start : end if end > 0 else None], f"{dist}: no license text"

@@ -365,11 +365,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   && VLLM_WHL="$(ls -t /tmp/vllm-dist/vllm-*.whl | head -1)" \
   # Filtered cuda.txt: drop the FA4 cute-DSL cluster (nvidia-cutlass-dsl/quack/humming
   # → cuda-python 12.9, broken on cu130; we use flashinfer for attention). Written
-  # INSIDE requirements/ so its `-r common.txt` relative include resolves. torch/
-  # vision/audio are already installed (cu130) from the base; the --constraint pins
-  # them so this resolve can't downgrade torch (it dropped to 2.10.0+cu128 without it)
-  # — so we do NOT reinstall torch.
-  && grep -vE 'nvidia-cutlass-dsl|quack-kernels|humming-kernels' \
+  # INSIDE requirements/ so its `-r common.txt` relative include resolves. The torch
+  # trio is dropped too: the base's 2.14.1 wins and `==` ignores --constraint.
+  && grep -vE 'nvidia-cutlass-dsl|quack-kernels|humming-kernels|^torch==|^torchvision==|^torchaudio==' \
        /tmp/vllm/requirements/cuda.txt > /tmp/vllm/requirements/lambda-runtime.txt \
   && UV_INDEX_STRATEGY=unsafe-best-match uv pip install --python "${UV_PYTHON}" \
      --constraint /tmp/torch-constraints.txt \
@@ -379,6 +377,19 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   && uv pip install --python "${UV_PYTHON}" \
      "flashinfer-python==${FLASHINFER_VERSION}" "flashinfer-cubin==${FLASHINFER_VERSION}" \
      --extra-index-url "https://flashinfer.ai/whl/" \
+  # FlashInfer's kernels precompiled per GPU arch, so vLLM doesn't JIT-build them at
+  # cold start (the sampling module alone took ~80 s of a Lambda Init).
+  # flashinfer-jit-cache is a shim that depends on one package per arch
+  # (sm80/89/90a/100a/103a/120f, 110-285 MB each); install it without deps plus only the
+  # arches in TORCH_CUDA_ARCH_LIST (8.6 has no package; the sm80 kernels cover it); keep
+  # in sync with torch_cuda_arch_list in .github/config/image/lambda/vllm/vllm.yml and
+  # test_flashinfer_jit_cache.py. Same version as flashinfer-python so the kernels match.
+  && uv pip install --python "${UV_PYTHON}" --no-deps \
+     "flashinfer-jit-cache==${FLASHINFER_VERSION}" \
+     "flashinfer-jit-cache-sm80==${FLASHINFER_VERSION}" \
+     "flashinfer-jit-cache-sm89==${FLASHINFER_VERSION}" \
+     "flashinfer-jit-cache-sm120f==${FLASHINFER_VERSION}" \
+     --extra-index-url "https://flashinfer.ai/whl/cu${CUDA_SHORT}" \
   # bump vllm transitive deps with fixed CVEs (ECR scan) to match the other images
   && uv pip install --python "${UV_PYTHON}" "pillow>=12.3.0" \
   # runai-model-streamer S3 loader — enables `--load-format runai_streamer`
@@ -669,7 +680,13 @@ COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lamb
 COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/sglang_entrypoint.sh /sglang_entrypoint.sh
 COPY ./scripts/docker/lambda/sglang/handler.py /var/task/handler.py
+# Not used by the default handler; kept for custom handlers that start their own engine
+# (with ENGINE_EXTENSION=off).
 COPY ./scripts/docker/lambda/execute_once.py /var/task/execute_once.py
+# Engine extension: starts the sglang server during Init and recycles the execution
+# environment when it dies (scripts/docker/lambda/engine_extension.py).
+COPY ./scripts/docker/lambda/engine_extension.py /opt/engine-extension/engine_extension.py
+COPY ./scripts/docker/lambda/extensions/sglang-engine /opt/extensions/sglang-engine
 RUN ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python
 ENV PATH="/var/lang/bin:$PATH" \
@@ -735,7 +752,8 @@ LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 ARG CACHE_REFRESH=0
 ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
-# vllm + flashinfer JIT-compile CUDA kernels for the exact GPU arch at cold start,
+# vllm + flashinfer JIT-compile CUDA kernels for the exact GPU arch at cold start
+# (FlashInfer modules missing from the prebuilt flashinfer-jit-cache, and vLLM's own),
 # so the runtime needs a CUDA compiler toolchain AND math-library dev headers, not
 # just libs: numactl-libs (libnuma.so.1); gcc/g++/which (host compiler);
 # cuda-nvcc/cudart-devel/crt (nvcc + CUDA headers); curand/cublas/cusolver/cusparse
@@ -757,7 +775,13 @@ COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lamb
 COPY --from=uv-source /uv /usr/local/bin/uv
 COPY ./scripts/docker/lambda/vllm_entrypoint.sh /vllm_entrypoint.sh
 COPY ./scripts/docker/lambda/vllm/handler.py /var/task/handler.py
+# Not used by the default handler; kept for custom handlers that start their own engine
+# (with ENGINE_EXTENSION=off).
 COPY ./scripts/docker/lambda/execute_once.py /var/task/execute_once.py
+# Engine extension: starts the vllm server during Init and recycles the execution
+# environment when it dies (scripts/docker/lambda/engine_extension.py).
+COPY ./scripts/docker/lambda/engine_extension.py /opt/engine-extension/engine_extension.py
+COPY ./scripts/docker/lambda/extensions/vllm-engine /opt/extensions/vllm-engine
 RUN chmod +x /vllm_entrypoint.sh \
   && ln -sf /var/lang/bin/python${PYTHON_VERSION} /var/lang/bin/python3 \
   && ln -sf /var/lang/bin/python3 /var/lang/bin/python

@@ -3,7 +3,8 @@
 Covers what the emulator check cannot: the real control plane, managed-instance compute,
 and concurrency configured through the API rather than an env var.
 
-Exit codes: 0 pass, 1 assertion failure, 2 no GPU capacity (not an image defect).
+Exit codes: 0 pass, 1 assertion failure (including Init timeouts), 2 no GPU capacity
+(not an image defect).
 
 The managed-instance fields are absent from the bundled botocore, so requests are signed
 with SigV4 directly. POST-GA: replace _call with boto3.client("lambda").
@@ -80,6 +81,56 @@ def _quote(name):
     return urllib.parse.quote(name, safe="")
 
 
+def function_env(args):
+    """Engine images stream the model from S3, the path recommended to customers."""
+    if args.engine == "none" or not args.model_uri:
+        return {}
+    env = {
+        "MODEL_ID": args.model_uri,
+        "SERVED_MODEL_NAME": args.served_model_name,
+        f"{args.engine.upper()}_LOAD_FORMAT": "runai_streamer",
+    }
+    # A small context keeps the KV cache well inside the test's 12 GB GPU slice.
+    if args.engine == "vllm":
+        env["VLLM_MAX_MODEL_LEN"] = "4096"
+    else:
+        env["SGLANG_SERVER_ARGS"] = "--context-length 4096"
+    return env
+
+
+def init_reports(args, name, since):
+    """What the function's logs say about Init since `since` (epoch seconds).
+
+    Returns (started, reports): whether any environment logged anything (so an
+    instance was placed and Init ran), and (status, seconds) for each finished Init
+    phase, from its platform.initReport line (JSON even in the default log format).
+    Returns None when the logs cannot be read.
+    """
+    # 60 s of slack for clock skew between this host and CloudWatch.
+    query = {"logGroupName": f"/aws/lambda/{name}", "startTime": int((since - 60) * 1000)}
+    try:
+        logs = boto3.client("logs", region_name=args.region)
+        started = bool(logs.filter_log_events(**query, limit=1)["events"])
+        reports = []
+        pages = logs.get_paginator("filter_log_events").paginate(
+            **query, filterPattern='{ $.type = "platform.initReport" }'
+        )
+        for page in pages:
+            for event in page["events"]:
+                try:
+                    record = json.loads(event["message"]).get("record") or {}
+                except (ValueError, AttributeError):
+                    continue
+                duration = ((record.get("metrics") or {}).get("durationMs") or 0) / 1000
+                reports.append((str(record.get("status")), duration))
+    except Exception as e:
+        if getattr(e, "response", {}).get("Error", {}).get("Code") == "ResourceNotFoundException":
+            return False, []  # no log group: no environment ever started
+        print(f"  could not read the function's logs: {e!r}")
+        return None
+    return started or bool(reports), reports
+
+
 def create_function(args, name):
     # aws lambda create-function
     payload = {
@@ -91,6 +142,7 @@ def create_function(args, name):
         "MemorySize": args.memory_size,
         "EphemeralStorage": {"Size": args.ephemeral_storage},
         "Architectures": ["x86_64"],
+        "Environment": {"Variables": function_env(args)},
         "AcceleratorConfig": {"AcceleratorMemorySize": args.accelerator_memory_size},
         "CapacityProviderConfig": {
             "LambdaManagedInstancesCapacityProviderConfig": {
@@ -124,7 +176,7 @@ def wait_created(args, name):
     raise AssertionError(f"{name} did not settle within {args.ready_timeout}s")
 
 
-def wait_active(args, name, version):
+def wait_active(args, name, version, since):
     deadline = time.time() + args.ready_timeout
     last = {}
     while time.time() < deadline:
@@ -144,8 +196,24 @@ def wait_active(args, name, version):
                 raise CapacityUnavailable(reason)
             raise AssertionError(f"function {name} entered Failed: {reason}")
         time.sleep(10)
+    found = init_reports(args, name, since)
+    if found and found[0]:
+        # An environment ran Init, so capacity was there: the image did not start.
+        reports = found[1]
+        attempts = ", ".join(f"{status} after {sec:.0f}s" for status, sec in reports)
+        cause = (
+            "The engine does not start within Lambda's Init limit (the function timeout); "
+            "check its logs for where Init stalls, e.g. loading the model from S3."
+            if any(status == "timeout" for status, _ in reports)
+            else "Init failed; see the function's logs."
+        )
+        raise AssertionError(
+            f"{name}:{version} not Active within {args.ready_timeout}s although Init ran "
+            f"(Init attempts: {attempts or 'none finished'}). {cause}"
+        )
     raise CapacityUnavailable(
         f"{name}:{version} not Active within {args.ready_timeout}s "
+        f"({'no environment logged anything' if found else 'function logs unreadable'}) "
         f"(last state {last.get('State')} {last.get('StateReasonCode') or ''}). "
         f"Check the capacity provider's scaling activities for launch failures."
     )
@@ -224,6 +292,61 @@ def test_gpu_shared_engine(args, name, version):
     print("  PASS exactly one process holds the GPU")
 
 
+def _try_invoke(args, name, payload, version):
+    """Invoke, returning the error instead of raising: failures are expected mid-recycle."""
+    try:
+        return invoke(args, name, payload, version)
+    except (AssertionError, ApiError, RuntimeError) as e:
+        return {"ok": False, "error": str(e)[:300]}
+
+
+def test_engine_failure_recycles_the_environment(args, name, version):
+    """Proves: when the engine dies, Lambda stops routing to that environment and recovers.
+
+    The engine extension reports exit/error and exits when the engine process dies. Passes
+    once a sustained window of rounds (args.recovery_rounds x concurrency invokes) all
+    succeed and none comes from the killed environment. If Lambda kept routing to it,
+    some invoke in the window would land there: with E environments the chance of missing
+    it every time is ((E - 1) / E) ** (rounds x concurrency), under 1e-6 for E = 3.
+    """
+    killed = _try_invoke(args, name, {"action": "kill_engine"}, version)
+    dead_env = killed.get("env")
+    assert dead_env and killed.get("killed"), f"could not kill the engine: {killed}"
+    print(f"  killed engine pid {killed['killed']} in environment {dead_env[:8]}")
+
+    payload = {"prompt": "Describe a container image in one sentence.", "max_tokens": 16}
+    probe = {"action": "engine_probe", "payload": payload}
+    clean_rounds, failed, started = 0, 0, time.time()
+    deadline = started + args.recovery_timeout
+    results = []
+    while time.time() < deadline:
+        results = invoke_concurrently_tolerant(args, name, probe, args.concurrency, version)
+        if all(r.get("ok") and r.get("env") != dead_env for r in results):
+            clean_rounds += 1
+        else:
+            clean_rounds = 0
+            failed += sum(1 for r in results if not r.get("ok") or r.get("env") == dead_env)
+        if clean_rounds >= args.recovery_rounds:
+            served_by = len({r["env"] for r in results})
+            print(
+                f"  PASS recovered after {time.time() - started:.0f}s: {clean_rounds} clean rounds of "
+                f"{args.concurrency} invokes, none from the killed environment ({failed} failed while "
+                f"recycling; last round served by {served_by} environment(s))"
+            )
+            return
+        time.sleep(2)
+    raise AssertionError(
+        f"no recovery {args.recovery_timeout}s after the engine was killed; the dead environment "
+        f"may still be getting traffic. Last round: {results}"
+    )
+
+
+def invoke_concurrently_tolerant(args, name, payload, count, version):
+    with concurrent.futures.ThreadPoolExecutor(max_workers=count) as pool:
+        futures = [pool.submit(_try_invoke, args, name, payload, version) for _ in range(count)]
+        return [f.result() for f in futures]
+
+
 def delete_function(args, name):
     try:
         # aws lambda delete-function
@@ -251,12 +374,14 @@ def run(args):
     print(f"=== {name} ===")
     delete_function(args, name)
     try:
+        since = time.time()
         version = create_function(args, name)
-        wait_active(args, name, version)
+        wait_active(args, name, version, since)
         test_invoke_and_image(args, name, version)
         test_concurrency(args, name, version)
         if args.engine != "none":
             test_gpu_shared_engine(args, name, version)
+            test_engine_failure_recycles_the_environment(args, name, version)
     finally:
         delete_function(args, name)
 
@@ -281,10 +406,45 @@ def main():
     p.add_argument("--memory-size", type=int, default=4096)
     p.add_argument("--memory-gib-per-vcpu", type=int, default=4)
     p.add_argument("--ephemeral-storage", type=int, default=10240)
-    p.add_argument("--invoke-timeout", type=int, default=300)
-    p.add_argument("--ready-timeout", type=int, default=900)
+    p.add_argument(
+        "--invoke-timeout",
+        type=int,
+        help="function timeout; on Managed Instances also the Init limit, max(130 s, timeout). "
+        "Default: 900 (the maximum) for engine images, which load a model at Init, else 300",
+    )
+    p.add_argument(
+        "--ready-timeout",
+        type=int,
+        help="seconds to wait for the version to go Active: instance launch, image pull and Init. "
+        "Default: 1500 for engine images, else 900",
+    )
     p.add_argument("--overlap-seconds", type=int, default=5)
+    p.add_argument(
+        "--recovery-timeout",
+        type=int,
+        help="seconds for Lambda to replace an environment whose engine died (includes an Init). "
+        "Default: 1500",
+    )
+    p.add_argument(
+        "--recovery-rounds",
+        type=int,
+        default=8,
+        help="consecutive clean rounds of concurrent invokes that count as recovered",
+    )
+    p.add_argument(
+        "--model-uri",
+        default="",
+        help="s3:// prefix of a safetensors model that engine images stream (runai_streamer)",
+    )
+    p.add_argument("--served-model-name", default="model", help="model name clients send")
     args = p.parse_args()
+    engine = args.engine != "none"
+    if args.invoke_timeout is None:
+        args.invoke_timeout = 900 if engine else 300
+    if args.ready_timeout is None:
+        args.ready_timeout = 1500 if engine else 900
+    if args.recovery_timeout is None:
+        args.recovery_timeout = 1500
 
     try:
         run(args)

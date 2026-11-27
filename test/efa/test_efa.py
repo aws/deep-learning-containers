@@ -64,7 +64,10 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
     def _step(name, container, conn, cmd, timeout=DEFAULT_TIMEOUT):
         print(f"\n========== {name} ==========")
         print(f"$ {cmd}")
-        r = run_on_container(container, conn, cmd, timeout=timeout)
+        # warn=True so a non-zero exit returns instead of raising UnexpectedExit,
+        # whose message keeps only the last few hundred bytes of output. Print
+        # everything first, then fail.
+        r = run_on_container(container, conn, cmd, timeout=timeout, warn=True)
         if r.stdout:
             print(f"--- stdout ({len(r.stdout)} chars) ---")
             print(r.stdout)
@@ -72,6 +75,9 @@ def test_efa_sanity_and_nccl(image_uri=IMAGE_URI):
             print(f"--- stderr ({len(r.stderr)} chars) ---")
             print(r.stderr)
         print(f"========== /{name} (exit={r.exited}) ==========\n")
+        assert r.exited == 0, (
+            f"{name} failed (exit={r.exited}); full output is in 'Captured stdout call'"
+        )
         return r
 
     with efa_instances(

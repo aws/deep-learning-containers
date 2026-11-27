@@ -133,6 +133,8 @@ LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
 # SageMaker environment
+# gunicorn's gevent worker drops a new connection whose first request arrives after
+# `keepalive` seconds (default 2), so a brief stall surfaces as an nginx 502.
 ENV SM_INPUT=/opt/ml/input \
   SM_INPUT_TRAINING_CONFIG_FILE=/opt/ml/input/config/hyperparameters.json \
   SM_INPUT_DATA_CONFIG_FILE=/opt/ml/input/config/inputdataconfig.json \
@@ -141,6 +143,7 @@ ENV SM_INPUT=/opt/ml/input \
   SM_MODEL_DIR=/opt/ml/model \
   SAGEMAKER_TRAINING_MODULE=sagemaker_xgboost_container.training:main \
   SAGEMAKER_SERVING_MODULE=sagemaker_xgboost_container.serving:main \
+  GUNICORN_CMD_ARGS="--keep-alive 75" \
   TEMP=/home/model-server/tmp \
   LD_LIBRARY_PATH=/opt/venv/lib64/python${PYTHON_VERSION}/site-packages/nvidia/nccl/lib:${LD_LIBRARY_PATH}
 

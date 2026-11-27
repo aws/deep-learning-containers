@@ -13,7 +13,9 @@ on:
       - ".github/workflows/tensorflow-training.tests-unit.yml"
       - "docker/tensorflow/training/2.21/Dockerfile.cuda"
       - "docker/tensorflow/training/2.21/cuda/**"
+      - "scripts/ci/build/tensorflow/**"
       - "scripts/docker/common/**"
+      - "test/ci/tensorflow/**"
       # Broad on purpose: the whole tensorflow subtree triggers this workflow so a
       # newly-added script can never merge with no TF CI. The per-family narrowing
       # lives in build-change below, which is what gates the expensive build.
@@ -45,6 +47,28 @@ jobs:
           fetch-depth: 1
       - uses: ./.github/actions/pr-permission-gate
 
+  # The artifact-cache hooks decide whether a two-hour source build runs and what
+  # gets uploaded, so their hit/miss/upload paths are tested on every hook change.
+  hook-test:
+    needs: [gatekeeper]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup python
+        run: |
+          uv venv --python 3.12
+          echo "${PWD}/.venv/bin" >> "${GITHUB_PATH}"
+
+      - name: Install test dependencies
+        run: uv pip install pytest pyyaml
+
+      - name: Run TensorFlow build-hook tests
+        run: python -m pytest test/ci/tensorflow --confcutdir test/ci/tensorflow -v
+
   check-changes:
     needs: [gatekeeper]
     runs-on:
@@ -69,12 +93,18 @@ jobs:
               - "docker/tensorflow/training/2.21/Dockerfile.cuda"
               - "docker/tensorflow/training/2.21/cuda/**"
               - "scripts/docker/common/**"
+              - "scripts/ci/build/tensorflow/**"
               - "scripts/docker/tensorflow/training/**"
               - "test/security/data/ecr_scan_allowlist/tensorflow/**"
+              # The unit tests check the source-built TensorFlow (Blackwell code,
+              # exact version), so they must run on this PR's image, not the
+              # published one.
+              - "test/tensorflow/unit/**"
             efa-test-change:
               - "test/efa/**"
             sagemaker-test-change:
               - "test/tensorflow/integration/training/**"
+              - ".github/workflows/tensorflow-training.tests-sagemaker.yml"
             sanity-test-change:
               - "test/sanity/**"
             single-gpu-test-change:

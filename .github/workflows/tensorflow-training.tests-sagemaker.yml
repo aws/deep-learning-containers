@@ -35,6 +35,7 @@ jobs:
       aws-account-id: ${{ steps.image.outputs.aws-account-id }}
       image-exists: ${{ steps.check.outputs.exists }}
       device-type: ${{ steps.parse.outputs.device-type }}
+      blackwell: ${{ steps.parse.outputs.blackwell }}
     steps:
       - uses: actions/checkout@v6
 
@@ -58,6 +59,12 @@ jobs:
         id: parse
         run: |
           echo "device-type=$(yq '.metadata.device_type' '${{ inputs.config-file }}')" >> $GITHUB_OUTPUT
+          # Images built with native Blackwell code also run sagemaker-test-blackwell.
+          if yq -r '.build.cuda_compute_capabilities // ""' '${{ inputs.config-file }}' | grep -q 'sm_120'; then
+            echo "blackwell=true" >> $GITHUB_OUTPUT
+          else
+            echo "blackwell=false" >> $GITHUB_OUTPUT
+          fi
 
   sagemaker-test:
     if: ${{ needs.preflight.outputs.image-exists == 'true' }}
@@ -97,13 +104,66 @@ jobs:
               --image-uri "${{ needs.preflight.outputs.image-uri }}"
           fi
 
-  # Record a PASS row in the ci-images-table if the test passed.
+  # SageMaker training on Blackwell (G7) for images built with sm_120: one
+  # ml.g7.2xlarge job (1 GPU) and one ml.g7.12xlarge job (2 GPUs, Mirrored).
+  # ml.g7.2xlarge uses the CI G7 capacity reservation once it is onboarded for
+  # SageMaker Training, else on-demand capacity, so this job never fails the
+  # workflow (continue-on-error); read its test summary for the result.
+  sagemaker-test-blackwell:
+    timeout-minutes: 180
+    if: ${{ needs.preflight.outputs.image-exists == 'true' && needs.preflight.outputs.blackwell == 'true' }}
+    needs: [preflight]
+    outputs:
+      tests-outcome: ${{ steps.tests.outcome }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.preflight.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.preflight.outputs.image-uri }}
+
+      - name: Install test dependencies
+        run: |
+          pip install -r test/requirements.txt -r test/tensorflow/integration/training/requirements.txt
+
+      - name: Run SageMaker training tests on Blackwell (ml.g7)
+        id: tests
+        # Step-level timeout below the job's, so a job stuck on capacity is a
+        # step failure that continue-on-error absorbs, not a failed workflow.
+        timeout-minutes: 170
+        continue-on-error: true
+        env:
+          PYTHONPATH: ${{ github.workspace }}/test
+          SM_ROLE_ARN: arn:aws:iam::${{ needs.preflight.outputs.aws-account-id }}:role/SageMakerRole
+          SM_BLACKWELL: "1"
+        run: |
+          pytest test/tensorflow/integration/training/test_mnist_blackwell.py -v -s -rA \
+            --image-uri "${{ needs.preflight.outputs.image-uri }}" \
+            --region "${{ vars.AWS_REGION }}"
+
+      - name: Report non-blocking failure
+        if: ${{ steps.tests.outcome == 'failure' }}
+        run: echo "::warning::Blackwell (ml.g7) SageMaker training tests failed (non-blocking; on-demand G7 capacity)."
+
+  # Record a PASS row in the ci-images-table if the test passed. A Blackwell
+  # build passes only once the Blackwell job has passed too, so a failed G7 run
+  # never lets the result cache skip it on the next run.
   record-test-pass:
     if: >-
       ${{ always() && !cancelled() && !failure() &&
           inputs.image-content-hash != '' && inputs.suite-code-hash != '' &&
-          needs.sagemaker-test.result == 'success' }}
-    needs: [sagemaker-test]
+          needs.sagemaker-test.result == 'success' &&
+          (needs.preflight.outputs.blackwell != 'true' ||
+           (needs.sagemaker-test-blackwell.result == 'success' &&
+            needs.sagemaker-test-blackwell.outputs.tests-outcome == 'success')) }}
+    needs: [preflight, sagemaker-test, sagemaker-test-blackwell]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

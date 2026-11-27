@@ -4,6 +4,35 @@ Changelog for the Amazon Linux 2023-based vLLM-Omni images (`omni-cuda`, `omni-s
 
 * * *
 
+## v1.9.0 — 2026-11-14
+
+**Tags:** `omni-cuda-v1.9` · `omni-sagemaker-cuda-v1.9`
+
+**vLLM-Omni source:** [v0.32.0](https://github.com/vllm-project/vllm-omni/releases/tag/v0.32.0) on upstream vLLM
+[v0.32.0](https://github.com/vllm-project/vllm/releases/tag/v0.32.0) —
+[full upstream diff](https://github.com/vllm-project/vllm-omni/compare/v0.29.0rc1...v0.32.0)
+
+**DLC PR:** [#6882](https://github.com/aws/deep-learning-containers/pull/6882)
+
+**Bundled versions:** CUDA 13.0.2 · Python 3.12 · PyTorch 2.13.0 · FlashInfer 0.7.0.post1 · Transformers 5.19.0 · DeepEP
+[874779c](https://github.com/amazon-contributing/DeepEP/commit/874779c9ccd2294b56304bd6cc5f138f1f71d097) · NCCL 2.31.2
+
+### Changes
+
+- vLLM-Omni 0.29.0rc1 → 0.32.0 on vLLM 0.29.0 → 0.32.0, FlashInfer 0.6.18 → 0.7.0.post1, Transformers 5.14.1 → 5.19.0. `flashinfer-cubin` is now
+  installed explicitly, since upstream vLLM no longer lists it in its CUDA requirements.
+- **Breaking:** vLLM-Omni 0.32.0 rejects `enable_lora` and `max_lora_rank` for diffusion stages, so a diffusion model with `SM_VLLM_ENABLE_LORA` or
+  `SM_VLLM_MAX_LORA_RANK` set fails to start. Remove both variables: diffusion stages always run the PEFT LoRA manager, and `SM_VLLM_LORA_MODULES`
+  still registers adapters at startup.
+- SageMaker: `SM_VLLM_API_KEY` is passed to vLLM-Omni as `VLLM_API_KEY`, and `SM_VLLM_HF_TOKEN` as `HF_TOKEN`, so neither appears in the startup logs.
+  `SM_VLLM_API_KEY` takes a single key; a JSON list stops the container at startup
+  ([#7011](https://github.com/aws/deep-learning-containers/pull/7011)).
+- `silero-vad` 6.2.3 is bundled, so server VAD on turn-based `/v1/realtime` works without network access.
+- Mooncake is pinned to 0.3.13.post1, and its Go etcd client (`libetcd_wrapper.so`) is rebuilt with Go 1.27.3 and patched Go modules.
+- `gradio` is no longer installed (vLLM-Omni lists it only for its demos), so Pillow moves from 12.3.0 to 13.0.0.
+
+* * *
+
 ## v1.8.0 — 2026-09-26
 
 **Tags:** `omni-cuda-v1.8` · `omni-sagemaker-cuda-v1.8`

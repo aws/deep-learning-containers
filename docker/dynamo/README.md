@@ -11,14 +11,14 @@ inference backend, with or without EFA. Image configs: `.github/config/image/dyn
 
 ## How dependencies are controlled
 
-Each Dynamo release pins the exact backend version it supports (for example `ai-dynamo[vllm]==1.6.1`
+Each Dynamo release pins the exact backend version it supports (for example `ai-dynamo[vllm]==1.6.2`
 requires `vllm==0.31.0` and `nixl[cu13]==1.4.1`). uv resolves that into `uv.lock`, so the image gets
 one consistent, reproducible environment:
 
 - torch, torchvision and torchaudio come from the PyTorch CUDA 13.0 index (`tool.uv.sources`).
 - `exclude-dependencies` drops what the image doesn't need (`aisimulate`, and the CUDA 12 libraries
   that the `nixl` / `nvidia-cutlass-dsl` meta-packages always pull in).
-- `override-dependencies` lifts an upstream cap only for a security fix, with the reason next to it
+- `override-dependencies` replaces an upstream pin only for a security or EFA-correctness fix, with the reason next to it
   (SGLang: `pillow>=13.0.0` over moviepy's `pillow<12`).
 - `ai-dynamo`, `ai-dynamo-runtime` and `gpu-memory-service` are built from source at
   `build.dynamo_ref` and installed over the locked versions. The build fails if their version
@@ -35,6 +35,13 @@ one consistent, reproducible environment:
   `docker/common/install_nixl.sh`). It imports `mpi4py`: the EFA flavor uses the EFA installer's Open MPI, the
   non-EFA flavor installs AL2023's. Over EFA, set `cache_transceiver_config.backend: NIXL` and
   `TRTLLM_NIXL_KVCACHE_BACKEND=LIBFABRIC`. x86_64 only (the aarch64 wheel needs glibc 2.39).
+- **NIXL on EFA:** the EFA flavor of every backend rebuilds NIXL's LIBFABRIC plugin from source at the backend's NIXL
+  version, against the EFA installer's libfabric (`scripts/docker/dynamo/nixl/`; the build fails if those headers lack the
+  option below). Before NIXL 1.5.2, the nixl-cuXX wheels' own plugins are built against older libfabric headers, which
+  compiles out disabling EFA's unsolicited write receive (remote writes can be lost); 1.5.2's wheel plugin is fixed,
+  and the rebuild is kept for all EFA images so they take one tested path. SGLang overrides Dynamo's
+  `nixl[cu13]==1.5.0` with 1.5.2 for the 1.5.0 endpoint-lock race.
+- **ModelExpress** client (vLLM, SGLang), as in NVIDIA's NGC Dynamo images.
 - **KVBM** is not included for any backend (deprecated upstream; its wheel pins a NIXL that conflicts with the locks).
 
 ## Build locally
@@ -59,7 +66,11 @@ The target and `BACKEND` must match. CI passes every `build:` key of the config 
    the image-scan allowlist `test/security/data/ecr_scan_allowlist/dynamo/dynamo-<version>.json`
    (CVEs that a backend's exact pins block; start a new file for the new version).
 1. If the release moves NIXL to a version that needs a LIBFABRIC fix, add
-   `scripts/docker/dynamo/nixl/patches/<nixl-version>/`; drop it once a NIXL release includes the fix.
+   `scripts/docker/dynamo/nixl/patches/<nixl-version>/`; drop it once a NIXL release includes the fix. Name each
+   patch `<n>-<topic>-nixl-<PR>.patch` after the upstream PR: the build links it in the image's modification notice
+   (OSS attribution files).
+1. A new Python package whose wheel ships no license file is left out of `/root/PYTHON_PACKAGES_LICENSES`:
+   add it to `scripts/docker/dynamo/add_python_licenses.sh`.
 
 ## Add a backend
 

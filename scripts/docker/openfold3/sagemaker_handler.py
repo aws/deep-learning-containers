@@ -55,6 +55,8 @@ _DEFAULT_ENGINE = os.environ.get("OPENFOLD3_ENGINE", "subprocess").lower()
 # up front. Set to "1" only on a non-isolated deploy to re-enable.
 _ALLOW_MSA_SERVER = os.environ.get("OPENFOLD3_ALLOW_MSA_SERVER", "0") == "1"
 
+_REJECTED_OPTIONS = frozenset({"runner_yaml", "runner_yaml_inline"})
+
 # Recognized precomputed-MSA names, from OF3 0.4.1 aln_order / max_seq_counts
 # (openfold3/projects/of3_all_atom/config/dataset_config_components.py). OF3 keys
 # MSAs by filename; an unrecognized name is silently ignored (→ single-sequence
@@ -97,6 +99,15 @@ def _check_msa_server_allowed(options: Dict[str, Any]) -> None:
             'precomputed_msa: [{"name": <db>, "content": <a3m/sto text>}]. '
             f"Supported names: {sorted(_RECOGNIZED_MSA_NAMES)} (e.g. colabfold_main "
             "for a single ColabFold-merged MSA)."
+        )
+
+
+def _check_no_engine_config(options: Dict[str, Any]) -> None:
+    rejected = sorted(k for k in _REJECTED_OPTIONS if k in options)
+    if rejected:
+        raise ValueError(
+            f"Unsupported option(s): {rejected}. Passing an OpenFold3 runner config is "
+            "not supported; use the documented per-request options instead."
         )
 
 
@@ -216,6 +227,7 @@ class OpenFold3Predictor:
         # Reject network-dependent options + validate precomputed_msa names before
         # leasing a GPU (cheap fail-fast; use_msa_server would otherwise hang).
         try:
+            _check_no_engine_config(options)
             _check_msa_server_allowed(options)
             _validate_precomputed_msa(openfold_data)
         except ValueError as e:
@@ -289,15 +301,6 @@ class OpenFold3Predictor:
                 cmd.append(f"--num_model_seeds={int(options['num_model_seeds'])}")
             if "num_diffusion_samples" in options:
                 cmd.append(f"--num_diffusion_samples={int(options['num_diffusion_samples'])}")
-
-            runner_yaml_path = options.get("runner_yaml")
-            inline_yaml = options.get("runner_yaml_inline")
-            if inline_yaml and not runner_yaml_path:
-                runner_yaml_path = os.path.join(temp_dir, "runner.yml")
-                with open(runner_yaml_path, "w") as f:
-                    f.write(inline_yaml)
-            if runner_yaml_path:
-                cmd.append(f"--runner_yaml={runner_yaml_path}")
 
             env = os.environ.copy()
             env["CUDA_VISIBLE_DEVICES"] = cuda_visible

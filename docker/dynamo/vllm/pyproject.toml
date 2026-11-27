@@ -10,7 +10,7 @@ dependencies = [
   # Dynamo pins the exact vLLM (and NIXL) release it supports through this extra. The image
   # builds ai-dynamo / ai-dynamo-runtime / gpu-memory-service from source at the same
   # release and installs them over the locked versions (same dependency metadata).
-  "ai-dynamo[vllm]==1.6.1",
+  "ai-dynamo[vllm]==1.6.2",
   # Listed so tool.uv.sources applies (sources only apply to direct dependencies); the
   # versions come from vLLM's own pins.
   "torch",
@@ -18,11 +18,18 @@ dependencies = [
   "torchaudio",
   # DLC additions.
   "botocore",
+  # ModelExpress client (model-weight transfer and streaming), as in NVIDIA's NGC Dynamo images. It
+  # needs protobuf<7, which moves this lock's protobuf from 7.x to 6.33 (what the SGLang lock uses).
+  "modelexpress==0.7.0",
 ]
 
 [tool.uv]
 required-version = ">=0.13"
 environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+# Security minimums the lock must keep (they only raise a floor, unlike override-dependencies).
+constraint-dependencies = [
+  "oauthlib>=4.0.1",  # CVE-2026-49272
+]
 exclude-dependencies = [
   # Only used by Dynamo's planner/profiler simulation, not by dynamo.vllm or
   # dynamo.frontend; it pulls ~50 packages (jax, flax, tfp-nightly).

@@ -1,9 +1,9 @@
-ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.33.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
+ARG BASE_IMAGE=public.ecr.aws/deep-learning-containers/vllm:0.34.0-gpu-py312-cu130-ubuntu24.04-sagemaker-v1.0
 
 FROM ${BASE_IMAGE} AS base
 
 ARG FRAMEWORK=huggingface-vllm
-ARG FRAMEWORK_VERSION=0.33.0
+ARG FRAMEWORK_VERSION=0.34.0
 ARG CONTAINER_TYPE=general
 ARG DLC_MAJOR_VERSION=1
 
@@ -11,7 +11,7 @@ LABEL maintainer="Hugging Face"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
 
 ARG TRANSFORMERS_VERSION=5.19.0
-ARG HUGGINGFACE_HUB_VERSION=1.33.0
+ARG HUGGINGFACE_HUB_VERSION=2.4.0
 ARG HF_XET_VERSION=1.6.0
 
 RUN apt-get update -y \
@@ -43,15 +43,6 @@ RUN uv pip install --system --break-system-packages \
   && uv cache clean \
   && rm -rf /tmp/uv*
 
-# CVE-2026-105192: the base ships lmcache 0.5.5; 0.5.6 fixes it. --no-deps
-# because 0.5.6 adds grpcio-observability==1.78.0, which pins grpcio==1.78.0 and
-# conflicts with the grpcio>=1.79.3 CVE pin above. lmcache only imports it
-# behind try/except ImportError (gRPC metrics export), and every other
-# requirement is identical to 0.5.5.
-RUN uv pip install --system --break-system-packages --no-deps "lmcache==0.5.6" \
-  && uv cache clean \
-  && rm -rf /tmp/uv*
-
 
 # Same as vllm Dockerfile to make telemetry work
 COPY ./scripts/docker/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -69,8 +60,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 ENV DLC_CONTAINER_TYPE=${CONTAINER_TYPE}
 
 # HF auto-optimization layer. Sourced by the entrypoint to set performance
-# defaults at run time: expandable_segments allocator and LMCache CPU
-# KV-offload. The bundled accelerators it enables (LMCache / NIXL /
+# defaults at run time: expandable_segments allocator, and LMCache CPU
+# KV-offload as opt-in (HF_ENABLE_LMCACHE=1). The bundled accelerators it enables (LMCache / NIXL /
 # runai-streamer) already ship in the AWS base. See inference/vllm/README.md
 # for the toggles.
 COPY --chmod=755 ./scripts/docker/huggingface/vllm/hf_optimizations.sh /usr/local/bin/hf_optimizations.sh

@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.33.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.34.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -42,6 +42,7 @@ RUN uv pip install --system \
   "pyasn1>=0.6.3" \
   "certifi>=2026.10.18" \
   "uv>=0.13.4" \
+  "dnspython>=2.9.2" \
   && uv cache clean
 
 # Audio deps for voxtral / ASR serving (mistral_common is an optional import in vLLM 0.24.0)
@@ -73,9 +74,19 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /root/.cache | true
 
+ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa.sh install_efa.sh
-RUN bash install_efa.sh ${EFA_VERSION} \
+# vllm-openai >= 0.34.0 runs a pinned EFA installer with --build-ngc, which installs the
+# reduced libnccl-ofi-ngc-* plugin package (no libnccl-net.so, so NCCL silently falls back
+# to sockets). Our installer prefix-matches it as libnccl-ofi and skips the full package,
+# and a newer libnccl-ofi would collide with its files. Purge it so our EFA_VERSION always
+# installs the full plugin. libfabric shares package names and upgrades normally.
+RUN ngc_pkgs=$(dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' 'libnccl-ofi-ngc*' 2>/dev/null | awk '$1 == "ii" {print $2}') \
+  && if [ -n "${ngc_pkgs}" ]; then echo "Purging upstream NGC plugin: ${ngc_pkgs}" && dpkg --purge ${ngc_pkgs}; fi \
+  && bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
+  && dpkg-query -W libnccl-ofi libfabric1-aws \
+  && test -e /opt/amazon/ofi-nccl/lib/libnccl-net.so \
   && mkdir -p /tmp/nvjpeg \
   && cd /tmp/nvjpeg \
   && curl -O https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \

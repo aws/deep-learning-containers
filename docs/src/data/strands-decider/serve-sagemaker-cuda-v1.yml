@@ -1,0 +1,16 @@
+framework: strands-decider
+version: "1.0.0+0.3.1.dev1"
+ecr_repository: strands-decider
+accelerator: gpu
+python: py313
+cuda: cu128
+os: amzn2023
+platform: sagemaker
+public_registry: true
+
+# Support policy
+ga: "2026-11-10"
+eop: "2027-11-10"
+
+tags:
+  - "serve-sagemaker-cuda-v1"

@@ -1,6 +1,6 @@
 # ============================================================================
 # TensorFlow 2.21 Training DLC — Amazon Linux 2023 (CUDA 12.9.1)
-# Multi-stage: builder-base → builder-oss → runtime-base → sagemaker
+# Multi-stage: tf-wheel-build → builder-base → builder-oss → runtime-base → sagemaker
 # Build args are passed by the build-image action from the image config's
 # build: block (.github/config/image/tensorflow/2.21-training-sagemaker-cuda.yml).
 # ============================================================================
@@ -11,11 +11,73 @@ ARG PYTHON_VERSION=3.12
 ARG TF_VERSION=2.21.0
 ARG OPEN_MPI_VERSION=4.1.8
 ARG EFA_VERSION="latest"
+ARG HERMETIC_CUDNN_VERSION=9.16.0
+ARG CUDA_COMPUTE_CAPABILITIES="sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,sm_120,compute_120"
+ARG TF_COMMIT=a481b10260dfdf833a1b16007eead49c1d7febf3
+ARG BAZEL_VERSION=7.7.0
+ARG BAZEL_SHA256=fe7e799cbc9140f986b063e06800a3d4c790525075c877d00a7112669824acbf
+
+
+# ── Stage: tf-wheel-build (TF wheel built from source with sm_120) ──────────
+# The upstream PyPI wheel stops at sm_89 + compute_90 PTX, which fails or
+# JIT-compiles on Blackwell (G7/G7e, sm_120). This stage compiles the same
+# release with Blackwell kernels added. The CI pre-build hook
+# (scripts/ci/build/tensorflow/pre_build.sh) fetches a cached wheel into
+# prebuilt/; with USE_PREBUILT_WHEEL=1 the Bazel build is skipped. The
+# directory holds only a .gitkeep by default so the COPY always succeeds.
+# The wheel's sha256 is written next to it for the CI cache hooks, which
+# upload or use the wheel only if it matches (scripts/ci/build/tensorflow/lib/checksum.sh).
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 AS tf-wheel-build
+ARG TF_VERSION
+ARG TF_COMMIT
+ARG PYTHON_VERSION
+ARG CUDA_VERSION
+ARG HERMETIC_CUDNN_VERSION
+ARG CUDA_COMPUTE_CAPABILITIES
+ARG BAZEL_VERSION
+ARG BAZEL_SHA256
+ARG USE_PREBUILT_WHEEL=0
+ARG DEBIAN_FRONTEND=noninteractive
+
+COPY docker/tensorflow/training/2.21/prebuilt/ /tmp/prebuilt/
+COPY scripts/docker/tensorflow/training/build_tf_wheel.sh /tmp/build_tf_wheel.sh
+RUN --mount=type=cache,id=tf-bazel-training,sharing=locked,target=/root/.cache/bazel \
+  mkdir -p /opt/tf-dist \
+  && if [ "${USE_PREBUILT_WHEEL}" = "1" ] && ls /tmp/prebuilt/tensorflow-*.whl >/dev/null 2>&1; then \
+    echo "Using cached TensorFlow wheel: skipping Bazel build" \
+    && cp /tmp/prebuilt/tensorflow-*.whl /opt/tf-dist/; \
+  else \
+    apt-get update && apt-get install -y --no-install-recommends \
+      build-essential ca-certificates curl file git patch python3 python3-pip rsync unzip xxd zip \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSLo /usr/local/bin/bazel \
+      "https://github.com/bazelbuild/bazel/releases/download/${BAZEL_VERSION}/bazel-${BAZEL_VERSION}-linux-x86_64" \
+    && echo "${BAZEL_SHA256}  /usr/local/bin/bazel" | sha256sum -c - \
+    && chmod +x /usr/local/bin/bazel \
+    && bash /tmp/build_tf_wheel.sh \
+      --tf-ref "v${TF_VERSION}" \
+      --tf-commit "${TF_COMMIT}" \
+      --cuda-version "${CUDA_VERSION}" \
+      --cudnn-version "${HERMETIC_CUDNN_VERSION}" \
+      --compute-capabilities "${CUDA_COMPUTE_CAPABILITIES}" \
+      --python-version "${PYTHON_VERSION}" \
+      --out-dir /opt/tf-dist; \
+  fi \
+  && for whl in /opt/tf-dist/tensorflow-*.whl; do sha256sum "${whl}" | cut -d' ' -f1 > "${whl}.sha256"; done
+
+
+# ── Stage: tf-artifact-export (cache upload on a pre-build cache miss) ──────
+# Usage: docker buildx build --target tf-artifact-export --output type=local,dest=<export dir> ...
+# (pre_build.sh creates a fresh export dir per cache miss.)
+FROM scratch AS tf-artifact-export
+COPY --from=tf-wheel-build /opt/tf-dist/ /artifacts/
 
 
 # ── Stage: builder-base (Python venv + lockfile deps) ───────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
 ARG PYTHON_VERSION
+ARG TF_VERSION
+ARG CUDA_COMPUTE_CAPABILITIES
 
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
@@ -31,17 +93,54 @@ ENV PATH="/opt/venv/bin:${PATH}"
 
 COPY docker/tensorflow/training/2.21/cuda/pyproject.toml docker/tensorflow/training/2.21/cuda/uv.lock /tmp/build/
 WORKDIR /tmp/build
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact
+# tensorflow itself is skipped here and installed from the sm_120 source build
+# below, so the venv that later stages COPY holds a single TensorFlow (a PyPI
+# copy overwritten in a later layer would still ship in this layer).
+RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project --inexact --no-install-package tensorflow
+
+# Source-built TensorFlow wheel (same version and dependencies as the lockfile's
+# PyPI wheel). Installed by name from a local index, not by file path, so pip
+# and uv see a regular tensorflow==TF_VERSION install (no direct_url.json
+# pointing at the deleted /tmp/tf-dist). The installed version must equal both
+# TF_VERSION and the tensorflow== pin in pyproject.toml, which the lockfile
+# resolved the other dependencies for, so bumping only one of them fails here.
+# Its CUDA code is checked on every build, cache hit or miss,
+# against every entry of CUDA_COMPUTE_CAPABILITIES: sm_XY needs an sm_XY cubin,
+# compute_XY needs an sm_XY cubin and compute_XY PTX. The build fails otherwise.
+COPY --from=tf-wheel-build /opt/tf-dist/ /tmp/tf-dist/
+RUN uv pip install --python /opt/venv/bin/python --no-deps --no-cache \
+    --no-index --find-links /tmp/tf-dist "tensorflow==${TF_VERSION}" \
+  && rm -rf /tmp/tf-dist \
+  && PIN=$(grep -oE '"tensorflow==[^"]+"' /tmp/build/pyproject.toml | tr -d '"' | cut -d= -f3) \
+  && INSTALLED=$(/opt/venv/bin/python -c "import tensorflow as tf; print(tf.__version__)") \
+  && echo "TensorFlow ${INSTALLED} (TF_VERSION ${TF_VERSION}, pyproject pin ${PIN})" \
+  && { [ "${INSTALLED}" = "${TF_VERSION}" ] && [ "${INSTALLED}" = "${PIN}" ] \
+    || { echo "ERROR: installed TensorFlow ${INSTALLED} != TF_VERSION ${TF_VERSION} / pyproject pin ${PIN}" >&2; exit 1; }; } \
+  && /opt/venv/bin/python -c "import importlib.metadata as m; assert m.distribution('tensorflow').read_text('direct_url.json') is None, 'tensorflow installed from a file path'" \
+  && BIN=/opt/venv/lib/python${PYTHON_VERSION}/site-packages/tensorflow/libtensorflow_cc.so.2 \
+  && ELF=$(/usr/local/cuda/bin/cuobjdump --list-elf "${BIN}" | grep -oE 'sm_[0-9]+[af]?' | sort -u || true) \
+  && PTX=$(/usr/local/cuda/bin/cuobjdump --list-ptx "${BIN}" | grep -oE '(sm|compute)_[0-9]+[af]?' | sed 's/^compute_/sm_/' | sort -u || true) \
+  && for cap in $(echo "${CUDA_COMPUTE_CAPABILITIES}" | tr ',' ' '); do \
+    sm="sm_${cap#*_}"; \
+    echo "${ELF}" | grep -qx "${sm}" || { echo "ERROR: TensorFlow has no ${sm} cubin" >&2; exit 1; }; \
+    case "${cap}" in compute_*) echo "${PTX}" | grep -qx "${sm}" || { echo "ERROR: TensorFlow has no ${cap} PTX" >&2; exit 1; } ;; esac; \
+  done \
+  && echo "TensorFlow: GPU targets verified (${CUDA_COMPUTE_CAPABILITIES})"
 
 
 # ── Stage: builder-oss (generates license files in isolation) ───────────────
 FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS builder-oss
 ARG PYTHON_VERSION
+ARG TF_VERSION
 RUN dnf install -y --allowerasing python${PYTHON_VERSION} curl && dnf clean all
 COPY --from=builder-base /opt/venv /opt/venv
 COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+# The TensorFlow wheel is built from source (tf-wheel-build stage): record its
+# source, as other source-built components do.
 RUN PATH="/opt/venv/bin:${PATH}" bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
-  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
+  && touch /root/THIRD_PARTY_SOURCE_CODE_URLS /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\n** tensorflow; version %s -- https://github.com/tensorflow/tensorflow\n' "${TF_VERSION}" >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\ntensorflow %s https://github.com/tensorflow/tensorflow/archive/refs/tags/v%s.tar.gz\n' "${TF_VERSION}" "${TF_VERSION}" >> /root/THIRD_PARTY_SOURCE_CODE_URLS
 
 
 # ── Stage: runtime-base (shared base for output stages) ─────────────────────
@@ -118,6 +217,7 @@ ENV PATH="/opt/venv/bin:${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:/usr/local/cuda/bin
 # (NCCL dlopens libnccl-net-ofi.so from this path).
 ENV LD_LIBRARY_PATH="/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/opt/amazon/ofi-nccl/lib64:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
+ARG CACHE_REFRESH=0
 COPY scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh "${EFA_VERSION}" && rm /tmp/install_efa.sh
 
@@ -180,8 +280,12 @@ RUN mkdir -p /opt/ml/input/data /opt/ml/model /opt/ml/output /opt/ml/code
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 COPY docker/tensorflow/training/2.21/cuda/pyproject.toml docker/tensorflow/training/2.21/cuda/uv.lock /tmp/build/
-RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact \
-  && rm -rf /tmp/build /tmp/uv-*
+# --no-install-package tensorflow: without it uv replaces the source-built
+# TensorFlow from builder-base with the lockfile's PyPI wheel. The check after
+# the sync fails the build if that ever happens.
+RUN --mount=type=cache,target=/root/.cache/uv cd /tmp/build && uv sync --frozen --no-dev --extra sagemaker --no-install-project --inexact --no-install-package tensorflow \
+  && rm -rf /tmp/build /tmp/uv-* \
+  && python -c "import tensorflow as tf; caps = tf.sysconfig.get_build_info()['cuda_compute_capabilities']; print(tf.__version__, caps); assert 'sm_100' in caps and 'sm_120' in caps and 'compute_120' in caps"
 
 # Boost 1.82 for SM Studio extensions (compiled with _GLIBCXX_USE_CXX11_ABI=1
 # to match TF's ABI). Some SM Studio extensions link against boost.

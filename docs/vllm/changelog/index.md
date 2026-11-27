@@ -5,6 +5,23 @@ Changelog for the Amazon Linux 2023-based vLLM images (`vllm`: `server-cuda`, `s
 
 * * *
 
+## v1.1.0 — 2026-11-13 (ARM64 CPU)
+
+**Tags:** `server-cpu-v1.1` · `server-sagemaker-cpu-v1.1`
+
+**vLLM source:** [v0.33.0](https://github.com/vllm-project/vllm/releases/tag/v0.33.0) (`0.33.0+amzn2023.4ba787ec`)
+
+**Bundled versions:** Python 3.12 · GCC 14 · tcmalloc
+
+### Changes
+
+- vLLM 0.30.0 → 0.33.0, built from the upstream `v0.33.0` release tag, matching the v2.8 GPU images
+  ([#7016](https://github.com/aws/deep-learning-containers/pull/7016),
+  [upstream changes](https://github.com/vllm-project/vllm/compare/ec4a3a537068db40afbc9374a67da719c8c9b964...v0.33.0)).
+- `setuptools` raised to `>=80.10.1,<81` so the vendored `jaraco.context` is patched for CVE-2026-23949.
+
+* * *
+
 ## v2.8.0 — 2026-11-08
 
 **Tags:** `server-cuda-v2.8` · `server-sagemaker-cuda-v2.8`

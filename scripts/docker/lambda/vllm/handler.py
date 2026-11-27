@@ -1,21 +1,20 @@
 """Default AWS Lambda handler for the vLLM serving image.
 
-Follows the Lambda LMI serving pattern: ONE shared vLLM OpenAI-compatible HTTP
-server (`vllm serve`) is started once per execution environment, and the handler is
-a thin proxy to it, so a single model copy in VRAM is shared across all concurrent
-invocations. This is the correct shape for a GPU serving engine under the multi-mode
-concurrency RIC — an in-process `vllm.LLM` per worker would load one model copy PER
-worker (N copies), which does not fit a single GPU.
+Follows the Lambda LMI serving pattern: ONE shared vLLM OpenAI-compatible HTTP server
+serves every concurrent invocation from a single model copy in VRAM, and the handler is
+a thin proxy to it.
 
-Multi-concurrency (AWS_LAMBDA_MAX_CONCURRENCY set) runs this module in every forked
-worker, so the launch goes through `execute_once`: one worker starts the server, the
-others only wait for /health. On-demand takes the same path with one worker.
+The server is owned by the engine extension (/opt/extensions/vllm-engine, source in
+/opt/engine-extension/engine_extension.py), not by this module: the extension starts it
+during Init, before the first invocation, and recycles the execution environment if the
+server dies or stops answering /health. Replacing this handler keeps that behaviour.
 
 Customers typically override this handler; this default lets the image serve out of
 the box and gives CI a smoke target.
 
-Environment variables:
-  MODEL_ID              HuggingFace model id, local path, or s3:// prefix (default: a tiny model)
+Environment variables (read by the extension unless noted):
+  MODEL_ID              HuggingFace model id, local path, or s3:// prefix (default: a tiny
+                        model); also the request's default "model" here
   VLLM_GPU_MEM_UTIL     gpu_memory_utilization for the server (default: 0.8)
   VLLM_TP_SIZE          tensor_parallel_size (default: visible GPU count)
   VLLM_MAX_MODEL_LEN    optional cap on the model context length
@@ -23,99 +22,29 @@ Environment variables:
                         to stream safetensors from S3 to GPU (runai-model-streamer)
   SERVED_MODEL_NAME     --served-model-name; the model id clients use (set this when
                         MODEL_ID is a path/s3:// prefix so requests have a stable name)
-  VLLM_SERVER_PORT      port the in-container server binds (default: 8000)
-  VLLM_SERVER_TIMEOUT   seconds to wait for server readiness (default: 600)
+  VLLM_SERVER_ARGS      extra `vllm serve` flags, shell-quoted
+  VLLM_SERVER_PORT      port the in-container server binds (default: 8000); also read here
+  VLLM_SERVER_TIMEOUT   seconds to wait for server readiness during Init (default: 600)
 """
 
 import json
 import os
-import subprocess
-import time
 
 import requests
-from execute_once import execute_once
 
 _MODEL_ID = os.environ.get("MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
-_GPU_MEM_UTIL = os.environ.get("VLLM_GPU_MEM_UTIL", "0.8")
-_MAX_MODEL_LEN = os.environ.get("VLLM_MAX_MODEL_LEN")
-# Set VLLM_LOAD_FORMAT=runai_streamer with MODEL_ID=s3://bucket/prefix to stream
-# safetensors from S3 into GPU memory via runai-model-streamer (no /tmp staging).
-_LOAD_FORMAT = os.environ.get("VLLM_LOAD_FORMAT")
-# When MODEL_ID is a path/s3:// prefix, the served model name differs from it;
-# set SERVED_MODEL_NAME so clients (and this handler) address a stable model id.
 _SERVED_NAME = os.environ.get("SERVED_MODEL_NAME")
-_PORT = os.environ.get("VLLM_SERVER_PORT", "8000")
-_TIMEOUT = int(os.environ.get("VLLM_SERVER_TIMEOUT", "600"))
-_BASE_URL = f"http://127.0.0.1:{_PORT}"
-_LOCK_PATH = "/tmp/vllm_server_start.lock"
-_RESULT_PATH = "/tmp/vllm_server_start.result"
+_BASE_URL = f"http://127.0.0.1:{os.environ.get('VLLM_SERVER_PORT', '8000')}"
+# Used only when the invocation context has no deadline (e.g. called outside the RIC).
+_FALLBACK_TIMEOUT = 600
 
 
-def _noop_serialize(obj, f):
-    pass
-
-
-def _noop_deserialize(data):
-    return None
-
-
-def _server_cmd():
-    import torch
-
-    # One GPU per sandbox → device_count() is normally 1; auto-adapts if a sandbox is
-    # ever granted multiple GPUs. Override VLLM_TP_SIZE to pin explicitly.
-    tp_size = int(os.environ.get("VLLM_TP_SIZE", "0")) or max(1, torch.cuda.device_count())
-    cmd = [
-        "vllm",
-        "serve",
-        _MODEL_ID,
-        "--host",
-        "127.0.0.1",
-        "--port",
-        _PORT,
-        "--gpu-memory-utilization",
-        _GPU_MEM_UTIL,
-        "--tensor-parallel-size",
-        str(tp_size),
-    ]
-    if _MAX_MODEL_LEN:
-        cmd += ["--max-model-len", _MAX_MODEL_LEN]
-    if _LOAD_FORMAT:
-        cmd += ["--load-format", _LOAD_FORMAT]
-    if _SERVED_NAME:
-        cmd += ["--served-model-name", _SERVED_NAME]
-    return cmd
-
-
-@execute_once(
-    lock_path=_LOCK_PATH,
-    result_path=_RESULT_PATH,
-    timeout=_TIMEOUT,
-    serializer=_noop_serialize,
-    deserializer=_noop_deserialize,
-)
-def _launch_server():
-    return subprocess.Popen(_server_cmd())
-
-
-def _start_server():
-    """Start the one shared vLLM server for this sandbox and block until it is ready."""
-    proc = _launch_server()
-
-    deadline = time.monotonic() + _TIMEOUT
-    while time.monotonic() < deadline:
-        if proc is not None and proc.poll() is not None:
-            raise RuntimeError(f"vLLM server exited with code {proc.returncode} during startup")
-        try:
-            if requests.get(f"{_BASE_URL}/health", timeout=5).status_code == 200:
-                return
-        except requests.RequestException:
-            pass
-        time.sleep(1)
-    raise RuntimeError(f"vLLM server did not become ready within {_TIMEOUT}s")
-
-
-_start_server()
+def _request_timeout(context):
+    """Seconds left before the invocation deadline, less a margin to report the error."""
+    remaining = getattr(context, "get_remaining_time_in_millis", None)
+    if remaining is None:
+        return _FALLBACK_TIMEOUT
+    return max(0.1, remaining() / 1000 - 1)
 
 
 def handler(event, context):
@@ -133,7 +62,12 @@ def handler(event, context):
     body.setdefault("model", _SERVED_NAME or _MODEL_ID)
     path = "/v1/chat/completions" if "messages" in body else "/v1/completions"
 
-    resp = requests.post(f"{_BASE_URL}{path}", json=body, timeout=_TIMEOUT)
+    try:
+        resp = requests.post(f"{_BASE_URL}{path}", json=body, timeout=_request_timeout(context))
+    except requests.ConnectionError as e:
+        raise RuntimeError(f"vLLM server is not reachable at {_BASE_URL}: {e}") from e
+    except requests.Timeout as e:
+        raise RuntimeError(f"vLLM server did not answer before the invocation deadline: {e}") from e
     if not resp.ok:
         raise RuntimeError(f"vLLM server returned {resp.status_code}: {resp.text}")
     return resp.json()

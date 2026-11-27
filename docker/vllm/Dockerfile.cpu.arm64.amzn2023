@@ -1,6 +1,6 @@
 ARG AL_VERSION=2023
 ARG PYTHON_VERSION=3.12
-ARG FRAMEWORK_VERSION=0.30.0
+ARG FRAMEWORK_VERSION=0.33.0
 
 # =============================================================================
 # STAGE 0: source — clone vLLM at the pinned ref
@@ -9,7 +9,7 @@ FROM alpine/git AS source
 
 ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
 ARG FRAMEWORK_VERSION
-ARG VLLM_REF=ec4a3a537068db40afbc9374a67da719c8c9b964
+ARG VLLM_REF=4ba787ec9959e566d3b587a796dff07673324da5
 
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src \
   || (git clone --depth 50 ${VLLM_REPO} /src && cd /src && git fetch origin ${VLLM_REF} && git checkout ${VLLM_REF})
@@ -154,7 +154,7 @@ FROM runtime AS base
 ARG PYTHON="python3"
 ARG PYTHON_VERSION=3.12
 ARG DLC_MAJOR_VERSION=1
-ARG DLC_MINOR_VERSION=0
+ARG DLC_MINOR_VERSION=1
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
@@ -180,8 +180,8 @@ RUN uv pip install --no-cache-dir \
   "starlette>=1.3.1" \
   "cryptography>=48.0.1" \
   "model-hosting-container-standards>=0.1.16,<1.0.0" \
-  # setuptools path traversal (CVE-2025-47273); latest also re-vendors jaraco.context>=6.1.0 for its Zip Slip (CVE-2026-23949)
-  "setuptools>=78.1.1" \
+  # setuptools path traversal (CVE-2025-47273); >=80.10.1 re-vendors jaraco.context>=6.1.0 (CVE-2026-23949); <81 per vLLM requirements
+  "setuptools>=80.10.1,<81.0.0" \
   # 8.0.1 fixes AttributeError on fastapi 0.138 _IncludedRouter that 500s /health (instrumentator #371)
   "prometheus-fastapi-instrumentator>=8.0.1" \
   # Transitive deps of vllm. opentelemetry-sdk pins opentelemetry-api exactly, so both move together.

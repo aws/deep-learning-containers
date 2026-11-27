@@ -51,6 +51,7 @@ def sm_trainer(image_uri, source_dir):
         environment=None,
         input_data=None,
         job_name_prefix="tf-sm-test",
+        stopping_condition=None,
     ):
         source_code = SourceCode(
             source_dir=source_dir,
@@ -73,6 +74,7 @@ def sm_trainer(image_uri, source_dir):
             # No MPI/torchrun launcher — SageMaker spawns one process per host.
             # For MWMS, the entry script builds TF_CONFIG itself.
             distributed=None,
+            **({"stopping_condition": stopping_condition} if stopping_condition else {}),
         )
 
         model_trainer.train(input_data_config=input_data, wait=True)

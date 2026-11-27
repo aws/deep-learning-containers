@@ -20,6 +20,13 @@ build:
   tf_version: "2.21.0"
   open_mpi_version: "4.1.8"
   efa_version: "latest"
+  # Source-built TF wheel (native Blackwell sm_120 for G7/G7e): see
+  # scripts/docker/tensorflow/training/build_tf_wheel.sh
+  tf_commit: "a481b10260dfdf833a1b16007eead49c1d7febf3"  # tag v2.21.0
+  bazel_version: "7.7.0"  # must match the TF tag's .bazelversion (checked by the build)
+  bazel_sha256: "fe7e799cbc9140f986b063e06800a3d4c790525075c877d00a7112669824acbf"
+  hermetic_cudnn_version: "9.16.0"
+  cuda_compute_capabilities: "sm_60,sm_70,sm_80,sm_89,sm_90,sm_100,sm_120,compute_120"
   dlc_major_version: "1"
 
 release:

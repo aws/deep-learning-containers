@@ -11,10 +11,14 @@ nav:
     - Ray Train: ray-train
     - WhisperX: whisperx
     - llama.cpp: llama-cpp
+    - Strands Decider: strands-decider
+    - NVIDIA Dynamo: dynamo
     - PyTorch: pytorch
     - TensorFlow: tensorflow
     - Base: base
-  - Blog Posts: tutorials
+    - Lambda GPU: lambda
+  - Blog Posts: blogs/index.md
+  - Tutorials: tutorials
   - Resources:
     - resources/index.md
     - Reference:

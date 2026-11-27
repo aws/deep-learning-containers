@@ -10,7 +10,7 @@ ARG FRAMEWORK=huggingface-pytorch-inference
 ARG FRAMEWORK_VERSION=2.11.0
 ARG CONTAINER_TYPE=inference
 ARG TRANSFORMERS_VERSION=5.22.1
-ARG HF_SERVE_VERSION=0.2.0
+ARG HF_SERVE_VERSION=0.2.1
 ARG DIFFUSERS_VERSION=0.42.0
 ARG VENV_PYTHON=/opt/venv/bin/python
 
@@ -68,7 +68,8 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "cryptography>=50.0.0" \
   "brotli>=1.2.1" \
   "filelock>=4.2.1" \
-  "mlflow>=3.17.2" \
+  "mlflow>=3.18.0" \
+  "oauthlib>=4.0.1" \
   "fsspec[http]>=2026.6.0" \
   "s3fs>=2026.6.0" \
   "pillow>=13.0.0" \
@@ -76,6 +77,7 @@ RUN uv pip install --python ${VENV_PYTHON} \
   "graphql-core>=3.2.12,<3.3" \
   "pyasn1>=0.6.5" \
   "sqlparse>=0.6.0" \
+  "soupsieve>=4.0.0" \
   "tornado>=6.5.8" \
   "urllib3>=2.8.0" \
   && uv cache clean \
@@ -94,6 +96,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 COPY ./scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 RUN bash /tmp/setup_oss_compliance.sh python3 \
+  && PHONEMIZER_VERSION=$(${VENV_PYTHON} -c "import importlib.metadata as m; print(m.version('phonemizer'))") \
+  && KENLM_VERSION=$(${VENV_PYTHON} -c "import importlib.metadata as m; print(m.version('kenlm'))") \
+  && printf '\nphonemizer %s https://github.com/bootphon/phonemizer/archive/refs/tags/v%s.tar.gz\n' "$PHONEMIZER_VERSION" "$PHONEMIZER_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\nkenlm %s https://files.pythonhosted.org/packages/source/k/kenlm/kenlm-%s.tar.gz\n' "$KENLM_VERSION" "$KENLM_VERSION" >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* /tmp/tmp* /root/.cache
 

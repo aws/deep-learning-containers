@@ -5,9 +5,9 @@ name: Reusable Dynamo HyperPod Tests
 # with kubectl (test/dynamo/hyperpod/run_hyperpod_test.py): it scales the GPU instance groups up, deploys, checks the
 # answers, and scales them back down. Tests run one at a time on the cluster.
 #
-# Repository variables: HYPERPOD_EKS_CLUSTER, HYPERPOD_CLUSTER, HYPERPOD_PREFILL_GROUP, HYPERPOD_DECODE_GROUP (two
-# EFA-capable GPU groups in one subnet), and optionally HYPERPOD_FALLBACK_GROUPS ("PREFILL,DECODE", a pair in another
-# AZ, tried when the main pair gets no on-demand capacity).
+# Repository variables: HYPERPOD_EKS_CLUSTER, HYPERPOD_CLUSTER, HYPERPOD_PREFILL_GROUP, HYPERPOD_DECODE_GROUP (EFA-capable
+# GPU groups in one subnet; one group with two nodes works too, e.g. a group on reserved capacity kept running), and
+# optionally HYPERPOD_FALLBACK_GROUPS ("PREFILL,DECODE", a pair in another AZ, tried when the main pair gets no nodes).
 
 on:
   workflow_call:

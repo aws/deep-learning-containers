@@ -40,7 +40,13 @@ flag (`SM_VLLM_ENFORCE_EAGER=true` → `--enforce-eager`), and `false` omits the
 | `SM_VLLM_TRUST_REMOTE_CODE` | Allow custom model code | `false` |
 | `HF_MODEL_ID` | Hugging Face model ID (fallback when `SM_VLLM_MODEL` is unset and `/opt/ml/model` is empty) | — |
 | `HF_TOKEN` | Hugging Face token for gated models | — |
+| `SM_VLLM_API_KEY` | One API key (`--api-key`) that vLLM requires on its `/v1`, `/v2`, `/inference` and `/cohere` routes. Passed to vLLM as `VLLM_API_KEY`, so it stays off the command line and out of the logs | — |
 | `VLLM_ENABLE_CUDA_COMPATIBILITY` | Enable CUDA 13 forward compatibility for hosts with older NVIDIA drivers | `0` |
+
+`SM_VLLM_API_KEY` doesn't protect SageMaker endpoint traffic. vLLM doesn't check the key on `/invocations` or `/ping`, InvokeEndpoint calls are
+authenticated with IAM, and SageMaker AI doesn't forward an `Authorization` header to the container. While a key is set, requests that use `route=` to
+reach a `/v1` path are rejected with 401. A `SM_VLLM_HF_TOKEN` token is passed to vLLM as `HF_TOKEN` for the same reason as the API key; `true` and
+`false` keep their `--hf-token` flag meaning.
 
 ## Known Limitations
 

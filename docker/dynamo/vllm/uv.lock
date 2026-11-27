@@ -9,6 +9,7 @@ supported-markers = [
 ]
 
 [manifest]
+constraints = [{ name = "oauthlib", specifier = ">=4.0.1" }]
 excludes = [
     "aisimulate",
     "nixl-cu12",
@@ -26,7 +27,7 @@ wheels = [
 
 [[package]]
 name = "ai-dynamo"
-version = "1.6.1"
+version = "1.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ai-dynamo-runtime" },
@@ -43,7 +44,7 @@ dependencies = [
     { name = "zstandard" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4d/ef/d68ed8b3a6949a6617fb9205df797e15c95088ecc89d186aa7cbef8ed6e4/ai_dynamo-1.6.1-py3-none-any.whl", hash = "sha256:83f768730104cbbc84029bf436025706632735173933adbb650b99c746517b70", size = 3972559, upload-time = "2026-10-27T06:46:14.23Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/cd/fa9c496f6e2a937b8234ee462daf5e75027cadf8e9cfec2de73aae6f480a/ai_dynamo-1.6.2-py3-none-any.whl", hash = "sha256:91c6c35ef02bee0fcbbbf6c3b42e97010aa6cc5d9180557852057b25df5cd84c", size = 3974591, upload-time = "2026-11-05T19:53:43.946Z" },
 ]
 
 [package.optional-dependencies]
@@ -59,14 +60,14 @@ vllm = [
 
 [[package]]
 name = "ai-dynamo-runtime"
-version = "1.6.1"
+version = "1.6.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "uvloop" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/89/68/bbc88f1eb1afcd83850b1e454ea6fa3e90574a0d40a8a20cf63a8ee401b0/ai_dynamo_runtime-1.6.1-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:3683cafe88ededdff29c9ae6f651367eac33153487ff84e205082483cd6b3095", size = 74705200, upload-time = "2026-10-27T06:47:44.165Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/70/d2f1678fbe703196dc99b5c20e7d708ba3ae8207f19a9dd13f1bf17bf7f5/ai_dynamo_runtime-1.6.2-cp310-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:e79479094b1d2fb0468aacae0d48c50977a0cf0f610c35dc769611a1e6e2a53a", size = 74705952, upload-time = "2026-11-05T19:55:33.001Z" },
 ]
 
 [[package]]
@@ -531,11 +532,11 @@ wheels = [
 
 [[package]]
 name = "dnspython"
-version = "2.9.0"
+version = "2.9.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ef/4a/50822184bd67cc6493f0fb6a880749158fcd31ab3fa07409acfd91f9fc85/dnspython-2.9.0.tar.gz", hash = "sha256:b44dc6b18f07a8b1c56676a19fbfdb5209415b046a9cece286baafa87ff3f7f1", size = 423560, upload-time = "2026-10-09T00:07:24.352Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/76/49/900383b471c645a3c397f47b3211d1fcecb3a540c98f683494cdf86b33de/dnspython-2.9.2.tar.gz", hash = "sha256:8d4d39a513e649d634004ce4d39ade2352efcea472a0247535a5c2d18a9d7ba9", size = 455484, upload-time = "2026-11-03T23:56:53.601Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/02/cdcc9b7c051786a103c3b09e1003a82fa0c66bcb91ffbdabcfbf7b4163b9/dnspython-2.9.0-py3-none-any.whl", hash = "sha256:9a4aedb833c3c1b49214d04d44d3032ab7a9135f7c1d29a549b4ff78fd82fda9", size = 354822, upload-time = "2026-10-09T00:07:22.622Z" },
+    { url = "https://files.pythonhosted.org/packages/1e/0c/5346358b3a20275d256978c35203ddc2c8617f78c1b23795b79ba22ced6d/dnspython-2.9.2-py3-none-any.whl", hash = "sha256:af15f7d385a6ae2fb35a796fde2138004c8c42c7389090e2addc83e3b3340fd8", size = 360455, upload-time = "2026-11-03T23:56:52.088Z" },
 ]
 
 [[package]]
@@ -563,6 +564,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "ai-dynamo", extra = ["vllm"] },
     { name = "botocore" },
+    { name = "modelexpress" },
     { name = "torch" },
     { name = "torchaudio" },
     { name = "torchvision" },
@@ -570,8 +572,9 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ai-dynamo", extras = ["vllm"], specifier = "==1.6.1" },
+    { name = "ai-dynamo", extras = ["vllm"], specifier = "==1.6.2" },
     { name = "botocore" },
+    { name = "modelexpress", specifier = "==0.7.0" },
     { name = "torch", index = "https://download.pytorch.org/whl/cu130" },
     { name = "torchaudio", index = "https://download.pytorch.org/whl/cu130" },
     { name = "torchvision", index = "https://download.pytorch.org/whl/cu130" },
@@ -1346,6 +1349,31 @@ wheels = [
 ]
 
 [[package]]
+name = "modelexpress"
+version = "0.7.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "boto3" },
+    { name = "google-crc32c" },
+    { name = "grpcio" },
+    { name = "huggingface-hub" },
+    { name = "instanttensor" },
+    { name = "numpy" },
+    { name = "protobuf" },
+    { name = "pydantic" },
+    { name = "runai-model-streamer", extra = ["azure", "gcs", "s3"] },
+    { name = "s3transfer" },
+    { name = "safetensors" },
+    { name = "torch" },
+    { name = "zstandard" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/95/ed/14206fe62fd6ded85fe8282bd98694236c293aaadf0c0f6ceaf6955d4ee9/modelexpress-0.7.0.tar.gz", hash = "sha256:79986eacb078de008b522982e91c7ce7d730dd03d48f3932b1dce945682d488b", size = 711281, upload-time = "2026-10-03T18:10:31.887Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/d7/b1dd834fff004975bd56b1abcf57e15317c7ee145d4862988a2d503d0925/modelexpress-0.7.0-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3b3708e44d95c027c39987aff806dad0d98e6e1cf0dedf303b14b48e96c36fd7", size = 573546, upload-time = "2026-10-03T18:08:40.344Z" },
+    { url = "https://files.pythonhosted.org/packages/5a/25/1105431471ea1cc434d8289bd265f7b97ca88980998a3051d91c014297a1/modelexpress-0.7.0-py3-none-any.whl", hash = "sha256:cfd2e8309140dbb9ff2fc001716c92b2f80fe2e9ac325dc9b0bb5f60ed650056", size = 487272, upload-time = "2026-10-03T18:10:12.049Z" },
+]
+
+[[package]]
 name = "mpmath"
 version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1796,11 +1824,11 @@ wheels = [
 
 [[package]]
 name = "oauthlib"
-version = "4.0.0"
+version = "4.0.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7a/d8/a1bcc8ba112a627f8ffbdc212a78ce18d3ac07e91a5ca65d27918eee25a1/oauthlib-4.0.0.tar.gz", hash = "sha256:efb274799819440f95b4ab3b818869f1ce9ae26c5beacba0201d1a1b76b54f86", size = 187232, upload-time = "2026-09-28T06:01:18.77Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/33/17/2bb072de0b990303c985f26869fd47bb179024a051f47e7f9d208eb92f8e/oauthlib-4.0.1.tar.gz", hash = "sha256:3d73febdb6faa00f277c81fb04be7b7586fb96fc3b7f0b9c772dada69a25ede7", size = 191219, upload-time = "2026-10-31T09:52:58.008Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d9/f4/78229a1066068ca14fc60fb26cf7381cabe4382261392b90e5f9552722d4/oauthlib-4.0.0-py3-none-any.whl", hash = "sha256:624c28c13a0a59cabf9747dfa52af63be3e512a7f2714df16e91b5b3a145e6cd", size = 159715, upload-time = "2026-09-28T06:01:17.008Z" },
+    { url = "https://files.pythonhosted.org/packages/df/ef/3b8adde1b32a6f540758bff734d3442c621734c83708e5f02b0ba2f43b84/oauthlib-4.0.1-py3-none-any.whl", hash = "sha256:498a298876e996301950a5b053d12c31628bb7b895db03666430c69ce182eb61", size = 161934, upload-time = "2026-10-31T09:52:56.206Z" },
 ]
 
 [[package]]
@@ -2111,12 +2139,12 @@ wheels = [
 
 [[package]]
 name = "protobuf"
-version = "7.36.2"
+version = "6.33.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d9/89/5b8517baa72f84a67b8a307ba953c91057af618bf40bf676f3c03551f8f0/protobuf-7.36.2.tar.gz", hash = "sha256:497d0463ff3316681da6c0b9e8d06cb465d61abce00b613ab42226175644d1bb", size = 512737, upload-time = "2026-09-17T20:07:59.326Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/66/70/e908e9c5e52ef7c3a6c7902c9dfbb34c7e29c25d2f81ade3856445fd5c94/protobuf-6.33.6.tar.gz", hash = "sha256:a6768d25248312c297558af96a9f9c929e8c4cee0659cb07e780731095f38135", size = 444531, upload-time = "2026-03-18T19:05:00.988Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/db/f3/3996583dd2906297a637af12114deddf7658af6e683fedb83be061983fb5/protobuf-7.36.2-cp310-abi3-manylinux2014_x86_64.whl", hash = "sha256:89f23aa53c24553a2416fd4fd1ec06f74fa42b14b546d8883128813f775bbfd2", size = 343223, upload-time = "2026-09-17T20:07:54.931Z" },
-    { url = "https://files.pythonhosted.org/packages/e4/04/d52c7016b04b6c5108f26691f9d33ec82a9b65d041f1a9c771137693d618/protobuf-7.36.2-py3-none-any.whl", hash = "sha256:bdb3a345d48db958e6ce1f18e508beb0cc981d64f24088427549c866cd039f1e", size = 179806, upload-time = "2026-09-17T20:07:58.211Z" },
+    { url = "https://files.pythonhosted.org/packages/16/92/d1e32e3e0d894fe00b15ce28ad4944ab692713f2e7f0a99787405e43533a/protobuf-6.33.6-cp39-abi3-manylinux2014_x86_64.whl", hash = "sha256:e9db7e292e0ab79dd108d7f1a94fe31601ce1ee3f7b79e0692043423020b0593", size = 323436, upload-time = "2026-03-18T19:04:55.768Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/72/02445137af02769918a93807b2b7890047c32bfb9f90371cbc12688819eb/protobuf-6.33.6-py3-none-any.whl", hash = "sha256:77179e006c476e69bf8e8ce866640091ec42e1beb80b213c3900006ecfba6901", size = 170656, upload-time = "2026-03-18T19:04:59.826Z" },
 ]
 
 [[package]]

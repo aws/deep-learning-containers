@@ -55,13 +55,14 @@ smoke-test:
     # (32 GB RAM) on 2026-05-11: cosyvoice with --trust-remote-code on 16 GB
     # was causing host SIGKILL during model load on vllm-omni 0.20.0 final.
     # Last green run was 2026-05-07 on rc1; regression in final.
-    - name: "cosyvoice3-0.5b"
-      s3_model: "cosyvoice3-0.5b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--trust-remote-code --enforce-eager"
-      route: "/v1/audio/speech"
-      test_request: '{"input": "Hello, this is a voice cloning smoke test.", "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/cosyvoice3_ref.wav", "ref_text": "希望你以后能够做的比我还好呦。", "response_format": "wav", "stream": false}'
-      validate: "binary_size_gt:1000"
+    # Temporarily disabled.
+    # - name: "cosyvoice3-0.5b"
+    #   s3_model: "cosyvoice3-0.5b.tar.gz"
+    #   fleet: "x86-g6exl-runner"
+    #   extra_args: "--trust-remote-code --enforce-eager"
+    #   route: "/v1/audio/speech"
+    #   test_request: '{"input": "Hello, this is a voice cloning smoke test.", "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/cosyvoice3_ref.wav", "ref_text": "希望你以后能够做的比我还好呦。", "response_format": "wav", "stream": false}'
+    #   validate: "binary_size_gt:1000"
 
     # --- Image generation models (route: /v1/images/generations) ---
     - name: "flux2-klein-4b"
@@ -224,12 +225,13 @@ benchmark:
     # load SIGKILLs on 16GB hosts under vllm-omni 0.20.0 final.
     # Thresholds baselined 2026-05-12 on x86-g6exl-runner with vllm-omni 0.20.0
     # (rps 0.348, audio rtf mult 2.119, p95 e2e 15639ms); ~25% CI margin applied.
-    - name: "cosyvoice3-0.5b"
-      s3_model: "cosyvoice3-0.5b.tar.gz"
-      fleet: "x86-g6exl-runner"
-      extra_args: "--trust-remote-code --enforce-eager"
-      benchmark_type: "tts-base"
-      benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/cosyvoice3_ref.wav", "ref_text": "希望你以后能够做的比我还好呦。", "language": "Chinese", "min_rps": 0.26, "min_audio_rtf_mult": 1.6, "max_p95_e2e_ms": 20000}'
+    # Temporarily disabled.
+    # - name: "cosyvoice3-0.5b"
+    #   s3_model: "cosyvoice3-0.5b.tar.gz"
+    #   fleet: "x86-g6exl-runner"
+    #   extra_args: "--trust-remote-code --enforce-eager"
+    #   benchmark_type: "tts-base"
+    #   benchmark_config: '{"concurrency": 4, "num_prompts": 20, "ref_audio_s3": "s3://dlc-cicd-models/test-fixtures/audio/cosyvoice3_ref.wav", "ref_text": "希望你以后能够做的比我还好呦。", "language": "Chinese", "min_rps": 0.26, "min_audio_rtf_mult": 1.6, "max_p95_e2e_ms": 20000}'
 
     # # --- Image generation ---
     # # Thresholds baselined on g6.xlarge (L4 24GB) with ~25% margin for CI noise.

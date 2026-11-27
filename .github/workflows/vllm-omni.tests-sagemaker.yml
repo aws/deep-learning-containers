@@ -74,7 +74,7 @@ jobs:
           - name: tts-async
             node: "vllm-omni/sagemaker/test_sm_omni_endpoint.py::test_vllm_omni_tts_async_endpoint"
           - name: bidi-speech-stream
-            node: "vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py::test_vllm_omni_bidi_speech_stream"
+            node: "vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py::TestBidiSpeechStream"
           - name: bidi-default-path-rejected
             node: "vllm-omni/sagemaker/test_sm_omni_bidi_endpoint.py::test_vllm_omni_bidi_default_path_rejected"
           - name: peft-lora

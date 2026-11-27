@@ -1,0 +1,4 @@
+#!/bin/sh
+# Lambda runs every executable in /opt/extensions during Init. Lambda identifies the
+# extension by its file name, so pass it on; see /opt/engine-extension/engine_extension.py.
+exec /var/lang/bin/python3 /opt/engine-extension/engine_extension.py sglang "$(basename "$0")"

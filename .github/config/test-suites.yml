@@ -60,11 +60,15 @@ suites:
     skip_eligible: true
     code_paths:
       - test/tensorflow/integration/inference/**
+      - .github/workflows/tensorflow-inference.tests-sagemaker.yml
+      - test/test_utils/instance_capacity.py
+      - test/test_utils/constants.py
 
   tensorflow-training/unit:
     skip_eligible: true
     code_paths:
       - test/tensorflow/unit/**
+      - .github/workflows/tensorflow-training.tests-unit.yml
 
   tensorflow-training/single_gpu:
     skip_eligible: true
@@ -75,6 +79,7 @@ suites:
     skip_eligible: true
     code_paths:
       - test/tensorflow/integration/training/**
+      - .github/workflows/tensorflow-training.tests-sagemaker.yml
 
   ray/unit:
     skip_eligible: true

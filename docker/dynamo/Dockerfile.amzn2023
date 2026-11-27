@@ -167,6 +167,7 @@ FROM runtime-noefa AS runtime-efa
 ARG EFA_VERSION="latest"
 ARG NCCL_TESTS_VERSION
 ARG NCCL_TESTS_SHA256
+ARG CACHE_REFRESH=0
 COPY ./scripts/docker/common/install_efa_amzn2023.sh /tmp/install_efa_amzn2023.sh
 # libnccl-devel (cuda-rhel9 repo) is only needed to build the ofi-nccl check and nccl-tests;
 # at runtime all_reduce_perf uses the NCCL from the Python environment (see the final stage).
@@ -221,16 +222,18 @@ RUN --mount=type=bind,from=dynamo-build,source=/opt/dynamo/dist,target=/tmp/dyna
 FROM python-env AS oss
 ARG PYTHON_VERSION
 COPY scripts/docker/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
+COPY scripts/docker/dynamo/add_python_licenses.sh /tmp/add_python_licenses.sh
+COPY LICENSE /tmp/DLC_LICENSE
 RUN uv pip install pip \
   && bash /tmp/setup_oss_compliance.sh python${PYTHON_VERSION} \
+  && bash /tmp/add_python_licenses.sh python${PYTHON_VERSION} /tmp/DLC_LICENSE \
   && touch /root/THIRD_PARTY_SOURCE_CODE_URLS
 
-# Builds NIXL's LIBFABRIC (EFA) plugin for the backend's NIXL when the base has EFA and either
-# scripts/docker/dynamo/nixl/patches/<nixl-version>/ has patches or the backend's NIXL ships without
-# LIBFABRIC; otherwise a no-op.
-#   nixl-cu13 1.5.0 (SGLang): ai-dynamo/nixl#2308 (not in a release yet). The progress thread posts
-#   transfers and reads the CQ without the endpoint lock, racing control messages; on EFA this
-#   aborts the worker ("Packet already processed") during disaggregated KV transfer.
+# Builds NIXL's LIBFABRIC (EFA) plugin from source, at the backend's NIXL version, when the base has
+# EFA (a no-op otherwise): against the EFA installer's libfabric, so EFA options gated on newer libfabric
+# headers are compiled in (the wheels' plugins are built against libfabric 1.21; see
+# scripts/docker/dynamo/nixl/build_libfabric_plugin.sh). Patches in
+# scripts/docker/dynamo/nixl/patches/<nixl-version>/ apply on top; none are needed today.
 #   TensorRT-LLM bundles its own NIXL (BUNDLED_NIXL_VERSION) without LIBFABRIC.
 FROM runtime-${EFA_FLAVOR} AS nixl-libfabric-build
 ARG BUNDLED_NIXL_VERSION=""

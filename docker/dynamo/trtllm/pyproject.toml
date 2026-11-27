@@ -10,7 +10,7 @@ dependencies = [
   # Dynamo pins the exact TensorRT-LLM release it supports through this extra. The image
   # builds ai-dynamo / ai-dynamo-runtime / gpu-memory-service from source at the same
   # release and installs them over the locked versions (same dependency metadata).
-  "ai-dynamo[trtllm]==1.6.1",
+  "ai-dynamo[trtllm]==1.6.2",
   # PyPI only has a placeholder sdist; the wheel comes from NVIDIA's index (tool.uv.sources).
   "tensorrt-llm",
   # Listed so tool.uv.sources applies (sources only apply to direct dependencies); the
@@ -25,6 +25,10 @@ dependencies = [
 [tool.uv]
 required-version = ">=0.13"
 environments = ["sys_platform == 'linux' and platform_machine == 'x86_64'"]
+# Security minimums the lock must keep (they only raise a floor, unlike override-dependencies).
+constraint-dependencies = [
+  "oauthlib>=4.0.1",  # CVE-2026-49272
+]
 exclude-dependencies = [
   # Only used by Dynamo's planner/profiler simulation, not by dynamo.trtllm or
   # dynamo.frontend; it pulls ~50 packages (jax, flax, tfp-nightly).
