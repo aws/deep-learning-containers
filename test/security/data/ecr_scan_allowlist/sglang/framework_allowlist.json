@@ -1,28 +1,28 @@
 [
     {
         "vulnerability_id": "CVE-2026-78663",
-        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and golang.org/x/net v0.60.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-97032",
-        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and golang.org/x/net v0.60.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-78659",
-        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and golang.org/x/net v0.60.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-78669",
-        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and golang.org/x/net v0.60.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-78660",
-        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and golang.org/x/net v0.60.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-56857",
@@ -31,93 +31,93 @@
     },
     {
         "vulnerability_id": "CVE-2026-97031",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-94439",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-78667",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-94440",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-56866",
-        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-56851",
-        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine 0.3.13.post1 (latest on PyPI) still ships go1.25.10 / x/net v0.55.0 / x/text v0.37.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-01-17"
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with golang.org/x/text v0.42.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-84304",
-        "reason": "google.golang.org/grpc v1.82.1 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with grpc 1.83.1+",
-        "review_by": "2026-12-05"
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with google.golang.org/grpc v1.83.2 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-56862",
-        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.6+",
-        "review_by": "2026-11-22"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-56859",
-        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.6+",
-        "review_by": "2026-11-22"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-56853",
-        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.6+",
-        "review_by": "2026-11-22"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-33818",
-        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.6+",
-        "review_by": "2026-11-22"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-73500",
-        "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-11-22"
+        "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with etcd client v3.5.34 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-56852",
-        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine-cuda13 0.3.13.post1 (latest on PyPI) still embeds x/text v0.37.0, below the fixed v0.39.0; upstream Mooncake main has bumped x/text to v0.42.0 but no released wheel carries it, so it cannot be patched without an upstream mooncake rebuild",
-        "review_by": "2026-12-28"
+        "reason": "golang.org/x/text v0.37.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with golang.org/x/text v0.42.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-46600",
-        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so; mooncake-transfer-engine-cuda13 0.3.13.post1 (latest on PyPI) still embeds x/net v0.55.0, below the fixed v0.56.0; upstream Mooncake main has bumped x/net to v0.60.0 but no released wheel carries it, so it cannot be patched without an upstream mooncake rebuild",
-        "review_by": "2026-12-28"
+        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with golang.org/x/net v0.60.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-39821",
-        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.6+",
-        "review_by": "2026-12-18"
+        "reason": "go/stdlib 1.25.10 and golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and golang.org/x/net v0.60.0 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-42504",
-        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, MIME header parsing CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-12-18"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-39822",
-        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild with Go 1.26.5+",
-        "review_by": "2026-12-18"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-27145",
-        "reason": "go/stdlib 1.25.10 embedded in mooncake libetcd_wrapper.so, VerifyHostname CPU exhaustion, cannot patch without upstream mooncake rebuild with Go 1.26.4+",
-        "review_by": "2026-12-18"
+        "reason": "go/stdlib 1.25.10 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with go1.26.10 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "GHSA-36hh-v3qg-5jq4",
@@ -126,8 +126,8 @@
     },
     {
         "vulnerability_id": "CVE-2026-84445",
-        "reason": "google.golang.org/grpc v1.82.1 embedded in mooncake libetcd_wrapper.so, only fix is an unreleased grpc-go dev revision, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-12-18"
+        "reason": "google.golang.org/grpc v1.82.1 statically linked inside mooncake libetcd_wrapper.so, which ships in the upstream lmsysorg/sglang base image via mooncake-transfer-engine-cuda13 0.3.13.post1; mooncake 0.3.14 rebuilds that binary with google.golang.org/grpc v1.83.2 and carries the fix, but the mooncake version is set by the base image rather than this image's own pins, so picking it up needs a base image tag bump - framework owner review",
+        "review_by": "2027-01-26"
     },
     {
         "vulnerability_id": "CVE-2026-78661",
