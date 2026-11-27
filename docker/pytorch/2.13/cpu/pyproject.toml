@@ -25,7 +25,9 @@ dependencies = [
     "scikit-learn",
     "opencv-python",
     "msgpack>=1.2.3",  # CVE GHSA-6v7p-g79w-8964, CVE-2026-114613 (transitive via deepspeed)
-    "soupsieve>=2.8.4",  # CVE GHSA-2wc2-fm75-p42x, GHSA-836r-79rf-4m37 (transitive via beautifulsoup4 -> python-fasthtml -> fastai)
+    # CVE GHSA-2wc2-fm75-p42x, GHSA-836r-79rf-4m37, CVE-2026-126190, CVE-2026-126191
+    # (transitive via beautifulsoup4 -> python-fasthtml -> fastai)
+    "soupsieve>=4.0.0",
     "click>=8.3.3",  # CVE-2026-7246 (transitive)
     # CVE-2026-55379, CVE-2026-96639, CVE-2026-96640, CVE-2026-96644, CVE-2026-96778,
     # CVE-2026-112390, CVE-2026-112391, CVE-2026-112392, CVE-2026-112393, CVE-2026-112394,
@@ -39,7 +41,7 @@ dependencies = [
     "certifi>=2026.10.18",  # GHSA-6q48-6c7w-9gw2 (transitive)
     "fsspec>=2026.6.0",  # CVE-2026-104851 (transitive via torch)
     "filelock>=4.2.1",  # CVE-2026-112940 (transitive via torch)
-    "oauthlib>=4.0.0",  # GHSA-3jp2-3mrg-2vxc (transitive via fastai / python-fasthtml)
+    "oauthlib>=4.0.1",  # GHSA-3jp2-3mrg-2vxc, CVE-2026-49272 (transitive via fastai / python-fasthtml)
 ]
 
 [project.optional-dependencies]
@@ -48,7 +50,7 @@ sagemaker = [
     "sagemaker>=3.4.0",
     "sagemaker-pytorch-training",
     "sagemaker-training",
-    "mlflow>=3.17.2",  # CVE-2026-53995, CVE-2026-116690, CVE-2026-116692; relaxes cryptography cap to <51, unblocking CVE-2026-69247
+    "mlflow>=3.18.0",  # CVE-2026-53995, CVE-2026-116690, CVE-2026-116692, CVE-2026-118628; relaxes cryptography cap to <51, unblocking CVE-2026-69247
     "bokeh",
     "imageio",
     "numba",
@@ -65,6 +67,9 @@ sagemaker = [
     "sqlparse>=0.6.0",  # CVE-2026-54284, CVE-2026-59893, CVE-2026-71491 (transitive via mlflow-skinny)
     "pyasn1>=0.6.5",  # CVE-2026-119194/119195/119196/119197; CVE-2026-59884 / CVE-2026-59885 / CVE-2026-59886 (transitive)
     "brotli>=1.2.1",  # CVE-2026-111497, GHSA-9v8h-qqgm-4m35 (transitive via geventhttpclient)
+    # CVE-2026-75507, CVE-2026-75508 (transitive via mlflow -> graphene). The fix is
+    # backported to the 3.2.x line, which satisfies graphene 3.4.3's graphql-core<3.3 cap.
+    "graphql-core>=3.2.12",
 ]
 
 [tool.uv]

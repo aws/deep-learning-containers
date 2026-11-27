@@ -61,6 +61,9 @@ sagemaker = [
     "sqlparse>=0.6.0",  # CVE-2026-54284, CVE-2026-59893, CVE-2026-71491 (transitive via mlflow-skinny)
     "pyasn1>=0.6.5",  # CVE-2026-119194/119195/119196/119197; CVE-2026-59884 / CVE-2026-59885 / CVE-2026-59886 (transitive)
     "brotli>=1.2.1",  # CVE-2026-111497, GHSA-9v8h-qqgm-4m35 (transitive via geventhttpclient)
+    # CVE-2026-75507, CVE-2026-75508 (transitive via mlflow -> graphene). The fix is
+    # backported to the 3.2.x line, which satisfies graphene 3.4.3's graphql-core<3.3 cap.
+    "graphql-core>=3.2.12",
 ]
 
 [tool.uv]
