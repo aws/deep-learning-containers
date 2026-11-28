@@ -60,11 +60,6 @@
         "review_by": "2027-01-16"
     },
     {
-        "vulnerability_id": "CVE-2026-73500",
-        "reason": "go.etcd.io/etcd/client/pkg/v3 v3.5.21 embedded in mooncake libetcd_wrapper.so, cannot patch without upstream mooncake rebuild",
-        "review_by": "2026-11-26"
-    },
-    {
         "vulnerability_id": "CVE-2026-84445",
         "reason": "google.golang.org/grpc v1.82.1 embedded in mooncake libetcd_wrapper.so, xds server only and no released fix (scanner points at a 1.85.0-dev pseudo-version), cannot patch without upstream mooncake rebuild",
         "review_by": "2026-12-17"
@@ -81,8 +76,8 @@
     },
     {
         "vulnerability_id": "CVE-2026-24747",
-        "reason": "torch 2.9.1 is only a version pin in the upstream vllm/vllm-openai base image's benchmarks/requirements.txt and samples/requirements.txt (benchmark metadata), not the installed package. Installed torch is 2.13.0+cu130 (>= 2.10.0 fix). weights_only unpickler RCE requires loading a malicious checkpoint; those requirements files are inert. Not exploitable in the runtime.",
-        "review_by": "2027-01-27"
+        "reason": "torch 2.9.1 is only a version pin in the upstream vllm/vllm-openai base image's benchmarks/requirements.txt and samples/requirements.txt (benchmark metadata), not the installed package. Installed torch is 2.14.0+cu130 (>= 2.10.0 fix). weights_only unpickler RCE requires loading a malicious checkpoint; those requirements files are inert. Not exploitable in the runtime.",
+        "review_by": "2027-02-26"
     },
     {
         "vulnerability_id": "CVE-2026-39822",
@@ -136,7 +131,7 @@
     },
     {
         "vulnerability_id": "CVE-2026-78661",
-        "reason": "golang.org/x/net v0.55.0 statically linked inside mooncake libetcd_wrapper.so, html addText/fosterParent text-node coalescing quadratic memory copy; the fix needs x/net v0.62.0 but the newest released wheel mooncake-transfer-engine-cuda13 0.3.14 still embeds x/net v0.60.0 and upstream Mooncake main is also pinned to v0.60.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
-        "review_by": "2027-02-04"
+        "reason": "golang.org/x/net v0.60.0 statically linked inside mooncake libetcd_wrapper.so, html addText/fosterParent text-node coalescing quadratic memory copy; the fix needs x/net v0.62.0 but the newest released wheel mooncake-transfer-engine-cuda13 0.3.14 still embeds x/net v0.60.0 and upstream Mooncake main is also pinned to v0.60.0, so no released wheel carries the fix and it cannot be patched independently of an upstream mooncake rebuild",
+        "review_by": "2027-01-27"
     }
 ]
